@@ -21,30 +21,19 @@ type RetentionPolicy struct {
 	PostDuration int64  `json:"post_duration"`
 }
 
-type ChannelDisplayInfo struct {
-	Id              string `json:"id"`
-	DisplayName     string `json:"display_name"`
-	TeamDisplayName string `json:"team_display_name"`
-}
-
-type TeamDisplayInfo struct {
-	Id          string `json:"id"`
-	DisplayName string `json:"display_name"`
-}
-
-type RetentionPolicyEnriched struct {
+type RetentionPolicyWithTeamsAndChannels struct {
 	RetentionPolicy
-	Teams    []TeamDisplayInfo    `json:"teams"`
-	Channels []ChannelDisplayInfo `json:"channels"`
+	Teams    []*Team    `json:"teams"`
+	Channels []*Channel `json:"channels"`
 }
 
-type RetentionPolicyWithApplied struct {
+type RetentionPolicyWithTeamAndChannelIds struct {
 	RetentionPolicy
 	TeamIds    []string `json:"team_ids"`
 	ChannelIds []string `json:"channel_ids"`
 }
 
-type RetentionPolicyWithCounts struct {
+type RetentionPolicyWithTeamAndChannelCounts struct {
 	RetentionPolicy
 	ChannelCount int64 `json:"channel_count"`
 	TeamCount    int64 `json:"team_count"`
@@ -60,14 +49,14 @@ type RetentionPolicyTeam struct {
 	TeamId   string
 }
 
-type RetentionPolicyEnrichedList struct {
-	Policies   []*RetentionPolicyEnriched `json:"policies"`
-	TotalCount *int                       `json:"total_count,omitempty"`
+type RetentionPolicyWithTeamsAndChannelsList struct {
+	Policies   []*RetentionPolicyWithTeamsAndChannels `json:"policies"`
+	TotalCount *int                                   `json:"total_count,omitempty"`
 }
 
-type RetentionPolicyWithCountsList struct {
-	Policies   []*RetentionPolicyWithCounts `json:"policies"`
-	TotalCount *int                         `json:"total_count,omitempty"`
+type RetentionPolicyWithTeamAndChannelCountsList struct {
+	Policies   []*RetentionPolicyWithTeamAndChannelCounts `json:"policies"`
+	TotalCount *int                                       `json:"total_count,omitempty"`
 }
 
 func (rp *GlobalRetentionPolicy) ToJson() []byte {
@@ -81,19 +70,19 @@ func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
 	return grp
 }
 
-func (rp *RetentionPolicyEnriched) ToJson() []byte {
+func (rp *RetentionPolicyWithTeamsAndChannels) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
 }
 
-func RetentionPolicyEnrichedFromJson(data io.Reader) (*RetentionPolicyEnriched, error) {
-	var rp *RetentionPolicyEnriched
+func RetentionPolicyEnrichedFromJson(data io.Reader) (*RetentionPolicyWithTeamsAndChannels, error) {
+	var rp *RetentionPolicyWithTeamsAndChannels
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
 }
 
-func RetentionPolicyEnrichedListFromJson(data io.Reader) ([]*RetentionPolicyEnriched, error) {
-	var rpList *RetentionPolicyEnrichedList
+func RetentionPolicyWithTeamsAndChannelsListFromJson(data io.Reader) ([]*RetentionPolicyWithTeamsAndChannels, error) {
+	var rpList *RetentionPolicyWithTeamsAndChannelsList
 	err := json.NewDecoder(data).Decode(&rpList)
 	if err != nil {
 		return nil, err
@@ -101,13 +90,13 @@ func RetentionPolicyEnrichedListFromJson(data io.Reader) ([]*RetentionPolicyEnri
 	return rpList.Policies, nil
 }
 
-func (rpList *RetentionPolicyEnrichedList) ToJson() []byte {
+func (rpList *RetentionPolicyWithTeamsAndChannelsList) ToJson() []byte {
 	b, _ := json.Marshal(rpList)
 	return b
 }
 
-func RetentionPolicyWithCountsListFromJson(data io.Reader) ([]*RetentionPolicyWithCounts, error) {
-	var rpList *RetentionPolicyWithCountsList
+func RetentionPolicyWithTeamAndChannelCountsListFromJson(data io.Reader) ([]*RetentionPolicyWithTeamAndChannelCounts, error) {
+	var rpList *RetentionPolicyWithTeamAndChannelCountsList
 	err := json.NewDecoder(data).Decode(&rpList)
 	if err != nil {
 		return nil, err
@@ -115,18 +104,18 @@ func RetentionPolicyWithCountsListFromJson(data io.Reader) ([]*RetentionPolicyWi
 	return rpList.Policies, nil
 }
 
-func (rpList *RetentionPolicyWithCountsList) ToJson() []byte {
+func (rpList *RetentionPolicyWithTeamAndChannelCountsList) ToJson() []byte {
 	b, _ := json.Marshal(rpList)
 	return b
 }
 
-func RetentionPolicyWithAppliedFromJson(data io.Reader) (*RetentionPolicyWithApplied, error) {
-	var rp *RetentionPolicyWithApplied
+func RetentionPolicyWithTeamAndChannelIdsFromJson(data io.Reader) (*RetentionPolicyWithTeamAndChannelIds, error) {
+	var rp *RetentionPolicyWithTeamAndChannelIds
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
 }
 
-func (rp *RetentionPolicyWithApplied) ToJson() []byte {
+func (rp *RetentionPolicyWithTeamAndChannelIds) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
 }

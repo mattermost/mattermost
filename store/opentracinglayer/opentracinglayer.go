@@ -5891,7 +5891,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) Delete(id string) error {
 	return err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -5909,7 +5909,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) Get(id string) (*model.RetentionP
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -5927,7 +5927,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetAll(offset uint64, limit uint6
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetAllWithCounts")
 	s.Root.Store.SetContext(newCtx)
@@ -5945,7 +5945,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, l
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.Patch")
 	s.Root.Store.SetContext(newCtx)
@@ -6017,7 +6017,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) RemoveTeams(policyId string, team
 	return err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -6035,7 +6035,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) Save(policy *model.RetentionPolic
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.Update")
 	s.Root.Store.SetContext(newCtx)

@@ -25,7 +25,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("RemoveOrphanedRows", func(t *testing.T) { testRetentionPolicyStoreRemoveOrphanedRows(t, ss, s) })
 }
 
-func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyEnriched) {
+func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamsAndChannels) {
 	require.Equal(t, p1.Id, p2.Id)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
 	require.Equal(t, p1.PostDuration, p2.PostDuration)
@@ -54,7 +54,7 @@ func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionP
 	}
 }
 
-func checkRetentionPolicyCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithCounts) {
+func checkRetentionPolicyCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelCounts) {
 	require.Equal(t, p1.Id, p2.Id)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
 	require.Equal(t, p1.PostDuration, p2.PostDuration)
@@ -62,7 +62,7 @@ func checkRetentionPolicyCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPol
 	require.Equal(t, p1.ChannelCount, p2.ChannelCount)
 }
 
-func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, policy *model.RetentionPolicyEnriched) {
+func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, policy *model.RetentionPolicyWithTeamsAndChannels) {
 	newPolicy, err := ss.RetentionPolicy().Get(policy.Id)
 	require.Nil(t, err)
 	CheckRetentionPolicyEnrichedAreEqual(t, policy, newPolicy)
@@ -133,8 +133,8 @@ func cleanupRetentionPolicyTest(s SqlStore) {
 }
 
 func createRetentionPolicyEnriched(displayName string, teams []model.TeamDisplayInfo,
-	channels []model.ChannelDisplayInfo) *model.RetentionPolicyEnriched {
-	return &model.RetentionPolicyEnriched{
+	channels []model.ChannelDisplayInfo) *model.RetentionPolicyWithTeamsAndChannels {
+	return &model.RetentionPolicyWithTeamsAndChannels{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  displayName,
 			PostDuration: 30,
@@ -144,8 +144,8 @@ func createRetentionPolicyEnriched(displayName string, teams []model.TeamDisplay
 	}
 }
 
-func createRetentionPolicyAppliedFromIds(displayName string, teamIds []string, channelIds []string) *model.RetentionPolicyWithApplied {
-	return &model.RetentionPolicyWithApplied{
+func createRetentionPolicyAppliedFromIds(displayName string, teamIds []string, channelIds []string) *model.RetentionPolicyWithTeamAndChannelIds {
+	return &model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  displayName,
 			PostDuration: 30,
@@ -156,7 +156,7 @@ func createRetentionPolicyAppliedFromIds(displayName string, teamIds []string, c
 }
 
 func createRetentionPolicyAppliedFromDisplayInfo(displayName string, teams []model.TeamDisplayInfo,
-	channels []model.ChannelDisplayInfo) *model.RetentionPolicyWithApplied {
+	channels []model.ChannelDisplayInfo) *model.RetentionPolicyWithTeamAndChannelIds {
 	return retentionPolicyEnrichedToApplied(
 		createRetentionPolicyEnriched(displayName, teams, channels))
 }
@@ -177,23 +177,23 @@ func getTeamIdsFromDisplayInfo(teams []model.TeamDisplayInfo) []string {
 	return teamIds
 }
 
-func retentionPolicyEnrichedToApplied(enriched *model.RetentionPolicyEnriched) *model.RetentionPolicyWithApplied {
-	return &model.RetentionPolicyWithApplied{
+func retentionPolicyEnrichedToApplied(enriched *model.RetentionPolicyWithTeamsAndChannels) *model.RetentionPolicyWithTeamAndChannelIds {
+	return &model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: enriched.RetentionPolicy,
 		TeamIds:         getTeamIdsFromDisplayInfo(enriched.Teams),
 		ChannelIds:      getChannelIdsFromDisplayInfo(enriched.Channels),
 	}
 }
 
-func retentionPolicyEnrichedToCounts(enriched *model.RetentionPolicyEnriched) *model.RetentionPolicyWithCounts {
-	return &model.RetentionPolicyWithCounts{
+func retentionPolicyEnrichedToCounts(enriched *model.RetentionPolicyWithTeamsAndChannels) *model.RetentionPolicyWithTeamAndChannelCounts {
+	return &model.RetentionPolicyWithTeamAndChannelCounts{
 		RetentionPolicy: enriched.RetentionPolicy,
 		TeamCount:       int64(len(enriched.Teams)),
 		ChannelCount:    int64(len(enriched.Channels)),
 	}
 }
 
-func copyRetentionPolicyEnriched(policy *model.RetentionPolicyEnriched) *model.RetentionPolicyEnriched {
+func copyRetentionPolicyEnriched(policy *model.RetentionPolicyWithTeamsAndChannels) *model.RetentionPolicyWithTeamsAndChannels {
 	copy := *policy
 	copy.Teams = make([]model.TeamDisplayInfo, len(policy.Teams))
 	copy.Channels = make([]model.ChannelDisplayInfo, len(policy.Channels))
@@ -206,7 +206,7 @@ func copyRetentionPolicyEnriched(policy *model.RetentionPolicyEnriched) *model.R
 	return &copy
 }
 
-func restoreRetentionPolicy(t *testing.T, ss store.Store, policy *model.RetentionPolicyEnriched) {
+func restoreRetentionPolicy(t *testing.T, ss store.Store, policy *model.RetentionPolicyWithTeamsAndChannels) {
 	patch := retentionPolicyEnrichedToApplied(policy)
 	newPolicy, err := ss.RetentionPolicy().Patch(patch)
 	require.Nil(t, err)
@@ -260,7 +260,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 	policy, err := ss.RetentionPolicy().Save(proposal)
 	require.Nil(t, err)
 	t.Run("modify DisplayName", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id:          policy.Id,
 				DisplayName: "something new",
@@ -274,7 +274,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("modify PostDuration", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id:           policy.Id,
 				PostDuration: 10000,
@@ -288,7 +288,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("clear TeamIds", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id: policy.Id,
 			},
@@ -302,7 +302,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("add team which does not exist", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id: policy.Id,
 			},
@@ -312,7 +312,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		require.NotNil(t, err)
 	})
 	t.Run("clear ChannelIds", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id: policy.Id,
 			},
@@ -326,7 +326,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("add channel which does not exist", func(t *testing.T) {
-		patch := &model.RetentionPolicyWithApplied{
+		patch := &model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				Id: policy.Id,
 			},
@@ -340,8 +340,8 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 
 func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	// create multiple policies
-	policies := make([]*model.RetentionPolicyEnriched, 0)
-	policyCounts := make([]*model.RetentionPolicyWithCounts, 0)
+	policies := make([]*model.RetentionPolicyWithTeamsAndChannels, 0)
+	policyCounts := make([]*model.RetentionPolicyWithTeamAndChannelCounts, 0)
 	for i := 0; i < 3; i++ {
 		teams, channels := createTeamsAndChannelsForRetentionPolicy(t, ss)
 		proposal := createRetentionPolicyAppliedFromDisplayInfo(
@@ -391,7 +391,7 @@ func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 		}
 	})
 	t.Run("get all with same display name", func(t *testing.T) {
-		policies := make([]*model.RetentionPolicyEnriched, 0)
+		policies := make([]*model.RetentionPolicyWithTeamsAndChannels, 0)
 		for i := 0; i < 5; i++ {
 			teams, channels := createTeamsAndChannelsForRetentionPolicy(t, ss)
 			proposal := createRetentionPolicyAppliedFromDisplayInfo(

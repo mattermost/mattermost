@@ -57,7 +57,7 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		policyList := &model.RetentionPolicyWithCountsList{Policies: policies}
+		policyList := &model.RetentionPolicyWithTeamAndChannelCountsList{Policies: policies}
 		if c.Params.IncludeTotalCount {
 			policyList.TotalCount = model.NewInt(len(policies))
 		}
@@ -68,7 +68,7 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		policyList := &model.RetentionPolicyEnrichedList{Policies: policies}
+		policyList := &model.RetentionPolicyWithTeamsAndChannelsList{Policies: policies}
 		if c.Params.IncludeTotalCount {
 			policyList.TotalCount = model.NewInt(len(policies))
 		}
@@ -88,7 +88,7 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
+	policy, jsonErr := model.RetentionPolicyWithTeamAndChannelIdsFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 		return
@@ -114,7 +114,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	patch, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
+	patch, jsonErr := model.RetentionPolicyWithTeamAndChannelIdsFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
@@ -139,7 +139,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	update, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
+	update, jsonErr := model.RetentionPolicyWithTeamAndChannelIdsFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}

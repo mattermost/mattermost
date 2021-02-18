@@ -9,12 +9,12 @@ import (
 
 type DataRetentionInterface interface {
 	GetGlobalPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
-	GetPolicies(offset, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError)
-	GetPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError)
-	GetPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError)
-	CreatePolicy(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError)
-	PatchPolicy(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError)
-	UpdatePolicy(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError)
+	GetPolicies(offset, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, *model.AppError)
+	GetPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
+	GetPolicy(id string) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError)
+	CreatePolicy(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError)
+	PatchPolicy(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError)
+	UpdatePolicy(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError)
 	DeletePolicy(policyId string) *model.AppError
 	AddTeamsToPolicy(policyId string, teamIds []string) *model.AppError
 	RemoveTeamsFromPolicy(policyId string, teamIds []string) *model.AppError

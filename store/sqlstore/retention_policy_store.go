@@ -77,7 +77,7 @@ func executePossiblyEmptyQuery(txn *gorp.Transaction, query string, args ...inte
 	return txn.Exec(query, args...)
 }
 
-func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	// Strategy:
 	// 1. Insert new policy
 	// 2. Insert new channels into policy
@@ -220,13 +220,13 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyI
 	return
 }
 
-func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	return s.Update(patch)
 }
 
 // Update updates the policy with the same ID as `update`. For each field of `update`, if that field
 // has a zero value, then it will not be changed.
-func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	// Strategy:
 	// 1. Update policy attributes
 	// 2. Delete existing channels in policy
@@ -324,7 +324,14 @@ func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, 
 // buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
 // policy display name and ID.
-func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64, limit uint64) (query string, props map[string]interface{}) {
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(
+	selector interface {
+		Select(interface{}, string, ...interface{}) ([]interface{}, error)
+	},
+	id string,
+	offset uint64,
+	limit uint64,
+) (query string, props map[string]interface{}) {
 	props = map[string]interface{}{"Offset": offset, "Limit": limit}
 	whereIdEqualsPolicyId := ""
 	if id != "" {
@@ -351,11 +358,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 	SELECT RP.Id,
 	       RP.DisplayName,
 	       RP.PostDuration,
-	       RetentionPoliciesChannels.ChannelId,
-	       Channels.DisplayName AS ChannelDisplayName,
-	       Teams.DisplayName AS ChannelTeamDisplayName,
-	       NULL AS TeamId,
-	       NULL AS TeamDisplayName
+	       Channels.*
 	FROM ` + rpTable + `
 	LEFT JOIN RetentionPoliciesChannels ON RP.Id = RetentionPoliciesChannels.PolicyId
 	LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
@@ -381,13 +384,13 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 
 // getPoliciesFromRows builds enriched policy objects using rows obtained by a query from `buildGetPoliciesQuery`.
 // The rows must be sorted by (DisplayName, Id).
-func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
-	policies := make([]*model.RetentionPolicyEnriched, 0)
+func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyWithTeamsAndChannels {
+	policies := make([]*model.RetentionPolicyWithTeamsAndChannels, 0)
 	for _, row := range rows {
-		var policy *model.RetentionPolicyEnriched
+		var policy *model.RetentionPolicyWithTeamsAndChannels
 		size := len(policies)
 		if size == 0 || policies[size-1].Id != row.Id {
-			policy = &model.RetentionPolicyEnriched{
+			policy = &model.RetentionPolicyWithTeamsAndChannels{
 				RetentionPolicy: model.RetentionPolicy{
 					Id:           row.Id,
 					DisplayName:  row.DisplayName,
@@ -414,7 +417,7 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 	return policies
 }
 
-func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow, policyID string) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow, policyID string) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	policies := s.getPoliciesFromRows(rows)
 	if len(policies) == 0 {
 		return nil, store.NewErrNotFound("RetentionPolicy", policyID)
@@ -422,7 +425,7 @@ func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow, 
 	return policies[0], nil
 }
 
-func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 	query, props := s.buildGetPolicyQuery(id)
 	var rows []*retentionPolicyRow
 	_, err := s.GetReplica().Select(&rows, query, props)
@@ -436,7 +439,7 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched
 	return policy, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll(offset, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) GetAll(offset, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, error) {
 	query, props := s.buildGetPoliciesQuery("", offset, limit)
 	var rows []*retentionPolicyRow
 	_, err := s.GetReplica().Select(&rows, query, props)
@@ -447,7 +450,7 @@ func (s *SqlRetentionPolicyStore) GetAll(offset, limit uint64) ([]*model.Retenti
 	return policies, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
+func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	props := map[string]interface{}{"Offset": offset, "Limit": limit}
 	rpSelectQuery := `
 		SELECT Id, DisplayName, PostDuration
@@ -489,7 +492,7 @@ func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*mod
 	) AS A
 	GROUP BY Id, DisplayName, PostDuration
 	ORDER BY DisplayName, Id`
-	var rows []*model.RetentionPolicyWithCounts
+	var rows []*model.RetentionPolicyWithTeamAndChannelCounts
 	_, err := s.GetReplica().Select(&rows, query, props)
 	return rows, err
 }

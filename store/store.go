@@ -72,12 +72,12 @@ type Store interface {
 }
 
 type RetentionPolicyStore interface {
-	Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
-	Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
-	Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
-	Get(id string) (*model.RetentionPolicyEnriched, error)
-	GetAll(offset, limit uint64) ([]*model.RetentionPolicyEnriched, error)
-	GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, error)
+	Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error)
+	Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error)
+	Update(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error)
+	Get(id string) (*model.RetentionPolicyWithTeamsAndChannels, error)
+	GetAll(offset, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, error)
+	GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error)
 	Delete(id string) error
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error

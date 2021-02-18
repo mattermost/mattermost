@@ -16,42 +16,42 @@ func (a *App) GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.A
 	return a.DataRetention().GetGlobalPolicy()
 }
 
-func (a *App) GetRetentionPolicies(offset, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) GetRetentionPolicies(offset, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPolicies")
 	}
 	return a.DataRetention().GetPolicies(offset, limit)
 }
 
-func (a *App) GetRetentionPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError) {
+func (a *App) GetRetentionPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPoliciesWithCounts")
 	}
 	return a.DataRetention().GetPoliciesWithCounts(offset, limit)
 }
 
-func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPolicy")
 	}
 	return a.DataRetention().GetPolicy(id)
 }
 
-func (a *App) CreateRetentionPolicy(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("CreateRetentionPolicy")
 	}
 	return a.DataRetention().CreatePolicy(policy)
 }
 
-func (a *App) PatchRetentionPolicy(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("PatchRetentionPolicy")
 	}
 	return a.DataRetention().PatchPolicy(patch)
 }
 
-func (a *App) UpdateRetentionPolicy(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) UpdateRetentionPolicy(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("UpdateRetentionPolicy")
 	}

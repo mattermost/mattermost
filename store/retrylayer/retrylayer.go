@@ -6370,7 +6370,7 @@ func (s *RetryLayerRetentionPolicyStore) Delete(id string) error {
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 
 	tries := 0
 	for {
@@ -6390,7 +6390,7 @@ func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyE
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, error) {
 
 	tries := 0
 	for {
@@ -6410,7 +6410,7 @@ func (s *RetryLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 
 	tries := 0
 	for {
@@ -6430,7 +6430,7 @@ func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit u
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 
 	tries := 0
 	for {
@@ -6510,7 +6510,7 @@ func (s *RetryLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 
 	tries := 0
 	for {
@@ -6530,7 +6530,7 @@ func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithA
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
 
 	tries := 0
 	for {
