@@ -847,12 +847,14 @@ type AppIface interface {
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
+	RemoveCustomStatus(userID string) *model.AppError
 	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
+	RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
@@ -929,6 +931,7 @@ type AppIface interface {
 	SetActiveChannel(userID string, channelId string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
 	SetContext(c context.Context)
+	SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetIpAddress(s string)
 	SetPath(s string)
