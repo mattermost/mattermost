@@ -162,7 +162,15 @@ func tearDownStores() {
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
-	store := storeTypes[1].SqlStore
+	settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+	store := New(*settings, nil)
+	defer func() {
+		store.Close()
+		for _, replica := range store.searchReplicas {
+			require.NoError(t, replica.Db.Close())
+		}
+		storetest.CleanupSqlSettings(settings)
+	}()
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
