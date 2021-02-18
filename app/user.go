@@ -721,15 +721,18 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 }
 
 func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
-	secret, img, err := mfaService.GenerateSecret(user)
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return nil, model.NewAppError("GenerateMfaSecret", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	secret, img, err := mfa.New(a.Srv().Store.User()).GenerateSecret(*a.Config().ServiceSettings.SiteURL, user.Email, user.Id)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GenerateMfaSecret", "mfa.generate_qr_code.create_code.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Make sure the old secret is not cached on any cluster nodes.
@@ -755,9 +758,17 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
-	if err := mfaService.Activate(user, token); err != nil {
-		return err
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("ActivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if err := mfa.New(a.Srv().Store.User()).Activate(user.MfaSecret, user.Id, token); err != nil {
+		switch {
+		case errors.Is(err, mfa.InvalidToken):
+			return model.NewAppError("ActivateMfa", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
+		default:
+			return model.NewAppError("ActivateMfa", "mfa.activate.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.
@@ -767,9 +778,12 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	mfaService := mfa.New(a, a.Srv().Store)
-	if err := mfaService.Deactivate(userID); err != nil {
-		return err
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if err := mfa.New(a.Srv().Store.User()).Deactivate(userID); err != nil {
+		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.
