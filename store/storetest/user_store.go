@@ -5154,7 +5154,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(teamId, updatedUser.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(context.Background(), teamId, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)

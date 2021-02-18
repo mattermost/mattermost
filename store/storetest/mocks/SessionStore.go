@@ -42,9 +42,9 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	_m.Called(expiryTime, batchSize)
 }
 
-// Get provides a mock function with given fields: sessionIDOrToken
+// Get provides a mock function with given fields: ctx, sessionIDOrToken
 func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
-	ret := _m.Called(sessionIDOrToken)
+	ret := _m.Called(ctx, sessionIDOrToken)
 
 	var r0 *model.Session
 	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Session); ok {
