@@ -19,7 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -295,7 +295,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, nErr := filesstore.NewFileBackend(config.FileSettings.ToFileBackendSettings(enableComplianceFeatures))
+	fileBackend, nErr := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(enableComplianceFeatures))
 	if nErr != nil {
 		return errors.Wrap(nErr, "unable to initialize file backend")
 	}
@@ -303,7 +303,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	return SendMail(c, mail, fileBackend, time.Now())
 }
 
-func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, date time.Time) error {
+func SendMail(c smtpClient, mail mailData, fileBackend filestore.FileBackend, date time.Time) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"

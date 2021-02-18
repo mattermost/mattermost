@@ -22,7 +22,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -225,7 +225,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
 
-	fileBackend, err := filesstore.NewFileBackend(cfg.FileSettings.ToFileBackendSettings(true))
+	fileBackend, err := filestore.NewFileBackend(cfg.FileSettings.ToFileBackendSettings(true))
 	assert.NoError(t, err)
 
 	// create two files with the same name that will both be attached to the email
@@ -399,7 +399,7 @@ func TestSendMail(t *testing.T) {
 		Directory:  &dir,
 	}
 	settings.SetDefaults(true)
-	mockBackend, err := filesstore.NewFileBackend(settings.ToFileBackendSettings(true))
+	mockBackend, err := filestore.NewFileBackend(settings.ToFileBackendSettings(true))
 	require.NoError(t, err)
 	mocm := &mockMailer{}
 
