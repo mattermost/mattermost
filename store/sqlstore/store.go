@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -157,7 +158,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		settings:  &settings,
 	}
 
-	// We need to tell the sql driver that we want to use multiStatements
+	// We need to tell the MySQL driver that we want to use multiStatements
 	// in order to make migrations work.
 	if store.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		u, err := url.Parse(*settings.DataSource)
@@ -1278,7 +1279,7 @@ func (ss *SqlStore) migrate() error {
 	var driver database.Driver
 	var err error
 
-	// W hen WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
+	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
 	conn := setupConnection("master", *ss.settings.DataSource, ss.settings)
 
@@ -1297,7 +1298,7 @@ func (ss *SqlStore) migrate() error {
 	var assetNamesForDriver []string
 	for _, assetName := range migrations.AssetNames() {
 		if strings.HasPrefix(assetName, ss.DriverName()) {
-			assetNamesForDriver = append(assetNamesForDriver, strings.TrimPrefix(assetName, ss.DriverName()+"/"))
+			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
 		}
 	}
 
