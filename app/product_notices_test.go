@@ -612,6 +612,23 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  false,
 		},
+		{
+			name: "notice on deprecating elasticsearch, server has unsupported search engine",
+			args: args{
+				searchEngineName: "elasticsearch",
+				searchEngineVer:  "6.4.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "elasticsearch",
+							MinimumVersion: "7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
