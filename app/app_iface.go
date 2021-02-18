@@ -461,7 +461,7 @@ type AppIface interface {
 	DataRetention() einterfaces.DataRetentionInterface
 	DeactivateGuests() *model.AppError
 	DeactivateMfa(userID string) *model.AppError
-	DeauthorizeOAuthAppForUser(userID, appId string) *model.AppError
+	DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginId string) *model.AppError
 	DeleteBrandImage() *model.AppError
@@ -475,7 +475,7 @@ type AppIface interface {
 	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 	DeleteIncomingWebhook(hookID string) *model.AppError
-	DeleteOAuthApp(appId string) *model.AppError
+	DeleteOAuthApp(appID string) *model.AppError
 	DeleteOutgoingWebhook(hookID string) *model.AppError
 	DeletePluginKey(pluginId string, key string) *model.AppError
 	DeletePost(postId, deleteByID string) (*model.Post, *model.AppError)
@@ -616,7 +616,7 @@ type AppIface interface {
 	GetNumberOfChannelsOnTeam(teamID string) (int, *model.AppError)
 	GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken string) (*model.AccessResponse, *model.AppError)
 	GetOAuthAccessTokenForImplicitFlow(userID string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError)
-	GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError)
+	GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError)
 	GetOAuthApps(page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)

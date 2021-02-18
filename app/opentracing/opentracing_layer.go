@@ -2526,7 +2526,7 @@ func (a *OpenTracingAppLayer) DeactivateMfa(userID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userID string, appId string) *model.AppError {
+func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userID string, appID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeauthorizeOAuthAppForUser")
 
@@ -2538,7 +2538,7 @@ func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userID string, appId st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeauthorizeOAuthAppForUser(userID, appId)
+	resultVar0 := a.app.DeauthorizeOAuthAppForUser(userID, appID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -2903,7 +2903,7 @@ func (a *OpenTracingAppLayer) DeleteIncomingWebhook(hookID string) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteOAuthApp(appId string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteOAuthApp(appID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteOAuthApp")
 
@@ -2915,7 +2915,7 @@ func (a *OpenTracingAppLayer) DeleteOAuthApp(appId string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteOAuthApp(appId)
+	resultVar0 := a.app.DeleteOAuthApp(appID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -6533,7 +6533,7 @@ func (a *OpenTracingAppLayer) GetOAuthAccessTokenForImplicitFlow(userID string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthApp")
 
@@ -6545,7 +6545,7 @@ func (a *OpenTracingAppLayer) GetOAuthApp(appId string) (*model.OAuthApp, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthApp(appId)
+	resultVar0, resultVar1 := a.app.GetOAuthApp(appID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
