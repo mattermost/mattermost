@@ -311,17 +311,17 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	return api.app.GetStatus(userID)
 }
 
-func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.CHANNEL_SORT_BY_USERNAME:
 		return api.app.GetUsersInChannel(&model.UserGetOptions{
-			InChannelId: channelId,
+			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
 	case model.CHANNEL_SORT_BY_STATUS:
 		return api.app.GetUsersInChannelByStatus(&model.UserGetOptions{
-			InChannelId: channelId,
+			InChannelId: channelID,
 			Page:        page,
 			PerPage:     perPage,
 		})
@@ -357,8 +357,8 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.CreateChannel(channel, false)
 }
 
-func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
-	channel, err := api.app.GetChannel(channelId)
+func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
+	channel, err := api.app.GetChannel(channelID)
 	if err != nil {
 		return err
 	}
@@ -373,8 +373,8 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 	return *channels, err
 }
 
-func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	return api.app.GetChannel(channelId)
+func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
+	return api.app.GetChannel(channelID)
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -393,16 +393,16 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamID, userID string, includeDe
 	return *channels, err
 }
 
-func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
-	memberCount, err := api.app.GetChannelMemberCount(channelId)
+func (api *PluginAPI) GetChannelStats(channelID string) (*model.ChannelStats, *model.AppError) {
+	memberCount, err := api.app.GetChannelMemberCount(channelID)
 	if err != nil {
 		return nil, err
 	}
-	guestCount, err := api.app.GetChannelMemberCount(channelId)
+	guestCount, err := api.app.GetChannelMemberCount(channelID)
 	if err != nil {
 		return nil, err
 	}
-	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount, GuestCount: guestCount}, nil
+	return &model.ChannelStats{ChannelId: channelID, MemberCount: memberCount, GuestCount: guestCount}, nil
 }
 
 func (api *PluginAPI) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
@@ -476,12 +476,12 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 	return api.app.SearchPostsInTeamForUser(terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
-func (api *PluginAPI) AddChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
+func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
 	postRootId := ""
 
-	channel, err := api.GetChannel(channelId)
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -489,10 +489,10 @@ func (api *PluginAPI) AddChannelMember(channelId, userID string) (*model.Channel
 	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId)
 }
 
-func (api *PluginAPI) AddUserToChannel(channelId, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
+func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
 	postRootId := ""
 
-	channel, err := api.GetChannel(channelId)
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -500,32 +500,32 @@ func (api *PluginAPI) AddUserToChannel(channelId, userID, asUserId string) (*mod
 	return api.app.AddChannelMember(userID, channel, asUserId, postRootId)
 }
 
-func (api *PluginAPI) GetChannelMember(channelId, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(channelId, userID)
+func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+	return api.app.GetChannelMember(channelID, userID)
 }
 
-func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
-	return api.app.GetChannelMembersPage(channelId, page, perPage)
+func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersPage(channelID, page, perPage)
 }
 
-func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
-	return api.app.GetChannelMembersByIds(channelId, userIDs)
+func (api *PluginAPI) GetChannelMembersByIds(channelID string, userIDs []string) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersByIds(channelID, userIDs)
 }
 
 func (api *PluginAPI) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMembersForUserWithPagination(teamID, userID, page, perPage)
 }
 
-func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberRoles(channelId, userID, newRoles)
+func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberRoles(channelID, userID, newRoles)
 }
 
-func (api *PluginAPI) UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberNotifyProps(notifications, channelId, userID)
+func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberNotifyProps(notifications, channelID, userID)
 }
 
-func (api *PluginAPI) DeleteChannelMember(channelId, userID string) *model.AppError {
-	return api.app.LeaveChannel(channelId, userID)
+func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
+	return api.app.LeaveChannel(channelID, userID)
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
@@ -581,20 +581,20 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 	return api.app.GetSinglePost(postId)
 }
 
-func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: time})
+func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 }
 
-func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsAfter(channelID, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postId, Page: page, PerPage: perPage})
 }
 
-func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsBefore(channelID, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postId, Page: page, PerPage: perPage})
 }
 
-func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -669,8 +669,8 @@ func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
 	return api.app.GetFile(fileId)
 }
 
-func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	return api.app.UploadFile(data, channelId, filename)
+func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(data, channelID, filename)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
@@ -836,8 +836,8 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 	return api.app.HasPermissionToTeam(userID, teamID, permission)
 }
 
-func (api *PluginAPI) HasPermissionToChannel(userID, channelId string, permission *model.Permission) bool {
-	return api.app.HasPermissionToChannel(userID, channelId, permission)
+func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userID, channelID, permission)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
@@ -915,8 +915,8 @@ func (api *PluginAPI) DeleteBotIconImage(userID string) *model.AppError {
 	return api.app.DeleteBotIconImage(userID)
 }
 
-func (api *PluginAPI) PublishUserTyping(userID, channelId, parentId string) *model.AppError {
-	return api.app.PublishUserTyping(userID, channelId, parentId)
+func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userID, channelID, parentId)
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {

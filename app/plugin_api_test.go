@@ -1263,9 +1263,9 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	data := []byte("Hello World")
-	channelId := th.BasicChannel.Id
+	channelID := th.BasicChannel.Id
 	filename := "testGetFile"
-	fileInfo, err := api.UploadFile(data, channelId, filename)
+	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo.Id)
@@ -1280,7 +1280,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	post, err := api.CreatePost(&model.Post{
 		Message:   "test",
 		UserId:    userID,
-		ChannelId: channelId,
+		ChannelId: channelID,
 		FileIds:   model.StringArray{fileInfo.Id},
 	})
 	require.Nil(t, err)

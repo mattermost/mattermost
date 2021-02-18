@@ -434,16 +434,16 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
-			channelIds := []string{}
+			channelIDs := []string{}
 			for _, channel := range channels {
-				channelIds = append(channelIds, channel.Id)
+				channelIDs = append(channelIDs, channel.Id)
 			}
 
 			token := model.NewToken(
 				TokenTypeGuestInvitation,
 				model.MapToJson(map[string]string{
 					"teamId":   team.Id,
-					"channels": strings.Join(channelIds, " "),
+					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
 				}),

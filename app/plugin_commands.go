@@ -152,8 +152,8 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		args.AddUserMention(username, userID)
 	}
 
-	for channelName, channelId := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
-		args.AddChannelMention(channelName, channelId)
+	for channelName, channelID := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
+		args.AddChannelMention(channelName, channelID)
 	}
 
 	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)

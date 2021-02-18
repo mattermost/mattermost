@@ -251,9 +251,9 @@ func (a *App) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func (a *App) getInfoForFilename(post *model.Post, teamID, channelId, userID, oldId, filename string) *model.FileInfo {
+func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
 	name, _ := url.QueryUnescape(filename)
-	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelId, userID, oldId)
+	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelID, userID, oldId)
 	path := pathPrefix + name
 
 	// Open the file and populate the fields of the FileInfo
@@ -325,8 +325,8 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 var fileMigrationLock sync.Mutex
 var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
-// Parse the path from the Filename of the form /{channelId}/{userID}/{uid}/{nameWithExtension}
-func parseOldFilenames(filenames []string, channelId, userID string) [][]string {
+// Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
+func parseOldFilenames(filenames []string, channelID, userID string) [][]string {
 	parsed := [][]string{}
 	for _, filename := range filenames {
 		matches := oldFilenameMatchExp.FindStringSubmatch(filename)
@@ -334,8 +334,8 @@ func parseOldFilenames(filenames []string, channelId, userID string) [][]string 
 			mlog.Error("Failed to parse old Filename", mlog.String("filename", filename))
 			continue
 		}
-		if matches[1] != channelId {
-			mlog.Error("ChannelId in Filename does not match", mlog.String("channel_id", channelId), mlog.String("matched", matches[1]))
+		if matches[1] != channelID {
+			mlog.Error("ChannelId in Filename does not match", mlog.String("channel_id", channelID), mlog.String("matched", matches[1]))
 		} else if matches[2] != userID {
 			mlog.Error("UserId in Filename does not match", mlog.String("user_id", userID), mlog.String("matched", matches[2]))
 		} else {
@@ -477,7 +477,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamID string, channelId string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -495,13 +495,13 @@ func (a *App) UploadMultipartFiles(teamID string, channelId string, userID strin
 		filenames[i] = fileHeader.Filename
 	}
 
-	return a.UploadFiles(teamID, channelId, userID, files, filenames, clientIds, now)
+	return a.UploadFiles(teamID, channelID, userID, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamID string, channelId string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -524,7 +524,7 @@ func (a *App) UploadFiles(teamID string, channelId string, userID string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelId, userID, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelID, userID, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -548,14 +548,14 @@ func (a *App) UploadFiles(teamID string, channelId string, userID string, files 
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	_, err := a.GetChannel(channelId)
-	if err != nil && channelId != "" {
+func (a *App) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	_, err := a.GetChannel(channelID)
+	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
-			map[string]interface{}{"channelId": channelId}, "", http.StatusBadRequest)
+			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelID, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -694,11 +694,11 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(channelId, name string, input io.Reader,
+func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 
 	t := &UploadFileTask{
-		ChannelId:   filepath.Base(channelId),
+		ChannelId:   filepath.Base(channelID),
 		Name:        filepath.Base(name),
 		Input:       input,
 		maxFileSize: *a.Config().FileSettings.MaxFileSize,
@@ -942,7 +942,7 @@ func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus i
 func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
-	channelId := filepath.Base(rawChannelId)
+	channelID := filepath.Base(rawChannelId)
 	userID := filepath.Base(rawUserId)
 
 	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
@@ -963,7 +963,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	info.CreatorId = userID
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
-	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelId + "/users/" + userID + "/" + info.Id + "/"
+	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
