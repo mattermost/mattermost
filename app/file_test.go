@@ -99,7 +99,7 @@ func TestUploadFile(t *testing.T) {
 	data := []byte("abcd")
 
 	info1, err := th.App.UploadFile(data, "wrong", filename)
-	require.Error(t, err, "Wrong Channel ID.")
+	require.NotNil(t, err, "Wrong Channel ID.")
 	require.Nil(t, info1, "Channel ID does not exist.")
 
 	info1, err = th.App.UploadFile(data, "", filename)
@@ -253,7 +253,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 	file, fileErr := os.Open(filepath.Join(path, "test.png"))
-	require.Nil(t, fileErr)
+	require.NoError(t, fileErr)
 	defer file.Close()
 
 	fileId := model.NewId()
@@ -281,13 +281,13 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("Only those who dare to fail greatly can ever achieve greatly"))
 
 	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, err.Error(), "Only those who dare to fail greatly can ever achieve greatly")
 
 	mockBackend = mocks.FileBackend{}
 	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), nil)
 	err = th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestCopyFileInfos(t *testing.T) {

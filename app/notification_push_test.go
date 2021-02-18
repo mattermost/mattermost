@@ -1244,7 +1244,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 		NotificationType: model.PUSH_TYPE_MESSAGE,
 	}
 	err := th.App.SendAckToPushProxy(ack)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
 	require.Equal(t, 1, handler.numReqs())

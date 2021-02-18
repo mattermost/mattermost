@@ -4895,46 +4895,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELO ayarlanamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Bağlantı açılamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLS bağlantısı açılamadı."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Ek dosya e-postaya eklenemedi"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTP sunucu bağlantısı kapatılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "\"Kimden\" adresi ayarlanırken sorun çıktı"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "E-posta ileti verileri eklenemedi."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "\"Kime\" adresi ayarlanırken sorun çıktı."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Komut bulunamadı."
   },
@@ -8529,5 +8489,57 @@
   {
     "id": "api.no_license",
     "translation": "Bu uç noktayı kullanabilmek için E10 ya da E20 lisansı gereklidir."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser için Before ve After parametreleri birbirini dışlar"
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "RetentionDays değeri geçersiz. 0 değerinden büyük olmalı"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Klasör değeri boş olamaz."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "SMTP sunucusu ile bağlantı kurulamadı"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "İçe aktarma sırasında ek dosya okunamadı."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Dışa aktarma sırasında dosya zip arşivine eklenemedi."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Yanıt iletilemedi."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Dışa aktarma sırasında zip üst bilgisi oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Dışa aktarma sırasında klasör oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Dışa aktarma sırasında dosya oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Dışa aktarma sırasında dosya kopyalanamadı."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Dışa aktarma dosyası bulunamadı."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
   }
 ]

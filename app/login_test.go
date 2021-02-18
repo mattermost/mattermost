@@ -56,17 +56,17 @@ func TestCWSLogin(t *testing.T) {
 		require.NotNil(t, user)
 		require.Equal(t, th.BasicUser.Username, user.Username)
 		_, apperr := th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.Nil(t, apperr)
+		require.NoError(t, apperr)
 		th.App.DeleteToken(token)
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(TokenTypeCWSAccess, "")
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Username, "", "", token.Token, false)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, user)
 	})
 }
