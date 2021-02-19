@@ -65,6 +65,11 @@ func RetentionPolicyWithTeamAndChannelCountsFromJson(data io.Reader) (*Retention
 	return &rp, err
 }
 
+func (rp *RetentionPolicyWithTeamAndChannelCounts) ToJson() []byte {
+	b, _ := json.Marshal(rp)
+	return b
+}
+
 func RetentionPolicyWithTeamAndChannelCountsListFromJson(data io.Reader) ([]*RetentionPolicyWithTeamAndChannelCounts, error) {
 	var rpList *RetentionPolicyWithTeamAndChannelCountsList
 	err := json.NewDecoder(data).Decode(&rpList)

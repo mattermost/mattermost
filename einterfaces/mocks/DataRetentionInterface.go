@@ -87,6 +87,31 @@ func (_m *DataRetentionInterface) DeletePolicy(policyId string) *model.AppError 
 	return r0
 }
 
+// GetChannelsForPolicy provides a mock function with given fields: policyId, offset, limit
+func (_m *DataRetentionInterface) GetChannelsForPolicy(policyId string, offset int, limit int) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(policyId, offset, limit)
+
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Channel); ok {
+		r0 = rf(policyId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(policyId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGlobalPolicy provides a mock function with given fields:
 func (_m *DataRetentionInterface) GetGlobalPolicy() (*model.GlobalRetentionPolicy, *model.AppError) {
 	ret := _m.Called()
@@ -137,6 +162,29 @@ func (_m *DataRetentionInterface) GetPolicies(offset int, limit int) ([]*model.R
 	return r0, r1
 }
 
+// GetPoliciesCount provides a mock function with given fields:
+func (_m *DataRetentionInterface) GetPoliciesCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPolicy provides a mock function with given fields: id
 func (_m *DataRetentionInterface) GetPolicy(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	ret := _m.Called(id)
@@ -153,6 +201,31 @@ func (_m *DataRetentionInterface) GetPolicy(id string) (*model.RetentionPolicyWi
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTeamsForPolicy provides a mock function with given fields: policyId, offset, limit
+func (_m *DataRetentionInterface) GetTeamsForPolicy(policyId string, offset int, limit int) ([]*model.Team, *model.AppError) {
+	ret := _m.Called(policyId, offset, limit)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
+		r0 = rf(policyId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(policyId, offset, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -2129,7 +2130,7 @@ func (a *OpenTracingAppLayer) CreatePostMissingChannel(post *model.Post, trigger
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRetentionPolicy")
 
@@ -5010,6 +5011,28 @@ func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamID s
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetChannelsForRetentionPolicy(policyId string, offset int, limit int) ([]*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForRetentionPolicy")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelsForRetentionPolicy(policyId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForScheme")
@@ -7700,7 +7723,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamID string, p
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPolicies(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPolicies(offset int, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPolicies")
 
@@ -7722,9 +7745,9 @@ func (a *OpenTracingAppLayer) GetRetentionPolicies(offset uint64, limit uint64) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPoliciesCount() (int64, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPoliciesWithCounts")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPoliciesCount")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -7734,7 +7757,7 @@ func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts(offset uint64, limi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRetentionPoliciesWithCounts(offset, limit)
+	resultVar0, resultVar1 := a.app.GetRetentionPoliciesCount()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7744,7 +7767,7 @@ func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts(offset uint64, limi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPolicy(id string) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPolicy(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPolicy")
 
@@ -8624,6 +8647,28 @@ func (a *OpenTracingAppLayer) GetTeamUnread(teamID string, userID string) (*mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetTeamUnread(teamID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetTeamsForRetentionPolicy(policyId string, offset int, limit int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForRetentionPolicy")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTeamsForRetentionPolicy(policyId, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11231,7 +11276,7 @@ func (a *OpenTracingAppLayer) PatchPost(postId string, patch *model.PostPatch) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRetentionPolicy")
 
@@ -15560,28 +15605,6 @@ func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
 	}
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) UpdateRetentionPolicy(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRetentionPolicy")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateRetentionPolicy(update)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
