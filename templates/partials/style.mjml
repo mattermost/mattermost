@@ -16,7 +16,7 @@
 
   .emailBody a{
     text-decoration:none !important;
-    color:#166DE0" !important;
+    color:#166DE0 !important;
   }
 
   .title div {

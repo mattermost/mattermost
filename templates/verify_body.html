@@ -92,8 +92,7 @@
 
     .emailBody a {
       text-decoration: none !important;
-      color: #166DE0" !important;
-
+      color: #166DE0 !important;
     }
 
     .title div {
@@ -236,13 +235,13 @@
                               </tr>
                               <tr>
                                 <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 0px 24px;word-break:break-word;">
-                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle1}}<a href="{{.Props.SubTitle2}}">{{.Props.SubTitle2}}</a></div>
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle1}}<a href="{{.Props.ServerUrl}}">{{.Props.ServerUrl}}</a></div>
                                 </td>
                               </tr>
                               {{if .Props.ButtonUrl}}
                               <tr>
                                 <td align="center" class="subTitle" style="font-size:0px;padding:0px 24px 16px 24px;word-break:break-word;">
-                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle3}}</div>
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle2}}</div>
                                 </td>
                               </tr>
                               <tr>
@@ -342,7 +341,7 @@
                               <tr>
                                 <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.QuestionInfo}}
-                                    <a href='mailto:{{.Props.SupportEmail}}' color="#166DE0">
+                                    <a href='mailto:{{.Props.SupportEmail}}'>
                                       {{.Props.SupportEmail}}</a>
                                   </div>
                                 </td>

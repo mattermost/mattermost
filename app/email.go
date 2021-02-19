@@ -170,8 +170,8 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.verify_body.title")
 	bodyPage.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
-	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["SubTitle3"] = T("api.templates.verify_body.subTitle3")
+	bodyPage.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2")
 	bodyPage.Props["ButtonUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
@@ -223,8 +223,8 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.welcome_body.title")
 	bodyPage.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
-	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["SubTitle3"] = T("api.templates.verify_body.subTitle3")
+	bodyPage.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2")
 	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
 	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
 	bodyPage.Props["Info1"] = T("api.templates.welcome_body.info1")

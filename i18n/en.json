@@ -3063,15 +3063,15 @@
     "translation": "If it was not you, you can safely ignore this email."
   },
   {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
     "id": "api.templates.verify_body.subTitle1",
     "translation": "Thanks for joining "
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": "{{ .ServerURL }}."
-  },
-  {
-    "id": "api.templates.verify_body.subTitle3",
     "translation": "Click below to verify your email address."
   },
   {
@@ -3135,15 +3135,15 @@
     "translation": "If it was not you, you can safely ignore this email."
   },
   {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
     "id": "api.templates.welcome_body.subTitle1",
     "translation": "Thanks for joining "
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
-    "translation": "{{ .ServerURL }}."
-  },
-  {
-    "id": "api.templates.welcome_body.subTitle3",
     "translation": "Click below to verify your email address."
   },
   {

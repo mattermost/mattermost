@@ -5,7 +5,7 @@
     </mj-text>
     <mj-text css-class="footerInfo" padding="0px">
       {{.Props.QuestionInfo}}
-      <a href='mailto:{{.Props.SupportEmail}}' color="#166DE0">
+      <a href='mailto:{{.Props.SupportEmail}}'>
       {{.Props.SupportEmail}}</a>
     </mj-text>
  </mj-column>

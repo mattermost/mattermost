@@ -4,11 +4,11 @@
       {{.Props.Title}}
     </mj-text>
     <mj-text css-class="subTitle" padding="16px 24px 0px 24px">
-      {{.Props.SubTitle1}}<a href="{{.Props.SubTitle2}}">{{.Props.SubTitle2}}</a>
+      {{.Props.SubTitle1}}<a href="{{.Props.ServerUrl}}">{{.Props.ServerUrl}}</a>
     </mj-text>
     <mj-raw>{{if .Props.ButtonUrl}}</mj-raw>
       <mj-text css-class="subTitle" padding="0px 24px 16px 24px">
-        {{.Props.SubTitle3}}
+        {{.Props.SubTitle2}}
       </mj-text>
       <mj-button href="{{.Props.ButtonUrl}}" padding="0px" css-class="button">{{.Props.Button}}</mj-button>
     <mj-raw>{{end}}</mj-raw>
