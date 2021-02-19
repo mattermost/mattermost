@@ -25,9 +25,8 @@ type sinceResult struct {
 // A boolean is also returned to indicate if there are more posts to be synchronized (true) or not (false).
 func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, since int64) (sinceResult, error) {
 	opts := model.GetPostsSinceForSyncOptions{
-		ChannelId: channelId,
-		Since:     since,
-		//ExcludeRemoteId: rc.RemoteId,
+		ChannelId:      channelId,
+		Since:          since,
 		IncludeDeleted: true,
 		Limit:          MaxPostsPerSync + 1, // ask for 1 more than needed to peek at first post in next batch
 	}
@@ -36,15 +35,14 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 		return sinceResult{}, err
 	}
 
-	countPosts := len(posts)
-	if countPosts == 0 {
+	if len(posts) == 0 {
 		return sinceResult{nextSince: since}, nil
 	}
 
 	var hasMore bool
-	if countPosts > MaxPostsPerSync {
+	if len(posts) > MaxPostsPerSync {
 		hasMore = true
-		peekUpdateAt := posts[countPosts-1].UpdateAt
+		peekUpdateAt := posts[len(posts)-1].UpdateAt
 		posts = posts[:MaxPostsPerSync] // trim the peeked at record
 
 		// If the last post to be synchronized has the same Update value as the first post in the next batch

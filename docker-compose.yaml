@@ -99,6 +99,7 @@ services:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
     networks:
       - mm-test
     depends_on:
@@ -116,6 +117,11 @@ services:
     command: ['make', 'run-server']
     expose:
       - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
 
   follower:
     build:
@@ -126,6 +132,7 @@ services:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
     networks:
       - mm-test
     depends_on:
@@ -143,6 +150,44 @@ services:
     restart: on-failure
     expose:
       - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
+
+  peon:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
+    networks:
+      - mm-test
+    depends_on:
+      - follower
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://peon:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    command: ['make', 'run-server']
+    restart: on-failure
+    expose:
+      - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
 
   haproxy:
     image: nginx
@@ -154,6 +199,7 @@ services:
     depends_on:
       - leader
       - follower
+      - peon
     ports:
       - "8065:8065"
 

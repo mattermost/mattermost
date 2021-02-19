@@ -240,7 +240,7 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
-	Since           int64 // exclusive
+	Since           int64 // inclusive
 	Until           int64 // inclusive
 	SortDescending  bool
 	ExcludeRemoteId string

@@ -165,7 +165,7 @@ ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
-run-haserver: run-client
+run-haserver: ## run-client
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology
 
@@ -497,6 +497,7 @@ restart-server: | stop-server run-server ## Restarts the mattermost server to pi
 restart-haserver:
 	@echo Restarting mattermost in an HA topology
 
+	docker-compose restart peon
 	docker-compose restart follower
 	docker-compose restart leader
 	docker-compose restart haproxy
