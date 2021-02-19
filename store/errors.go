@@ -87,18 +87,18 @@ func (e *ErrConflict) IsErrConflict() bool {
 // ErrNotFound indicates that a resource was not found
 type ErrNotFound struct {
 	resource string
-	Id       string
+	ID       string
 }
 
 func NewErrNotFound(resource, id string) *ErrNotFound {
 	return &ErrNotFound{
 		resource: resource,
-		Id:       id,
+		ID:       id,
 	}
 }
 
 func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.Id
+	return "resource: " + e.resource + " id: " + e.ID
 }
 
 // IsErrNotFound allows easy type assertion without adding store as a dependency.

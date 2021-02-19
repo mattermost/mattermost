@@ -313,7 +313,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
 				return true
-			}, plugin.ChannelHasBeenCreatedId)
+			}, plugin.ChannelHasBeenCreatedID)
 		})
 	}
 
@@ -376,7 +376,7 @@ func (a *App) handleCreationEvent(userID, otherUserID string, channel *model.Cha
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
 				return true
-			}, plugin.ChannelHasBeenCreatedId)
+			}, plugin.ChannelHasBeenCreatedID)
 		})
 	}
 
@@ -1462,7 +1462,7 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, userReques
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
-			}, plugin.UserHasJoinedChannelId)
+			}, plugin.UserHasJoinedChannelID)
 		})
 	}
 
@@ -1971,7 +1971,7 @@ func (a *App) JoinChannel(channel *model.Channel, userID string) *model.AppError
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
-			}, plugin.UserHasJoinedChannelId)
+			}, plugin.UserHasJoinedChannelID)
 		})
 	}
 
@@ -2269,7 +2269,7 @@ func (a *App) removeUserFromChannel(userIDToRemove string, removerUserId string,
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
-			}, plugin.UserHasLeftChannelId)
+			}, plugin.UserHasLeftChannelID)
 		})
 	}
 
