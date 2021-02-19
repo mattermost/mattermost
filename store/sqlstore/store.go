@@ -264,7 +264,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	return store
 }
 
-func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
@@ -273,7 +273,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	for i := 0; i < DBPingAttempts; i++ {
-		mlog.Info("Pinging SQL", mlog.String("database", con_type))
+		mlog.Info("Pinging SQL", mlog.String("database", connType))
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -1223,7 +1223,8 @@ func (ss *SqlStore) migrate() error {
 
 	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	conn := setupConnection("master", *ss.settings.DataSource, ss.settings)
+	conn := setupConnection("migrations", *ss.settings.DataSource, ss.settings)
+	defer conn.Db.Close()
 
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
@@ -1231,7 +1232,7 @@ func (ss *SqlStore) migrate() error {
 			return err
 		}
 	} else {
-		driver, err = postgres.WithInstance(conn.Db, &postgres.Config{SchemaName: "migrations"})
+		driver, err = postgres.WithInstance(conn.Db, &postgres.Config{})
 		if err != nil {
 			return err
 		}
@@ -1263,11 +1264,12 @@ func (ss *SqlStore) migrate() error {
 	}
 
 	err = migrations.Up()
+	migrations.Close()
 	if err != nil && err != migrate.ErrNoChange && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 
-	return conn.Db.Close()
+	return nil
 }
 
 type mattermConverter struct{}

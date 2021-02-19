@@ -3,6 +3,7 @@ module github.com/mattermost/mattermost-server/v5
 go 1.14
 
 require (
+	github.com/golang-migrate/migrate/v4 v4.14.1 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210218104610-40d7640e8538 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect

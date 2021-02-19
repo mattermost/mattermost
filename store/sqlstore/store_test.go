@@ -164,6 +164,9 @@ func tearDownStores() {
 func TestStoreLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
 	store := New(*settings, nil)
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
 	defer func() {
 		store.Close()
 		for _, replica := range store.searchReplicas {
@@ -171,9 +174,6 @@ func TestStoreLicenseRace(t *testing.T) {
 		}
 		storetest.CleanupSqlSettings(settings)
 	}()
-
-	wg := sync.WaitGroup{}
-	wg.Add(3)
 
 	go func() {
 		store.UpdateLicense(&model.License{})
