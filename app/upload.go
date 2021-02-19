@@ -54,7 +54,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 				info = newInfo
 			}
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejErr != nil {
 			errChan <- rejErr
 		}
