@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -38,7 +40,7 @@ type SqlUserStore struct {
 	usersQuery sq.SelectBuilder
 }
 
-func (us SqlUserStore) ClearCaches() {}
+func (us *SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
@@ -325,13 +327,29 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) error {
 	return nil
 }
 
-func (us SqlUserStore) Get(id string) (*model.User, error) {
+// GetMany returns a list of users for the provided list of ids
+func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+	query := us.usersQuery.Where(sq.Eq{"Id": ids})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "users_get_many_tosql")
+	}
+
+	var users []*model.User
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "users_get_many_select")
+	}
+
+	return users, nil
+}
+
+func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.GetReplica().Db.QueryRow(queryString, args...)
+	row := us.SqlStore.DBFromContext(ctx).Db.QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -687,10 +705,10 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(options *model.UserGetOption
 	return users, nil
 }
 
-func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
-		Where("cm.ChannelId = ?", channelId).
+		Where("cm.ChannelId = ?", channelID).
 		Where("u.DeleteAt = 0").
 		OrderBy("u.Username ASC")
 
@@ -698,8 +716,9 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 	if err != nil {
 		return nil, errors.Wrap(err, "get_all_profiles_in_channel_tosql")
 	}
+
 	var users []*model.User
-	rows, err := us.GetReplica().Db.Query(queryString, args...)
+	rows, err := us.SqlStore.DBFromContext(ctx).Db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -898,7 +917,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -923,7 +942,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1759,7 +1778,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) error {
 	}
 	defer finalizeTransaction(transaction)
 
-	user, err := us.Get(userId)
+	user, err := us.Get(context.Background(), userId)
 	if err != nil {
 		return err
 	}
@@ -1821,108 +1840,102 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) error {
 	return nil
 }
 
-func (us SqlUserStore) DemoteUserToGuest(userId string) error {
+func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 	transaction, err := us.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	user, err := us.Get(userId)
+	user, err := us.Get(context.Background(), userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	roles := user.GetRoles()
 
 	newRoles := []string{}
 	for _, role := range roles {
-		if role == "system_user" {
-			newRoles = append(newRoles, "system_guest")
-		} else if role != "system_admin" {
+		if role == model.SYSTEM_USER_ROLE_ID {
+			newRoles = append(newRoles, model.SYSTEM_GUEST_ROLE_ID)
+		} else if role != model.SYSTEM_ADMIN_ROLE_ID {
 			newRoles = append(newRoles, role)
 		}
 	}
 
 	curTime := model.GetMillis()
+	newRolesDBStr := strings.Join(newRoles, " ")
 	query := us.getQueryBuilder().Update("Users").
-		Set("Roles", strings.Join(newRoles, " ")).
+		Set("Roles", newRolesDBStr).
 		Set("UpdateAt", curTime).
-		Where(sq.Eq{"Id": userId})
+		Where(sq.Eq{"Id": userID})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "demote_user_to_guest_tosql")
+		return nil, errors.Wrap(err, "demote_user_to_guest_tosql")
 	}
 
 	if _, err = transaction.Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+		return nil, errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}
+
+	user.Roles = newRolesDBStr
+	user.UpdateAt = curTime
 
 	query = us.getQueryBuilder().Update("ChannelMembers").
 		Set("SchemeUser", false).
 		Set("SchemeGuest", true).
-		Where(sq.Eq{"UserId": userId})
+		Where(sq.Eq{"UserId": userID})
 
 	queryString, args, err = query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "demote_user_to_guest_tosql")
+		return nil, errors.Wrap(err, "demote_user_to_guest_tosql")
 	}
 
 	if _, err = transaction.Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "failed to update ChannelMembers with userId=%s", userId)
+		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s", userID)
 	}
 
 	query = us.getQueryBuilder().Update("TeamMembers").
 		Set("SchemeUser", false).
 		Set("SchemeGuest", true).
-		Where(sq.Eq{"UserId": userId})
+		Where(sq.Eq{"UserId": userID})
 
 	queryString, args, err = query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "demote_user_to_guest_tosql")
+		return nil, errors.Wrap(err, "demote_user_to_guest_tosql")
 	}
 
 	if _, err := transaction.Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "failed to update TeamMembers with userId=%s", userId)
+		return nil, errors.Wrapf(err, "failed to update TeamMembers with userId=%s", userID)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
-	return nil
+	return user, nil
 }
 
 func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	autocomplete := &model.UserAutocompleteInChannel{}
-	uchan := make(chan store.StoreResult, 1)
-	go func() {
-		users, err := us.SearchInChannel(channelId, term, options)
-		uchan <- store.StoreResult{Data: users, NErr: err}
-		close(uchan)
-	}()
-
-	nuchan := make(chan store.StoreResult, 1)
-	go func() {
-		users, err := us.SearchNotInChannel(teamId, channelId, term, options)
-		nuchan <- store.StoreResult{Data: users, NErr: err}
-		close(nuchan)
-	}()
-
-	result := <-uchan
-	if result.NErr != nil {
-		return nil, result.NErr
+	var usersInChannel, usersNotInChannel []*model.User
+	g := errgroup.Group{}
+	g.Go(func() (err error) {
+		usersInChannel, err = us.SearchInChannel(channelId, term, options)
+		return err
+	})
+	g.Go(func() (err error) {
+		usersNotInChannel, err = us.SearchNotInChannel(teamId, channelId, term, options)
+		return err
+	})
+	err := g.Wait()
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
-	autocomplete.InChannel = users
 
-	result = <-nuchan
-	if result.NErr != nil {
-		return nil, result.NErr
-	}
-	users = result.Data.([]*model.User)
-	autocomplete.OutOfChannel = users
-	return autocomplete, nil
+	return &model.UserAutocompleteInChannel{
+		InChannel:    usersInChannel,
+		OutOfChannel: usersNotInChannel,
+	}, nil
 }
 
 // GetKnownUsers returns the list of user ids of users with any direct

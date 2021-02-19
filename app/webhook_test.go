@@ -740,7 +740,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		assert.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
@@ -754,7 +754,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -765,7 +765,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, io.ErrUnexpectedEOF, err)
 	})
 
@@ -776,7 +776,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -796,7 +796,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
 	})
 
@@ -806,7 +806,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Nil(t, resp)
 	})
 }
