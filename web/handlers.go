@@ -111,7 +111,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t, _ := utils.GetTranslationsAndLocale(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.App.SetUserAgent(r.UserAgent())
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)

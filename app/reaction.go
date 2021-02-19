@@ -58,7 +58,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenAdded(pluginContext, reaction)
 				return true
-			}, plugin.ReactionHasBeenAddedId)
+			}, plugin.ReactionHasBeenAddedID)
 		})
 	}
 
@@ -144,7 +144,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
 				return true
-			}, plugin.ReactionHasBeenRemovedId)
+			}, plugin.ReactionHasBeenRemovedID)
 		})
 	}
 
