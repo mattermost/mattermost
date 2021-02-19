@@ -110,7 +110,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			og := opengraph.NewOpenGraph()
 			err := og.ProcessHTML(strings.NewReader(tc.HTML))
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 
