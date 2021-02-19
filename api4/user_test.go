@@ -3362,10 +3362,13 @@ func TestLoginReplicationLag(t *testing.T) {
 			t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
 		}
 
-		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
+		mainHelper.ToggleReplicasOff()
 
 		err := th.App.RevokeAllSessions(th.BasicUser.Id)
 		require.Nil(t, err)
+
+		mainHelper.ToggleReplicasOn()
 
 		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(5)
 		require.Nil(t, cmdErr)

@@ -33,6 +33,7 @@ type MainHelper struct {
 
 	status           int
 	testResourcePath string
+	replicas         []string
 }
 
 type HelperOptions struct {
@@ -107,6 +108,7 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
+	h.replicas = h.Settings.DataSourceReplicas
 
 	config := &model.Config{}
 	config.SetDefaults()
@@ -117,6 +119,26 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
+}
+
+func (h *MainHelper) ToggleReplicasOff() {
+	if h.SQLStore.GetLicense() == nil {
+		panic("expecting a license to use this")
+	}
+	h.Settings.DataSourceReplicas = []string{}
+	lic := h.SQLStore.GetLicense()
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
+	h.SQLStore.UpdateLicense(lic)
+}
+
+func (h *MainHelper) ToggleReplicasOn() {
+	if h.SQLStore.GetLicense() == nil {
+		panic("expecting a license to use this")
+	}
+	h.Settings.DataSourceReplicas = h.replicas
+	lic := h.SQLStore.GetLicense()
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
+	h.SQLStore.UpdateLicense(lic)
 }
 
 func (h *MainHelper) setupResources() {

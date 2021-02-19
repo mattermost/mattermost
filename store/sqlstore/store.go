@@ -1245,6 +1245,10 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.license = license
 }
 
+func (ss *SqlStore) GetLicense() *model.License {
+	return ss.license
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
