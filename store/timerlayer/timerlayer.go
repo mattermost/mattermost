@@ -5333,7 +5333,7 @@ func (s *TimerLayerRetentionPolicyStore) Delete(id string) error {
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamsAndChannels, error) {
+func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Get(id)
@@ -5349,7 +5349,7 @@ func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyW
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamsAndChannels, error) {
+func (s *TimerLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.GetAll(offset, limit)
@@ -5365,10 +5365,10 @@ func (s *TimerLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *TimerLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
-	result, err := s.RetentionPolicyStore.GetAllWithCounts(offset, limit)
+	result, err := s.RetentionPolicyStore.GetChannels(policyId, offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5376,12 +5376,44 @@ func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit u
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetAllWithCounts", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetChannels", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
+func (s *TimerLayerRetentionPolicyStore) GetCount() (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetCount()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetTeams(policyId, offset, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetTeams", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Patch(patch)
@@ -5413,7 +5445,7 @@ func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) RemoveOrphanedRows(limit int64) (int64, error) {
+func (s *TimerLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
@@ -5445,7 +5477,7 @@ func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
+func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Save(policy)
@@ -5457,22 +5489,6 @@ func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithT
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamsAndChannels, error) {
-	start := timemodule.Now()
-
-	result, err := s.RetentionPolicyStore.Update(update)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Update", success, elapsed)
 	}
 	return result, err
 }
