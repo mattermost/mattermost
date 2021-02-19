@@ -578,6 +578,7 @@ func (d *Dialog) isValid() error {
 
 func (d *DialogElement) isValid() error {
 	textSubTypeMap := map[string]bool{
+		"":         true,
 		"text":     true,
 		"email":    true,
 		"number":   true,
@@ -597,7 +598,7 @@ func (d *DialogElement) isValid() error {
 		if reflect.TypeOf(d.Optional).Kind() != reflect.Bool {
 			return errors.New("invalid type for optional")
 		}
-		if d.Type != d.SubType {
+		if _, ok := textSubTypeMap[d.Type]; !ok {
 			return errors.New("invalid subtype")
 		}
 
