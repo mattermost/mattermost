@@ -260,7 +260,7 @@ new-migration: migration-prereqs ## Creates a new migration
 	@echo "Generating new migration for postgres"
 	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
-	@echo "When you are done writing your migration, run `make migrations`"
+	@echo "When you are done writing your migration, run 'make migrations'"
 
 migrations: ## Generates bindata migrations
 	@echo Generating bindata for migrations
