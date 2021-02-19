@@ -86,8 +86,14 @@
   <style type="text/css">
     @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
 
-    body {
+    .emailBody {
       background: #F3F3F3 !important;
+    }
+
+    .emailBody a {
+      text-decoration: none !important;
+      color: #166DE0" !important;
+
     }
 
     .title div {
@@ -154,19 +160,19 @@
     }
 
     @media all and (min-width: 541px) {
-      body {
+      .emailBody {
         padding: 32px !important;
       }
     }
 
     @media all and (max-width: 540px) and (min-width: 401px) {
-      body {
+      .emailBody {
         padding: 16px !important;
       }
     }
 
     @media all and (max-width: 400px) {
-      body {
+      .emailBody {
         padding: 0px !important;
       }
     }
@@ -174,7 +180,7 @@
 </head>
 
 <body style="word-spacing:normal;">
-  <div style="">
+  <div class="emailBody" style="">
     <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
     <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;border-radius:8px;max-width:600px;">
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;border-radius:8px;">
@@ -229,8 +235,14 @@
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 16px 24px;word-break:break-word;">
-                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle}}</div>
+                                <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 0px 24px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle1}}<a href="{{.Props.SubTitle2}}">{{.Props.SubTitle2}}</a></div>
+                                </td>
+                              </tr>
+                              {{if .Props.ButtonUrl}}
+                              <tr>
+                                <td align="center" class="subTitle" style="font-size:0px;padding:0px 24px 16px 24px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle3}}</div>
                                 </td>
                               </tr>
                               <tr>
@@ -246,6 +258,7 @@
                                   </table>
                                 </td>
                               </tr>
+                              {{end}}
                             </tbody>
                           </table>
                         </div>

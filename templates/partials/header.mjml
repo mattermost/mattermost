@@ -1,8 +1,3 @@
-<mj-section padding="0px 0px 40px 0px">
-  <mj-column>
-    <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_blue.png" />
-  </mj-column>
-</mj-section>
 <mj-section padding="0px 24px 40px 24px">
   <mj-column>
     <mj-text css-class="title" padding="0px">

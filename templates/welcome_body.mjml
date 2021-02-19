@@ -2,9 +2,10 @@
   <mj-head>
     <mj-include path="./partials/style.mjml" />
   </mj-head>
-  <mj-body>
+  <mj-body css-class="emailBody">
     <mj-wrapper mj-class="email">
-      <mj-include path="./partials/header.mjml" />
+      <mj-include path="./partials/logo.mjml" />
+      <mj-include path="./partials/header_verify.mjml" />
       <mj-include path="./partials/verify.mjml" />
       <mj-section padding="16px 0px 40px 0px">
         <mj-column padding="0px 24px 0px 24px">

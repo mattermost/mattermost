@@ -10,8 +10,13 @@
 <mj-style>
   @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
   
-  body {
-    background: #F3F3F3 !important;
+  .emailBody {
+    background:#F3F3F3 !important;
+  }
+
+  .emailBody a{
+    text-decoration:none !important;
+    color:#166DE0" !important;
   }
 
   .title div {
@@ -78,19 +83,19 @@
   }
 
   @media all and (min-width: 541px) {
-    body {
+    .emailBody {
       padding:32px !important;
     }
   }
 
   @media all and (max-width: 540px) and (min-width: 401px) {
-    body {
+    .emailBody {
       padding:16px !important;
     }
   }
 
   @media all and (max-width: 400px) {
-    body {
+    .emailBody {
       padding:0px !important;
     }
   }

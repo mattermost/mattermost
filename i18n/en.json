@@ -3063,8 +3063,16 @@
     "translation": "If it was not you, you can safely ignore this email."
   },
   {
-    "id": "api.templates.verify_body.subTitle",
-    "translation": "Thanks for joining {{ .ServerURL }}. Click below to verify your email address."
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle3",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -3127,8 +3135,16 @@
     "translation": "If it was not you, you can safely ignore this email."
   },
   {
-    "id": "api.templates.welcome_body.subTitle",
-    "translation": "Thanks for joining {{ .ServerURL }}. Click below to verify your email address."
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle3",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.welcome_body.title",
