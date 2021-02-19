@@ -292,7 +292,7 @@ package plugin
 {{range .HooksMethods}}
 
 func init() {
-	hookNameToId["{{.Name}}"] = {{.Name}}Id
+	hookNameToId["{{.Name}}"] = {{.Name}}ID
 }
 
 type {{.Name | obscure}}Args struct {
@@ -306,7 +306,7 @@ type {{.Name | obscure}}Returns struct {
 func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	_args := &{{.Name | obscure}}Args{ {{valuesOnly .Params}} }
 	_returns := &{{.Name | obscure}}Returns{}
-	if g.implemented[{{.Name}}Id] {
+	if g.implemented[{{.Name}}ID] {
 		if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
 		}
