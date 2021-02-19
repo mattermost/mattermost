@@ -86,7 +86,7 @@ type HTMLTemplate struct {
 	Templates    *template.Template
 	TemplateName string
 	Props        map[string]interface{}
-	Html         map[string]template.HTML
+	HTML         map[string]template.HTML
 }
 
 func NewHTMLTemplate(templates *template.Template, templateName string) *HTMLTemplate {
@@ -94,7 +94,7 @@ func NewHTMLTemplate(templates *template.Template, templateName string) *HTMLTem
 		Templates:    templates,
 		TemplateName: templateName,
 		Props:        make(map[string]interface{}),
-		Html:         make(map[string]template.HTML),
+		HTML:         make(map[string]template.HTML),
 	}
 }
 

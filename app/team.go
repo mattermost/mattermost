@@ -775,7 +775,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedTeam(pluginContext, tm, actor)
 				return true
-			}, plugin.UserHasJoinedTeamId)
+			}, plugin.UserHasJoinedTeamID)
 		})
 	}
 
@@ -1241,7 +1241,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true
-			}, plugin.UserHasLeftTeamId)
+			}, plugin.UserHasLeftTeamID)
 		})
 	}
 

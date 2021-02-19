@@ -23,13 +23,13 @@ func init() {
 	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
 }
 
-func TestTranslateAsHtml(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHtml(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+func TestTranslateAsHTML(t *testing.T) {
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
 		"Foo": "<i>foo</i>",
 	}))
 }
 
-func TestEscapeForHtml(t *testing.T) {
+func TestEscapeForHTML(t *testing.T) {
 	stringForPointer := "<b>abc</b>"
 	for name, tc := range map[string]struct {
 		In       interface{}
@@ -63,7 +63,7 @@ func TestEscapeForHtml(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, escapeForHtml(tc.In))
+			assert.Equal(t, tc.Expected, escapeForHTML(tc.In))
 		})
 	}
 }
