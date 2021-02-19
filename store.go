@@ -14,9 +14,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ErrNoLicense is returned only when there is no enterprise license set.
-var ErrNoLicense = errors.New("this feature requires a valid enterprise license")
-
 // StoreService exposes the underlying database.
 type StoreService struct {
 	initialized bool
@@ -93,9 +90,6 @@ func (s *StoreService) initialize() error {
 	}
 
 	config := s.api.GetUnsanitizedConfig()
-	if !IsEnterpriseLicensedOrDevelopment(config, s.api.GetLicense()) {
-		return ErrNoLicense
-	}
 
 	// Set up master db
 	db, err := setupConnection(*config.SqlSettings.DataSource, config.SqlSettings)

@@ -14,20 +14,6 @@ import (
 )
 
 func TestStore(t *testing.T) {
-	t.Run("no license, empty config", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		store := pluginapi.NewClient(api).Store
-
-		api.On("GetLicense").Return(nil)
-		api.On("GetUnsanitizedConfig").Return(&model.Config{})
-		db, err := store.GetMasterDB()
-		require.Error(t, err)
-		require.Nil(t, db)
-
-		require.NoError(t, store.Close())
-	})
-
 	t.Run("master db singleton", func(t *testing.T) {
 		db, err := sql.Open("ramsql", "TestStore-master-db")
 		require.NoError(t, err)
@@ -43,7 +29,6 @@ func TestStore(t *testing.T) {
 
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		api.On("GetLicense").Return(&model.License{})
 		api.On("GetUnsanitizedConfig").Return(config)
 
 		store := pluginapi.NewClient(api).Store
@@ -81,7 +66,6 @@ func TestStore(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		store := pluginapi.NewClient(api).Store
-		api.On("GetLicense").Return(&model.License{})
 
 		api.On("GetUnsanitizedConfig").Return(config)
 		masterDB, err := store.GetMasterDB()
@@ -117,7 +101,6 @@ func TestStore(t *testing.T) {
 
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		api.On("GetLicense").Return(&model.License{})
 		api.On("GetUnsanitizedConfig").Return(config)
 
 		store := pluginapi.NewClient(api).Store
@@ -164,7 +147,6 @@ func TestStore(t *testing.T) {
 		defer api.AssertExpectations(t)
 		store := pluginapi.NewClient(api).Store
 
-		api.On("GetLicense").Return(&model.License{})
 		api.On("GetUnsanitizedConfig").Return(config)
 		storeMasterDB, err := store.GetMasterDB()
 		require.NoError(t, err)
