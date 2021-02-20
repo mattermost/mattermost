@@ -222,9 +222,9 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	bodyPage := es.newEmailTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.welcome_body.title")
-	bodyPage.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
-	bodyPage.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2")
+	bodyPage.Props["SubTitle1"] = T("api.templates.welcome_body.subTitle1")
+	bodyPage.Props["ServerURL"] = T("api.templates.welcome_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle2"] = T("api.templates.welcome_body.subTitle2")
 	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
 	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
 	bodyPage.Props["Info1"] = T("api.templates.welcome_body.info1")
