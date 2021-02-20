@@ -80,7 +80,8 @@ func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	err := filesstore.CheckMandatoryS3Fields(settings)
+	fileBackendSettings := settings.ToFileBackendSettings(false)
+	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -101,7 +102,7 @@ func (a *App) TestFilesStoreConnection() *model.AppError {
 
 func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filesstore.NewFileBackend(cfg, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -995,7 +996,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 			}
 
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejectionError != nil {
 			return nil, data, rejectionError
 		}

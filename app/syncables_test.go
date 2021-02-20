@@ -360,7 +360,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		require.Nil(t, err)
 
 		pErr = th.App.CreateDefaultMemberships(0)
-		require.Nil(t, pErr)
+		require.NoError(t, pErr)
 
 		// Ensure only the restricted user was added to both the team and channel
 		cMembersCount, err = th.App.GetChannelMemberCount(restrictedChannel.Id)
@@ -426,7 +426,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// run the delete
 	appErr := th.App.DeleteGroupConstrainedMemberships()
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	// verify the new member counts
 	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, nil)

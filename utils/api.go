@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -27,16 +28,55 @@ func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 		return true
 	}
 	for _, allowed := range strings.Split(allowedOrigins, " ") {
-		if allowed == origin {
+		if equalASCIIFold(allowed, origin) {
 			return true
 		}
 	}
 	return false
 }
 
+// equalASCIIFold returns true if s is equal to t with ASCII case folding as
+// defined in RFC 4790.
+// Copied from gorilla/websocket/util.go
+func equalASCIIFold(s, t string) bool {
+	for s != "" && t != "" {
+		sr, size := utf8.DecodeRuneInString(s)
+		s = s[size:]
+		tr, size := utf8.DecodeRuneInString(t)
+		t = t[size:]
+		if sr == tr {
+			continue
+		}
+		if 'A' <= sr && sr <= 'Z' {
+			sr = sr + 'a' - 'A'
+		}
+		if 'A' <= tr && tr <= 'Z' {
+			tr = tr + 'a' - 'A'
+		}
+		if sr != tr {
+			return false
+		}
+	}
+	return s == t
+}
+
 func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		return CheckOrigin(r, allowedOrigins)
+	}
+}
+
+func SameOriginChecker() func(*http.Request) bool {
+	return func(r *http.Request) bool {
+		origURL, err := url.Parse(r.Header.Get("Origin"))
+		if err != nil {
+			return false
+		}
+		u := url.URL{
+			Host:   r.Host,
+			Scheme: origURL.Scheme,
+		}
+		return CheckOrigin(r, u.String())
 	}
 }
 
@@ -75,7 +115,7 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	fmt.Fprintln(w, `</body></html>`)
 }
 
-func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
+func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 	RenderMobileMessage(w, `
 		<div class="icon text-success" style="font-size: 4em">
 			<i class="fa fa-check-circle" title="Success Icon"></i>
@@ -83,13 +123,13 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
 		<h2> `+T("api.oauth.auth_complete")+` </h2>
 		<p id="redirecting-message"> `+T("api.oauth.redirecting_back")+` </p>
 		<p id="close-tab-message" style="display: none"> `+T("api.oauth.close_browser")+` </p>
-		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectUrl)+`"></noscript>
+		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectURL)+`"></noscript>
 		<script>
 			window.onload = function() {
 				setTimeout(function() {
 					document.getElementById('redirecting-message').style.display = 'none';
 					document.getElementById('close-tab-message').style.display = 'block';
-					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectUrl))+`';
+					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectURL))+`';
 				}, 2000);
 			}
 		</script>

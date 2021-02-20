@@ -14,6 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -334,15 +335,8 @@ func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
 
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-
 	var users []*model.User
-	if _, err := db.Select(&users, queryString, args...); err != nil {
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -355,13 +349,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-	row := db.Db.QueryRow(queryString, args...)
+	row := us.SqlStore.DBFromContext(ctx).Db.QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -728,15 +716,9 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	if err != nil {
 		return nil, errors.Wrap(err, "get_all_profiles_in_channel_tosql")
 	}
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
 
 	var users []*model.User
-	rows, err := db.Db.Query(queryString, args...)
+	rows, err := us.SqlStore.DBFromContext(ctx).Db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -960,14 +942,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-
-	if _, err := db.Select(&users, queryString, args...); err != nil {
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1942,35 +1917,25 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 }
 
 func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	autocomplete := &model.UserAutocompleteInChannel{}
-	uchan := make(chan store.StoreResult, 1)
-	go func() {
-		users, err := us.SearchInChannel(channelId, term, options)
-		uchan <- store.StoreResult{Data: users, NErr: err}
-		close(uchan)
-	}()
-
-	nuchan := make(chan store.StoreResult, 1)
-	go func() {
-		users, err := us.SearchNotInChannel(teamId, channelId, term, options)
-		nuchan <- store.StoreResult{Data: users, NErr: err}
-		close(nuchan)
-	}()
-
-	result := <-uchan
-	if result.NErr != nil {
-		return nil, result.NErr
+	var usersInChannel, usersNotInChannel []*model.User
+	g := errgroup.Group{}
+	g.Go(func() (err error) {
+		usersInChannel, err = us.SearchInChannel(channelId, term, options)
+		return err
+	})
+	g.Go(func() (err error) {
+		usersNotInChannel, err = us.SearchNotInChannel(teamId, channelId, term, options)
+		return err
+	})
+	err := g.Wait()
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
-	autocomplete.InChannel = users
 
-	result = <-nuchan
-	if result.NErr != nil {
-		return nil, result.NErr
-	}
-	users = result.Data.([]*model.User)
-	autocomplete.OutOfChannel = users
-	return autocomplete, nil
+	return &model.UserAutocompleteInChannel{
+		InChannel:    usersInChannel,
+		OutOfChannel: usersNotInChannel,
+	}, nil
 }
 
 // GetKnownUsers returns the list of user ids of users with any direct

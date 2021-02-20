@@ -32,7 +32,7 @@ type hooksRPCClient struct {
 	log         *mlog.Logger
 	muxBroker   *plugin.MuxBroker
 	apiImpl     API
-	implemented [TotalHooksId]bool
+	implemented [TotalHooksID]bool
 }
 
 type hooksRPCServer struct {
@@ -268,7 +268,7 @@ func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationAr
 }
 
 func init() {
-	hookNameToId["ServeHTTP"] = ServeHTTPId
+	hookNameToId["ServeHTTP"] = ServeHTTPID
 }
 
 type Z_ServeHTTPArgs struct {
@@ -279,7 +279,7 @@ type Z_ServeHTTPArgs struct {
 }
 
 func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !g.implemented[ServeHTTPId] {
+	if !g.implemented[ServeHTTPID] {
 		http.NotFound(w, r)
 		return
 	}
@@ -442,7 +442,7 @@ func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPR
 }
 
 func init() {
-	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedId
+	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedID
 }
 
 type Z_FileWillBeUploadedArgs struct {
@@ -458,7 +458,7 @@ type Z_FileWillBeUploadedReturns struct {
 }
 
 func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-	if !g.implemented[FileWillBeUploadedId] {
+	if !g.implemented[FileWillBeUploadedID] {
 		return info, ""
 	}
 
@@ -533,7 +533,7 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
-	hookNameToId["MessageWillBePosted"] = MessageWillBePostedId
+	hookNameToId["MessageWillBePosted"] = MessageWillBePostedID
 }
 
 type Z_MessageWillBePostedArgs struct {
@@ -549,7 +549,7 @@ type Z_MessageWillBePostedReturns struct {
 func (g *hooksRPCClient) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
 	_args := &Z_MessageWillBePostedArgs{c, post}
 	_returns := &Z_MessageWillBePostedReturns{A: _args.B}
-	if g.implemented[MessageWillBePostedId] {
+	if g.implemented[MessageWillBePostedID] {
 		if err := g.client.Call("Plugin.MessageWillBePosted", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageWillBePosted to plugin failed.", mlog.Err(err))
 		}
@@ -573,7 +573,7 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
-	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedId
+	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedID
 }
 
 type Z_MessageWillBeUpdatedArgs struct {
@@ -590,7 +590,7 @@ type Z_MessageWillBeUpdatedReturns struct {
 func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
 	_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
-	if g.implemented[MessageWillBeUpdatedId] {
+	if g.implemented[MessageWillBeUpdatedID] {
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
 		}
