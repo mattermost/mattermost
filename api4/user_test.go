@@ -3369,6 +3369,7 @@ func TestLoginWithLag(t *testing.T) {
 		require.Nil(t, err)
 
 		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
 
 		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(5)
 		require.Nil(t, cmdErr)

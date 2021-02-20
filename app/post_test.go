@@ -1989,6 +1989,8 @@ func TestReplyToPostWithLag(t *testing.T) {
 		err := th.App.Srv().Store.SetReplicationLagForTesting(5)
 		require.Nil(t, err)
 		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
 
 		root, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
