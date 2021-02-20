@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -55,7 +56,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	}
 
 	// Get the owner of the bot, if one exists. If not, don't send a message
-	ownerUser, err := a.Srv().Store.User().Get(bot.OwnerId)
+	ownerUser, err := a.Srv().Store.User().Get(context.Background(), bot.OwnerId)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return nil, model.NewAppError("CreateBot", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -156,7 +157,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 
 	bot.Patch(botPatch)
 
-	user, nErr := a.Srv().Store.User().Get(botUserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -197,7 +198,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -214,7 +215,7 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("GetBot", "app.bot.getbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -233,7 +234,7 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(botUserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -253,7 +254,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotActive", "app.bot.getbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -275,7 +276,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 			var appErr *model.AppError
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.MakeBotNotFoundError(nfErr.Id)
+				return nil, model.MakeBotNotFoundError(nfErr.ID)
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
@@ -313,7 +314,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -327,7 +328,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.Id)
+			return nil, model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -533,7 +534,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.Id)
+			return model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -567,7 +568,7 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.MakeBotNotFoundError(nfErr.Id)
+			return model.MakeBotNotFoundError(nfErr.ID)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		default: // last fallback in case it doesn't map to an existing app error.
