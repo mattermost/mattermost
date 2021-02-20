@@ -397,7 +397,7 @@ ifeq ($(MM_SQLSETTINGS_DRIVERNAME),mysql)
 		github.com/mattermost/mattermost-server/v5/api4 \
 		github.com/mattermost/mattermost-server/v5/app \
 		github.com/mattermost/mattermost-server/v5/enterprise/ldap \
-		-run="^TestLoginReplicationLag|TestReplyToPost|TestSyncMembershipsWithLag|TestFirstLoginSync$$" -mysql-replica
+		-run="^TestLoginWithLag|TestReplyToPostWithLag|TestSyncMembershipsWithLag|TestFirstLoginSyncWithLag$$" -mysql-replica
 else
 	@echo Must use 'mysql' database driver for replication lag tests
 endif

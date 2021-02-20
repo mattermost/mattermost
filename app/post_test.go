@@ -1971,7 +1971,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 }
 
-func TestReplyToPost(t *testing.T) {
+func TestReplyToPostWithLag(t *testing.T) {
 	if !replicaFlag {
 		t.Skipf("requires test flag -mysql-replica")
 	}

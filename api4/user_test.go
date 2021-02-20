@@ -3348,7 +3348,7 @@ func TestLogin(t *testing.T) {
 	})
 }
 
-func TestLoginReplicationLag(t *testing.T) {
+func TestLoginWithLag(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.Client.Logout()
