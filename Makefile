@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -56,6 +56,15 @@ ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
 	endif
 else
 	BUILD_CLIENT = false
+endif
+
+# We need current user's UID for `run-haserver` so docker compose does not run server
+# as root and mess up file permissions for devs. When running like this HOME will be blank
+# and docker will add '/', so we need to set the go-build cache location or we'll get 
+# permission errors on build as it tries to create a cache in filesystem root.
+export CURRENT_UID = $(shell id -u):$(shell id -g)
+ifeq ($(HOME),/)
+	export XDG_CACHE_HOME = /tmp/go-cache/
 endif
 
 # Go Flags
@@ -165,12 +174,16 @@ ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
-run-haserver: ## run-client
+run-haserver: 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Starting mattermost in an HA topology
+	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
 	docker-compose -f docker-compose.yaml up haproxy
 endif
+
+stop-haserver: 
+	@echo Stopping docker containers for HA topology
+	docker-compose stop
 
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)

@@ -114,6 +114,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
     command: ['make', 'run-server']
     expose:
       - "8065"
@@ -146,6 +148,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
     command: ['make', 'run-server']
     restart: on-failure
     expose:
@@ -169,7 +173,7 @@ services:
     networks:
       - mm-test
     depends_on:
-      - follower
+      - leader
     volumes:
       - './:/home/mattermost-server'
       - './../mattermost-webapp:/home/mattermost-webapp'
@@ -179,6 +183,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
     command: ['make', 'run-server']
     restart: on-failure
     expose:
@@ -197,9 +203,12 @@ services:
       - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     restart: on-failure
     depends_on:
-      - leader
-      - follower
-      - peon
+      leader:
+        condition: service_healthy
+      follower:
+        condition: service_healthy
+      peon:
+        condition: service_healthy
     ports:
       - "8065:8065"
 
