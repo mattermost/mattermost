@@ -6192,7 +6192,7 @@
   },
   {
     "id": "ent.cloud.subscription.error",
-    "translation": "Error getting subscription"
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6733,10 +6733,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
     "translation": "Unable to set the email To address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Unable to connect to the smtp server"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
