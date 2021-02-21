@@ -55,7 +55,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		v.Set(PropSecurityDatabase, *s.Config().SqlSettings.DriverName)
 		v.Set(PropSecurityOS, runtime.GOOS)
 
-		if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
+		if props[model.SYSTEM_RAN_UNIT_TESTS] != "" {
 			v.Set(PropSecurityUnitTests, "1")
 		} else {
 			v.Set(PropSecurityUnitTests, "0")
@@ -115,7 +115,9 @@ func (s *Server) DoSecurityUpdateCheck() {
 					for _, user := range users {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
-						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance, "")
+						mailConfig := s.MailServiceConfig()
+
+						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "")
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}

@@ -23,4 +23,5 @@ type LdapInterface interface {
 	FirstLoginSync(user *model.User, userAuthService, userAuthData, email string) *model.AppError
 	UpdateProfilePictureIfNecessary(model.User, model.Session)
 	GetADLdapIdFromSAMLId(authData string) string
+	GetVendorNameAndVendorVersion() (string, string)
 }

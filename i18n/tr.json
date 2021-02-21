@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4893,46 +4893,6 @@
   {
     "id": "system.message.name",
     "translation": "Sistem"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELO ayarlanamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Bağlantı açılamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLS bağlantısı açılamadı."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Ek dosya e-postaya eklenemedi"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTP sunucu bağlantısı kapatılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "\"Kimden\" adresi ayarlanırken sorun çıktı"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "E-posta ileti verileri eklenemedi."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "\"Kime\" adresi ayarlanırken sorun çıktı."
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5540,7 +5500,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen lisansı yenileyin."
+    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen şimdi lisansı yenileyin."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -7751,10 +7711,6 @@
     "translation": "Kullanıcının son güncellenme tarihi güncellenemedi."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kullanıcı parolası güncellenemedi."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Başarısız oturum açma girişimleri güncellenemedi."
   },
@@ -8469,5 +8425,121 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "İndirmek istediğiniz görev türü şu anda desteklenmiyor"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "error",
+    "translation": "Hata"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Uygulamaya geri yönlendiriliyorsunuz."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Bu tarayıcı sekmesini kapatabilirsiniz."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Kimlik doğrulandı"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Belirtilen yönlendirme adresi geçersiz"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Belirtilen özel adres şeması geçersiz"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Güvenlik nedeniyle {{.Name}} değişikliğine izin verilmiyor."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} sitesine geri dön"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "İstekte AuthData ya da AuthService parametresi eksik."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL ayarlarında bağlantının en fazla boşta kalma süresi geçersiz. Negatif olmayan bir sayı olmalıdır."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Dosyanın en son değişiklik zamanı alınamadı."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Kullanıcı işlemi bulunamadı ya da izlenmiyor"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Dosya arka bölümden okunurken sorun çıktı"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zip dosyası oluşurulurken sorun çıktı."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Bu uç noktayı kullanabilmek için E10 ya da E20 lisansı gereklidir."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser için Before ve After parametreleri birbirini dışlar"
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "RetentionDays değeri geçersiz. 0 değerinden büyük olmalı"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Klasör değeri boş olamaz."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "SMTP sunucusu ile bağlantı kurulamadı"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "İçe aktarma sırasında ek dosya okunamadı."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Dışa aktarma sırasında dosya zip arşivine eklenemedi."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Yanıt iletilemedi."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Dışa aktarma sırasında zip üst bilgisi oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Dışa aktarma sırasında klasör oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Dışa aktarma sırasında dosya oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Dışa aktarma sırasında dosya kopyalanamadı."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Dışa aktarma dosyası bulunamadı."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
   }
 ]

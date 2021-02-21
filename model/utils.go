@@ -35,7 +35,6 @@ const (
 )
 
 type StringInterface map[string]interface{}
-type StringMap map[string]string
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -186,14 +185,6 @@ func NewRandomString(length int) string {
 	return encoding.EncodeToString(data)[:length]
 }
 
-// NewRandomBase32String returns a base32 encoded string of a random slice
-// of bytes of the given size. The resulting entropy will be (8 * size) bits.
-func NewRandomBase32String(size int) string {
-	data := make([]byte, size)
-	rand.Read(data)
-	return base32.StdEncoding.EncodeToString(data)
-}
-
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
@@ -336,7 +327,7 @@ func StringFromJson(data io.Reader) string {
 
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
-	if len(iface) == 0 {
+	if iface == "" {
 		var err error
 		addrs, err = net.InterfaceAddrs()
 		if err != nil {
@@ -395,6 +386,7 @@ var reservedName = []string{
 	"channel",
 	"claim",
 	"error",
+	"files",
 	"help",
 	"landing",
 	"login",
@@ -482,24 +474,6 @@ func ParseHashtags(text string) (string, string) {
 	}
 
 	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
-}
-
-func IsFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	for _, imgExt := range IMAGE_EXTENSIONS {
-		if ext == imgExt {
-			return true
-		}
-	}
-	return false
-}
-
-func GetImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if len(IMAGE_MIME_TYPES[ext]) == 0 {
-		return "image"
-	}
-	return IMAGE_MIME_TYPES[ext]
 }
 
 func ClearMentionTags(post string) string {

@@ -59,10 +59,10 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 		if tokenLocation != TokenLocationNotFound {
 			key += token
 		} else if rl.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
-			key += utils.GetIpAddress(r, rl.trustedProxyIPHeader)
+			key += utils.GetIPAddress(r, rl.trustedProxyIPHeader)
 		}
 	} else if rl.useIP { // Only if Auth based is not enabed do we use a plain IP based
-		key += utils.GetIpAddress(r, rl.trustedProxyIPHeader)
+		key += utils.GetIPAddress(r, rl.trustedProxyIPHeader)
 	}
 
 	// Note that most of the time the user won't have to set this because the utils.GetIpAddress above tries the
@@ -91,9 +91,9 @@ func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	return limited
 }
 
-func (rl *RateLimiter) UserIdRateLimit(userId string, w http.ResponseWriter) bool {
+func (rl *RateLimiter) UserIdRateLimit(userID string, w http.ResponseWriter) bool {
 	if rl.useAuth {
-		return rl.RateLimitWriter(userId, w)
+		return rl.RateLimitWriter(userID, w)
 	}
 	return false
 }

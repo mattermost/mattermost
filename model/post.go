@@ -45,8 +45,7 @@ const (
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
-	POST_MAX_FILES              = 10
-	POST_FILEIDS_MAX_RUNES      = 300
+	POST_FILEIDS_MAX_RUNES      = 150
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
 	POST_MESSAGE_MAX_RUNES_V1   = 4000
@@ -277,19 +276,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || o.ParentId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
+	if len(o.ParentId) == 26 && o.RootId == "" {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
+	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -340,12 +339,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.FileIds) > POST_MAX_FILES {
-		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-	}
-
 	if utf8.RuneCountInString(ArrayToJson(o.FileIds)) > POST_FILEIDS_MAX_RUNES {
-		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusInternalServerError)
+		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
@@ -694,4 +689,9 @@ func RewriteImageURLs(message string, f func(string) string) string {
 	copy(result[offset:], message[ranges[len(ranges)-1].End:])
 
 	return string(result)
+}
+
+func (o *Post) IsFromOAuthBot() bool {
+	props := o.GetProps()
+	return props["from_webhook"] == "true" && props["override_username"] != ""
 }

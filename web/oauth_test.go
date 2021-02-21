@@ -4,6 +4,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/base64"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -91,13 +93,13 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
 	ruri, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
-	require.False(t, len(ruri) == 0, "redirect url should be set")
+	require.False(t, ruri == "", "redirect url should be set")
 
 	ru, _ = url.Parse(ruri)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
 	require.Nil(t, err)
-	assert.False(t, len(values.Get("access_token")) == 0, "access_token not returned")
+	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
 	oldToken := ApiClient.AuthToken
@@ -522,11 +524,49 @@ func TestOAuthComplete(t *testing.T) {
 	}
 }
 
+func TestOAuthComplete_ErrorMessages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App: th.App,
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	translationFunc := utils.GetUserTranslations("en")
+	c.App.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	responseWriter := httptest.NewRecorder()
+
+	// Renders for web & mobile app with webview
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+
+	completeOAuth(c, responseWriter, request)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- web error message -->")
+
+	// Renders for mobile app with redirect url
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_MOBILE
+	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+
+	completeOAuth(c, responseWriter, request2)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
+}
+
 func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
-	if len(authToken) > 0 {
+	if authToken != "" {
 		rq.Header.Set(model.HEADER_AUTH, authToken)
 	}
 

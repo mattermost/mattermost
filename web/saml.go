@@ -84,7 +84,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayState := r.FormValue("RelayState")
 
 	relayProps := make(map[string]string)
-	if len(relayState) > 0 {
+	if relayState != "" {
 		stateStr := ""
 		b, err := b64.StdEncoding.DecodeString(relayState)
 		if err != nil {
@@ -107,17 +107,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
 		redirectURL = val
-		hasRedirectURL = len(val) > 0
+		hasRedirectURL = val != ""
 	}
 
 	handleError := func(err *model.AppError) {
-		if isMobile {
+		if isMobile && hasRedirectURL {
 			err.Translate(c.App.T)
-			if hasRedirectURL {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
-			} else {
-				w.Write([]byte(err.ToJson()))
-			}
+			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound

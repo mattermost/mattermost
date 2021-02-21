@@ -73,10 +73,6 @@ const (
 	ExitRemoveIndexMySQL         = 122
 	ExitRemoveIndexMissing       = 123
 	ExitRemoveTable              = 134
-	ExitCreateIndexSqlite        = 135
-	ExitRemoveIndexSqlite        = 136
-	ExitTableExists_SQLITE       = 137
-	ExitDoesColumnExistsSqlite   = 138
 	ExitAlterPrimaryKey          = 139
 )
 
@@ -268,14 +264,13 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
 	db.SetMaxOpenConns(*settings.MaxOpenConns)
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
+	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
 	var dbmap *gorp.DbMap
 
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
 
-	if *settings.DriverName == model.DATABASE_DRIVER_SQLITE {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}, QueryTimeout: connectionTimeout}
-	} else if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
 	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
@@ -340,8 +335,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		sqlVersion = `SELECT version()`
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		sqlVersion = `SELECT sqlite_version()`
 	} else {
 		return "", errors.New("Not supported driver")
 	}
@@ -424,7 +417,7 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 	}
 
 	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-	if len(unitTests) == 0 {
+	if unitTests == "" {
 		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
 		ss.System().Save(systemTests)
 	}
@@ -463,20 +456,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 			mlog.Critical("Failed to check if table exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(ExitTableExistsMySQL)
-		}
-
-		return count > 0
-
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		count, err := ss.GetMaster().SelectInt(
-			`SELECT count(name) FROM sqlite_master WHERE type='table' AND name=?`,
-			tableName,
-		)
-
-		if err != nil {
-			mlog.Critical("Failed to check if table exists", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitTableExists_SQLITE)
 		}
 
 		return count > 0
@@ -532,21 +511,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(ExitDoesColumnExistsMySQL)
-		}
-
-		return count > 0
-
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		count, err := ss.GetMaster().SelectInt(
-			`SELECT COUNT(*) FROM pragma_table_info(?) WHERE name=?`,
-			tableName,
-			columnName,
-		)
-
-		if err != nil {
-			mlog.Critical("Failed to check if column exists", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitDoesColumnExistsSqlite)
 		}
 
 		return count > 0
@@ -790,10 +754,6 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 		tableName = strings.ToLower(tableName)
 		columnName = strings.ToLower(columnName)
 		defaultValue = *postgresColDefault
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		// SQLite doesn't support altering column defaults, but we don't use this in
-		// production so just ignore.
-		return true
 	} else {
 		mlog.Critical("Failed to alter column default because of missing driver")
 		time.Sleep(time.Second)
@@ -849,9 +809,6 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
-	case model.DATABASE_DRIVER_SQLITE:
-		// SQLite doesn't support altering primary key
-		return true
 	}
 	if err != nil {
 		mlog.Critical("Failed to get current primary key", mlog.String("table", tableName), mlog.Err(err))
@@ -956,13 +913,6 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			time.Sleep(time.Second)
 			os.Exit(ExitCreateIndexFullMySQL)
 		}
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
-		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitCreateIndexSqlite)
-		}
 	} else {
 		mlog.Critical("Failed to create index because of missing driver")
 		time.Sleep(time.Second)
@@ -1007,13 +957,6 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(ExitRemoveIndexMySQL)
-		}
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		_, err := ss.GetMaster().ExecNoTimeout("DROP INDEX IF EXISTS " + indexName)
-		if err != nil {
-			mlog.Critical("Failed to remove index", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitRemoveIndexSqlite)
 		}
 	} else {
 		mlog.Critical("Failed to create index because of missing driver")
@@ -1072,6 +1015,10 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 func (ss *SqlStore) Close() {
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
+		replica.Db.Close()
+	}
+
+	for _, replica := range ss.searchReplicas {
 		replica.Db.Close()
 	}
 }

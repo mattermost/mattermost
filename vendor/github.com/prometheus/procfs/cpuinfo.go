@@ -313,6 +313,22 @@ func parseCPUInfoS390X(info []byte) ([]CPUInfo, error) {
 				return nil, err
 			}
 			cpuinfo[i].CPUMHz = v
+		case "physical id":
+			cpuinfo[i].PhysicalID = field[1]
+		case "core id":
+			cpuinfo[i].CoreID = field[1]
+		case "cpu cores":
+			v, err := strconv.ParseUint(field[1], 0, 32)
+			if err != nil {
+				return nil, err
+			}
+			cpuinfo[i].CPUCores = uint(v)
+		case "siblings":
+			v, err := strconv.ParseUint(field[1], 0, 32)
+			if err != nil {
+				return nil, err
+			}
+			cpuinfo[i].Siblings = uint(v)
 		}
 	}
 

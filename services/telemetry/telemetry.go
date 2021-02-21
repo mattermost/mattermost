@@ -64,6 +64,7 @@ const (
 	TrackConfigGuestAccounts     = "config_guest_accounts"
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
+	TrackConfigExport            = "config_export"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -126,7 +127,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	}
 
 	id := props[model.SYSTEM_TELEMETRY_ID]
-	if len(id) == 0 {
+	if id == "" {
 		id = model.NewId()
 		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
 		ts.dbStore.System().Save(systemID)
@@ -180,6 +181,18 @@ func (ts *TelemetryService) sendTelemetry(event string, properties map[string]in
 			Context:    context,
 		})
 	}
+}
+
+func isDefaultArray(setting, defaultValue []string) bool {
+	if len(setting) != len(defaultValue) {
+		return false
+	}
+	for i := 0; i < len(setting); i++ {
+		if setting[i] != defaultValue[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
@@ -424,6 +437,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
+		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
+		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -438,6 +453,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
 		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
+		"enable_custom_user_statuses":               *cfg.TeamSettings.EnableCustomUserStatuses,
 		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                   *cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":             *cfg.TeamSettings.MaxNotificationsPerChannel,
@@ -474,6 +490,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
 		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
 		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
@@ -687,6 +704,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
@@ -696,6 +714,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigNativeApp, map[string]interface{}{
+		"isdefault_app_custom_url_schemes":    isDefaultArray(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
@@ -768,7 +787,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
-		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"global_relay_smtp_server_timeout":      *cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout,
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
@@ -796,6 +815,10 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
 		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
+	})
+
+	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
+		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 }
 

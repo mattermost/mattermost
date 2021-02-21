@@ -90,7 +90,7 @@ func (tcp *Tcp) getConn() (net.Conn, error) {
 			tcp.monitor = make(chan struct{})
 			go monitor(tcp.conn, tcp.monitor)
 		}
-		connChan <- result{conn: conn, err: err}
+		ch <- result{conn: conn, err: err}
 	}(ctx, connChan)
 
 	select {

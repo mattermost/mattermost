@@ -55,7 +55,7 @@ func FieldListToFuncList(fieldList *ast.FieldList, fileset *token.FileSet) strin
 	return "(" + strings.Join(result, ", ") + ")"
 }
 
-func FieldListToNames(fieldList *ast.FieldList, fileset *token.FileSet, variadicForm bool) string {
+func FieldListToNames(fieldList *ast.FieldList, variadicForm bool) string {
 	result := []string{}
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return ""
@@ -141,7 +141,7 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	return strings.Join(result, ", ")
 }
 
-func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList) string {
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return "true"
 	}
@@ -265,6 +265,7 @@ func getPluginInfo(dir string) (*PluginInterfaceInfo, error) {
 	packages, err := parser.ParseDir(pluginInfo.FileSet, dir, nil, parser.ParseComments)
 	if err != nil {
 		log.Println("Parser error in dir "+dir+": ", err)
+		return nil, err
 	}
 
 	for _, pkg := range packages {
@@ -291,7 +292,7 @@ package plugin
 {{range .HooksMethods}}
 
 func init() {
-	hookNameToId["{{.Name}}"] = {{.Name}}Id
+	hookNameToId["{{.Name}}"] = {{.Name}}ID
 }
 
 type {{.Name | obscure}}Args struct {
@@ -305,7 +306,7 @@ type {{.Name | obscure}}Returns struct {
 func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	_args := &{{.Name | obscure}}Args{ {{valuesOnly .Params}} }
 	_returns := &{{.Name | obscure}}Returns{}
-	if g.implemented[{{.Name}}Id] {
+	if g.implemented[{{.Name}}ID] {
 		if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
 		}
@@ -458,7 +459,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]interface{}{
 		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
 		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet, false) },
+		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, false) },
 		"encodeErrors": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListToEncodedErrors(structPrefix, fields, info.FileSet)
 		},
@@ -466,7 +467,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
 		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
+			return FieldListToRecordSuccess(structPrefix, fields)
 		},
 		"obscure": func(name string) string {
 			return "Z_" + name
@@ -510,12 +511,12 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]interface{}{
 		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
 		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet, true) },
+		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, true) },
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
 		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
+			return FieldListToRecordSuccess(structPrefix, fields)
 		},
 	}
 
