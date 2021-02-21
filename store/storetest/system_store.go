@@ -4,6 +4,8 @@
 package storetest
 
 import (
+	"database/sql"
+	"errors"
 	"sync"
 	"testing"
 
@@ -22,6 +24,7 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 		testInsertIfExists(t, ss)
 	})
 	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, ss) })
+	t.Run("GetByNameNoEntries", func(t *testing.T) { testSystemStoreGetByNameNoEntries(t, ss) })
 }
 
 func testSystemStore(t *testing.T, ss store.Store) {
@@ -81,6 +84,13 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	val2, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 	assert.NoError(t, nerr)
 	assert.Equal(t, val1, val2)
+}
+
+func testSystemStoreGetByNameNoEntries(t *testing.T, ss store.Store) {
+	res, err := ss.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, sql.ErrNoRows))
+	assert.Nil(t, res)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {

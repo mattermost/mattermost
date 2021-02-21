@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -68,6 +69,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 
 	api.BaseRoutes.System.Handle("/support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/first_admin_visit_marketplace", api.ApiHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/first_admin_visit_marketplace", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -800,6 +803,59 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("setFirstAdminVisitMarketplaceStatus", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
+		Value: strconv.FormatBool(true),
+	}); err != nil {
+		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getFirstAdminVisitMarketplaceStatus", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	firstAdminVisitMarketplaceObj, err := c.App.Srv().Store.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.no_first_admin_visit_marketplace_status", nil, nfErr.Error(), http.StatusNotFound)
+			resp := &model.System{
+				Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
+				Value: strconv.FormatBool(false),
+			}
+			w.Write([]byte(resp.ToJson()))
+		default:
+			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	auditRec.Success()
+	w.Write([]byte(firstAdminVisitMarketplaceObj.ToJson()))
 }
 
 func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
