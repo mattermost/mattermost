@@ -74,7 +74,7 @@ func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription()
+	subscription, appErr := c.App.Cloud().GetSubscription("")
 
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -396,20 +396,20 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user, err := c.App.GetUser(c.App.Session().UserId)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	user, appErr := c.App.GetUser(c.App.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 		return
 	}
 
-	sub, err := c.App.Cloud().GetSubscription()
+	sub, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub); err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	if appErr = c.App.SendAdminUpgradeRequestEmail(user.Username, sub); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 		return
 	}
 
