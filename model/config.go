@@ -33,7 +33,6 @@ const (
 	IMAGE_DRIVER_LOCAL = "local"
 	IMAGE_DRIVER_S3    = "amazons3"
 
-	DATABASE_DRIVER_SQLITE   = "sqlite3"
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
@@ -1857,6 +1856,7 @@ type TeamSettings struct {
 	EnableOpenServer                                          *bool    `access:"authentication"`
 	EnableUserDeactivation                                    *bool    `access:"experimental"`
 	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: none
+	EnableCustomUserStatuses                                  *bool    `access:"site"`
 	EnableCustomBrand                                         *bool    `access:"site"`
 	CustomBrandText                                           *string  `access:"site"`
 	CustomDescriptionText                                     *string  `access:"site"`
@@ -1908,6 +1908,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.RestrictCreationToDomains == nil {
 		s.RestrictCreationToDomains = NewString("")
+	}
+
+	if s.EnableCustomUserStatuses == nil {
+		s.EnableCustomUserStatuses = NewBool(true)
 	}
 
 	if s.EnableCustomBrand == nil {

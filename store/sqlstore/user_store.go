@@ -335,15 +335,8 @@ func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User
 		return nil, errors.Wrap(err, "users_get_many_tosql")
 	}
 
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-
 	var users []*model.User
-	if _, err := db.Select(&users, queryString, args...); err != nil {
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -356,13 +349,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-	row := db.Db.QueryRow(queryString, args...)
+	row := us.SqlStore.DBFromContext(ctx).Db.QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -729,15 +716,9 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	if err != nil {
 		return nil, errors.Wrap(err, "get_all_profiles_in_channel_tosql")
 	}
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
 
 	var users []*model.User
-	rows, err := db.Db.Query(queryString, args...)
+	rows, err := us.SqlStore.DBFromContext(ctx).Db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -961,14 +942,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = us.GetMaster()
-	} else {
-		db = us.GetReplica()
-	}
-
-	if _, err := db.Select(&users, queryString, args...); err != nil {
+	if _, err := us.SqlStore.DBFromContext(ctx).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 

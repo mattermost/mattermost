@@ -102,7 +102,7 @@ func TestCreateProfileImage(t *testing.T) {
 
 	rdr := bytes.NewReader(b)
 	img, _, err2 := image.Decode(rdr)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 
 	colorful := color.RGBA{116, 49, 196, 255}
 
@@ -133,12 +133,12 @@ func TestAdjustProfileImage(t *testing.T) {
 	defer th.TearDown()
 
 	_, err := th.App.AdjustImage(bytes.NewReader([]byte{}))
-	require.Error(t, err)
+	require.NotNil(t, err)
 
 	// test image isn't the correct dimensions
 	// it should be adjusted
 	testjpg, error := testutils.ReadTestFile("testjpg.jpg")
-	require.Nil(t, error)
+	require.NoError(t, error)
 	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
 	require.Nil(t, err)
 	assert.True(t, adjusted.Len() > 0)
@@ -448,7 +448,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, nErr)
+		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
@@ -492,7 +492,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			IsBot:    true,
 		}
 		_, nErr := th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, nErr)
+		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
@@ -527,7 +527,7 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 	var payload []byte
 	var err error
 	payload, err = json.Marshal(gitlabUser)
-	require.Nil(t, err, "Serialization of gitlab user to json failed", err)
+	require.NoError(t, err, "Serialization of gitlab user to json failed", err)
 
 	return payload
 }
@@ -696,7 +696,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("invalid domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
 		_, nErr := th.App.Srv().Store.Team().Update(th.BasicTeam)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		_, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
@@ -719,7 +719,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeVerifyEmail,
 			model.MapToJson(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on bad token type")
@@ -731,7 +731,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on expired token")
@@ -742,7 +742,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on bad team id")
@@ -754,14 +754,14 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(&user, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
 		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
 
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, nErr, "The token must be deleted after be used")
+		require.Error(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
@@ -774,7 +774,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
@@ -782,7 +782,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, nErr, "The token must be deleted after be used")
+		require.Error(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -808,8 +808,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
-		require.Nil(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
+		require.NoError(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
+		require.NoError(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
 		guest := model.User{
 			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
 			Nickname:    "Darth Vader",
@@ -827,7 +827,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, grantedInvitationEmail, newGuest.Email)
 		_, nErr := th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -851,7 +851,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{
 			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
 			Nickname:    "Darth Vader",
@@ -864,7 +864,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.True(t, newGuest.IsGuest())
 		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -895,7 +895,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	sqlStore := mainHelper.GetSQLStore()
 	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
-	assert.Nil(t, err1)
+	assert.NoError(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
 	// test that bot is deleted from bots table
@@ -906,7 +906,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
-	assert.Nil(t, err1)
+	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
 	err = th.App.PermanentDeleteUser(th.BasicUser)
@@ -938,7 +938,7 @@ func TestPasswordRecovery(t *testing.T) {
 	}{}
 
 	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
-	assert.Nil(t, err2)
+	assert.NoError(t, err2)
 	assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
 	assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 

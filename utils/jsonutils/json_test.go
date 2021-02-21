@@ -63,7 +63,7 @@ func TestHumanizeJsonError(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := jsonutils.HumanizeJsonError(testCase.Err, testCase.Data)
+			actual := jsonutils.HumanizeJSONError(testCase.Err, testCase.Data)
 			if testCase.ExpectedErr == "" {
 				assert.NoError(t, actual)
 			} else {
@@ -73,7 +73,7 @@ func TestHumanizeJsonError(t *testing.T) {
 	}
 }
 
-func TestNewHumanizedJsonError(t *testing.T) {
+func TestNewHumanizedJSONError(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -81,7 +81,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 		Data        []byte
 		Offset      int64
 		Err         error
-		Expected    *jsonutils.HumanizedJsonError
+		Expected    *jsonutils.HumanizedJSONError
 	}{
 		{
 			"nil error",
@@ -95,7 +95,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			-1,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err: errors.Wrap(errors.New("message"), "invalid offset -1"),
 			},
 		},
@@ -104,7 +104,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			0,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 1"),
 				Line:      1,
 				Character: 1,
@@ -115,7 +115,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			5,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 6"),
 				Line:      1,
 				Character: 6,
@@ -126,7 +126,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			6,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 7"),
 				Line:      1,
 				Character: 7,
@@ -137,7 +137,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			7,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 1"),
 				Line:      2,
 				Character: 1,
@@ -148,7 +148,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			12,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 6"),
 				Line:      2,
 				Character: 6,
@@ -159,7 +159,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			13,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 7"),
 				Line:      2,
 				Character: 7,
@@ -170,7 +170,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			17,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 4"),
 				Line:      3,
 				Character: 4,
@@ -181,7 +181,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			19,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 6"),
 				Line:      3,
 				Character: 6,
@@ -192,7 +192,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			20,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 7"),
 				Line:      3,
 				Character: 7,
@@ -203,7 +203,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3\n"),
 			21,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 4, character 1"),
 				Line:      4,
 				Character: 1,
@@ -214,7 +214,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			21,
 			errors.New("message"),
-			&jsonutils.HumanizedJsonError{
+			&jsonutils.HumanizedJSONError{
 				Err: errors.Wrap(errors.New("message"), "invalid offset 21"),
 			},
 		},
@@ -223,7 +223,7 @@ func TestNewHumanizedJsonError(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := jsonutils.NewHumanizedJsonError(testCase.Err, testCase.Data, testCase.Offset)
+			actual := jsonutils.NewHumanizedJSONError(testCase.Err, testCase.Data, testCase.Offset)
 			if testCase.Expected != nil && actual.Err != nil {
 				if assert.EqualValues(t, testCase.Expected.Err.Error(), actual.Err.Error()) {
 					actual.Err = testCase.Expected.Err

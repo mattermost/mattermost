@@ -4890,46 +4890,6 @@
     "translation": "システム"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELOを設定できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLSで接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTPサーバーの認証に失敗しました。"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "電子メールへ添付を書き込むことができませんでした"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTPサーバーへの接続を終了できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "設定エラー \"送信元電子メールアドレス\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "電子メールメッセージを書けませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "電子メールメッセージデータを追加できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "設定エラー \"宛先電子メールアドレス\"。"
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "コマンドが見付かりません。"
   },
@@ -8516,10 +8476,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
-  },
-  {
-    "id": "api.unable_write_file_response",
-    "translation": "サポートパケットファイルをダウンロードする際にエラーが発生しました。"
   },
   {
     "id": "api.unable_to_read_file_from_backend",

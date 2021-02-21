@@ -1487,16 +1487,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := ""
-		if strings.Contains(terms, "_") {
-			//Strip quotes off terms with it
-			if strings.Contains(terms, "\"") {
-				queryParams["Terms"] = strings.ReplaceAll(queryParams["Terms"].(string), "\"", "")
-			}
-			searchClause = fmt.Sprintf("AND lower(%s)::tsvector @@ lower(:Terms)::tsquery", searchType)
-		} else {
-			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		}
+		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if searchType == "Message" {
