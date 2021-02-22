@@ -22,11 +22,12 @@ type FeatureFlags struct {
 	// Toggle on and off support for Custom User Statuses
 	CustomUserStatuses bool
 
-	// Feature flags to control plugin versions
-	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
-
 	// AppsEnabled toggle the Apps framework functionalities both in server and client side
 	AppsEnabled bool
+
+	// Feature flags to control plugin versions
+	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
+	PluginApps               string `plugin_id:"com.mattermost.apps"`
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -35,8 +36,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.CustomUserStatuses = false
-	f.AppsEnabled = true
+	f.AppsEnabled = false
+
 	f.PluginIncidentManagement = "1.4.0"
+	f.PluginApps = ""
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
