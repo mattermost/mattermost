@@ -21,7 +21,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'SchemeAdmin'
     ) > 0,
     'ALTER TABLE TeamMembers DROP COLUMN SchemeAdmin;',
-    'SELECT 1',
+    'SELECT 1'
 ));
 
 PREPARE alterIfExists FROM @preparedStatement;
