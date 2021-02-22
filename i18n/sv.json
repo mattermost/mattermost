@@ -8521,5 +8521,73 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Ogiltig Origin header vid websocket-uppgraderingen."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Din status är satt till “{{.EmojiName}} {{.StatusMessage}}”. Du kan ändra din status med status-popup i överst i kanal-sidomenyn."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] eller rensa"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Sätt eller nollställ status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Din status nollställdes."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fel när status skulle nollställas."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fel då status skulle sättas."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Inbjudningar kan inte skickas eftersom ditt workspace har nått användargränsen för den kostnadsfria av Mattermost Cloud. Uppgradera nu för att tillåta fler användare att ansluta till ditt workspace."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativt kan du spärra användare i administratörskonsolen för att öppna upp plats för användare och hålla dig under gränsen för den kostnadsfria versionen."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Inga mejl blev skickade"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Det gick inte att skicka mejl till administratören om uppnådd användarnivå"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Begäran om uppgradering av workspace från Mattermost-användare"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Misslyckades att ta bort senaste status. Försök sätta status först eller kontakta systemadministratören för detaljer."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
   }
 ]
