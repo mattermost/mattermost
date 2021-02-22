@@ -185,14 +185,6 @@ func NewRandomString(length int) string {
 	return encoding.EncodeToString(data)[:length]
 }
 
-// NewRandomBase32String returns a base32 encoded string of a random slice
-// of bytes of the given size. The resulting entropy will be (8 * size) bits.
-func NewRandomBase32String(size int) string {
-	data := make([]byte, size)
-	rand.Read(data)
-	return base32.StdEncoding.EncodeToString(data)
-}
-
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
