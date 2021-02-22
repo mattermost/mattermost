@@ -487,7 +487,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 func changeMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSettings []string) error {
 	resOld, ok := oldConfigMap[configSettings[0]]
 	if !ok {
-		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+		return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
 	}
 	resDef := defaultConfigMap[configSettings[0]]
 	valueOld := reflect.ValueOf(resOld)
@@ -502,7 +502,7 @@ func changeMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSett
 		oldConfigMap[configSettings[0]] = defaultConfigMap[configSettings[0]]
 		return nil
 	}
-	return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+	return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
 }
 
 func changeSection(oldConfigMap, defaultConfigMap map[string]interface{}) error {

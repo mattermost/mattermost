@@ -50,7 +50,7 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("enter at least one user")
+		return errors.New("Enter at least one user.")
 	}
 
 	users := getUsersFromUserArgs(a, args)
@@ -100,7 +100,7 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("enter at least one user")
+		return errors.New("Enter at least one user.")
 	}
 
 	users := getUsersFromUserArgs(a, args)

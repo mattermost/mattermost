@@ -39,12 +39,12 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 		CommandPrettyPrintln("Are you sure you want to delete everything? All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 	}
 

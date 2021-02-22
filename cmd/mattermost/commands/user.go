@@ -117,30 +117,30 @@ var MigrateAuthCmd = &cobra.Command{
 	Example: "  user migrate_auth email saml users.json",
 	Args: func(command *cobra.Command, args []string) error {
 		if len(args) < 2 {
-			return errors.New("auth migration requires at least 2 arguments")
+			return errors.New("Auth migration requires at least 2 arguments.")
 		}
 
 		toAuth := args[1]
 
 		if toAuth != "ldap" && toAuth != "saml" {
-			return errors.New("invalid to_auth parameter, must be saml or ldap")
+			return errors.New("Invalid to_auth parameter, must be saml or ldap.")
 		}
 
 		if toAuth == "ldap" && len(args) != 3 {
-			return errors.New("LDAP migration requires 3 arguments")
+			return errors.New("Ldap migration requires 3 arguments.")
 		}
 
 		autoFlag, _ := command.Flags().GetBool("auto")
 
 		if toAuth == "saml" && autoFlag {
 			if len(args) != 2 {
-				return errors.New("SAML migration requires two arguments when using the --auto flag. See help text for details")
+				return errors.New("Saml migration requires two arguments when using the --auto flag. See help text for details.")
 			}
 		}
 
 		if toAuth == "saml" && !autoFlag {
 			if len(args) != 3 {
-				return errors.New("SAML migration requires three arguments when not using the --auto flag. See help text for details")
+				return errors.New("Saml migration requires three arguments when not using the --auto flag. See help text for details.")
 			}
 		}
 		return nil
@@ -279,7 +279,7 @@ func userActivateCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	changeUsersActiveStatus(a, args, true)
@@ -300,14 +300,14 @@ func changeUsersActiveStatus(a *app.App, userArgs []string, active bool) {
 
 func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activate bool) error {
 	if user == nil {
-		return fmt.Errorf("can't find user '%v'", userArg)
+		return fmt.Errorf("Can't find user '%v'", userArg)
 	}
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	updatedUser, err := a.UpdateActive(user, activate)
 	if err != nil {
-		return fmt.Errorf("unable to change activation status of user: %v", userArg)
+		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
 
 	auditRec := a.MakeAuditRecord("changeActiveUserStatus", audit.Success)
@@ -326,7 +326,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	changeUsersActiveStatus(a, args, false)
@@ -344,16 +344,16 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
-		return errors.New("username is required")
+		return errors.New("Username is required")
 	}
 	email, erre := command.Flags().GetString("email")
 	if erre != nil || email == "" {
-		return errors.New("email is required")
+		return errors.New("Email is required")
 	}
 	email = strings.ToLower((email))
 	password, errp := command.Flags().GetString("password")
 	if errp != nil || password == "" {
-		return errors.New("password is required")
+		return errors.New("Password is required")
 	}
 	nickname, _ := command.Flags().GetString("nickname")
 	firstname, _ := command.Flags().GetString("firstname")
@@ -409,7 +409,7 @@ func usersToBots(args []string, a *app.App) {
 	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
 		if user == nil {
-			CommandPrintErrorln(fmt.Errorf("unable to find user \"%s\"", args[i]))
+			CommandPrintErrorln(fmt.Errorf("Unable to find user \"%s\"", args[i]))
 			continue
 		}
 
@@ -430,11 +430,11 @@ func usersToBots(args []string, a *app.App) {
 func getUpdatedPassword(command *cobra.Command) (string, error) {
 	password, err := command.Flags().GetString("password")
 	if err != nil {
-		return "", fmt.Errorf("unable to read password. Error: %s", err.Error())
+		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
 	}
 
 	if password == "" {
-		return "", errors.New("password is required")
+		return "", errors.New("Password is required.")
 	}
 
 	return password, nil
@@ -444,7 +444,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 	username, _ := command.Flags().GetString("username")
 	if username == "" {
 		if user.Username == "" {
-			return nil, errors.New("invalid username. Username is empty")
+			return nil, errors.New("Invalid username. Username is empty.")
 		}
 	} else {
 		user.Username = username
@@ -453,7 +453,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 	email, _ := command.Flags().GetString("email")
 	if email == "" {
 		if user.Email == "" {
-			return nil, errors.New("invalid email. Email is empty")
+			return nil, errors.New("Invalid email. Email is empty.")
 		}
 	} else {
 		user.Email = email
@@ -480,7 +480,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 	}
 
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && !app.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		return nil, errors.New("the email does not belong to an accepted domain")
+		return nil, errors.New("The email does not belong to an accepted domain.")
 	}
 
 	return user, nil
@@ -488,17 +488,17 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 
 func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	if len(args) != 1 {
-		return errors.New("expect 1 argument. See help text for more details")
+		return errors.New("Expect 1 argument. See help text for more details.")
 	}
 
 	user := getUserFromUserArg(a, args[0])
 	if user == nil {
-		return errors.New("unable to find bot")
+		return errors.New("Unable to find bot.")
 	}
 
 	_, appErr := a.GetBot(user.Id, false)
 	if appErr != nil {
-		return fmt.Errorf("unable to find bot. Error: %s", appErr.Error())
+		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
 	}
 
 	password, err := getUpdatedPassword(command)
@@ -518,7 +518,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 
 	appErr = a.UpdatePassword(user, password)
 	if appErr != nil {
-		return fmt.Errorf("unable to update password. Error: %s", appErr.Error())
+		return fmt.Errorf("Unable to update password. Error: %s", appErr.Error())
 	}
 
 	systemAdmin, _ := command.Flags().GetBool("system_admin")
@@ -527,13 +527,13 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 			user.Id,
 			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
 			false); appErr != nil {
-			return fmt.Errorf("unable to make user system admin. Error: %s" + appErr.Error())
+			return fmt.Errorf("Unable to make user system admin. Error: %s" + appErr.Error())
 		}
 	}
 
 	err = a.Srv().Store.Bot().PermanentDelete(user.Id)
 	if err != nil {
-		return fmt.Errorf("unable to delete bot. Error: %v", err)
+		return fmt.Errorf("Unable to delete bot. Error: %v", err)
 	}
 
 	CommandPrettyPrintln("id: " + user.Id)
@@ -562,20 +562,20 @@ func userConvertCmdF(command *cobra.Command, args []string) error {
 
 	toBot, err := command.Flags().GetBool("bot")
 	if err != nil {
-		return errors.New("invalid command. See help text for details")
+		return errors.New("Invalid command. See help text for details.")
 	}
 
 	toUser, err := command.Flags().GetBool("user")
 	if err != nil {
-		return errors.New("invalid command. See help text for details")
+		return errors.New("Invalid command. See help text for details.")
 	}
 
 	if !(toUser || toBot) {
-		return errors.New("expect either \"user\" flag or \"bot\" flag. See help text for details")
+		return errors.New("Expect either \"user\" flag or \"bot\" flag. See help text for details.")
 	}
 
 	if toUser && toBot {
-		return errors.New("expect either \"user\" flag or \"bot\" flag but not both. See help text for details")
+		return errors.New("Expect either \"user\" flag or \"bot\" flag but not both. See help text for details.")
 	}
 
 	if toUser {
@@ -594,13 +594,13 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 2 {
-		return errors.New("expected at least two arguments. See help text for details")
+		return errors.New("Expected at least two arguments. See help text for details.")
 	}
 
 	email := args[0]
 	email = strings.ToLower(email)
 	if !model.IsValidEmail(email) {
-		return errors.New("invalid email")
+		return errors.New("Invalid email")
 	}
 
 	teams := getTeamsFromTeamArgs(a, args[1:])
@@ -618,11 +618,11 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 func inviteUser(a *app.App, email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
-		return fmt.Errorf("can't find team '%v'", teamArg)
+		return fmt.Errorf("Can't find team '%v'", teamArg)
 	}
 
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return fmt.Errorf("email invites are disabled")
+		return fmt.Errorf("Email invites are disabled.")
 	}
 
 	err := a.Srv().EmailService.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
@@ -647,7 +647,7 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
+		return errors.New("Expected two arguments. See help text for details.")
 	}
 
 	user := getUserFromUserArg(a, args[0])
@@ -675,7 +675,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
+		return errors.New("Expected two arguments. See help text for details.")
 	}
 
 	newEmail := args[1]
@@ -685,7 +685,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
+		return errors.New("Expected two arguments. See help text for details.")
 	}
 
 	user := getUserFromUserArg(a, args[0])
@@ -715,7 +715,7 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	users := getUsersFromUserArgs(a, args)
@@ -744,7 +744,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
@@ -754,12 +754,12 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 		CommandPrettyPrintln("Are you sure you want to permanently delete the specified users? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 	}
 
@@ -797,7 +797,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) > 0 {
-		return errors.New("expected zero arguments")
+		return errors.New("Expected zero arguments.")
 	}
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
@@ -807,12 +807,12 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 		CommandPrettyPrintln("Are you sure you want to permanently delete all user accounts? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 	}
 
@@ -845,7 +845,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	matchField := args[2]
 
 	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
-		return errors.New("invalid from_auth argument")
+		return errors.New("Invalid from_auth argument")
 	}
 
 	// Email auth in Mattermost system is represented by ""
@@ -854,7 +854,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if matchField == "" || (matchField != "email" && matchField != "username") {
-		return errors.New("invalid match_field argument")
+		return errors.New("Invalid match_field argument")
 	}
 
 	forceFlag, _ := command.Flags().GetBool("force")
@@ -895,17 +895,17 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 
 		file, e := ioutil.ReadFile(matchesFile)
 		if e != nil {
-			return errors.New("invalid users file")
+			return errors.New("Invalid users file.")
 		}
 		if json.Unmarshal(file, &matches) != nil {
-			return errors.New("invalid users file")
+			return errors.New("Invalid users file.")
 		}
 	}
 
 	fromAuth := args[0]
 
 	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
-		return errors.New("invalid from_auth argument")
+		return errors.New("Invalid from_auth argument")
 	}
 
 	if autoFlag && !dryRunFlag {
@@ -914,7 +914,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 	}
 
@@ -947,7 +947,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	users := getUsersFromUserArgs(a, args)
@@ -973,7 +973,7 @@ func searchUserCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
+		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	users := getUsersFromUserArgs(a, args)

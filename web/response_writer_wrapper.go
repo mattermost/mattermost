@@ -50,7 +50,7 @@ func (rw *responseWriterWrapper) Write(data []byte) (int, error) {
 // it loses the access to the implementation for Hijack or Flush
 func (rw *responseWriterWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if rw.hijacker == nil {
-		return nil, nil, errors.New("hijacker interface not supported by the wrapped ResponseWriter")
+		return nil, nil, errors.New("Hijacker interface not supported by the wrapped ResponseWriter")
 	}
 	return rw.hijacker.Hijack()
 }

@@ -562,7 +562,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	user := getUserFromUserArg(a, username)
 	if user == nil {
-		return fmt.Errorf("unable to find user: '%v'", username)
+		return fmt.Errorf("Unable to find user: '%v'", username)
 	}
 
 	updatedChannel, errUpdate := a.UpdateChannelPrivacy(channel, user)

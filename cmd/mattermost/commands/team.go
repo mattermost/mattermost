@@ -149,11 +149,11 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
-		return errors.New("name is required")
+		return errors.New("Name is required")
 	}
 	displayname, errdn := command.Flags().GetString("display_name")
 	if errdn != nil || displayname == "" {
-		return errors.New("display name is required")
+		return errors.New("Display Name is required")
 	}
 	email, _ := command.Flags().GetString("email")
 	email = strings.ToLower(email)
@@ -268,12 +268,12 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 		CommandPrettyPrintln("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
 	}
 
@@ -475,7 +475,7 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 	private, _ := command.Flags().GetBool("private")
 
 	if public == private {
-		return errors.New("you must specify only one of --public or --private")
+		return errors.New("You must specify only one of --public or --private")
 	}
 
 	if public {

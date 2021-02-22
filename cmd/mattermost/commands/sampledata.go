@@ -148,82 +148,82 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 
 	seed, err := command.Flags().GetInt64("seed")
 	if err != nil {
-		return errors.New("invalid seed parameter")
+		return errors.New("Invalid seed parameter")
 	}
 	bulk, err := command.Flags().GetString("bulk")
 	if err != nil {
-		return errors.New("invalid bulk parameter")
+		return errors.New("Invalid bulk parameter")
 	}
 	teams, err := command.Flags().GetInt("teams")
 	if err != nil || teams < 0 {
-		return errors.New("invalid teams parameter")
+		return errors.New("Invalid teams parameter")
 	}
 	channelsPerTeam, err := command.Flags().GetInt("channels-per-team")
 	if err != nil || channelsPerTeam < 0 {
-		return errors.New("invalid channels-per-team parameter")
+		return errors.New("Invalid channels-per-team parameter")
 	}
 	users, err := command.Flags().GetInt("users")
 	if err != nil || users < 0 {
-		return errors.New("invalid users parameter")
+		return errors.New("Invalid users parameter")
 	}
 	deactivatedUsers, err := command.Flags().GetInt("deactivated-users")
 	if err != nil || deactivatedUsers < 0 {
-		return errors.New("invalid deactivated-users parameter")
+		return errors.New("Invalid deactivated-users parameter")
 	}
 	guests, err := command.Flags().GetInt("guests")
 	if err != nil || guests < 0 {
-		return errors.New("invalid guests parameter")
+		return errors.New("Invalid guests parameter")
 	}
 	teamMemberships, err := command.Flags().GetInt("team-memberships")
 	if err != nil || teamMemberships < 0 {
-		return errors.New("invalid team-memberships parameter")
+		return errors.New("Invalid team-memberships parameter")
 	}
 	channelMemberships, err := command.Flags().GetInt("channel-memberships")
 	if err != nil || channelMemberships < 0 {
-		return errors.New("invalid channel-memberships parameter")
+		return errors.New("Invalid channel-memberships parameter")
 	}
 	postsPerChannel, err := command.Flags().GetInt("posts-per-channel")
 	if err != nil || postsPerChannel < 0 {
-		return errors.New("invalid posts-per-channel parameter")
+		return errors.New("Invalid posts-per-channel parameter")
 	}
 	directChannels, err := command.Flags().GetInt("direct-channels")
 	if err != nil || directChannels < 0 {
-		return errors.New("invalid direct-channels parameter")
+		return errors.New("Invalid direct-channels parameter")
 	}
 	postsPerDirectChannel, err := command.Flags().GetInt("posts-per-direct-channel")
 	if err != nil || postsPerDirectChannel < 0 {
-		return errors.New("invalid posts-per-direct-channel parameter")
+		return errors.New("Invalid posts-per-direct-channel parameter")
 	}
 	groupChannels, err := command.Flags().GetInt("group-channels")
 	if err != nil || groupChannels < 0 {
-		return errors.New("invalid group-channels parameter")
+		return errors.New("Invalid group-channels parameter")
 	}
 	postsPerGroupChannel, err := command.Flags().GetInt("posts-per-group-channel")
 	if err != nil || postsPerGroupChannel < 0 {
-		return errors.New("invalid posts-per-group-channel parameter")
+		return errors.New("Invalid posts-per-group-channel parameter")
 	}
 	workers, err := command.Flags().GetInt("workers")
 	if err != nil {
-		return errors.New("invalid workers parameter")
+		return errors.New("Invalid workers parameter")
 	}
 	profileImagesPath, err := command.Flags().GetString("profile-images")
 	if err != nil {
-		return errors.New("invalid profile-images parameter")
+		return errors.New("Invalid profile-images parameter")
 	}
 	profileImages := []string{}
 	if profileImagesPath != "" {
 		var profileImagesStat os.FileInfo
 		profileImagesStat, err = os.Stat(profileImagesPath)
 		if os.IsNotExist(err) {
-			return errors.New("profile images folder doesn't exists")
+			return errors.New("Profile images folder doesn't exists.")
 		}
 		if !profileImagesStat.IsDir() {
-			return errors.New("profile-images parameters must be a folder path")
+			return errors.New("profile-images parameters must be a folder path.")
 		}
 		var profileImagesFiles []os.FileInfo
 		profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
 		if err != nil {
-			return errors.New("invalid profile-images parameter")
+			return errors.New("Invalid profile-images parameter")
 		}
 		for _, profileImage := range profileImagesFiles {
 			profileImages = append(profileImages, path.Join(profileImagesPath, profileImage.Name()))
@@ -232,17 +232,17 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if workers < 1 {
-		return errors.New("you must have at least one worker")
+		return errors.New("You must have at least one worker.")
 	}
 	if teamMemberships > teams {
-		return errors.New("you can't have more team memberships than teams")
+		return errors.New("You can't have more team memberships than teams.")
 	}
 	if channelMemberships > channelsPerTeam {
-		return errors.New("you can't have more channel memberships than channels per team")
+		return errors.New("You can't have more channel memberships than channels per team.")
 	}
 
 	if users < 6 && groupChannels > 0 {
-		return errors.New("you can't have group channels generation with less than 6 users. Use --group-channels 0 or increase the number of users")
+		return errors.New("You can't have group channels generation with less than 6 users. Use --group-channels 0 or increase the number of users.")
 	}
 
 	var bulkFile *os.File
@@ -251,7 +251,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		bulkFile, err = ioutil.TempFile("", ".mattermost-sample-data-")
 		defer os.Remove(bulkFile.Name())
 		if err != nil {
-			return errors.New("unable to open temporary file")
+			return errors.New("Unable to open temporary file.")
 		}
 	case "-":
 		bulkFile = os.Stdout
@@ -369,7 +369,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if bulk == "" {
 		_, err := bulkFile.Seek(0, 0)
 		if err != nil {
-			return errors.New("unable to read correctly the temporary file")
+			return errors.New("Unable to read correctly the temporary file.")
 		}
 
 		var importErr *model.AppError
@@ -383,7 +383,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {
-			return errors.New("unable to close correctly the output file")
+			return errors.New("Unable to close correctly the output file")
 		}
 	}
 
