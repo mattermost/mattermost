@@ -6068,7 +6068,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) Patch(patch *model.RetentionPolic
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {

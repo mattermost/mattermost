@@ -2592,7 +2592,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "Should have found post 3 after purge")
 
 	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 30,
@@ -2621,7 +2621,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NotNil(t, err, "post should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 20,

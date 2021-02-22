@@ -370,7 +370,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, leaveTime)
 	require.NoError(t, err)
 
-	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 30,

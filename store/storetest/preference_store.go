@@ -391,7 +391,7 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 	assert.Nil(t, nErr, "newer preference should not have been deleted")
 
 	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 30,
@@ -427,7 +427,7 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 		require.NotNil(t, err, "preference should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 20,

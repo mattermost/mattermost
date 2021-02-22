@@ -221,10 +221,10 @@ func (_m *RetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
 	if rf, ok := ret.Get(1).(func(int) error); ok {
 		r1 = rf(limit)
 	} else {
-		r0 = ret.Error(0)
+		r1 = ret.Error(1)
 	}
 
-	return r0
+	return r0, r1
 }
 
 // RemoveTeams provides a mock function with given fields: policyId, teamIds

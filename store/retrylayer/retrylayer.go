@@ -6556,15 +6556,15 @@ func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithT
 	for {
 		result, err := s.RetentionPolicyStore.Patch(patch)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 

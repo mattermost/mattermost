@@ -358,7 +358,7 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	thread, err := ss.Thread().Get(post.Id)
 	require.Nil(t, err)
 
-	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 30,
@@ -379,7 +379,7 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	require.Nil(t, err)
 
 	// Create a team policy which is stricter than the channel policy
-	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 20,
@@ -436,7 +436,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 
 	threadMembership := createThreadMembership(userID, post.Id)
 
-	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 30,
@@ -455,7 +455,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	threadMembership = createThreadMembership(userID, post.Id)
 
 	// Create a team policy which is stricter than the channel policy
-	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 20,

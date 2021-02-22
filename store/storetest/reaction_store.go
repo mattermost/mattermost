@@ -447,7 +447,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		_, err := ss.Reaction().PermanentDeleteBatch(10000, limit)
 		require.Nil(t, err)
 
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 30,
@@ -478,7 +478,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.Len(t, returned, 0, "reaction should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 20,

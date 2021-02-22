@@ -5490,7 +5490,7 @@ func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithT
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Patch", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
