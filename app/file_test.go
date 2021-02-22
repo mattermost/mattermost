@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	filesStoreMocks "github.com/mattermost/mattermost-server/v5/services/filesstore/mocks"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -276,14 +278,14 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	mockBackend := mocks.FileBackend{}
+	mockBackend := filesStoreMocks.FileBackend{}
 	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("Only those who dare to fail greatly can ever achieve greatly"))
 
 	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "Only those who dare to fail greatly can ever achieve greatly")
 
-	mockBackend = mocks.FileBackend{}
+	mockBackend = filesStoreMocks.FileBackend{}
 	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), nil)
 	err = th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
 	require.NoError(t, err)
