@@ -263,6 +263,8 @@ new-migration: migration-prereqs ## Creates a new migration
 	@echo "When you are done writing your migration, run 'make migrations'"
 
 migrations-bindata: ## Generates bindata migrations
+	$(GO) get -modfile=go.tools.mod github.com/go-bindata/go-bindata/...
+
 	@echo Generating bindata for migrations
 	$(GO) generate $(GOFLAGS) ./db/migrations/
 

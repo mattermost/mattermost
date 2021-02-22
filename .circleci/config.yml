@@ -142,14 +142,16 @@ jobs:
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
   check-migrations:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
           at: ~/mattermost/
       - run:
           command: |
+            export GOBIN=${PWD}/mattermost-server/bin
             cd mattermost-server
+            export PATH=$PATH:$GOBIN
             make migrations-bindata
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
   build-api-spec:

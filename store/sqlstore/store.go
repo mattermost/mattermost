@@ -1277,7 +1277,6 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
 		u, err := url.Parse(dataSource)
 		if err != nil {
 			mlog.Critical("Invalid database url found", mlog.Err(err))
-			time.Sleep(time.Second)
 			os.Exit(ExitGenericFailure)
 		}
 		q := u.Query()
