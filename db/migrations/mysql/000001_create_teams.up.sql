@@ -66,3 +66,18 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Teams'
+        AND table_schema = DATABASE()
+        AND column_name = 'GroupConstrained'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Teams ADD GroupConstrained tinyint(1);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

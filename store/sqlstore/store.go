@@ -39,6 +39,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+type migrationDirection string
+
 const (
 	IndexTypeFullText      = "full_text"
 	IndexTypeDefault       = "default"
@@ -53,8 +55,8 @@ const (
 	// 9.6.3 would be 90603.
 	MinimumRequiredPostgresVersion = 100000
 
-	migrationsDirectionUp   = "up"
-	migrationsDirectionDown = "down"
+	migrationsDirectionUp   migrationDirection = "up"
+	migrationsDirectionDown migrationDirection = "down"
 )
 
 const (
@@ -162,7 +164,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	err := store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
-		time.Sleep(time.Second)
 		os.Exit(ExitGenericFailure)
 	}
 
@@ -1205,7 +1206,7 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.license = license
 }
 
-func (ss *SqlStore) migrate(direction string) error {
+func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver database.Driver
 	var err error
 
@@ -1253,11 +1254,12 @@ func (ss *SqlStore) migrate(direction string) error {
 	}
 	defer migrations.Close()
 
-	if direction == migrationsDirectionUp {
+	switch direction {
+	case migrationsDirectionUp:
 		err = migrations.Up()
-	} else if direction == migrationsDirectionDown {
+	case migrationsDirectionDown:
 		err = migrations.Down()
-	} else {
+	default:
 		return errors.New(fmt.Sprintf("unsupported migration direction %s", direction))
 	}
 

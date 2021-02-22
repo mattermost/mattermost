@@ -434,6 +434,9 @@ workflows:
       - check-mocks:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
@@ -443,6 +446,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -464,6 +468,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -472,11 +477,13 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
 
   release-build:
     jobs:
@@ -506,12 +513,16 @@ workflows:
       - check-mocks:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
             - build-api-spec
       - test:
           name: test-mysql
@@ -521,6 +532,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -529,8 +541,10 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations

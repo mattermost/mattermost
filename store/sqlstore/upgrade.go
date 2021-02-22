@@ -655,7 +655,6 @@ func upgradeDatabaseToVersion59(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion510(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version590, Version5100) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")

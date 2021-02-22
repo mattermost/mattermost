@@ -25,3 +25,4 @@ CREATE INDEX IF NOT EXISTS idx_teams_scheme_id ON teams (schemeid);
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS allowopeninvite boolean;
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS lastteamiconupdate bigint;
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS description VARCHAR(255);
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS groupconstrained boolean;
