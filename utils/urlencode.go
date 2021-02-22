@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func UrlEncode(str string) string {
+func URLEncode(str string) string {
 	strs := strings.Split(str, " ")
 
 	for i, s := range strs {
