@@ -8541,5 +8541,73 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Невалидна Origin заглавка при обновяване на websocket."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Няма успешно изпратена ел.поща"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за ограничението на потребители до администратора"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost потребителска заявка за надстройка на работното пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Тъй като работното ви пространство е достигнало потребителското ограничение за безплатната версия на Mattermost cloud, покани не могат да бъдат изпращани. Надстройте сега, за да позволите на повече потребители да се присъединят към вашето работно пространство."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Като алтернатива можете да деактивирате потребителите в Admin Console, за да отворите места за потребители и да останете под безплатния потребителски лимит."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Неуспешно изтриване на скорошното състояние. Моля, опитайте първо да добавите състояние или се свържете със системния администратор за подробности."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Функцията за персонализирано състояние е забранена. Моля, свържете се със системния администратор за подробности."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Вашето състояние зададено на “{{.EmojiName}} {{.StatusMessage}}”. Можете да промените състоянието си от индикатора на състоянието в заглавката на страничната лента на канала."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "състояние"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] или изчисти"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Задайте или изчистете състоянието си"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Състоянието Ви бе изчистено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Грешка при изчистване на състоянието."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Грешка при задаване на състоянието."
   }
 ]
