@@ -38,6 +38,7 @@ func genStore() *mocks.Store {
 	mock.On("Preference").Return(&mocks.PreferenceStore{})
 	mock.On("ProductNotices").Return(&mocks.ProductNoticesStore{})
 	mock.On("Reaction").Return(&mocks.ReactionStore{})
+	mock.On("RetentionPolicy").Return(&mocks.RetentionPolicyStore{})
 	mock.On("Role").Return(&mocks.RoleStore{})
 	mock.On("Scheme").Return(&mocks.SchemeStore{})
 	mock.On("Session").Return(&mocks.SessionStore{})
