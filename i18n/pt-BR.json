@@ -8373,5 +8373,49 @@
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
     "translation": "A alteração de {{.Name}} não é permitida por motivos de segurança."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Como seu espaço de trabalho atingiu o limite de usuários para a versão gratuita da nuvem Mattermost, os convites não podem ser enviados. Atualize agora para permitir que mais usuários ingressem no seu espaço de trabalho."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Como alternativa, você pode desabilitar usuários no Console Admin para abrir vagas para usuários e ficar abaixo do limite de usuários gratuitos."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Falha ao excluir o status recente. Tente adicionar o status primeiro ou entre em contato com o administrador do sistema para obter detalhes."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "O recurso de status personalizado foi desativado. Entre em contato com o administrador do sistema para obter detalhes."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Seu status está definido como “{{.EmojiName}} {{.StatusMessage}}”. Você pode alterar seu status no pop-up de status no cabeçalho da barra lateral do canal."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] ou limpar"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Definir ou limpar seu status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Seu status foi apagado."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Erro ao limpar o status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Erro ao definir o status."
   }
 ]
