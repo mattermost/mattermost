@@ -23,7 +23,7 @@ type supervisor struct {
 	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
-	implemented [TotalHooksId]bool
+	implemented [TotalHooksID]bool
 	pid         int
 }
 
