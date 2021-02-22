@@ -8545,5 +8545,61 @@
   {
     "id": "api.templates.at_limit_info5",
     "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Fout bij het opschonen van kanaalindexen."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Het is niet gelukt om de recente status te verwijderen. Probeer de status eerst toe te voegen of neem contact op met jouw systeembeheerder voor meer informatie."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "De aangepaste statusfunctie is uitgeschakeld. Neem contact op met jouw systeembeheerder voor meer informatie."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Jouw status is ingesteld op \"{{.EmojiName}} {{.StatusMessage}}\". Je kan je status wijzigen via de status popover in de kanaalzijbalk header."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] of wissen"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Jouw status instellen of wissen"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Jouw status is gewist."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fout bij het wissen van de status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fout bij het instellen van de status."
   }
 ]
