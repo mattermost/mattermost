@@ -141,6 +141,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
 	// os.Exit instead of returning an error.
 	upgradeDatabaseToVersion31(sqlStore)
+	upgradeDatabaseToVersion32(sqlStore)
 	upgradeDatabaseToVersion33(sqlStore)
 	upgradeDatabaseToVersion34(sqlStore)
 	upgradeDatabaseToVersion35(sqlStore)
@@ -225,6 +226,12 @@ func upgradeDatabaseToVersion31(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version300, Version310) {
 		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
 		saveSchemaVersion(sqlStore, Version310)
+	}
+}
+
+func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version310, Version320) {
+		saveSchemaVersion(sqlStore, Version320)
 	}
 }
 
