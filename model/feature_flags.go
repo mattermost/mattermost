@@ -28,6 +28,9 @@ type FeatureFlags struct {
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
+
+	// Toggle on and off support for Files search
+	FilesSearch bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -35,6 +38,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
+	f.FilesSearch = false
 	f.CustomUserStatuses = false
 	f.AppsEnabled = false
 
