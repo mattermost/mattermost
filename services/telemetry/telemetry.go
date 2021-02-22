@@ -439,6 +439,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
+		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
