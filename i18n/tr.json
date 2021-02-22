@@ -8541,5 +8541,29 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Hiç bir e-posta gönderilemedi"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Yöneticiye kullanıcı sayısı sınırı bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} çalışma alanııza yeni üyeler çağırmak istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Çalışma alanınız Mattermost cloud ücretsiz sürümünün kullanıcı sınırına ulaştığından, çağrı gönderilemez. Çalışma alanınıza daha fazla kullanıcının ekleyebilmek için sürümünüzü yükseltin."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatif olarak, Yönetici Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
   }
 ]
