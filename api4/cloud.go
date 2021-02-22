@@ -36,7 +36,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiSessionRequired(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
 
 	// POST /api/v4/cloud/webhook
@@ -424,19 +424,13 @@ func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	user, err := c.App.GetUser(c.App.Session().UserId)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", err.Id, nil, err.Error(), err.StatusCode)
-		return
-	}
-
 	sub, err := c.App.Cloud().GetSubscription()
 	if err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub, model.JoinLimitation); err != nil {
+	if err = c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
 		return
 	}
