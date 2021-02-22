@@ -22,7 +22,7 @@ func TestPreferenceStore(t *testing.T, ss store.Store) {
 	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, ss) })
 	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, ss) })
 	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, ss) })
-	t.Run("PreferenceCleanupFlagsBatch", func(t *testing.T) { testPreferenceCleanupFlagsBatch(t, ss) })
+	t.Run("PreferencePermanentDeleteFlagsBatch", func(t *testing.T) { testPreferencePermanentDeleteFlagsBatch(t, ss) })
 }
 
 func testPreferenceSave(t *testing.T, ss store.Store) {
@@ -330,41 +330,138 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preference")
 }
 
-func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
+func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}, -1)
+	require.Nil(t, err)
 	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
 	userId := model.NewId()
 
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = userId
-	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
-	o1.CreateAt = 1000
-	o1, err := ss.Post().Save(o1)
+	newerPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Message:   "message",
+		CreateAt:  1000,
+	})
+	require.Nil(t, err)
+	olderPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Message:   "message",
+		CreateAt:  3000,
+	})
 	require.NoError(t, err)
 
 	preference1 := model.Preference{
 		UserId:   userId,
 		Category: category,
-		Name:     o1.Id,
+		Name:     newerPost.Id,
 		Value:    "true",
 	}
 
 	preference2 := model.Preference{
 		UserId:   userId,
 		Category: category,
-		Name:     model.NewId(),
+		Name:     olderPost.Id,
 		Value:    "true",
 	}
 
 	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Preference().CleanupFlagsBatch(10000)
-	assert.NoError(t, nErr)
+	_, nErr = ss.Preference().PermanentDeleteFlagsBatch(2000, limit)
+	assert.Nil(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference1.Name)
-	assert.NoError(t, nErr)
+	assert.NotNil(t, nErr, "older preference should have been deleted")
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
-	assert.Error(t, nErr)
+	assert.Nil(t, nErr, "newer preference should not have been deleted")
+
+	t.Run("with data retention policies", func(t *testing.T) {
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: 30,
+			},
+			ChannelIds: []string{channel.Id},
+		})
+		require.Nil(t, err)
+		post, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    userId,
+			Message:   "message",
+			CreateAt:  1000,
+		})
+		require.Nil(t, err)
+		preference := model.Preference{
+			UserId:   userId,
+			Category: category,
+			Name:     post.Id,
+			Value:    "true",
+		}
+		err = ss.Preference().Save(&model.Preferences{preference})
+		require.Nil(t, err)
+
+		_, err = ss.Preference().PermanentDeleteFlagsBatch(2000, limit)
+		require.Nil(t, err)
+		_, err = ss.Preference().Get(userId, category, preference.Name)
+		require.Nil(t, err, "global policy should have been ignored due to granular policy")
+
+		nowMillis := post.CreateAt + channelPolicy.PostDuration*24*60*60*1000 + 1
+		_, err = ss.Preference().PermanentDeleteFlagsBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		_, err = ss.Preference().Get(userId, category, preference.Name)
+		require.NotNil(t, err, "preference should have been deleted by channel policy")
+
+		// Create a team policy which is stricter than the channel policy
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: 20,
+			},
+			TeamIds: []string{team.Id},
+		})
+		require.Nil(t, err)
+
+		err = ss.Preference().Save(&model.Preferences{preference})
+		require.Nil(t, err)
+
+		nowMillis = post.CreateAt + teamPolicy.PostDuration*24*60*60*1000 + 1
+		_, err = ss.Preference().PermanentDeleteFlagsBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		_, err = ss.Preference().Get(userId, category, preference.Name)
+		require.Nil(t, err, "channel policy should have overridden team policy")
+
+		// Delete channel policy and re-run team policy
+		err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+		require.Nil(t, err)
+		_, err = ss.Preference().PermanentDeleteFlagsBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		_, err = ss.Preference().Get(userId, category, preference.Name)
+		require.NotNil(t, err, "preference should have been deleted by team policy")
+
+		// Delete team policy and post
+		err = ss.RetentionPolicy().Delete(teamPolicy.Id)
+		require.Nil(t, err)
+		numDeleted, err := ss.Post().PermanentDeleteBatch(post.CreateAt+1, 1)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), numDeleted)
+		_, err = ss.Preference().PermanentDeleteFlagsBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		_, err = ss.Preference().Get(userId, category, preference.Name)
+		require.NotNil(t, err, "preference should have been deleted because post no longer exists")
+	})
 }

@@ -2354,6 +2354,24 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerClusterDiscoveryStore) Cleanup() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.Cleanup")
@@ -5369,6 +5387,24 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit in
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteBatchForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteByChannel")
@@ -5487,24 +5523,6 @@ func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.P
 
 	defer span.Finish()
 	result, err := s.PostStore.Update(newPost, oldPost)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.CleanupFlagsBatch")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5637,6 +5655,42 @@ func (s *OpenTracingLayerPreferenceStore) PermanentDeleteByUser(userId string) e
 	}
 
 	return err
+}
+
+func (s *OpenTracingLayerPreferenceStore) PermanentDeleteFlagsBatch(endTime int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.PermanentDeleteFlagsBatch")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatch(endTime, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerPreferenceStore) Save(preferences *model.Preferences) error {
@@ -5811,6 +5865,24 @@ func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limi
 
 	defer span.Finish()
 	result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.PermanentDeleteBatchForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ReactionStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5996,7 +6068,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) Patch(patch *model.RetentionPolic
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return err
 }
 
 func (s *OpenTracingLayerRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
@@ -8160,6 +8232,42 @@ func (s *OpenTracingLayerThreadStore) MarkAsRead(userId string, threadId string,
 	}
 
 	return err
+}
+
+func (s *OpenTracingLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.PermanentDeleteBatchThreadsForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.PermanentDeleteBatchThreadsForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {

@@ -377,61 +377,147 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post, err1 := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
+	const limit = 1000
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
 	})
-	require.NoError(t, err1)
+	require.Nil(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}, -1)
+	require.Nil(t, err)
+	olderPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  1000,
+	})
+	require.Nil(t, err)
+	newerPost, err := ss.Post().Save(&model.Post{
+		ChannelId: channel.Id,
+		UserId:    model.NewId(),
+		CreateAt:  3000,
+	})
+	require.Nil(t, err)
 
+	// Reactions will be deleted based on the timestamp of their post. So the time at
+	// which a reaction was created doesn't matter.
 	reactions := []*model.Reaction{
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1000,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
+			PostId:    olderPost.Id,
 			EmojiName: "sad",
-			CreateAt:  1500,
 		},
 		{
 			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "sad",
-			CreateAt:  2000,
+			PostId:    newerPost.Id,
+			EmojiName: "smile",
 		},
 	}
 
-	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
-	var lastReaction *model.Reaction
 	for _, reaction := range reactions {
-		var nErr error
-		lastReaction, nErr = ss.Reaction().Save(reaction)
-		require.NoError(t, nErr)
+		_, err = ss.Reaction().Save(reaction)
+		require.Nil(t, err)
 	}
 
-	returned, err := ss.Reaction().GetForPost(post.Id, false)
-	require.NoError(t, err)
-	require.Len(t, returned, 4, "expected 4 reactions")
+	_, err = ss.Reaction().PermanentDeleteBatch(2000, limit)
+	require.Nil(t, err)
 
-	_, err = ss.Reaction().PermanentDeleteBatch(1800, 1000)
-	require.NoError(t, err)
+	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
+	require.Nil(t, err)
+	require.Len(t, returned, 0, "reactions for older post should have been deleted")
 
-	// This is to force a clear of the cache.
-	_, err = ss.Reaction().Delete(lastReaction)
-	require.NoError(t, err)
+	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
+	require.Nil(t, err)
+	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 
-	returned, err = ss.Reaction().GetForPost(post.Id, false)
-	require.NoError(t, err)
-	require.Len(t, returned, 1, "expected 1 reaction. Got: %v", len(returned))
+	t.Run("with data retention policies", func(t *testing.T) {
+		// clear all existing reactions for post
+		post := olderPost
+		_, err := ss.Reaction().PermanentDeleteBatch(10000, limit)
+		require.Nil(t, err)
+
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: 30,
+			},
+			ChannelIds: []string{channel.Id},
+		})
+		require.Nil(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+		_, err = ss.Reaction().Save(reaction)
+		require.Nil(t, err)
+
+		_, err = ss.Reaction().PermanentDeleteBatch(2000, limit)
+		require.Nil(t, err)
+		returned, err := ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 1, "global policy should have been ignored due to granular policy")
+
+		nowMillis := post.CreateAt + channelPolicy.PostDuration*24*60*60*1000 + 1
+		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		returned, err = ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 0, "reaction should have been deleted by channel policy")
+
+		// Create a team policy which is stricter than the channel policy
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: 20,
+			},
+			TeamIds: []string{team.Id},
+		})
+		require.Nil(t, err)
+
+		_, err = ss.Reaction().Save(reaction)
+		require.Nil(t, err)
+
+		nowMillis = post.CreateAt + teamPolicy.PostDuration*24*60*60*1000 + 1
+		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		returned, err = ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 1, "channel policy should have overridden team policy")
+
+		// Delete channel policy and re-run team policy
+		err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+		require.Nil(t, err)
+		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		returned, err = ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 0, "reaction should have been deleted by team policy")
+
+		// Delete team policy and post
+		err = ss.RetentionPolicy().Delete(teamPolicy.Id)
+		require.Nil(t, err)
+		numDeleted, err := ss.Post().PermanentDeleteBatch(post.CreateAt+1, 1)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), numDeleted)
+		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
+		require.Nil(t, err)
+		returned, err = ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 0, "reaction should have been deleted because post no longer exists")
+	})
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
