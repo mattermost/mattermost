@@ -6,7 +6,6 @@ package api4
 import (
 	"bytes"
 	"crypto/subtle"
-	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -735,7 +734,6 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("FilesSearch Flag", c.App.Config().FeatureFlags.FilesSearch)
 	if !c.App.Config().FeatureFlags.FilesSearch {
 		c.Err = model.NewAppError("searchFiles", "api.post.search_files.not_implemented.app_error", nil, "", http.StatusNotImplemented)
 		return
