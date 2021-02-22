@@ -92,7 +92,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ExpiresAt = session.ExpiresAt
 
 	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	err = th.App.RevokeAccessToken(accessData.Token)
 	require.Nil(t, err)
@@ -132,7 +132,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ExpiresAt = session.ExpiresAt
 
 	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	err = th.App.DeleteOAuthApp(a1.Id)
 	require.Nil(t, err)
@@ -227,7 +227,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
-		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 		state := makeState(token)
 
@@ -509,7 +509,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 				require.NotNil(t, body)
 				bodyBytes, bodyErr := ioutil.ReadAll(body)
-				require.Nil(t, bodyErr)
+				require.NoError(t, bodyErr)
 				assert.Equal(t, userData, string(bodyBytes))
 
 				assert.Equal(t, stateProps["team_id"], receivedTeamId)
