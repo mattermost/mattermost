@@ -3611,32 +3611,12 @@
     "translation": "Mattermost Boletim de Segurança"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Erro ao tentar autenticar o token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA inválido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Não foi possível atualizar o status ativo MFA para o usuário."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Não foi possível atualizar o status ativo MFA para o usuário."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Erro ao limpar a chave secreta MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Erro ao gerar QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Erro ao salvar a chave secreta MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
