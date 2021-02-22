@@ -154,21 +154,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		settings:  &settings,
 	}
 
-	// We need to tell the MySQL driver that we want to use multiStatements
-	// in order to make migrations work.
-	if store.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		u, err := url.Parse(*settings.DataSource)
-		if err != nil {
-			mlog.Critical("Invalid database url found", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitGenericFailure)
-		}
-		q := u.Query()
-		q.Set("multiStatements", "true")
-		u.RawQuery = q.Encode()
-		settings.DataSource = model.NewString(u.String())
-	}
-
 	store.initConnection()
 
 	err := store.migrate()
@@ -1223,7 +1208,8 @@ func (ss *SqlStore) migrate() error {
 
 	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	conn := setupConnection("migrations", *ss.settings.DataSource, ss.settings)
+	dataSource := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	conn := setupConnection("migrations", dataSource, ss.settings)
 	defer conn.Db.Close()
 
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1246,7 +1232,7 @@ func (ss *SqlStore) migrate() error {
 	}
 
 	source := bindata.Resource(assetNamesForDriver, func(name string) ([]byte, error) {
-		return migrations.Asset(ss.DriverName() + "/" + name)
+		return migrations.Asset(filepath.Join(ss.DriverName(), name))
 	})
 
 	sourceDriver, err := bindata.WithInstance(source)
@@ -1262,14 +1248,33 @@ func (ss *SqlStore) migrate() error {
 	if err != nil {
 		return err
 	}
+	defer migrations.Close()
 
 	err = migrations.Up()
-	migrations.Close()
 	if err != nil && err != migrate.ErrNoChange && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 
 	return nil
+}
+
+func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
+	// We need to tell the MySQL driver that we want to use multiStatements
+	// in order to make migrations work.
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			mlog.Critical("Invalid database url found", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(ExitGenericFailure)
+		}
+		q := u.Query()
+		q.Set("multiStatements", "true")
+		u.RawQuery = q.Encode()
+		return u.String()
+	}
+
+	return dataSource
 }
 
 type mattermConverter struct{}

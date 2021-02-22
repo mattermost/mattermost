@@ -53,3 +53,19 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'TeamMembers'
+        AND table_schema = DATABASE()
+        AND column_name = 'DeleteAt'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE TeamMembers ADD DeleteAt bigint(20);'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

@@ -1,7 +1,7 @@
-ALTER TABLE teammembers
-DROP COLUMN IF EXISTS schemeuser;
-DROP COLUMN IF EXISTS schemeadmin;
-DROP COLUMN IF EXISTS schemeguest;
+ALTER TABLE teammembers DROP COLUMN IF EXISTS schemeuser;
+ALTER TABLE teammembers DROP COLUMN IF EXISTS schemeadmin;
+ALTER TABLE teammembers DROP COLUMN IF EXISTS schemeguest;
+ALTER TABLE teammembers DROP COLUMN IF EXISTS deleteat;
 
 DROP INDEX IF EXISTS idx_teammembers_team_id;
 DROP INDEX IF EXISTS idx_teammembers_user_id;

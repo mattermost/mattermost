@@ -141,7 +141,6 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
 	// os.Exit instead of returning an error.
 	upgradeDatabaseToVersion31(sqlStore)
-	upgradeDatabaseToVersion32(sqlStore)
 	upgradeDatabaseToVersion33(sqlStore)
 	upgradeDatabaseToVersion34(sqlStore)
 	upgradeDatabaseToVersion35(sqlStore)
@@ -226,14 +225,6 @@ func upgradeDatabaseToVersion31(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version300, Version310) {
 		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
 		saveSchemaVersion(sqlStore, Version310)
-	}
-}
-
-func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version310, Version320) {
-		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
-
-		saveSchemaVersion(sqlStore, Version320)
 	}
 }
 
@@ -361,9 +352,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
 		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
-		// Create Team Description column
-		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
 
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")

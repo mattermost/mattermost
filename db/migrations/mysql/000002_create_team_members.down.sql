@@ -43,5 +43,19 @@ PREPARE alterIfExists FROM @preparedStatement;
 EXECUTE alterIfExists;
 DEALLOCATE PREPARE alterIfExists;
 
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'TeamMembers'
+        AND table_schema = DATABASE()
+        AND column_name = 'DeleteAt'
+    ) > 0,
+    'ALTER TABLE TeamMembers DROP COLUMN DeleteAt;',
+    'SELECT 1'
+));
+
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;
 
 DROP TABLE IF EXISTS TeamMembers;
