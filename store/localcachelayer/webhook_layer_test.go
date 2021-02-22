@@ -28,7 +28,7 @@ func TestWebhookStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		incomingWebhook, err := cachedStore.Webhook().GetIncoming("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, incomingWebhook, &fakeWebhook)
 		mockStore.Webhook().(*mocks.WebhookStore).AssertNumberOfCalls(t, "GetIncoming", 1)
 

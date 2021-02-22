@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -19,6 +20,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+)
+
+const (
+	CmdCustomStatusTrigger = "status"
 )
 
 type CommandProvider interface {
@@ -78,6 +83,11 @@ func (a *App) CreateCommandPost(post *model.Post, teamID string, response *model
 func (a *App) ListAutocompleteCommands(teamID string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
+
+	// Disable custom status slash command if the feature or the setting is off
+	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
+		seen[CmdCustomStatusTrigger] = true
+	}
 
 	for _, cmd := range a.PluginCommandsForTeam(teamID) {
 		if cmd.AutoComplete && !seen[cmd.Trigger] {
@@ -368,7 +378,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(args.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), args.UserId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()

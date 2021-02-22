@@ -596,6 +596,16 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
+func (u *User) SetCustomStatus(cs *CustomStatus) {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+}
+
+func (u *User) ClearCustomStatus() {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = ""
+}
+
 func (u *User) GetFullName() string {
 	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName

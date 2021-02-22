@@ -80,7 +80,8 @@ func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	err := filesstore.CheckMandatoryS3Fields(settings)
+	fileBackendSettings := settings.ToFileBackendSettings(false)
+	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -101,7 +102,7 @@ func (a *App) TestFilesStoreConnection() *model.AppError {
 
 func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filesstore.NewFileBackend(cfg, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -999,7 +1000,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 			}
 
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejectionError != nil {
 			return nil, data, rejectionError
 		}
@@ -1026,7 +1027,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, width, _ := prepareImage(fileData[i])
+		img, _, _ := prepareImage(fileData[i])
 		if img != nil {
 			wg.Add(2)
 			go func(img image.Image, path string) {
@@ -1034,10 +1035,10 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 				a.generateThumbnailImage(img, path)
 			}(img, thumbnailPathList[i])
 
-			go func(img image.Image, path string, width int) {
+			go func(img image.Image, path string) {
 				defer wg.Done()
-				a.generatePreviewImage(img, path, width)
-			}(img, previewPathList[i], width)
+				a.generatePreviewImage(img, path)
+			}(img, previewPathList[i])
 		}
 	}
 	wg.Wait()
@@ -1122,7 +1123,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	}
 }
 
-func (a *App) generatePreviewImage(img image.Image, previewPath string, width int) {
+func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 	preview := genPreview(img)
 
 	buf := new(bytes.Buffer)
