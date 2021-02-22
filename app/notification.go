@@ -168,7 +168,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
@@ -433,7 +433,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if err != nil {
 			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
-		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
@@ -441,8 +440,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				sendEvent, _ = strconv.ParseBool(preference.Value)
 			}
 			if sendEvent {
+
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				message.Add("thread", payload)
+				if mentionedUsersList.Contains(uid) {
+					userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+					a.sanitizeProfiles(userThread.Participants, false)
+					userThread.Post.SanitizeProps()
+					message.Add("thread", userThread.ToJson())
+				} else {
+					message.Add("thread", thread.ToJson())
+				}
 				a.Publish(message)
 			}
 		}
