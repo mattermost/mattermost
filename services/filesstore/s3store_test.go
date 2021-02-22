@@ -7,24 +7,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCheckMandatoryS3Fields(t *testing.T) {
-	cfg := model.FileSettings{}
+	cfg := FileBackendSettings{}
 
-	err := CheckMandatoryS3Fields(&cfg)
-	require.NotNil(t, err)
+	err := cfg.CheckMandatoryS3Fields()
+	require.Error(t, err)
 	require.Equal(t, err.Error(), "missing s3 bucket settings", "should've failed with missing s3 bucket")
 
-	cfg.AmazonS3Bucket = model.NewString("test-mm")
-	err = CheckMandatoryS3Fields(&cfg)
-	require.Nil(t, err)
+	cfg.AmazonS3Bucket = "test-mm"
+	err = cfg.CheckMandatoryS3Fields()
+	require.NoError(t, err)
 
-	cfg.AmazonS3Endpoint = model.NewString("")
-	err = CheckMandatoryS3Fields(&cfg)
+	cfg.AmazonS3Endpoint = ""
+	err = cfg.CheckMandatoryS3Fields()
+	require.NoError(t, err)
 
-	require.Nil(t, err)
-	require.Equal(t, *cfg.AmazonS3Endpoint, "s3.amazonaws.com", "should've set the endpoint to the default")
+	require.Equal(t, "s3.amazonaws.com", cfg.AmazonS3Endpoint, "should've set the endpoint to the default")
 }

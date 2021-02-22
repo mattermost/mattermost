@@ -54,7 +54,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 				info = newInfo
 			}
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejErr != nil {
 			errChan <- rejErr
 		}
@@ -153,8 +153,8 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 	return us, nil
 }
 
-func (a *App) GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError) {
-	uss, err := a.Srv().Store.UploadSession().GetForUser(userId)
+func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError) {
+	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
 			nil, err.Error(), http.StatusInternalServerError)

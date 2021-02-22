@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -86,7 +87,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("FileIds").SetMaxSize(150)
 	}
 
 	return s
@@ -519,15 +520,18 @@ type etagPosts struct {
 	UpdateAt int64
 }
 
+//nolint:unparam
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
+//nolint:unparam
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
 	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
 	if collapsedThreads {
 		q.Where(sq.Eq{"RootId": ""})
 	}
 	sql, args, _ := q.ToSql()
+
 	var et etagPosts
 	err := s.GetReplica().SelectOne(&et, sql, args...)
 	var result string
@@ -558,7 +562,7 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.cleanupThreads(post.Id, post.RootId, post.UserId, false)
+	return s.cleanupThreads(post.Id, post.RootId, false)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -567,7 +571,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}
-	if err = s.cleanupThreads(post.Id, post.RootId, post.UserId, true); err != nil {
+	if err = s.cleanupThreads(post.Id, post.RootId, true); err != nil {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
@@ -592,7 +596,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, userId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
 			return err
 		}
 	}
@@ -648,7 +652,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
 			return err
 		}
 	}
@@ -674,7 +678,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	var users []*model.User
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, err
 		}
@@ -825,10 +829,12 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
 }
 
+//nolint:unparam
 func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	if options.CollapsedThreads {
 		return s.getPostsSinceCollapsedThreads(options)
 	}
+
 	var posts []*model.Post
 
 	replyCountQuery1 := ""
@@ -1481,16 +1487,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := ""
-		if strings.Contains(terms, "_") {
-			//Strip quotes off terms with it
-			if strings.Contains(terms, "\"") {
-				queryParams["Terms"] = strings.ReplaceAll(queryParams["Terms"].(string), "\"", "")
-			}
-			searchClause = fmt.Sprintf("AND lower(%s)::tsvector @@ lower(:Terms)::tsquery", searchType)
-		} else {
-			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		}
+		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if searchType == "Message" {
@@ -2026,6 +2023,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	return posts, nil
 }
 
+//nolint:unparam
 func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
@@ -2093,7 +2091,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
-func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent bool) error {
+func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) error {
 	if permanent {
 		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
 			return errors.Wrap(err, "failed to delete Threads")

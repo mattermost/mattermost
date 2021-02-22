@@ -3971,11 +3971,11 @@ func TestMoveChannel(t *testing.T) {
 		require.Equal(t, team2.Id, ch.TeamId)
 	})
 
-	t.Run("Should fail when trying to move a private channel", func(t *testing.T) {
+	t.Run("Should move private channel", func(t *testing.T) {
 		channel := th.CreatePrivateChannel()
-		_, resp := Client.MoveChannel(channel.Id, team1.Id, false)
-		require.NotNil(t, resp.Error)
-		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+		ch, resp := th.SystemAdminClient.MoveChannel(channel.Id, team1.Id, false)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team1.Id, ch.TeamId)
 	})
 
 	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
@@ -4016,7 +4016,22 @@ func TestMoveChannel(t *testing.T) {
 		_, resp = client.MoveChannel(publicChannel.Id, team2.Id, false)
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
-	}, "Should fail to move channel due to a member not member of target team")
+	}, "Should fail to move public channel due to a member not member of target team")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		privateChannel := th.CreatePrivateChannel()
+		user := th.BasicUser
+
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.AddChannelMember(privateChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.MoveChannel(privateChannel.Id, team2.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
+	}, "Should fail to move private channel due to a member not member of target team")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		publicChannel := th.CreatePublicChannel()
@@ -4031,5 +4046,20 @@ func TestMoveChannel(t *testing.T) {
 		newChannel, resp := client.MoveChannel(publicChannel.Id, team2.Id, true)
 		require.Nil(t, resp.Error)
 		require.Equal(t, team2.Id, newChannel.TeamId)
-	}, "Should be able to (force) move channel by a member that is not member of target team")
+	}, "Should be able to (force) move public channel by a member that is not member of target team")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		privateChannel := th.CreatePrivateChannel()
+		user := th.BasicUser
+
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.AddChannelMember(privateChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		newChannel, resp := client.MoveChannel(privateChannel.Id, team2.Id, true)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, newChannel.TeamId)
+	}, "Should be able to (force) move private channel by a member that is not member of target team")
 }
