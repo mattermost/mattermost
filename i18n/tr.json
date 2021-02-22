@@ -3611,32 +3611,12 @@
     "translation": "Mattermost Güvenlik Duyurusu"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama kodu doğrulanırken sorun çıktı."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Çok Aşamalı Kimlik Doğrulama kodu geçersiz."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası temizlenirken sorun çıktı."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR kodu üretilirken sorun çıktı."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası kaydedilirken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",

@@ -1040,32 +1040,12 @@
     "translation": "Flerfaktorauthentisering har avaktiverats på den här servern."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Ett fel inträffade när MFA-hemliga skulle sparas."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Kunde inte skapa QR-kod."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Ett fel inträffade vid radering av MFA-hemligheten."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ogiltigt MFA-token."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Fel vid försök att autentisera MFA-token."
   },
   {
     "id": "mattermost.bulletin.subject",

@@ -1256,10 +1256,6 @@
     "translation": "Многофакторното удостоверяване е забранено на този сървър."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Грешка при запазване на МФУ тайната."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Грешка при генериране на QR код."
   },
@@ -2632,24 +2628,8 @@
     "translation": "Предоставената схема е невалидна."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Грешка при изчистване на МФУ тайната."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невалиден маркер на МФУ."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Грешка при опит за удостоверяване на МФУ маркера."
   },
   {
     "id": "mattermost.bulletin.subject",

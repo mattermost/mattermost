@@ -3611,32 +3611,12 @@
     "translation": "Mattermost beveiligings bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Probleem bij het authenticeren met een MFA token"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ongeldige 'MFA' token"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Fout bij het verwijderen van het MFA sleutel"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Fout bij het genereren van een QR code"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fout bij het opslaan van de MFA sleutel"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
