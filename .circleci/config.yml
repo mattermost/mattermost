@@ -143,11 +143,11 @@ jobs:
   check-migrations:
     docker:
       - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
-      working_directory: ~/mattermost
-      steps:
-        - attach_workspace:
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
           at: ~/mattermost/
-        - run:
+      - run:
           command: |
             cd mattermost-server
             make migrations-bindata
