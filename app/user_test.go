@@ -1394,3 +1394,18 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	_, err = th.App.UpdateUserRolesWithUser(user, "does not exist", false)
 	require.NotNil(t, err)
 }
+
+func TestDeactivateMfa(t *testing.T) {
+	t.Run("MFA is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = false
+		})
+
+		user := th.BasicUser
+		err := th.App.DeactivateMfa(user.Id)
+		require.Nil(t, err)
+	})
+}
