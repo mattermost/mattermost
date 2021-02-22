@@ -296,7 +296,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{

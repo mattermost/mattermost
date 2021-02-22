@@ -1048,19 +1048,36 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
 
+func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	require.NotNil(t, resp.Error)
+}
+
 func TestSearchFiles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		th.Server.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+			cfg.FeatureFlags.FilesSearch = false
 		})
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th.Server.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+		cfg.FeatureFlags.FilesSearch = true
 	})
-	fmt.Println("FILE SEARCH ENABLED", *th.App.Config().ServiceSettings.EnableFileSearch)
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 

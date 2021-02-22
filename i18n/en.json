@@ -1875,6 +1875,10 @@
     "translation": "Unable to parse the request body."
   },
   {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "This feature is in development, and is only available using a feature flag."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
