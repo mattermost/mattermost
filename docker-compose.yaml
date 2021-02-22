@@ -112,7 +112,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
       interval: 5s
-      timeout: 10s
+      timeout: 30s
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
@@ -146,7 +146,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
-      timeout: 10s
+      timeout: 30s
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
@@ -181,7 +181,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://peon:8065/api/v4/system/ping"]
       interval: 5s
-      timeout: 10s
+      timeout: 30s
       retries: 30
       start_period: 5m
     user: ${CURRENT_UID}
