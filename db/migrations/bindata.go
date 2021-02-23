@@ -4,10 +4,14 @@
 // mysql/000001_create_teams.up.sql
 // mysql/000002_create_team_members.down.sql
 // mysql/000002_create_team_members.up.sql
+// mysql/000005_create_channel_member_history.down.sql
+// mysql/000005_create_channel_member_history.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
 // postgres/000002_create_team_members.up.sql
+// postgres/000005_create_channel_member_history.down.sql
+// postgres/000005_create_channel_member_history.up.sql
 package migrations
 
 import (
@@ -164,6 +168,46 @@ func mysql000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000005_create_channel_member_historyDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\xce\x48\xcc\xcb\x4b\xcd\xf1\x4d\xcd\x4d\x4a\x2d\xf2\xc8\x2c\x2e\xc9\x2f\xaa\xb4\xe6\x02\x04\x00\x00\xff\xff\xf7\xa5\x66\x2a\x2b\x00\x00\x00")
+
+func mysql000005_create_channel_member_historyDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000005_create_channel_member_historyDownSql,
+		"mysql/000005_create_channel_member_history.down.sql",
+	)
+}
+
+func mysql000005_create_channel_member_historyDownSql() (*asset, error) {
+	bytes, err := mysql000005_create_channel_member_historyDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000005_create_channel_member_history.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000005_create_channel_member_historyUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xdc\x52\xcf\x6b\xdb\x30\x14\xbe\xeb\xaf\x78\xb7\xd8\x23\x8c\xae\x8c\x31\x08\x1e\x53\xe4\xe7\x45\x9b\x2c\x07\x49\x66\xed\xa9\x28\xa9\xba\x18\x6c\xa5\xc8\x6a\xd9\xfe\xfb\xe1\xda\xf3\x68\x16\x76\xd9\x61\x50\x1f\x8c\xe0\xfb\xa1\xa7\xef\x7b\x4c\x21\x35\x08\x86\xae\x05\x02\x2f\x40\x56\x06\xf0\x8a\x6b\xa3\x81\x1d\xac\xf7\xae\x2d\x5d\xb7\x73\x61\xd3\xf4\xf1\x18\x7e\x40\x42\xe0\x17\xc0\x6f\xe1\xd1\x86\xfd\xc1\x86\xe4\xf2\x5d\xfa\xa4\x94\xb5\x10\x4b\x02\x50\xf7\x2e\xfc\x05\xfe\x7c\x6c\xbc\x69\x3a\x07\xbb\xe6\x5b\xe3\x63\x72\x79\xf1\x1c\x17\xce\x3e\xba\x53\x42\x8e\x05\xad\xc5\x6f\xd2\x56\xf1\x92\xaa\x6b\xf8\x82\xd7\x90\xcc\x23\x2d\xa7\xbb\x97\xf3\x25\x29\x49\x01\xe5\x27\x2e\x31\xe3\xde\x1f\xf3\xf5\xec\xc4\x36\x54\x69\x34\xd9\x43\xbc\x7b\xdf\xed\xde\xae\x08\xd1\x68\xe0\xe3\x7d\x70\xf7\x36\xb8\x5b\x1d\x6d\x74\x9d\xf3\x11\x32\x48\x34\x0a\x64\x06\x78\x31\x04\x00\x30\xfe\x87\x6f\x02\x58\x55\x4b\x93\xbc\x4a\xa1\x50\x55\x09\x5c\x16\x95\x2a\xa9\xe1\x95\xbc\xd1\x6c\x83\x25\x7d\xcd\x2a\x51\x97\x52\xcf\xba\xaf\x1b\x54\x08\xd1\xee\x5a\x77\xe3\x6d\xe7\x20\x83\xc5\xb9\xc4\x17\xb3\x82\xca\x7c\xe2\xf7\xfb\x83\xeb\x2c\x64\x90\x53\x43\xd7\x54\x63\x92\x3e\x63\xed\x8f\xed\x43\xe7\x67\x5b\xec\x6c\xd3\x8e\x3e\x29\x7c\x80\x8b\xe5\xd3\x71\x41\x85\x41\x35\x35\x7f\xb6\xeb\x5c\x55\x5b\x18\xe7\x86\xd1\x63\x52\x4e\x6f\x7e\xb3\x20\x69\xba\x22\x64\xab\x70\x4b\x15\x82\x6d\xa3\x0b\xfc\x0e\xbf\x37\x7d\xec\xc7\x20\xfe\x0c\x73\x45\xf0\x0a\x59\x6d\x4e\xe8\x2b\x92\x23\x15\xa2\x62\xc3\x36\x9e\x35\x7c\xb1\xf5\x0c\x0b\x3b\x9c\xff\xb1\xa1\xd9\xe6\xff\x96\xf4\x33\x00\x00\xff\xff\x79\x13\x60\xe9\x51\x04\x00\x00")
+
+func mysql000005_create_channel_member_historyUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000005_create_channel_member_historyUpSql,
+		"mysql/000005_create_channel_member_history.up.sql",
+	)
+}
+
+func mysql000005_create_channel_member_historyUpSql() (*asset, error) {
+	bytes, err := mysql000005_create_channel_member_historyUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000005_create_channel_member_history.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xc1\x8a\xc3\x20\x10\x06\xe0\xbb\x4f\xe1\x7b\x78\xca\x6e\x5c\x08\x64\x93\x25\x71\x21\x37\x11\x1d\xda\x01\xa3\xa2\xa6\xed\xe3\x97\xc4\x43\x7b\x8b\x3d\xcf\xf7\x0f\xf3\x4f\xd3\x0b\x3e\x51\xd1\x7c\xf5\x9c\x66\x50\x6b\xa2\xed\x34\xfe\xd1\xef\xb1\xff\xff\x1d\x68\xf7\x43\xf9\xd2\xcd\x62\xa6\xca\x5a\x7f\xf7\x01\x1c\xba\x1b\x66\x60\xa4\x36\x68\x55\xca\xfb\x1c\xb5\x77\x5b\x30\xea\x93\xac\x81\xa4\x23\x86\x8c\xde\xd5\x87\x2e\xd1\x6f\x41\x7b\x97\x72\x54\xe8\xc0\x30\x42\x0e\xd8\x0d\x2d\x5f\xde\x1c\x9a\x87\x3c\xf6\x48\xa7\x56\x60\x67\xa8\xf4\x96\x68\x4e\x65\x69\x29\x55\x3e\x95\x3a\x42\xa5\x34\x60\xa1\x4e\x26\x7d\x85\xb5\xdc\x59\x68\xf9\xd8\x8b\x8a\x9d\x31\xf2\x0c\x00\x00\xff\xff\xc0\x38\xc3\xda\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -244,6 +288,46 @@ func postgres000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000005_create_channel_member_historyDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\xce\x48\xcc\xcb\x4b\xcd\xc9\x4d\xcd\x4d\x4a\x2d\xca\xc8\x2c\x2e\xc9\x2f\xaa\xb4\xe6\x02\x04\x00\x00\xff\xff\x09\x8b\xcd\xa8\x2b\x00\x00\x00")
+
+func postgres000005_create_channel_member_historyDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000005_create_channel_member_historyDownSql,
+		"postgres/000005_create_channel_member_history.down.sql",
+	)
+}
+
+func postgres000005_create_channel_member_historyDownSql() (*asset, error) {
+	bytes, err := postgres000005_create_channel_member_historyDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000005_create_channel_member_history.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000005_create_channel_member_historyUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x8f\x3d\x6f\x83\x30\x10\x86\x77\xff\x8a\x77\x04\x89\xa9\x43\x17\x26\x97\xba\x2a\xaa\xf9\x90\x31\x55\x19\x4d\x73\x0a\x8e\xb0\x91\x80\x44\xca\xbf\x8f\xf2\x85\xa2\x0c\x0c\x59\xef\x79\xef\xee\x79\x13\x25\xb8\x16\xd0\xfc\x43\x0a\xfc\x77\xc6\x7b\xea\x1d\xb9\x96\xc6\xce\x4e\xf3\x30\x1e\x11\x30\x00\x77\x64\x37\xf8\xe5\x2a\xf9\xe6\x2a\x78\x7b\x0f\x91\x17\x1a\x79\x2d\x65\x74\xc9\xec\x27\x1a\x57\x03\xbb\xc1\xfa\xd9\x3a\x42\x6b\xb7\xd6\xcf\x4f\xb4\x27\x73\xa0\x07\x7c\x9d\x96\x2a\xcd\xb8\x6a\xf0\x23\x1a\x04\x8b\x45\x74\x7b\x16\x2d\x37\x43\x16\xc6\x8c\x71\xa9\x85\x5a\x6b\xf3\xa9\x8a\x12\x49\x21\xeb\x2c\x47\xfa\x05\xf1\x97\x56\xba\x02\x39\x63\xfb\xf8\xd5\xed\xb3\x8a\x37\x8e\x62\x76\x0a\x00\x00\xff\xff\xe1\xb5\xed\x2e\x4e\x01\x00\x00")
+
+func postgres000005_create_channel_member_historyUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000005_create_channel_member_historyUpSql,
+		"postgres/000005_create_channel_member_history.up.sql",
+	)
+}
+
+func postgres000005_create_channel_member_historyUpSql() (*asset, error) {
+	bytes, err := postgres000005_create_channel_member_historyUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000005_create_channel_member_history.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -296,14 +380,18 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":           mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":             mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":    mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":      mysql000002_create_team_membersUpSql,
-	"postgres/000001_create_teams.down.sql":        postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":          postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql": postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":   postgres000002_create_team_membersUpSql,
+	"mysql/000001_create_teams.down.sql":                     mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":                       mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":              mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":                mysql000002_create_team_membersUpSql,
+	"mysql/000005_create_channel_member_history.down.sql":    mysql000005_create_channel_member_historyDownSql,
+	"mysql/000005_create_channel_member_history.up.sql":      mysql000005_create_channel_member_historyUpSql,
+	"postgres/000001_create_teams.down.sql":                  postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":                    postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":           postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":             postgres000002_create_team_membersUpSql,
+	"postgres/000005_create_channel_member_history.down.sql": postgres000005_create_channel_member_historyDownSql,
+	"postgres/000005_create_channel_member_history.up.sql":   postgres000005_create_channel_member_historyUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -348,16 +436,20 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                  &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                    &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":           &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":             &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000005_create_channel_member_history.down.sql": &bintree{mysql000005_create_channel_member_historyDownSql, map[string]*bintree{}},
+		"000005_create_channel_member_history.up.sql":   &bintree{mysql000005_create_channel_member_historyUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                  &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                    &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":           &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":             &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000005_create_channel_member_history.down.sql": &bintree{postgres000005_create_channel_member_historyDownSql, map[string]*bintree{}},
+		"000005_create_channel_member_history.up.sql":   &bintree{postgres000005_create_channel_member_historyUpSql, map[string]*bintree{}},
 	}},
 }}
 

@@ -461,18 +461,12 @@ func upgradeDatabaseToVersion47(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version460, Version470) {
 		sqlStore.AlterColumnTypeIfExists("Users", "Position", "varchar(128)", "varchar(128)")
 		sqlStore.AlterColumnTypeIfExists("OAuthAuthData", "State", "varchar(1024)", "varchar(1024)")
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
 		saveSchemaVersion(sqlStore, Version470)
 	}
 }
 
 func upgradeDatabaseToVersion471(sqlStore *SqlStore) {
-	// If any new instances started with 4.7, they would have the bad Email column on the
-	// ChannelMemberHistory table. So for those cases we need to do an upgrade between
-	// 4.7.0 and 4.7.1
 	if shouldPerformUpgrade(sqlStore, Version470, Version471) {
-		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		saveSchemaVersion(sqlStore, Version471)
 	}
 }
