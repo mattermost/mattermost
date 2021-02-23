@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -303,7 +304,9 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
-	mlog.Info("UpdateConf Bleve")
+	if !reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
+		mlog.Info("UpdateConf Bleve")
+	}
 
 	if *cfg.BleveSettings.EnableIndexing != *b.cfg.BleveSettings.EnableIndexing || *cfg.BleveSettings.IndexDir != *b.cfg.BleveSettings.IndexDir {
 		if err := b.closeIndexes(); err != nil {
