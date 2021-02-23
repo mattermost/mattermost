@@ -307,18 +307,18 @@ func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg 
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 	arr := strings.Split(dynamicArg.FetchURL, ":")
 	if len(arr) < 2 {
-		return nil, errors.New("Dynamic list URL missing built-in command name")
+		return nil, errors.New("dynamic list URL missing built-in command name")
 	}
 	cmdName := arr[1]
 
 	provider := GetCommandProvider(cmdName)
 	if provider == nil {
-		return nil, fmt.Errorf("No command provider for %s", cmdName)
+		return nil, fmt.Errorf("no command provider for %s", cmdName)
 	}
 
 	dp, ok := provider.(AutocompleteDynamicArgProvider)
 	if !ok {
-		return nil, fmt.Errorf("Auto-completion not available for built-in command %s", cmdName)
+		return nil, fmt.Errorf("auto-completion not available for built-in command %s", cmdName)
 	}
 
 	return dp.GetAutoCompleteListItems(a, commandArgs, arg, parsed, toBeParsed)

@@ -3150,6 +3150,26 @@ func (s *RetryLayerFileInfoStore) ClearCaches() {
 
 }
 
+func (s *RetryLayerFileInfoStore) CountAll() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.CountAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 
 	tries := 0
@@ -3215,6 +3235,26 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 	tries := 0
 	for {
 		result, err := s.FileInfoStore.GetByPath(path)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, endTime, limit)
 		if err == nil {
 			return result, nil
 		}
