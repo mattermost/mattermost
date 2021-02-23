@@ -716,6 +716,34 @@
     "translation": "Image links now collapse by default"
   },
   {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error setting the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error clearing the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Set or clear your status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] or clear"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Your status is set to “{{.EmojiName}} {{.StatusMessage}}”. You can change your status from the status popover in the channel sidebar header."
+  },
+  {
     "id": "api.command_dnd.desc",
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
@@ -1205,6 +1233,14 @@
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -5123,6 +5159,10 @@
     "translation": "Unable to get direct posts."
   },
   {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the files batch for indexing."
+  },
+  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -6043,6 +6083,10 @@
     "translation": "Failed to purge channel indexes."
   },
   {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Failed to purge file indexes."
+  },
+  {
     "id": "bleveengine.purge_post_index.error",
     "translation": "Failed to purge post indexes."
   },
@@ -6397,6 +6441,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6899,32 +6947,20 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token."
+    "id": "mfa.activate.app_error",
+    "translation": "Unable to update MFA active status for the user."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Invalid MFA token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
+    "id": "mfa.deactivate.app_error",
     "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generating QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret."
   },
   {
     "id": "mfa.mfa_disabled.app_error",

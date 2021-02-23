@@ -94,7 +94,7 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
+func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
 	for _, proxyHeader := range trustedProxyIPHeader {
@@ -135,7 +135,7 @@ type RequestCache struct {
 
 // Fetch JSON data from the notices server
 // if skip is passed, does a fetch without touching the cache
-func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
+func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
 	// Build a GET Request, including optional If-None-Match header.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -198,8 +198,8 @@ func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
 	u, err := url.Parse(redirectURL)
 	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
 		if config.ServiceSettings.SiteURL != nil {
-			siteUrl := *config.ServiceSettings.SiteURL
-			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteUrl)) == 0
+			siteURL := *config.ServiceSettings.SiteURL
+			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
 		}
 		return false
 	}
