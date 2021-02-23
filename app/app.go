@@ -142,6 +142,10 @@ func (a *App) initJobs() {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
+	if jobsOrphanedRowsInterface != nil {
+		a.srv.Jobs.OrphanedRows = jobsOrphanedRowsInterface(a)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }

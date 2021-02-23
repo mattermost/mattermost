@@ -100,6 +100,27 @@ func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error 
 	return r0
 }
 
+// DeleteOrphanedRows provides a mock function with given fields: limit
+func (_m *PostStore) DeleteOrphanedRows(limit int) (int64, error) {
+	ret := _m.Called(limit)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int) int64); ok {
+		r0 = rf(limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended
 func (_m *PostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 	ret := _m.Called(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)

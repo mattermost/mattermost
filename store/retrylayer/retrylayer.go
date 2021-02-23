@@ -2428,6 +2428,26 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 
 }
 
+func (s *RetryLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelMemberHistoryStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 
 	tries := 0
@@ -5332,6 +5352,26 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 
 }
 
+func (s *RetryLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 
 	tries := 0
@@ -6030,6 +6070,26 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 
 }
 
+func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 
 	tries := 0
@@ -6310,6 +6370,26 @@ func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 
 }
 
+func (s *RetryLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 
 	tries := 0
@@ -6450,6 +6530,26 @@ func (s *RetryLayerRetentionPolicyStore) Delete(id string) error {
 
 }
 
+func (s *RetryLayerRetentionPolicyStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 
 	tries := 0
@@ -6585,26 +6685,6 @@ func (s *RetryLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
-		}
-	}
-
-}
-
-func (s *RetryLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
-
-	tries := 0
-	for {
-		result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
 		}
 	}
 
@@ -8763,6 +8843,26 @@ func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postId st
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.DeleteOrphanedRows(limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 

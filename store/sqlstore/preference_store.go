@@ -308,20 +308,18 @@ func (s *SqlPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now i
 	// a retention policy.
 	const selectQuery = `
 		SELECT Preferences.Name FROM Preferences
-		LEFT JOIN Posts ON Preferences.Name = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Posts ON Preferences.Name = Posts.Id
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
+		INNER JOIN RetentionPolicies ON
 			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
 			OR (
 				RetentionPoliciesChannels.PolicyId IS NULL
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
-		WHERE Category = :Category AND (
+		WHERE Category = :Category AND
 			:Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			OR Posts.Id IS NULL
-		)
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -347,4 +345,26 @@ func (s *SqlPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now i
 		return 0, errors.Wrap(err, "failed to delete Preferences")
 	}
 	return rowsAffected, nil
+}
+
+// DeleteOrphanedRows removes entries from Preferences (flagged post) when a
+// corresponding post no longer exists.
+func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Preferences WHERE Name IN (
+		SELECT * FROM (
+			SELECT Preferences.Name FROM Preferences
+			LEFT JOIN Posts ON Preferences.Name = Posts.Id
+			WHERE Posts.Id IS NULL AND Category = :Category
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
 }

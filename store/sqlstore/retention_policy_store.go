@@ -477,9 +477,9 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return err
 }
 
-// RemoveOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
+// DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
-func (s *SqlRetentionPolicyStore) RemoveOrphanedRows(limit int) (deleted int, err error) {
+func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
@@ -516,6 +516,6 @@ func (s *SqlRetentionPolicyStore) RemoveOrphanedRows(limit int) (deleted int, er
 	if err != nil {
 		return
 	}
-	deleted = int(rpcDeleted + rptDeleted)
+	deleted = rpcDeleted + rptDeleted
 	return
 }

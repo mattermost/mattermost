@@ -6879,6 +6879,10 @@
     "translation": "Failed to set job status to error"
   },
   {
+    "id": "jobs.orphaned_rows.delete_batch.internal_error",
+    "translation": "Failed to delete orphaned rows from database."
+  },
+  {
     "id": "manaultesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },

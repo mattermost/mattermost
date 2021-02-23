@@ -86,6 +86,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
 	}
 
+	if srv.OrphanedRows != nil {
+		schedulers.schedulers = append(schedulers.schedulers, srv.OrphanedRows.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

@@ -219,21 +219,19 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 // than endTime, and fall under the scope of a granular retention policy.
 func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
-	// A reaction will be deleted if its corresponding post was already deleted by a retention policy.
 	const selectQuery = `
 		SELECT Reactions.PostId FROM Reactions
-		LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Posts ON Reactions.PostId = Posts.Id
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
+		INNER JOIN RetentionPolicies ON
 			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
 			OR (
 				RetentionPoliciesChannels.PolicyId IS NULL
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
 		WHERE :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			OR Posts.Id IS NULL
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -258,6 +256,27 @@ func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, l
 		return 0, errors.Wrap(err, "failed to delete Reactions")
 	}
 	return rowsAffected, nil
+}
+
+// DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
+func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Reactions WHERE PostId IN (
+		SELECT * FROM (
+			SELECT PostId FROM Reactions
+			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
+			WHERE Posts.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {

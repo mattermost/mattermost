@@ -32,6 +32,7 @@ type Workers struct {
 	ExportProcess            model.Worker
 	ExportDelete             model.Worker
 	Cloud                    model.Worker
+	OrphanedRows             model.Worker
 
 	listenerId string
 }
@@ -104,6 +105,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 
 	if cloudInterface := srv.Cloud; cloudInterface != nil {
 		workers.Cloud = cloudInterface.MakeWorker()
+	}
+
+	if srv.OrphanedRows != nil {
+		workers.OrphanedRows = srv.OrphanedRows.MakeWorker()
 	}
 
 	return workers

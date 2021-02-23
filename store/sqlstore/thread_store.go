@@ -665,18 +665,17 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 	// We need to join on Threads instead of Posts because the root post may already have been deleted.
 	const selectQuery = `
 		SELECT ThreadMemberships.PostId FROM ThreadMemberships
-		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
-		LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+		INNER JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		INNER JOIN Channels ON Threads.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
+		INNER JOIN RetentionPolicies ON
 			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
 			OR (
 				RetentionPoliciesChannels.PolicyId IS NULL
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
 		WHERE :Now - ThreadMemberships.LastUpdated >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			OR Threads.PostId IS NULL
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -701,4 +700,49 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
 	}
 	return rowsAffected, nil
+}
+
+// DeleteOrphanedRows removes entries from Threads and RetentionPoliciesTeams
+// where a channel or team no longer exists.
+func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const threadsQuery = `
+	DELETE FROM Threads WHERE PostId IN (
+		SELECT * FROM (
+			SELECT Threads.PostId FROM Threads
+			LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	// We only delete a thread membership if the entire thread no longer exists,
+	// not if the root post has been deleted
+	const threadMembershipsQuery = `
+	DELETE FROM ThreadMemberships WHERE PostId IN (
+		SELECT * FROM (
+			SELECT ThreadMemberships.PostId FROM ThreadMemberships
+			LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+			WHERE Threads.PostId IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(threadsQuery, props)
+	if err != nil {
+		return
+	}
+	rpcDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	result, err = s.GetMaster().Exec(threadMembershipsQuery, props)
+	if err != nil {
+		return
+	}
+	rptDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	deleted = rpcDeleted + rptDeleted
+	return
 }
