@@ -4,6 +4,7 @@
 package searchlayer
 
 import (
+	"context"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -67,7 +68,7 @@ func (s *SearchStore) User() store.UserStore {
 }
 
 func (s *SearchStore) indexUserFromID(userId string) {
-	user, err := s.User().Get(userId)
+	user, err := s.User().Get(context.Background(), userId)
 	if err != nil {
 		return
 	}

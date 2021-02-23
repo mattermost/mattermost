@@ -144,46 +144,6 @@
     "translation": "Не можах да намеря командата."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Грешка при настройка „До адрес“."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Неуспешно добавяне на данни за съобщения по ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Неуспешно писане на съобщение за ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Грешка при настройка „От адрес“"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Неуспешна връзка с SMTP сървъра."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Неуспешен запис на прикачен файл към ел.поща"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Неуспешно удостоверяване на SMTP сървър."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Връзката с TLS не бе успешна."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Неуспешно отваряне на връзката."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Неуспешно задаване на HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -1296,10 +1256,6 @@
     "translation": "Многофакторното удостоверяване е забранено на този сървър."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Грешка при запазване на МФУ тайната."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Грешка при генериране на QR код."
   },
@@ -1637,7 +1593,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 10 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
+    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 5 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -2672,24 +2628,8 @@
     "translation": "Предоставената схема е невалидна."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Грешка при изчистване на МФУ тайната."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невалиден маркер на МФУ."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Грешка при опит за удостоверяване на МФУ маркера."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -8523,10 +8463,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Грешка при изтеглянето на пакетен файл за поддръжка."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Грешка при четене на файл от сървъра"
   },
@@ -8537,5 +8473,121 @@
   {
     "id": "api.no_license",
     "translation": "Нужен е E10 или E20 лиценз за използване на тази крайна точка."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Невалидна стойност за RetentionDays. Трябва да е по-голяма от 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Стойността за Директория не може да е празна."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Неуспешно свързване с smtp сървър"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Неуспешно четене на прикачения файл при вноса."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Неуспешно добавяне на файл в zip архива при износа."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Неуспешно построяване на заявката."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Неуспешно създаване на zip заглавка при износа."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Неуспешно създаване на директория при износа."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Неуспешно създаване на файла при износа."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Неуспешно копиране на файла при износа."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Неуспешно търсене на износния файл."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Невалидна Origin заглавка при обновяване на websocket."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Няма успешно изпратена ел.поща"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за ограничението на потребители до администратора"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost потребителска заявка за надстройка на работното пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Тъй като работното ви пространство е достигнало потребителското ограничение за безплатната версия на Mattermost cloud, покани не могат да бъдат изпращани. Надстройте сега, за да позволите на повече потребители да се присъединят към вашето работно пространство."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Като алтернатива можете да деактивирате потребителите в Admin Console, за да отворите места за потребители и да останете под безплатния потребителски лимит."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Неуспешно изтриване на скорошното състояние. Моля, опитайте първо да добавите състояние или се свържете със системния администратор за подробности."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Функцията за персонализирано състояние е забранена. Моля, свържете се със системния администратор за подробности."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Вашето състояние зададено на “{{.EmojiName}} {{.StatusMessage}}”. Можете да промените състоянието си от индикатора на състоянието в заглавката на страничната лента на канала."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "състояние"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] или изчисти"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Задайте или изчистете състоянието си"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Състоянието Ви бе изчистено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Грешка при изчистване на състоянието."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Грешка при задаване на състоянието."
   }
 ]
