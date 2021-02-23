@@ -70,19 +70,19 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	}()
 
 	if resp.Body == nil {
-		return nil, fmt.Errorf("No Mailbox")
+		return nil, fmt.Errorf("no mailbox")
 	}
 
 	var record JSONMessageHeaderInbucket
 	err = json.NewDecoder(resp.Body).Decode(&record)
 	switch {
 	case err == io.EOF:
-		return nil, fmt.Errorf("Error: %s", err)
+		return nil, fmt.Errorf("error: %s", err)
 	case err != nil:
-		return nil, fmt.Errorf("Error: %s", err)
+		return nil, fmt.Errorf("error: %s", err)
 	}
 	if len(record) == 0 {
-		return nil, fmt.Errorf("No mailbox")
+		return nil, fmt.Errorf("no mailbox")
 	}
 
 	return record, nil
@@ -171,7 +171,7 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 
 		fmt.Println("retrying...")
 	}
-	return fmt.Errorf("After %d attempts, last error: %s", attempts, err)
+	return fmt.Errorf("after %d attempts, last error: %s", attempts, err)
 }
 
 func getInbucketHost() (host string) {
