@@ -251,7 +251,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				"Name":     "",
 			}
 
-			transaction, err := sqlStore.GetMaster().Begin()
+			transaction, err := sqlStore.migrations.Begin()
 			if err != nil {
 				themeMigrationFailed(err)
 			}
@@ -297,7 +297,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
 			var data model.Preferences
-			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
+			if _, err := sqlStore.migrations.Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
 				for i := range data {
 					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
 				}
@@ -337,12 +337,12 @@ func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version340, Version350) {
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		sqlStore.migrations.Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+		sqlStore.migrations.Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+		sqlStore.migrations.Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.migrations.Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.migrations.Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.migrations.Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
 		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
@@ -528,7 +528,7 @@ func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 		saveSchemaVersion(sqlStore, Version4100)
-		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
+		sqlStore.migrations.Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	}
 }
 
@@ -561,8 +561,8 @@ func upgradeDatabaseToVersion50(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
 
 		sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
+		sqlStore.migrations.Exec("UPDATE Roles SET BuiltIn=true")
+		sqlStore.migrations.Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "ChannelLocked", "boolean", "boolean", "0")
 
 		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
@@ -615,7 +615,7 @@ func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
 
 		// migrating user's accepted terms of service data into the new table
-		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
+		sqlStore.migrations.Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
@@ -700,10 +700,10 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
 
-		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
+		sqlStore.migrations.Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
 		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
-		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
+		sqlStore.migrations.Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
 
 		saveSchemaVersion(sqlStore, Version5120)
 	}
@@ -712,7 +712,7 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion513(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5120, Version5130) {
 		// The previous jobs ran once per minute, cluttering the Jobs table with somewhat useless entries. Clean that up.
-		sqlStore.GetMaster().Exec("DELETE FROM Jobs WHERE Type = 'plugins'")
+		sqlStore.migrations.Exec("DELETE FROM Jobs WHERE Type = 'plugins'")
 
 		saveSchemaVersion(sqlStore, Version5130)
 	}
@@ -733,9 +733,9 @@ func upgradeDatabaseToVersion515(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5150, Version5160) {
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
+			sqlStore.migrations.Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
 		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+			sqlStore.migrations.Exec("ALTER TABLE Tokens MODIFY Extra text")
 		}
 		saveSchemaVersion(sqlStore, Version5160)
 
@@ -817,7 +817,7 @@ func upgradeDatabaseToVersion523(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion524(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5230, Version5240) {
 		sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
-		sqlStore.GetMaster().Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
+		sqlStore.migrations.Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
 		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 		saveSchemaVersion(sqlStore, Version5240)
@@ -852,7 +852,7 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 		}
 
 		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+		sqlStore.migrations.Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
 
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
@@ -898,7 +898,7 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 	}
 
 	var schemeIDWrong, typeWrong int
-	row := sqlStore.GetMaster().Db.QueryRow(teamsQuery)
+	row := sqlStore.migrations.Db.QueryRow(teamsQuery)
 	if err = row.Scan(&schemeIDWrong, &typeWrong); err != nil && err != sql.ErrNoRows {
 		return err
 	} else if err == nil && schemeIDWrong > 0 {
@@ -910,7 +910,7 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 	}
 
 	var usernameWrong, iconURLWrong int
-	row = sqlStore.GetMaster().Db.QueryRow(webhooksQuery)
+	row = sqlStore.migrations.Db.QueryRow(webhooksQuery)
 	if err = row.Scan(&usernameWrong, &iconURLWrong); err != nil && err != sql.ErrNoRows {
 		mlog.Error("Error fetching IncomingWebhooks columns data", mlog.Err(err))
 	} else if err == nil && usernameWrong > 0 {
@@ -937,7 +937,7 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
 		}
-		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
+		if _, err := sqlStore.migrations.Exec(updateThreadChannelsQuery); err != nil {
 			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 		}
 
