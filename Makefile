@@ -510,7 +510,7 @@ restart-server: | stop-server run-server ## Restarts the mattermost server to pi
 restart-haserver:
 	@echo Restarting mattermost in an HA topology
 
-	docker-compose restart peon
+	docker-compose restart follower2
 	docker-compose restart follower
 	docker-compose restart leader
 	docker-compose restart haproxy

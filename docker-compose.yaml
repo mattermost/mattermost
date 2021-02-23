@@ -160,7 +160,7 @@ services:
       - "8074/udp"
       - "8075"
 
-  peon:
+  follower2:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
@@ -179,7 +179,7 @@ services:
       - './../mattermost-webapp:/home/mattermost-webapp'
       - './../enterprise:/home/enterprise'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://peon:8065/api/v4/system/ping"]
+      test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
       interval: 5s
       timeout: 30s
       retries: 30
@@ -207,7 +207,7 @@ services:
         condition: service_healthy
       follower:
         condition: service_healthy
-      peon:
+      follower2:
         condition: service_healthy
     ports:
       - "8065:8065"
