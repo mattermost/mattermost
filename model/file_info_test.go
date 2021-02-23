@@ -83,7 +83,7 @@ func TestGetInfoForFile(t *testing.T) {
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
-	require.NoErrorf(t, err, "Failed to load testgif.gif")
+	require.NoError(t, err, "Failed to load testgif.gif")
 
 	var ttc = []struct {
 		testName                string
