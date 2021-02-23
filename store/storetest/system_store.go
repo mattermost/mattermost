@@ -4,8 +4,6 @@
 package storetest
 
 import (
-	"database/sql"
-	"errors"
 	"sync"
 	"testing"
 
@@ -87,9 +85,10 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 }
 
 func testSystemStoreGetByNameNoEntries(t *testing.T, ss store.Store) {
-	res, err := ss.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, sql.ErrNoRows))
+	res, nErr := ss.System().GetByName(model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE)
+	_, ok := nErr.(*store.ErrNotFound)
+	require.Error(t, nErr)
+	assert.True(t, ok)
 	assert.Nil(t, res)
 }
 
