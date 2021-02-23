@@ -3616,32 +3616,12 @@
     "translation": "Serwis wiadomości o bezpieczeństwie Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Błąd podczas próby uwierzytelnienia tokenu MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Nieprawidłowy token MFA"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Błąd przy czyszczeniu sekretu MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Błąd podczas generowania kodu QR"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Błąd podczas zapisywania sekretu MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
