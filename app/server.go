@@ -849,6 +849,9 @@ func (s *Server) Shutdown() {
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
+		// For simplicity we don't check if workers and schedulers are active
+		// before stopping them as both calls essentially become no-ops
+		// if nothing is running.
 		if err = s.Jobs.StopWorkers(); err != nil {
 			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
 		}

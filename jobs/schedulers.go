@@ -103,6 +103,8 @@ func (srv *JobServer) InitSchedulers() error {
 	return nil
 }
 
+// Start starts the schedulers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Start() {
 	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
@@ -176,6 +178,8 @@ func (schedulers *Schedulers) Start() {
 	schedulers.running = true
 }
 
+// Stop stops the schedulers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Stop() {
 	mlog.Info("Stopping schedulers.")
 	close(schedulers.stop)

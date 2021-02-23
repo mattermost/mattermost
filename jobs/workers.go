@@ -124,6 +124,8 @@ func (srv *JobServer) InitWorkers() error {
 	return nil
 }
 
+// Start starts the workers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
 func (workers *Workers) Start() {
 	mlog.Info("Starting workers")
 	if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
@@ -248,6 +250,8 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	}
 }
 
+// Stop stops the workers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
 func (workers *Workers) Stop() {
 	workers.ConfigService.RemoveConfigListener(workers.listenerId)
 
