@@ -151,13 +151,13 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 
 func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error {
 	if len(channelIDs) > 0 {
-		teamsSelectQuery, teamsSelectArgs, _ := s.getQueryBuilder().
+		channelsSelectQuery, channelsSelectArgs, _ := s.getQueryBuilder().
 			Select("Id").
-			From("Teams").
+			From("Channels").
 			Where(inStrings("Id", channelIDs)).
 			ToSql()
 		var rows []*string
-		_, err := s.GetReplica().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
+		_, err := s.GetReplica().Select(&rows, channelsSelectQuery, channelsSelectArgs...)
 		if err != nil {
 			return err
 		}
