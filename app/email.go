@@ -484,7 +484,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 	return nil
 }
 
-func (es *EmailService) newEmailTemplateData(locale string) *templates.Data {
+func (es *EmailService) newEmailTemplateData(locale string) templates.Data {
 	var localT i18n.TranslateFunc
 	if locale != "" {
 		localT = utils.GetUserTranslations(locale)
@@ -496,7 +496,7 @@ func (es *EmailService) newEmailTemplateData(locale string) *templates.Data {
 		organization = localT("api.templates.email_organization") + *es.srv.Config().EmailSettings.FeedbackOrganization
 	}
 
-	return &templates.Data{
+	return templates.Data{
 		Props: map[string]interface{}{
 			"EmailInfo1": localT("api.templates.email_info1"),
 			"EmailInfo2": localT("api.templates.email_info2"),

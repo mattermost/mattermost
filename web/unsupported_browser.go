@@ -47,7 +47,7 @@ type SystemBrowser struct {
 func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 
-	data := &templates.Data{
+	data := templates.Data{
 		Props: map[string]interface{}{
 			"DownloadAppOrUpgradeBrowserString": app.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
 			"LearnMoreString":                   app.T("web.error.unsupported_browser.learn_more"),

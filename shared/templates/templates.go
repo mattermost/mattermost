@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
+// Container represents a set of templates that can be render
 type Container struct {
 	templates atomic.Value
 	stop      chan struct{}
@@ -22,11 +23,15 @@ type Container struct {
 	watch     bool
 }
 
+// Data contains the data used to populate the template variables, it has Props
+// that can be of any type and HTML that only can be `template.HTML` types.
 type Data struct {
 	Props map[string]interface{}
 	HTML  map[string]template.HTML
 }
 
+// NewFromTemplates creates a new templates container using a
+// `template.Template` object
 func NewFromTemplate(templates *template.Template) (*Container, error) {
 	ret := &Container{
 		stop:    make(chan struct{}),
@@ -37,6 +42,9 @@ func NewFromTemplate(templates *template.Template) (*Container, error) {
 	return ret, nil
 }
 
+// NewFromTemplates creates a new templates container scanning a directory. It
+// supports watching that directory to apply the filesystem changes to the
+// loaded templates.
 func New(directory string, watch bool) (*Container, error) {
 	mlog.Debug("Parsing server templates", mlog.String("templates_directory", directory))
 
@@ -89,10 +97,12 @@ func New(directory string, watch bool) (*Container, error) {
 	return ret, nil
 }
 
-func (t *Container) Templates() *template.Template {
+func (t *Container) getTemplates() *template.Template {
 	return t.templates.Load().(*template.Template)
 }
 
+// Close stops the templates watcher of the container in case you have created
+// it with watch parameter set to true
 func (t *Container) Close() {
 	if t.watch {
 		close(t.stop)
@@ -100,14 +110,18 @@ func (t *Container) Close() {
 	}
 }
 
-func (t *Container) RenderToString(templateName string, data *Data) string {
+// RenderToString renders the template referenced with the template name using
+// the data provided and return a string with the result
+func (t *Container) RenderToString(templateName string, data Data) string {
 	var text bytes.Buffer
 	t.Render(&text, templateName, data)
 	return text.String()
 }
 
-func (t *Container) Render(w io.Writer, templateName string, data *Data) error {
-	if err := t.Templates().ExecuteTemplate(w, templateName, data); err != nil {
+// RenderToString renders the template referenced with the template name using
+// the data provided and write it to the writer provided
+func (t *Container) Render(w io.Writer, templateName string, data Data) error {
+	if err := t.getTemplates().ExecuteTemplate(w, templateName, data); err != nil {
 		mlog.Warn("Error rendering template", mlog.String("template_name", templateName), mlog.Err(err))
 		return err
 	}
