@@ -79,6 +79,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	l, err3 := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
 	require.NoError(t, err3, "Should've open a network socket and listen")
 	defer l.Close()
+
+	cfg = getConfig()
 	cfg.Server = strings.Split(l.Addr().String(), ":")[0]
 	cfg.Port = strings.Split(l.Addr().String(), ":")[1]
 	cfg.ServerTimeout = 1
@@ -91,6 +93,10 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
+	cfg = getConfig()
+	cfg.Server = strings.Split(l.Addr().String(), ":")[0]
+	cfg.Port = strings.Split(l.Addr().String(), ":")[1]
+	cfg.ServerTimeout = 1
 	_, err4 := NewSMTPClientAdvanced(
 		ctx,
 		conn2,
@@ -99,8 +105,10 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	require.Error(t, err4, "Should get a timeout get while creating a new SMTP client")
 	assert.Contains(t, err4.Error(), "unable to connect to the SMTP server")
 
+	cfg = getConfig()
 	cfg.Server = "wrongServer"
 	cfg.Port = "553"
+	cfg.ServerTimeout = 1
 
 	_, err5 := ConnectToSMTPServerAdvanced(cfg)
 	require.Error(t, err5, "Should not connect to the SMTP Server")

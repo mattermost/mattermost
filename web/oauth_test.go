@@ -4,6 +4,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/base64"
 	"io"
 	"io/ioutil"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -520,6 +522,44 @@ func TestOAuthComplete(t *testing.T) {
 	if r, err := HttpGet(ApiClient.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), ApiClient.HttpClient, "", false); err == nil {
 		closeBody(r)
 	}
+}
+
+func TestOAuthComplete_ErrorMessages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App: th.App,
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	translationFunc := utils.GetUserTranslations("en")
+	c.App.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	responseWriter := httptest.NewRecorder()
+
+	// Renders for web & mobile app with webview
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+
+	completeOAuth(c, responseWriter, request)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- web error message -->")
+
+	// Renders for mobile app with redirect url
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_MOBILE
+	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+
+	completeOAuth(c, responseWriter, request2)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
 }
 
 func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {

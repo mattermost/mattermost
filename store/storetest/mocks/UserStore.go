@@ -144,13 +144,13 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	return r0, r1
 }
 
-// AutocompleteUsersInChannel provides a mock function with given fields: teamId, channelId, term, options
-func (_m *UserStore) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	ret := _m.Called(teamId, channelId, term, options)
+// AutocompleteUsersInChannel provides a mock function with given fields: teamID, channelID, term, options
+func (_m *UserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+	ret := _m.Called(teamID, channelID, term, options)
 
 	var r0 *model.UserAutocompleteInChannel
 	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
-		r0 = rf(teamId, channelId, term, options)
+		r0 = rf(teamID, channelID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserAutocompleteInChannel)
@@ -159,7 +159,7 @@ func (_m *UserStore) AutocompleteUsersInChannel(teamId string, channelId string,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamId, channelId, term, options)
+		r1 = rf(teamID, channelID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -299,13 +299,13 @@ func (_m *UserStore) GetAll() ([]*model.User, error) {
 	return r0, r1
 }
 
-// GetAllAfter provides a mock function with given fields: limit, afterId
-func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, error) {
-	ret := _m.Called(limit, afterId)
+// GetAllAfter provides a mock function with given fields: limit, afterID
+func (_m *UserStore) GetAllAfter(limit int, afterID string) ([]*model.User, error) {
+	ret := _m.Called(limit, afterID)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(int, string) []*model.User); ok {
-		r0 = rf(limit, afterId)
+		r0 = rf(limit, afterID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -314,7 +314,7 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, erro
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterId)
+		r1 = rf(limit, afterID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -414,20 +414,20 @@ func (_m *UserStore) GetAllUsingAuthService(authService string) ([]*model.User, 
 	return r0, r1
 }
 
-// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelId
-func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, error) {
-	ret := _m.Called(userId, channelId)
+// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelID
+func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelID string) (int64, error) {
+	ret := _m.Called(userId, channelID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
-		r0 = rf(userId, channelId)
+		r0 = rf(userId, channelID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, channelId)
+		r1 = rf(userId, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -541,13 +541,13 @@ func (_m *UserStore) GetEtagForAllProfiles() string {
 	return r0
 }
 
-// GetEtagForProfiles provides a mock function with given fields: teamId
-func (_m *UserStore) GetEtagForProfiles(teamId string) string {
-	ret := _m.Called(teamId)
+// GetEtagForProfiles provides a mock function with given fields: teamID
+func (_m *UserStore) GetEtagForProfiles(teamID string) string {
+	ret := _m.Called(teamID)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -555,13 +555,13 @@ func (_m *UserStore) GetEtagForProfiles(teamId string) string {
 	return r0
 }
 
-// GetEtagForProfilesNotInTeam provides a mock function with given fields: teamId
-func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) string {
-	ret := _m.Called(teamId)
+// GetEtagForProfilesNotInTeam provides a mock function with given fields: teamID
+func (_m *UserStore) GetEtagForProfilesNotInTeam(teamID string) string {
+	ret := _m.Called(teamID)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -569,13 +569,13 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 	return r0
 }
 
-// GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail
-func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
-	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail)
+// GetForLogin provides a mock function with given fields: loginID, allowSignInWithUsername, allowSignInWithEmail
+func (_m *UserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
+	ret := _m.Called(loginID, allowSignInWithUsername, allowSignInWithEmail)
 
 	var r0 *model.User
 	if rf, ok := ret.Get(0).(func(string, bool, bool) *model.User); ok {
-		r0 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail)
+		r0 = rf(loginID, allowSignInWithUsername, allowSignInWithEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -584,7 +584,7 @@ func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, a
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
-		r1 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail)
+		r1 = rf(loginID, allowSignInWithUsername, allowSignInWithEmail)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -638,13 +638,13 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 	return r0, r1
 }
 
-// GetNewUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamId, offset, limit, viewRestrictions)
+// GetNewUsersForTeam provides a mock function with given fields: teamID, offset, limit, viewRestrictions
+func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamId, offset, limit, viewRestrictions)
+		r0 = rf(teamID, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -653,7 +653,7 @@ func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, vi
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamId, offset, limit, viewRestrictions)
+		r1 = rf(teamID, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -822,13 +822,13 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, gr
 	return r0, r1
 }
 
-// GetProfilesNotInTeam provides a mock function with given fields: teamId, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamId, groupConstrained, offset, limit, viewRestrictions)
+// GetProfilesNotInTeam provides a mock function with given fields: teamID, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, bool, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamId, groupConstrained, offset, limit, viewRestrictions)
+		r0 = rf(teamID, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -837,7 +837,7 @@ func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, bool, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamId, groupConstrained, offset, limit, viewRestrictions)
+		r1 = rf(teamID, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -868,13 +868,13 @@ func (_m *UserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*m
 	return r0, r1
 }
 
-// GetRecentlyActiveUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamId, offset, limit, viewRestrictions)
+// GetRecentlyActiveUsersForTeam provides a mock function with given fields: teamID, offset, limit, viewRestrictions
+func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamId, offset, limit, viewRestrictions)
+		r0 = rf(teamID, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -883,7 +883,7 @@ func (_m *UserStore) GetRecentlyActiveUsersForTeam(teamId string, offset int, li
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamId, offset, limit, viewRestrictions)
+		r1 = rf(teamID, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -958,20 +958,20 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 	return r0, r1
 }
 
-// GetUnreadCountForChannel provides a mock function with given fields: userId, channelId
-func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) (int64, error) {
-	ret := _m.Called(userId, channelId)
+// GetUnreadCountForChannel provides a mock function with given fields: userId, channelID
+func (_m *UserStore) GetUnreadCountForChannel(userId string, channelID string) (int64, error) {
+	ret := _m.Called(userId, channelID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
-		r0 = rf(userId, channelId)
+		r0 = rf(userId, channelID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, channelId)
+		r1 = rf(userId, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1028,9 +1028,9 @@ func (_m *UserStore) InvalidateProfileCacheForUser(userId string) {
 	_m.Called(userId)
 }
 
-// InvalidateProfilesInChannelCache provides a mock function with given fields: channelId
-func (_m *UserStore) InvalidateProfilesInChannelCache(channelId string) {
-	_m.Called(channelId)
+// InvalidateProfilesInChannelCache provides a mock function with given fields: channelID
+func (_m *UserStore) InvalidateProfilesInChannelCache(channelID string) {
+	_m.Called(channelID)
 }
 
 // InvalidateProfilesInChannelCacheByUser provides a mock function with given fields: userId
@@ -1103,13 +1103,13 @@ func (_m *UserStore) Save(user *model.User) (*model.User, error) {
 	return r0, r1
 }
 
-// Search provides a mock function with given fields: teamId, term, options
-func (_m *UserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(teamId, term, options)
+// Search provides a mock function with given fields: teamID, term, options
+func (_m *UserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(teamID, term, options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(teamId, term, options)
+		r0 = rf(teamID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1118,7 +1118,7 @@ func (_m *UserStore) Search(teamId string, term string, options *model.UserSearc
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamId, term, options)
+		r1 = rf(teamID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1126,13 +1126,13 @@ func (_m *UserStore) Search(teamId string, term string, options *model.UserSearc
 	return r0, r1
 }
 
-// SearchInChannel provides a mock function with given fields: channelId, term, options
-func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(channelId, term, options)
+// SearchInChannel provides a mock function with given fields: channelID, term, options
+func (_m *UserStore) SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(channelID, term, options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(channelId, term, options)
+		r0 = rf(channelID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1141,7 +1141,7 @@ func (_m *UserStore) SearchInChannel(channelId string, term string, options *mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(channelId, term, options)
+		r1 = rf(channelID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1172,13 +1172,13 @@ func (_m *UserStore) SearchInGroup(groupID string, term string, options *model.U
 	return r0, r1
 }
 
-// SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options
-func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(teamId, channelId, term, options)
+// SearchNotInChannel provides a mock function with given fields: teamID, channelID, term, options
+func (_m *UserStore) SearchNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(teamID, channelID, term, options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(teamId, channelId, term, options)
+		r0 = rf(teamID, channelID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1187,7 +1187,7 @@ func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term st
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamId, channelId, term, options)
+		r1 = rf(teamID, channelID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
