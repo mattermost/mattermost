@@ -3606,32 +3606,12 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "올바르지 않은 MFA 토큰"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR 코드 생성 중 오류가 발생했습니다."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret"
   },
   {
     "id": "mfa.mfa_disabled.app_error",

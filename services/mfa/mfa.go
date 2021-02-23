@@ -4,39 +4,44 @@
 package mfa
 
 import (
+	"crypto/rand"
+	"encoding/base32"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/rsc/qr"
-
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 )
+
+// InvalidToken indicates the case where the token validation has failed.
+var InvalidToken = errors.New("invalid mfa token")
 
 const (
 	// This will result in 160 bits of entropy (base32 encoded), as recommended by rfc4226.
-	MFASecretSize = 20
+	mfaSecretSize = 20
 )
 
-type Mfa struct {
-	ConfigService configservice.ConfigService
-	Store         store.Store
+type Store interface {
+	UpdateMfaActive(userId string, active bool) error
+	UpdateMfaSecret(userId, secret string) error
 }
 
-func New(configService configservice.ConfigService, store store.Store) Mfa {
-	return Mfa{configService, store}
+type MFA struct {
+	store Store
 }
 
-func (m *Mfa) checkConfig() *model.AppError {
-	if !*m.ConfigService.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("checkConfig", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
+func New(store Store) *MFA {
+	return &MFA{store}
+}
 
-	return nil
+// newRandomBase32String returns a base32 encoded string of a random slice
+// of bytes of the given size. The resulting entropy will be (8 * size) bits.
+func newRandomBase32String(size int) string {
+	data := make([]byte, size)
+	rand.Read(data)
+	return base32.StdEncoding.EncodeToString(data)
 }
 
 func getIssuerFromUrl(uri string) string {
@@ -52,39 +57,33 @@ func getIssuerFromUrl(uri string) string {
 	return url.QueryEscape(issuer)
 }
 
-func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {
-	if err := m.checkConfig(); err != nil {
-		return "", nil, err
-	}
+// GenerateSecret generates a new user mfa secret and store it with the StoreSecret function provided
+func (m *MFA) GenerateSecret(siteURL, userEmail, userID string) (string, []byte, error) {
+	issuer := getIssuerFromUrl(siteURL)
 
-	issuer := getIssuerFromUrl(*m.ConfigService.Config().ServiceSettings.SiteURL)
+	secret := newRandomBase32String(mfaSecretSize)
 
-	secret := model.NewRandomBase32String(MFASecretSize)
-
-	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, user.Email, secret, issuer)
+	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, userEmail, secret, issuer)
 
 	code, err := qr.Encode(authLink, qr.H)
 
 	if err != nil {
-		return "", nil, model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.create_code.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", nil, errors.Wrap(err, "unable to generate qr code")
 	}
 
 	img := code.PNG()
 
-	if err := m.Store.User().UpdateMfaSecret(user.Id, secret); err != nil {
-		return "", nil, model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := m.store.UpdateMfaSecret(userID, secret); err != nil {
+		return "", nil, errors.Wrap(err, "unable to store mfa secret")
 	}
 
 	return secret, img, nil
 }
 
-func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
-	if err := m.checkConfig(); err != nil {
-		return err
-	}
-
+// Activate set the mfa as active and store it with the StoreActive function provided
+func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 	otpConfig := &dgoogauth.OTPConfig{
-		Secret:      user.MfaSecret,
+		Secret:      userMfaSecret,
 		WindowSize:  3,
 		HotpCounter: 0,
 	}
@@ -93,47 +92,35 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 
 	ok, err := otpConfig.Authenticate(trimmedToken)
 	if err != nil {
-		return model.NewAppError("Activate", "mfa.activate.authenticate.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "unable to parse the token")
 	}
 
 	if !ok {
-		return model.NewAppError("Activate", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
+		return InvalidToken
 	}
 
-	if appErr := m.Store.User().UpdateMfaActive(user.Id, true); appErr != nil {
-		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
-func (m *Mfa) Deactivate(userId string) *model.AppError {
-	if err := m.checkConfig(); err != nil {
-		return err
-	}
-
-	schan := make(chan error, 1)
-	go func() {
-		schan <- m.Store.User().UpdateMfaSecret(userId, "")
-		close(schan)
-	}()
-
-	if err := m.Store.User().UpdateMfaActive(userId, false); err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if err := <-schan; err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := m.store.UpdateMfaActive(userID, true); err != nil {
+		return errors.Wrap(err, "unable to store mfa active")
 	}
 
 	return nil
 }
 
-func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
-	if err := m.checkConfig(); err != nil {
-		return false, err
+// Deactivate set the mfa as deactive, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
+func (m *MFA) Deactivate(userId string) error {
+	if err := m.store.UpdateMfaActive(userId, false); err != nil {
+		return errors.Wrap(err, "unable to store mfa active")
 	}
 
+	if err := m.store.UpdateMfaSecret(userId, ""); err != nil {
+		return errors.Wrap(err, "unable to store mfa secret")
+	}
+
+	return nil
+}
+
+// Validate the provide token using the secret provided
+func (m *MFA) ValidateToken(secret, token string) (bool, error) {
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      secret,
 		WindowSize:  3,
@@ -143,7 +130,7 @@ func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
 	trimmedToken := strings.TrimSpace(token)
 	ok, err := otpConfig.Authenticate(trimmedToken)
 	if err != nil {
-		return false, model.NewAppError("ValidateToken", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
+		return false, errors.Wrap(err, "unable to parse the token")
 	}
 
 	return ok, nil
