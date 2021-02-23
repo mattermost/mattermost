@@ -32,23 +32,22 @@ import (
 )
 
 const (
-	IndexTypeFullText      = "full_text"
-	IndexTypeDefault       = "default"
-	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	DBPingAttempts         = 18
-	DBPingTimeoutSecs      = 10
+	IndexTypeFullText                 = "full_text"
+	IndexTypeDefault                  = "default"
+	PGDupTableErrorCode               = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MySQLDupTableErrorCode            = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	PGForeignKeyViolationErrorCode    = "23503"
+	MySQLForeignKeyViolationErrorCode = 1452
+	PGDuplicateObjectErrorCode        = "42710"
+	MySQLDuplicateObjectErrorCode     = 1022
+	DBPingAttempts                    = 18
+	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	MinimumRequiredPostgresVersion = 100000
-
-	POSTGRES_ERROR_FOREIGN_KEY_VIOLATION = "23503"
-	POSTGRES_ERROR_DUPLICATE_OBJECT      = "42710"
-	MYSQL_ERROR_FOREIGN_KEY_VIOLATION    = 1452
-	MYSQL_ERROR_DUPLICATE_OBJECT         = 1022
 )
 
 const (
@@ -1087,11 +1086,11 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 func IsConstraintAlreadyExistsError(err error) bool {
 	switch dbErr := err.(type) {
 	case *pq.Error:
-		if dbErr.Code == POSTGRES_ERROR_DUPLICATE_OBJECT {
+		if dbErr.Code == PGDuplicateObjectErrorCode {
 			return true
 		}
 	case *mysql.MySQLError:
-		if dbErr.Number == MYSQL_ERROR_DUPLICATE_OBJECT {
+		if dbErr.Number == MySQLDuplicateObjectErrorCode {
 			return true
 		}
 	}

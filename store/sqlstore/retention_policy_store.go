@@ -411,11 +411,11 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 	if err != nil {
 		switch dbErr := err.(type) {
 		case *pq.Error:
-			if dbErr.Code == POSTGRES_ERROR_FOREIGN_KEY_VIOLATION {
+			if dbErr.Code == PGForeignKeyViolationErrorCode {
 				return store.NewErrNotFound("RetentionPolicy", policyId)
 			}
 		case *mysql.MySQLError:
-			if dbErr.Number == MYSQL_ERROR_FOREIGN_KEY_VIOLATION {
+			if dbErr.Number == MySQLForeignKeyViolationErrorCode {
 				return store.NewErrNotFound("RetentionPolicy", policyId)
 			}
 		}
