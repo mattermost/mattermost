@@ -40,6 +40,12 @@ const (
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
 	PREFERENCE_NAME_LAST_TEAM    = "team"
 
+	PREFERENCE_CATEGORY_CUSTOM_STATUS            = "custom_status"
+	PREFERENCE_NAME_RECENT_CUSTOM_STATUSES       = "recent_custom_statuses"
+	PREFERENCE_NAME_CUSTOM_STATUS_TUTORIAL_STATE = "custom_status_tutorial_state"
+
+	PREFERENCE_CUSTOM_STATUS_MODAL_VIEWED = "custom_status_modal_viewed"
+
 	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
 	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"
 

@@ -111,7 +111,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t, _ := utils.GetTranslationsAndLocale(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.App.SetUserAgent(r.UserAgent())
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)
@@ -172,11 +172,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+
+		// Add unsafe-eval to the content security policy for faster source maps in development mode
+		devCSP := ""
+		if model.BuildNumber == "dev" {
+			devCSP = " 'unsafe-eval'"
+		}
+
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
 			cloudCSP,
 			h.cspShaDirective,
+			devCSP,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default

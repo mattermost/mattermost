@@ -212,7 +212,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 					a.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 				}
 				return true
-			}, plugin.OnConfigurationChangeId)
+			}, plugin.OnConfigurationChangeID)
 		}
 	})
 	a.Srv().PluginsLock.Unlock()

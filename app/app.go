@@ -159,7 +159,7 @@ func (s *Server) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
+	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
