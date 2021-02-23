@@ -24,7 +24,7 @@ type Templates struct {
 
 type Data struct {
 	Props map[string]interface{}
-	Html  map[string]template.HTML
+	HTML  map[string]template.HTML
 }
 
 func NewFromTemplate(templates *template.Template) (*Templates, error) {

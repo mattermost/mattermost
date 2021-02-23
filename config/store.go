@@ -210,7 +210,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	loadedConfig := &model.Config{}
 	if len(configBytes) != 0 {
 		if err = json.Unmarshal(configBytes, &loadedConfig); err != nil {
-			return jsonutils.HumanizeJsonError(err, configBytes)
+			return jsonutils.HumanizeJSONError(err, configBytes)
 		}
 	}
 

@@ -300,7 +300,7 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	data := es.newEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.reset_body.title")
-	data.Props["Info1"] = utils.TranslateAsHtml(T, "api.templates.reset_body.info1", nil)
+	data.Props["Info1"] = utils.TranslateAsHTML(T, "api.templates.reset_body.info1", nil)
 	data.Props["Info2"] = T("api.templates.reset_body.info2")
 	data.Props["ResetUrl"] = link
 	data.Props["Button"] = T("api.templates.reset_body.button")
@@ -364,10 +364,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			data := es.newEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
 			data.Props["Title"] = utils.T("api.templates.invite_body.title")
-			data.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
+			data.HTML["Info"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["Button"] = utils.T("api.templates.invite_body.button")
-			data.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			data.HTML["ExtraInfo"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			data.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -423,7 +423,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			data := es.newEmailTemplateData("")
 			data.Props["SiteURL"] = siteURL
 			data.Props["Title"] = utils.T("api.templates.invite_body.title")
-			data.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
+			data.HTML["Info"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body_guest.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			data.Props["Button"] = utils.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
@@ -432,7 +432,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			if message != "" {
 				data.Props["Message"] = message
 			}
-			data.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			data.HTML["ExtraInfo"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			data.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -506,7 +506,7 @@ func (es *EmailService) newEmailTemplateData(locale string) *mtemplates.Data {
 			"Footer":       localT("api.templates.email_footer"),
 			"Organization": organization,
 		},
-		Html: map[string]template.HTML{},
+		HTML: map[string]template.HTML{},
 	}
 }
 

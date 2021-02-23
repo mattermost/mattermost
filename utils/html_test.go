@@ -27,7 +27,7 @@ func init() {
 }
 
 func TestTranslateAsHtml(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHtml(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
 		"Foo": "<i>foo</i>",
 	}))
 }
@@ -65,7 +65,7 @@ func TestEscapeForHtml(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, escapeForHtml(tc.In))
+			assert.Equal(t, tc.Expected, escapeForHTML(tc.In))
 		})
 	}
 }

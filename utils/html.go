@@ -13,14 +13,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
-func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
-	message := t(translationID, escapeForHtml(args))
+func TranslateAsHTML(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+	message := t(translationID, escapeForHTML(args))
 	message = strings.Replace(message, "[[", "<strong>", -1)
 	message = strings.Replace(message, "]]", "</strong>", -1)
 	return template.HTML(message)
 }
 
-func escapeForHtml(arg interface{}) interface{} {
+func escapeForHTML(arg interface{}) interface{} {
 	switch typedArg := arg.(type) {
 	case string:
 		return template.HTMLEscapeString(typedArg)
@@ -29,7 +29,7 @@ func escapeForHtml(arg interface{}) interface{} {
 	case map[string]interface{}:
 		safeArg := make(map[string]interface{}, len(typedArg))
 		for key, value := range typedArg {
-			safeArg[key] = escapeForHtml(value)
+			safeArg[key] = escapeForHTML(value)
 		}
 		return safeArg
 	default:
