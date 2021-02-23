@@ -11,8 +11,6 @@ import (
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 // Container represents a set of templates that can be render
@@ -43,16 +41,12 @@ func NewFromTemplate(templates *template.Template) (*Container, error) {
 	return ret, nil
 }
 
-// NewFromTemplates creates a new templates container scanning a directory. It
-// supports watching that directory to apply the filesystem changes to the
-// loaded templates.
-func New(directory string, watch bool) (*Container, error) {
-	mlog.Debug("Parsing server templates", mlog.String("templates_directory", directory))
-
+// New creates a new templates container scanning a directory.
+func New(directory string) (*Container, error) {
 	ret := &Container{
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
-		watch:   watch,
+		watch:   false,
 	}
 
 	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
@@ -61,43 +55,67 @@ func New(directory string, watch bool) (*Container, error) {
 	}
 	ret.templates = htmlTemplates
 
-	if watch {
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			return nil, err
-		}
+	return ret, nil
+}
 
-		if err = watcher.Add(directory); err != nil {
-			return nil, err
-		}
-
-		go func() {
-			defer close(ret.stopped)
-			defer watcher.Close()
-
-			for {
-				select {
-				case <-ret.stop:
-					return
-				case event := <-watcher.Events:
-					if event.Op&fsnotify.Write == fsnotify.Write {
-						mlog.Info("Re-parsing templates because of modified file", mlog.String("file_name", event.Name))
-						if htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html")); err != nil {
-							mlog.Error("Failed to parse templates.", mlog.Err(err))
-						} else {
-							ret.mutex.Lock()
-							ret.templates = htmlTemplates
-							ret.mutex.Unlock()
-						}
-					}
-				case err := <-watcher.Errors:
-					mlog.Error("Failed in directory watcher", mlog.Err(err))
-				}
-			}
-		}()
+// NewWithWatcher creates a new templates container scanning a directory and
+// watch the directory filesystem changes to apply them to the loaded
+// templates.
+func NewWithWatcher(directory string) (*Container, <-chan error) {
+	errors := make(chan error)
+	ret := &Container{
+		templates: &template.Template{},
+		stop:      make(chan struct{}),
+		stopped:   make(chan struct{}),
+		watch:     true,
 	}
 
-	return ret, nil
+	go func() {
+		defer close(ret.stopped)
+		defer close(errors)
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			errors <- err
+			return
+		}
+		defer watcher.Close()
+
+		if err = watcher.Add(directory); err != nil {
+			errors <- err
+			return
+		}
+
+		htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
+		if err != nil {
+			errors <- err
+			return
+		}
+		ret.mutex.Lock()
+		ret.templates = htmlTemplates
+		ret.mutex.Unlock()
+
+		for {
+			select {
+			case <-ret.stop:
+				return
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					if htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html")); err != nil {
+						errors <- err
+					} else {
+						ret.mutex.Lock()
+						ret.templates = htmlTemplates
+						ret.mutex.Unlock()
+					}
+				}
+			case err := <-watcher.Errors:
+				errors <- err
+			}
+		}
+	}()
+
+	return ret, errors
 }
 
 func (t *Container) getTemplates() *template.Template {
@@ -127,7 +145,6 @@ func (t *Container) RenderToString(templateName string, data Data) string {
 // the data provided and write it to the writer provided
 func (t *Container) Render(w io.Writer, templateName string, data Data) error {
 	if err := t.getTemplates().ExecuteTemplate(w, templateName, data); err != nil {
-		mlog.Warn("Error rendering template", mlog.String("template_name", templateName), mlog.Err(err))
 		return err
 	}
 

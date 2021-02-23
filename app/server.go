@@ -387,10 +387,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := fileutils.FindDir("templates")
 	if !ok {
-		mlog.Error("Failed to parse find server templates", mlog.String("directory", "templates"))
+		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
-		if htmlTemplateWatcher, err2 := templates.New(templatesDir, true); err2 != nil {
-			mlog.Error("Failed to parse server templates", mlog.Err(err2))
+		if htmlTemplateWatcher, errorsChan := templates.NewWithWatcher(templatesDir); errorsChan != nil {
+			s.Go(func() {
+				for err2 := range errorsChan {
+					mlog.Error("Server templates error", mlog.Err(err2))
+				}
+			})
 		} else {
 			s.htmlTemplateWatcher = htmlTemplateWatcher
 		}
