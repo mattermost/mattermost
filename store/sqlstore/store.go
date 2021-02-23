@@ -224,7 +224,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
-	store.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
 	store.stores.session.(*SqlSessionStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()

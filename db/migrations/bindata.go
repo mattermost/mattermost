@@ -4,6 +4,8 @@
 // mysql/000001_create_teams.up.sql
 // mysql/000002_create_team_members.down.sql
 // mysql/000002_create_team_members.up.sql
+// mysql/000003_create_audits.down.sql
+// mysql/000003_create_audits.up.sql
 // mysql/000003_create_cluster_discovery.down.sql
 // mysql/000003_create_cluster_discovery.up.sql
 // mysql/000004_create_command_webhooks.down.sql
@@ -44,6 +46,8 @@
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
 // postgres/000002_create_team_members.up.sql
+// postgres/000003_create_audits.down.sql
+// postgres/000003_create_audits.up.sql
 // postgres/000003_create_cluster_discovery.down.sql
 // postgres/000003_create_cluster_discovery.up.sql
 // postgres/000004_create_command_webhooks.down.sql
@@ -232,6 +236,46 @@ func mysql000002_create_team_membersUpSql() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "mysql/000002_create_team_members.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000003_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\x2c\x4d\xc9\x2c\x29\xb6\xe6\x02\x04\x00\x00\xff\xff\xdc\xcb\xe6\x62\x1d\x00\x00\x00")
+
+func mysql000003_create_auditsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_auditsDownSql,
+		"mysql/000003_create_audits.down.sql",
+	)
+}
+
+func mysql000003_create_auditsDownSql() (*asset, error) {
+	bytes, err := mysql000003_create_auditsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000003_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x90\xc1\x4b\xc3\x30\x14\x87\xef\xfb\x2b\x7e\xc7\x04\x3c\xc8\x18\x43\x90\x1d\xb2\xee\x4d\x83\xb5\x4a\x9b\x82\x3b\x95\x6c\xc9\x34\x07\x53\x49\x5e\xa5\x7f\xbe\xb8\xc2\x18\x2a\x78\xcc\x97\x8f\xef\xf1\x5e\x51\x93\x32\x04\xa3\xd6\x25\x41\x6f\x51\x3d\x19\xd0\x8b\x6e\x4c\x03\x3b\xb8\xc0\x19\x62\x06\x00\xda\xe1\xd3\xa6\xc3\x9b\x4d\x62\xbe\x94\x27\xad\x6a\xcb\xf2\xea\xf4\x59\x24\x6f\xd9\x2b\xc6\x3e\xbc\x86\xc8\x62\x7e\x2d\xb1\xa1\xad\x6a\xcb\x4b\xab\xcd\x3e\xfd\xc8\xfc\x96\xd4\x81\x43\x1f\xc1\x7e\xe4\x09\xd0\xc8\xc9\xea\x78\xec\x2f\x98\xfe\x50\xce\x25\x9f\xf3\x39\xb6\x5c\xfc\x15\x6b\x7c\xce\xa1\x8f\xff\x0e\x7d\xae\xf5\xa3\xaa\x77\x78\xa0\x1d\x84\x76\x72\xa2\xdf\xaf\xe0\xc6\x6e\xba\x43\x37\x64\x9f\xba\xe0\x20\xa6\x3d\xe4\x4c\x82\xaa\x3b\x5d\xd1\x4a\xc7\xd8\x6f\xd6\xe7\x6e\x71\xaf\xea\x86\xcc\x6a\xe0\xe3\xcd\xfb\x7e\x71\x3b\xfb\x0a\x00\x00\xff\xff\xab\x09\x48\xe7\x64\x01\x00\x00")
+
+func mysql000003_create_auditsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_auditsUpSql,
+		"mysql/000003_create_audits.up.sql",
+	)
+}
+
+func mysql000003_create_auditsUpSql() (*asset, error) {
+	bytes, err := mysql000003_create_auditsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1036,6 +1080,46 @@ func postgres000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000003_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4c\xa9\x88\x4f\x2c\x4d\xc9\x2c\x29\x8e\x2f\x2d\x4e\x2d\x8a\xcf\x4c\xb1\xe6\xe2\x02\xab\x0c\x71\x74\xf2\x71\x45\x52\x09\x51\x65\xcd\x05\x08\x00\x00\xff\xff\xb9\xd9\x49\xb5\x47\x00\x00\x00")
+
+func postgres000003_create_auditsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_auditsDownSql,
+		"postgres/000003_create_audits.down.sql",
+	)
+}
+
+func postgres000003_create_auditsDownSql() (*asset, error) {
+	bytes, err := postgres000003_create_auditsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000003_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\x41\x6b\x84\x30\x10\x46\xef\xf9\x15\x73\x54\xe8\xa1\x4a\xeb\xc5\x53\x6a\x53\x1a\xda\x6a\x89\xa1\xe8\x49\x52\x93\x96\xb9\xc4\x25\x89\xe0\xcf\x5f\x76\xe3\x06\xdc\xeb\x7b\x0c\xf3\xbd\x46\x30\x2a\x19\x48\xfa\xf2\xc9\x80\xbf\x41\xdb\x49\x60\x03\xef\x65\x0f\x6a\xd5\x18\x3c\x64\x04\x00\x00\x35\xfc\x50\xd1\xbc\x53\x91\x95\x55\x0e\xdf\x82\x7f\x51\x31\xc2\x07\x1b\x1f\xae\x7e\x76\x46\x05\xa3\x02\xfc\xe2\x3f\xda\x10\xe1\xea\x8d\x3b\x1e\x46\xae\xe6\x80\x8b\x4d\xfc\xb9\x28\x77\x61\xb6\xe0\x14\xda\xbf\x25\xb9\xe2\xb1\x7c\xda\x25\x9e\x94\xd6\xce\x78\x9f\x64\x75\x53\xde\x78\x8f\x8b\x3d\xfe\x22\x79\x4d\xc8\xde\xc7\xdb\x57\x36\xdc\xf5\xa1\xde\xa6\xd8\x38\x5d\x86\x4e\xa8\xa1\x6b\x53\x75\xdc\x9e\xd7\xe4\x1c\x00\x00\xff\xff\x0b\x8b\x3f\x6b\x22\x01\x00\x00")
+
+func postgres000003_create_auditsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_auditsUpSql,
+		"postgres/000003_create_audits.up.sql",
+	)
+}
+
+func postgres000003_create_auditsUpSql() (*asset, error) {
+	bytes, err := postgres000003_create_auditsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000003_create_cluster_discoveryDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\xce\x29\x2d\x2e\x49\x2d\x4a\xc9\x2c\x4e\xce\x2f\x4b\x2d\xaa\xb4\xe6\x02\x04\x00\x00\xff\xff\xd2\xf9\xa6\x6b\x27\x00\x00\x00")
 
 func postgres000003_create_cluster_discoveryDownSqlBytes() ([]byte, error) {
@@ -1812,6 +1896,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000001_create_teams.up.sql":                  mysql000001_create_teamsUpSql,
 	"mysql/000002_create_team_members.down.sql":         mysql000002_create_team_membersDownSql,
 	"mysql/000002_create_team_members.up.sql":           mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_audits.down.sql":               mysql000003_create_auditsDownSql,
+	"mysql/000003_create_audits.up.sql":                 mysql000003_create_auditsUpSql,
 	"mysql/000003_create_cluster_discovery.down.sql":    mysql000003_create_cluster_discoveryDownSql,
 	"mysql/000003_create_cluster_discovery.up.sql":      mysql000003_create_cluster_discoveryUpSql,
 	"mysql/000004_create_command_webhooks.down.sql":     mysql000004_create_command_webhooksDownSql,
@@ -1852,6 +1938,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
 	"postgres/000002_create_team_members.up.sql":        postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_audits.down.sql":            postgres000003_create_auditsDownSql,
+	"postgres/000003_create_audits.up.sql":              postgres000003_create_auditsUpSql,
 	"postgres/000003_create_cluster_discovery.down.sql": postgres000003_create_cluster_discoveryDownSql,
 	"postgres/000003_create_cluster_discovery.up.sql":   postgres000003_create_cluster_discoveryUpSql,
 	"postgres/000004_create_command_webhooks.down.sql":  postgres000004_create_command_webhooksDownSql,
@@ -1936,6 +2024,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000001_create_teams.up.sql":               &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
 		"000002_create_team_members.down.sql":      &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
 		"000002_create_team_members.up.sql":        &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_audits.down.sql":            &bintree{mysql000003_create_auditsDownSql, map[string]*bintree{}},
+		"000003_create_audits.up.sql":              &bintree{mysql000003_create_auditsUpSql, map[string]*bintree{}},
 		"000003_create_cluster_discovery.down.sql": &bintree{mysql000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
 		"000003_create_cluster_discovery.up.sql":   &bintree{mysql000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
 		"000004_create_command_webhooks.down.sql":  &bintree{mysql000004_create_command_webhooksDownSql, map[string]*bintree{}},
@@ -1978,6 +2068,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000001_create_teams.up.sql":               &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
 		"000002_create_team_members.down.sql":      &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
 		"000002_create_team_members.up.sql":        &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_audits.down.sql":            &bintree{postgres000003_create_auditsDownSql, map[string]*bintree{}},
+		"000003_create_audits.up.sql":              &bintree{postgres000003_create_auditsUpSql, map[string]*bintree{}},
 		"000003_create_cluster_discovery.down.sql": &bintree{postgres000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
 		"000003_create_cluster_discovery.up.sql":   &bintree{postgres000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
 		"000004_create_command_webhooks.down.sql":  &bintree{postgres000004_create_command_webhooksDownSql, map[string]*bintree{}},
