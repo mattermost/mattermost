@@ -287,12 +287,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderError := func(err *model.AppError) {
-		if isMobile {
-			if hasRedirectURL {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
-			} else {
-				w.Write([]byte(err.ToJson()))
-			}
+		if isMobile && hasRedirectURL {
+			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 		}

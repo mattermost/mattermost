@@ -22,7 +22,7 @@ func TranslationsPreInit() error {
 
 	i18nDirectory, found := fileutils.FindDirRelBinary(translationsDir)
 	if !found {
-		return fmt.Errorf(fmt.Sprintf("Unable to find i18n directory at %q", translationsDir))
+		return fmt.Errorf("unable to find i18n directory at %q", translationsDir)
 	}
 
 	return i18n.TranslationsPreInit(i18nDirectory)
