@@ -54,7 +54,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 func InitTranslationsWithDir(dir string) error {
 	i18nDirectory, found := fileutils.FindDirRelBinary(dir)
 	if !found {
-		return fmt.Errorf(fmt.Sprintf("Unable to find i18n directory at %q", dir))
+		return fmt.Errorf("unable to find i18n directory at %q", dir)
 	}
 
 	files, _ := ioutil.ReadDir(i18nDirectory)
@@ -80,12 +80,12 @@ func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 	}
 
 	if locales[locale] == "" {
-		return nil, fmt.Errorf("Failed to load system translations for '%v'", model.DEFAULT_LOCALE)
+		return nil, fmt.Errorf("failed to load system translations for '%v'", model.DEFAULT_LOCALE)
 	}
 
 	translations := TfuncWithFallback(locale)
 	if translations == nil {
-		return nil, fmt.Errorf("Failed to load system translations")
+		return nil, fmt.Errorf("failed to load system translations")
 	}
 
 	mlog.Info("Loaded system translations", mlog.String("for locale", locale), mlog.String("from locale", locales[locale]))
