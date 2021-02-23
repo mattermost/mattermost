@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"os"
 	"os/exec"
@@ -29,6 +30,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/mailru/easygo/netpoll"
 	"github.com/pkg/errors"
@@ -91,6 +93,10 @@ type Server struct {
 	Busy        *Busy
 
 	localModeServer *http.Server
+
+	metricsServer *http.Server
+	metricsRouter *mux.Router
+	metricsLock   sync.Mutex
 
 	didFinishListen chan struct{}
 
@@ -583,8 +589,15 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	if s.startMetrics && s.Metrics != nil {
-		s.Metrics.StartServer()
+	s.InitMetricsRouter()
+	if *s.Config().MetricsSettings.Enable && s.startMetrics {
+		if s.Metrics != nil {
+			s.Metrics.Register()
+		}
+
+		if err := s.StartMetricsServer(); err != nil {
+			mlog.Error("Error starting metrics server.", mlog.Err(err))
+		}
 	}
 
 	s.SearchEngine.UpdateConfig(s.Config())
@@ -841,9 +854,7 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	if s.Metrics != nil {
-		s.Metrics.StopServer()
-	}
+	s.StopMetricsServer()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil && s.runjobs {
@@ -1452,6 +1463,93 @@ func doCheckWarnMetricStatus(a *App) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
 		}
 	}
+}
+
+func (s *Server) StopMetricsServer() {
+	s.metricsLock.Lock()
+	defer s.metricsLock.Unlock()
+
+	if s.metricsServer != nil {
+		s.metricsServer.Close()
+		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+		s.metricsServer = nil
+	}
+}
+
+func (s *Server) HandleMetrics(route string, h http.Handler) {
+	if s.metricsRouter != nil {
+		s.metricsRouter.Handle(route, h)
+	}
+}
+
+func (s *Server) InitMetricsRouter() {
+	if s.metricsRouter != nil {
+		return
+	}
+
+	s.metricsRouter = mux.NewRouter()
+	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
+
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		html := `
+			<html>
+				<body>
+					<div><a href="/metrics">Metrics</a></div>
+					<div><a href="/debug/pprof/">Profiling Root</a></div>
+					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+				</body>
+			</html>
+		`
+
+		w.Write([]byte(html))
+	}
+
+	s.metricsRouter.HandleFunc("/", rootHandler)
+	s.metricsRouter.StrictSlash(true)
+
+	s.metricsRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	s.metricsRouter.HandleFunc("/debug/pprof/", pprof.Index)
+	s.metricsRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	s.metricsRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	s.metricsRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	s.metricsRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	s.metricsRouter.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
+}
+
+func (s *Server) StartMetricsServer() error {
+	s.metricsLock.Lock()
+	defer s.metricsLock.Unlock()
+
+	if s.metricsServer != nil {
+		return nil
+	}
+
+	s.metricsServer = &http.Server{
+		Addr:         *s.Config().MetricsSettings.ListenAddress,
+		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
+		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
+	}
+
+	go func() {
+		if err := s.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			mlog.Critical(err.Error())
+		}
+	}()
+
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+
+	return nil
 }
 
 func doLicenseExpirationCheck(a *App) {

@@ -411,12 +411,10 @@ func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if s.Metrics != nil {
-		if *s.Config().MetricsSettings.Enable {
-			s.Metrics.StartServer()
-		} else {
-			s.Metrics.StopServer()
-		}
+	if *s.Config().MetricsSettings.Enable {
+		s.StartMetricsServer()
+	} else {
+		s.StopMetricsServer()
 	}
 
 	if s.Cluster != nil {
