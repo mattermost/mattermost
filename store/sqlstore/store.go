@@ -119,6 +119,7 @@ type SqlStore struct {
 	rrCounter      int64
 	srCounter      int64
 	master         *gorp.DbMap
+	migrations     *gorp.DbMap
 	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
 	stores         SqlStoreStores
@@ -147,6 +148,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	}
 
 	store.initConnection()
+	defer store.migrations.Db.Close()
 
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
@@ -182,7 +184,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-	err := store.GetMaster().CreateTablesIfNotExists()
+	err := store.migrations.CreateTablesIfNotExists()
 	if err != nil {
 		if IsDuplicate(err) {
 			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(err))
@@ -297,6 +299,7 @@ func (ss *SqlStore) Context() context.Context {
 
 func (ss *SqlStore) initConnection() {
 	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	ss.migrations = setupConnection("migrations", *ss.settings.DataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
@@ -425,7 +428,7 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 
 func (ss *SqlStore) DoesTableExist(tableName string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		count, err := ss.GetMaster().SelectInt(
+		count, err := ss.migrations.SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
@@ -440,7 +443,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
-		count, err := ss.GetMaster().SelectInt(
+		count, err := ss.migrations.SelectInt(
 			`SELECT
 		    COUNT(0) AS table_exists
 			FROM
@@ -470,7 +473,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		count, err := ss.GetMaster().SelectInt(
+		count, err := ss.migrations.SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
 			WHERE  attrelid = $1::regclass
@@ -494,7 +497,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
-		count, err := ss.GetMaster().SelectInt(
+		count, err := ss.migrations.SelectInt(
 			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
@@ -525,7 +528,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		count, err := ss.GetMaster().SelectInt(`
+		count, err := ss.migrations.SelectInt(`
 			SELECT
 				COUNT(0)
 			FROM
@@ -543,7 +546,7 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		return count > 0
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		count, err := ss.GetMaster().SelectInt(`
+		count, err := ss.migrations.SelectInt(`
 			SELECT
 				COUNT(0)
 			FROM
@@ -576,7 +579,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	}
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -586,7 +589,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		return true
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -610,7 +613,7 @@ func (ss *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnNam
 	}
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
+		_, err := ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -620,7 +623,7 @@ func (ss *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnNam
 		return true
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
+		_, err := ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -643,7 +646,7 @@ func (ss *SqlStore) RemoveColumnIfExists(tableName string, columnName string) bo
 		return false
 	}
 
-	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+	_, err := ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
 		mlog.Critical("Failed to drop column", mlog.Err(err))
 		time.Sleep(time.Second)
@@ -675,9 +678,9 @@ func (ss *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string,
 
 	var err error
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
 	}
 
 	if err != nil {
@@ -697,9 +700,9 @@ func (ss *SqlStore) GetMaxLengthOfColumnIfExists(tableName string, columnName st
 	var result string
 	var err error
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
+		result, err = ss.migrations.SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
+		result, err = ss.migrations.SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 
 	if err != nil {
@@ -718,9 +721,9 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 
 	var err error
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
 	if err != nil {
@@ -763,9 +766,9 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 
 	var err error
 	if defaultValue == "" {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
 	} else {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+		_, err = ss.migrations.ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
 	}
 
 	if err != nil {
@@ -794,7 +797,7 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 		AND index_name = 'PRIMARY'
 		GROUP BY
 			index_name`
-		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
+		currentPrimaryKey, err = ss.migrations.SelectStr(query, tableName)
 	case model.DATABASE_DRIVER_POSTGRES:
 		query := `
 			SELECT string_agg(a.attname, ',') AS pk
@@ -808,7 +811,7 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 		WHERE
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
-		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
+		currentPrimaryKey, err = ss.migrations.SelectStr(query)
 	}
 	if err != nil {
 		mlog.Critical("Failed to get current primary key", mlog.String("table", tableName), mlog.Err(err))
@@ -827,7 +830,7 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		alterQuery = "ALTER TABLE " + tableName + " DROP CONSTRAINT " + strings.ToLower(tableName) + "_pkey, ADD PRIMARY KEY (" + strings.ToLower(primaryKey) + ")"
 	}
-	_, err = ss.GetMaster().ExecNoTimeout(alterQuery)
+	_, err = ss.migrations.ExecNoTimeout(alterQuery)
 	if err != nil {
 		mlog.Critical("Failed to alter primary key", mlog.String("table", tableName), mlog.Err(err))
 		time.Sleep(time.Second)
@@ -864,7 +867,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 	}
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		_, errExists := ss.migrations.SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if errExists == nil {
 			return false
@@ -883,7 +886,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
 
-		_, err := ss.GetMaster().ExecNoTimeout(query)
+		_, err := ss.migrations.ExecNoTimeout(query)
 		if err != nil {
 			mlog.Critical("Failed to create index", mlog.Err(errExists), mlog.Err(err))
 			time.Sleep(time.Second)
@@ -891,7 +894,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
-		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		count, err := ss.migrations.SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
 			mlog.Critical("Failed to check index", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -907,7 +910,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		_, err = ss.migrations.ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
 			mlog.Critical("Failed to create index", mlog.String("table", tableName), mlog.String("index_name", indexName), mlog.Err(err))
 			time.Sleep(time.Second)
@@ -925,13 +928,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		_, err := ss.migrations.SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err != nil {
 			return false
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName)
+		_, err = ss.migrations.ExecNoTimeout("DROP INDEX " + indexName)
 		if err != nil {
 			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -941,7 +944,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 		return true
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
-		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		count, err := ss.migrations.SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
 			mlog.Critical("Failed to check index", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -952,7 +955,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 			return false
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
+		_, err = ss.migrations.ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
 		if err != nil {
 			mlog.Critical("Failed to remove index", mlog.Err(err))
 			time.Sleep(time.Second)
