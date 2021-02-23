@@ -503,7 +503,7 @@ func TestGetAllConns(t *testing.T) {
 				storetest.CleanupSqlSettings(settings)
 			}()
 
-			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
+			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections+1)
 		})
 	}
 }

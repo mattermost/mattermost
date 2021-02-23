@@ -992,9 +992,10 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.replicas)+1)
+	all := make([]*gorp.DbMap, len(ss.replicas)+2)
 	copy(all, ss.replicas)
-	all[len(ss.replicas)] = ss.master
+	all[len(ss.replicas)] = ss.migrations
+	all[len(ss.replicas)+1] = ss.master
 	return all
 }
 
