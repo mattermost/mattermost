@@ -4203,11 +4203,11 @@
     "translation": "O tempo de atualização de digitação do usuário não deve ser definido para menos de 1000 milissegundos."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valor inválido para o arquivo de certificado TLS - Use LetsEncrypt ou defina o caminho para o arquivo de certificado existente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valor inválido para o arquivo de chave TLS - Use LetsEncrypt ou defina o caminho para o arquivo de chave existente."
   },
   {

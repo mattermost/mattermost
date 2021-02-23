@@ -4208,11 +4208,11 @@
     "translation": "Timpul dintre utilizator tastarea actualizări setatã în nu mai puţin de 1000 milisecunde."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valoare nevalidă pentru fișierul de certificat TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul de certificat existent."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valoare nevalidă pentru fișierul cheie TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul cheie existent."
   },
   {

@@ -4203,11 +4203,11 @@
     "translation": "Kullanıcının yazma aralıkları süresi 1000 milisaniyeden küçük olmamalıdır."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "TLS sertifikası dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan sertifika dosyasının yolunu belirtin."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "TLS anahtar dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan anahtar dosyasının yolunu belirtin."
   },
   {

@@ -4203,11 +4203,11 @@
     "translation": "Le temps entre chaque modification de messages ne doit pas être inférieur à 1000 millisecondes."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valeur invalide définie comme fichier de certificat TLS. Utilisez LetsEncrypt ou spécifiez le chemin menant à un fichier de certificat valide."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valeur invalide définie comme fichier de clé TLS. Utilisez LetsEncrypt ou spécifiez le chemin menant à un fichier de clé valide."
   },
   {

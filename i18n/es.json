@@ -4203,11 +4203,11 @@
     "translation": "El tiempo transcurrido para actualizar que el usuario está escribiendo no debe ser menor a 1000 milisegundos."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valor no válido para el archivo del certificado TLS - utiliza LetsEncrypt o especifica la ruta del archivo de certificado existente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valor no válido para el archivo de la llave TLS - utiliza LetsEncrypt o especifica la ruta del archivo llave existente."
   },
   {

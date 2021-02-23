@@ -4198,11 +4198,11 @@
     "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "TLS 憑證檔案的值無效：請用 LetsEncrypt 或是設定為現有憑證檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "TLS 金鑰檔案的值無效：請用 LetsEncrypt 或是設定為現有金鑰檔案的路徑"
   },
   {
