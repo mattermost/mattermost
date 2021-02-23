@@ -14,20 +14,20 @@ type WebhookStore struct {
 	mock.Mock
 }
 
-// AnalyticsIncomingCount provides a mock function with given fields: teamId
-func (_m *WebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
-	ret := _m.Called(teamId)
+// AnalyticsIncomingCount provides a mock function with given fields: teamID
+func (_m *WebhookStore) AnalyticsIncomingCount(teamID string) (int64, error) {
+	ret := _m.Called(teamID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamId)
+		r1 = rf(teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,20 +35,20 @@ func (_m *WebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
 	return r0, r1
 }
 
-// AnalyticsOutgoingCount provides a mock function with given fields: teamId
-func (_m *WebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
-	ret := _m.Called(teamId)
+// AnalyticsOutgoingCount provides a mock function with given fields: teamID
+func (_m *WebhookStore) AnalyticsOutgoingCount(teamID string) (int64, error) {
+	ret := _m.Called(teamID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamId)
+		r1 = rf(teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -61,13 +61,13 @@ func (_m *WebhookStore) ClearCaches() {
 	_m.Called()
 }
 
-// DeleteIncoming provides a mock function with given fields: webhookId, time
-func (_m *WebhookStore) DeleteIncoming(webhookId string, time int64) error {
-	ret := _m.Called(webhookId, time)
+// DeleteIncoming provides a mock function with given fields: webhookID, time
+func (_m *WebhookStore) DeleteIncoming(webhookID string, time int64) error {
+	ret := _m.Called(webhookID, time)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(webhookId, time)
+		r0 = rf(webhookID, time)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -75,13 +75,13 @@ func (_m *WebhookStore) DeleteIncoming(webhookId string, time int64) error {
 	return r0
 }
 
-// DeleteOutgoing provides a mock function with given fields: webhookId, time
-func (_m *WebhookStore) DeleteOutgoing(webhookId string, time int64) error {
-	ret := _m.Called(webhookId, time)
+// DeleteOutgoing provides a mock function with given fields: webhookID, time
+func (_m *WebhookStore) DeleteOutgoing(webhookID string, time int64) error {
+	ret := _m.Called(webhookID, time)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(webhookId, time)
+		r0 = rf(webhookID, time)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -112,13 +112,13 @@ func (_m *WebhookStore) GetIncoming(id string, allowFromCache bool) (*model.Inco
 	return r0, r1
 }
 
-// GetIncomingByChannel provides a mock function with given fields: channelId
-func (_m *WebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
-	ret := _m.Called(channelId)
+// GetIncomingByChannel provides a mock function with given fields: channelID
+func (_m *WebhookStore) GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error) {
+	ret := _m.Called(channelID)
 
 	var r0 []*model.IncomingWebhook
 	if rf, ok := ret.Get(0).(func(string) []*model.IncomingWebhook); ok {
-		r0 = rf(channelId)
+		r0 = rf(channelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.IncomingWebhook)
@@ -127,7 +127,7 @@ func (_m *WebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomin
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelId)
+		r1 = rf(channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -135,13 +135,13 @@ func (_m *WebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomin
 	return r0, r1
 }
 
-// GetIncomingByTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *WebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
-	ret := _m.Called(teamId, offset, limit)
+// GetIncomingByTeam provides a mock function with given fields: teamID, offset, limit
+func (_m *WebhookStore) GetIncomingByTeam(teamID string, offset int, limit int) ([]*model.IncomingWebhook, error) {
+	ret := _m.Called(teamID, offset, limit)
 
 	var r0 []*model.IncomingWebhook
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.IncomingWebhook); ok {
-		r0 = rf(teamId, offset, limit)
+		r0 = rf(teamID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.IncomingWebhook)
@@ -150,7 +150,7 @@ func (_m *WebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -158,13 +158,13 @@ func (_m *WebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) 
 	return r0, r1
 }
 
-// GetIncomingByTeamByUser provides a mock function with given fields: teamId, userId, offset, limit
-func (_m *WebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
-	ret := _m.Called(teamId, userId, offset, limit)
+// GetIncomingByTeamByUser provides a mock function with given fields: teamID, userId, offset, limit
+func (_m *WebhookStore) GetIncomingByTeamByUser(teamID string, userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
+	ret := _m.Called(teamID, userId, offset, limit)
 
 	var r0 []*model.IncomingWebhook
 	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.IncomingWebhook); ok {
-		r0 = rf(teamId, userId, offset, limit)
+		r0 = rf(teamID, userId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.IncomingWebhook)
@@ -173,7 +173,7 @@ func (_m *WebhookStore) GetIncomingByTeamByUser(teamId string, userId string, of
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(teamId, userId, offset, limit)
+		r1 = rf(teamID, userId, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -250,13 +250,13 @@ func (_m *WebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	return r0, r1
 }
 
-// GetOutgoingByChannel provides a mock function with given fields: channelId, offset, limit
-func (_m *WebhookStore) GetOutgoingByChannel(channelId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
-	ret := _m.Called(channelId, offset, limit)
+// GetOutgoingByChannel provides a mock function with given fields: channelID, offset, limit
+func (_m *WebhookStore) GetOutgoingByChannel(channelID string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+	ret := _m.Called(channelID, offset, limit)
 
 	var r0 []*model.OutgoingWebhook
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OutgoingWebhook); ok {
-		r0 = rf(channelId, offset, limit)
+		r0 = rf(channelID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OutgoingWebhook)
@@ -265,7 +265,7 @@ func (_m *WebhookStore) GetOutgoingByChannel(channelId string, offset int, limit
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(channelId, offset, limit)
+		r1 = rf(channelID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -273,13 +273,13 @@ func (_m *WebhookStore) GetOutgoingByChannel(channelId string, offset int, limit
 	return r0, r1
 }
 
-// GetOutgoingByChannelByUser provides a mock function with given fields: channelId, userId, offset, limit
-func (_m *WebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
-	ret := _m.Called(channelId, userId, offset, limit)
+// GetOutgoingByChannelByUser provides a mock function with given fields: channelID, userId, offset, limit
+func (_m *WebhookStore) GetOutgoingByChannelByUser(channelID string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+	ret := _m.Called(channelID, userId, offset, limit)
 
 	var r0 []*model.OutgoingWebhook
 	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.OutgoingWebhook); ok {
-		r0 = rf(channelId, userId, offset, limit)
+		r0 = rf(channelID, userId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OutgoingWebhook)
@@ -288,7 +288,7 @@ func (_m *WebhookStore) GetOutgoingByChannelByUser(channelId string, userId stri
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(channelId, userId, offset, limit)
+		r1 = rf(channelID, userId, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -296,13 +296,13 @@ func (_m *WebhookStore) GetOutgoingByChannelByUser(channelId string, userId stri
 	return r0, r1
 }
 
-// GetOutgoingByTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
-	ret := _m.Called(teamId, offset, limit)
+// GetOutgoingByTeam provides a mock function with given fields: teamID, offset, limit
+func (_m *WebhookStore) GetOutgoingByTeam(teamID string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+	ret := _m.Called(teamID, offset, limit)
 
 	var r0 []*model.OutgoingWebhook
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OutgoingWebhook); ok {
-		r0 = rf(teamId, offset, limit)
+		r0 = rf(teamID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OutgoingWebhook)
@@ -311,7 +311,7 @@ func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -319,13 +319,13 @@ func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) 
 	return r0, r1
 }
 
-// GetOutgoingByTeamByUser provides a mock function with given fields: teamId, userId, offset, limit
-func (_m *WebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
-	ret := _m.Called(teamId, userId, offset, limit)
+// GetOutgoingByTeamByUser provides a mock function with given fields: teamID, userId, offset, limit
+func (_m *WebhookStore) GetOutgoingByTeamByUser(teamID string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+	ret := _m.Called(teamID, userId, offset, limit)
 
 	var r0 []*model.OutgoingWebhook
 	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.OutgoingWebhook); ok {
-		r0 = rf(teamId, userId, offset, limit)
+		r0 = rf(teamID, userId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OutgoingWebhook)
@@ -334,7 +334,7 @@ func (_m *WebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, of
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(teamId, userId, offset, limit)
+		r1 = rf(teamID, userId, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -393,13 +393,13 @@ func (_m *WebhookStore) InvalidateWebhookCache(webhook string) {
 	_m.Called(webhook)
 }
 
-// PermanentDeleteIncomingByChannel provides a mock function with given fields: channelId
-func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelId string) error {
-	ret := _m.Called(channelId)
+// PermanentDeleteIncomingByChannel provides a mock function with given fields: channelID
+func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelID string) error {
+	ret := _m.Called(channelID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelId)
+		r0 = rf(channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -421,13 +421,13 @@ func (_m *WebhookStore) PermanentDeleteIncomingByUser(userId string) error {
 	return r0
 }
 
-// PermanentDeleteOutgoingByChannel provides a mock function with given fields: channelId
-func (_m *WebhookStore) PermanentDeleteOutgoingByChannel(channelId string) error {
-	ret := _m.Called(channelId)
+// PermanentDeleteOutgoingByChannel provides a mock function with given fields: channelID
+func (_m *WebhookStore) PermanentDeleteOutgoingByChannel(channelID string) error {
+	ret := _m.Called(channelID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelId)
+		r0 = rf(channelID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -3616,32 +3616,12 @@
     "translation": "Бюлетень безпеки Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Помилка спроби автентифікації токену MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невірний MFA токен"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Помилка очищення MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Помилка при створенні QR-коду"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Помилка збереження MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
