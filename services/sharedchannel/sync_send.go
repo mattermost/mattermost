@@ -76,7 +76,7 @@ func (scs *Service) addTask(task syncTask) {
 	}
 }
 
-// syncLoop is via a dedicated goroutine to wait for notifications of channel changes and
+// syncLoop is called via a dedicated goroutine to wait for notifications of channel changes and
 // updates each remote based on those changes.
 func (scs *Service) syncLoop(done chan struct{}) {
 	// create a timer to periodically check the task queue, but only if there is
