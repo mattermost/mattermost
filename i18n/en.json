@@ -1629,10 +1629,6 @@
     "translation": "Unable to migrate SAML."
   },
   {
-    "id": "api.no_first_admin_visit_marketplace_status",
-    "translation": "Could not find the first admin visit marketplace status in the store."
-  },
-  {
     "id": "api.no_license",
     "translation": "E10 or E20 license required to use this endpoint."
   },

@@ -842,12 +842,10 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.no_first_admin_visit_marketplace_status", nil, nfErr.Error(), http.StatusNotFound)
-			resp := &model.System{
+			firstAdminVisitMarketplaceObj = &model.System{
 				Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
 				Value: strconv.FormatBool(false),
 			}
-			w.Write([]byte(resp.ToJson()))
 		default:
 			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
 		}
