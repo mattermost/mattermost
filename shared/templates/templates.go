@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"io"
 	"path/filepath"
-	"sync/atomic"
+	"sync"
 
 	"github.com/fsnotify/fsnotify"
 
@@ -17,7 +17,8 @@ import (
 
 // Container represents a set of templates that can be render
 type Container struct {
-	templates atomic.Value
+	templates *template.Template
+	mutex     sync.RWMutex
 	stop      chan struct{}
 	stopped   chan struct{}
 	watch     bool
@@ -34,11 +35,11 @@ type Data struct {
 // `template.Template` object
 func NewFromTemplate(templates *template.Template) (*Container, error) {
 	ret := &Container{
-		stop:    make(chan struct{}),
-		stopped: make(chan struct{}),
-		watch:   false,
+		templates: templates,
+		stop:      make(chan struct{}),
+		stopped:   make(chan struct{}),
+		watch:     false,
 	}
-	ret.templates.Store(templates)
 	return ret, nil
 }
 
@@ -58,7 +59,7 @@ func New(directory string, watch bool) (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.templates.Store(htmlTemplates)
+	ret.templates = htmlTemplates
 
 	if watch {
 		watcher, err := fsnotify.NewWatcher()
@@ -84,7 +85,9 @@ func New(directory string, watch bool) (*Container, error) {
 						if htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html")); err != nil {
 							mlog.Error("Failed to parse templates.", mlog.Err(err))
 						} else {
-							ret.templates.Store(htmlTemplates)
+							ret.mutex.Lock()
+							ret.templates = htmlTemplates
+							ret.mutex.Unlock()
 						}
 					}
 				case err := <-watcher.Errors:
@@ -98,7 +101,9 @@ func New(directory string, watch bool) (*Container, error) {
 }
 
 func (t *Container) getTemplates() *template.Template {
-	return t.templates.Load().(*template.Template)
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+	return t.templates
 }
 
 // Close stops the templates watcher of the container in case you have created

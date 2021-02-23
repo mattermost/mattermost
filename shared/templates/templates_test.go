@@ -34,11 +34,11 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	require.NoError(t, err)
 	defer watcher.Close()
 
-	assert.Equal(t, "foo", watcher.RenderToString("foo", nil))
+	assert.Equal(t, "foo", watcher.RenderToString("foo", Data{}))
 
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
 
-	require.Eventually(t, func() bool { return watcher.RenderToString("foo", nil) == "bar" }, time.Millisecond*1000, time.Millisecond*50)
+	require.Eventually(t, func() bool { return watcher.RenderToString("foo", Data{}) == "bar" }, time.Millisecond*1000, time.Millisecond*50)
 }
 
 func TestHTMLTemplateWatcher_BadDirectory(t *testing.T) {
@@ -53,7 +53,7 @@ func TestRender(t *testing.T) {
 	require.NoError(t, err)
 	mt, _ := NewFromTemplate(tpl)
 
-	data := &Data{
+	data := Data{
 		Props: map[string]interface{}{
 			"Bar": "bar",
 		},
@@ -71,9 +71,9 @@ func TestRenderError(t *testing.T) {
 	require.NoError(t, err)
 	mt, _ := NewFromTemplate(tpl)
 
-	assert.Equal(t, "foo", mt.RenderToString("foo", nil))
+	assert.Equal(t, "foo", mt.RenderToString("foo", Data{}))
 
 	buf := &bytes.Buffer{}
-	assert.Error(t, mt.Render(buf, "foo", nil))
+	assert.Error(t, mt.Render(buf, "foo", Data{}))
 	assert.Equal(t, "foo", buf.String())
 }
