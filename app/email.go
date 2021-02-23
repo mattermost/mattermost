@@ -362,10 +362,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.info",
+			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
+			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -421,7 +421,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body_guest.info",
+			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body_guest.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
@@ -430,7 +430,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
+			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
