@@ -110,7 +110,7 @@ func stopTimer(timer *time.Timer) {
 	}
 }
 
-// doSync checks the task queue for any tasks to be processed and processed all that are ready.
+// doSync checks the task queue for any tasks to be processed and processes all that are ready.
 // If any delayed tasks remain in queue then the duration until the next scheduled task is returned.
 func (scs *Service) doSync() time.Duration {
 	var task syncTask
