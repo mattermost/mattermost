@@ -160,9 +160,10 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 
 		if lineNumber == 1 {
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
-			if appErr != nil && dryRun {
-				mlog.Warn(appErr.Where, mlog.Err(appErr))
-			} else {
+			if appErr != nil {
+				if dryRun {
+					mlog.Warn(appErr.Where, mlog.Err(appErr))
+				}
 				return appErr, lineNumber
 			}
 
