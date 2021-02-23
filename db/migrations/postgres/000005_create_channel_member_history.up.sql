@@ -1,4 +1,4 @@
-CREATE TABLE channelmemberhistory (
+CREATE TABLE IF NOT EXISTS channelmemberhistory (
     channelid VARCHAR(26) NOT NULL,
     userid VARCHAR(26) NOT NULL,
     jointime bigint NOT NULL,
