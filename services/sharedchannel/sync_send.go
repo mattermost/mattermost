@@ -76,7 +76,7 @@ func (scs *Service) addTask(task syncTask) {
 	}
 }
 
-// syncLoop is via a dedicated goroutine to wait for notifications of channel changes and
+// syncLoop is called via a dedicated goroutine to wait for notifications of channel changes and
 // updates each remote based on those changes.
 func (scs *Service) syncLoop(done chan struct{}) {
 	// create a timer to periodically check the task queue, but only if there is
@@ -110,7 +110,7 @@ func stopTimer(timer *time.Timer) {
 	}
 }
 
-// doSync checks the task queue for any tasks to be processed and processed all that are ready.
+// doSync checks the task queue for any tasks to be processed and processes all that are ready.
 // If any delayed tasks remain in queue then the duration until the next scheduled task is returned.
 func (scs *Service) doSync() time.Duration {
 	var task syncTask
@@ -284,7 +284,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 			mlog.Bool("repeat", repeat),
 		)
 
-		// All posts where filtered out, meaning no need to send them. Fast forward SharedChannelRemote's NextSyncAt.
+		// All posts were filtered out, meaning no need to send them. Fast forward SharedChannelRemote's NextSyncAt.
 		scs.updateNextSyncForRemote(scr.Id, rc, nextSince)
 
 		// everything was filtered out, nothing to send.
