@@ -284,7 +284,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 			mlog.Bool("repeat", repeat),
 		)
 
-		// All posts where filtered out, meaning no need to send them. Fast forward SharedChannelRemote's NextSyncAt.
+		// All posts were filtered out, meaning no need to send them. Fast forward SharedChannelRemote's NextSyncAt.
 		scs.updateNextSyncForRemote(scr.Id, rc, nextSince)
 
 		// everything was filtered out, nothing to send.
