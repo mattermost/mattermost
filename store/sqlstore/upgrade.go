@@ -682,8 +682,6 @@ func upgradeDatabaseToVersion519(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion520(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5190, Version5200) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
-
 		saveSchemaVersion(sqlStore, Version5200)
 	}
 }
