@@ -56,13 +56,13 @@ func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string,
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
-	ret := _m.Called(schemeId)
+// Delete provides a mock function with given fields: schemeID
+func (_m *SchemeStore) Delete(schemeID string) (*model.Scheme, error) {
+	ret := _m.Called(schemeID)
 
 	var r0 *model.Scheme
 	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
-		r0 = rf(schemeId)
+		r0 = rf(schemeID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Scheme)
@@ -71,7 +71,7 @@ func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(schemeId)
+		r1 = rf(schemeID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -79,13 +79,13 @@ func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, error) {
-	ret := _m.Called(schemeId)
+// Get provides a mock function with given fields: schemeID
+func (_m *SchemeStore) Get(schemeID string) (*model.Scheme, error) {
+	ret := _m.Called(schemeID)
 
 	var r0 *model.Scheme
 	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
-		r0 = rf(schemeId)
+		r0 = rf(schemeID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Scheme)
@@ -94,7 +94,7 @@ func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(schemeId)
+		r1 = rf(schemeID)
 	} else {
 		r1 = ret.Error(1)
 	}

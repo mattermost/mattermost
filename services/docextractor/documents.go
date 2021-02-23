@@ -37,7 +37,7 @@ func (de *documentExtractor) Extract(filename string, r io.Reader) (string, erro
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
 	converter, ok := doconvConverterByExtensions[extension]
 	if !ok {
-		return "", errors.New("Unknown converter")
+		return "", errors.New("unknown converter")
 	}
 
 	f, err := ioutil.TempFile(os.TempDir(), "docconv")
