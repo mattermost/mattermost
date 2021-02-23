@@ -3606,32 +3606,12 @@
     "translation": "Mattermost 安全公告"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "尝试验证多重验证令牌时出现错误。"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "无效的多重验证令牌。"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "无法为用户更新多重验证启用状态。"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "无法为用户更新多重验证启用状态。"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "清除多重验证密码时出错。"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR 码生成出错。"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "保存多重验证密码时出错。"
   },
   {
     "id": "mfa.mfa_disabled.app_error",

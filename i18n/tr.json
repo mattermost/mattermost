@@ -3611,32 +3611,12 @@
     "translation": "Mattermost Güvenlik Duyurusu"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama kodu doğrulanırken sorun çıktı."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Çok Aşamalı Kimlik Doğrulama kodu geçersiz."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası temizlenirken sorun çıktı."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR kodu üretilirken sorun çıktı."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası kaydedilirken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -8541,5 +8521,29 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Hiç bir e-posta gönderilemedi"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Yöneticiye kullanıcı sayısı sınırı bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} çalışma alanııza yeni üyeler çağırmak istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Çalışma alanınız Mattermost cloud ücretsiz sürümünün kullanıcı sınırına ulaştığından, çağrı gönderilemez. Çalışma alanınıza daha fazla kullanıcının ekleyebilmek için sürümünüzü yükseltin."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatif olarak, Yönetici Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
   }
 ]

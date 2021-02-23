@@ -1021,6 +1021,10 @@ func (ss *SqlStore) Close() {
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
+
+	for _, replica := range ss.searchReplicas {
+		replica.Db.Close()
+	}
 }
 
 func (ss *SqlStore) LockToMaster() {

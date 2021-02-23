@@ -166,9 +166,6 @@ func TestStoreLicenseRace(t *testing.T) {
 	store := New(*settings, nil)
 	defer func() {
 		store.Close()
-		for _, replica := range store.searchReplicas {
-			require.NoError(t, replica.Db.Close())
-		}
 		storetest.CleanupSqlSettings(settings)
 	}()
 
@@ -267,9 +264,6 @@ func TestGetReplica(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 
@@ -341,9 +335,6 @@ func TestGetReplica(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 
@@ -497,9 +488,6 @@ func TestGetAllConns(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 
