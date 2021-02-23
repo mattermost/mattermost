@@ -285,7 +285,7 @@ func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *mod
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasBeenCreated(pluginContext, user)
 				return true
-			}, plugin.UserHasBeenCreatedId)
+			}, plugin.UserHasBeenCreatedID)
 		})
 	}
 

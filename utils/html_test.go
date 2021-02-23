@@ -108,7 +108,7 @@ func TestTranslateAsHTML(t *testing.T) {
 	}))
 }
 
-func TestEscapeForHtml(t *testing.T) {
+func TestEscapeForHTML(t *testing.T) {
 	for name, tc := range map[string]struct {
 		In       interface{}
 		Expected interface{}
@@ -141,7 +141,7 @@ func TestEscapeForHtml(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, escapeForHtml(tc.In))
+			assert.Equal(t, tc.Expected, escapeForHTML(tc.In))
 		})
 	}
 }
