@@ -489,7 +489,7 @@ func (a *App) AddUserToTeam(teamID string, userID string, userRequestorId string
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -566,7 +566,7 @@ func (a *App) AddUserToTeamByToken(userID string, tokenID string) (*model.Team, 
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -641,7 +641,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userID string) (*model.Te
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -775,7 +775,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedTeam(pluginContext, tm, actor)
 				return true
-			}, plugin.UserHasJoinedTeamId)
+			}, plugin.UserHasJoinedTeamID)
 		})
 	}
 
@@ -1163,7 +1163,7 @@ func (a *App) RemoveUserFromTeam(teamID string, userID string, requestorId strin
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1206,7 +1206,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 	message.Add("team_id", teamMember.TeamId)
 	a.Publish(message)
 
-	user, nErr := a.Srv().Store.User().Get(teamMember.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), teamMember.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1241,7 +1241,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true
-			}, plugin.UserHasLeftTeamId)
+			}, plugin.UserHasLeftTeamID)
 		})
 	}
 
@@ -1368,7 +1368,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string) (*model.User,
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(senderId)
+		user, err := a.Srv().Store.User().Get(context.Background(), senderId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1499,7 +1499,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 	}()
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(senderId)
+		user, err := a.Srv().Store.User().Get(context.Background(), senderId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()

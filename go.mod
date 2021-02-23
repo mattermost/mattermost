@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-server/v5
 
-go 1.14
+go 1.15
 
 require (
 	code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
@@ -35,6 +35,7 @@ require (
 	github.com/go-redis/redis/v8 v8.4.9 // indirect
 	github.com/go-resty/resty/v2 v2.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/gobwas/ws v1.1.0-rc.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.5 // indirect
@@ -66,6 +67,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
 	github.com/lib/pq v1.9.0
+	github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
@@ -123,6 +125,7 @@ require (
 	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/text v0.3.5
 	golang.org/x/tools v0.1.0
 	google.golang.org/genproto v0.0.0-20210119180700-e258113e47cc // indirect

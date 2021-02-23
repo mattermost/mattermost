@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten"
+    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -3611,32 +3611,12 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Fehler beim Versuch der Authentifizierung des MFA-Tokens."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ungültiges MFA-Token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Konnte MFA-Aktivstatus nicht für den Benutzer aktualisieren."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Konnte MFA-Aktivstatus nicht für den Benutzer aktualisieren."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Fehler beim Löschen des MFA-Secrets."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Fehler beim Generieren des QR-Codes."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fehler beim Speichern des MFA-Secrets."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4893,46 +4873,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Fehler beim Setzen von HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fehler beim Öffnen der Verbindung"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Fehler beim Öffnen der TLS Verbindung"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Fehler beim Authentifizieren am SMTP-Server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Fehler beim Hinzufügen des Mailanhanges"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Fehler beim Schließen der Verbindung zum SMTP-Server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fehler beim Setzen von \"Absenderadresse\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Fehler bei Schreiben der E-Mail"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Fehler bei Hinzufügen der E-Mail Daten"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fehler beim Setzen von \"Empfängeradresse\""
   },
   {
     "id": "web.command_webhook.command.app_error",

@@ -3616,32 +3616,12 @@
     "translation": "Buletin de securitate Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Eroare la încercarea de a autentifica tokenul MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Indicator invalid MFA."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Eroare la eliminarea secretului MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Eroare la generarea codului QR."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Eroare la salvarea secretului MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4898,46 +4878,6 @@
   {
     "id": "system.message.name",
     "translation": "Sistem"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Setarea HELO nu a reușit."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Nu s-a putut deschide conexiunea."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Deschiderea conexiunii TLS nu a reușit."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Autentificarea nu a reușit pe serverul SMTP."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Nu a reuşit să scrie ataşament la e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Nu s-a putut închide conexiunea la serverul SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Eroare setarea \"De La adresa\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Nu s-a putut scrie mesajul de e-mail."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Nu a reușit să adauge date de mesaj email."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Eroare setarea \"La adresa\"."
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -8514,5 +8454,77 @@
   {
     "id": "api.file.file_mod_time.app_error",
     "translation": "Imposibil de obținut ora ultimei modificări pentru fișier."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Conexiune nevalidă timp de inactivitate maxim pentru setările SQL. Trebuie să fie un număr non-negativ."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Valoare nevalidă pentru RetentionDays. Valoarea trebuie să fie mai mare de 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Valoarea pentru Director nu trebuie să fie goală."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Nu s-a putut conecta la serverul smtp"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Firul utilizatorului nu există sau nu este urmat"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Nu s-a citit atașamentul fișierului în timpul importului."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Nu s-a putut adăuga fișierul la arhiva zip în timpul exportului."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Nu se poate răspunde."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Nu s-a putut crea antetul zip în timpul exportului."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Nu s-a putut crea directorul în timpul exportului."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Eșecul fișierului creat în timpul exportului."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Copierea fișierului nu a reușit în timpul exportului."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Set de antet de origine nevalid în timpul actualizării websocket-ului."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Eroare la citirea fișierului din backend"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Eroare la crearea fișierului zip."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Este necesară licența E10 sau E20 pentru a utiliza acest punct final."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Înainte și după, parametrii pentru getThreadsForUser se exclud reciproc"
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Imposibil de găsit fișierul de export."
   }
 ]
