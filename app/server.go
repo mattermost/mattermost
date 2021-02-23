@@ -54,7 +54,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
-	"github.com/mattermost/mattermost-server/v5/shared/mtemplates"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
@@ -127,7 +127,7 @@ type Server struct {
 
 	newStore func() (store.Store, error)
 
-	htmlTemplateWatcher     *mtemplates.Templates
+	htmlTemplateWatcher     *templates.Container
 	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
@@ -389,7 +389,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if !ok {
 		mlog.Error("Failed to parse find server templates", mlog.String("directory", "templates"))
 	} else {
-		if htmlTemplateWatcher, err2 := mtemplates.New(templatesDir, true); err2 != nil {
+		if htmlTemplateWatcher, err2 := templates.New(templatesDir, true); err2 != nil {
 			mlog.Error("Failed to parse server templates", mlog.Err(err2))
 		} else {
 			s.htmlTemplateWatcher = htmlTemplateWatcher

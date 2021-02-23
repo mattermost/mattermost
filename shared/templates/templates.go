@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package mtemplates
+package templates
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
-type Templates struct {
+type Container struct {
 	templates atomic.Value
 	stop      chan struct{}
 	stopped   chan struct{}
@@ -27,8 +27,8 @@ type Data struct {
 	HTML  map[string]template.HTML
 }
 
-func NewFromTemplate(templates *template.Template) (*Templates, error) {
-	ret := &Templates{
+func NewFromTemplate(templates *template.Template) (*Container, error) {
+	ret := &Container{
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
 		watch:   false,
@@ -37,10 +37,10 @@ func NewFromTemplate(templates *template.Template) (*Templates, error) {
 	return ret, nil
 }
 
-func New(directory string, watch bool) (*Templates, error) {
+func New(directory string, watch bool) (*Container, error) {
 	mlog.Debug("Parsing server templates", mlog.String("templates_directory", directory))
 
-	ret := &Templates{
+	ret := &Container{
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
 		watch:   watch,
@@ -89,24 +89,24 @@ func New(directory string, watch bool) (*Templates, error) {
 	return ret, nil
 }
 
-func (t *Templates) Templates() *template.Template {
+func (t *Container) Templates() *template.Template {
 	return t.templates.Load().(*template.Template)
 }
 
-func (t *Templates) Close() {
+func (t *Container) Close() {
 	if t.watch {
 		close(t.stop)
 		<-t.stopped
 	}
 }
 
-func (t *Templates) Render(templateName string, data *Data) string {
+func (t *Container) RenderToString(templateName string, data *Data) string {
 	var text bytes.Buffer
-	t.RenderToWriter(&text, templateName, data)
+	t.Render(&text, templateName, data)
 	return text.String()
 }
 
-func (t *Templates) RenderToWriter(w io.Writer, templateName string, data *Data) error {
+func (t *Container) Render(w io.Writer, templateName string, data *Data) error {
 	if err := t.Templates().ExecuteTemplate(w, templateName, data); err != nil {
 		mlog.Warn("Error rendering template", mlog.String("template_name", templateName), mlog.Err(err))
 		return err

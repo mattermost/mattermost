@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package mtemplates
+package templates
 
 import (
 	"bytes"
@@ -34,11 +34,11 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	require.NoError(t, err)
 	defer watcher.Close()
 
-	assert.Equal(t, "foo", watcher.Render("foo", nil))
+	assert.Equal(t, "foo", watcher.RenderToString("foo", nil))
 
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
 
-	require.Eventually(t, func() bool { return watcher.Render("foo", nil) == "bar" }, time.Millisecond*1000, time.Millisecond*50)
+	require.Eventually(t, func() bool { return watcher.RenderToString("foo", nil) == "bar" }, time.Millisecond*1000, time.Millisecond*50)
 }
 
 func TestHTMLTemplateWatcher_BadDirectory(t *testing.T) {
@@ -58,10 +58,10 @@ func TestRender(t *testing.T) {
 			"Bar": "bar",
 		},
 	}
-	assert.Equal(t, "foobar", mt.Render("foo", data))
+	assert.Equal(t, "foobar", mt.RenderToString("foo", data))
 
 	buf := &bytes.Buffer{}
-	require.NoError(t, mt.RenderToWriter(buf, "foo", data))
+	require.NoError(t, mt.Render(buf, "foo", data))
 	assert.Equal(t, "foobar", buf.String())
 }
 
@@ -71,9 +71,9 @@ func TestRenderError(t *testing.T) {
 	require.NoError(t, err)
 	mt, _ := NewFromTemplate(tpl)
 
-	assert.Equal(t, "foo", mt.Render("foo", nil))
+	assert.Equal(t, "foo", mt.RenderToString("foo", nil))
 
 	buf := &bytes.Buffer{}
-	assert.Error(t, mt.RenderToWriter(buf, "foo", nil))
+	assert.Error(t, mt.Render(buf, "foo", nil))
 	assert.Equal(t, "foo", buf.String())
 }

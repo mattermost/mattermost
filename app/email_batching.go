@@ -240,7 +240,7 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	data.Props["Posts"] = template.HTML(contents)
 	data.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if nErr := es.sendNotificationMail(user.Email, subject, es.srv.Templates().Render("post_batched_body", data)); nErr != nil {
+	if nErr := es.sendNotificationMail(user.Email, subject, es.srv.TemplatesContainer().RenderToString("post_batched_body", data)); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
@@ -283,5 +283,5 @@ func (es *EmailService) renderBatchedPost(notification *batchedNotification, cha
 		}
 	}
 
-	return es.srv.Templates().Render(templateName, data)
+	return es.srv.TemplatesContainer().RenderToString(templateName, data)
 }

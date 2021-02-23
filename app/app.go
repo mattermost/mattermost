@@ -22,7 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/shared/mtemplates"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -150,7 +150,7 @@ func (a *App) TelemetryId() string {
 	return a.Srv().TelemetryId()
 }
 
-func (s *Server) Templates() *mtemplates.Templates {
+func (s *Server) TemplatesContainer() *templates.Container {
 	if s.htmlTemplateWatcher != nil {
 		return s.htmlTemplateWatcher
 	}
@@ -498,7 +498,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			data.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
 			mailConfig := a.Srv().MailServiceConfig()
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, a.Srv().Templates().Render("warn_metric_ack", data), mailConfig, false, sender.Email); err != nil {
+			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data), mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}

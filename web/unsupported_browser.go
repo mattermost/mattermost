@@ -9,7 +9,7 @@ import (
 	"github.com/avct/uasurfer"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/shared/mtemplates"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 )
 
 // MattermostApp describes downloads for the Mattermost App
@@ -47,7 +47,7 @@ type SystemBrowser struct {
 func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 
-	data := &mtemplates.Data{
+	data := &templates.Data{
 		Props: map[string]interface{}{
 			"DownloadAppOrUpgradeBrowserString": app.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
 			"LearnMoreString":                   app.T("web.error.unsupported_browser.learn_more"),
@@ -89,7 +89,7 @@ func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.R
 		data.Props["SystemBrowser"] = renderSystemBrowserEdge(app, r)
 	}
 
-	app.Srv().Templates().RenderToWriter(w, "unsupported_browser", data)
+	app.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
 }
 
 func renderMattermostAppMac(app app.AppIface) MattermostApp {

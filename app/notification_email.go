@@ -242,7 +242,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	data.Props["Button"] = translateFunc("api.templates.post_body.button")
 
-	return a.Srv().Templates().Render(templateName, data)
+	return a.Srv().TemplatesContainer().RenderToString(templateName, data)
 }
 
 type formattedPostTime struct {
