@@ -71,16 +71,6 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	// 1. Insert new policy
 	// 2. Insert new channels into policy
 	// 3. Insert new teams into policy
-	var (
-		rpInsertQuery  string
-		rpInsertArgs   []interface{}
-		rpcInsertQuery string
-		rpcInsertArgs  []interface{}
-		rptInsertQuery string
-		rptInsertArgs  []interface{}
-		rpSelectQuery  string
-		rpSelectProps  map[string]interface{}
-	)
 
 	if err := s.checkTeamsExist(policy.TeamIds); err != nil {
 		return nil, err
@@ -91,34 +81,38 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 
 	policy.Id = model.NewId()
 
-	rpInsertQuery, rpInsertArgs, _ = s.getQueryBuilder().
+	policyInsertQuery, policyInsertArgs, _ := s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
 		Values(policy.Id, policy.DisplayName, policy.PostDuration).
 		ToSql()
 
-	rpcInsertQuery, rpcInsertArgs = s.buildInsertRetentionPoliciesChannelsQuery(policy.Id, policy.ChannelIds)
+	channelsInsertQuery, channelsInsertArgs := s.buildInsertRetentionPoliciesChannelsQuery(policy.Id, policy.ChannelIds)
 
-	rptInsertQuery, rptInsertArgs = s.buildInsertRetentionPoliciesTeamsQuery(policy.Id, policy.TeamIds)
+	teamsInsertQuery, teamsInsertArgs := s.buildInsertRetentionPoliciesTeamsQuery(policy.Id, policy.TeamIds)
 
-	rpSelectQuery, rpSelectProps = s.buildGetPolicyWithCountsQuery(policy.Id)
+	policySelectQuery, policySelectProps := s.buildGetPolicyQuery(policy.Id)
 
 	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	if _, err = txn.Exec(rpInsertQuery, rpInsertArgs...); err != nil {
+	// Create a new policy in RetentionPolicies
+	if _, err = txn.Exec(policyInsertQuery, policyInsertArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rpcInsertQuery, rpcInsertArgs...); err != nil {
+	// Insert the channel IDs into RetentionPoliciesChannels
+	if _, err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rptInsertQuery, rptInsertArgs...); err != nil {
+	// Insert the team IDs into RetentionPoliciesTeams
+	if _, err = executePossiblyEmptyQuery(txn, teamsInsertQuery, teamsInsertArgs...); err != nil {
 		return nil, err
 	}
+	// Select the new policy (with team/channel counts) which we just created
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
-	if err = txn.SelectOne(&newPolicy, rpSelectQuery, rpSelectProps); err != nil {
+	if err = txn.SelectOne(&newPolicy, policySelectQuery, policySelectProps); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
@@ -127,78 +121,82 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	return &newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIds []string) error {
-	if len(teamIds) > 0 {
-		teamIdsMap := make(map[string]bool)
-		for _, teamId := range teamIds {
-			teamIdsMap[teamId] = false
-		}
-		teamsSelectQuery, teamSelectArgs, _ := s.getQueryBuilder().
+func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
+	if len(teamIDs) > 0 {
+		teamsSelectQuery, teamsSelectArgs, _ := s.getQueryBuilder().
 			Select("Id").
 			From("Teams").
-			Where(inStrings("Id", teamIds)).
+			Where(inStrings("Id", teamIDs)).
 			ToSql()
 		var rows []*string
-		_, err := s.GetReplica().Select(&rows, teamsSelectQuery, teamSelectArgs...)
+		_, err := s.GetReplica().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
 		if err != nil {
 			return err
 		}
-		for _, teamId := range rows {
-			delete(teamIdsMap, *teamId)
+		if len(rows) == len(teamIDs) {
+			return nil
 		}
-		for teamId := range teamIdsMap {
-			return store.NewErrNotFound("Team", teamId)
+		retrievedIDs := make(map[string]bool)
+		for _, teamID := range rows {
+			retrievedIDs[*teamID] = true
+		}
+		for _, teamID := range teamIDs {
+			if _, ok := retrievedIDs[teamID]; !ok {
+				return store.NewErrNotFound("Team", teamID)
+			}
 		}
 	}
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIds []string) error {
-	if len(channelIds) > 0 {
-		channelIdsMap := make(map[string]bool)
-		for _, channelId := range channelIds {
-			channelIdsMap[channelId] = false
-		}
-		channelSelectQuery, channelSelectArgs, _ := s.getQueryBuilder().
+func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error {
+	if len(channelIDs) > 0 {
+		teamsSelectQuery, teamsSelectArgs, _ := s.getQueryBuilder().
 			Select("Id").
-			From("Channels").
-			Where(inStrings("Id", channelIds)).
+			From("Teams").
+			Where(inStrings("Id", channelIDs)).
 			ToSql()
 		var rows []*string
-		_, err := s.GetReplica().Select(&rows, channelSelectQuery, channelSelectArgs...)
+		_, err := s.GetReplica().Select(&rows, teamsSelectQuery, teamsSelectArgs...)
 		if err != nil {
 			return err
 		}
-		for _, channelId := range rows {
-			delete(channelIdsMap, *channelId)
+		if len(rows) == len(channelIDs) {
+			return nil
 		}
-		for channelId := range channelIdsMap {
-			return store.NewErrNotFound("Channel", channelId)
+		retrievedIDs := make(map[string]bool)
+		for _, channelID := range rows {
+			retrievedIDs[*channelID] = true
+		}
+		for _, channelID := range channelIDs {
+			if _, ok := retrievedIDs[channelID]; !ok {
+				return store.NewErrNotFound("Channel", channelID)
+			}
 		}
 	}
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyId string, channelIds []string) (query string, args []interface{}) {
-	if len(channelIds) > 0 {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyID string, channelIDs []string) (query string, args []interface{}) {
+	if len(channelIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesChannels").
 			Columns("PolicyId", "ChannelId")
-		for _, channelId := range channelIds {
-			builder = builder.Values(policyId, channelId)
+		for _, channelID := range channelIDs {
+			builder = builder.Values(policyID, channelID)
 		}
 		query, args, _ = builder.ToSql()
 	}
 	return
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyId string, teamIds []string) (query string, args []interface{}) {
-	if len(teamIds) > 0 {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyID string, teamIDs []string) (query string, args []interface{}) {
+	if len(teamIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesTeams").
 			Columns("PolicyId", "TeamId")
-		for _, teamId := range teamIds {
-			builder = builder.Values(policyId, teamId)
+		for _, teamID := range teamIDs {
+			builder = builder.Values(policyID, teamID)
 		}
 		query, args, _ = builder.ToSql()
 	}
@@ -208,25 +206,11 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyI
 func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	// Strategy:
 	// 1. Update policy attributes
-	// 2. Delete existing channels in policy
+	// 2. Delete existing channels from policy
 	// 3. Insert new channels into policy
-	// 4. Delete existing teams in policy
+	// 4. Delete existing teams from policy
 	// 5. Insert new teams into policy
 	// 6. Read new policy
-	var (
-		rpUpdateQuery  string
-		rpUpdateArgs   []interface{}
-		rpcDeleteQuery string
-		rpcDeleteArgs  []interface{}
-		rpcInsertQuery string
-		rpcInsertArgs  []interface{}
-		rptInsertQuery string
-		rptInsertArgs  []interface{}
-		rptDeleteQuery string
-		rptDeleteArgs  []interface{}
-		rpSelectQuery  string
-		rpSelectProps  map[string]interface{}
-	)
 
 	if err := s.checkTeamsExist(patch.TeamIds); err != nil {
 		return nil, err
@@ -235,6 +219,8 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
+	policyUpdateQuery := ""
+	policyUpdateArgs := []interface{}{}
 	if patch.DisplayName != "" || patch.PostDuration > 0 {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
@@ -243,53 +229,67 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 		if patch.PostDuration > 0 {
 			builder = builder.Set("PostDuration", patch.PostDuration)
 		}
-		rpUpdateQuery, rpUpdateArgs, _ = builder.
+		policyUpdateQuery, policyUpdateArgs, _ = builder.
 			Where(sq.Eq{"Id": patch.Id}).
 			ToSql()
 	}
 
+	channelsDeleteQuery := ""
+	channelsDeleteArgs := []interface{}{}
+	channelsInsertQuery := ""
+	channelsInsertArgs := []interface{}{}
 	if patch.ChannelIds != nil {
-		rpcDeleteQuery, rpcDeleteArgs, _ = s.getQueryBuilder().
+		channelsDeleteQuery, channelsDeleteArgs, _ = s.getQueryBuilder().
 			Delete("RetentionPoliciesChannels").
 			Where(sq.Eq{"PolicyId": patch.Id}).
 			ToSql()
 
-		rpcInsertQuery, rpcInsertArgs = s.buildInsertRetentionPoliciesChannelsQuery(patch.Id, patch.ChannelIds)
+		channelsInsertQuery, channelsInsertArgs = s.buildInsertRetentionPoliciesChannelsQuery(patch.Id, patch.ChannelIds)
 	}
 
+	tablesDeleteQuery := ""
+	tablesDeleteArgs := []interface{}{}
+	tablesInsertQuery := ""
+	tablesInsertArgs := []interface{}{}
 	if patch.TeamIds != nil {
-		rptDeleteQuery, rptDeleteArgs, _ = s.getQueryBuilder().
+		tablesDeleteQuery, tablesDeleteArgs, _ = s.getQueryBuilder().
 			Delete("RetentionPoliciesTeams").
 			Where(sq.Eq{"PolicyId": patch.Id}).
 			ToSql()
 
-		rptInsertQuery, rptInsertArgs = s.buildInsertRetentionPoliciesTeamsQuery(patch.Id, patch.TeamIds)
+		tablesInsertQuery, tablesInsertArgs = s.buildInsertRetentionPoliciesTeamsQuery(patch.Id, patch.TeamIds)
 	}
 
-	rpSelectQuery, rpSelectProps = s.buildGetPolicyWithCountsQuery(patch.Id)
+	policySelectQuery, policySelectProps := s.buildGetPolicyQuery(patch.Id)
 
 	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	if _, err = executePossiblyEmptyQuery(txn, rpUpdateQuery, rpUpdateArgs...); err != nil {
+	// Update the fields of the policy in RetentionPolicies
+	if _, err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rpcDeleteQuery, rpcDeleteArgs...); err != nil {
+	// Remove all channels from the policy in RetentionPoliciesChannels
+	if _, err = executePossiblyEmptyQuery(txn, channelsDeleteQuery, channelsDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rpcInsertQuery, rpcInsertArgs...); err != nil {
+	// Insert the new channels for the policy in RetentionPoliciesChannels
+	if _, err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rptDeleteQuery, rptDeleteArgs...); err != nil {
+	// Remove all teams from the policy in RetentionPoliciesTeams
+	if _, err = executePossiblyEmptyQuery(txn, tablesDeleteQuery, tablesDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = executePossiblyEmptyQuery(txn, rptInsertQuery, rptInsertArgs...); err != nil {
+	// Insert the new teams for the policy in RetentionPoliciesTeams
+	if _, err = executePossiblyEmptyQuery(txn, tablesInsertQuery, tablesInsertArgs...); err != nil {
 		return nil, err
 	}
+	// Select the policy which we just updated
 	var newPolicy model.RetentionPolicyWithTeamAndChannelCounts
-	if err = txn.SelectOne(&newPolicy, rpSelectQuery, rpSelectProps); err != nil {
+	if err = txn.SelectOne(&newPolicy, policySelectQuery, policySelectProps); err != nil {
 		return nil, err
 	}
 	if err = txn.Commit(); err != nil {
@@ -298,14 +298,14 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	return &newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) buildGetPolicyWithCountsQuery(id string) (query string, props map[string]interface{}) {
-	return s.buildGetPoliciesWithCountsQuery(id, 0, 1)
+func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, props map[string]interface{}) {
+	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
-// buildGetPoliciesWithCountsQuery builds a query to select information for the policy with the specified
+// buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
 // policy display name and ID.
-func (s *SqlRetentionPolicyStore) buildGetPoliciesWithCountsQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (query string, props map[string]interface{}) {
 	props = map[string]interface{}{"Offset": offset, "Limit": limit}
 	whereIdEqualsPolicyId := ""
 	if id != "" {
@@ -346,7 +346,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesWithCountsQuery(id string, off
 }
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
-	query, props := s.buildGetPolicyWithCountsQuery(id)
+	query, props := s.buildGetPolicyQuery(id)
 	var policy model.RetentionPolicyWithTeamAndChannelCounts
 	if err := s.GetReplica().SelectOne(&policy, query, props); err != nil {
 		return nil, err
@@ -355,7 +355,7 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeam
 }
 
 func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.RetentionPolicyWithTeamAndChannelCounts, err error) {
-	query, props := s.buildGetPoliciesWithCountsQuery("", offset, limit)
+	query, props := s.buildGetPoliciesQuery("", offset, limit)
 	_, err = s.GetReplica().Select(&policies, query, props)
 	return
 }
@@ -409,11 +409,15 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 	}
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	if err != nil {
-		// check FK constraint violation
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {
-			return store.NewErrNotFound("RetentionPolicy", policyId)
-		} else if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 0x5ac {
-			return store.NewErrNotFound("RetentionPolicy", policyId)
+		switch dbErr := err.(type) {
+		case *pq.Error:
+			if dbErr.Code == POSTGRES_ERROR_FOREIGN_KEY_VIOLATION {
+				return store.NewErrNotFound("RetentionPolicy", policyId)
+			}
+		case *mysql.MySQLError:
+			if dbErr.Number == MYSQL_ERROR_FOREIGN_KEY_VIOLATION {
+				return store.NewErrNotFound("RetentionPolicy", policyId)
+			}
 		}
 	}
 	return err

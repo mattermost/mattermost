@@ -44,6 +44,11 @@ const (
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	MinimumRequiredPostgresVersion = 100000
+
+	POSTGRES_ERROR_FOREIGN_KEY_VIOLATION = "23503"
+	POSTGRES_ERROR_DUPLICATE_OBJECT      = "42710"
+	MYSQL_ERROR_FOREIGN_KEY_VIOLATION    = 1452
+	MYSQL_ERROR_DUPLICATE_OBJECT         = 1022
 )
 
 const (
@@ -1080,10 +1085,15 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 }
 
 func IsConstraintAlreadyExistsError(err error) bool {
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42710" {
-		return true
-	} else if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1022 {
-		return true
+	switch dbErr := err.(type) {
+	case *pq.Error:
+		if dbErr.Code == POSTGRES_ERROR_DUPLICATE_OBJECT {
+			return true
+		}
+	case *mysql.MySQLError:
+		if dbErr.Number == MYSQL_ERROR_DUPLICATE_OBJECT {
+			return true
+		}
 	}
 	return false
 }
