@@ -4,10 +4,14 @@
 // mysql/000001_create_teams.up.sql
 // mysql/000002_create_team_members.down.sql
 // mysql/000002_create_team_members.up.sql
+// mysql/000003_create_command_webhooks.down.sql
+// mysql/000003_create_command_webhooks.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
 // postgres/000002_create_team_members.up.sql
+// postgres/000003_create_command_webhooks.down.sql
+// postgres/000003_create_command_webhooks.up.sql
 package migrations
 
 import (
@@ -164,6 +168,46 @@ func mysql000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000003_create_command_webhooksDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\xce\xcf\xcd\x4d\xcc\x4b\x09\x4f\x4d\xca\xc8\xcf\xcf\x2e\xb6\xe6\x02\x04\x00\x00\xff\xff\x35\x3f\x08\xb5\x26\x00\x00\x00")
+
+func mysql000003_create_command_webhooksDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_command_webhooksDownSql,
+		"mysql/000003_create_command_webhooks.down.sql",
+	)
+}
+
+func mysql000003_create_command_webhooksDownSql() (*asset, error) {
+	bytes, err := mysql000003_create_command_webhooksDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_command_webhooks.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000003_create_command_webhooksUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\xd0\x4f\x4b\xc3\x30\x1c\xc6\xf1\x7b\x5f\xc5\x73\x6c\xc0\x83\x0c\x11\x41\x76\xc8\xb2\x4c\x83\xb5\x4a\x9a\xa2\x3b\x95\xb4\x8d\x6b\xd1\xfe\x02\x69\xa6\xbe\x7c\xb1\x45\xc1\x3f\xd0\x63\x92\x0f\x4f\xe0\x2b\xb4\xe4\x46\xc2\xf0\x4d\x26\xa1\x76\xc8\xef\x0c\xe4\xa3\x2a\x4c\x01\xe1\x87\xc1\x52\xfb\xe0\xea\xce\xfb\xe7\x11\x69\x02\x00\xaa\xc5\xab\x0d\x4d\x67\x43\xba\x3a\x67\x93\xcf\xcb\x2c\x3b\x99\x1e\x45\x70\x36\x3a\x1e\x51\xf7\x87\x9e\x62\xba\x3a\x65\xd8\xca\x1d\x2f\xb3\x1f\x6a\x1e\xfe\xb5\xf4\xd7\x95\xa3\x0b\x8b\x48\x74\x96\xc8\xbd\x2c\x3a\xed\x7d\x5c\x44\xf7\x36\x38\x5a\x66\xe5\xe8\x84\x3f\x52\x44\x4f\xd1\x1d\x5c\xf8\x6f\x49\xab\x5b\xae\xf7\xb8\x91\x7b\xa4\xaa\x65\xf3\xed\xe7\xa9\x6f\xdf\xab\x66\x2e\x50\xbd\xcd\x6d\xab\x66\xea\x56\xd9\x88\xf4\x2b\x21\x4b\x18\x64\x7e\xa5\x72\xb9\x56\x44\x7e\xbb\xf9\xfe\x44\x5c\x73\x5d\x48\xb3\x3e\xc6\xa7\x8b\xa1\x3e\xbb\x4c\x3e\x02\x00\x00\xff\xff\xa5\xf8\x22\x57\xc4\x01\x00\x00")
+
+func mysql000003_create_command_webhooksUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_command_webhooksUpSql,
+		"mysql/000003_create_command_webhooks.up.sql",
+	)
+}
+
+func mysql000003_create_command_webhooksUpSql() (*asset, error) {
+	bytes, err := mysql000003_create_command_webhooksUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_command_webhooks.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -244,6 +288,46 @@ func postgres000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000003_create_command_webhooksDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\xce\xcf\xcd\x4d\xcc\x4b\x29\x4f\x4d\xca\xc8\xcf\xcf\x2e\xb6\xe6\x02\x04\x00\x00\xff\xff\x1f\x0e\xf6\xd4\x26\x00\x00\x00")
+
+func postgres000003_create_command_webhooksDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_command_webhooksDownSql,
+		"postgres/000003_create_command_webhooks.down.sql",
+	)
+}
+
+func postgres000003_create_command_webhooksDownSql() (*asset, error) {
+	bytes, err := postgres000003_create_command_webhooksDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_command_webhooks.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000003_create_command_webhooksUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x41\x4f\xc4\x20\x10\x46\xef\xfc\x8a\xef\xb8\x4d\x3c\x79\xf0\xb2\x27\x5c\x31\x12\xb5\x6b\x58\x62\xb6\x27\x42\xe9\xa4\x25\x5a\x30\x94\x46\x7f\xbe\x89\xc5\x83\x2e\xd7\xf7\x32\x93\x79\x73\x50\x82\x6b\x01\xcd\x6f\x9f\x04\xe4\x3d\xda\xa3\x86\x38\xcb\x93\x3e\xc1\xc5\x79\xb6\x61\xf8\xa4\x7e\x8a\xf1\x6d\xc1\x8e\x01\x80\x1f\xf0\xca\xd5\xe1\x81\xab\xdd\xf5\x4d\x83\x17\x25\x9f\xb9\xea\xf0\x28\xba\xab\x1f\xef\x12\xd9\x4c\x36\xa3\xf7\xa3\x0f\xb9\xc0\x6d\xd5\xdf\xd9\x4d\xad\x0b\xa5\x1a\x77\x93\x0d\x81\xde\x6b\x2a\xc5\x98\x6b\xfc\xc3\x26\x0a\x55\xb3\x2e\xe4\xe2\x1a\x32\x7c\xc8\x34\x52\x62\xcd\x9e\xb1\x92\x2e\xdb\x3b\x71\xfe\x97\xee\x87\x2f\x53\x6e\x36\xa5\xdf\x6c\x61\xc6\x66\x1c\xdb\xcb\xdf\xfc\x66\x37\x7b\xf6\x1d\x00\x00\xff\xff\xb3\x9b\xa0\xd0\x53\x01\x00\x00")
+
+func postgres000003_create_command_webhooksUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_command_webhooksUpSql,
+		"postgres/000003_create_command_webhooks.up.sql",
+	)
+}
+
+func postgres000003_create_command_webhooksUpSql() (*asset, error) {
+	bytes, err := postgres000003_create_command_webhooksUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_command_webhooks.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -296,14 +380,18 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":           mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":             mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":    mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":      mysql000002_create_team_membersUpSql,
-	"postgres/000001_create_teams.down.sql":        postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":          postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql": postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":   postgres000002_create_team_membersUpSql,
+	"mysql/000001_create_teams.down.sql":               mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":                 mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":        mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":          mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_command_webhooks.down.sql":    mysql000003_create_command_webhooksDownSql,
+	"mysql/000003_create_command_webhooks.up.sql":      mysql000003_create_command_webhooksUpSql,
+	"postgres/000001_create_teams.down.sql":            postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":              postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":     postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":       postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_command_webhooks.down.sql": postgres000003_create_command_webhooksDownSql,
+	"postgres/000003_create_command_webhooks.up.sql":   postgres000003_create_command_webhooksUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -348,16 +436,20 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":            &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":              &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":     &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":       &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_command_webhooks.down.sql": &bintree{mysql000003_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000003_create_command_webhooks.up.sql":   &bintree{mysql000003_create_command_webhooksUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":          &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql": &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":   &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":            &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":              &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":     &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":       &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_command_webhooks.down.sql": &bintree{postgres000003_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000003_create_command_webhooks.up.sql":   &bintree{postgres000003_create_command_webhooksUpSql, map[string]*bintree{}},
 	}},
 }}
 
