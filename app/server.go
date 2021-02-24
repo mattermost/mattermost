@@ -595,9 +595,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.Metrics.Register()
 		}
 
-		if err := s.StartMetricsServer(); err != nil {
-			mlog.Error("Error starting metrics server.", mlog.Err(err))
-		}
+		s.StartMetricsServer()
 	}
 
 	s.SearchEngine.UpdateConfig(s.Config())
@@ -1470,23 +1468,20 @@ func (s *Server) StopMetricsServer() {
 	defer s.metricsLock.Unlock()
 
 	if s.metricsServer != nil {
-		s.metricsServer.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
+		defer cancel()
+
+		s.metricsServer.Shutdown(ctx)
 		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
 		s.metricsServer = nil
 	}
 }
 
 func (s *Server) HandleMetrics(route string, h http.Handler) {
-	if s.metricsRouter != nil {
-		s.metricsRouter.Handle(route, h)
-	}
+	s.metricsRouter.Handle(route, h)
 }
 
 func (s *Server) InitMetricsRouter() {
-	if s.metricsRouter != nil {
-		return
-	}
-
 	s.metricsRouter = mux.NewRouter()
 	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
 
@@ -1502,6 +1497,8 @@ func (s *Server) InitMetricsRouter() {
 					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
 					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
 					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
 				</body>
 			</html>
 		`
@@ -1526,12 +1523,12 @@ func (s *Server) InitMetricsRouter() {
 	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
 }
 
-func (s *Server) StartMetricsServer() error {
+func (s *Server) StartMetricsServer() {
 	s.metricsLock.Lock()
 	defer s.metricsLock.Unlock()
 
 	if s.metricsServer != nil {
-		return nil
+		return
 	}
 
 	s.metricsServer = &http.Server{
@@ -1548,8 +1545,6 @@ func (s *Server) StartMetricsServer() error {
 	}()
 
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
-
-	return nil
 }
 
 func doLicenseExpirationCheck(a *App) {
