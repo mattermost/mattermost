@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/maphash"
+	"html/template"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -589,7 +590,10 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	s.InitMetricsRouter()
+	if err = s.InitMetricsRouter(); err != nil {
+		mlog.Error("Error initiating metrics router.", mlog.Err(err))
+	}
+
 	if *s.Config().MetricsSettings.Enable && s.startMetrics {
 		if s.Metrics != nil {
 			s.Metrics.Register()
@@ -1478,18 +1482,19 @@ func (s *Server) StopMetricsServer() {
 }
 
 func (s *Server) HandleMetrics(route string, h http.Handler) {
-	s.metricsRouter.Handle(route, h)
+	if s.metricsRouter != nil {
+		s.metricsRouter.Handle(route, h)
+	}
 }
 
-func (s *Server) InitMetricsRouter() {
+func (s *Server) InitMetricsRouter() error {
 	s.metricsRouter = mux.NewRouter()
 	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
 
-	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		html := `
+	metricsPage := `
 			<html>
-				<body>
-					<div><a href="/metrics">Metrics</a></div>
+				<body>{{if .}}
+					<div><a href="/metrics">Metrics</a></div>{{end}}
 					<div><a href="/debug/pprof/">Profiling Root</a></div>
 					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
 					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
@@ -1502,8 +1507,13 @@ func (s *Server) InitMetricsRouter() {
 				</body>
 			</html>
 		`
+	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
+	if err != nil {
+		return errors.Wrap(err, "failed to create template")
+	}
 
-		w.Write([]byte(html))
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		metricsPageTmpl.Execute(w, s.Metrics != nil)
 	}
 
 	s.metricsRouter.HandleFunc("/", rootHandler)
@@ -1521,6 +1531,8 @@ func (s *Server) InitMetricsRouter() {
 	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
+
+	return nil
 }
 
 func (s *Server) StartMetricsServer() {
