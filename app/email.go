@@ -710,20 +710,26 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 }
 
 // SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (bool, *model.AppError) {
+func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.upgrade_request_subject")
 
 	data := es.newEmailTemplateData(locale)
-	data.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
-	data.Props["Info4"] = T("api.templates.upgrade_request_info4")
 	data.Props["Info5"] = T("api.templates.at_limit_info5")
 	data.Props["BillingPath"] = "admin_console/billing/subscription"
 	data.Props["SiteURL"] = siteURL
 	data.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["Footer"] = T("api.templates.copyright")
+
+	if action == model.InviteLimitation {
+		data.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
+		data.Props["Info4"] = T("api.templates.upgrade_request_info4")
+	} else {
+		data.Props["Title"] = T("api.templates.upgrade_request_title2")
+		data.Props["Info4"] = T("api.templates.upgrade_request_info4_2")
+	}
 
 	body, err := es.srv.TemplatesContainer().RenderToString("cloud_upgrade_request_email", data)
 	if err != nil {
