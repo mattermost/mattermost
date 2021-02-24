@@ -392,7 +392,7 @@ func NewServer(options ...Option) (*Server, error) {
 		htmlTemplateWatcher, errorsChan := templates.NewWithWatcher(templatesDir)
 		s.Go(func() {
 			for err2 := range errorsChan {
-				mlog.Error("Server templates error", mlog.Err(err2))
+				mlog.Warn("Server templates error", mlog.Err(err2))
 			}
 		})
 		s.htmlTemplateWatcher = htmlTemplateWatcher

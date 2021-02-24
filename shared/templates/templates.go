@@ -37,15 +37,15 @@ func NewFromTemplate(templates *template.Template) *Container {
 
 // New creates a new templates container scanning a directory.
 func New(directory string) (*Container, error) {
-	ret := &Container{}
+	c := &Container{}
 
 	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
 	if err != nil {
 		return nil, err
 	}
-	ret.templates = htmlTemplates
+	c.templates = htmlTemplates
 
-	return ret, nil
+	return c, nil
 }
 
 // NewWithWatcher creates a new templates container scanning a directory and
@@ -54,7 +54,7 @@ func New(directory string) (*Container, error) {
 // blocking the watch process.
 func NewWithWatcher(directory string) (*Container, <-chan error) {
 	errors := make(chan error)
-	ret := &Container{}
+	c := &Container{}
 
 	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
 	if err != nil {
@@ -64,7 +64,7 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 		}()
 		return nil, errors
 	}
-	ret.templates = htmlTemplates
+	c.templates = htmlTemplates
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -72,7 +72,7 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 			defer close(errors)
 			errors <- err
 		}()
-		return ret, errors
+		return c, errors
 	}
 
 	err = watcher.Add(directory)
@@ -82,30 +82,30 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 			errors <- err
 		}()
 		watcher.Close()
-		return ret, errors
+		return c, errors
 	}
 
-	ret.watch = true
-	ret.stop = make(chan struct{})
-	ret.stopped = make(chan struct{})
+	c.watch = true
+	c.stop = make(chan struct{})
+	c.stopped = make(chan struct{})
 
 	go func() {
 		defer close(errors)
-		defer close(ret.stopped)
+		defer close(c.stopped)
 		defer watcher.Close()
 
 		for {
 			select {
-			case <-ret.stop:
+			case <-c.stop:
 				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					if htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html")); err != nil {
 						errors <- err
 					} else {
-						ret.mutex.Lock()
-						ret.templates = htmlTemplates
-						ret.mutex.Unlock()
+						c.mutex.Lock()
+						c.templates = htmlTemplates
+						c.mutex.Unlock()
 					}
 				}
 			case err := <-watcher.Errors:
@@ -114,34 +114,36 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 		}
 	}()
 
-	return ret, errors
+	return c, errors
 }
 
 // Close stops the templates watcher of the container in case you have created
 // it with watch parameter set to true
-func (t *Container) Close() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-	if t.watch {
-		close(t.stop)
-		<-t.stopped
+func (c *Container) Close() {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	if c.watch {
+		close(c.stop)
+		<-c.stopped
 	}
 }
 
 // RenderToString renders the template referenced with the template name using
 // the data provided and return a string with the result
-func (t *Container) RenderToString(templateName string, data Data) string {
+func (c *Container) RenderToString(templateName string, data Data) string {
 	var text bytes.Buffer
-	t.Render(&text, templateName, data)
+	if err := c.Render(&text, templateName, data); err != nil {
+		return ""
+	}
 	return text.String()
 }
 
 // RenderToString renders the template referenced with the template name using
 // the data provided and write it to the writer provided
-func (t *Container) Render(w io.Writer, templateName string, data Data) error {
-	t.mutex.RLock()
-	htmlTemplates := t.templates
-	t.mutex.RUnlock()
+func (c *Container) Render(w io.Writer, templateName string, data Data) error {
+	c.mutex.RLock()
+	htmlTemplates := c.templates
+	c.mutex.RUnlock()
 
 	if htmlTemplates == nil {
 		return nil
