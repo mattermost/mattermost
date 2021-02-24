@@ -6451,10 +6451,6 @@
     "translation": "Elasticsearch is not started"
   },
   {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Unable to get the files batch for indexing."
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Unable to get the posts batch for indexing."
   },
