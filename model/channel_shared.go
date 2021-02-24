@@ -113,7 +113,7 @@ type SharedChannelRemote struct {
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
-	LastSyncAt        int64  `json:"last_sync_at"`
+	NextSyncAt        int64  `json:"next_sync_at"`
 }
 
 func (sc *SharedChannelRemote) ToJson() string {
@@ -171,7 +171,7 @@ type SharedChannelRemoteStatus struct {
 	DisplayName      string `json:"display_name"`
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`
-	LastSyncAt       int64  `json:"last_sync_at"`
+	NextSyncAt       int64  `json:"next_sync_at"`
 	Description      string `json:"description"`
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`

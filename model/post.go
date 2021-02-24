@@ -238,6 +238,17 @@ type GetPostsSinceOptions struct {
 	SortAscending            bool
 }
 
+type GetPostsSinceForSyncOptions struct {
+	ChannelId       string
+	Since           int64 // inclusive
+	Until           int64 // inclusive
+	SortDescending  bool
+	ExcludeRemoteId string
+	IncludeDeleted  bool
+	Limit           int
+	Offset          int
+}
+
 type GetPostsOptions struct {
 	ChannelId                string
 	PostId                   string

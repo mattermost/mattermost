@@ -226,7 +226,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 
 	post.RemoteId = model.NewString(rc.RemoteId)
 
-	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id)
+	rpost, err := scs.server.GetStore().Post().GetSingleIncDeleted(post.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
@@ -238,13 +238,21 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		rpost, appErr = scs.app.CreatePost(post, channel, true, true)
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId))
-	} else {
+			mlog.String("channel_id", post.ChannelId),
+		)
+	} else if rpost.DeleteAt == 0 {
 		// update post
 		rpost, appErr = scs.app.UpdatePost(post, false)
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId))
+			mlog.String("channel_id", post.ChannelId),
+		)
+	} else {
+		// this is an re-sync of a deleted post; no need to update it
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Update to deleted sync post ignored",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+		)
 	}
 
 	var rerr error

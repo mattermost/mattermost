@@ -430,20 +430,20 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 	return hasRemote, nil
 }
 
-// UpdateRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.
-func (s SqlSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+// UpdateRemoteNextSyncAt updates the NextSyncAt timestamp for the specified SharedChannelRemote.
+func (s SqlSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("LastSyncAt", syncTime).
+		Set("NextSyncAt", syncTime).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_remote_last_sync_at_tosql")
+		return errors.Wrap(err, "update_shared_channel_remote_next_sync_at_tosql")
 	}
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelRemote")
+		return errors.Wrap(err, "failed to update NextSyncAt for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()
@@ -486,7 +486,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").

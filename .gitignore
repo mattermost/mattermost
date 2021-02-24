@@ -17,6 +17,7 @@ web/static/js/libs*.js
 
 config/active.dat
 config/config.json
+config/logging.json
 /plugins
 
 # Enterprise imports file

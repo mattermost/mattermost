@@ -536,6 +536,29 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 	return r0, r1
 }
 
+// GetPostsSinceForSync provides a mock function with given fields: options, allowFromCache
+func (_m *PostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+	ret := _m.Called(options, allowFromCache)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceForSyncOptions, bool) []*model.Post); ok {
+		r0 = rf(options, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceForSyncOptions, bool) error); ok {
+		r1 = rf(options, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRepliesForExport provides a mock function with given fields: parentID
 func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	ret := _m.Called(parentID)
@@ -575,6 +598,29 @@ func (_m *PostStore) GetSingle(id string) (*model.Post, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSingleIncDeleted provides a mock function with given fields: postID
+func (_m *PostStore) GetSingleIncDeleted(postID string) (*model.Post, error) {
+	ret := _m.Called(postID)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string) *model.Post); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postID)
 	} else {
 		r1 = ret.Error(1)
 	}

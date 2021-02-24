@@ -1038,7 +1038,7 @@ type AppIface interface {
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userID string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error
+	UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)

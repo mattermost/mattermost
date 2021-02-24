@@ -79,6 +79,8 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 	}
 }
 
+// pingRemote make a synchronous ping to a remote cluster. Return is error if ping is
+// unsuccessful and nil on success.
 func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	frame, err := makePingFrame(rc)
 	if err != nil {

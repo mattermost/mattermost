@@ -6,7 +6,6 @@ package sharedchannel
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -52,7 +51,7 @@ func (u userCache) Add(id string) {
 
 // postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]syncMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	uCache := make(userCache)
@@ -63,19 +62,21 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 		}
 
 		// any reactions originating from the remote cluster are filtered out
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, rc.RemoteId, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, nextSyncAt, rc.RemoteId, true)
 		if err != nil {
 			return nil, err
 		}
 
 		postSync := p
 
-		// TODO:  don't include the post if only the reactions changed. Unfortunately there is no way to reliably know the
-		//        difference between an existing (synchronized) post with new reaction, and a brand new post (un-synchronized)
-		//        with a reaction.
-		//if p.EditAt < p.UpdateAt && p.CreateAt < p.UpdateAt && p.DeleteAt == 0 {
-		//	postSync = nil
-		//}
+		// Don't resend an existing post where only the reactions changed.
+		// Posts we must send:
+		//   - new posts (EditAt == 0)
+		//   - edited posts (EditAt >= nextSyncAt)
+		//   - deleted posts (DeleteAt > 0)
+		if p.EditAt > 0 && p.EditAt < nextSyncAt && p.DeleteAt == 0 {
+			postSync = nil
+		}
 
 		// don't sync a post back to the remote it came from.
 		if p.RemoteId != nil && *p.RemoteId == rc.RemoteId {
@@ -88,7 +89,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 			postSync.Message = scs.processPermalinkToRemote(postSync)
 
 			// get any file attachments
-			attachments, err = scs.postToAttachments(postSync, rc, lastSyncAt)
+			attachments, err = scs.postToAttachments(postSync, rc, nextSyncAt)
 			if err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not fetch attachments for post",
 					mlog.String("post_id", postSync.Id),
@@ -119,6 +120,8 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 }
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
+// The user cache ensures the same user is not synchronized redundantly if they appear in multiple
+// posts for this sync batch.
 func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster, uCache userCache) []*model.User {
 	userIds := make([]string, 0)
 
@@ -198,21 +201,11 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("remote_id", rc.RemoteId),
-				mlog.String("user_id", user.Id))
+				mlog.String("user_id", user.Id),
+			)
 		}
-	} else if scu.LastSyncAt < user.UpdateAt {
-		// Users.UpdateAt is updated quite frequently and for reasons we don't care about for sync.
-		//
-		// For now we'll mitigate that by not synchronizing users more than once per hour; alternatively we can start
-		// storing the fields we care about in SharedChannelUsers and check if any changed, but in some use cases
-		// the SharedChannelUsers table gets very large.
-		//
-		// Another option is to trigger sync on User update.
-		//
-		// Fields we care about for sync: username, email, nickname, firstname, lastname, position.
-		if time.Since(model.GetTimeForMillis(scu.LastSyncAt)) < time.Hour {
-			return false, nil
-		}
+	} else if scu.LastSyncAt >= user.UpdateAt {
+		return false, nil
 	}
 	return true, nil
 }

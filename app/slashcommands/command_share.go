@@ -331,7 +331,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map
 			online = ":skull_and_crossbones:"
 		}
 
-		lastSync := formatTimestamp(model.GetTimeForMillis(status.LastSyncAt))
+		lastSync := formatTimestamp(model.GetTimeForMillis(status.NextSyncAt))
 
 		fmt.Fprintf(&sb, "| %s | %s | %s | %t | %t | %s | %s |\n",
 			status.DisplayName, status.SiteURL, status.Description,

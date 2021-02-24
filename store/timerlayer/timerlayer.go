@@ -4816,6 +4816,22 @@ func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsSinceForSync", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	start := timemodule.Now()
 
@@ -4844,6 +4860,22 @@ func (s *TimerLayerPostStore) GetSingle(id string) (*model.Post, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingle", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetSingleIncDeleted(postID string) (*model.Post, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetSingleIncDeleted(postID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingleIncDeleted", success, elapsed)
 	}
 	return result, err
 }
@@ -6318,10 +6350,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6329,7 +6361,7 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteLastSyncAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteNextSyncAt", success, elapsed)
 	}
 	return err
 }
