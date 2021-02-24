@@ -13,19 +13,19 @@ import (
 func TestTermsOfServiceIsValid(t *testing.T) {
 	s := TermsOfService{}
 
-	assert.Error(t, s.IsValid(), "should be invalid")
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.Id = NewId()
-	assert.Error(t, s.IsValid(), "should be invalid")
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
-	assert.Error(t, s.IsValid(), "should be invalid")
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	assert.Error(t, s.IsValid(), "should be invalid")
+	assert.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2+1)
-	assert.Error(t, s.IsValid(), "should be invalid")
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2)
 	assert.Nil(t, s.IsValid(), "should be valid")

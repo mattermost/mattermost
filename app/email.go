@@ -298,7 +298,7 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	bodyPage := es.newEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Props["Info1"] = utils.TranslateAsHtml(T, "api.templates.reset_body.info1", nil)
+	bodyPage.Props["Info1"] = utils.TranslateAsHTML(T, "api.templates.reset_body.info1", nil)
 	bodyPage.Props["Info2"] = T("api.templates.reset_body.info2")
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
@@ -362,10 +362,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
+			bodyPage.HTML["Info"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
-			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.HTML["ExtraInfo"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -421,7 +421,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
+			bodyPage.HTML["Info"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body_guest.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
@@ -430,7 +430,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.HTML["ExtraInfo"] = utils.TranslateAsHTML(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -634,14 +634,20 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 }
 
 // SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (bool, *model.AppError) {
+func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.upgrade_request_subject")
-
 	bodyPage := es.newEmailTemplate("cloud_upgrade_request_email", locale)
-	bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
-	bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
+
+	if action == model.InviteLimitation {
+		bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
+		bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
+	} else {
+		bodyPage.Props["Title"] = T("api.templates.upgrade_request_title2")
+		bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4_2")
+	}
+
+	subject := T("api.templates.upgrade_request_subject")
 	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
 	bodyPage.Props["BillingPath"] = "admin_console/billing/subscription"
 	bodyPage.Props["SiteURL"] = siteURL
