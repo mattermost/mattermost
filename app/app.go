@@ -499,7 +499,13 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			data.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
 			mailConfig := a.Srv().MailServiceConfig()
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data), mailConfig, false, sender.Email); err != nil {
+
+			body, err := a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data)
+			if err != nil {
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+			}
+
+			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, body, mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}

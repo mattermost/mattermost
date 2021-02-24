@@ -98,13 +98,16 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	}
 
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
-	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
-
-	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
-			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
-		}
-	})
+	var bodyText, err = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
+	if err != nil {
+		mlog.Error("Error building notification email", mlog.Err(err))
+	} else {
+		a.Srv().Go(func() {
+			if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
+				mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			}
+		})
+	}
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostSentEmail()
@@ -164,7 +167,7 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
+func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) (string, error) {
 	// only include message contents in notification email if email notification contents type is set to full
 	var templateName = "post_body_generic"
 	data := a.Srv().EmailService.newEmailTemplateData(recipient.Locale)

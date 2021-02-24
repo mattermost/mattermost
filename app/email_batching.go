@@ -223,7 +223,13 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 			emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
 		}
 
-		contents += es.renderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
+		postContent, err := es.renderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
+		if err != nil {
+			mlog.Warn("Unable to render post for batched email notification template", mlog.Err(err))
+			continue
+		}
+
+		contents += postContent
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
@@ -240,12 +246,18 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	data.Props["Posts"] = template.HTML(contents)
 	data.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if nErr := es.sendNotificationMail(user.Email, subject, es.srv.TemplatesContainer().RenderToString("post_batched_body", data)); nErr != nil {
+	body, err := es.srv.TemplatesContainer().RenderToString("post_batched_body", data)
+	if err != nil {
+		mlog.Warn("Unable build the batched email notification template", mlog.Err(err))
+		return
+	}
+
+	if nErr := es.sendNotificationMail(user.Email, subject, body); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
 
-func (es *EmailService) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
+func (es *EmailService) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) (string, error) {
 	// don't include message contents if email notification contents type is set to generic
 	var templateName = "post_batched_post_generic"
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {

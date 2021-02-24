@@ -130,12 +130,12 @@ func (c *Container) Close() {
 
 // RenderToString renders the template referenced with the template name using
 // the data provided and return a string with the result
-func (c *Container) RenderToString(templateName string, data Data) string {
+func (c *Container) RenderToString(templateName string, data Data) (string, error) {
 	var text bytes.Buffer
 	if err := c.Render(&text, templateName, data); err != nil {
-		return ""
+		return "", err
 	}
-	return text.String()
+	return text.String(), nil
 }
 
 // RenderToString renders the template referenced with the template name using
