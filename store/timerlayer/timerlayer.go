@@ -2754,6 +2754,22 @@ func (s *TimerLayerFileInfoStore) ClearCaches() {
 	}
 }
 
+func (s *TimerLayerFileInfoStore) CountAll() (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.CountAll()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.CountAll", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 	start := timemodule.Now()
 
@@ -2814,6 +2830,22 @@ func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetByPath", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, endTime, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetFilesBatchForIndexing", success, elapsed)
 	}
 	return result, err
 }

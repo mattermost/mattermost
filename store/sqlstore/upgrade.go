@@ -231,8 +231,6 @@ func upgradeDatabaseToVersion31(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version310, Version320) {
-		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
-
 		saveSchemaVersion(sqlStore, Version320)
 	}
 }
@@ -361,9 +359,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
 		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
-		// Create Team Description column
-		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
 
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
@@ -508,7 +503,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
 
 	if shouldPerformUpgrade(sqlStore, Version481, Version490) {
-		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
@@ -551,12 +545,8 @@ func upgradeDatabaseToVersion50(sqlStore *SqlStore) {
 	//    DELETE from Systems WHERE Name = 'migration_advanced_permissions_phase_2';
 
 	if shouldPerformUpgrade(sqlStore, Version4100, Version500) {
-
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
 
@@ -665,7 +655,6 @@ func upgradeDatabaseToVersion59(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion510(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version590, Version5100) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
@@ -695,7 +684,6 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
@@ -740,7 +728,6 @@ func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 		saveSchemaVersion(sqlStore, Version5160)
 
 		// Fix mismatches between the canonical and migrated schemas.
-		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
 		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
