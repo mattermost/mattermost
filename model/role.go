@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -47,6 +48,12 @@ func init() {
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id: {
+			PERMISSION_READ_LICENSE_INFORMATION,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id: {
+			PERMISSION_MANAGE_LICENSE_INFORMATION,
+		},
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id: {
 			PERMISSION_READ_PUBLIC_CHANNEL,
 			PERMISSION_READ_CHANNEL,
@@ -133,7 +140,7 @@ func init() {
 	}
 
 	SystemReadOnlyAdminDefaultPermissions = []string{
-		PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING.Id,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS.Id,
@@ -152,7 +159,7 @@ func init() {
 	}
 
 	SystemManagerDefaultPermissions = []string{
-		PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING.Id,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS.Id,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS.Id,
@@ -507,6 +514,7 @@ func (r *Role) IsValidWithoutId() bool {
 	for _, permission := range r.Permissions {
 		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
 		if !permissionValidated {
+			fmt.Printf("\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", permission)
 			return false
 		}
 	}
