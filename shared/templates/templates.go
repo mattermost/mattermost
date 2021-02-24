@@ -66,30 +66,33 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 	}
 	ret.templates = htmlTemplates
 
-	watcher, watcherErr := fsnotify.NewWatcher()
-	watcherAddErr := watcher.Add(directory)
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		go func() {
+			defer close(errors)
+			errors <- err
+		}()
+		return ret, errors
+	}
+
+	err = watcher.Add(directory)
+	if err != nil {
+		go func() {
+			defer close(errors)
+			errors <- err
+		}()
+		watcher.Close()
+		return ret, errors
+	}
+
+	ret.watch = true
+	ret.stop = make(chan struct{})
+	ret.stopped = make(chan struct{})
 
 	go func() {
 		defer close(errors)
-
-		if watcherErr != nil {
-			errors <- watcherErr
-			return
-		}
-		defer watcher.Close()
-
-		if watcherAddErr != nil {
-			errors <- watcherAddErr
-			return
-		}
-
-		ret.mutex.Lock()
-		ret.watch = true
-		ret.stop = make(chan struct{})
-		ret.stopped = make(chan struct{})
-		ret.mutex.Unlock()
-
 		defer close(ret.stopped)
+		defer watcher.Close()
 
 		for {
 			select {
