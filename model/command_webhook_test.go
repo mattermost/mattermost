@@ -32,10 +32,15 @@ func TestCommandWebhookIsValid(t *testing.T) {
 	}{
 		{func() {}, ""},
 		{func() { h.Id = "asd" }, "model.command_hook.id.app_error"},
+		{func() { h.Id = NewId() }, ""},
 		{func() { h.CreateAt = 0 }, "model.command_hook.create_at.app_error"},
+		{func() { h.CreateAt = GetMillis() }, ""},
 		{func() { h.CommandId = "asd" }, "model.command_hook.command_id.app_error"},
+		{func() { h.CommandId = NewId() }, ""},
 		{func() { h.UserId = "asd" }, "model.command_hook.user_id.app_error"},
+		{func() { h.UserId = NewId() }, ""},
 		{func() { h.ChannelId = "asd" }, "model.command_hook.channel_id.app_error"},
+		{func() { h.ChannelId = NewId() }, ""},
 		{func() { h.RootId = "asd" }, "model.command_hook.root_id.app_error"},
 		{func() { h.RootId = NewId() }, ""},
 		{func() { h.ParentId = "asd" }, "model.command_hook.parent_id.app_error"},
@@ -46,7 +51,7 @@ func TestCommandWebhookIsValid(t *testing.T) {
 		err := h.IsValid()
 
 		if test.ExpectedError == "" {
-			assert.Error(t, err, "hook should be valid")
+			assert.Nil(t, err, "hook should be valid")
 		} else {
 			require.NotNil(t, err)
 			assert.Equal(t, test.ExpectedError, err.Id, "expected "+test.ExpectedError+" error")

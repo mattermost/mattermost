@@ -57,7 +57,7 @@ func TestPreferencePreUpdate(t *testing.T) {
 	preference.PreUpdate()
 
 	var props map[string]string
-	require.Nil(t, json.NewDecoder(strings.NewReader(preference.Value)).Decode(&props))
+	require.NoError(t, json.NewDecoder(strings.NewReader(preference.Value)).Decode(&props))
 
 	require.Equal(t, "#ff0000", props["color"], "shouldn't have changed valid props")
 	require.Equal(t, "#faf", props["color2"], "shouldn't have changed valid props")
