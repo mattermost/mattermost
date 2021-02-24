@@ -1069,14 +1069,14 @@ func TestSearchFiles(t *testing.T) {
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
-		th.Server.UpdateConfig(func(cfg *model.Config) {
+		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			cfg.FeatureFlags.FilesSearch = false
 		})
 	}()
-	th.Server.UpdateConfig(func(cfg *model.Config) {
+	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-		cfg.FeatureFlags.FilesSearch = true
 	})
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
