@@ -4,10 +4,14 @@
 // mysql/000001_create_teams.up.sql
 // mysql/000002_create_team_members.down.sql
 // mysql/000002_create_team_members.up.sql
+// mysql/000003_create_compliances.down.sql
+// mysql/000003_create_compliances.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
 // postgres/000002_create_team_members.up.sql
+// postgres/000003_create_compliances.down.sql
+// postgres/000003_create_compliances.up.sql
 package migrations
 
 import (
@@ -164,6 +168,46 @@ func mysql000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000003_create_compliancesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\xce\xcf\x2d\xc8\xc9\x4c\xcc\x4b\x4e\x2d\xb6\xe6\x02\x04\x00\x00\xff\xff\x4d\x2a\x2d\xf2\x22\x00\x00\x00")
+
+func mysql000003_create_compliancesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_compliancesDownSql,
+		"mysql/000003_create_compliances.down.sql",
+	)
+}
+
+func mysql000003_create_compliancesDownSql() (*asset, error) {
+	bytes, err := mysql000003_create_compliancesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_compliances.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000003_create_compliancesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8e\x41\x4b\xc3\x40\x10\x85\xef\xf9\x15\x73\x4c\xc0\x83\x94\x52\x04\xe9\x61\xbb\x99\xea\xd2\x18\x25\xbb\x01\x7b\xeb\x36\x19\xeb\x42\xb3\x29\xbb\x13\xb5\xff\x5e\x68\xa1\x04\x09\x78\x7d\xdf\xf7\x66\x9e\xac\x50\x18\x04\x23\x56\x05\x82\x5a\x43\xf9\x6a\x00\xdf\x95\x36\x1a\x64\xdf\x9d\x8e\xce\xfa\x86\x22\xa4\x09\x00\x80\x6a\xe1\xcb\x86\xe6\xd3\x86\x74\xb6\xc8\x2e\x6e\x59\x17\xc5\xdd\x05\xca\x40\x96\x49\x30\xec\xdd\xc1\x79\x4e\x67\xf7\xd9\x15\xd4\x91\xc2\x9f\x66\x8e\x6b\x51\x17\xe3\xb6\x66\xcb\x43\xbc\x49\x8b\xf9\x94\x24\xfb\xc1\x33\x38\xcf\x74\xa0\x30\xc1\x77\x39\xc5\x66\x07\x4c\x3f\x7c\x0d\xcc\xf9\x44\xff\xdc\xd4\x6c\x03\x4f\xac\x46\xdf\x4e\xa4\x1b\x3a\x7f\xf7\xa1\x8d\xa3\x1f\xd8\x59\x77\x1c\x07\x6f\x95\x7a\x11\xd5\x16\x36\xb8\x85\x54\xb5\x59\x92\x01\x96\x4f\xaa\xc4\xa5\xf2\xbe\xcf\x57\xb7\x11\xf2\x59\x54\x1a\xcd\x72\xe0\x8f\x87\x6e\x3f\x7f\x4c\x7e\x03\x00\x00\xff\xff\xdc\x08\x89\x8a\x8d\x01\x00\x00")
+
+func mysql000003_create_compliancesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000003_create_compliancesUpSql,
+		"mysql/000003_create_compliances.up.sql",
+	)
+}
+
+func mysql000003_create_compliancesUpSql() (*asset, error) {
+	bytes, err := mysql000003_create_compliancesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000003_create_compliances.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -244,6 +288,46 @@ func postgres000002_create_team_membersUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000003_create_compliancesDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\xce\xcf\x2d\xc8\xc9\x4c\xcc\x4b\x4e\x2d\xb6\xe6\x02\x04\x00\x00\xff\xff\xb8\x61\x53\x41\x22\x00\x00\x00")
+
+func postgres000003_create_compliancesDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_compliancesDownSql,
+		"postgres/000003_create_compliances.down.sql",
+	)
+}
+
+func postgres000003_create_compliancesDownSql() (*asset, error) {
+	bytes, err := postgres000003_create_compliancesDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_compliances.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000003_create_compliancesUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\x41\x4b\x87\x40\x10\x05\xf0\xbb\x9f\x62\xf8\x9f\x14\x3a\xf4\x97\xf2\xd2\x69\x93\x8d\x24\xb3\x58\xb7\xc8\xe3\xb6\x3b\xc8\x92\xae\xb2\x3b\x12\x7e\xfb\x40\xcd\xc8\xba\xfe\xde\x9b\xc7\xe4\x82\x33\xc9\x41\xb2\xdb\x92\x43\x71\x07\xd5\x93\x04\xfe\x56\xd4\xb2\x06\x3d\xf4\x63\x67\x95\xd3\x18\x20\x8e\x00\x00\xac\x81\x57\x26\xf2\x7b\x26\xe2\x34\x4b\x96\x6e\xf5\x52\x96\x17\x4b\xa8\x3d\x2a\x42\x45\xf0\x6e\x5b\xeb\x68\xc5\x29\xa0\xff\x7d\xb5\x7a\x20\x45\x53\xd8\x3d\xbb\xda\x5c\x0f\x93\x23\xb0\x8e\xb0\x45\xbf\xd2\xc9\x60\xd0\xa7\xbd\x7a\x7d\x4e\xb7\x2e\xcd\x23\xfe\x5d\x08\xa4\x3c\x1d\xbe\x40\x67\x0e\xf2\x81\xf3\xe7\xe0\x4d\xf8\x67\x16\x7b\x65\xbb\x9f\xe0\x7c\x99\x7e\x4f\x3f\x8b\xe2\x91\x89\x06\x1e\x78\x03\xb1\x35\x49\x94\xdc\x44\x5f\x01\x00\x00\xff\xff\xda\xde\xa3\xec\x40\x01\x00\x00")
+
+func postgres000003_create_compliancesUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000003_create_compliancesUpSql,
+		"postgres/000003_create_compliances.up.sql",
+	)
+}
+
+func postgres000003_create_compliancesUpSql() (*asset, error) {
+	bytes, err := postgres000003_create_compliancesUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000003_create_compliances.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -300,10 +384,14 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000001_create_teams.up.sql":             mysql000001_create_teamsUpSql,
 	"mysql/000002_create_team_members.down.sql":    mysql000002_create_team_membersDownSql,
 	"mysql/000002_create_team_members.up.sql":      mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_compliances.down.sql":     mysql000003_create_compliancesDownSql,
+	"mysql/000003_create_compliances.up.sql":       mysql000003_create_compliancesUpSql,
 	"postgres/000001_create_teams.down.sql":        postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":          postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql": postgres000002_create_team_membersDownSql,
 	"postgres/000002_create_team_members.up.sql":   postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_compliances.down.sql":  postgres000003_create_compliancesDownSql,
+	"postgres/000003_create_compliances.up.sql":    postgres000003_create_compliancesUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -352,12 +440,16 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000001_create_teams.up.sql":          &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
 		"000002_create_team_members.down.sql": &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
 		"000002_create_team_members.up.sql":   &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_compliances.down.sql":  &bintree{mysql000003_create_compliancesDownSql, map[string]*bintree{}},
+		"000003_create_compliances.up.sql":    &bintree{mysql000003_create_compliancesUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":        &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
 		"000001_create_teams.up.sql":          &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
 		"000002_create_team_members.down.sql": &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
 		"000002_create_team_members.up.sql":   &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_compliances.down.sql":  &bintree{postgres000003_create_compliancesDownSql, map[string]*bintree{}},
+		"000003_create_compliances.up.sql":    &bintree{postgres000003_create_compliancesUpSql, map[string]*bintree{}},
 	}},
 }}
 
