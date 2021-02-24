@@ -31,9 +31,8 @@ type Data struct {
 
 // NewFromTemplates creates a new templates container using a
 // `template.Template` object
-func NewFromTemplate(templates *template.Template) (*Container, error) {
-	ret := &Container{templates: templates}
-	return ret, nil
+func NewFromTemplate(templates *template.Template) *Container {
+	return &Container{templates: templates}
 }
 
 // New creates a new templates container scanning a directory.
@@ -55,31 +54,32 @@ func New(directory string) (*Container, error) {
 // blocking the watch process.
 func NewWithWatcher(directory string) (*Container, <-chan error) {
 	errors := make(chan error)
-	ret := &Container{
-		templates: &template.Template{},
+	ret := &Container{}
+
+	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
+	if err != nil {
+		go func() {
+			defer close(errors)
+			errors <- err
+		}()
+		return nil, errors
 	}
+	ret.templates = htmlTemplates
+
+	watcher, watcherErr := fsnotify.NewWatcher()
+	watcherAddErr := watcher.Add(directory)
 
 	go func() {
 		defer close(errors)
 
-		htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
-		if err != nil {
-			errors <- err
-			return
-		}
-		ret.mutex.Lock()
-		ret.templates = htmlTemplates
-		ret.mutex.Unlock()
-
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			errors <- err
+		if watcherErr != nil {
+			errors <- watcherErr
 			return
 		}
 		defer watcher.Close()
 
-		if err = watcher.Add(directory); err != nil {
-			errors <- err
+		if watcherAddErr != nil {
+			errors <- watcherAddErr
 			return
 		}
 

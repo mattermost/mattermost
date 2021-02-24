@@ -29,8 +29,14 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	defer os.Chdir(prevDir)
 	os.Chdir(dir)
 
-	watcher, err := New("templates", true)
+	watcher, errChan := NewWithWatcher("templates")
 	require.NotNil(t, watcher)
+	select {
+	case msg := <-errChan:
+		err = msg
+	default:
+		err = nil
+	}
 	require.NoError(t, err)
 	defer watcher.Close()
 
@@ -41,8 +47,15 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	require.Eventually(t, func() bool { return watcher.RenderToString("foo", Data{}) == "bar" }, time.Millisecond*1000, time.Millisecond*50)
 }
 
-func TestHTMLTemplateWatcher_BadDirectory(t *testing.T) {
-	watcher, err := New("notarealdirectory", true)
+func TestNewWithWatcher_BadDirectory(t *testing.T) {
+	watcher, errChan := NewWithWatcher("notarealdirectory")
+	err := <-errChan
+	assert.Nil(t, watcher)
+	assert.Error(t, err)
+}
+
+func TestNew_BadDirectory(t *testing.T) {
+	watcher, err := New("notarealdirectory")
 	assert.Nil(t, watcher)
 	assert.Error(t, err)
 }
@@ -51,7 +64,7 @@ func TestRender(t *testing.T) {
 	tpl := template.New("test")
 	_, err := tpl.Parse(`{{ define "foo" }}foo{{ .Props.Bar }}{{ end }}`)
 	require.NoError(t, err)
-	mt, _ := NewFromTemplate(tpl)
+	mt := NewFromTemplate(tpl)
 
 	data := Data{
 		Props: map[string]interface{}{
@@ -69,11 +82,22 @@ func TestRenderError(t *testing.T) {
 	tpl := template.New("test")
 	_, err := tpl.Parse(`{{ define "foo" }}foo{{ .Foo.Bar }}bar{{ end }}`)
 	require.NoError(t, err)
-	mt, _ := NewFromTemplate(tpl)
+	mt := NewFromTemplate(tpl)
 
 	assert.Equal(t, "foo", mt.RenderToString("foo", Data{}))
 
 	buf := &bytes.Buffer{}
 	assert.Error(t, mt.Render(buf, "foo", Data{}))
 	assert.Equal(t, "foo", buf.String())
+}
+
+func TestRenderUnknownTemplate(t *testing.T) {
+	tpl := template.New("")
+	mt := NewFromTemplate(tpl)
+
+	assert.Equal(t, "", mt.RenderToString("foo", Data{}))
+
+	buf := &bytes.Buffer{}
+	assert.Error(t, mt.Render(buf, "foo", Data{}))
+	assert.Equal(t, "", buf.String())
 }

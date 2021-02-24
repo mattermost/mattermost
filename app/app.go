@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -155,7 +156,7 @@ func (s *Server) TemplatesContainer() *templates.Container {
 		return s.htmlTemplateWatcher
 	}
 
-	return nil
+	return templates.NewFromTemplate(template.New(""))
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
