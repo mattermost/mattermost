@@ -635,7 +635,7 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 
 // SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
 func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	bodyPage := es.newEmailTemplate("cloud_upgrade_request_email", locale)
 
