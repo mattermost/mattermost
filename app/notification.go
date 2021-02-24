@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -436,8 +435,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, uid := range thread.Participants {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent, _ = strconv.ParseBool(preference.Value)
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
 
