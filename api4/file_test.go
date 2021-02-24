@@ -61,7 +61,7 @@ func fileBytes(t *testing.T, path string) []byte {
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
 	contentLength int64) (*model.FileUploadResponse, *model.Response) {
 	req, err := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, bytes.NewReader(blob))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	if contentLength != 0 {
 		req.ContentLength = contentLength
@@ -72,7 +72,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 
 	resp, err := c.HttpClient.Do(req)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer closeBody(resp)
 
@@ -156,13 +156,13 @@ func testUploadFilesMultipart(
 	mw := multipart.NewWriter(mwBody)
 
 	err := mw.WriteField("channel_id", channelId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	for i, blob := range blobs {
 		ct := http.DetectContentType(blob)
 		if len(clientIds) > i {
 			err = mw.WriteField("client_ids", clientIds[i])
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 
 		h := textproto.MIMEHeader{}
@@ -172,10 +172,10 @@ func testUploadFilesMultipart(
 
 		// If we error here, writing to mw, the deferred handler
 		part, err := mw.CreatePart(h)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	require.NoError(t, mw.Close())
@@ -628,7 +628,7 @@ func TestUploadFiles(t *testing.T) {
 					}
 
 					dbInfo, err := th.App.Srv().Store.FileInfo().Get(ri.Id)
-					require.Nil(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
 					assert.Equal(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
 					assert.Equal(t, dbInfo.PostId, "", "File shouldn't have a post")
@@ -666,13 +666,13 @@ func TestUploadFiles(t *testing.T) {
 							require.Nil(t, resp.Error)
 
 							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
-							require.Nil(t, err)
+							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
 								defer tf.Close()
-								require.Nil(t, err)
+								require.NoError(t, err)
 								_, err = io.Copy(tf, bytes.NewReader(data))
-								require.Nil(t, err)
+								require.NoError(t, err)
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
@@ -860,7 +860,7 @@ func TestGetFileLink(t *testing.T) {
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp = Client.GetFileLink(fileId)
@@ -891,7 +891,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckNoError(t, resp)
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.cleanupTestFile(fileInfo)
 }
 
@@ -1005,10 +1005,10 @@ func TestGetPublicFile(t *testing.T) {
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
 
 	resp, err := http.Get(link)
@@ -1038,12 +1038,12 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
-	require.Nil(t, th.cleanupTestFile(fileInfo))
+	require.NoError(t, err)
+	require.NoError(t, th.cleanupTestFile(fileInfo))
 
 	th.cleanupTestFile(info)
 	link = th.App.GeneratePublicLink(Client.Url, info)
 	resp, err = http.Get(link)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }

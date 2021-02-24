@@ -209,6 +209,8 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-bindata/go-bindata v3.1.2+incompatible
+## explicit
 # github.com/go-redis/redis/v8 v8.4.9
 ## explicit
 github.com/go-redis/redis/v8
@@ -224,6 +226,30 @@ github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
+# github.com/gobwas/httphead v0.1.0
+github.com/gobwas/httphead
+# github.com/gobwas/pool v0.2.1
+github.com/gobwas/pool
+github.com/gobwas/pool/internal/pmath
+github.com/gobwas/pool/pbufio
+github.com/gobwas/pool/pbytes
+# github.com/gobwas/ws v1.1.0-rc.2
+## explicit
+github.com/gobwas/ws
+github.com/gobwas/ws/wsutil
+# github.com/golang-migrate/migrate v3.5.4+incompatible
+## explicit
+# github.com/golang-migrate/migrate/v4 v4.14.1
+## explicit
+github.com/golang-migrate/migrate/v4
+github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/mysql
+github.com/golang-migrate/migrate/v4/database/postgres
+github.com/golang-migrate/migrate/v4/internal/url
+github.com/golang-migrate/migrate/v4/source
+github.com/golang-migrate/migrate/v4/source/file
+github.com/golang-migrate/migrate/v4/source/go_bindata
+github.com/golang-migrate/migrate/v4/source/httpfs
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 ## explicit
 github.com/golang/freetype
@@ -354,6 +380,9 @@ github.com/levigross/exp-html
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
+# github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
+## explicit
+github.com/mailru/easygo/netpoll
 # github.com/mailru/easyjson v0.7.6
 ## explicit
 github.com/mailru/easyjson
@@ -750,6 +779,9 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
+# golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+## explicit
+golang.org/x/sync/errgroup
 # golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -905,8 +937,6 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# honnef.co/go/tools v0.0.1-2020.1.3
-## explicit
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize
 # willnorris.com/go/imageproxy v0.10.0

@@ -3611,32 +3611,12 @@
     "translation": "Bulletin de Sécurité Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Une erreur s'est produite lors de l'authentification du jeton MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Jeton MFA invalide"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Impossible de mettre à jour le statut actif MFA pour l'utilisateur"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Impossible de mettre à jour le statut actif MFA pour l'utilisateur"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Une erreur s'est produite lors de la réinitialisation de la clé secrète MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Une erreur s'est produite lors de la génération du QR code"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Une erreur s'est produite lors de la sauvegarde de la clé secrète MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4893,46 +4873,6 @@
   {
     "id": "system.message.name",
     "translation": "Système"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Impossible de définir le HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Échec de l'ouverture de la connexion sql"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Échec de l'ouverture de la connexion TLS"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Échec de l'authentification auprès du serveur SMTP"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Impossible d'attacher le fichier joint à l'e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Échec de fermeture de connexion auprès du serveur SMTP"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Une erreur s'est produite lors de la définition de l'adresse source"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Échec d'écriture de l'e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Impossible d'ajouter les données du message à l'e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Une erreur s'est produite lors de la définition de l'adresse de destination"
   },
   {
     "id": "web.command_webhook.command.app_error",

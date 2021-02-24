@@ -75,18 +75,18 @@ func (e *ErrConflict) Unwrap() error {
 // ErrNotFound indicates that a resource was not found
 type ErrNotFound struct {
 	resource string
-	Id       string
+	ID       string
 }
 
 func NewErrNotFound(resource, id string) *ErrNotFound {
 	return &ErrNotFound{
 		resource: resource,
-		Id:       id,
+		ID:       id,
 	}
 }
 
 func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.Id
+	return "resource: " + e.resource + " id: " + e.ID
 }
 
 // ErrOutOfBounds indicates that the requested total numbers of rows

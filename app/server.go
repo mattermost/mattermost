@@ -30,6 +30,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easygo/netpoll"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
@@ -102,8 +103,11 @@ type Server struct {
 
 	EmailService *EmailService
 
-	hubs     []*Hub
-	hashSeed maphash.Seed
+	hubs          []*Hub
+	hashSeed      maphash.Seed
+	poller        netpoll.Poller
+	webConnSema   chan struct{}
+	webConnSemaWg sync.WaitGroup
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -226,6 +230,16 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
+	// epoll/kqueue is not available on Windows.
+	if runtime.GOOS != "windows" {
+		poller, err := netpoll.New(nil)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create a netpoll instance")
+		}
+		s.poller = poller
+		s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
+	}
+
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
@@ -259,9 +273,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if *s.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err := tracing.New()
-		if err != nil {
-			return nil, err
+		tracer, err2 := tracing.New()
+		if err2 != nil {
+			return nil, err2
 		}
 		s.tracer = tracer
 	}
@@ -473,7 +487,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.WebSocketRouter.app = fakeApp
 
-	if nErr := mailservice.TestConnection(s.Config()); nErr != nil {
+	mailConfig := s.MailServiceConfig()
+
+	if nErr := mailservice.TestConnection(mailConfig); nErr != nil {
 		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
@@ -1166,6 +1182,10 @@ func (s *Server) startLocalModeServer() error {
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	if err := os.RemoveAll(socket); err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
@@ -1201,7 +1221,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+	return utils.SameOriginChecker()
 }
 
 func (s *Server) checkPushNotificationServerUrl() {
@@ -1554,7 +1574,7 @@ func (s *Server) stopSearchEngine() {
 
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
-	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
 	if err != nil {
 		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1619,6 +1639,10 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (s *Server) Poller() netpoll.Poller {
+	return s.poller
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {

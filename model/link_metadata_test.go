@@ -169,7 +169,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.IsType(t, &PostImage{}, metadata.Data)
 		assert.Equal(t, *image, *metadata.Data.(*PostImage))
 	})
@@ -187,7 +187,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		b, err := json.Marshal(og)
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		metadata := &LinkMetadata{
 			Type: LINK_METADATA_TYPE_OPENGRAPH,
@@ -198,7 +198,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err = metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.IsType(t, &opengraph.OpenGraph{}, metadata.Data)
 		assert.Equal(t, *og, *metadata.Data.(*opengraph.OpenGraph))
 	})
@@ -211,7 +211,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should ignore an invalid type", func(t *testing.T) {
@@ -222,7 +222,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should return error for invalid data", func(t *testing.T) {
@@ -233,7 +233,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 }
 

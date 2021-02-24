@@ -60,6 +60,10 @@ func TestNoticeValidation(t *testing.T) {
 		systemAdmin          bool
 		serverVersion        string
 		notice               *model.ProductNotice
+		dbmsName             string
+		dbmsVer              string
+		searchEngineName     string
+		searchEngineVer      string
 	}
 	messages := map[string]model.NoticeMessageInternal{
 		"en": {
@@ -538,6 +542,93 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
+		{
+			name: "notice with depreacting an external dependency",
+			args: args{
+				dbmsName: "mysql",
+				dbmsVer:  "5.6",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "mysql",
+							MinimumVersion: "5.7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with depreacting an external dependency, on a future version",
+			args: args{
+				dbmsName:      "mysql",
+				dbmsVer:       "5.6",
+				serverVersion: "5.32",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{">=v5.33"},
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "mysql",
+							MinimumVersion: "5.7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on a deprecating dependency, server is all good",
+			args: args{
+				dbmsName: "postgres",
+				dbmsVer:  "10",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "postgres",
+							MinimumVersion: "10",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on a deprecating dependency, server has different dbms",
+			args: args{
+				dbmsName: "mysql",
+				dbmsVer:  "5.7",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "postgres",
+							MinimumVersion: "10",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice on deprecating elasticsearch, server has unsupported search engine",
+			args: args{
+				searchEngineName: "elasticsearch",
+				searchEngineVer:  "6.4.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DeprecatingDependency: &model.ExternalDependency{
+							Name:           "elasticsearch",
+							MinimumVersion: "7",
+						},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -561,6 +652,10 @@ func TestNoticeValidation(t *testing.T) {
 				tt.args.teamAdmin,
 				tt.args.cloud,
 				tt.args.sku,
+				tt.args.dbmsName,
+				tt.args.dbmsVer,
+				tt.args.searchEngineName,
+				tt.args.searchEngineVer,
 				tt.args.notice,
 			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
@@ -586,8 +681,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes, appErr := notices.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes, err := notices.Marshal()
+	require.NoError(t, err)
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
@@ -602,8 +697,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes2, appErr := notices2.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes2, err := notices2.Marshal()
+	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
 			w.Write(noticesBytes)
@@ -619,7 +714,7 @@ func TestNoticeFetch(t *testing.T) {
 	})
 
 	// fetch fake notices
-	appErr = th.App.UpdateProductNotices()
+	appErr := th.App.UpdateProductNotices()
 	require.Nil(t, appErr)
 
 	// get them for specified user
@@ -638,7 +733,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	// validate views table
 	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 1)
 
 	// fetch another set
@@ -657,6 +752,6 @@ func TestNoticeFetch(t *testing.T) {
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
 	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

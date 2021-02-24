@@ -716,6 +716,34 @@
     "translation": "Image links now collapse by default"
   },
   {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error setting the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error clearing the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Set or clear your status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] or clear"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Your status is set to “{{.EmojiName}} {{.StatusMessage}}”. You can change your status from the status popover in the channel sidebar header."
+  },
+  {
     "id": "api.command_dnd.desc",
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
@@ -1205,6 +1233,14 @@
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -2607,6 +2643,10 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+  },
+  {
     "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
   },
@@ -2961,6 +3001,26 @@
   {
     "id": "api.templates.upgrade_mattermost_cloud",
     "translation": "Upgrade"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost user request upgrade of workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "New users are unable to join your workspace"
   },
   {
     "id": "api.templates.user_access_token_body.info",
@@ -3447,6 +3507,10 @@
     "translation": "Failed to send update password email successfully"
   },
   {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Failed to send email to user limit notification to admin"
+  },
+  {
     "id": "api.user.send_user_access_token.error",
     "translation": "Failed to send \"Personal access token added\" email successfully"
   },
@@ -3573,6 +3637,10 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Invalid Origin header set during websocket upgrade."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -4092,7 +4160,7 @@
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": "Failed to created file during export."
+    "translation": "Failed to create file during export."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
@@ -5099,6 +5167,10 @@
     "translation": "Unable to get direct posts."
   },
   {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the files batch for indexing."
+  },
+  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -5727,6 +5799,10 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
+    "id": "app.user.send_emails.app_error",
+    "translation": "No emails were successfully sent"
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
@@ -6013,6 +6089,10 @@
   {
     "id": "bleveengine.purge_channel_index.error",
     "translation": "Failed to purge channel indexes."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Failed to purge file indexes."
   },
   {
     "id": "bleveengine.purge_post_index.error",
@@ -6369,6 +6449,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6871,32 +6955,20 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token."
+    "id": "mfa.activate.app_error",
+    "translation": "Unable to update MFA active status for the user."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Invalid MFA token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
+    "id": "mfa.deactivate.app_error",
     "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generating QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
