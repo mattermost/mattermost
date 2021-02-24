@@ -1004,29 +1004,6 @@ func (ss *SqlStore) CreateForeignKeyIfNotExists(
 	return
 }
 
-func (ss *SqlStore) CreateCheckConstraintIfNotExists(
-	tableName, columnName, checkClause string,
-) (err error) {
-	if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		err = errors.New("sqlite does not support ADD CONSTRAINT")
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		err = errors.New("MySQL 8.0+ is required for CHECK constraints")
-	} else {
-		constraintName := "CHK_" + tableName + "_" + columnName
-		sQuery := `
-		ALTER TABLE ` + tableName + `
-		ADD CONSTRAINT ` + constraintName + ` CHECK (` + checkClause + `);`
-		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
-		if IsConstraintAlreadyExistsError(err) {
-			err = nil
-		}
-	}
-	if err != nil {
-		mlog.Warn("Could not create constraint: " + err.Error())
-	}
-	return
-}
-
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {

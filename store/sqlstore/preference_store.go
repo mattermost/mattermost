@@ -318,8 +318,9 @@ func (s *SqlPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now i
 				RetentionPoliciesChannels.PolicyId IS NULL
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
-		WHERE Category = :Category AND
-			:Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		WHERE Category = :Category
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+			AND RetentionPolicies.PostDuration > 0
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {

@@ -232,6 +232,7 @@ func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, l
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
 		WHERE :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+			AND RetentionPolicies.PostDuration > 0
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {

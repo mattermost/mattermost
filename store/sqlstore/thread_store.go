@@ -632,6 +632,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
 		WHERE :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+			AND RetentionPolicies.PostDuration > 0
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -676,6 +677,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 			)
 		WHERE :Now - ThreadMemberships.LastUpdated >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+			AND RetentionPolicies.PostDuration > 0
 		LIMIT :Limit`
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
