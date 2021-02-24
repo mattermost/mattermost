@@ -191,9 +191,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	d1 := []byte("hello\ngo\n")
 	err := ioutil.WriteFile("mattermost.log", d1, 0777)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = ioutil.WriteFile("notifications.log", d1, 0777)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	fileDatas := th.App.GenerateSupportPacket()
 	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
@@ -205,9 +205,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	// Remove these two files and ensure that warning.txt file is generated
 	err = os.Remove("notifications.log")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Remove("mattermost.log")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	fileDatas = th.App.GenerateSupportPacket()
 	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
 	for i, fileData := range fileDatas {
@@ -246,7 +246,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	d1 := []byte("hello\ngo\n")
 	err := ioutil.WriteFile("notifications.log", d1, 0777)
 	defer os.Remove("notifications.log")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	fileData, warning = th.App.getNotificationsLog()
 	require.NotNil(t, fileData)
@@ -284,7 +284,7 @@ func TestGetMattermostLog(t *testing.T) {
 	d1 := []byte("hello\ngo\n")
 	err := ioutil.WriteFile("mattermost.log", d1, 0777)
 	defer os.Remove("mattermost.log")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	fileData, warning = th.App.getMattermostLog()
 	require.NotNil(t, fileData)
