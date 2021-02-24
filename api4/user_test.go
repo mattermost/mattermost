@@ -5960,7 +5960,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			patch := user.ToPatch()
 			patch.SetField(fieldName, "something new")
-			conflictField := checkProviderAttributes(th.App, user, patch)
+			conflictField := th.App.CheckProviderAttributes(user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})
@@ -5975,7 +5975,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			user := th.CreateUserWithAuth(authService)
 			patch := &model.UserPatch{Username: model.NewString("something new")}
-			conflictField := checkProviderAttributes(th.App, user, patch)
+			conflictField := th.App.CheckProviderAttributes(user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})

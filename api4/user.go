@@ -1121,7 +1121,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	conflictField := checkProviderAttributes(c.App, ouser, user.ToPatch())
+	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
@@ -1149,37 +1149,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.Write([]byte(ruser.ToJson()))
-}
-
-// checkProviderAttributes returns the empty string if the patch can be applied without
-// overriding attributes set by the user's login provider; otherwise, the name of the offending
-// field is returned.
-func checkProviderAttributes(a app.AppIface, ouser *model.User, patch *model.UserPatch) string {
-	tryingToChange := func(patchValue *string, userValue *string) bool {
-		return patchValue != nil && *patchValue != *userValue
-	}
-	LdapSettings := &a.Config().LdapSettings
-	SamlSettings := &a.Config().SamlSettings
-
-	conflictField := ""
-	if a.Ldap() != nil &&
-		(ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
-		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, ouser, patch)
-	} else if a.Saml() != nil && ouser.IsSAMLUser() {
-		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, ouser, patch)
-	} else if ouser.IsOAuthUser() {
-		if tryingToChange(patch.FirstName, &ouser.FirstName) ||
-			tryingToChange(patch.LastName, &ouser.LastName) {
-			conflictField = "full name"
-		}
-	}
-	// If any login provider is used, then the username may not be changed
-	if ouser.AuthService != "" {
-		if tryingToChange(patch.Username, &ouser.Username) && conflictField == "" {
-			conflictField = "username"
-		}
-	}
-	return conflictField
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1223,7 +1192,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	conflictField := checkProviderAttributes(c.App, ouser, patch)
+	conflictField := c.App.CheckProviderAttributes(ouser, patch)
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",

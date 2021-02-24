@@ -737,17 +737,21 @@ func (u *User) ToPatch() *UserPatch {
 	}
 }
 
-var patchFieldSelector = map[string]func(*UserPatch) **string{
-	"FirstName": func(p *UserPatch) **string { return &p.FirstName },
-	"LastName":  func(p *UserPatch) **string { return &p.LastName },
-	"Nickname":  func(p *UserPatch) **string { return &p.Nickname },
-	"Email":     func(p *UserPatch) **string { return &p.Email },
-	"Position":  func(p *UserPatch) **string { return &p.Position },
-	"Username":  func(p *UserPatch) **string { return &p.Username },
-}
-
 func (u *UserPatch) SetField(fieldName string, fieldValue string) {
-	*patchFieldSelector[fieldName](u) = &fieldValue
+	switch fieldName {
+	case "FirstName":
+		u.FirstName = &fieldValue
+	case "LastName":
+		u.LastName = &fieldValue
+	case "Nickname":
+		u.Nickname = &fieldValue
+	case "Email":
+		u.Email = &fieldValue
+	case "Position":
+		u.Position = &fieldValue
+	case "Username":
+		u.Username = &fieldValue
+	}
 }
 
 // UserFromJson will decode the input and return a User
