@@ -144,8 +144,6 @@ github.com/blevesearch/zap/v13
 github.com/blevesearch/zap/v14
 # github.com/blevesearch/zap/v15 v15.0.3
 github.com/blevesearch/zap/v15
-# github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-## explicit
 # github.com/cespare/xxhash/v2 v2.1.1
 ## explicit
 github.com/cespare/xxhash/v2
@@ -209,8 +207,6 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-bindata/go-bindata v3.1.2+incompatible
-## explicit
 # github.com/go-redis/redis/v8 v8.4.9
 ## explicit
 github.com/go-redis/redis/v8
@@ -237,8 +233,6 @@ github.com/gobwas/pool/pbytes
 ## explicit
 github.com/gobwas/ws
 github.com/gobwas/ws/wsutil
-# github.com/golang-migrate/migrate v3.5.4+incompatible
-## explicit
 # github.com/golang-migrate/migrate/v4 v4.14.1
 ## explicit
 github.com/golang-migrate/migrate/v4
