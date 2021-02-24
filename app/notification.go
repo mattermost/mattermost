@@ -441,14 +441,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if sendEvent {
 
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				if mentionedUsersList.Contains(uid) {
-					userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
-					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
-					message.Add("thread", userThread.ToJson())
-				} else {
-					message.Add("thread", thread.ToJson())
-				}
+				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+				message.Add("thread", userThread.ToJson())
 				a.Publish(message)
 			}
 		}
