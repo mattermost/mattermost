@@ -156,12 +156,6 @@ func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var jobsOrphanedRowsInterface func(*App) tjobs.OrphanedRowsInterface
-
-func RegisterJobsOrphanedRowsInterface(f func(*App) tjobs.OrphanedRowsInterface) {
-	jobsOrphanedRowsInterface = f
-}
-
 var metricsInterface func(*Server) einterfaces.MetricsInterface
 
 func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {

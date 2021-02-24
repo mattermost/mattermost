@@ -1921,7 +1921,7 @@ func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) 
 	const query = `
 	DELETE FROM Posts WHERE Id IN (
 		SELECT * FROM (
-			SELECT Id FROM Posts
+			SELECT Posts.Id FROM Posts
 			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
 			WHERE Channels.Id IS NULL
 			LIMIT :Limit

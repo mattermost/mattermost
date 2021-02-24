@@ -35,7 +35,6 @@ type JobServer struct {
 	ExportProcess           tjobs.ExportProcessInterface
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
-	OrphanedRows            tjobs.OrphanedRowsInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {

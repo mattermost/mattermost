@@ -107,10 +107,6 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Cloud = cloudInterface.MakeWorker()
 	}
 
-	if srv.OrphanedRows != nil {
-		workers.OrphanedRows = srv.OrphanedRows.MakeWorker()
-	}
-
 	return workers
 }
 
