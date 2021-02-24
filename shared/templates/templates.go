@@ -50,44 +50,34 @@ func New(directory string) (*Container, error) {
 
 // NewWithWatcher creates a new templates container scanning a directory and
 // watch the directory filesystem changes to apply them to the loaded
-// templates. The caller must consume the returned error channel to ensure not
-// blocking the watch process.
-func NewWithWatcher(directory string) (*Container, <-chan error) {
-	errors := make(chan error)
-	c := &Container{}
-
+// templates. This function returns the container an a errors channel to pass
+// all errors that can happen during the watch process, or an regular error if
+// we fail to create the templates or the watcher. The caller must consume the
+// returned errors channel to ensure not blocking the watch process.
+func NewWithWatcher(directory string) (*Container, <-chan error, error) {
 	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
 	if err != nil {
-		go func() {
-			defer close(errors)
-			errors <- err
-		}()
-		return nil, errors
+		return nil, nil, err
 	}
-	c.templates = htmlTemplates
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		go func() {
-			defer close(errors)
-			errors <- err
-		}()
-		return c, errors
+		return nil, nil, err
 	}
 
 	err = watcher.Add(directory)
 	if err != nil {
-		go func() {
-			defer close(errors)
-			errors <- err
-		}()
 		watcher.Close()
-		return c, errors
+		return nil, nil, err
 	}
 
-	c.watch = true
-	c.stop = make(chan struct{})
-	c.stopped = make(chan struct{})
+	c := &Container{
+		templates: htmlTemplates,
+		watch:     true,
+		stop:      make(chan struct{}),
+		stopped:   make(chan struct{}),
+	}
+	errors := make(chan error)
 
 	go func() {
 		defer close(errors)
@@ -114,7 +104,7 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 		}
 	}()
 
-	return c, errors
+	return c, errors, nil
 }
 
 // Close stops the templates watcher of the container in case you have created

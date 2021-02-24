@@ -29,7 +29,8 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 	defer os.Chdir(prevDir)
 	os.Chdir(dir)
 
-	watcher, errChan := NewWithWatcher("templates")
+	watcher, errChan, err := NewWithWatcher("templates")
+	require.NoError(t, err)
 	require.NotNil(t, watcher)
 	select {
 	case msg := <-errChan:
@@ -53,10 +54,10 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 }
 
 func TestNewWithWatcher_BadDirectory(t *testing.T) {
-	watcher, errChan := NewWithWatcher("notarealdirectory")
-	err := <-errChan
+	watcher, errChan, err := NewWithWatcher("notarealdirectory")
+	require.Error(t, err)
 	assert.Nil(t, watcher)
-	assert.Error(t, err)
+	assert.Nil(t, errChan)
 }
 
 func TestNew_BadDirectory(t *testing.T) {
