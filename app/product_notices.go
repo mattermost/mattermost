@@ -261,10 +261,9 @@ func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClient
 	dbName := *a.Srv().Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string
-	engine := a.SearchEngine().ElasticsearchEngine
-	if engine != nil {
-		searchEngineName = a.Srv().SearchEngine.ElasticsearchEngine.GetName()
-		searchEngineVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
+	if engine := a.Srv().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
+		searchEngineName = engine.ElasticsearchEngine.GetName()
+		searchEngineVersion = engine.ElasticsearchEngine.GetFullVersion()
 	}
 
 	filteredNotices := make([]model.NoticeMessage, 0)
