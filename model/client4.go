@@ -6001,3 +6001,13 @@ func (c *Client4) SendAdminUpgradeRequestEmail() *Response {
 
 	return BuildResponse(r)
 }
+
+func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
