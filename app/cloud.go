@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -23,7 +24,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 
 // SendAdminUpgradeRequestEmail takes the username of user trying to alert admins and then applies rate limit of n (number of admins) emails per user per day
 // before sending the emails.
-func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
+func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription, action string) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		return nil
 	}
@@ -32,21 +33,24 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 		return nil
 	}
 
+	year, month, day := time.Now().Date()
+	key := fmt.Sprintf("%s-%d-%s-%d", action, day, month, year)
+
 	if a.Srv().EmailService.PerDayEmailRateLimiter == nil {
-		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("for username=%s", username), http.StatusInternalServerError)
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("for key=%s", key), http.StatusInternalServerError)
 	}
 
-	// rate limit based on username as key
-	rateLimited, result, err := a.Srv().EmailService.PerDayEmailRateLimiter.RateLimit(username, 1)
+	// rate limit based on combination of date and action as key
+	rateLimited, result, err := a.Srv().EmailService.PerDayEmailRateLimiter.RateLimit(key, 1)
 	if err != nil {
-		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("username=%s, error=%v", username, err), http.StatusInternalServerError)
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("for key=%s, error=%v", key, err), http.StatusInternalServerError)
 	}
 
 	if rateLimited {
 		return model.NewAppError("app.SendAdminUpgradeRequestEmail",
 			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
-			fmt.Sprintf("username=%s, retry_after_secs=%f, reset_after_secs=%f",
-				username, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
+			fmt.Sprintf("key=%s, retry_after_secs=%f, reset_after_secs=%f",
+				key, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
 			http.StatusRequestEntityTooLarge)
 	}
 
@@ -59,7 +63,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	countNotOks := 0
 
 	for admin := range sysAdmins {
-		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL, action)
 		if !ok || err != nil {
 			a.Log().Error("Error sending upgrade request email", mlog.Err(err))
 			countNotOks++

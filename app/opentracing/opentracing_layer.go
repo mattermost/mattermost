@@ -13263,7 +13263,7 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
+func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription, action string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAdminUpgradeRequestEmail")
 
@@ -13275,7 +13275,7 @@ func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subs
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendAdminUpgradeRequestEmail(username, subscription)
+	resultVar0 := a.app.SendAdminUpgradeRequestEmail(username, subscription, action)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
