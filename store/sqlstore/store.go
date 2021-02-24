@@ -230,7 +230,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
 	store.stores.webhook.(*SqlWebhookStore).createIndexesIfNotExists()
-	store.stores.command.(*SqlCommandStore).createIndexesIfNotExists()
 	store.stores.commandWebhook.(*SqlCommandWebhookStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
 	store.stores.license.(*SqlLicenseStore).createIndexesIfNotExists()
