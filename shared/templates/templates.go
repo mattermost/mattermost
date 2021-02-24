@@ -32,22 +32,13 @@ type Data struct {
 // NewFromTemplates creates a new templates container using a
 // `template.Template` object
 func NewFromTemplate(templates *template.Template) (*Container, error) {
-	ret := &Container{
-		templates: templates,
-		stop:      make(chan struct{}),
-		stopped:   make(chan struct{}),
-		watch:     false,
-	}
+	ret := &Container{templates: templates}
 	return ret, nil
 }
 
 // New creates a new templates container scanning a directory.
 func New(directory string) (*Container, error) {
-	ret := &Container{
-		stop:    make(chan struct{}),
-		stopped: make(chan struct{}),
-		watch:   false,
-	}
+	ret := &Container{}
 
 	htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
 	if err != nil {
@@ -60,19 +51,25 @@ func New(directory string) (*Container, error) {
 
 // NewWithWatcher creates a new templates container scanning a directory and
 // watch the directory filesystem changes to apply them to the loaded
-// templates.
+// templates. The caller must consume the returned error channel to ensure not
+// blocking the watch process.
 func NewWithWatcher(directory string) (*Container, <-chan error) {
 	errors := make(chan error)
 	ret := &Container{
 		templates: &template.Template{},
-		stop:      make(chan struct{}),
-		stopped:   make(chan struct{}),
-		watch:     true,
 	}
 
 	go func() {
-		defer close(ret.stopped)
 		defer close(errors)
+
+		htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
+		if err != nil {
+			errors <- err
+			return
+		}
+		ret.mutex.Lock()
+		ret.templates = htmlTemplates
+		ret.mutex.Unlock()
 
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
@@ -86,14 +83,13 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 			return
 		}
 
-		htmlTemplates, err := template.ParseGlob(filepath.Join(directory, "*.html"))
-		if err != nil {
-			errors <- err
-			return
-		}
 		ret.mutex.Lock()
-		ret.templates = htmlTemplates
+		ret.watch = true
+		ret.stop = make(chan struct{})
+		ret.stopped = make(chan struct{})
 		ret.mutex.Unlock()
+
+		defer close(ret.stopped)
 
 		for {
 			select {
@@ -118,15 +114,11 @@ func NewWithWatcher(directory string) (*Container, <-chan error) {
 	return ret, errors
 }
 
-func (t *Container) getTemplates() *template.Template {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-	return t.templates
-}
-
 // Close stops the templates watcher of the container in case you have created
 // it with watch parameter set to true
 func (t *Container) Close() {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
 	if t.watch {
 		close(t.stop)
 		<-t.stopped
@@ -144,7 +136,15 @@ func (t *Container) RenderToString(templateName string, data Data) string {
 // RenderToString renders the template referenced with the template name using
 // the data provided and write it to the writer provided
 func (t *Container) Render(w io.Writer, templateName string, data Data) error {
-	if err := t.getTemplates().ExecuteTemplate(w, templateName, data); err != nil {
+	t.mutex.RLock()
+	htmlTemplates := t.templates
+	t.mutex.RUnlock()
+
+	if htmlTemplates == nil {
+		return nil
+	}
+
+	if err := htmlTemplates.ExecuteTemplate(w, templateName, data); err != nil {
 		return err
 	}
 

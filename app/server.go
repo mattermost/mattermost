@@ -389,15 +389,13 @@ func NewServer(options ...Option) (*Server, error) {
 	if !ok {
 		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
-		if htmlTemplateWatcher, errorsChan := templates.NewWithWatcher(templatesDir); errorsChan != nil {
-			s.Go(func() {
-				for err2 := range errorsChan {
-					mlog.Error("Server templates error", mlog.Err(err2))
-				}
-			})
-		} else {
-			s.htmlTemplateWatcher = htmlTemplateWatcher
-		}
+		htmlTemplateWatcher, errorsChan := templates.NewWithWatcher(templatesDir)
+		s.Go(func() {
+			for err2 := range errorsChan {
+				mlog.Error("Server templates error", mlog.Err(err2))
+			}
+		})
+		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
 	s.Store, err = s.newStore()
