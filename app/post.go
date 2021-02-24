@@ -737,7 +737,7 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetSingle(postId)
+	post, err := a.Srv().Store.Post().GetSingle(postId, false)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1021,7 +1021,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userID string, limit
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
-	post, nErr := a.Srv().Store.Post().GetSingle(postId)
+	post, nErr := a.Srv().Store.Post().GetSingle(postId, false)
 	if nErr != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
@@ -1246,7 +1246,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postId)
+		post, err := a.Srv().Store.Post().GetSingle(postId, false)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()

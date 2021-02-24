@@ -504,32 +504,23 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) (*model.Post, error) {
-	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Post", id)
-		}
-
-		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
-	}
-	return &post, nil
-}
-
-func (s *SqlPostStore) GetSingleIncDeleted(id string) (*model.Post, error) {
-	query, args, err := s.getQueryBuilder().
+func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Eq{"Id": id}).
-		ToSql()
+		Where(sq.Eq{"Id": id})
 
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "getsingleincldeleted_tosql")
 	}
 
 	var post model.Post
-	err = s.GetReplica().SelectOne(&post, query, args...)
+	err = s.GetReplica().SelectOne(&post, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

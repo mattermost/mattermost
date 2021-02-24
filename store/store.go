@@ -281,8 +281,7 @@ type PostStore interface {
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
-	GetSingle(id string) (*model.Post, error)
-	GetSingleIncDeleted(postID string) (*model.Post, error)
+	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
 	PermanentDeleteByChannel(channelID string) error

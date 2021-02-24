@@ -5814,31 +5814,11 @@ func (s *RetryLayerPostStore) GetRepliesForExport(parentID string) ([]*model.Rep
 
 }
 
-func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, error) {
+func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetSingle(id)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetSingleIncDeleted(postID string) (*model.Post, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetSingleIncDeleted(postID)
+		result, err := s.PostStore.GetSingle(id, inclDeleted)
 		if err == nil {
 			return result, nil
 		}

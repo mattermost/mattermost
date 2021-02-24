@@ -4880,10 +4880,10 @@ func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.Rep
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetSingle(id string) (*model.Post, error) {
+func (s *TimerLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetSingle(id)
+	result, err := s.PostStore.GetSingle(id, inclDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4892,22 +4892,6 @@ func (s *TimerLayerPostStore) GetSingle(id string) (*model.Post, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingle", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetSingleIncDeleted(postID string) (*model.Post, error) {
-	start := timemodule.Now()
-
-	result, err := s.PostStore.GetSingleIncDeleted(postID)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingleIncDeleted", success, elapsed)
 	}
 	return result, err
 }

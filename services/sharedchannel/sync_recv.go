@@ -226,7 +226,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 
 	post.RemoteId = model.NewString(rc.RemoteId)
 
-	rpost, err := scs.server.GetStore().Post().GetSingleIncDeleted(post.Id)
+	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id, true)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync post: %w", err)
