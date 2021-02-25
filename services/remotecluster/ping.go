@@ -70,15 +70,8 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			if rc == nil {
 				return
 			}
-
-			online := rc.IsOnline()
-
 			if err := rcs.pingRemote(rc); err != nil {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed", mlog.Err(err))
-			}
-
-			if online != rc.IsOnline() {
-				rcs.fireConnectionStateChgEvent(rc)
 			}
 		case <-done:
 			return

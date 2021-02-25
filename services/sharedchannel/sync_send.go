@@ -62,8 +62,28 @@ func (scs *Service) NotifyChannelChanged(channelId string) {
 
 // ForceSyncForRemote causes all channels shared with the remote to be synchronized.
 func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
+		return
+	}
+
 	// fetch all channels shared with this remote.
-	//opts := store.
+	opts := model.SharedChannelRemoteFilterOpts{
+		RemoteId: rc.RemoteId,
+	}
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(opts)
+	if err != nil {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, scr := range scrs {
+		task := newSyncTask(scr.ChannelId, rc.RemoteId, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+	}
 }
 
 // addTask adds or re-adds a task to the queue.
