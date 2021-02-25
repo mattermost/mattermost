@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS GroupTeams (
     GroupId varchar(26) NOT NULL,
     AutoAdd tinyint(1),
-    SchemeAdmin tinyint(1),
+    SchemeAdmin tinyint(1) DEFAULT 0,
     CreateAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
     UpdateAt bigint(20) DEFAULT NULL,
@@ -19,7 +19,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'SchemeAdmin'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE GroupTeams ADD COLUMN SchemeAdmin tinyint(1);'
+    'ALTER TABLE GroupTeams ADD COLUMN SchemeAdmin tinyint(1) DEFAULT 0;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS groupteams (
     groupid VARCHAR(26),
     autoadd boolean,
-    schemeadmin boolean,
+    schemeadmin boolean default false,
     createat bigint,
     deleteat bigint,
     updateat bigint,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS groupteams (
     PRIMARY KEY(groupid, teamid)
 );
 
-ALTER TABLE groupteams ADD COLUMN IF NOT EXISTS schemeadmin boolean;
+ALTER TABLE groupteams ADD COLUMN IF NOT EXISTS schemeadmin boolean default false;
 
 CREATE INDEX IF NOT EXISTS idx_groupteams_schemeadmin ON groupteams (schemeadmin);
 CREATE INDEX IF NOT EXISTS idx_groupteams_teamid ON groupteams (teamid);

@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS usergroups (
     createat bigint,
     updateat bigint,
     deleteat bigint,
-    allowreference bool,
+    allowreference bool default false,
     UNIQUE(name),
     UNIQUE(source, remoteid)
 );
 
-ALTER TABLE usergroups ADD COLUMN IF NOT EXISTS allowreference bool;
+ALTER TABLE usergroups ADD COLUMN IF NOT EXISTS allowreference bool default false;
 CREATE INDEX IF NOT EXISTS idx_usergroups_remote_id ON usergroups (remoteid);
 CREATE INDEX IF NOT EXISTS idx_usergroups_delete_at ON usergroups (deleteat);
