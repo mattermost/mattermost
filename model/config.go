@@ -36,6 +36,8 @@ const (
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
+	SEARCHENGINE_ELASTICSEARCH = "elasticsearch"
+
 	MINIO_ACCESS_KEY = "minioaccesskey"
 	MINIO_SECRET_KEY = "miniosecretkey"
 	MINIO_BUCKET     = "mattermost-test"
