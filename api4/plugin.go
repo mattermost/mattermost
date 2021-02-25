@@ -432,8 +432,9 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 			}
 		default:
 			c.Err = model.NewAppError("getFirstAdminVisitMarketplaceStatus", "api.error_get_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
+
+			return
 		}
-		return
 	}
 
 	auditRec.Success()
