@@ -172,7 +172,7 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 	bodyPage.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
 	bodyPage.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2")
-	bodyPage.Props["ButtonUrl"] = link
+	bodyPage.Props["ButtonURL"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
 	bodyPage.Props["Info1"] = T("api.templates.verify_body.info1")
@@ -246,7 +246,7 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 		if redirect != "" {
 			link += fmt.Sprintf("&redirect_to=%s", redirect)
 		}
-		bodyPage.Props["ButtonUrl"] = link
+		bodyPage.Props["ButtonURL"] = link
 	}
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
