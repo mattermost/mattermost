@@ -134,8 +134,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		}
 		if err := s.Jobs.InitWorkers(); err != nil {
 			mlog.Warn("Initializing job server workers failed", mlog.Err(err))
-		}
-		if err := s.Jobs.StartWorkers(); err != nil {
+		} else if err := s.Jobs.StartWorkers(); err != nil {
 			mlog.Warn("Starting job server workers failed", mlog.Err(err))
 		}
 	}

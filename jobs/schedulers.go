@@ -142,15 +142,14 @@ func (schedulers *Schedulers) Start() {
 
 					if time.Now().After(*nextTime) {
 						scheduler := schedulers.schedulers[idx]
-						if scheduler != nil {
-							if schedulers.isLeader && scheduler.Enabled(cfg) {
-								if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-									mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
-								} else {
-									schedulers.setNextRunTime(cfg, idx, now, true)
-								}
-							}
+						if scheduler == nil || !schedulers.isLeader || !scheduler.Enabled(cfg) {
+							continue
 						}
+						if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
+							mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
+							continue
+						}
+						schedulers.setNextRunTime(cfg, idx, now, true)
 					}
 				}
 			case newCfg := <-schedulers.configChanged:
