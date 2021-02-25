@@ -44,49 +44,49 @@ func TestDoUploadFile(t *testing.T) {
 	defer th.TearDown()
 
 	teamID := model.NewId()
-	channelId := model.NewId()
+	channelID := model.NewId()
 	userID := model.NewId()
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
-	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelId, userID, info1.Id, filename)
+	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "stored file at incorrect path")
 
-	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
+	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 
-	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelId, userID, info2.Id, filename)
+	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
 	assert.Equal(t, value, info2.Path, "stored file at incorrect path")
 
-	info3, err := th.App.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
+	info3, err := th.App.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info3.Id)
 		th.App.RemoveFile(info3.Path)
 	}()
 
-	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelId, userID, info3.Id, filename)
+	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
 	assert.Equal(t, value, info3.Path, "stored file at incorrect path")
 
-	info4, err := th.App.DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelId, "../../"+userID, "../../"+filename, data)
+	info4, err := th.App.DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info4.Id)
 		th.App.RemoveFile(info4.Path)
 	}()
 
-	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelId, userID, info4.Id, filename)
+	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
 	assert.Equal(t, value, info4.Path, "stored file at incorrect path")
 }
 
@@ -94,7 +94,7 @@ func TestUploadFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	channelId := th.BasicChannel.Id
+	channelID := th.BasicChannel.Id
 	filename := "test"
 	data := []byte("abcd")
 
@@ -105,7 +105,7 @@ func TestUploadFile(t *testing.T) {
 	info1, err = th.App.UploadFile(data, "", filename)
 	require.Nil(t, err, "empty channel IDs should be valid")
 
-	info1, err = th.App.UploadFile(data, channelId, filename)
+	info1, err = th.App.UploadFile(data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -113,7 +113,7 @@ func TestUploadFile(t *testing.T) {
 	}()
 
 	value := fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
-		time.Now().Format("20060102"), channelId, info1.Id, filename)
+		time.Now().Format("20060102"), channelID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "Stored file at incorrect path")
 }
 
@@ -121,69 +121,69 @@ func TestParseOldFilenames(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	fileId := model.NewId()
+	fileID := model.NewId()
 
 	tests := []struct {
 		description string
 		filenames   []string
-		channelId   string
+		channelID   string
 		userID      string
 		expected    [][]string
 	}{
 		{
 			description: "Empty input should result in empty output",
 			filenames:   []string{},
-			channelId:   th.BasicChannel.Id,
+			channelID:   th.BasicChannel.Id,
 			userID:      th.BasicUser.Id,
 			expected:    [][]string{},
 		},
 		{
 			description: "Filename with invalid format should not parse",
 			filenames:   []string{"/path/to/some/file.png"},
-			channelId:   th.BasicChannel.Id,
+			channelID:   th.BasicChannel.Id,
 			userID:      th.BasicUser.Id,
 			expected:    [][]string{},
 		},
 		{
 			description: "ChannelId in Filename should not match",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", model.NewId(), th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", model.NewId(), th.BasicUser.Id, fileID),
 			},
-			channelId: th.BasicChannel.Id,
+			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
 			expected:  [][]string{},
 		},
 		{
 			description: "UserId in Filename should not match",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, model.NewId(), fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, model.NewId(), fileID),
 			},
-			channelId: th.BasicChannel.Id,
+			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
 			expected:  [][]string{},
 		},
 		{
 			description: "../ in filename should not parse",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/../../../file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/../../../file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
-			channelId: th.BasicChannel.Id,
+			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
 			expected:  [][]string{},
 		},
 		{
 			description: "Should only parse valid filenames",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/../otherfile.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/../otherfile.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
-			channelId: th.BasicChannel.Id,
+			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
 			expected: [][]string{
 				{
 					th.BasicChannel.Id,
 					th.BasicUser.Id,
-					fileId,
+					fileID,
 					"file.png",
 				},
 			},
@@ -191,15 +191,15 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "Valid Filename should parse",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
-			channelId: th.BasicChannel.Id,
+			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
 			expected: [][]string{
 				{
 					th.BasicChannel.Id,
 					th.BasicUser.Id,
-					fileId,
+					fileID,
 					"file.png",
 				},
 			},
@@ -208,7 +208,7 @@ func TestParseOldFilenames(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(tt *testing.T) {
-			result := parseOldFilenames(test.filenames, test.channelId, test.userID)
+			result := parseOldFilenames(test.filenames, test.channelID, test.userID)
 			require.Equal(tt, result, test.expected)
 		})
 	}
@@ -256,17 +256,17 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	require.NoError(t, fileErr)
 	defer file.Close()
 
-	fileId := model.NewId()
-	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileId)
+	fileID := model.NewId()
+	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
+	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
@@ -278,11 +278,12 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	defer th.TearDown()
 
 	mockBackend := mocks.FileBackend{}
-	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("Only those who dare to fail greatly can ever achieve greatly"))
+	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
 
 	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
-	require.Error(t, err)
-	require.Equal(t, err.Error(), "Only those who dare to fail greatly can ever achieve greatly")
+
+	require.NotNil(t, err)
+	require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
 
 	mockBackend = mocks.FileBackend{}
 	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), nil)
@@ -295,12 +296,12 @@ func TestCopyFileInfos(t *testing.T) {
 	defer th.TearDown()
 
 	teamID := model.NewId()
-	channelId := model.NewId()
+	channelID := model.NewId()
 	userID := model.NewId()
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)

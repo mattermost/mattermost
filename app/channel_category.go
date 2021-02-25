@@ -191,14 +191,14 @@ func (a *App) muteChannelsForUpdatedCategories(userID string, updatedCategories 
 		updatedCategoriesById := makeCategoryMap(updatedCategories)
 		originalCategoriesById := makeCategoryMap(originalCategories)
 
-		for channelId, diff := range channelsDiff {
+		for channelID, diff := range channelsDiff {
 			fromCategory := originalCategoriesById[diff.fromCategoryId]
 			toCategory := updatedCategoriesById[diff.toCategoryId]
 
 			if toCategory.Muted && !fromCategory.Muted {
-				channelsToMute = append(channelsToMute, channelId)
+				channelsToMute = append(channelsToMute, channelID)
 			} else if !toCategory.Muted && fromCategory.Muted {
-				channelsToUnmute = append(channelsToUnmute, channelId)
+				channelsToUnmute = append(channelsToUnmute, channelID)
 			}
 		}
 	}
@@ -236,8 +236,8 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	mapChannelIdsToCategories := func(categories []*model.SidebarCategoryWithChannels) map[string]string {
 		result := make(map[string]string)
 		for _, category := range categories {
-			for _, channelId := range category.Channels {
-				result[channelId] = category.Id
+			for _, channelID := range category.Channels {
+				result[channelID] = category.Id
 			}
 		}
 
@@ -250,11 +250,11 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	// Check for any channels that have changed categories. Note that we don't worry about any channels that have moved
 	// outside of these categories since that heavily complicates things and doesn't currently happen in our apps.
 	channelsDiff := make(map[string]*categoryChannelDiff)
-	for channelId, originalCategoryId := range originalChannelIdsMap {
-		updatedCategoryId := updatedChannelIdsMap[channelId]
+	for channelID, originalCategoryId := range originalChannelIdsMap {
+		updatedCategoryId := updatedChannelIdsMap[channelID]
 
 		if originalCategoryId != updatedCategoryId && updatedCategoryId != "" {
-			channelsDiff[channelId] = &categoryChannelDiff{originalCategoryId, updatedCategoryId}
+			channelsDiff[channelID] = &categoryChannelDiff{originalCategoryId, updatedCategoryId}
 		}
 	}
 
