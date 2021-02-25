@@ -56,11 +56,6 @@ type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, res
 // ConnectionStateListener is used to listen to remote cluster connection state changes.
 type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
-type connectionStateCacheItem struct {
-	online     bool
-	lastPingAt int64
-}
-
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {
 	server     ServerIface
@@ -73,7 +68,7 @@ type Service struct {
 	leaderListenerId         string
 	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
-	connectionStateCache     map[string]connectionStateCacheItem // keyed on remoteId
+	connectionStateCache     map[string]bool                     // maps remoteId to online state
 	done                     chan struct{}
 }
 
@@ -105,7 +100,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		httpClient:               client,
 		topicListeners:           make(map[string]map[string]TopicListener),
 		connectionStateListeners: make(map[string]ConnectionStateListener),
-		connectionStateCache:     make(map[string]connectionStateCacheItem),
+		connectionStateCache:     make(map[string]bool),
 	}
 
 	service.send = make([]chan interface{}, MaxConcurrentSends)
@@ -236,7 +231,7 @@ func (rcs *Service) pause() {
 	rcs.active = false
 	close(rcs.done)
 	rcs.done = nil
-	rcs.connectionStateCache = make(map[string]connectionStateCacheItem)
+	rcs.connectionStateCache = make(map[string]bool)
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service inactive")
 }
