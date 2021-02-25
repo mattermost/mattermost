@@ -72,16 +72,6 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 	return s
 }
 
-func (fs SqlFileInfoStore) createIndexesIfNotExists() {
-	fs.CreateIndexIfNotExists("idx_fileinfo_update_at", "FileInfo", "UpdateAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_create_at", "FileInfo", "CreateAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")
-	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
-	fs.CreateIndexIfNotExists("idx_fileinfo_extension_at", "FileInfo", "Extension")
-	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_name_txt", "FileInfo", "Name")
-	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_content_txt", "FileInfo", "Content")
-}
-
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
 	if err := info.IsValid(); err != nil {

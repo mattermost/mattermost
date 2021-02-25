@@ -852,8 +852,6 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion5281(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5280, Version5281) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "MiniPreview", "MEDIUMBLOB", "bytea")
-
 		saveSchemaVersion(sqlStore, Version5281)
 	}
 }
@@ -934,8 +932,6 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
-
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
 		saveSchemaVersion(sqlStore, Version5300)
 	}
