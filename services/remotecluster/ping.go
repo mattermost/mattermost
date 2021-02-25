@@ -139,7 +139,7 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 	return frame, nil
 }
 
-// checkConnectionState is called after a ping has been issued to a remote cluster.
+// checkConnectionState is called when a ping is to be issued to a remote cluster.
 // A check is made to see if the connection state (online/offline) has changed for the
 // remote, and if so, any listeners are notified.
 func (rcs *Service) checkConnectionState(rc *model.RemoteCluster) {

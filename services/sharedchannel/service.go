@@ -232,6 +232,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 	}
 
 	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
+		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
 		mlog.Bool("online", online),
 	)

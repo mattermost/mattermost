@@ -73,6 +73,7 @@ func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
 	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(opts)
 	if err != nil {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
+			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),
 		)
@@ -234,6 +235,7 @@ func (scs *Service) processTask(task syncTask) error {
 			} else {
 				scs.server.GetLogger().Error("Failed to synchronize shared channel for remote cluster",
 					mlog.String("channelId", rtask.channelId),
+					mlog.String("remote", rc.DisplayName),
 					mlog.String("remoteId", rtask.remoteId),
 					mlog.Err(err),
 				)
