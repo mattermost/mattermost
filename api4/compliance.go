@@ -30,8 +30,8 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB) {
+		c.SetPermissionError(model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB)
 		return
 	}
 

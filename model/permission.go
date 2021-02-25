@@ -102,6 +102,11 @@ var PERMISSION_EDIT_BRAND *Permission
 var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
 var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
+var PERMISSION_CREATE_DATA_RETENTION_JOB *Permission
+var PERMISSION_READ_DATA_RETENTION_JOB *Permission
+var PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB *Permission
+var PERMISSION_READ_COMPLIANCE_EXPORT_JOB *Permission
+var PERMISSION_READ_AUDITS *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
 
@@ -149,6 +154,18 @@ var PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_COMPLIANCE *Permission
 var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE *Permission
 
 var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL *Permission
 var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL *Permission
@@ -549,6 +566,39 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_CREATE_DATA_RETENTION_JOB = &Permission{
+		"create_data_retention_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_DATA_RETENTION_JOB = &Permission{
+		"read_data_retention_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB = &Permission{
+		"create_compliance_export_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_COMPLIANCE_EXPORT_JOB = &Permission{
+		"read_compliance_export_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_READ_AUDITS = &Permission{
+		"read_audits",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_PURGE_BLEVE_INDEXES = &Permission{
 		"purge_bleve_indexes",
 		"",
@@ -888,28 +938,66 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_COMPLIANCE = &Permission{
 		"sysconsole_read_compliance",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE = &Permission{
 		"sysconsole_write_compliance",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PERMISSION_SYSCONSOLE_READ_PLUGINS = &Permission{
-		"sysconsole_read_plugins",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION = &Permission{
+		"sysconsole_read_compliance_data_retention",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
-	PERMISSION_SYSCONSOLE_WRITE_PLUGINS = &Permission{
-		"sysconsole_write_plugins",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION = &Permission{
+		"sysconsole_write_compliance_data_retention",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT = &Permission{
+		"sysconsole_read_compliance_compliance_export",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT = &Permission{
+		"sysconsole_write_compliance_compliance_export",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING = &Permission{
+		"sysconsole_read_compliance_compliance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING = &Permission{
+		"sysconsole_write_compliance_compliance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE = &Permission{
+		"sysconsole_read_compliance_custom_terms_of_service",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE = &Permission{
+		"sysconsole_write_compliance_custom_terms_of_service",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	// DEPRECATED
@@ -978,7 +1066,10 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
-		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE,
@@ -999,7 +1090,10 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
-		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE,
@@ -1039,6 +1133,11 @@ func initializePermissions() {
 		PERMISSION_MANAGE_SHARED_CHANNELS,
 		PERMISSION_MANAGE_REMOTE_CLUSTERS,
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
+		PERMISSION_CREATE_DATA_RETENTION_JOB,
+		PERMISSION_READ_DATA_RETENTION_JOB,
+		PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB,
+		PERMISSION_READ_COMPLIANCE_EXPORT_JOB,
+		PERMISSION_READ_AUDITS,
 		PERMISSION_PURGE_BLEVE_INDEXES,
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
 	}
@@ -1104,6 +1203,10 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
 	}
 
 	AllPermissions = []*Permission{}
