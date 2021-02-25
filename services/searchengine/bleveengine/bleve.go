@@ -304,9 +304,11 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
-	if !reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
-		mlog.Info("UpdateConf Bleve")
+	if reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
+		return
 	}
+
+	mlog.Info("UpdateConf Bleve")
 
 	if *cfg.BleveSettings.EnableIndexing != *b.cfg.BleveSettings.EnableIndexing || *cfg.BleveSettings.IndexDir != *b.cfg.BleveSettings.IndexDir {
 		if err := b.closeIndexes(); err != nil {
