@@ -166,9 +166,6 @@ func TestStoreLicenseRace(t *testing.T) {
 	store := New(*settings, nil)
 	defer func() {
 		store.Close()
-		for _, replica := range store.searchReplicas {
-			require.NoError(t, replica.Db.Close())
-		}
 		storetest.CleanupSqlSettings(settings)
 	}()
 
@@ -267,9 +264,6 @@ func TestGetReplica(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 
@@ -341,9 +335,6 @@ func TestGetReplica(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 
@@ -410,6 +401,25 @@ func TestGetDbVersion(t *testing.T) {
 			version, err := store.GetDbVersion(false)
 			require.NoError(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
+		})
+	}
+}
+
+func TestUpAndDownMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should be reversible for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+			defer store.Close()
+
+			err := store.migrate(migrationsDirectionDown)
+			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}
 }
@@ -497,9 +507,6 @@ func TestGetAllConns(t *testing.T) {
 			store := New(*settings, nil)
 			defer func() {
 				store.Close()
-				for _, replica := range store.searchReplicas {
-					require.NoError(t, replica.Db.Close())
-				}
 				storetest.CleanupSqlSettings(settings)
 			}()
 

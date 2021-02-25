@@ -3611,32 +3611,12 @@
     "translation": "Boletín de Seguridad Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error intentando autenticar el token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA inválido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "No se pudo actualizar el estado activo de MFA para el usuario."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "No se pudo actualizar el estado activo de MFA para el usuario."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error al limpiar el secreto MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generando el código QR."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error guardando el secreto MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",

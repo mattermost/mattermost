@@ -634,14 +634,20 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 }
 
 // SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (bool, *model.AppError) {
+func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.upgrade_request_subject")
-
 	bodyPage := es.newEmailTemplate("cloud_upgrade_request_email", locale)
-	bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
-	bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
+
+	if action == model.InviteLimitation {
+		bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
+		bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
+	} else {
+		bodyPage.Props["Title"] = T("api.templates.upgrade_request_title2")
+		bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4_2")
+	}
+
+	subject := T("api.templates.upgrade_request_subject")
 	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
 	bodyPage.Props["BillingPath"] = "admin_console/billing/subscription"
 	bodyPage.Props["SiteURL"] = siteURL
