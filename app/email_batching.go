@@ -246,9 +246,9 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	data.Props["Posts"] = template.HTML(contents)
 	data.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	body, err := es.srv.TemplatesContainer().RenderToString("post_batched_body", data)
-	if err != nil {
-		mlog.Warn("Unable build the batched email notification template", mlog.Err(err))
+	body, err2 := es.srv.TemplatesContainer().RenderToString("post_batched_body", data)
+	if err2 != nil {
+		mlog.Warn("Unable build the batched email notification template", mlog.Err(err2))
 		return
 	}
 
