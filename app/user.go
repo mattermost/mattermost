@@ -2441,11 +2441,16 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+	thread, err := a.GetThreadForUser(userID, teamID, threadID, false)
+	if err != nil {
+		return nil, err
+	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)
+	message.Add("unread_replies", thread.UnreadReplies)
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
-	return a.GetThreadForUser(userID, teamID, threadID, false)
+	return thread, nil
 }

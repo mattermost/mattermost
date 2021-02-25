@@ -5475,10 +5475,13 @@ func TestThreadSocketEvents(t *testing.T) {
 				case ev := <-userWSClient.EventChannel:
 					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_UPDATED {
 						caught = true
-						thread, err := model.ThreadFromJson(ev.GetData()["thread"].(string))
+						thread, err := model.ThreadResponseFromJson(ev.GetData()["thread"].(string))
 						require.NoError(t, err)
-						require.Contains(t, thread.Participants, th.BasicUser.Id)
-						require.Contains(t, thread.Participants, th.BasicUser2.Id)
+						for _, p := range thread.Participants {
+							if p.Id != th.BasicUser.Id && p.Id != th.BasicUser2.Id {
+								require.Fail(t, "invalid participants")
+							}
+						}
 					}
 				case <-time.After(1 * time.Second):
 					return
