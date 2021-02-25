@@ -6,6 +6,8 @@ package model
 const (
 	EventTypeFailedPayment       = "failed-payment"
 	EventTypeFailedPaymentNoCard = "failed-payment-no-card"
+	JoinLimitation               = "join"
+	InviteLimitation             = "invite"
 )
 
 // Product model represents a product on the cloud system.

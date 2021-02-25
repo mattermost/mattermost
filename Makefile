@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -249,6 +249,24 @@ telemetry-mocks: ## Creates mock files.
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
+
+migration-prereqs: ## Builds prerequisite packages for migrations
+	$(GO) get -modfile=go.tools.mod github.com/golang-migrate/migrate/v4/cmd/migrate
+
+new-migration: migration-prereqs ## Creates a new migration
+	@echo "Generating new migration for mysql"
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/mysql -seq $(name)
+
+	@echo "Generating new migration for postgres"
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
+
+	@echo "When you are done writing your migration, run 'make migrations'"
+
+migrations-bindata: ## Generates bindata migrations
+	$(GO) get -modfile=go.tools.mod github.com/go-bindata/go-bindata/...
+
+	@echo Generating bindata for migrations
+	$(GO) generate $(GOFLAGS) ./db/migrations/
 
 filestore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
