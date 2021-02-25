@@ -100,7 +100,6 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 	var bodyText, err = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 	if err != nil {
-		mlog.Error("Error building notification email", mlog.Err(err))
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
