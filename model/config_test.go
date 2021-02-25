@@ -391,7 +391,7 @@ func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	mes := &MessageExportSettings{}
 
 	// should fail fast because mes.EnableExport is not set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
@@ -409,17 +409,17 @@ func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
 	}
 
 	// should fail fast because export from timestamp isn't set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(-1)
 
 	// should fail fast because export from timestamp isn't valid
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
@@ -429,12 +429,12 @@ func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
 	}
 
 	// should fail fast because daily runtime isn't set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 
 	mes.DailyRunTime = NewString("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
@@ -445,7 +445,7 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	}
 
 	// should fail fast because batch size isn't set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
@@ -457,7 +457,7 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	}
 
 	// should fail fast because export format isn't set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
@@ -470,7 +470,7 @@ func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T
 	}
 
 	// should fail fast because global relay email address isn't set
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
@@ -496,7 +496,7 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	}
 
 	// should fail because globalrelay settings are missing
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
@@ -515,7 +515,7 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 	}
 
 	// should fail because customer type is invalid
-	require.Error(t, mes.isValid())
+	require.NotNil(t, mes.isValid())
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
@@ -590,7 +590,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			if tt.success {
 				require.Nil(t, mes.isValid())
 			} else {
-				require.Error(t, mes.isValid())
+				require.NotNil(t, mes.isValid())
 			}
 		})
 	}
