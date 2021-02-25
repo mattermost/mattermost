@@ -22,9 +22,9 @@ SET @preparedStatement = (SELECT IF(
     'ALTER TABLE GroupTeams ADD COLUMN SchemeAdmin tinyint(1);'
 ));
 
-PREPARE createColumnIfNotExists FROM @preparedStatement;
-EXECUTE createColumnIfNotExists;
-DEALLOCATE PREPARE createColumnIfNotExists;
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 SET @preparedStatement = (SELECT IF(
      (
