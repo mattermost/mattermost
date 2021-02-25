@@ -764,9 +764,6 @@ func upgradeDatabaseToVersion520(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5190, Version5200) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 
-		sqlStore.CreateColumnIfNotExists("GroupChannels", "SchemeAdmin", "boolean", "boolean", "0")
-		sqlStore.CreateIndexIfNotExists("idx_groupchannels_schemeadmin", "GroupChannels", "SchemeAdmin")
-
 		saveSchemaVersion(sqlStore, Version5200)
 	}
 }

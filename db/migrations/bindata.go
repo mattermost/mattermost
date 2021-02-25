@@ -10,6 +10,8 @@
 // mysql/000004_create_group_members.up.sql
 // mysql/000005_create_group_teams.down.sql
 // mysql/000005_create_group_teams.up.sql
+// mysql/000006_create_group_channels.down.sql
+// mysql/000006_create_group_channels.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -20,6 +22,8 @@
 // postgres/000004_create_group_members.up.sql
 // postgres/000005_create_group_teams.down.sql
 // postgres/000005_create_group_teams.up.sql
+// postgres/000006_create_group_channels.down.sql
+// postgres/000006_create_group_channels.up.sql
 package migrations
 
 import (
@@ -276,7 +280,7 @@ func mysql000005_create_group_teamsDownSql() (*asset, error) {
 	return a, nil
 }
 
-var _mysql000005_create_group_teamsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xd4\x94\xdf\x6b\xdb\x30\x10\xc7\xdf\xfd\x57\xdc\x5b\xec\x51\x46\x5b\xc6\x18\x84\x8c\x5d\xec\x4b\x23\xe6\xc8\x41\x92\x59\xfa\x14\x94\x58\x6d\x0d\xb1\x13\x1c\x65\x64\xff\xfd\xb0\xa5\x66\x29\x25\xe9\x7e\x30\x68\x5f\x0c\xd1\x7d\x75\xb9\xef\x7d\x4e\x17\x0b\x42\x45\xa0\x70\x98\x12\xb0\x11\xf0\x4c\x01\xcd\x98\x54\x12\x6e\x9a\xf5\x6e\xa3\x8c\xae\xb6\x10\x06\x00\xe0\x0e\x58\x01\xdf\x75\xb3\x7c\xd0\x4d\x78\xfd\x31\xea\xf4\x3c\x4f\xd3\x8b\x4e\x81\x3b\xbb\xc6\xa2\x00\x5b\xd6\x3f\xca\xda\x86\x57\x91\x3b\x97\xcb\x07\x53\x19\x2c\xaa\xb2\x7e\x16\x8b\x1b\xa3\xad\x41\x0b\x8b\xf2\xbe\x3d\xbf\xbe\x8c\x20\xa1\x11\xe6\xe9\x71\xe6\xc4\xac\xcc\xcb\xaa\x7c\x53\xfc\x46\xae\xd6\xd3\x59\x1b\x53\xc1\x26\x28\x6e\xe1\x2b\xdd\x42\xe8\x5d\x5f\xf8\x6b\xbe\xea\x36\x54\x16\xfb\xf9\x7d\x1b\xb5\x6d\x93\xe6\xdb\xce\xa4\xee\x4c\x86\x8f\xae\x4e\xcb\xdb\x6f\x59\x40\xe8\xd3\x06\x11\x10\xbf\x61\x9c\x06\xac\xae\xd7\xc9\xf0\x50\x77\x3c\x46\x21\x49\x0d\x76\xf6\xee\x53\xb5\xf8\xd0\x0f\x02\x49\x0a\xbe\x6c\x1a\xb3\xd1\x8d\x29\xa4\xd5\xd6\x54\xa6\xb6\x30\x80\x50\x52\x4a\xb1\x02\x36\x72\xc0\xdc\xb7\x03\xe0\x02\x71\x96\x73\x15\xbe\x8b\x60\x24\xb2\x09\x30\x3e\xca\xc4\x04\x15\xcb\xf8\x5c\xc6\x63\x9a\xe0\xfb\x38\x4b\xf3\x09\x97\x87\x7b\xdf\xc6\x24\x08\xac\x5e\xac\xcc\xbc\xd6\x95\x81\x01\xf4\x7e\xcd\x45\xef\xa0\x43\x9e\x78\x55\xd7\x05\x0d\x03\x48\x50\xe1\x10\x25\x85\xd1\x13\xd5\x72\xbd\xda\x55\xf5\x21\xd9\xd1\x64\xb8\x6c\x11\x7c\x86\x4b\xd7\xb4\x9e\xaf\xfa\xaa\xe7\x7f\x63\xaa\x48\xf8\x59\x3d\x9a\x4e\x4c\x12\x70\x85\x9f\x18\xb4\x7e\x2f\x88\xa2\x7e\x10\x4c\x05\x4d\x51\x10\x2c\x3b\x38\xac\x2e\xcc\x9e\xdd\xf1\xb5\xa5\x7d\xb9\xb5\x5b\xd7\x94\xe7\x8d\xed\x07\x34\xa3\x38\x57\xa7\xee\xf5\x83\x84\x30\x4d\xb3\xb8\x7d\x48\xe7\xff\xe2\x4f\xe0\xfd\x05\x3d\xa9\x50\x31\xa9\x58\xfc\x3f\x01\x96\xad\xa7\x43\xae\xd3\x6f\xe0\x65\x9c\x7e\xf7\x30\x9e\xd0\xec\xdc\x63\xca\xf8\x11\xed\x50\x2e\x1f\x09\xbf\x4d\xae\x6f\x11\xab\xdb\x55\xff\x46\xd4\xef\xbb\xa7\x30\xfd\xf2\x7b\x45\x20\x7f\x06\x00\x00\xff\xff\xda\xf9\x87\x1c\x11\x07\x00\x00")
+var _mysql000005_create_group_teamsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xcc\x94\xd1\x6f\xda\x4e\x0c\xc7\xdf\xf3\x57\xf8\x8d\xe4\xa7\xea\xa7\xb6\x9a\xa6\x49\x88\x69\xe6\x62\xca\x69\xe1\x82\x72\x17\x8d\x3e\xa1\x40\xae\x6d\x24\x12\x50\x38\x26\xf6\xdf\x4f\xc9\x5d\x19\x1d\x0a\x6c\x9d\xaa\xed\x25\x12\xe7\xaf\x8d\xed\x8f\x6d\x96\x10\x2a\x02\x85\xc3\x88\x80\x8f\x40\xc4\x0a\x68\xc6\xa5\x92\x70\x57\xaf\x77\x1b\xa5\xb3\x72\x0b\xbe\x07\x00\xf6\x81\xe7\xf0\x35\xab\x97\x4f\x59\xed\xdf\xbe\x0f\x5a\xbd\x48\xa3\xe8\xaa\x55\xe0\xce\xac\x31\xcf\xc1\x14\xd5\xb7\xa2\x32\xfe\x4d\x60\xdf\xe5\xf2\x49\x97\x1a\xf3\xb2\xa8\x4e\x6c\xac\xd6\x99\xd1\x68\x60\x51\x3c\x36\xef\xb7\xd7\x01\x84\x34\xc2\x34\x3a\x8e\x1c\xea\x95\xbe\xac\x4a\x37\xf9\x2f\xc4\x6a\x6a\x3a\x5b\xc6\x34\xe1\x13\x4c\xee\xe1\x33\xdd\x83\xef\xaa\xbe\x72\x6e\x2e\xeb\xc6\x54\xe4\xfb\xf9\x63\x63\x35\x4d\x93\xe6\xdb\xb6\xc8\xac\x2d\xd2\x7f\xae\xaa\x5b\xde\x7c\x8b\x1c\x7c\x17\xd6\x0b\x80\xc4\x1d\x17\x34\xe0\x55\xb5\x0e\x87\x87\xbc\xd9\x18\x13\x49\x6a\xb0\x33\x0f\x1f\xca\xc5\xbb\xbe\xe7\x49\x52\xf0\x69\x53\xeb\x4d\x56\xeb\x5c\x9a\xcc\xe8\x52\x57\x06\x06\xe0\x4b\x8a\x88\x29\xe0\x23\x0b\xcc\x7e\x5b\x00\xd6\xc0\xe2\x54\x28\xff\xbf\x00\x46\x49\x3c\x01\x2e\x46\x71\x32\x41\xc5\x63\x31\x97\x6c\x4c\x13\xfc\x9f\xc5\x51\x3a\x11\xf2\xe0\xf7\x65\x4c\x09\x81\xc9\x16\x2b\x3d\xaf\xb2\x52\xc3\x00\x7a\x3f\xe6\xa2\x77\xd0\xa1\x08\x9d\xaa\xed\x42\x06\x03\x08\x51\xe1\x10\x25\xf9\xc1\x0b\xd5\x72\xbd\xda\x95\xd5\x21\xd8\xd1\x64\xd8\x68\x01\x7c\x84\x6b\xdb\xb4\x9e\xcb\xfa\xa6\xe7\x7e\x63\xa4\x28\x71\xb3\x7a\x34\x9d\x18\x86\x60\x13\xef\x18\xb4\x7e\xcf\x0b\x82\xbe\xe7\x4d\x13\x9a\x62\x42\xb0\x6c\xe1\xb0\x36\x13\xfe\x20\xd6\x86\xf6\xc5\xd6\x6c\x6d\x57\x4e\x3b\xdb\xf7\x68\x46\x2c\x55\x9d\x8e\x7d\x2f\x24\x8c\xa2\x98\x35\xab\x74\xe1\x4f\x7e\x87\xdf\x2b\x00\x4a\x85\x8a\x4b\xc5\xd9\x5b\x32\x2c\xaa\x5c\xef\x0f\xb1\xba\xd7\xe0\x32\x51\x77\x7e\xb8\x08\x69\x76\x6e\x9f\x62\x71\x04\xdc\x97\xcb\x67\xc8\x1d\x68\x79\x93\xe0\x2b\xc8\xfe\xec\x77\x06\xec\xa9\xf4\x2d\xf7\xf2\xef\x63\xb5\xe7\xea\xcf\x88\xba\x93\xf7\x12\xa6\xbb\x7f\xff\x10\xc8\xef\x01\x00\x00\xff\xff\x06\x7d\xa5\x62\x14\x07\x00\x00")
 
 func mysql000005_create_group_teamsUpSqlBytes() ([]byte, error) {
 	return bindataRead(
@@ -292,6 +296,46 @@ func mysql000005_create_group_teamsUpSql() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "mysql/000005_create_group_teams.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000006_create_group_channelsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\x2f\xca\x2f\x2d\x70\xce\x48\xcc\xcb\x4b\xcd\x29\xb6\xe6\x02\x04\x00\x00\xff\xff\x62\x03\x43\xc0\x24\x00\x00\x00")
+
+func mysql000006_create_group_channelsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000006_create_group_channelsDownSql,
+		"mysql/000006_create_group_channels.down.sql",
+	)
+}
+
+func mysql000006_create_group_channelsDownSql() (*asset, error) {
+	bytes, err := mysql000006_create_group_channelsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000006_create_group_channels.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000006_create_group_channelsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x55\x41\x6f\x9b\x4c\x10\xbd\xf3\x2b\xe6\x66\xf8\x14\x7d\x4a\xa2\xaa\xaa\x64\xb9\xea\x78\x19\xc7\xab\xe2\xc5\x62\x17\xd5\x39\x59\x18\x36\x31\x92\x59\x5b\x78\x5d\xb9\xff\xbe\x32\x20\x8c\xe3\x94\x54\xad\x7a\xca\x05\xc1\xee\x9b\xd9\x79\xef\xcd\xb0\x2c\x22\x54\x04\x0a\xc7\x01\x01\x9f\x80\x08\x15\xd0\x82\x4b\x25\xe1\xa1\xdc\x1e\x76\x6c\x9d\x18\xa3\x37\x7b\x70\x1d\x00\xa8\xd7\x78\x06\xdf\x93\x32\x5d\x27\xa5\x7b\xff\xd1\xab\x42\x44\x1c\x04\x37\x15\x02\x0f\x76\x8b\x59\x06\x36\x37\x3f\x72\x63\xdd\x3b\xaf\x5e\x97\xe9\x5a\x17\x1a\xb3\x22\x37\x57\x7b\xac\xd4\x89\xd5\x68\x61\x95\x3f\x9f\xd6\xef\x6f\x3d\xf0\x69\x82\x71\xd0\xcd\xec\xeb\x8d\x7e\x1b\x15\xef\xb2\xdf\xc8\xd5\xd0\xea\x65\x32\x8f\xf8\x0c\xa3\x47\xf8\x4a\x8f\xe0\x36\xc4\x6f\xce\x91\x4d\xed\xa7\xdd\x3c\x3b\x2e\x9f\x4f\x80\xb4\x51\x6b\xb9\xaf\xd8\x26\x15\x5b\xb7\x43\xbd\x37\xa8\x79\xc9\x33\x70\xcf\xa7\x38\x1e\x90\x78\xe0\x82\x46\xdc\x98\xad\x3f\x6e\xc9\xb0\x29\x46\x92\xd4\xe8\x60\x9f\x3e\x15\xab\x0f\x43\xc7\x91\xa4\xe0\xcb\xae\xd4\xbb\xa4\xd4\x99\xb4\x89\xd5\x85\x36\x16\x46\xe0\x4a\x0a\x88\x29\xe0\x93\xda\xc5\xfa\x59\xb9\x52\x6f\xb0\x30\x16\xca\xfd\xcf\x83\x49\x14\xce\x80\x8b\x49\x18\xcd\x50\xf1\x50\x2c\x25\x9b\xd2\x0c\xff\x97\x0a\x15\x97\x8a\x33\xd9\x86\x7e\x9b\x52\x44\x60\x93\xd5\x46\x2f\x4d\x52\x68\x18\xc1\xe0\xa2\x65\x06\x2d\x14\x85\xdf\x00\x2b\x5d\x12\x18\x81\x8f\x0a\xc7\x28\xc9\xf5\x2e\x50\xb9\xc9\xf4\xb1\x4d\xd7\x23\x51\x9d\xdc\x83\xcf\x70\x5b\x4b\x3a\x68\xa8\xdc\x0d\x9a\xef\xa6\xb3\xb9\xf0\x69\xd1\x2b\x76\x28\x5e\xb6\xfa\x59\xfd\xe1\xc0\xf1\xbc\xa1\xe3\xcc\x23\x9a\x63\x44\x90\x56\x9d\xca\x4f\x55\xf2\x27\xb1\xb5\x74\xcc\xf7\x76\x5f\xcb\x76\x2d\xfd\xd0\xa1\x05\xb1\x58\xfd\x2a\x6e\xe8\xf8\x84\x41\x10\xb2\x53\xa1\xfd\x47\xbc\x0f\x7b\x3b\x63\xf3\xd7\x06\x77\x47\xf0\xa5\xc5\xae\x4c\xdb\x89\x7c\x27\x16\xb3\x30\x88\x67\xe2\x1f\xfb\x9b\x6e\x37\x87\xc2\xb4\xf9\x3a\x3f\xbe\xb7\xed\xc4\x40\x51\xd4\x5c\x44\x97\xf3\x88\xbe\x0f\x75\xf9\x70\xf6\xad\x73\x89\xbc\xee\x20\xab\x6a\xf9\x03\x0b\xaf\x02\x7b\x3c\x7c\x05\xfb\x33\x00\x00\xff\xff\x65\x2e\x8e\xad\x52\x07\x00\x00")
+
+func mysql000006_create_group_channelsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000006_create_group_channelsUpSql,
+		"mysql/000006_create_group_channels.up.sql",
+	)
+}
+
+func mysql000006_create_group_channelsUpSql() (*asset, error) {
+	bytes, err := mysql000006_create_group_channelsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000006_create_group_channels.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -496,6 +540,46 @@ func postgres000005_create_group_teamsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000006_create_group_channelsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\x2f\xca\x2f\x2d\x48\xce\x48\xcc\x4b\xcd\x29\xb6\xe6\x02\x04\x00\x00\xff\xff\xc9\x1a\x4c\xcd\x23\x00\x00\x00")
+
+func postgres000006_create_group_channelsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000006_create_group_channelsDownSql,
+		"postgres/000006_create_group_channels.down.sql",
+	)
+}
+
+func postgres000006_create_group_channelsDownSql() (*asset, error) {
+	bytes, err := postgres000006_create_group_channelsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000006_create_group_channels.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000006_create_group_channelsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x50\x3d\x6f\x83\x30\x14\xdc\xfd\x2b\xde\x08\x52\xa6\x0e\x5d\x98\x5c\x70\x55\x54\x02\x95\xe3\x56\xc9\x84\x5e\xf0\x53\x62\x09\xec\x28\x18\xa9\x3f\xbf\x52\x70\x45\x02\x0c\x59\xef\x4b\x77\x97\x4a\xc1\x95\x00\xc5\xdf\x0a\x01\xf9\x3b\x94\x95\x02\xb1\xcf\x77\x6a\x07\xa7\xab\x1b\x2e\xcd\x19\xad\xa5\xb6\x87\x88\x01\xc0\x88\x19\x0d\x3f\x5c\xa6\x1f\x5c\x46\x2f\xaf\xf1\xe6\x46\xe0\xe0\x1d\x6a\x0d\x47\xe7\x5a\x42\x3b\x82\x7d\x73\xa6\x8e\x50\x77\xc6\x3e\x12\xcd\x95\xd0\x13\x7a\x38\x9a\x93\xb1\x7e\x04\x35\xb5\xb4\x00\x87\x8b\x5e\x2a\x43\xa9\xb5\x1e\x5f\x32\xdf\x72\x79\x80\x4f\x71\x88\x42\xd9\xcd\xa4\x8f\x59\x9c\x30\xc6\x0b\x25\x64\x98\xfc\x38\x92\x67\x19\xa4\x55\xf1\xbd\x2d\x67\x5f\xac\x2c\x49\x18\x0b\xe7\xe5\x65\x26\xf6\x33\x83\xd1\xbf\xf5\x2d\xdb\x13\x76\x7d\x7d\xef\xaf\xca\xf9\xb5\x77\x6c\x9c\x3c\x95\xfa\xef\xad\xa7\x2b\x96\xb1\xd3\xec\x84\xfd\x05\x00\x00\xff\xff\xa5\xf1\x7d\xc8\xe8\x01\x00\x00")
+
+func postgres000006_create_group_channelsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000006_create_group_channelsUpSql,
+		"postgres/000006_create_group_channels.up.sql",
+	)
+}
+
+func postgres000006_create_group_channelsUpSql() (*asset, error) {
+	bytes, err := postgres000006_create_group_channelsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000006_create_group_channels.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -548,26 +632,30 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":            mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":              mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":     mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":       mysql000002_create_team_membersUpSql,
-	"mysql/000003_create_user_groups.down.sql":      mysql000003_create_user_groupsDownSql,
-	"mysql/000003_create_user_groups.up.sql":        mysql000003_create_user_groupsUpSql,
-	"mysql/000004_create_group_members.down.sql":    mysql000004_create_group_membersDownSql,
-	"mysql/000004_create_group_members.up.sql":      mysql000004_create_group_membersUpSql,
-	"mysql/000005_create_group_teams.down.sql":      mysql000005_create_group_teamsDownSql,
-	"mysql/000005_create_group_teams.up.sql":        mysql000005_create_group_teamsUpSql,
-	"postgres/000001_create_teams.down.sql":         postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":           postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql":  postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":    postgres000002_create_team_membersUpSql,
-	"postgres/000003_create_user_groups.down.sql":   postgres000003_create_user_groupsDownSql,
-	"postgres/000003_create_user_groups.up.sql":     postgres000003_create_user_groupsUpSql,
-	"postgres/000004_create_group_members.down.sql": postgres000004_create_group_membersDownSql,
-	"postgres/000004_create_group_members.up.sql":   postgres000004_create_group_membersUpSql,
-	"postgres/000005_create_group_teams.down.sql":   postgres000005_create_group_teamsDownSql,
-	"postgres/000005_create_group_teams.up.sql":     postgres000005_create_group_teamsUpSql,
+	"mysql/000001_create_teams.down.sql":             mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":               mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":      mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":        mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_user_groups.down.sql":       mysql000003_create_user_groupsDownSql,
+	"mysql/000003_create_user_groups.up.sql":         mysql000003_create_user_groupsUpSql,
+	"mysql/000004_create_group_members.down.sql":     mysql000004_create_group_membersDownSql,
+	"mysql/000004_create_group_members.up.sql":       mysql000004_create_group_membersUpSql,
+	"mysql/000005_create_group_teams.down.sql":       mysql000005_create_group_teamsDownSql,
+	"mysql/000005_create_group_teams.up.sql":         mysql000005_create_group_teamsUpSql,
+	"mysql/000006_create_group_channels.down.sql":    mysql000006_create_group_channelsDownSql,
+	"mysql/000006_create_group_channels.up.sql":      mysql000006_create_group_channelsUpSql,
+	"postgres/000001_create_teams.down.sql":          postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":            postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":   postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":     postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_user_groups.down.sql":    postgres000003_create_user_groupsDownSql,
+	"postgres/000003_create_user_groups.up.sql":      postgres000003_create_user_groupsUpSql,
+	"postgres/000004_create_group_members.down.sql":  postgres000004_create_group_membersDownSql,
+	"postgres/000004_create_group_members.up.sql":    postgres000004_create_group_membersUpSql,
+	"postgres/000005_create_group_teams.down.sql":    postgres000005_create_group_teamsDownSql,
+	"postgres/000005_create_group_teams.up.sql":      postgres000005_create_group_teamsUpSql,
+	"postgres/000006_create_group_channels.down.sql": postgres000006_create_group_channelsDownSql,
+	"postgres/000006_create_group_channels.up.sql":   postgres000006_create_group_channelsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -612,28 +700,32 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":         &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":           &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":  &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":    &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_user_groups.down.sql":   &bintree{mysql000003_create_user_groupsDownSql, map[string]*bintree{}},
-		"000003_create_user_groups.up.sql":     &bintree{mysql000003_create_user_groupsUpSql, map[string]*bintree{}},
-		"000004_create_group_members.down.sql": &bintree{mysql000004_create_group_membersDownSql, map[string]*bintree{}},
-		"000004_create_group_members.up.sql":   &bintree{mysql000004_create_group_membersUpSql, map[string]*bintree{}},
-		"000005_create_group_teams.down.sql":   &bintree{mysql000005_create_group_teamsDownSql, map[string]*bintree{}},
-		"000005_create_group_teams.up.sql":     &bintree{mysql000005_create_group_teamsUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":          &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":            &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":   &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":     &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_user_groups.down.sql":    &bintree{mysql000003_create_user_groupsDownSql, map[string]*bintree{}},
+		"000003_create_user_groups.up.sql":      &bintree{mysql000003_create_user_groupsUpSql, map[string]*bintree{}},
+		"000004_create_group_members.down.sql":  &bintree{mysql000004_create_group_membersDownSql, map[string]*bintree{}},
+		"000004_create_group_members.up.sql":    &bintree{mysql000004_create_group_membersUpSql, map[string]*bintree{}},
+		"000005_create_group_teams.down.sql":    &bintree{mysql000005_create_group_teamsDownSql, map[string]*bintree{}},
+		"000005_create_group_teams.up.sql":      &bintree{mysql000005_create_group_teamsUpSql, map[string]*bintree{}},
+		"000006_create_group_channels.down.sql": &bintree{mysql000006_create_group_channelsDownSql, map[string]*bintree{}},
+		"000006_create_group_channels.up.sql":   &bintree{mysql000006_create_group_channelsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":         &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":           &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":  &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":    &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_user_groups.down.sql":   &bintree{postgres000003_create_user_groupsDownSql, map[string]*bintree{}},
-		"000003_create_user_groups.up.sql":     &bintree{postgres000003_create_user_groupsUpSql, map[string]*bintree{}},
-		"000004_create_group_members.down.sql": &bintree{postgres000004_create_group_membersDownSql, map[string]*bintree{}},
-		"000004_create_group_members.up.sql":   &bintree{postgres000004_create_group_membersUpSql, map[string]*bintree{}},
-		"000005_create_group_teams.down.sql":   &bintree{postgres000005_create_group_teamsDownSql, map[string]*bintree{}},
-		"000005_create_group_teams.up.sql":     &bintree{postgres000005_create_group_teamsUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":          &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":            &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":   &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":     &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_user_groups.down.sql":    &bintree{postgres000003_create_user_groupsDownSql, map[string]*bintree{}},
+		"000003_create_user_groups.up.sql":      &bintree{postgres000003_create_user_groupsUpSql, map[string]*bintree{}},
+		"000004_create_group_members.down.sql":  &bintree{postgres000004_create_group_membersDownSql, map[string]*bintree{}},
+		"000004_create_group_members.up.sql":    &bintree{postgres000004_create_group_membersUpSql, map[string]*bintree{}},
+		"000005_create_group_teams.down.sql":    &bintree{postgres000005_create_group_teamsDownSql, map[string]*bintree{}},
+		"000005_create_group_teams.up.sql":      &bintree{postgres000005_create_group_teamsUpSql, map[string]*bintree{}},
+		"000006_create_group_channels.down.sql": &bintree{postgres000006_create_group_channelsDownSql, map[string]*bintree{}},
+		"000006_create_group_channels.up.sql":   &bintree{postgres000006_create_group_channelsUpSql, map[string]*bintree{}},
 	}},
 }}
 
