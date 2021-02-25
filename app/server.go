@@ -827,12 +827,9 @@ func (s *Server) Shutdown() {
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
+	s.htmlTemplateWatcher.Close()
 
 	s.WaitForGoroutines()
-
-	if s.htmlTemplateWatcher != nil {
-		s.htmlTemplateWatcher.Close()
-	}
 
 	if s.advancedLogListenerCleanup != nil {
 		s.advancedLogListenerCleanup()
