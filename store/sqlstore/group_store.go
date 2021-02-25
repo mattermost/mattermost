@@ -61,7 +61,6 @@ func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
 		groups.ColMap("Source").SetMaxSize(model.GroupSourceMaxLength)
 		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
-		groups.SetUniqueTogether("Source", "RemoteId")
 
 		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
 		groupMembers.ColMap("GroupId").SetMaxSize(26)
