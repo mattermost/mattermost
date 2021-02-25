@@ -56,11 +56,11 @@ func (a *App) HasSharedChannel(channelID string) (bool, error) {
 	return a.Srv().Store.SharedChannel().HasChannel(channelID)
 }
 
-func (a *App) GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	return a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
 }
 
-func (a *App) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	return a.Srv().Store.SharedChannel().GetAllCount(opts)
 }
 
@@ -89,8 +89,8 @@ func (a *App) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*m
 	return a.Srv().Store.SharedChannel().GetRemoteByIds(channelId, remoteId)
 }
 
-func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
-	return a.Srv().Store.SharedChannel().GetRemotes(channelId)
+func (a *App) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	return a.Srv().Store.SharedChannel().GetRemotes(opts)
 }
 
 // HasRemote returns whether a given channelID is present in the channel remotes or not.

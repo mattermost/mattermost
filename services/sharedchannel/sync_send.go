@@ -60,6 +60,13 @@ func (scs *Service) NotifyChannelChanged(channelId string) {
 	scs.addTask(task)
 }
 
+// ForceSyncForRemote causes all channels shared with the remote to be synchronized.
+func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
+	// fetch all channels shared with this remote.
+	//opts := store.
+}
+
+// addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
 	scs.mux.Lock()

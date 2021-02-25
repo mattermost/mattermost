@@ -210,7 +210,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("Get shared channels home only", func(t *testing.T) {
-		opts := store.SharedChannelFilterOpts{
+		opts := model.SharedChannelFilterOpts{
 			ExcludeRemote: true,
 			CreatorId:     creator,
 		}
@@ -229,7 +229,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get shared channels remote only", func(t *testing.T) {
-		opts := store.SharedChannelFilterOpts{
+		opts := model.SharedChannelFilterOpts{
 			ExcludeHome: true,
 		}
 
@@ -247,7 +247,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get shared channels bad opts", func(t *testing.T) {
-		opts := store.SharedChannelFilterOpts{
+		opts := model.SharedChannelFilterOpts{
 			ExcludeHome:   true,
 			ExcludeRemote: true,
 		}
@@ -256,7 +256,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get shared channels by team", func(t *testing.T) {
-		opts := store.SharedChannelFilterOpts{
+		opts := model.SharedChannelFilterOpts{
 			TeamId: team1,
 		}
 
@@ -274,7 +274,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get shared channels invalid pagnation", func(t *testing.T) {
-		opts := store.SharedChannelFilterOpts{
+		opts := model.SharedChannelFilterOpts{
 			TeamId: team1,
 		}
 
@@ -367,7 +367,7 @@ func testDeleteSharedChannel(t *testing.T, ss store.Store) {
 		require.Nil(t, sc)
 
 		// make sure the remotes were deleted.
-		remotes, err := ss.SharedChannel().GetRemotes(channel.Id)
+		remotes, err := ss.SharedChannel().GetRemotes(model.SharedChannelRemoteFilterOpts{ChannelId: channel.Id})
 		require.Nil(t, err)
 		require.Len(t, remotes, 0, "expected empty remotes list")
 
@@ -549,14 +549,15 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	creator := model.NewId()
+	remoteId := model.NewId()
 
 	data := []model.SharedChannelRemote{
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteId: model.NewId()},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteId: model.NewId()},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r3", RemoteId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r4", RemoteId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r5", RemoteId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r6", RemoteId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteId: model.NewId(), IsInviteConfirmed: true},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteId: model.NewId(), IsInviteConfirmed: true},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r3", RemoteId: model.NewId(), IsInviteConfirmed: true},
+		{CreatorId: creator, Description: "r4", RemoteId: remoteId, IsInviteConfirmed: true},
+		{CreatorId: creator, Description: "r5", RemoteId: remoteId, IsInviteConfirmed: true},
+		{CreatorId: creator, Description: "r6", RemoteId: remoteId},
 	}
 
 	for i, r := range data {
@@ -570,7 +571,10 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("Get shared channel remotes by channel_id", func(t *testing.T) {
-		remotes, err := ss.SharedChannel().GetRemotes(channel.Id)
+		opts := model.SharedChannelRemoteFilterOpts{
+			ChannelId: channel.Id,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(opts)
 		require.Nil(t, err, "should not error", err)
 		require.Len(t, remotes, 3)
 		for _, r := range remotes {
@@ -579,9 +583,46 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get shared channel remotes by invalid channel_id", func(t *testing.T) {
-		remotes, err := ss.SharedChannel().GetRemotes(model.NewId())
+		opts := model.SharedChannelRemoteFilterOpts{
+			ChannelId: model.NewId(),
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(opts)
 		require.Nil(t, err, "should not error", err)
 		require.Len(t, remotes, 0)
+	})
+
+	t.Run("Get shared channel remotes by remote_id", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			RemoteId: remoteId,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		require.Nil(t, err, "should not error", err)
+		require.Len(t, remotes, 2) // only confirmed invitations
+		for _, r := range remotes {
+			require.Contains(t, []string{"r4", "r5"}, r.Description)
+		}
+	})
+
+	t.Run("Get shared channel remotes by invalid remote_id", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			RemoteId: model.NewId(),
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		require.Nil(t, err, "should not error", err)
+		require.Len(t, remotes, 0)
+	})
+
+	t.Run("Get shared channel remotes by remote_id including unconfirmed", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			RemoteId:        remoteId,
+			InclUnconfirmed: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(opts)
+		require.Nil(t, err, "should not error", err)
+		require.Len(t, remotes, 3) // only confirmed invitations
+		for _, r := range remotes {
+			require.Contains(t, []string{"r4", "r5", "r6"}, r.Description)
+		}
 	})
 }
 
@@ -702,7 +743,7 @@ func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
 }
 
 func clearSharedChannels(ss store.Store) error {
-	opts := store.SharedChannelFilterOpts{}
+	opts := model.SharedChannelFilterOpts{}
 	all, err := ss.SharedChannel().GetAll(0, 1000, opts)
 	if err != nil {
 		return err

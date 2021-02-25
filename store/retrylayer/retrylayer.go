@@ -7306,7 +7306,7 @@ func (s *RetryLayerSharedChannelStore) Get(channelId string) (*model.SharedChann
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetAll(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (s *RetryLayerSharedChannelStore) GetAll(offset int, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 
 	tries := 0
 	for {
@@ -7326,7 +7326,7 @@ func (s *RetryLayerSharedChannelStore) GetAll(offset int, limit int, opts store.
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (s *RetryLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (int64, error) {
 
 	tries := 0
 	for {
@@ -7406,11 +7406,11 @@ func (s *RetryLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+func (s *RetryLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetRemotes(channelId)
+		result, err := s.SharedChannelStore.GetRemotes(opts)
 		if err == nil {
 			return result, nil
 		}

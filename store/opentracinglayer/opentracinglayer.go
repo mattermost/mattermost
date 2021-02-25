@@ -6742,7 +6742,7 @@ func (s *OpenTracingLayerSharedChannelStore) Get(channelId string) (*model.Share
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) GetAll(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (s *OpenTracingLayerSharedChannelStore) GetAll(offset int, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -6760,7 +6760,7 @@ func (s *OpenTracingLayerSharedChannelStore) GetAll(offset int, limit int, opts 
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (s *OpenTracingLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetAllCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6832,7 +6832,7 @@ func (s *OpenTracingLayerSharedChannelStore) GetRemoteByIds(channelId string, re
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+func (s *OpenTracingLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetRemotes")
 	s.Root.Store.SetContext(newCtx)
@@ -6841,7 +6841,7 @@ func (s *OpenTracingLayerSharedChannelStore) GetRemotes(channelId string) ([]*mo
 	}()
 
 	defer span.Finish()
-	result, err := s.SharedChannelStore.GetRemotes(channelId)
+	result, err := s.SharedChannelStore.GetRemotes(opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

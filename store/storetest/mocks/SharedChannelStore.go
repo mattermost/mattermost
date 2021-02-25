@@ -6,7 +6,6 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost-server/v5/model"
-	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -81,11 +80,11 @@ func (_m *SharedChannelStore) Get(channelId string) (*model.SharedChannel, error
 }
 
 // GetAll provides a mock function with given fields: offset, limit, opts
-func (_m *SharedChannelStore) GetAll(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (_m *SharedChannelStore) GetAll(offset int, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	ret := _m.Called(offset, limit, opts)
 
 	var r0 []*model.SharedChannel
-	if rf, ok := ret.Get(0).(func(int, int, store.SharedChannelFilterOpts) []*model.SharedChannel); ok {
+	if rf, ok := ret.Get(0).(func(int, int, model.SharedChannelFilterOpts) []*model.SharedChannel); ok {
 		r0 = rf(offset, limit, opts)
 	} else {
 		if ret.Get(0) != nil {
@@ -94,7 +93,7 @@ func (_m *SharedChannelStore) GetAll(offset int, limit int, opts store.SharedCha
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, store.SharedChannelFilterOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(int, int, model.SharedChannelFilterOpts) error); ok {
 		r1 = rf(offset, limit, opts)
 	} else {
 		r1 = ret.Error(1)
@@ -104,18 +103,18 @@ func (_m *SharedChannelStore) GetAll(offset int, limit int, opts store.SharedCha
 }
 
 // GetAllCount provides a mock function with given fields: opts
-func (_m *SharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (_m *SharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	ret := _m.Called(opts)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(store.SharedChannelFilterOpts) int64); ok {
+	if rf, ok := ret.Get(0).(func(model.SharedChannelFilterOpts) int64); ok {
 		r0 = rf(opts)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(store.SharedChannelFilterOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(model.SharedChannelFilterOpts) error); ok {
 		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)
@@ -193,13 +192,13 @@ func (_m *SharedChannelStore) GetRemoteByIds(channelId string, remoteId string) 
 	return r0, r1
 }
 
-// GetRemotes provides a mock function with given fields: channelId
-func (_m *SharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
-	ret := _m.Called(channelId)
+// GetRemotes provides a mock function with given fields: opts
+func (_m *SharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	ret := _m.Called(opts)
 
 	var r0 []*model.SharedChannelRemote
-	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelRemote); ok {
-		r0 = rf(channelId)
+	if rf, ok := ret.Get(0).(func(model.SharedChannelRemoteFilterOpts) []*model.SharedChannelRemote); ok {
+		r0 = rf(opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.SharedChannelRemote)
@@ -207,8 +206,8 @@ func (_m *SharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChann
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelId)
+	if rf, ok := ret.Get(1).(func(model.SharedChannelRemoteFilterOpts) error); ok {
+		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)
 	}

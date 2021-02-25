@@ -145,7 +145,7 @@ func (s SqlSharedChannelStore) HasChannel(channelID string) (bool, error) {
 }
 
 // GetAll fetches a paginated list of shared channels filtered by SharedChannelSearchOpts.
-func (s SqlSharedChannelStore) GetAll(offset, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (s SqlSharedChannelStore) GetAll(offset, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	if opts.ExcludeHome && opts.ExcludeRemote {
 		return nil, errors.New("cannot exclude home and remote shared channels")
 	}
@@ -182,7 +182,7 @@ func (s SqlSharedChannelStore) GetAll(offset, limit int, opts store.SharedChanne
 }
 
 // GetAllCount returns the number of shared channels that would be fetched using SharedChannelSearchOpts.
-func (s SqlSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (s SqlSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	if opts.ExcludeHome && opts.ExcludeRemote {
 		return 0, errors.New("cannot exclude home and remote shared channels")
 	}
@@ -200,7 +200,7 @@ func (s SqlSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (
 	return count, nil
 }
 
-func (s SqlSharedChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
+func (s SqlSharedChannelStore) getSharedChannelsQuery(opts model.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
 	var selectStr string
 	if forCount {
 		selectStr = "count(sc.ChannelId)"
@@ -386,13 +386,24 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 }
 
 // GetRemotes fetches all shared channel remotes associated with channel_id.
-func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+func (s SqlSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	var remotes []*model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
 		Select("*").
-		From("SharedChannelRemotes").
-		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId})
+		From("SharedChannelRemotes")
+
+	if opts.ChannelId != "" {
+		query = query.Where(sq.Eq{"SharedChannelRemotes.ChannelId": opts.ChannelId})
+	}
+
+	if opts.RemoteId != "" {
+		query = query.Where(sq.Eq{"SharedChannelRemotes.RemoteId": opts.RemoteId})
+	}
+
+	if !opts.InclUnconfirmed {
+		query = query.Where(sq.Eq{"SharedChannelRemotes.IsInviteConfirmed": true})
+	}
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -400,10 +411,10 @@ func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChan
 	}
 
 	if _, err := s.GetReplica().Select(&remotes, squery, args...); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("SharedChannelRemote", channelId)
+		if err != sql.ErrNoRows {
+			return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s; remote_id=%s",
+				opts.ChannelId, opts.RemoteId)
 		}
-		return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s", channelId)
 	}
 	return remotes, nil
 }

@@ -70,8 +70,15 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			if rc == nil {
 				return
 			}
+
+			online := rc.IsOnline()
+
 			if err := rcs.pingRemote(rc); err != nil {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed", mlog.Err(err))
+			}
+
+			if online != rc.IsOnline() {
+				rcs.fireConnectionStateChgEvent(rc)
 			}
 		case <-done:
 			return
@@ -134,4 +141,17 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 		Msg:      msg,
 	}
 	return frame, nil
+}
+
+func (rcs *Service) fireConnectionStateChgEvent(rc *model.RemoteCluster) {
+	rcs.mux.RLock()
+	listeners := make([]ConnectionStateListener, 0, len(rcs.connectionStateListeners))
+	for _, l := range rcs.connectionStateListeners {
+		listeners = append(listeners, l)
+	}
+	rcs.mux.RUnlock()
+
+	for _, l := range listeners {
+		l(rc, rc.IsOnline())
+	}
 }
