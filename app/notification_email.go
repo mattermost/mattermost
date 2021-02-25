@@ -7,27 +7,27 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) *model.AppError {
+func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) error {
 	channel := notification.Channel
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return model.NewAppError("sendNotificationEmail", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "unable to get user teams")
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
@@ -101,13 +101,14 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText, err = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 	if err != nil {
 		mlog.Error("Error building notification email", mlog.Err(err))
-	} else {
-		a.Srv().Go(func() {
-			if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
-				mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
-			}
-		})
+		return errors.Wrap(err, "unable to render the email notification template")
 	}
+
+	a.Srv().Go(func() {
+		if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
+			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+		}
+	})
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostSentEmail()

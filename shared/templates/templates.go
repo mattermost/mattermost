@@ -50,7 +50,7 @@ func New(directory string) (*Container, error) {
 
 // NewWithWatcher creates a new templates container scanning a directory and
 // watch the directory filesystem changes to apply them to the loaded
-// templates. This function returns the container an a errors channel to pass
+// templates. This function returns the container and an errors channel to pass
 // all errors that can happen during the watch process, or an regular error if
 // we fail to create the templates or the watcher. The caller must consume the
 // returned errors channel to ensure not blocking the watch process.
@@ -134,10 +134,6 @@ func (c *Container) Render(w io.Writer, templateName string, data Data) error {
 	c.mutex.RLock()
 	htmlTemplates := c.templates
 	c.mutex.RUnlock()
-
-	if htmlTemplates == nil {
-		return nil
-	}
 
 	if err := htmlTemplates.ExecuteTemplate(w, templateName, data); err != nil {
 		return err

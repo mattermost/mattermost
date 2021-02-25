@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -152,11 +151,7 @@ func (a *App) TelemetryId() string {
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
-	if s.htmlTemplateWatcher != nil {
-		return s.htmlTemplateWatcher
-	}
-
-	return templates.NewFromTemplate(template.New(""))
+	return s.htmlTemplateWatcher
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
