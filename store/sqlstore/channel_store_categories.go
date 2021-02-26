@@ -508,12 +508,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	oc, err := s.getSidebarCategoriesT(s.GetReplica(), userId, teamId)
-	if err != nil {
-		return nil, err
-	}
-
-	return oc, nil
+	return s.getSidebarCategoriesT(s.GetReplica(), userId, teamId)
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {
