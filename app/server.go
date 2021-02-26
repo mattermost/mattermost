@@ -487,7 +487,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.WebSocketRouter.app = fakeApp
 
-	if nErr := mailservice.TestConnection(s.Config()); nErr != nil {
+	mailConfig := s.MailServiceConfig()
+
+	if nErr := mailservice.TestConnection(mailConfig); nErr != nil {
 		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
@@ -1180,6 +1182,10 @@ func (s *Server) startLocalModeServer() error {
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	if err := os.RemoveAll(socket); err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)

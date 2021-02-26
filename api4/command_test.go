@@ -546,7 +546,7 @@ func TestGetCommand(t *testing.T) {
 
 		t.Run("InvalidId", func(t *testing.T) {
 			_, resp := client.GetCommandById(strings.Repeat("z", len(newCmd.Id)))
-			require.Error(t, resp.Error)
+			require.NotNil(t, resp.Error)
 		})
 	})
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {

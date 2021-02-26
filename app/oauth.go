@@ -54,12 +54,12 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 	return oauthApp, nil
 }
 
-func (a *App) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
+func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	oauthApp, err := a.Srv().Store.OAuth().GetApp(appId)
+	oauthApp, err := a.Srv().Store.OAuth().GetApp(appID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -100,12 +100,12 @@ func (a *App) UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	return oauthApp, nil
 }
 
-func (a *App) DeleteOAuthApp(appId string) *model.AppError {
+func (a *App) DeleteOAuthApp(appID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeleteOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := a.Srv().Store.OAuth().DeleteApp(appId); err != nil {
+	if err := a.Srv().Store.OAuth().DeleteApp(appID); err != nil {
 		return model.NewAppError("DeleteOAuthApp", "app.oauth.delete_app.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -464,13 +464,13 @@ func (a *App) GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*mod
 	return apps, nil
 }
 
-func (a *App) DeauthorizeOAuthAppForUser(userID, appId string) *model.AppError {
+func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	// Revoke app sessions
-	accessData, err := a.Srv().Store.OAuth().GetAccessDataByUserForApp(userID, appId)
+	accessData, err := a.Srv().Store.OAuth().GetAccessDataByUserForApp(userID, appID)
 	if err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.get_access_data_by_user_for_app.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -486,7 +486,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appId string) *model.AppError {
 	}
 
 	// Deauthorize the app
-	if err := a.Srv().Store.Preference().Delete(userID, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
+	if err := a.Srv().Store.Preference().Delete(userID, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appID); err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -767,11 +767,11 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
 	if scope != "" {
-		authUrl += "&scope=" + utils.UrlEncode(scope)
+		authUrl += "&scope=" + utils.URLEncode(scope)
 	}
 
 	if loginHint != "" {
-		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
+		authUrl += "&login_hint=" + utils.URLEncode(loginHint)
 	}
 
 	return authUrl, nil
@@ -935,7 +935,7 @@ func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, 
 	stateProps["email"] = email
 
 	if service == model.USER_AUTH_SERVICE_SAML {
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + utils.UrlEncode(email), nil
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + utils.URLEncode(email), nil
 	}
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, "")

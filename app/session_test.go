@@ -35,20 +35,20 @@ func TestCache(t *testing.T) {
 	th.App.Srv().sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
 
 	keys, err := th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, keys)
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
 	rkeys, err := th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 
 	th.App.ClearSessionCacheForAllUsers()
 
 	rkeys, err = th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, rkeys)
 }
 
@@ -73,7 +73,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
 	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
@@ -91,7 +91,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -106,7 +106,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -124,7 +124,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -343,12 +343,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			// check cache was updated
 			var cachedSession *model.Session
 			errGet := th.App.Srv().sessionCache.Get(session.Token, &cachedSession)
-			require.Nil(t, errGet)
+			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
 			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
-			require.Nil(t, nErr)
+			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}

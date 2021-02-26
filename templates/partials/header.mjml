@@ -1,0 +1,11 @@
+<mj-section padding="0px 24px 40px 24px">
+  <mj-column>
+    <mj-text css-class="title" padding="0px">
+      {{.Props.Title}}
+    </mj-text>
+    <mj-text css-class="subTitle" padding="16px 24px 16px 24px">
+      {{.Props.SubTitle}}
+    </mj-text>
+    <mj-button href="{{.Props.ButtonURL}}" padding="0px" css-class="button">{{.Props.Button}}</mj-button>
+  </mj-column>
+</mj-section>
