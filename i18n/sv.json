@@ -6520,14 +6520,6 @@
     "translation": "Välkommen till teamet"
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Du kan logga in på:"
-  },
-  {
     "id": "api.templates.welcome_body.info",
     "translation": "Din mejladress användes för att skapa ett konto hos Mattermost."
   },
@@ -8589,10 +8581,6 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Det gick inte att hämta batchen av filer att indexera."
   },
   {
     "id": "bleveengine.purge_file_index.error",

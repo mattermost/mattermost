@@ -2006,14 +2006,6 @@
     "translation": "以下のリンクをクリックして電子メールアドレスを確認してください。"
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "ここからサインインできます:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermostにより、メッセージやファイルをPCやスマートフォンから共有することができます。検索やアーカイブもできます。"
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "{{ .ServerURL }}に参加しました"
   },
@@ -8480,10 +8472,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
     "translation": "SMTPサーバーへ接続できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
   },
   {
     "id": "bleveengine.purge_file_index.error",

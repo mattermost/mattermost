@@ -2006,14 +2006,6 @@
     "translation": "请通过以下链接来验证您的电子邮件地址。"
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "你可以登入从："
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost 允许您通过PC或手机分享信息和文件，即时搜索和归档。"
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "您已加入 {{ .ServerURL }}"
   },
@@ -8424,10 +8416,6 @@
   {
     "id": "ent.elasticsearch.search_files.disabled",
     "translation": "Elasticsearch 文件搜索已在本服务器禁用"
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "无法批量获取要建立索引的文件。"
   },
   {
     "id": "ent.elasticsearch.index_file.error",

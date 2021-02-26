@@ -2016,14 +2016,6 @@
     "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Vă puteţi conecta la:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost vă permite să partajaţi mesajele şi fişierele din PC sau telefon, cu căutarea instantanee şi arhivare."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Te-ai alăturat {{ .ServerURL }}"
   },

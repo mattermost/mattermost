@@ -4036,14 +4036,6 @@
     "translation": "Присъединихте се към {{.ServerURL}}"
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Можете да влезете от:"
-  },
-  {
     "id": "api.templates.welcome_body.info",
     "translation": "Моля, потвърдете своя адрес за ел.поща, като натиснете по-долу."
   },
@@ -8589,10 +8581,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Грешка при задаване на състоянието."
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Не можа да се получи пакета с файлове за индексиране."
   },
   {
     "id": "bleveengine.purge_file_index.error",

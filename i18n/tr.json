@@ -2011,14 +2011,6 @@
     "translation": "Bu e-posta adresi ile açılmış bir Mattermost hesabı var."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Şuradan oturum açabilirsiniz:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost kullanarak ileti ve dosyaları bilgisayarınız ya da telefonunuz üzerinden paylaşabilir ve anında arama ve arşivleme özelliklerine sahip olabilirsiniz."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Takıma hoş geldiniz"
   },
@@ -8553,10 +8545,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama durumu etkin olarak güncellenemedi."
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
   },
   {
     "id": "bleveengine.purge_file_index.error",

@@ -2011,14 +2011,6 @@
     "translation": "Dit e-mailadres werd gebruikt om een account aan te maken bij Mattermost."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "U kunt inloggen vanuit:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Met Mattermost kunnen berichten en bestande uitgewisseld worden via PC of Telefoon, met instant zoek en archiveer functies."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Welkom bij het team"
   },
@@ -8553,10 +8545,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
-  },
-  {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "bleveengine.purge_file_index.error",
