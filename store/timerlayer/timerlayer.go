@@ -2575,10 +2575,10 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	return err
 }
 
-func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
-	result, err := s.EmojiStore.Get(id, allowFromCache)
+	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2591,10 +2591,10 @@ func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	return result, err
 }
 
-func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *TimerLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
-	result, err := s.EmojiStore.GetByName(name, allowFromCache)
+	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
