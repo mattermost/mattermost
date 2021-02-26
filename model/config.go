@@ -36,6 +36,8 @@ const (
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
+	SEARCHENGINE_ELASTICSEARCH = "elasticsearch"
+
 	MINIO_ACCESS_KEY = "minioaccesskey"
 	MINIO_SECRET_KEY = "miniosecretkey"
 	MINIO_BUCKET     = "mattermost-test"
@@ -333,6 +335,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
+	EnableFileSearch                                  *bool    `access:"write_restrictable"`
 	MinimumHashtagLength                              *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
@@ -533,6 +536,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.EnableFileSearch == nil {
+		s.EnableFileSearch = NewBool(true)
 	}
 
 	if s.MinimumHashtagLength == nil {
@@ -1351,6 +1358,8 @@ type FileSettings struct {
 	DriverName              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site,cloud_restrictable"`
+	ExtractContent          *bool   `access:"environment,write_restrictable"`
+	ArchiveRecursion        *bool   `access:"environment,write_restrictable"`
 	PublicLinkSalt          *string `access:"site,cloud_restrictable"`                           // telemetry: none
 	InitialFont             *string `access:"environment,cloud_restrictable"`                    // telemetry: none
 	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1392,6 +1401,14 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnablePublicLink == nil {
 		s.EnablePublicLink = NewBool(false)
+	}
+
+	if s.ExtractContent == nil {
+		s.ExtractContent = NewBool(false)
+	}
+
+	if s.ArchiveRecursion == nil {
+		s.ArchiveRecursion = NewBool(false)
 	}
 
 	if isUpdate {

@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -147,7 +148,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
 			url.Values{
 				"type":    []string{"oauth_invalid_redirect_url"},
-				"message": []string{utils.T("api.oauth.allow_oauth.redirect_callback.app_error")},
+				"message": []string{i18n.T("api.oauth.allow_oauth.redirect_callback.app_error")},
 			}, c.App.AsymmetricSigningKey())
 		return
 	}
@@ -414,7 +415,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().TeamSettings.EnableUserCreation {
 		utils.RenderWebError(c.App.Config(), w, r, http.StatusBadRequest, url.Values{
-			"message": []string{utils.T("api.oauth.singup_with_oauth.disabled.app_error")},
+			"message": []string{i18n.T("api.oauth.singup_with_oauth.disabled.app_error")},
 		}, c.App.AsymmetricSigningKey())
 		return
 	}

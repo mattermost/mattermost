@@ -4,10 +4,9 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type RenameProvider struct {
@@ -25,7 +24,7 @@ func (*RenameProvider) GetTrigger() string {
 	return CmdRename
 }
 
-func (*RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*RenameProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	renameAutocompleteData := model.NewAutocompleteData(CmdRename, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
 	renameAutocompleteData.AddTextArgument(T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
