@@ -243,10 +243,10 @@ CREATE TABLE public.incomingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     displayname character varying(64),
-    description character varying(128),
-    username text,
-    iconurl text,
-    channellocked boolean
+    description character varying(500),
+    username character varying(255),
+    iconurl character varying(1024),
+    channellocked boolean DEFAULT false
 );
 
 
