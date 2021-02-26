@@ -237,7 +237,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Size:                   model.SESSION_CACHE_SIZE,
 		Name:                   "channelMembersNotifyPropsForChannel",
 		DefaultExpiry:          ChannelCacheSec * time.Second,
-		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL,
+		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
 	}); err != nil {
 		return
 	}
