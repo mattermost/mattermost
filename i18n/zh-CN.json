@@ -8376,5 +8376,225 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "getThreadsForUser 的 Before 和 After 参数是互斥的"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "用户串不存在或未关注"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "更新时必须是有效的时间。"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "无效的 SQL 连接最大空闲时间设定。必须为非负数。"
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "RetentionDays 的值无效。值应大于 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "目录的值不能为空。"
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "无法更新用户的两步验证活动状态。"
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "无法更新用户的两步验证活动状态。"
+  },
+  {
+    "id": "error",
+    "translation": "错误"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "无法链接 smtp 服务器"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "解码搜索结果失败"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "搜索无法完成"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch 文件搜索已在本服务器禁用"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "无法批量获取要建立索引的文件。"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "索引文件失败"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "删除用户文件失败"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "删除消息文件失败"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "删除文件失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "创建 Elasticsearch 文件模板失败"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "关闭文件索引失败。"
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "文件搜索无法完成。"
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "清除文件索引失败。"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "批量索引文件失败。"
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "索引文件失败。"
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "删除用户文件失败。"
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "删除消息文件失败。"
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "删除文件失败。"
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "删除文件失败。"
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "创建 bleve 文件索引错误。"
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "未成功发送电子邮件"
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "无法批量获取要建立索引的文件。"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "导入期间读取文件附件失败。"
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "导出期间添加文件到 zip 归档失败。"
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "无法封装响应。"
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "导出期间创建 zip 标头失败。"
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "导出期间创建目录失败。"
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "导出期间创建文件失败。"
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "导出期间复制文件失败。"
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "无效的 websocket 升级 Origin 标头。"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "请求缺少 AuthData 或 AuthService 参数。"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "给管理员发送用户限制通知邮件失败"
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "从发现文档检索端点时出错。"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{.UserName}} 想邀请成员加入您的工作区"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost 用户请求升级工作空间"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "由于您的工作空间已经达到了 Mattermost 云免费版本的用户限制，因此无法发送邀请。立即升级以允许更多用户加入您的工作区。"
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "或者，您可以在管理控制台中禁止以释放用户位数并保持在免费用户限制内。"
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "找不到导出文件。"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "无法删除最近状态。请先尝试添加状态，或与您的系统管理员联系以获取详细信息。"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "自定义状态功能已被禁用。请与系统管理员联系以获取详细信息。"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "你的状态已设为 “{{.EmojiName}} {{.StatusMessage}}”。你可在频道侧栏更改你的状态。"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "状态"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] 或清除"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "设定或清除您的状态"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "已清除状态。"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "清除状态错误。"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "设定状态错误。"
   }
 ]
