@@ -71,10 +71,18 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 				return
 			}
 
-			rcs.checkConnectionState(rc)
+			online := rc.IsOnline()
 
 			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed", mlog.Err(err))
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+					mlog.String("remote", rc.DisplayName),
+					mlog.String("remoteId", rc.RemoteId),
+					mlog.Err(err),
+				)
+			}
+
+			if online != rc.IsOnline() {
+				rcs.fireConnectionStateChgEvent(rc)
 			}
 		case <-done:
 			return
@@ -102,6 +110,15 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 		return err
 	}
 
+	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
+		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+	}
+	rc.LastPingAt = model.GetMillis()
+
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
 		sentAt := time.Unix(0, ping.SentAt*int64(time.Millisecond))
 		elapsed := time.Since(sentAt).Seconds()
@@ -114,6 +131,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
+		mlog.String("remoteId", rc.RemoteId),
 		mlog.Int64("SentAt", ping.SentAt),
 		mlog.Int64("RecvAt", ping.RecvAt),
 		mlog.Int64("Diff", ping.RecvAt-ping.SentAt),
@@ -137,26 +155,6 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 		Msg:      msg,
 	}
 	return frame, nil
-}
-
-// checkConnectionState is called when a ping is to be issued to a remote cluster.
-// A check is made to see if the connection state (online/offline) has changed for the
-// remote, and if so, any listeners are notified.
-func (rcs *Service) checkConnectionState(rc *model.RemoteCluster) {
-	online := rc.IsOnline()
-	var changed bool
-
-	rcs.mux.Lock()
-	oldState, ok := rcs.connectionStateCache[rc.RemoteId]
-	if !ok || oldState != online {
-		changed = true
-		rcs.connectionStateCache[rc.RemoteId] = online
-	}
-	rcs.mux.Unlock()
-
-	if changed {
-		rcs.fireConnectionStateChgEvent(rc)
-	}
 }
 
 func (rcs *Service) fireConnectionStateChgEvent(rc *model.RemoteCluster) {

@@ -178,12 +178,12 @@ run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
-	docker-compose -f docker-compose.yaml up haproxy
+	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
 endif
 
 stop-haserver: 
 	@echo Stopping docker containers for HA topology
-	docker-compose stop
+	docker-compose -f docker-compose.yaml down --remove-orphans 
 
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)

@@ -68,7 +68,6 @@ type Service struct {
 	leaderListenerId         string
 	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
-	connectionStateCache     map[string]bool                     // maps remoteId to online state
 	done                     chan struct{}
 }
 
@@ -100,7 +99,6 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		httpClient:               client,
 		topicListeners:           make(map[string]map[string]TopicListener),
 		connectionStateListeners: make(map[string]ConnectionStateListener),
-		connectionStateCache:     make(map[string]bool),
 	}
 
 	service.send = make([]chan interface{}, MaxConcurrentSends)
@@ -231,7 +229,6 @@ func (rcs *Service) pause() {
 	rcs.active = false
 	close(rcs.done)
 	rcs.done = nil
-	rcs.connectionStateCache = make(map[string]bool)
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service inactive")
 }

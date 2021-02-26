@@ -21,7 +21,7 @@ func (api *API) InitRemoteCluster() {
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
-	// make sure remote cluster service is running.
+	// make sure remote cluster service is enabled.
 	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
 		c.Err = appErr
 		return
@@ -38,9 +38,6 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("remoteClusterPing", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
 	remoteId := c.GetRemoteID(r)
 	if remoteId != frame.RemoteId {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
@@ -52,7 +49,6 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
-	auditRec.AddMeta("remoteCluster", rc)
 
 	ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
 	if err != nil {
@@ -64,17 +60,6 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if metrics := c.App.Metrics(); metrics != nil {
 		metrics.IncrementRemoteClusterMsgReceivedCounter(rc.RemoteId)
 	}
-
-	auditRec.AddMeta("SentAt", ping.SentAt)
-	auditRec.AddMeta("RecvAt", ping.RecvAt)
-
-	if err := c.App.SetRemoteClusterLastPingAt(rc.RemoteId); err != nil {
-		auditRec.AddMeta("err", err)
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
 
 	resp, _ := json.Marshal(ping)
 	w.Write(resp)
