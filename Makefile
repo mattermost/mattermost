@@ -92,6 +92,8 @@ TESTS=.
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
+TEMPLATES_DIR=templates
+
 # Plugins Packages
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
@@ -432,6 +434,9 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	fi
+
+build-templates: ## Compile all mjml email templates
+	cd $(TEMPLATES_DIR) && $(MAKE) build
 
 run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development

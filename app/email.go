@@ -168,10 +168,16 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 
 	bodyPage := es.newEmailTemplate("verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.verify_body.title", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
-	bodyPage.Props["VerifyUrl"] = link
+	bodyPage.Props["Title"] = T("api.templates.verify_body.title")
+	bodyPage.Props["SubTitle1"] = T("api.templates.verify_body.subTitle1")
+	bodyPage.Props["ServerURL"] = T("api.templates.verify_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle2"] = T("api.templates.verify_body.subTitle2")
+	bodyPage.Props["ButtonURL"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
+	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
+	bodyPage.Props["Info1"] = T("api.templates.verify_body.info1")
+	bodyPage.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	bodyPage.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
 	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
@@ -215,15 +221,19 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 
 	bodyPage := es.newEmailTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
+	bodyPage.Props["Title"] = T("api.templates.welcome_body.title")
+	bodyPage.Props["SubTitle1"] = T("api.templates.welcome_body.subTitle1")
+	bodyPage.Props["ServerURL"] = T("api.templates.welcome_body.serverURL", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle2"] = T("api.templates.welcome_body.subTitle2")
 	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
-	bodyPage.Props["Info2"] = T("api.templates.welcome_body.info2")
-	bodyPage.Props["Info3"] = T("api.templates.welcome_body.info3")
+	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
+	bodyPage.Props["Info1"] = T("api.templates.welcome_body.info1")
 	bodyPage.Props["SiteURL"] = siteURL
 
 	if *es.srv.Config().NativeAppSettings.AppDownloadLink != "" {
+		bodyPage.Props["AppDownloadTitle"] = T("api.templates.welcome_body.app_download_title")
 		bodyPage.Props["AppDownloadInfo"] = T("api.templates.welcome_body.app_download_info")
+		bodyPage.Props["AppDownloadButton"] = T("api.templates.welcome_body.app_download_button")
 		bodyPage.Props["AppDownloadLink"] = *es.srv.Config().NativeAppSettings.AppDownloadLink
 	}
 
@@ -236,7 +246,7 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 		if redirect != "" {
 			link += fmt.Sprintf("&redirect_to=%s", redirect)
 		}
-		bodyPage.Props["VerifyUrl"] = link
+		bodyPage.Props["ButtonURL"] = link
 	}
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
@@ -493,6 +503,7 @@ func (es *EmailService) newEmailTemplate(name, locale string) *utils.HTMLTemplat
 	}
 
 	t.Props["Footer"] = localT("api.templates.email_footer")
+	t.Props["FooterV2"] = localT("api.templates.email_footer_v2")
 
 	if *es.srv.Config().EmailSettings.FeedbackOrganization != "" {
 		t.Props["Organization"] = localT("api.templates.email_organization") + *es.srv.Config().EmailSettings.FeedbackOrganization
