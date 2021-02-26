@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -2861,7 +2861,7 @@ func TestResetPassword(t *testing.T) {
 	th.Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	mailservice.DeleteMailBox(user.Email)
+	mail.DeleteMailBox(user.Email)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		success, resp := client.SendPasswordResetEmail(user.Email)
 		CheckNoError(t, resp)
@@ -2874,10 +2874,10 @@ func TestResetPassword(t *testing.T) {
 		require.True(t, success, "should succeed")
 	})
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	err := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(user.Email)
+		resultsMailbox, err = mail.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -2887,7 +2887,7 @@ func TestResetPassword(t *testing.T) {
 	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		require.Contains(t, resultsMailbox[0].To[0], user.Email, "Correct To recipient")
-		resultsEmail, mailErr := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
+		resultsEmail, mailErr := mail.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
 		require.NoError(t, mailErr)
 		loc := strings.Index(resultsEmail.Body.Text, "token=")
 		require.NotEqual(t, -1, loc, "Code should be found in email")
