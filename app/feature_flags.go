@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"os"
 	"time"
 
@@ -40,7 +41,11 @@ func (s *Server) updateFeatureFlagValuesFromManagment() {
 	newCfg := s.configStore.GetNoEnv().Clone()
 	oldFlags := *newCfg.FeatureFlags
 	newFlags := s.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
+	oldFlagsBytes, _ := json.Marshal(oldFlags)
+	newFlagsBytes, _ := json.Marshal(newFlags)
+	s.Log.Debug("Checking feature flags from management service", mlog.String("old_flags", string(oldFlagsBytes)), mlog.String("new_flags", string(newFlagsBytes)))
 	if oldFlags != newFlags {
+		s.Log.Debug("Feature flag change detected, updating config")
 		*newCfg.FeatureFlags = newFlags
 		s.SaveConfig(newCfg, true)
 	}
