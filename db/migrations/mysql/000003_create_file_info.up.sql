@@ -20,9 +20,37 @@ CREATE TABLE IF NOT EXISTS FileInfo (
     KEY idx_fileinfo_create_at (CreateAt),
     KEY idx_fileinfo_delete_at (DeleteAt),
     KEY idx_fileinfo_postid_at (PostId),
-    KEY idx_fileinfo_extension_at (Extension),
-    FULLTEXT KEY idx_fileinfo_name_txt (Name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'FileInfo'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_fileinfo_extension_at'
+    ) > 0,
+    'SELECT 1',
+    'CREATE INDEX idx_fileinfo_extension_at ON FileInfo (Extension);'
+));
+
+PREPARE createIndexIfNotExists FROM @preparedStatement;
+EXECUTE createIndexIfNotExists;
+DEALLOCATE PREPARE createIndexIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE table_name = 'FileInfo'
+        AND table_schema = DATABASE()
+        AND index_name = 'idx_fileinfo_name_txt'
+    ) > 0,
+    'SELECT 1',
+    'CREATE FULLTEXT INDEX idx_fileinfo_name_txt ON FileInfo (Name);'
+));
+
+PREPARE createIndexIfNotExists FROM @preparedStatement;
+EXECUTE createIndexIfNotExists;
+DEALLOCATE PREPARE createIndexIfNotExists;
 
 SET @preparedStatement = (SELECT IF(
     (
@@ -59,40 +87,10 @@ SET @preparedStatement = (SELECT IF(
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'FileInfo'
         AND table_schema = DATABASE()
-        AND index_name = 'idx_fileinfo_name_txt'
-    ) > 0,
-    'SELECT 1',
-    'CREATE FULLTEXT INDEX idx_fileinfo_name_txt ON FileInfo (Name);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'FileInfo'
-        AND table_schema = DATABASE()
         AND index_name = 'idx_fileinfo_content_txt'
     ) > 0,
     'SELECT 1',
     'CREATE FULLTEXT INDEX idx_fileinfo_content_txt ON FileInfo (Content);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'FileInfo'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_fileinfo_extension_at'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_fileinfo_extension_at ON FileInfo (Extension);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
