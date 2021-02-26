@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -56,10 +57,21 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		log = s.Log
 	}
 
+	attributes := map[string]interface{}{}
+
+	// if we are part of a cloud installation, add its installation and group id
+	if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+		attributes["installation_id"] = installationId
+	}
+	if groupId := os.Getenv("MM_CLOUD_GROUP_ID"); groupId != "" {
+		attributes["group_id"] = groupId
+	}
+
 	synchronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
-		ServerID: s.TelemetryId(),
-		SplitKey: *s.Config().ServiceSettings.SplitKey,
-		Log:      log,
+		ServerID:   s.TelemetryId(),
+		SplitKey:   *s.Config().ServiceSettings.SplitKey,
+		Log:        log,
+		Attributes: attributes,
 	})
 	if err != nil {
 		return err
