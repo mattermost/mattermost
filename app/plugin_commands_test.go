@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 func TestPluginCommand(t *testing.T) {
@@ -99,7 +99,7 @@ func TestPluginCommand(t *testing.T) {
 		err2 := th.App.DisablePlugin(pluginIDs[0])
 		require.Nil(t, err2)
 
-		commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, utils.T)
+		commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, i18n.T)
 		require.Nil(t, err3)
 
 		for _, commands := range commands {
