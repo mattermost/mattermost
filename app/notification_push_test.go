@@ -354,7 +354,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
 	userID := model.NewId()
-	channelId := model.NewId()
+	channelID := model.NewId()
 
 	offline := &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	away := &model.Status{UserId: userID, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
@@ -365,175 +365,175 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		name              string
 		userNotifySetting string
 		status            *model.Status
-		channelId         string
+		channelID         string
 		expected          bool
 	}{
 		{
 			name:              "WHEN props is ONLINE and user is offline with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is offline without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is away with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is away without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is online with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is online without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 	}
@@ -542,7 +542,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelId))
+			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID))
 		})
 	}
 }

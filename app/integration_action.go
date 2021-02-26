@@ -38,11 +38,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) DoPostAction(postId, actionId, userID, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(postId, actionId, userID, selectedOption, nil)
+func (a *App) DoPostAction(postID, actionId, userID, selectedOption string) (string, *model.AppError) {
+	return a.DoPostActionWithCookie(postID, actionId, userID, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(postId, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
@@ -64,21 +64,21 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userID, selectedOption st
 	rootPostId := ""
 	upstreamRequest := &model.PostActionIntegrationRequest{
 		UserId: userID,
-		PostId: postId,
+		PostId: postID,
 	}
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postId)
+		post, err := a.Srv().Store.Post().GetSingle(postID)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
 
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv().Store.Channel().GetForPost(postId)
+		channel, err := a.Srv().Store.Channel().GetForPost(postID)
 		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
@@ -105,7 +105,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userID, selectedOption st
 			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
 		}
 
-		if postId != cookie.PostId {
+		if postID != cookie.PostId {
 			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
@@ -252,7 +252,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userID, selectedOption st
 	}
 
 	if response.Update != nil {
-		response.Update.Id = postId
+		response.Update.Id = postID
 
 		// Restore the post attributes and Props that need to be preserved
 		if response.Update.GetProps() == nil {
@@ -374,9 +374,9 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	if result[0] != "plugins" {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
-	pluginId := result[1]
+	pluginID := result[1]
 
-	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
+	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginID)
 
 	base, err := url.Parse(path)
 	if err != nil {
@@ -407,7 +407,7 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	r.Header.Set("Mattermost-User-Id", a.Session().UserId)
 	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session().Token)
 	params := make(map[string]string)
-	params["plugin_id"] = pluginId
+	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
 
 	a.ServePluginRequest(w, r)
