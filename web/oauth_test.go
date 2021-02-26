@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -534,7 +535,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 		},
 	}
 
-	translationFunc := utils.GetUserTranslations("en")
+	translationFunc := i18n.GetUserTranslations("en")
 	c.App.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)

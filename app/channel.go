@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -22,13 +23,13 @@ import (
 //
 func (a *App) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError) {
 	displayNames := map[string]string{
-		"town-square": utils.T("api.channel.create_default_channels.town_square"),
-		"off-topic":   utils.T("api.channel.create_default_channels.off_topic"),
+		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
+		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
 	}
 	channels := []*model.Channel{}
 	defaultChannelNames := a.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := utils.TDefault(displayNames[name], name)
+		displayName := i18n.TDefault(displayNames[name], name)
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.CHANNEL_OPEN, TeamId: teamID}
 		if _, err := a.CreateChannel(channel, false); err != nil {
 			return nil, err
@@ -711,8 +712,8 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 
 func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel) *model.AppError {
 	message := (map[string]string{
-		model.CHANNEL_OPEN:    utils.T("api.channel.change_channel_privacy.private_to_public"),
-		model.CHANNEL_PRIVATE: utils.T("api.channel.change_channel_privacy.public_to_private"),
+		model.CHANNEL_OPEN:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
+		model.CHANNEL_PRIVATE: i18n.T("api.channel.change_channel_privacy.public_to_private"),
 	})[channel.Type]
 	post := &model.Post{
 		ChannelId: channel.Id,
@@ -758,7 +759,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userID string) (*model.Chan
 	}
 
 	if user != nil {
-		T := utils.GetUserTranslations(user.Locale)
+		T := i18n.GetUserTranslations(user.Locale)
 
 		post := &model.Post{
 			ChannelId: channel.Id,
@@ -1273,7 +1274,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userID string) *model.AppErr
 	}
 
 	if user != nil {
-		T := utils.GetUserTranslations(user.Locale)
+		T := i18n.GetUserTranslations(user.Locale)
 
 		post := &model.Post{
 			ChannelId: channel.Id,
@@ -1500,11 +1501,11 @@ func (a *App) PostUpdateChannelHeaderMessage(userID string, channel *model.Chann
 
 	var message string
 	if oldChannelHeader == "" {
-		message = fmt.Sprintf(utils.T("api.channel.post_update_channel_header_message_and_forget.updated_to"), user.Username, newChannelHeader)
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_header_message_and_forget.updated_to"), user.Username, newChannelHeader)
 	} else if newChannelHeader == "" {
-		message = fmt.Sprintf(utils.T("api.channel.post_update_channel_header_message_and_forget.removed"), user.Username, oldChannelHeader)
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_header_message_and_forget.removed"), user.Username, oldChannelHeader)
 	} else {
-		message = fmt.Sprintf(utils.T("api.channel.post_update_channel_header_message_and_forget.updated_from"), user.Username, oldChannelHeader, newChannelHeader)
+		message = fmt.Sprintf(i18n.T("api.channel.post_update_channel_header_message_and_forget.updated_from"), user.Username, oldChannelHeader, newChannelHeader)
 	}
 
 	post := &model.Post{
@@ -1534,11 +1535,11 @@ func (a *App) PostUpdateChannelPurposeMessage(userID string, channel *model.Chan
 
 	var message string
 	if oldChannelPurpose == "" {
-		message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.updated_to"), user.Username, newChannelPurpose)
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_purpose_message.updated_to"), user.Username, newChannelPurpose)
 	} else if newChannelPurpose == "" {
-		message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.removed"), user.Username, oldChannelPurpose)
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_purpose_message.removed"), user.Username, oldChannelPurpose)
 	} else {
-		message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.updated_from"), user.Username, oldChannelPurpose, newChannelPurpose)
+		message = fmt.Sprintf(i18n.T("app.channel.post_update_channel_purpose_message.updated_from"), user.Username, oldChannelPurpose, newChannelPurpose)
 	}
 
 	post := &model.Post{
@@ -1565,7 +1566,7 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userID string, channel *model.
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	message := fmt.Sprintf(utils.T("api.channel.post_update_channel_displayname_message_and_forget.updated_from"), user.Username, oldChannelDisplayName, newChannelDisplayName)
+	message := fmt.Sprintf(i18n.T("api.channel.post_update_channel_displayname_message_and_forget.updated_from"), user.Username, oldChannelDisplayName, newChannelDisplayName)
 
 	post := &model.Post{
 		ChannelId: channel.Id,
@@ -1962,11 +1963,11 @@ func (a *App) JoinChannel(channel *model.Channel, userID string) *model.AppError
 }
 
 func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
-	message := fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username)
+	message := fmt.Sprintf(i18n.T("api.channel.join_channel.post_and_forget"), user.Username)
 	postType := model.POST_JOIN_CHANNEL
 
 	if user.IsGuest() {
-		message = fmt.Sprintf(utils.T("api.channel.guest_join_channel.post_and_forget"), user.Username)
+		message = fmt.Sprintf(i18n.T("api.channel.guest_join_channel.post_and_forget"), user.Username)
 		postType = model.POST_GUEST_JOIN_CHANNEL
 	}
 
@@ -1990,7 +1991,7 @@ func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *
 func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.join_team.post_and_forget"), user.Username),
+		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
 		Type:      model.POST_JOIN_TEAM,
 		UserId:    user.Id,
 		Props: model.StringInterface{
@@ -2087,7 +2088,7 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
-		Message: fmt.Sprintf(utils.T("api.channel.leave.left"), fmt.Sprintf("@%s", user.Username)),
+		Message: fmt.Sprintf(i18n.T("api.channel.leave.left"), fmt.Sprintf("@%s", user.Username)),
 		Type:    model.POST_LEAVE_CHANNEL,
 		UserId:  user.Id,
 		Props: model.StringInterface{
@@ -2103,11 +2104,11 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 }
 
 func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
-	message := fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username)
+	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
 	postType := model.POST_ADD_TO_CHANNEL
 
 	if addedUser.IsGuest() {
-		message = fmt.Sprintf(utils.T("api.channel.add_guest.added"), addedUser.Username, user.Username)
+		message = fmt.Sprintf(i18n.T("api.channel.add_guest.added"), addedUser.Username, user.Username)
 		postType = model.POST_ADD_GUEST_TO_CHANNEL
 	}
 
@@ -2135,7 +2136,7 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
+		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
 		Type:      model.POST_ADD_TO_TEAM,
 		UserId:    user.Id,
 		RootId:    postRootId,
@@ -2160,7 +2161,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
 		// treat this as a username mention even though the user has now left the channel.
 		// The client renders its own system message, ignoring this value altogether.
-		Message: fmt.Sprintf(utils.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
+		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
 		Type:    model.POST_REMOVE_FROM_CHANNEL,
 		UserId:  removerUserId,
 		Props: model.StringInterface{
@@ -2753,7 +2754,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.move_channel.success"), previousTeam.Name),
+		Message:   fmt.Sprintf(i18n.T("api.team.move_channel.success"), previousTeam.Name),
 		Type:      model.POST_MOVE_CHANNEL,
 		UserId:    user.Id,
 		Props: model.StringInterface{

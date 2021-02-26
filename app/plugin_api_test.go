@@ -25,10 +25,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -1689,7 +1689,7 @@ type MockSlashCommandProvider struct {
 func (*MockSlashCommandProvider) GetTrigger() string {
 	return "mock"
 }
-func (*MockSlashCommandProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          "mock",
 		AutoComplete:     true,
