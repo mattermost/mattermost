@@ -12,10 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -201,7 +200,7 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 		return
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 	displayNameFormat := *es.srv.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string

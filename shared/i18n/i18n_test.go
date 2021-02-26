@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package utils
+package i18n
 
 import (
 	"testing"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/go-i18n/i18n/bundle"
 	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/mattermost/go-i18n/i18n/translation"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var htmlTestTranslationBundle *bundle.Bundle
@@ -26,13 +23,14 @@ func init() {
 	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
 }
 
-func TestTranslateAsHtml(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+func TestTranslateAsHTML(t *testing.T) {
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
 		"Foo": "<i>foo</i>",
 	}))
 }
 
-func TestEscapeForHtml(t *testing.T) {
+func TestEscapeForHTML(t *testing.T) {
+	stringForPointer := "<b>abc</b>"
 	for name, tc := range map[string]struct {
 		In       interface{}
 		Expected interface{}
@@ -46,7 +44,7 @@ func TestEscapeForHtml(t *testing.T) {
 			Expected: "&lt;b&gt;abc&lt;/b&gt;",
 		},
 		"StringPointer": {
-			In:       model.NewString("<b>abc</b>"),
+			In:       &stringForPointer,
 			Expected: "&lt;b&gt;abc&lt;/b&gt;",
 		},
 		"Map": {

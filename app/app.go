@@ -11,9 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -22,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -34,7 +32,7 @@ type App struct {
 	// a cyclic dependency as bleve tests themselves import testlib.
 	searchEngine *searchengine.Broker
 
-	t              goi18n.TranslateFunc
+	t              i18n.TranslateFunc
 	session        model.Session
 	requestId      string
 	ipAddress      string
@@ -362,7 +360,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}
 	}
 
-	T := utils.GetUserTranslations(sysAdmins[0].Locale)
+	T := i18n.GetUserTranslations(sysAdmins[0].Locale)
 	warnMetricsBot := &model.Bot{
 		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
 		DisplayName: T("app.system.warn_metric.bot_displayname"),
@@ -376,7 +374,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 	}
 
 	for _, sysAdmin := range sysAdmins {
-		T := utils.GetUserTranslations(sysAdmin.Locale)
+		T := i18n.GetUserTranslations(sysAdmin.Locale)
 		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
 		bot.Description = T("app.system.warn_metric.bot_description")
 
@@ -462,9 +460,9 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 
 		if !forceAck {
 			if *a.Config().EmailSettings.SMTPServer == "" {
-				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
-			T := utils.GetUserTranslations(sender.Locale)
+			T := i18n.GetUserTranslations(sender.Locale)
 			data := a.Srv().EmailService.newEmailTemplateData(sender.Locale)
 			data.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
 			data.Props["ContactNameValue"] = sender.GetFullName()
@@ -673,7 +671,7 @@ func (a *App) SetSession(s *model.Session) {
 	a.session = *s
 }
 
-func (a *App) SetT(t goi18n.TranslateFunc) {
+func (a *App) SetT(t i18n.TranslateFunc) {
 	a.t = t
 }
 func (a *App) SetRequestId(s string) {
@@ -697,7 +695,7 @@ func (a *App) SetContext(c context.Context) {
 func (a *App) SetServer(srv *Server) {
 	a.srv = srv
 }
-func (a *App) GetT() goi18n.TranslateFunc {
+func (a *App) GetT() i18n.TranslateFunc {
 	return a.t
 }
 
