@@ -6517,7 +6517,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Du anslöt till {{.ServerURL}}"
+    "translation": "Välkommen till teamet"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -6529,7 +6529,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verifiera din e-postadress genom att följa länken nedan."
+    "translation": "Din mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -6537,7 +6537,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "För en bättre upplevelse kan du ladda ner program och app för PC, Mac, iOS och Android från:"
+    "translation": "För en bättre upplevelse kan du ladda ner app för PC, Mac, iOS och Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -6573,11 +6573,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Du har anslutit till {{.ServerURL}}"
+    "translation": "Verifiera din mejladress"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verifiera din e-postadress med att följa länken nedan."
+    "translation": "Denna mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -8589,5 +8589,93 @@
   {
     "id": "api.custom_status.disabled",
     "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Det gick inte att hämta batchen av filer att indexera."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Misslyckades att rensa filindex."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Det gick inte att hämta batchen av filer att indexera."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Kunde inte få tag i filerna i batchen att indexera."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Nya användare kan inte gå med i er arbetsyta"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Någon försökte nyligen gå med i er arbetsyta men kunde inte fullfölja pga att arbetsytan har nått gränsen för den kostnadsfria versionen av Mattermost cloud. Uppgradera nu för att tillåta fler användare att gå med i er arbetsyta."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Sökning av filer är inaktiverad på denna server. Kontakta din systemadministratör."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klicka nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Ladda ner desktop och mobilapp"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Ladda ner"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Tryck nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Frågor?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Mejla oss närsomhelst på "
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Funktionen är under utveckling och är endast tillgänglig med en funktionsflagga."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Kunde inte bearbeta begäran."
   }
 ]
