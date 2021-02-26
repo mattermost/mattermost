@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -302,6 +303,10 @@ func (b *BleveEngine) IsSearchEnabled() bool {
 func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
+
+	if reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
+		return
+	}
 
 	mlog.Info("UpdateConf Bleve")
 

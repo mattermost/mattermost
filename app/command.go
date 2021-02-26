@@ -14,12 +14,10 @@ import (
 	"sync"
 	"unicode"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -28,7 +26,7 @@ const (
 
 type CommandProvider interface {
 	GetTrigger() string
-	GetCommand(a *App, T goi18n.TranslateFunc) *model.Command
+	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
 	DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
@@ -80,7 +78,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamID string, response *model
 
 // @openTracingParams teamID
 // previous ListCommands now ListAutocompleteCommands
-func (a *App) ListAutocompleteCommands(teamID string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 
@@ -138,7 +136,7 @@ func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError
 	return teamCmds, nil
 }
 
-func (a *App) ListAllCommands(teamID string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
@@ -645,7 +643,7 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 	}
 
 	for _, builtInProvider := range commandProviders {
-		builtInCommand := builtInProvider.GetCommand(a, utils.T)
+		builtInCommand := builtInProvider.GetCommand(a, i18n.T)
 		if builtInCommand != nil && cmd.Trigger == builtInCommand.Trigger {
 			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
 		}

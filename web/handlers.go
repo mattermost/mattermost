@@ -23,6 +23,7 @@ import (
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -108,7 +109,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.InitServer()
 
-	t, _ := utils.GetTranslationsAndLocale(r)
+	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
 	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))

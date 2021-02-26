@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -98,7 +99,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	ru, _ = url.Parse(ruri)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
@@ -350,7 +351,7 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
 	_, nErr := th.App.Srv().Store.OAuth().SaveAuthData(authData)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -488,7 +489,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -534,7 +535,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 		},
 	}
 
-	translationFunc := utils.GetUserTranslations("en")
+	translationFunc := i18n.GetUserTranslations("en")
 	c.App.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)

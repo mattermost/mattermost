@@ -18,10 +18,10 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/mailru/easygo/netpoll"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -43,7 +43,7 @@ type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        net.Conn
-	T                goi18n.TranslateFunc
+	T                i18n.TranslateFunc
 	Locale           string
 	Sequence         int64
 	UserId           string
@@ -61,7 +61,7 @@ type WebConn struct {
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
 	if session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)

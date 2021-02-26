@@ -439,6 +439,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
+		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -544,6 +545,8 @@ func (ts *TelemetryService) trackConfig() {
 		"driver_name":             *cfg.FileSettings.DriverName,
 		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
 		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
+		"extract_content":         *cfg.FileSettings.ExtractContent,
+		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,

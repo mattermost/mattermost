@@ -6,10 +6,9 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -31,7 +30,7 @@ func (*CustomStatusProvider) GetTrigger() string {
 	return CmdCustomStatus
 }
 
-func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdCustomStatus,
 		AutoComplete:     true,

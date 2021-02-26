@@ -20,9 +20,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -1325,7 +1325,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.leave.left"), user.Username),
+		Message:   fmt.Sprintf(i18n.T("api.team.leave.left"), user.Username),
 		Type:      model.POST_LEAVE_TEAM,
 		UserId:    user.Id,
 		Props: model.StringInterface{
@@ -1343,7 +1343,7 @@ func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *mo
 func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.remove_user_from_team.removed"), user.Username),
+		Message:   fmt.Sprintf(i18n.T("api.team.remove_user_from_team.removed"), user.Username),
 		Type:      model.POST_REMOVE_FROM_TEAM,
 		UserId:    user.Id,
 		Props: model.StringInterface{
