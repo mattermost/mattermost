@@ -29,7 +29,7 @@ var notAllowedPermissions = []string{
 }
 
 func (api *API) InitRole() {
-	api.BaseRoutes.Roles.Handle("", api.ApiSessionRequiredTrustRequester(getAllRoles)).Methods("GET")
+	api.BaseRoutes.Roles.Handle("", api.ApiSessionRequired(getAllRoles)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getRole)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.ApiSessionRequiredTrustRequester(getRoleByName)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/names", api.ApiSessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
@@ -37,8 +37,8 @@ func (api *API) InitRole() {
 }
 
 func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("getAllRoles", "api.role.get_all_roles.insufficient_permissions", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 

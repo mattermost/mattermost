@@ -22,7 +22,7 @@ func TestGetAllRoles(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, resp := client.GetAllRoles()
-		CheckNoError(t, resp)
+		CheckOKStatus(t, resp)
 
 		assert.EqualValues(t, received, roles)
 	})
