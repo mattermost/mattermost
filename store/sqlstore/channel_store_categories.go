@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+// dbSelecter is an interface used to enable some internal store methods to
+// accept both transactions (*gorp.Transaction) and common db handlers (*gorp.DbMap).
 type dbSelecter interface {
 	Select(i interface{}, query string, args ...interface{}) ([]interface{}, error)
 }
