@@ -704,21 +704,21 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 
 }
 
-func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userId string, teamID string) error {
+func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userId string, teamID string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamID)
+		result, err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamID)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 
@@ -3004,11 +3004,11 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 
 }
 
-func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.Get(id, allowFromCache)
+		result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -3024,11 +3024,11 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 
 }
 
-func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *RetryLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
 
 	tries := 0
 	for {
-		result, err := s.EmojiStore.GetByName(name, allowFromCache)
+		result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -3150,6 +3150,26 @@ func (s *RetryLayerFileInfoStore) ClearCaches() {
 
 }
 
+func (s *RetryLayerFileInfoStore) CountAll() (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.CountAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 
 	tries := 0
@@ -3215,6 +3235,26 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 	tries := 0
 	for {
 		result, err := s.FileInfoStore.GetByPath(path)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetFilesBatchForIndexing(startTime, endTime, limit)
 		if err == nil {
 			return result, nil
 		}

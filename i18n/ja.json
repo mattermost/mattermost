@@ -3606,32 +3606,12 @@
     "translation": "Mattermostセキュリティー通知"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "多要素認証トークンを認証できません。"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "不正な多要素認証トークンです。"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした。"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした。"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "多要素認証の秘密情報をクリアーできません。"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QRコードを生成できません。"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "多要素認証の秘密情報を保存できません。"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
