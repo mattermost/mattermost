@@ -3240,7 +3240,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "Jouw licentie ondersteund geen SAML authenticatie"
+    "translation": "Jouw licentie ondersteunt geen gegevenretentie."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3260,7 +3260,7 @@
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Het opzetten van Elasticsearch Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3276,7 +3276,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "Elasticsearch-zoeken is niet ingeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -5288,7 +5288,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden."
+    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -8356,7 +8356,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
-    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht"
   },
   {
     "id": "ent.elasticsearch.delete_file.error",
