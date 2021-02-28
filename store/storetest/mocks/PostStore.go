@@ -160,13 +160,13 @@ func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThr
 	return r0
 }
 
-// GetFlaggedPosts provides a mock function with given fields: userId, offset, limit
-func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
-	ret := _m.Called(userId, offset, limit)
+// GetFlaggedPosts provides a mock function with given fields: userID, offset, limit
+func (_m *PostStore) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error) {
+	ret := _m.Called(userID, offset, limit)
 
 	var r0 *model.PostList
 	if rf, ok := ret.Get(0).(func(string, int, int) *model.PostList); ok {
-		r0 = rf(userId, offset, limit)
+		r0 = rf(userID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -175,7 +175,7 @@ func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(userId, offset, limit)
+		r1 = rf(userID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -183,13 +183,13 @@ func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*mod
 	return r0, r1
 }
 
-// GetFlaggedPostsForChannel provides a mock function with given fields: userId, channelID, offset, limit
-func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelID string, offset int, limit int) (*model.PostList, error) {
-	ret := _m.Called(userId, channelID, offset, limit)
+// GetFlaggedPostsForChannel provides a mock function with given fields: userID, channelID, offset, limit
+func (_m *PostStore) GetFlaggedPostsForChannel(userID string, channelID string, offset int, limit int) (*model.PostList, error) {
+	ret := _m.Called(userID, channelID, offset, limit)
 
 	var r0 *model.PostList
 	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.PostList); ok {
-		r0 = rf(userId, channelID, offset, limit)
+		r0 = rf(userID, channelID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -198,7 +198,7 @@ func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelID string, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(userId, channelID, offset, limit)
+		r1 = rf(userID, channelID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -206,13 +206,13 @@ func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelID string, 
 	return r0, r1
 }
 
-// GetFlaggedPostsForTeam provides a mock function with given fields: userId, teamID, offset, limit
-func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamID string, offset int, limit int) (*model.PostList, error) {
-	ret := _m.Called(userId, teamID, offset, limit)
+// GetFlaggedPostsForTeam provides a mock function with given fields: userID, teamID, offset, limit
+func (_m *PostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int) (*model.PostList, error) {
+	ret := _m.Called(userID, teamID, offset, limit)
 
 	var r0 *model.PostList
 	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.PostList); ok {
-		r0 = rf(userId, teamID, offset, limit)
+		r0 = rf(userID, teamID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -221,7 +221,7 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamID string, offset
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
-		r1 = rf(userId, teamID, offset, limit)
+		r1 = rf(userID, teamID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -675,13 +675,13 @@ func (_m *PostStore) PermanentDeleteByChannel(channelID string) error {
 	return r0
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PostStore) PermanentDeleteByUser(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *PostStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -742,13 +742,13 @@ func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, erro
 	return r0, r1, r2
 }
 
-// Search provides a mock function with given fields: teamID, userId, params
-func (_m *PostStore) Search(teamID string, userId string, params *model.SearchParams) (*model.PostList, error) {
-	ret := _m.Called(teamID, userId, params)
+// Search provides a mock function with given fields: teamID, userID, params
+func (_m *PostStore) Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error) {
+	ret := _m.Called(teamID, userID, params)
 
 	var r0 *model.PostList
 	if rf, ok := ret.Get(0).(func(string, string, *model.SearchParams) *model.PostList); ok {
-		r0 = rf(teamID, userId, params)
+		r0 = rf(teamID, userID, params)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -757,7 +757,7 @@ func (_m *PostStore) Search(teamID string, userId string, params *model.SearchPa
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.SearchParams) error); ok {
-		r1 = rf(teamID, userId, params)
+		r1 = rf(teamID, userID, params)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -765,13 +765,13 @@ func (_m *PostStore) Search(teamID string, userId string, params *model.SearchPa
 	return r0, r1
 }
 
-// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userId, teamID, page, perPage
-func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
-	ret := _m.Called(paramsList, userId, teamID, page, perPage)
+// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userID, teamID, page, perPage
+func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+	ret := _m.Called(paramsList, userID, teamID, page, perPage)
 
 	var r0 *model.PostSearchResults
 	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
-		r0 = rf(paramsList, userId, teamID, page, perPage)
+		r0 = rf(paramsList, userID, teamID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostSearchResults)
@@ -780,7 +780,7 @@ func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
-		r1 = rf(paramsList, userId, teamID, page, perPage)
+		r1 = rf(paramsList, userID, teamID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
