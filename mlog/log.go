@@ -61,10 +61,10 @@ type TargetInfo logr.TargetInfo
 
 type LoggerConfiguration struct {
 	EnableConsole bool
-	ConsoleJson   bool
+	ConsoleJSON   bool
 	ConsoleLevel  string
 	EnableFile    bool
-	FileJson      bool
+	FileJSON      bool
 	FileLevel     string
 	FileLocation  string
 }
@@ -113,7 +113,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 
 	if config.EnableConsole {
 		writer := zapcore.Lock(os.Stderr)
-		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
+		core := zapcore.NewCore(makeEncoder(config.ConsoleJSON), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}
 
@@ -127,7 +127,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 				Options: []byte(fmt.Sprintf(`{"Filename":"%s", "MaxSizeMB":%d, "Compress":%t}`,
 					config.FileLocation, 100, true)),
 			}
-			if !config.FileJson {
+			if !config.FileJSON {
 				t.Format = "plain"
 			}
 			if tgt, err := NewLogrTarget("mlogFile", t); err == nil {
@@ -142,7 +142,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 				Compress: true,
 			})
 
-			core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
+			core := zapcore.NewCore(makeEncoder(config.FileJSON), writer, logger.fileLevel)
 			cores = append(cores, core)
 		}
 	}

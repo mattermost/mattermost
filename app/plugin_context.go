@@ -9,9 +9,9 @@ import (
 
 func (a *App) PluginContext() *plugin.Context {
 	context := &plugin.Context{
-		RequestId:      a.RequestId(),
-		SessionId:      a.Session().Id,
-		IpAddress:      a.IpAddress(),
+		RequestID:      a.RequestId(),
+		SessionID:      a.Session().Id,
+		IPAddress:      a.IpAddress(),
 		AcceptLanguage: a.AcceptLanguage(),
 		UserAgent:      a.UserAgent(),
 	}

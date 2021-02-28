@@ -474,7 +474,7 @@ func TestPanicLog(t *testing.T) {
 	// Creating logger to log to console and temp file
 	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
-		ConsoleJson:   true,
+		ConsoleJSON:   true,
 		EnableFile:    true,
 		FileLocation:  tmpfile.Name(),
 		FileLevel:     mlog.LevelInfo,

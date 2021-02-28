@@ -23,10 +23,10 @@ type fileLocationFunc func(string) string
 func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocationFunc) *mlog.LoggerConfiguration {
 	return &mlog.LoggerConfiguration{
 		EnableConsole: *s.EnableConsole,
-		ConsoleJson:   *s.ConsoleJson,
+		ConsoleJSON:   *s.ConsoleJson,
 		ConsoleLevel:  strings.ToLower(*s.ConsoleLevel),
 		EnableFile:    *s.EnableFile,
-		FileJson:      *s.FileJson,
+		FileJSON:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
 		FileLocation:  getFileFunc(*s.FileLocation),
 	}
