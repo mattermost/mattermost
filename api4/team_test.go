@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -1859,7 +1859,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1871,7 +1871,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
 	_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
-	require.NotNil(t, nErr, "The token must be deleted after be used")
+	require.Error(t, nErr, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1881,7 +1881,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1893,7 +1893,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1935,7 +1935,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 
@@ -2681,7 +2681,7 @@ func TestImportTeam(t *testing.T) {
 		CheckNoError(t, resp)
 
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
-		require.Nil(t, err, "failed to decode base64 results data")
+		require.NoError(t, err, "failed to decode base64 results data")
 
 		fileReturned := fmt.Sprintf("%s", fileData)
 		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
@@ -2794,7 +2794,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_subject",
+	expectedSubject := i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2805,7 +2805,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	okMsg, resp = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
-	expectedSubject = utils.T("api.templates.invite_subject",
+	expectedSubject = i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2925,7 +2925,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	require.True(t, okMsg, "should return true")
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_guest_subject",
+	expectedSubject := i18n.T("api.templates.invite_guest_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -3039,7 +3039,7 @@ func TestSetTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err, err)
+	require.NoError(t, err, err)
 
 	th.LoginTeamAdmin()
 
@@ -3075,19 +3075,19 @@ func TestSetTeamIcon(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	teamBefore, err := th.App.GetTeam(team.Id)
-	require.Nil(t, err)
+	teamBefore, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.SetTeamIcon(team.Id, data)
 	CheckNoError(t, resp)
 
-	teamAfter, err := th.App.GetTeam(team.Id)
-	require.Nil(t, err)
+	teamAfter, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
 	err = th.cleanupTestFile(info)
-	require.Nil(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestGetTeamIcon(t *testing.T) {

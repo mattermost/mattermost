@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,10 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -194,18 +194,18 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (es *EmailService) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userID)
+	user, err := es.srv.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 	displayNameFormat := *es.srv.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
-		sender, err := es.srv.Store.User().Get(notification.post.UserId)
+		sender, err := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
 		if err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue

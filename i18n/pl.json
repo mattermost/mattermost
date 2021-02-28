@@ -3616,32 +3616,12 @@
     "translation": "Serwis wiadomości o bezpieczeństwie Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Błąd podczas próby uwierzytelnienia tokenu MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Nieprawidłowy token MFA"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Błąd przy czyszczeniu sekretu MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Błąd podczas generowania kodu QR"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Błąd podczas zapisywania sekretu MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4557,7 +4537,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 10 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
+    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 5 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4898,46 +4878,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Nie udało się ustawić HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Nie można otworzyć połączenia"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Nie można otworzyć połączenia TLS"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Uwierzytelnienie na serwerze SMTP nie powiodło się."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Nie udało się dodać załącznika do e-maila"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Nie można zamknąć połączenia z serwerem SMTP"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Błąd podczas ustawiania \"Z adresu\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Nie można napisać wiadomość"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Błąd podczas dodawania danych wiadomości e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Błąd podczas ustawiania \"Do adresu\""
   },
   {
     "id": "web.command_webhook.command.app_error",
