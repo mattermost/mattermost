@@ -349,7 +349,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 
 			// check database was updated.
 			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
-			require.Nil(t, nErr)
+			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}

@@ -998,15 +998,8 @@ func (s SqlTeamStore) GetMember(ctx context.Context, teamId string, userId strin
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	var dbMap *gorp.DbMap
-	if hasMaster(ctx) {
-		dbMap = s.GetMaster()
-	} else {
-		dbMap = s.GetReplica()
-	}
-
 	var dbMember teamMemberWithSchemeRoles
-	err = dbMap.SelectOne(&dbMember, queryString, args...)
+	err = s.DBFromContext(ctx).SelectOne(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))

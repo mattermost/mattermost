@@ -2156,7 +2156,7 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 	return nil
 }
 
-func (a *App) postRemoveFromChannelMessage(removerUserID string, removedUser *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
@@ -2164,7 +2164,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserID string, removedUser *mo
 		// The client renders its own system message, ignoring this value altogether.
 		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
 		Type:    model.POST_REMOVE_FROM_CHANNEL,
-		UserId:  removerUserID,
+		UserId:  removerUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
@@ -2178,7 +2178,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserID string, removedUser *mo
 	return nil
 }
 
-func (a *App) removeUserFromChannel(userIDToRemove string, removerUserID string, channel *model.Channel) *model.AppError {
+func (a *App) removeUserFromChannel(userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	user, nErr := a.Srv().Store.User().Get(context.Background(), userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -2197,7 +2197,7 @@ func (a *App) removeUserFromChannel(userIDToRemove string, removerUserID string,
 		}
 	}
 
-	if channel.IsGroupConstrained() && userIDToRemove != removerUserID && !user.IsBot {
+	if channel.IsGroupConstrained() && userIDToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIDToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
@@ -2230,7 +2230,7 @@ func (a *App) removeUserFromChannel(userIDToRemove string, removerUserID string,
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
-			if err = a.RemoveTeamMemberFromTeam(teamMember, removerUserID); err != nil {
+			if err = a.RemoveTeamMemberFromTeam(teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
@@ -2241,8 +2241,8 @@ func (a *App) removeUserFromChannel(userIDToRemove string, removerUserID string,
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actorUser *model.User
-		if removerUserID != "" {
-			actorUser, _ = a.GetUser(removerUserID)
+		if removerUserId != "" {
+			actorUser, _ = a.GetUser(removerUserId)
 		}
 
 		a.Srv().Go(func() {
@@ -2256,22 +2256,22 @@ func (a *App) removeUserFromChannel(userIDToRemove string, removerUserID string,
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIDToRemove)
-	message.Add("remover_id", removerUserID)
+	message.Add("remover_id", removerUserId)
 	a.Publish(message)
 
 	// because the removed user no longer belongs to the channel we need to send a separate websocket event
 	userMsg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", "", userIDToRemove, nil)
 	userMsg.Add("channel_id", channel.Id)
-	userMsg.Add("remover_id", removerUserID)
+	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
 
 	return nil
 }
 
-func (a *App) RemoveUserFromChannel(userIDToRemove string, removerUserID string, channel *model.Channel) *model.AppError {
+func (a *App) RemoveUserFromChannel(userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	var err *model.AppError
 
-	if err = a.removeUserFromChannel(userIDToRemove, removerUserID, channel); err != nil {
+	if err = a.removeUserFromChannel(userIDToRemove, removerUserId, channel); err != nil {
 		return err
 	}
 
@@ -2280,13 +2280,13 @@ func (a *App) RemoveUserFromChannel(userIDToRemove string, removerUserID string,
 		return err
 	}
 
-	if userIDToRemove == removerUserID {
+	if userIDToRemove == removerUserId {
 		if err := a.postLeaveChannelMessage(user, channel); err != nil {
 			return err
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.postRemoveFromChannelMessage(removerUserID, user, channel)
+			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})
 	}
 
