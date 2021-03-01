@@ -35,8 +35,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type migrationDirection string
@@ -225,13 +225,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	store.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
-	store.stores.compliance.(*SqlComplianceStore).createIndexesIfNotExists()
 	store.stores.session.(*SqlSessionStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
 	store.stores.webhook.(*SqlWebhookStore).createIndexesIfNotExists()
 	store.stores.command.(*SqlCommandStore).createIndexesIfNotExists()
-	store.stores.commandWebhook.(*SqlCommandWebhookStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
 	store.stores.license.(*SqlLicenseStore).createIndexesIfNotExists()
 	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
@@ -1322,7 +1320,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1332,7 +1330,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1342,7 +1340,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_array"))
+				return errors.New(i18n.T("store.sql.convert_string_array"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1352,7 +1350,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1362,7 +1360,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)

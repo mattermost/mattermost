@@ -2016,14 +2016,6 @@
     "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Vă puteţi conecta la:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost vă permite să partajaţi mesajele şi fişierele din PC sau telefon, cu căutarea instantanee şi arhivare."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Te-ai alăturat {{ .ServerURL }}"
   },
@@ -8497,7 +8489,7 @@
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": "Eșecul fișierului creat în timpul exportului."
+    "translation": "Nu s-a putut crea fișierul în timpul exportului."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
@@ -8526,5 +8518,93 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "Imposibil de găsit fișierul de export."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Imposibil de actualizat starea activă MFA pentru utilizator."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Imposibil de actualizat starea activă MFA pentru utilizator."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Eliminarea indexurilor fișierelor nu a reușit."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Nu s-au trimis e-mailuri"
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Trimiterea e-mailului către utilizator nu a reușit notificarea administratorului"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Utilizatorii noi nu se pot alătura spațiului dvs. de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} ar dori să invite membri în spațiul dvs. de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Cea mai importantă cerere de utilizator actualizare a spațiului de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Cineva a încercat recent să se alăture spațiului dvs. de lucru, dar nu a reușit, deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a cloud-ului Mattermost. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a Mattermost cloud, invitațiile nu pot fi trimise. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru utilizatori și a rămâne sub limita gratuită a utilizatorilor."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Ștergerea stării recente nu a reușit. Încercați mai întâi să adăugați starea sau contactați administratorul de sistem pentru detalii."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funcția de stare personalizată a fost dezactivată. Vă rugăm să contactați administratorul de sistem pentru detalii."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Starea dvs. este setată la “{{.EmojiName}} {{.StatusMessage}}”. Vă puteți schimba starea din popover-ul de stare din antetul barei laterale a canalului."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "stare"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] sau clar"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Setați sau ștergeți-vă starea"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Starea dvs. a fost ștearsă."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Eroare la ștergerea stării."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Eroare la setarea stării."
   }
 ]
