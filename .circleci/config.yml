@@ -16,14 +16,15 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:oct-2-2018
+      - image: mattermost/mattermost-build-webapp:20200829_node-10.22
+    resource_class: xlarge
     steps:
-      - release-5.33
+      - checkout
       - run: |
           cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git release-5.33 $CIRCLE_BRANCH || git release-5.33 master
+          git checkout $CIRCLE_BRANCH || git checkout release-5.33
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
@@ -140,25 +141,20 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
-  build-api-spec:
+  check-migrations:
     docker:
-      - image: circleci/node:lts
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
           at: ~/mattermost/
       - run:
           command: |
-            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
-            cd mattermost-api-reference
-            echo "Trying to release-5.33 the same branch on mattermost-api-reference as mattermost-server"
-            git release-5.33 ${CIRCLE_BRANCH} || true
-            make build
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-api-reference
-
+            export GOBIN=${PWD}/mattermost-server/bin
+            cd mattermost-server
+            export PATH=$PATH:$GOBIN
+            make migrations-bindata
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
   build:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
@@ -177,7 +173,7 @@ jobs:
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true'
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
@@ -422,7 +418,7 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - build-api-spec:
+      - check-migrations:
           requires:
             - setup
       - build:
@@ -431,7 +427,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - build-api-spec
+            - check-migrations
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -452,6 +448,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -460,11 +457,13 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
 
   release-build:
     jobs:
@@ -488,10 +487,10 @@ workflows:
       - check-store-layers:
           requires:
             - setup
-      - build-api-spec:
+      - check-mocks:
           requires:
             - setup
-      - check-mocks:
+      - check-migrations:
           requires:
             - setup
       - build:
@@ -500,7 +499,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - build-api-spec
+            - check-migrations
       - test:
           name: test-mysql
           dbdriver: mysql
@@ -509,6 +508,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -517,8 +517,10 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
