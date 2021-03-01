@@ -215,7 +215,7 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
 	MigratePublicChannels() error
-	CreateInitialSidebarCategories(userId, teamID string) error
+	CreateInitialSidebarCategories(userId, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userId, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userId, teamID string) ([]string, error)
@@ -546,8 +546,8 @@ type TokenStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(name string, allowFromCache bool) (*model.Emoji, error)
+	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
 	GetMultipleByName(names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, time int64) error
