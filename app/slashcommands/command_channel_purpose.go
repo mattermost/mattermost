@@ -4,10 +4,9 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type PurposeProvider struct {
@@ -25,7 +24,7 @@ func (*PurposeProvider) GetTrigger() string {
 	return CmdPurpose
 }
 
-func (*PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdPurpose,
 		AutoComplete:     true,

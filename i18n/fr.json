@@ -2011,14 +2011,6 @@
     "translation": "Veuillez vérifier votre adresse e-mail en cliquant ci-dessous."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Vous pouvez vous connecter avec :"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost vous permet de partager des messages et des fichiers depuis votre ordinateur, téléphone ou tablette avec  des fonctionnalités de recherche instantanée et d'archivage."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Bienvenue sur {{ .ServerURL }}"
   },
