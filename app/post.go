@@ -17,8 +17,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -65,7 +65,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 				}
 			}
 
-			T := utils.GetUserTranslations(user.Locale)
+			T := i18n.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
 				post.UserId,
 				&model.Post{
@@ -218,7 +218,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
-			T := utils.GetUserTranslations(user.Locale)
+			T := i18n.GetUserTranslations(user.Locale)
 			ephemeralPost = &model.Post{
 				UserId:    user.Id,
 				RootId:    post.RootId,

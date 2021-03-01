@@ -16,7 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type PluginAPI struct {
@@ -76,7 +76,7 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	if appErr != nil {
 		return nil, appErr
 	}
-	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.T = i18n.GetUserTranslations(user.Locale)
 	commandArgs.SiteURL = api.app.GetSiteURL()
 	response, appErr := api.app.ExecuteCommand(commandArgs)
 	if appErr != nil {
@@ -1007,7 +1007,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 	seen := make(map[string]bool)
 
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(api.app, utils.T); cmd != nil {
+		if cmd := value.GetCommand(api.app, i18n.T); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
