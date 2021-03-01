@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS commands (
     autocompletehint VARCHAR(1024),
     displayname VARCHAR(64),
     description VARCHAR(128),
-    url VARCHAR(1024),
-    pluginid VARCHAR(190)
+    url VARCHAR(1024)
 );
 
 CREATE INDEX IF NOT EXISTS idx_command_team_id ON commands (teamid);

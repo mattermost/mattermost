@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS Commands (
     DisplayName varchar(64) DEFAULT NULL,
     Description varchar(128) DEFAULT NULL,
     URL text,
-    PluginId text,
     PRIMARY KEY (Id),
     KEY idx_command_team_id (TeamId),
     KEY idx_command_update_at (UpdateAt),
