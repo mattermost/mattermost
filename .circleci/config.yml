@@ -18,12 +18,12 @@ jobs:
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
     steps:
-      - checkout
+      - release-5.33
       - run: |
           cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $CIRCLE_BRANCH || git checkout master
+          git release-5.33 $CIRCLE_BRANCH || git release-5.33 master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
@@ -151,8 +151,8 @@ jobs:
           command: |
             git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
-            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
-            git checkout ${CIRCLE_BRANCH} || true
+            echo "Trying to release-5.33 the same branch on mattermost-api-reference as mattermost-server"
+            git release-5.33 ${CIRCLE_BRANCH} || true
             make build
       - persist_to_workspace:
           root: ~/mattermost
