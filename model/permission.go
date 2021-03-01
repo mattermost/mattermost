@@ -112,6 +112,8 @@ var PERMISSION_PURGE_ELASTICSEARCH_INDEXES *Permission
 var PERMISSION_TEST_EMAIL *Permission
 var PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB *Permission
 var PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB *Permission
+var PERMISSION_PURGE_BLEVE_INDEXES *Permission
+var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -202,6 +204,15 @@ var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE *Permission
 
 var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL *Permission
 var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -587,6 +598,20 @@ func initializePermissions() {
 		"manage_remote_clusters",
 		"authentication.permissions.manage_remote_clusters.name",
 		"authentication.permissions.manage_remote_clusters.description",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_PURGE_BLEVE_INDEXES = &Permission{
+		"purge_bleve_indexes",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB = &Permission{
+		"create_post_bleve_indexes_job",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 
@@ -1156,16 +1181,54 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL = &Permission{
 		"sysconsole_read_experimental",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL = &Permission{
 		"sysconsole_write_experimental",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES = &Permission{
+		"sysconsole_read_experimental_features",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES = &Permission{
+		"sysconsole_write_experimental_features",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS = &Permission{
+		"sysconsole_read_experimental_feature_flags",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS = &Permission{
+		"sysconsole_write_experimental_feature_flags",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE = &Permission{
+		"sysconsole_read_experimental_bleve",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE = &Permission{
+		"sysconsole_write_experimental_bleve",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 
@@ -1197,7 +1260,9 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
-		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -1228,7 +1293,9 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
-		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -1275,6 +1342,8 @@ func initializePermissions() {
 		PERMISSION_TEST_EMAIL,
 		PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB,
 		PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB,
+		PERMISSION_PURGE_BLEVE_INDEXES,
+		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
 	}
 
 	TeamScopedPermissions := []*Permission{
