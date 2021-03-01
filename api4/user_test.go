@@ -4872,12 +4872,30 @@ func TestLoginLockout(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.DemoteUserToGuest(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.PromoteGuestToUser(user, ""))
+	}, "demote a user to guest")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4898,17 +4916,11 @@ func TestDemoteUserToGuest(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.PromoteGuestToUser(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
@@ -4924,13 +4936,31 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+	th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.PromoteGuestToUser(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.DemoteUserToGuest(user))
+	}, "promete a guest to user")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4951,17 +4981,11 @@ func TestPromoteGuestToUser(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.DemoteUserToGuest(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
