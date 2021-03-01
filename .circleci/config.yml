@@ -141,20 +141,6 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
-  check-migrations:
-    docker:
-      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            export GOBIN=${PWD}/mattermost-server/bin
-            cd mattermost-server
-            export PATH=$PATH:$GOBIN
-            make migrations-bindata
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
   build:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
@@ -418,16 +404,12 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - check-migrations:
-          requires:
-            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -448,7 +430,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -457,13 +438,11 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
 
   release-build:
     jobs:
@@ -490,16 +469,12 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - check-migrations:
-          requires:
-            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - test:
           name: test-mysql
           dbdriver: mysql
@@ -508,7 +483,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -517,10 +491,8 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - check-migrations
