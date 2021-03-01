@@ -36,7 +36,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/mfa"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -434,7 +433,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

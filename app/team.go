@@ -356,7 +356,7 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 }
 
 func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Team().GetMember(sqlstore.WithMaster(context.Background()), teamID, userID)
+	member, nErr := a.Srv().Store.Team().GetMember(context.Background(), teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -490,7 +490,7 @@ func (a *App) AddUserToTeam(teamID string, userID string, userRequestorId string
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -702,7 +702,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := a.Srv().Store.Team().GetMember(sqlstore.WithMaster(context.Background()), team.Id, user.Id)
+	rtm, err := a.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr, nErr := a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)

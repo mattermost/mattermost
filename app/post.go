@@ -749,7 +749,7 @@ func (a *App) GetSinglePost(postID string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
