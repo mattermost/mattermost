@@ -9,12 +9,9 @@ import (
 	"html/template"
 	"io"
 	"path/filepath"
-	"reflect"
-	"strings"
 	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
@@ -118,33 +115,4 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	}
 
 	return nil
-}
-
-func TranslateAsHTML(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
-	message := t(translationID, escapeForHTML(args))
-	message = strings.Replace(message, "[[", "<strong>", -1)
-	message = strings.Replace(message, "]]", "</strong>", -1)
-	return template.HTML(message)
-}
-
-func escapeForHTML(arg interface{}) interface{} {
-	switch typedArg := arg.(type) {
-	case string:
-		return template.HTMLEscapeString(typedArg)
-	case *string:
-		return template.HTMLEscapeString(*typedArg)
-	case map[string]interface{}:
-		safeArg := make(map[string]interface{}, len(typedArg))
-		for key, value := range typedArg {
-			safeArg[key] = escapeForHTML(value)
-		}
-		return safeArg
-	default:
-		mlog.Warn(
-			"Unable to escape value for HTML template",
-			mlog.Any("html_template", arg),
-			mlog.String("template_type", reflect.ValueOf(arg).Type().String()),
-		)
-		return ""
-	}
 }
