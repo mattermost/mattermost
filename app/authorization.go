@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -60,7 +59,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 		return false
 	}
 
-	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), session.UserId, true, true)
+	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
 	if err == nil {

@@ -2168,7 +2168,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 		}
 	}
 
-	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), userID, true, true)
+	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(userID, true, true)
 	if err != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

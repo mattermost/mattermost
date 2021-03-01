@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -83,7 +82,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockStore := mocks.Store{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
-		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), th.BasicUser.Id, false, false))
+		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
 		mockChannelStore.On("ClearCaches").Return()
 		mockStore.On("Channel").Return(&mockChannelStore)
 		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
