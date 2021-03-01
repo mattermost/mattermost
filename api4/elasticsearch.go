@@ -21,8 +21,8 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_ELASTICSEARCH) {
+		c.SetPermissionError(model.PERMISSION_TEST_ELASTICSEARCH)
 		return
 	}
 
@@ -32,9 +32,9 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// no sniffing for ports or passwords
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH) {
 		if (*cfg.ElasticsearchSettings.ConnectionUrl != *c.App.Config().ElasticsearchSettings.ConnectionUrl) || (*cfg.ElasticsearchSettings.Password != model.FAKE_SETTING) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH)
 			return
 		}
 	}
@@ -51,8 +51,8 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord("purgeElasticsearchIndexes", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES) {
+		c.SetPermissionError(model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES)
 		return
 	}
 

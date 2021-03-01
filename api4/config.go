@@ -76,8 +76,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_RELOAD_CONFIG) {
+		c.SetPermissionError(model.PERMISSION_RELOAD_CONFIG)
 		return
 	}
 
