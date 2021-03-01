@@ -20,6 +20,8 @@
 // mysql/000009_create_group_teams.up.sql
 // mysql/000010_create_group_channels.down.sql
 // mysql/000010_create_group_channels.up.sql
+// mysql/000011_create_link_metadata.down.sql
+// mysql/000011_create_link_metadata.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -40,6 +42,8 @@
 // postgres/000009_create_group_teams.up.sql
 // postgres/000010_create_group_channels.down.sql
 // postgres/000010_create_group_channels.up.sql
+// postgres/000011_create_link_metadata.down.sql
+// postgres/000011_create_link_metadata.up.sql
 package migrations
 
 import (
@@ -516,6 +520,46 @@ func mysql000010_create_group_channelsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000011_create_link_metadataDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\xc9\xcc\xcb\xf6\x4d\x2d\x49\x4c\x49\x2c\x49\xb4\xe6\x02\x04\x00\x00\xff\xff\x89\x3a\xec\x60\x23\x00\x00\x00")
+
+func mysql000011_create_link_metadataDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000011_create_link_metadataDownSql,
+		"mysql/000011_create_link_metadata.down.sql",
+	)
+}
+
+func mysql000011_create_link_metadataDownSql() (*asset, error) {
+	bytes, err := mysql000011_create_link_metadataDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000011_create_link_metadata.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000011_create_link_metadataUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xc1\x4f\xc2\x30\x18\x05\xf0\xfb\xfe\x8a\x77\x6c\x13\x0e\xce\x18\xa3\x31\x1c\x0a\xfb\x90\xc6\x32\x4d\xd7\x25\x72\x5a\x8a\x4c\x69\x60\x95\x8c\x0f\x83\xff\xbd\x19\x98\xb9\x83\xc7\xd7\xbe\xf7\xe5\x37\xb5\xa4\x1c\xc1\xa9\x89\x21\xe8\x19\xf2\x67\x07\x7a\xd5\x85\x2b\x60\x42\xdc\x2e\x6a\xf6\x6b\xcf\x1e\x22\x01\x80\xb9\x3f\x6c\xb0\x0a\x1f\x21\xb2\xb8\xbe\x92\xe7\x76\x5e\x1a\x33\x3a\xff\x96\xd6\x80\xeb\x13\x5f\x92\x0b\x4d\x7d\x60\xdf\xec\x87\x83\x8c\x66\xaa\x34\xc3\x91\xfb\xde\xd7\xf8\xf2\xed\xdb\xc6\xb7\x22\xbd\xfd\xaf\x92\x75\x80\xbf\xc3\x2f\x56\x2f\x94\x5d\xe2\x89\x96\x10\x9d\x48\x5e\xde\xbb\x1c\xd6\xa7\x6a\x17\xe2\xb6\x6a\x7e\xe1\xd5\xb1\xdd\x55\xdc\x53\x44\x69\x8d\x48\xef\x53\x39\xea\x79\x32\x91\xa0\xfc\x51\xe7\x34\xd6\x31\x7e\x66\x93\x5e\x30\x9d\x2b\x5b\x90\x1b\x1f\xf9\xfd\xae\x59\xdd\x3c\x24\x3f\x01\x00\x00\xff\xff\x13\x78\x61\xc7\x2d\x01\x00\x00")
+
+func mysql000011_create_link_metadataUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000011_create_link_metadataUpSql,
+		"mysql/000011_create_link_metadata.up.sql",
+	)
+}
+
+func mysql000011_create_link_metadataUpSql() (*asset, error) {
+	bytes, err := mysql000011_create_link_metadataUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000011_create_link_metadata.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -916,6 +960,46 @@ func postgres000010_create_group_channelsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000011_create_link_metadataDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4c\xa9\x88\xcf\xc9\xcc\xcb\x8e\xcf\x4d\x2d\x49\x4c\x49\x2c\x49\x8c\x2f\x2d\xca\x89\x2f\xc9\xcc\x4d\x2d\x2e\x49\xcc\x2d\xb0\xe6\xe2\x02\x6b\x0b\x71\x74\xf2\x71\x45\xd2\x06\xd2\x02\xd3\x61\xcd\x05\x08\x00\x00\xff\xff\xb7\xb0\x1a\x19\x5a\x00\x00\x00")
+
+func postgres000011_create_link_metadataDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000011_create_link_metadataDownSql,
+		"postgres/000011_create_link_metadata.down.sql",
+	)
+}
+
+func postgres000011_create_link_metadataDownSql() (*asset, error) {
+	bytes, err := postgres000011_create_link_metadataDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000011_create_link_metadata.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000011_create_link_metadataUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\x5f\x4b\x85\x30\x18\x87\xef\xf7\x29\x5e\xbc\x72\xe0\x85\x85\x44\xe1\xd5\xb2\x45\x23\x9b\x31\x57\xe8\xd5\x58\x28\x39\x9a\x22\x3a\xa1\xf3\xed\x0f\xfe\xe5\xe0\xed\xb3\x67\xbc\xcf\x2f\x11\x94\x48\x0a\x92\x3c\xa7\x14\xd8\x2b\xf0\x4c\x02\x2d\x58\x2e\x73\xb0\xa6\xfb\x6b\x6b\xa7\x2b\xed\x34\xf8\x08\x00\xa0\xd1\x63\x03\x3f\xe6\xd7\x74\x6e\x31\xf9\x57\x9a\x06\xcb\xcb\x34\x58\xf8\x26\x22\x79\x23\xc2\xbf\x0f\xa3\x47\xbc\x62\xcf\x99\xb6\x1e\x9d\x6e\x7b\x6f\xfb\xb7\x72\x77\xe9\xeb\xc3\xbf\x7b\xd8\xec\xe5\xd2\x4e\xa3\xf0\x69\xe7\x9f\x82\x7d\x10\x51\xc2\x3b\x2d\xc1\x9f\x1b\x30\xc2\x31\x42\x5b\x3b\xe3\x2f\xb4\x38\xb5\x9b\xea\x5f\xcd\xfd\x6a\x1f\xa0\xa6\xc1\xaa\x23\x06\x32\x7e\x9a\x37\x0d\x36\xb8\xad\xc5\x31\xba\x06\x00\x00\xff\xff\x02\x72\x34\x87\x1b\x01\x00\x00")
+
+func postgres000011_create_link_metadataUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000011_create_link_metadataUpSql,
+		"postgres/000011_create_link_metadata.up.sql",
+	)
+}
+
+func postgres000011_create_link_metadataUpSql() (*asset, error) {
+	bytes, err := postgres000011_create_link_metadataUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000011_create_link_metadata.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -988,6 +1072,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000009_create_group_teams.up.sql":            mysql000009_create_group_teamsUpSql,
 	"mysql/000010_create_group_channels.down.sql":       mysql000010_create_group_channelsDownSql,
 	"mysql/000010_create_group_channels.up.sql":         mysql000010_create_group_channelsUpSql,
+	"mysql/000011_create_link_metadata.down.sql":        mysql000011_create_link_metadataDownSql,
+	"mysql/000011_create_link_metadata.up.sql":          mysql000011_create_link_metadataUpSql,
 	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
@@ -1008,6 +1094,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000009_create_group_teams.up.sql":         postgres000009_create_group_teamsUpSql,
 	"postgres/000010_create_group_channels.down.sql":    postgres000010_create_group_channelsDownSql,
 	"postgres/000010_create_group_channels.up.sql":      postgres000010_create_group_channelsUpSql,
+	"postgres/000011_create_link_metadata.down.sql":     postgres000011_create_link_metadataDownSql,
+	"postgres/000011_create_link_metadata.up.sql":       postgres000011_create_link_metadataUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -1072,6 +1160,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000009_create_group_teams.up.sql":         &bintree{mysql000009_create_group_teamsUpSql, map[string]*bintree{}},
 		"000010_create_group_channels.down.sql":    &bintree{mysql000010_create_group_channelsDownSql, map[string]*bintree{}},
 		"000010_create_group_channels.up.sql":      &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":     &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":       &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -1094,6 +1184,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000009_create_group_teams.up.sql":         &bintree{postgres000009_create_group_teamsUpSql, map[string]*bintree{}},
 		"000010_create_group_channels.down.sql":    &bintree{postgres000010_create_group_channelsDownSql, map[string]*bintree{}},
 		"000010_create_group_channels.up.sql":      &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":     &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":       &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
 	}},
 }}
 
