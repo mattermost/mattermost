@@ -215,8 +215,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_SITE_URL) {
+		c.SetPermissionError(model.PERMISSION_TEST_SITE_URL)
 		return
 	}
 
