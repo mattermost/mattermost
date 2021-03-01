@@ -14,22 +14,33 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
+// dbSelecter is an interface used to enable some internal store methods to
+// accept both transactions (*gorp.Transaction) and common db handlers (*gorp.DbMap).
+type dbSelecter interface {
+	Select(i interface{}, query string, args ...interface{}) ([]interface{}, error)
+}
+
+func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	if err := s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+	if err = s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+	}
+
+	oc, err := s.getSidebarCategoriesT(transaction, userId, teamId)
+	if err != nil {
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: getSidebarCategoriesT")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 	}
 
-	return nil
+	return oc, nil
 }
 
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) error {
@@ -361,7 +372,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannelsT(transaction *gorp.Transaction, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
 	}
@@ -406,7 +417,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(transaction *gorp.T
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	if _, err = transaction.Select(&channels, sql, args...); err != nil {
+	if _, err = db.Select(&channels, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>")
 	}
 
@@ -446,7 +457,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	return s.completePopulatingCategoryChannels(result)
 }
 
-func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	oc := model.OrderedSidebarCategories{
 		Categories: make(model.SidebarCategoriesWithChannels, 0),
 		Order:      make([]string, 0),
@@ -466,7 +477,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
 	}
 
-	if _, err = transaction.Select(&categories, query, args...); err != nil {
+	if _, err = db.Select(&categories, query, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 	for _, category := range categories {
@@ -490,7 +501,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		}
 	}
 	for _, category := range oc.Categories {
-		if _, err := s.completePopulatingCategoryChannelsT(transaction, category); err != nil {
+		if _, err := s.completePopulatingCategoryChannelsT(db, category); err != nil {
 			return nil, err
 		}
 	}
@@ -499,23 +510,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-
-	defer finalizeTransaction(transaction)
-
-	oc, err := s.getSidebarCategoriesT(transaction, userId, teamId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return oc, nil
+	return s.getSidebarCategoriesT(s.GetReplica(), userId, teamId)
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {
