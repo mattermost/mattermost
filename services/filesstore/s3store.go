@@ -63,7 +63,7 @@ func getImageMimeType(ext string) string {
 func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
 		endpoint:   settings.AmazonS3Endpoint,
-		accessKey:  settings.AmazonS3AccessKeyID,
+		accessKey:  settings.AmazonS3AccessKeyId,
 		secretKey:  settings.AmazonS3SecretAccessKey,
 		secure:     settings.AmazonS3SSL,
 		signV2:     settings.AmazonS3SignV2,

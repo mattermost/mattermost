@@ -28,7 +28,7 @@ var (
 	LvlAuditCLI     = LogLevel{ID: 103, Name: "audit-cli"}
 
 	// used by the TCP log target
-	LvlTCPLogTarget = LogLevel{ID: 120, Name: "TcpLogTarget"}
+	LvlTcpLogTarget = LogLevel{ID: 120, Name: "TcpLogTarget"}
 
 	// add more here ...
 )

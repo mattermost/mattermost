@@ -25,10 +25,10 @@ const (
 )
 
 // Tcp outputs log records to raw socket server.
-type TCP struct {
+type Tcp struct {
 	logr.Basic
 
-	params *TCPParams
+	params *TcpParams
 	addy   string
 
 	mutex    sync.Mutex
@@ -37,8 +37,8 @@ type TCP struct {
 	shutdown chan struct{}
 }
 
-// TCPParams provides parameters for dialing a socket server.
-type TCPParams struct {
+// TcpParams provides parameters for dialing a socket server.
+type TcpParams struct {
 	IP       string `json:"IP"`
 	Port     int    `json:"Port"`
 	TLS      bool   `json:"TLS"`
@@ -47,8 +47,8 @@ type TCPParams struct {
 }
 
 // NewTcpTarget creates a target capable of outputting log records to a raw socket, with or without TLS.
-func NewTCPTarget(filter logr.Filter, formatter logr.Formatter, params *TCPParams, maxQueue int) (*TCP, error) {
-	tcp := &TCP{
+func NewTcpTarget(filter logr.Filter, formatter logr.Formatter, params *TcpParams, maxQueue int) (*Tcp, error) {
+	tcp := &Tcp{
 		params:   params,
 		addy:     fmt.Sprintf("%s:%d", params.IP, params.Port),
 		monitor:  make(chan struct{}),
@@ -61,15 +61,15 @@ func NewTCPTarget(filter logr.Filter, formatter logr.Formatter, params *TCPParam
 
 // getConn provides a net.Conn.  If a connection already exists, it is returned immediately,
 // otherwise this method blocks until a new connection is created, timeout or shutdown.
-func (tcp *TCP) getConn() (net.Conn, error) {
+func (tcp *Tcp) getConn() (net.Conn, error) {
 	tcp.mutex.Lock()
 	defer tcp.mutex.Unlock()
 
-	Log(LvlTCPLogTarget, "getConn enter", String("addy", tcp.addy))
-	defer Log(LvlTCPLogTarget, "getConn exit", String("addy", tcp.addy))
+	Log(LvlTcpLogTarget, "getConn enter", String("addy", tcp.addy))
+	defer Log(LvlTcpLogTarget, "getConn exit", String("addy", tcp.addy))
 
 	if tcp.conn != nil {
-		Log(LvlTCPLogTarget, "reusing existing conn", String("addy", tcp.addy)) // use "With" once Zap is removed
+		Log(LvlTcpLogTarget, "reusing existing conn", String("addy", tcp.addy)) // use "With" once Zap is removed
 		return tcp.conn, nil
 	}
 
@@ -83,7 +83,7 @@ func (tcp *TCP) getConn() (net.Conn, error) {
 	defer cancel()
 
 	go func(ctx context.Context, ch chan result) {
-		Log(LvlTCPLogTarget, "dailing", String("addy", tcp.addy))
+		Log(LvlTcpLogTarget, "dailing", String("addy", tcp.addy))
 		conn, err := tcp.dial(ctx)
 		if err == nil {
 			tcp.conn = conn
@@ -103,7 +103,7 @@ func (tcp *TCP) getConn() (net.Conn, error) {
 
 // dial connects to a TCP socket, and optionally performs a TLS handshake.
 // A non-nil context must be provided which can cancel the dial.
-func (tcp *TCP) dial(ctx context.Context) (net.Conn, error) {
+func (tcp *Tcp) dial(ctx context.Context) (net.Conn, error) {
 	var dialer net.Dialer
 	dialer.Timeout = time.Second * DialTimeoutSecs
 	conn, err := dialer.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", tcp.params.IP, tcp.params.Port))
@@ -115,7 +115,7 @@ func (tcp *TCP) dial(ctx context.Context) (net.Conn, error) {
 		return conn, nil
 	}
 
-	Log(LvlTCPLogTarget, "TLS handshake", String("addy", tcp.addy))
+	Log(LvlTcpLogTarget, "TLS handshake", String("addy", tcp.addy))
 
 	tlsconfig := &tls.Config{
 		ServerName:         tcp.params.IP,
@@ -136,13 +136,13 @@ func (tcp *TCP) dial(ctx context.Context) (net.Conn, error) {
 	return tlsConn, nil
 }
 
-func (tcp *TCP) close() error {
+func (tcp *Tcp) close() error {
 	tcp.mutex.Lock()
 	defer tcp.mutex.Unlock()
 
 	var err error
 	if tcp.conn != nil {
-		Log(LvlTCPLogTarget, "closing connection", String("addy", tcp.addy))
+		Log(LvlTcpLogTarget, "closing connection", String("addy", tcp.addy))
 		close(tcp.monitor)
 		err = tcp.conn.Close()
 		tcp.conn = nil
@@ -151,10 +151,10 @@ func (tcp *TCP) close() error {
 }
 
 // Shutdown stops processing log records after making best effort to flush queue.
-func (tcp *TCP) Shutdown(ctx context.Context) error {
+func (tcp *Tcp) Shutdown(ctx context.Context) error {
 	errs := &multierror.Error{}
 
-	Log(LvlTCPLogTarget, "shutting down", String("addy", tcp.addy))
+	Log(LvlTcpLogTarget, "shutting down", String("addy", tcp.addy))
 
 	if err := tcp.Basic.Shutdown(ctx); err != nil {
 		errs = multierror.Append(errs, err)
@@ -170,7 +170,7 @@ func (tcp *TCP) Shutdown(ctx context.Context) error {
 
 // Write converts the log record to bytes, via the Formatter, and outputs to the socket.
 // Called by dedicated target goroutine and will block until success or shutdown.
-func (tcp *TCP) Write(rec *logr.LogRec) error {
+func (tcp *Tcp) Write(rec *logr.LogRec) error {
 	_, stacktrace := tcp.IsLevelEnabled(rec.Level())
 
 	buf := rec.Logger().Logr().BorrowBuffer()
@@ -192,7 +192,7 @@ func (tcp *TCP) Write(rec *logr.LogRec) error {
 
 		conn, err := tcp.getConn()
 		if err != nil {
-			Log(LvlTCPLogTarget, "failed getting connection", String("addy", tcp.addy), Err(err))
+			Log(LvlTcpLogTarget, "failed getting connection", String("addy", tcp.addy), Err(err))
 			reporter := rec.Logger().Logr().ReportError
 			reporter(fmt.Errorf("log target %s connection error: %w", tcp.String(), err))
 			backoff = tcp.sleep(backoff)
@@ -205,7 +205,7 @@ func (tcp *TCP) Write(rec *logr.LogRec) error {
 			return nil
 		}
 
-		Log(LvlTCPLogTarget, "write error", String("addy", tcp.addy), Err(err))
+		Log(LvlTcpLogTarget, "write error", String("addy", tcp.addy), Err(err))
 		reporter := rec.Logger().Logr().ReportError
 		reporter(fmt.Errorf("log target %s write error: %w", tcp.String(), err))
 
@@ -213,7 +213,7 @@ func (tcp *TCP) Write(rec *logr.LogRec) error {
 
 		backoff = tcp.sleep(backoff)
 		try++
-		Log(LvlTCPLogTarget, "retrying write", String("addy", tcp.addy), Int("try", try))
+		Log(LvlTcpLogTarget, "retrying write", String("addy", tcp.addy), Int("try", try))
 	}
 }
 
@@ -223,11 +223,11 @@ func (tcp *TCP) Write(rec *logr.LogRec) error {
 // the writes simply fail without an error returned.
 func monitor(conn net.Conn, done <-chan struct{}) {
 	addy := conn.RemoteAddr().String()
-	defer Log(LvlTCPLogTarget, "monitor exiting", String("addy", addy))
+	defer Log(LvlTcpLogTarget, "monitor exiting", String("addy", addy))
 
 	buf := make([]byte, 1)
 	for {
-		Log(LvlTCPLogTarget, "monitor loop", String("addy", addy))
+		Log(LvlTcpLogTarget, "monitor loop", String("addy", addy))
 
 		select {
 		case <-done:
@@ -248,18 +248,18 @@ func monitor(conn net.Conn, done <-chan struct{}) {
 		}
 
 		// Any other error closes the connection, forcing a reconnect.
-		Log(LvlTCPLogTarget, "monitor closing connection", Err(err))
+		Log(LvlTcpLogTarget, "monitor closing connection", Err(err))
 		conn.Close()
 		return
 	}
 }
 
 // String returns a string representation of this target.
-func (tcp *TCP) String() string {
+func (tcp *Tcp) String() string {
 	return fmt.Sprintf("TcpTarget[%s:%d]", tcp.params.IP, tcp.params.Port)
 }
 
-func (tcp *TCP) sleep(backoff int64) int64 {
+func (tcp *Tcp) sleep(backoff int64) int64 {
 	select {
 	case <-tcp.shutdown:
 	case <-time.After(time.Millisecond * time.Duration(backoff)):

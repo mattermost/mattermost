@@ -56,7 +56,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Ideally this won't happen.
 	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
-		ConsoleJSON:   true,
+		ConsoleJson:   true,
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	}))
