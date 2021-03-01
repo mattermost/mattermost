@@ -114,6 +114,15 @@ var PERMISSION_SYSCONSOLE_WRITE_BILLING *Permission
 var PERMISSION_SYSCONSOLE_READ_REPORTING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_REPORTING *Permission
 
+var PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS *Permission
+
 var PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS *Permission
 var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS *Permission
 
@@ -744,16 +753,54 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_REPORTING = &Permission{
 		"sysconsole_read_reporting",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_REPORTING = &Permission{
 		"sysconsole_write_reporting",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS = &Permission{
+		"sysconsole_read_reporting_site_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS = &Permission{
+		"sysconsole_write_reporting_site_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS = &Permission{
+		"sysconsole_read_reporting_team_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS = &Permission{
+		"sysconsole_write_reporting_team_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS = &Permission{
+		"sysconsole_read_reporting_server_logs",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS = &Permission{
+		"sysconsole_write_reporting_server_logs",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS = &Permission{
@@ -966,7 +1013,9 @@ func initializePermissions() {
 	SysconsoleReadPermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_READ_ABOUT,
 		PERMISSION_SYSCONSOLE_READ_BILLING,
-		PERMISSION_SYSCONSOLE_READ_REPORTING,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS,
@@ -987,7 +1036,9 @@ func initializePermissions() {
 	SysconsoleWritePermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
 		PERMISSION_SYSCONSOLE_WRITE_BILLING,
-		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS,
@@ -1104,6 +1155,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_REPORTING,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
 	}
 
 	AllPermissions = []*Permission{}
