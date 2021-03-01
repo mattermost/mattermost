@@ -938,9 +938,9 @@ func TestHookContext(t *testing.T) {
 		}
 
 		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
-			p.API.LogDebug(c.SessionId)
-			p.API.LogInfo(c.RequestId)
-			p.API.LogError(c.IpAddress)
+			p.API.LogDebug(c.SessionID)
+			p.API.LogInfo(c.RequestID)
+			p.API.LogError(c.IPAddress)
 			p.API.LogWarn(c.AcceptLanguage)
 			p.API.DeleteTeam(c.UserAgent)
 		}
