@@ -926,7 +926,7 @@ type AppIface interface {
 	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool
-	SessionHasPermissionToUserOrBo(session model.Session, userID string) bool
+	SessionHasPermissionToUserOrBot(session model.Session, userID string) bool
 	SetAcceptLanguage(s string)
 	SetActiveChannel(userID string, channelID string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
