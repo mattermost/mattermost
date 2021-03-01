@@ -10,6 +10,8 @@
 // mysql/000004_create_command_webhooks.up.sql
 // mysql/000005_create_compliances.down.sql
 // mysql/000005_create_compliances.up.sql
+// mysql/000006_create_emojis.down.sql
+// mysql/000006_create_emojis.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -20,6 +22,8 @@
 // postgres/000004_create_command_webhooks.up.sql
 // postgres/000005_create_compliances.down.sql
 // postgres/000005_create_compliances.up.sql
+// postgres/000006_create_emojis.down.sql
+// postgres/000006_create_emojis.up.sql
 package migrations
 
 import (
@@ -296,6 +300,46 @@ func mysql000005_create_compliancesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000006_create_emojisDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\xcd\xcd\xcf\xca\xb4\xe6\x02\x04\x00\x00\xff\xff\xe2\x85\x2e\xf8\x1c\x00\x00\x00")
+
+func mysql000006_create_emojisDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000006_create_emojisDownSql,
+		"mysql/000006_create_emojis.down.sql",
+	)
+}
+
+func mysql000006_create_emojisDownSql() (*asset, error) {
+	bytes, err := mysql000006_create_emojisDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000006_create_emojis.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000006_create_emojisUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x95\x5d\x6b\xdb\x3c\x14\xc7\xef\xfd\x29\xce\x9d\xad\x87\xf2\xd0\x95\x52\x06\xc6\x63\x8a\x7d\xbc\x88\x39\x72\x66\xcb\x2c\xbd\x0a\x4a\xac\xae\x1e\xb5\x13\x6c\x75\xe4\xe3\x0f\x4b\xae\xf6\xd2\xac\x1b\x81\x41\x29\xcb\x45\xc0\xd2\x4f\xe7\xe5\xff\x3f\xb6\xe2\x02\xa9\x40\x10\x74\x96\x21\xb0\x14\x78\x2e\x00\x57\xac\x14\x25\x60\xbb\xfb\xdc\x40\xe0\x01\x00\xb0\x1a\xbe\xc8\x7e\x7b\x2b\xfb\xe0\xe2\x8a\x18\x8a\x57\x59\x76\x66\x36\xe3\x5e\x49\xad\xa8\x86\x4d\xf3\xa9\xe9\x74\x70\x71\x4e\x20\xc1\x94\x56\xd9\xf7\x54\xb5\xaf\xff\x80\x4a\xd4\x9d\xfa\x3d\x65\x32\xee\xfa\x9f\xaa\x7a\xcc\x71\xd9\x2a\x87\x5c\x5d\x1e\x43\x96\x05\x5b\xd0\xe2\x1a\xde\xe3\x35\x04\xac\x26\x53\xb1\x9c\x7d\xa8\xd0\x2e\x8e\x41\xce\x5c\x61\x13\x30\xee\x34\xf5\x61\xad\x46\x91\xd6\xf7\xa6\xb7\xb5\xd4\x10\x3c\xb4\x79\x94\xdb\x1a\xa5\x0c\xf7\x20\xda\x51\xae\x36\xc9\x0c\xf7\x64\xde\x6e\xec\xcf\x14\x48\x3c\x02\xc8\xdf\x31\x8e\x11\xeb\xba\x5d\x32\x73\xad\xc6\x73\x5a\x94\x28\xa2\x7b\x7d\xf3\xba\xdd\x5c\x86\x9e\x57\xa2\x80\xb7\xfb\x5e\xed\x65\xaf\xea\x52\x4b\xad\x5a\xd5\x69\x88\x20\x28\x31\xc3\x58\x00\x4b\xad\xeb\xf6\x7f\xfc\x4d\x1b\x71\x5e\x71\x11\xfc\x47\x20\x2d\xf2\x05\x30\x9e\xe6\xc5\x82\x0a\x96\xf3\x75\x19\xcf\x71\x41\xff\x1f\xb4\xd4\xcd\xa0\x9b\xed\xe0\x8e\x7e\x9c\x63\x81\xa0\xe5\xe6\x4e\xd9\x7a\x23\xf0\xcd\x68\xf9\x0e\xa1\x3c\x99\x80\x61\x7b\xab\x5a\x09\x11\x24\x54\xd0\x19\x2d\x31\x20\x3f\x50\x4d\x57\xab\x83\x0b\x73\x44\x58\x1b\x94\xc0\x1b\x38\xb7\x82\xf9\x53\xe9\xaf\xfc\xe9\x79\x9a\x78\xc6\x13\x5c\x41\xce\xed\x98\x7f\xb3\x23\xf4\x3d\x42\x42\xcf\x5b\x16\xb8\xa4\x05\x82\x8d\xcc\xc6\xbc\xec\x86\xef\x34\x1e\x9a\x41\x0f\x56\x80\xc7\x22\x86\x1e\xae\x30\xae\xc4\xaf\xce\x85\x5e\x82\x34\xcb\xf2\x78\x2c\xe1\xe9\x14\x2f\xd3\x28\x37\xd9\xa7\x1a\xe5\xde\x87\x7f\x46\xfd\x55\xa3\xc6\x95\x53\x3d\x32\x1f\xa4\x67\xe4\xcf\x0b\xb4\xc7\xdd\x38\xa7\x7a\xe4\xee\xa9\x67\xe4\xd3\xd7\x00\x00\x00\xff\xff\xd1\x4b\x2f\x13\x8d\x08\x00\x00")
+
+func mysql000006_create_emojisUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000006_create_emojisUpSql,
+		"mysql/000006_create_emojis.up.sql",
+	)
+}
+
+func mysql000006_create_emojisUpSql() (*asset, error) {
+	bytes, err := mysql000006_create_emojisUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000006_create_emojis.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -496,6 +540,46 @@ func postgres000005_create_compliancesUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000006_create_emojisDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\xcd\xcd\xcf\xca\xb4\xe6\x02\x04\x00\x00\xff\xff\x7e\xbc\x93\x37\x1c\x00\x00\x00")
+
+func postgres000006_create_emojisDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000006_create_emojisDownSql,
+		"postgres/000006_create_emojis.down.sql",
+	)
+}
+
+func postgres000006_create_emojisDownSql() (*asset, error) {
+	bytes, err := postgres000006_create_emojisDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000006_create_emojis.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000006_create_emojisUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\x4d\x4f\x84\x30\x10\x86\xef\xfd\x15\x73\xa4\xc9\x9e\x36\x66\x2f\x9c\xea\x52\x63\xa3\x16\x2c\xc5\xc0\xa9\xa9\xb6\x31\x35\x02\x86\xd4\xc4\x9f\x6f\x68\xf9\x08\xcb\x85\x63\xdf\xc9\xfb\x74\x9e\xb9\x0a\x4a\x24\x05\x49\xee\x9f\x29\xb0\x07\xe0\xb9\x04\x5a\xb3\x52\x96\x60\xdb\xfe\xcb\x41\x82\x00\x00\x9c\x81\x37\x22\xae\x8f\x44\x24\xe7\x0b\x86\x42\xb0\x17\x22\x1a\x78\xa2\xcd\x29\xcc\x3f\x06\xab\xbd\xd5\x1e\xde\xdd\xa7\xeb\x7c\x0c\x7f\x7f\xcc\x3e\x34\xf6\xdb\xee\xc2\x50\xef\x87\xed\x2f\x71\xd4\xe9\xd6\x2e\xe9\xe5\x6e\x4a\x2b\xce\x5e\x2b\x9a\x8c\xc3\xd3\x82\xc4\x08\xa7\x08\x4d\x46\x8c\x67\xb4\xbe\x31\x72\xe6\x4f\x05\x2b\x15\x57\x53\xda\x43\xce\x67\xd1\x79\x5d\x9c\x1e\x63\x44\xe7\x2d\x63\xbe\xc3\x51\x46\x5c\x7d\xcb\x58\x74\x0e\x32\xc2\x85\xd6\xfa\xf8\x1c\xef\x90\x89\xbc\x58\x9b\x53\x8b\xeb\xd6\xaa\x73\x8a\xd0\x7f\x00\x00\x00\xff\xff\x7a\xf3\x19\x1d\xf8\x01\x00\x00")
+
+func postgres000006_create_emojisUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000006_create_emojisUpSql,
+		"postgres/000006_create_emojis.up.sql",
+	)
+}
+
+func postgres000006_create_emojisUpSql() (*asset, error) {
+	bytes, err := postgres000006_create_emojisUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000006_create_emojis.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -558,6 +642,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000004_create_command_webhooks.up.sql":       mysql000004_create_command_webhooksUpSql,
 	"mysql/000005_create_compliances.down.sql":          mysql000005_create_compliancesDownSql,
 	"mysql/000005_create_compliances.up.sql":            mysql000005_create_compliancesUpSql,
+	"mysql/000006_create_emojis.down.sql":               mysql000006_create_emojisDownSql,
+	"mysql/000006_create_emojis.up.sql":                 mysql000006_create_emojisUpSql,
 	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
@@ -568,6 +654,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000004_create_command_webhooks.up.sql":    postgres000004_create_command_webhooksUpSql,
 	"postgres/000005_create_compliances.down.sql":       postgres000005_create_compliancesDownSql,
 	"postgres/000005_create_compliances.up.sql":         postgres000005_create_compliancesUpSql,
+	"postgres/000006_create_emojis.down.sql":            postgres000006_create_emojisDownSql,
+	"postgres/000006_create_emojis.up.sql":              postgres000006_create_emojisUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -622,6 +710,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000004_create_command_webhooks.up.sql":    &bintree{mysql000004_create_command_webhooksUpSql, map[string]*bintree{}},
 		"000005_create_compliances.down.sql":       &bintree{mysql000005_create_compliancesDownSql, map[string]*bintree{}},
 		"000005_create_compliances.up.sql":         &bintree{mysql000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":            &bintree{mysql000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":              &bintree{mysql000006_create_emojisUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -634,6 +724,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000004_create_command_webhooks.up.sql":    &bintree{postgres000004_create_command_webhooksUpSql, map[string]*bintree{}},
 		"000005_create_compliances.down.sql":       &bintree{postgres000005_create_compliancesDownSql, map[string]*bintree{}},
 		"000005_create_compliances.up.sql":         &bintree{postgres000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":            &bintree{postgres000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":              &bintree{postgres000006_create_emojisUpSql, map[string]*bintree{}},
 	}},
 }}
 

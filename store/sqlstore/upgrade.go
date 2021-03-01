@@ -516,9 +516,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version490, Version4100) {
-
-		sqlStore.RemoveIndexIfExists("Name_2", "Channels")
-		sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
 		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 		saveSchemaVersion(sqlStore, Version4100)
