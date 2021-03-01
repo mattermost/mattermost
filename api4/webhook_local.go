@@ -79,7 +79,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	c.LogAudit("attempt")
 
 	if hook.CreatorId == "" {
-		c.SetInvalidParam("user_id")
+		c.SetInvalidParam("creator_id")
 		return
 	}
 

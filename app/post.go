@@ -17,8 +17,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -65,7 +65,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 				}
 			}
 
-			T := utils.GetUserTranslations(user.Locale)
+			T := i18n.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
 				post.UserId,
 				&model.Post{
@@ -126,8 +126,8 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 
 	// Query the cache atomically for the given pending post id, saving a record if
 	// it hasn't previously been seen.
-	var postId string
-	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
+	var postID string
+	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postID)
 	if nErr == cache.ErrKeyNotFound {
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL)
 		return nil, nil
@@ -140,13 +140,13 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
 	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
 	// for the other thread, but coordinating that adds complexity to the happy path.
-	if postId == unknownPostId {
+	if postID == unknownPostId {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.pending", nil, "", http.StatusInternalServerError)
 	}
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(postId)
+	actualPost, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -218,7 +218,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
-			T := utils.GetUserTranslations(user.Locale)
+			T := i18n.GetUserTranslations(user.Locale)
 			ephemeralPost = &model.Post{
 				UserId:    user.Id,
 				RootId:    post.RootId,
@@ -365,14 +365,14 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
-	for _, fileId := range post.FileIds {
-		err := a.Srv().Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+	for _, fileID := range post.FileIds {
+		err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId)
 		if err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(err))
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
-		attachedIds = append(attachedIds, fileId)
+		attachedIds = append(attachedIds, fileID)
 	}
 
 	if len(post.FileIds) != len(attachedIds) {
@@ -526,9 +526,9 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userID, postId string) {
+func (a *App) DeleteEphemeralPost(userID, postID string) {
 	post := &model.Post{
-		Id:       postId,
+		Id:       postID,
 		UserId:   userID,
 		Type:     model.POST_EPHEMERAL,
 		DeleteAt: model.GetMillis(),
@@ -659,8 +659,8 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	return rpost, nil
 }
 
-func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postId)
+func (a *App) PatchPost(postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
 	}
@@ -704,8 +704,8 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 	return postList, nil
 }
 
-func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, true)
+func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -719,8 +719,8 @@ func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelId string, collapsedThreads bool) string {
-	return a.Srv().Store.Post().GetEtag(channelId, true, collapsedThreads)
+func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
+	return a.Srv().Store.Post().GetEtag(channelID, true, collapsedThreads)
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -732,8 +732,8 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetSingle(postId)
+func (a *App) GetSinglePost(postID string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store.Post().GetSingle(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -747,8 +747,8 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 	return post, nil
 }
 
-func (a *App) GetPostThread(postId string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(postId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+func (a *App) GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+	posts, err := a.Srv().Store.Post().Get(postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -783,8 +783,8 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForChannel(userID, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelId, offset, limit)
+func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -792,8 +792,8 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelId string, offset int, li
 	return postList, nil
 }
 
-func (a *App) GetPermalinkPost(postId string, userID string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(postId, false, false, false)
+func (a *App) GetPermalinkPost(postID string, userID string) (*model.PostList, *model.AppError) {
+	list, nErr := a.Srv().Store.Post().Get(postID, false, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -876,8 +876,8 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetPostAfterTime(channelId, time)
+func (a *App) GetPostAfterTime(channelID string, time int64) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -885,22 +885,22 @@ func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *mode
 	return post, nil
 }
 
-func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
-	postId, err := a.Srv().Store.Post().GetPostIdAfterTime(channelId, time)
+func (a *App) GetPostIdAfterTime(channelID string, time int64) (string, *model.AppError) {
+	postID, err := a.Srv().Store.Post().GetPostIdAfterTime(channelID, time)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return postId, nil
+	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
-	postId, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelId, time)
+func (a *App) GetPostIdBeforeTime(channelID string, time int64) (string, *model.AppError) {
+	postID, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelID, time)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return postId, nil
+	return postID, nil
 }
 
 func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
@@ -976,16 +976,16 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.GetChannelMember(channelId, userID); err != nil {
+	if member, err = a.GetChannelMember(channelID, userID); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelId, member.LastViewedAt)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {
@@ -1000,13 +1000,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userID string, limit
 	// channel organically, those replies will be added below.
 	postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
 		return nil, err
 	} else if postListBefore != nil {
 		postList.Extend(postListBefore)
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1016,8 +1016,8 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userID string, limit
 	return postList, nil
 }
 
-func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
-	post, nErr := a.Srv().Store.Post().GetSingle(postId)
+func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppError) {
+	post, nErr := a.Srv().Store.Post().GetSingle(postID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
@@ -1032,7 +1032,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, err
 	}
 
-	if err := a.Srv().Store.Post().Delete(postId, model.GetMillis(), deleteByID); err != nil {
+	if err := a.Srv().Store.Post().Delete(postID, model.GetMillis(), deleteByID); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -1067,8 +1067,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	return post, nil
 }
 
-func (a *App) DeleteFlaggedPosts(postId string) {
-	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); err != nil {
+func (a *App) DeleteFlaggedPosts(postID string) {
+	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
@@ -1238,16 +1238,16 @@ func (a *App) SearchPostsInTeamForUser(terms string, userID string, teamID strin
 	return postSearchResults, nil
 }
 
-func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo, *model.AppError) {
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postId)
+		post, err := a.Srv().Store.Post().GetSingle(postID)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	infos, err := a.GetFileInfosForPost(postId, false)
+	infos, err := a.GetFileInfosForPost(postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1267,8 +1267,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 		post := result.Data.(*model.Post)
 
 		if len(post.Filenames) > 0 {
-			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postId, false)
-			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postId, true)
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
 			// The post has Filenames that need to be replaced with FileInfos
 			infos = a.MigrateFilenamesToFileInfos(post)
 		}
@@ -1277,8 +1277,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postId, fromMaster, false, true)
+func (a *App) GetFileInfosForPost(postID string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postID, fromMaster, false, true)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1464,8 +1464,8 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			return 0, err
 		}
 
-		for _, postId := range postList.Order {
-			if isPostMention(user, postList.Posts[postId], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
+		for _, postID := range postList.Order {
+			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
 				count += 1
 			}
 		}

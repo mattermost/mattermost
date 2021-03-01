@@ -6,10 +6,10 @@ package slashcommands
 import (
 	"testing"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 func TestMsgProvider(t *testing.T) {
