@@ -55,8 +55,8 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, p
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
-	if channelId == "" {
+func (a *App) SessionHasPermissionToChannel(session model.Session, channelID string, permission *model.Permission) bool {
+	if channelID == "" {
 		return false
 	}
 
@@ -64,7 +64,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 
 	var channelRoles []string
 	if err == nil {
-		if roles, ok := ids[channelId]; ok {
+		if roles, ok := ids[channelID]; ok {
 			channelRoles = strings.Fields(roles)
 			if a.RolesGrantPermission(channelRoles, permission.Id) {
 				return true
@@ -72,7 +72,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		}
 	}
 
-	channel, appErr := a.GetChannel(channelId)
+	channel, appErr := a.GetChannel(channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
@@ -88,15 +88,15 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
+func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, session.UserId); err == nil {
 
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
 		if channel.TeamId != "" {
 			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 		}
@@ -171,12 +171,12 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannel(askingUserId string, channelId string, permission *model.Permission) bool {
-	if channelId == "" || askingUserId == "" {
+func (a *App) HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool {
+	if channelID == "" || askingUserId == "" {
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(channelId, askingUserId)
+	channelMember, err := a.GetChannelMember(channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
 		if a.RolesGrantPermission(roles, permission.Id) {
@@ -185,7 +185,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 	}
 
 	var channel *model.Channel
-	channel, err = a.GetChannel(channelId)
+	channel, err = a.GetChannel(channelID)
 	if err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
@@ -193,14 +193,14 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
+func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
 

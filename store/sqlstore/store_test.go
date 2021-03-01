@@ -405,6 +405,25 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
+func TestUpAndDownMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should be reversible for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+			defer store.Close()
+
+			err := store.migrate(migrationsDirectionDown)
+			assert.NoError(t, err, "downing migrations should not error")
+		})
+	}
+}
+
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {

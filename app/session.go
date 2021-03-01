@@ -270,16 +270,16 @@ func (a *App) SessionCacheLength() int {
 	return 0
 }
 
-func (a *App) RevokeSessionsForDeviceId(userID string, deviceId string, currentSessionId string) *model.AppError {
+func (a *App) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) *model.AppError {
 	sessions, err := a.Srv().Store.Session().GetSessions(userID)
 	if err != nil {
 		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, session := range sessions {
-		if session.DeviceId == deviceId && session.Id != currentSessionId {
+		if session.DeviceId == deviceID && session.Id != currentSessionId {
 			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := a.RevokeSession(session); err != nil {
-				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceId), mlog.Err(err))
+				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
 		}
 	}
@@ -287,8 +287,8 @@ func (a *App) RevokeSessionsForDeviceId(userID string, deviceId string, currentS
 	return nil
 }
 
-func (a *App) GetSessionById(sessionId string) (*model.Session, *model.AppError) {
-	session, err := a.Srv().Store.Session().Get(context.Background(), sessionId)
+func (a *App) GetSessionById(sessionID string) (*model.Session, *model.AppError) {
+	session, err := a.Srv().Store.Session().Get(context.Background(), sessionID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessionById", "app.session.get.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -296,8 +296,8 @@ func (a *App) GetSessionById(sessionId string) (*model.Session, *model.AppError)
 	return session, nil
 }
 
-func (a *App) RevokeSessionById(sessionId string) *model.AppError {
-	session, err := a.Srv().Store.Session().Get(context.Background(), sessionId)
+func (a *App) RevokeSessionById(sessionID string) *model.AppError {
+	session, err := a.Srv().Store.Session().Get(context.Background(), sessionID)
 	if err != nil {
 		return model.NewAppError("RevokeSessionById", "app.session.get.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -321,8 +321,8 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 	return nil
 }
 
-func (a *App) AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
-	_, err := a.Srv().Store.Session().UpdateDeviceId(sessionId, deviceId, expiresAt)
+func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
+	_, err := a.Srv().Store.Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
 	if err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
