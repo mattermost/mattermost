@@ -1483,6 +1483,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		if params.OrTerms {
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
+			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
