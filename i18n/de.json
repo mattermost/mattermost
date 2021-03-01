@@ -2011,14 +2011,6 @@
     "translation": "Bitte bestätigen Sie ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Sie können sich anmelden von:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mit Mattermost können Sie Nachrichten und Dateien von ihrem PC oder Telefon aus teilen, suchen und archivieren."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Sie sind {{ .ServerURL }} beigetreten"
   },
