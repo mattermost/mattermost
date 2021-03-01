@@ -1047,3 +1047,165 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
+
+func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	require.NotNil(t, resp.Error)
+}
+
+func TestSearchFiles(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	Client := th.Client
+
+	filename := "search for fileInfo1"
+	fileInfo1, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "search for fileInfo2"
+	fileInfo2, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged search for fileInfo3"
+	fileInfo3, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged for fileInfo4"
+	fileInfo4, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	archivedChannel := th.CreatePublicChannel()
+	fileInfo5, err := th.App.UploadFile(data, archivedChannel.Id, "tagged for fileInfo3")
+	require.Nil(t, err)
+	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
+	rpost, resp := Client.CreatePost(post)
+	CheckNoError(t, resp)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	th.Client.DeleteChannel(archivedChannel.Id)
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	fileInfos, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	terms = "search"
+	page := 0
+	perPage := 2
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Len(t, fileInfos2.Order, 3, "Wrong number of fileInfos")
+	assert.Equal(t, fileInfos.Order[0], fileInfos2.Order[0])
+	assert.Equal(t, fileInfos.Order[1], fileInfos2.Order[1])
+
+	page = 1
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Empty(t, fileInfos2.Order, "Wrong number of fileInfos")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "search", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo2", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 1, "wrong number of fileInfos")
+	require.Equal(t, fileInfo2.Id, fileInfos.Order[0], "wrong search")
+
+	terms = "tagged"
+	includeDeletedChannels := true
+	searchParams = model.SearchParameter{
+		Terms:                  &terms,
+		IsOrSearch:             &isOrSearch,
+		TimeZoneOffset:         &timezoneOffset,
+		IncludeDeletedChannels: &includeDeletedChannels,
+	}
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search")
+
+	fileInfos, _ = Client.SearchFiles(th.BasicTeam.Id, "*", false)
+	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo1 fileInfo2", true)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search results")
+
+	_, resp = Client.SearchFiles("junk", "#sgtitlereview", false)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "", false)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckUnauthorizedStatus(t, resp)
+}

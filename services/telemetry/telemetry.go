@@ -439,6 +439,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
+		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -453,6 +454,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
 		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
+		"enable_custom_user_statuses":               *cfg.TeamSettings.EnableCustomUserStatuses,
 		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                   *cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":             *cfg.TeamSettings.MaxNotificationsPerChannel,
@@ -543,6 +545,8 @@ func (ts *TelemetryService) trackConfig() {
 		"driver_name":             *cfg.FileSettings.DriverName,
 		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
 		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
+		"extract_content":         *cfg.FileSettings.ExtractContent,
+		"archive_recursion":       *cfg.FileSettings.ArchiveRecursion,
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,

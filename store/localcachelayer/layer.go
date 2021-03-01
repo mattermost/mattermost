@@ -81,7 +81,7 @@ type LocalCacheStore struct {
 	scheme      LocalCacheSchemeStore
 	schemeCache cache.Cache
 
-	emoji              LocalCacheEmojiStore
+	emoji              *LocalCacheEmojiStore
 	emojiCacheById     cache.Cache
 	emojiIdCacheByName cache.Cache
 
@@ -197,7 +197,12 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
+	localCacheStore.emoji = &LocalCacheEmojiStore{
+		EmojiStore:               baseStore.Emoji(),
+		rootStore:                &localCacheStore,
+		emojiByIdInvalidations:   make(map[string]bool),
+		emojiByNameInvalidations: make(map[string]bool),
+	}
 
 	// Channels
 	if localCacheStore.channelPinnedPostCountsCache, err = cacheProvider.NewCache(&cache.CacheOptions{

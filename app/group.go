@@ -435,13 +435,13 @@ func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *m
 	return channelMembers, nil
 }
 
-func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroupsByChannel(channelId, opts)
+func (a *App) GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroupsByChannel(channelID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	count, err := a.Srv().Store.Group().CountGroupsByChannel(channelId, opts)
+	count, err := a.Srv().Store.Group().CountGroupsByChannel(channelID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}

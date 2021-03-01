@@ -2011,14 +2011,6 @@
     "translation": "Veuillez vérifier votre adresse e-mail en cliquant ci-dessous."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Vous pouvez vous connecter avec :"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost vous permet de partager des messages et des fichiers depuis votre ordinateur, téléphone ou tablette avec  des fonctionnalités de recherche instantanée et d'archivage."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Bienvenue sur {{ .ServerURL }}"
   },
@@ -3611,32 +3603,12 @@
     "translation": "Bulletin de Sécurité Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Une erreur s'est produite lors de l'authentification du jeton MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Jeton MFA invalide"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Impossible de mettre à jour le statut actif MFA pour l'utilisateur"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Impossible de mettre à jour le statut actif MFA pour l'utilisateur"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Une erreur s'est produite lors de la réinitialisation de la clé secrète MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Une erreur s'est produite lors de la génération du QR code"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Une erreur s'est produite lors de la sauvegarde de la clé secrète MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
