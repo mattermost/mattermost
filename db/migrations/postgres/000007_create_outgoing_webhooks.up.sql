@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS outgoingwebhooks (
     displayname VARCHAR(64)
 );
 
-ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS contenttyoe VARCHAR(128);
+ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS contenttype VARCHAR(128);
 ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS triggerwhen integer default 0;
 ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS username VARCHAR(64);
 ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS iconurl VARCHAR(1024);
