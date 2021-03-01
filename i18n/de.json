@@ -1166,7 +1166,7 @@
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt keine LDAP-Gruppen"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -5940,11 +5940,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn zu diesem Kanal hinzuzufügen, muss er zu den verknüpften Gruppen hinzugefügt werden."
+    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn diesem Kanal hinzuzufügen, muss er den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie zu diesem Kanal hinzuzufügen, müssen sie zu den verknüpften Gruppen hinzugefügt werden."
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie diesem Kanal hinzuzufügen, müssen sie den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -5968,15 +5968,15 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "Gruppenname existiert bereits als Benutzername"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "Gruppenname existiert bereits als reservierter Name"
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "Gruppenmitglied existiert bereits"
+    "translation": "Gruppenname existiert bereits"
   },
   {
     "id": "api.image.get.app_error",
@@ -5996,7 +5996,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Der Benutzer kann von ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
+    "translation": "Der Benutzer kann von Ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
@@ -6064,7 +6064,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Ihre Lizenz unterstützt Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt keine Gruppen"
   },
   {
     "id": "api.channel.add_members.user_denied",
@@ -7109,5 +7109,9 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "Bot-Anmeldung ist verboten."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Kanäle tragen dazu bei, die Kommunikation zu verbessern, aber dass alle Benutzer in Mattermost Kanäle erstellen und Kanälen beitreten können, vergrößert das Problem der Übersichtlichkeit. Erweiterte Rechte ermöglichen Ihnen festzulegen, welche Benutzer oder Rollen bestimmte Aktionen durchführen dürfen, einschließlich der Verwaltung von Kanaleinstellungen und -mitgliedern, der Nutzung von @channel oder @here, um große Gruppen von Mitgliedern zu benachrichtigen, und der Erstellung von neuen Webhooks.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Klicken auf \"Kontakt\" teilen Sie Ihre Daten mit Mattermost, Inc. [mehr](https://mattermost.com/pl/default-admin-advisory)"
   }
 ]
