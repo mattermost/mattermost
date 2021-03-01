@@ -34,10 +34,6 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 	return s
 }
 
-func (jss SqlJobStore) createIndexesIfNotExists() {
-	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
-}
-
 func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	if err := jss.GetMaster().Insert(job); err != nil {
 		return nil, errors.Wrap(err, "failed to save Job")

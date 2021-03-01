@@ -699,9 +699,6 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion513(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5120, Version5130) {
-		// The previous jobs ran once per minute, cluttering the Jobs table with somewhat useless entries. Clean that up.
-		sqlStore.GetMaster().Exec("DELETE FROM Jobs WHERE Type = 'plugins'")
-
 		saveSchemaVersion(sqlStore, Version5130)
 	}
 }
