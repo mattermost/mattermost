@@ -14,22 +14,27 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
+func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
-	if err := s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+	if err = s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+	}
+
+	oc, err := s.getSidebarCategoriesT(transaction, userId, teamId)
+	if err != nil {
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: getSidebarCategoriesT")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
+		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 	}
 
-	return nil
+	return oc, nil
 }
 
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) error {
@@ -499,7 +504,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	transaction, err := s.GetMaster().Begin()
+	transaction, err := s.GetReplica().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
