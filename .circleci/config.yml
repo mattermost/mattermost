@@ -16,14 +16,15 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:oct-2-2018
+      - image: mattermost/mattermost-build-webapp:20200829_node-10.22
+    resource_class: xlarge
     steps:
       - checkout
       - run: |
           cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $CIRCLE_BRANCH || git checkout master
+          git checkout $CIRCLE_BRANCH || git checkout release-5.33
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
@@ -140,25 +141,6 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
-  build-api-spec:
-    docker:
-      - image: circleci/node:lts
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
-            cd mattermost-api-reference
-            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
-            git checkout ${CIRCLE_BRANCH} || true
-            make build
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-api-reference
-
   build:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
@@ -422,16 +404,12 @@ workflows:
       - check-mocks:
           requires:
             - setup
-      - build-api-spec:
-          requires:
-            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -488,9 +466,6 @@ workflows:
       - check-store-layers:
           requires:
             - setup
-      - build-api-spec:
-          requires:
-            - setup
       - check-mocks:
           requires:
             - setup
@@ -500,7 +475,6 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
-            - build-api-spec
       - test:
           name: test-mysql
           dbdriver: mysql
