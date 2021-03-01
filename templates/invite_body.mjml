@@ -13,7 +13,7 @@
       <mj-raw>{{else}}</mj-raw>
       <mj-section padding="0px 0px 40px 0px">
         <mj-column>
-          <mj-image src="{{.Props.SiteURL}}/static/images/invite_illustration.svg" width="320px" padding="0px" />
+          <mj-image src="{{.Props.SiteURL}}/static/images/invite_illustration.png" width="320px" padding="0px" />
         </mj-column>
       </mj-section>
       <mj-raw>{{end}}</mj-raw>
