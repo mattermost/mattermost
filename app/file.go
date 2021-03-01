@@ -36,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/docextractor"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -771,6 +772,28 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		}
 	}
 
+	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+		infoCopy := *t.fileinfo
+		a.Srv().Go(func() {
+			file, aerr := a.FileReader(t.fileinfo.Path)
+			if aerr != nil {
+				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+				return
+			}
+			defer file.Close()
+			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
+				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+			})
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err))
+				return
+			}
+			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
+				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+			}
+		})
+	}
+
 	return t.fileinfo, nil
 }
 
@@ -1018,6 +1041,28 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		default:
 			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+		infoCopy := *info
+		a.Srv().Go(func() {
+			file, aerr := a.FileReader(infoCopy.Path)
+			if aerr != nil {
+				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+				return
+			}
+			defer file.Close()
+			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
+				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+			})
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err))
+				return
+			}
+			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
+				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+			}
+		})
 	}
 
 	return info, data, nil
@@ -1307,4 +1352,50 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 		}
 	}
 	return nil
+}
+
+func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	if !*a.Config().ServiceSettings.EnableFileSearch {
+		return nil, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+	}
+
+	finalParamsList := []*model.SearchParams{}
+
+	for _, params := range paramsList {
+		params.OrTerms = isOrSearch
+		params.IncludeDeletedChannels = includeDeleted
+		// Don't allow users to search for "*"
+		if params.Terms != "*" {
+			// Convert channel names to channel IDs
+			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+
+			// Convert usernames to user IDs
+			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
+			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
+
+			finalParamsList = append(finalParamsList, params)
+		}
+	}
+
+	// If the processed search params are empty, return empty search results.
+	if len(finalParamsList) == 0 {
+		return model.NewFileInfoList(), nil
+	}
+
+	fileInfoSearchResults, nErr := a.Srv().Store.FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("SearchPostsInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return fileInfoSearchResults, nil
 }

@@ -15,12 +15,12 @@ import (
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -68,7 +68,7 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	c, _, _, err := ws.Dial(context.Background(), "ws://"+addr.String()+"/ws")
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -88,6 +88,20 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer wc1.Close()
 	defer wc2.Close()
 	defer wc3.Close()
+}
+
+func TestWebConnDoubleClose(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "userID")
+	wc1.Close()
+	require.NotPanics(t, func() {
+		wc1.Close()
+	})
 }
 
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
