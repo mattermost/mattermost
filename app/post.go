@@ -458,12 +458,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
-			return err
-		}
-	}
-
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
