@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	// "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -53,8 +52,6 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
-		// statusMock := mocks.StatusStore{}
-		// statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
 		task := model.CreateRecurringTask("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, time.Duration(1)*time.Second)
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
