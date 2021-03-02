@@ -178,8 +178,21 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job_id", c.Params.JobId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// if permission to create, permission to cancel, same permission
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.App.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 

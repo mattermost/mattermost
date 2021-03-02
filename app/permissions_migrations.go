@@ -591,6 +591,101 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	return transformations, nil
 }
 
+func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsEnvironmentRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER.Id,
+	}
+	permissionsEnvironmentWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
+		Add:    permissionsEnvironmentRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
+		Add:    permissionsEnvironmentWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id},
+	})
+
+	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_WEB_SERVER
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER.Id),
+		Add: []string{model.PERMISSION_TEST_SITE_URL.Id},
+	})
+
+	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_TEST_ELASTICSEARCH.Id,
+			model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_FILE_STORAGE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE.Id),
+		Add: []string{model.PERMISSION_TEST_S3.Id},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_WEB_SERVER
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id),
+		Add: []string{model.PERMISSION_RELOAD_CONFIG.Id, model.PERMISSION_INVALIDATE_CACHES.Id},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_DATABASE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id),
+		Add: []string{model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS.Id},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
+			model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -616,6 +711,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()
