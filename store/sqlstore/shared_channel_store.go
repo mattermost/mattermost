@@ -394,15 +394,15 @@ func (s SqlSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOp
 		From("SharedChannelRemotes")
 
 	if opts.ChannelId != "" {
-		query = query.Where(sq.Eq{"SharedChannelRemotes.ChannelId": opts.ChannelId})
+		query = query.Where(sq.Eq{"ChannelId": opts.ChannelId})
 	}
 
 	if opts.RemoteId != "" {
-		query = query.Where(sq.Eq{"SharedChannelRemotes.RemoteId": opts.RemoteId})
+		query = query.Where(sq.Eq{"RemoteId": opts.RemoteId})
 	}
 
 	if !opts.InclUnconfirmed {
-		query = query.Where(sq.Eq{"SharedChannelRemotes.IsInviteConfirmed": true})
+		query = query.Where(sq.Eq{"IsInviteConfirmed": true})
 	}
 
 	squery, args, err := query.ToSql()

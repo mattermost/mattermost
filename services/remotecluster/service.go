@@ -174,10 +174,11 @@ func (rcs *Service) getTopicListeners(topic string) []TopicListener {
 }
 
 func (rcs *Service) AddConnectionStateListener(listener ConnectionStateListener) string {
+	id := model.NewId()
+
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	id := model.NewId()
 	rcs.connectionStateListeners[id] = listener
 	return id
 }
