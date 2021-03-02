@@ -104,6 +104,8 @@ var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
+var PERMISSION_GET_LOGS *Permission
+var PERMISSION_GET_ANALYTICS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -567,6 +569,20 @@ func initializePermissions() {
 
 	PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB = &Permission{
 		"create_post_bleve_indexes_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_GET_LOGS = &Permission{
+		"get_logs",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_GET_ANALYTICS = &Permission{
+		"get_analytics",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1092,6 +1108,8 @@ func initializePermissions() {
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
 		PERMISSION_PURGE_BLEVE_INDEXES,
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
+		PERMISSION_GET_ANALYTICS,
+		PERMISSION_GET_LOGS,
 	}
 
 	TeamScopedPermissions := []*Permission{
