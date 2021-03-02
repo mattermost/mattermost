@@ -272,7 +272,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment,authentication,write_restrictable"`
+	SiteURL                                           *string  `access:"environment,authentication_signup,write_restrictable"`
 	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`             // telemetry: none
 	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -290,7 +290,7 @@ type ServiceSettings struct {
 	ReadTimeout                                       *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	WriteTimeout                                      *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	IdleTimeout                                       *int     `access:"write_restrictable,cloud_restrictable"`
-	MaximumLoginAttempts                              *int     `access:"authentication,write_restrictable,cloud_restrictable"`
+	MaximumLoginAttempts                              *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	GoogleDeveloperKey                                *string  `access:"site,write_restrictable,cloud_restrictable"`
 	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
@@ -307,8 +307,8 @@ type ServiceSettings struct {
 	EnableSecurityFixAlert                            *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections                 *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	AllowedUntrustedInternalConnections               *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	EnableMultifactorAuthentication                   *bool    `access:"authentication"`
-	EnforceMultifactorAuthentication                  *bool    `access:"authentication"`
+	EnableMultifactorAuthentication                   *bool    `access:"authentication_mfa"`
+	EnforceMultifactorAuthentication                  *bool    `access:"authentication_mfa"`
 	EnableUserAccessTokens                            *bool    `access:"integrations"`
 	AllowCorsFrom                                     *string  `access:"integrations,write_restrictable,cloud_restrictable"`
 	CorsExposedHeaders                                *string  `access:"integrations,write_restrictable,cloud_restrictable"`
@@ -356,7 +356,7 @@ type ServiceSettings struct {
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental"`
 	DisableLegacyMFA                                  *bool `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,write_restrictable,cloud_restrictable"`
-	EnableEmailInvitations                            *bool `access:"authentication"`
+	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,write_restrictable,cloud_restrictable"`
 	EnableBotAccountCreation                          *bool `access:"integrations"`
 	EnableSVGs                                        *bool `access:"site"`
@@ -982,16 +982,16 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"` // telemetry: none
-	Id                *string `access:"authentication"` // telemetry: none
-	Scope             *string `access:"authentication"` // telemetry: none
-	AuthEndpoint      *string `access:"authentication"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication"` // telemetry: none
-	UserApiEndpoint   *string `access:"authentication"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication"` // telemetry: none
-	ButtonText        *string `access:"authentication"` // telemetry: none
-	ButtonColor       *string `access:"authentication"` // telemetry: none
+	Enable            *bool   `access:"authentication_openid"`
+	Secret            *string `access:"authentication_openid"` // telemetry: none
+	Id                *string `access:"authentication_openid"` // telemetry: none
+	Scope             *string `access:"authentication_openid"` // telemetry: none
+	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
+	UserApiEndpoint   *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
+	ButtonText        *string `access:"authentication_openid"` // telemetry: none
+	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
@@ -1037,15 +1037,15 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 }
 
 type Office365Settings struct {
-	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"` // telemetry: none
-	Id                *string `access:"authentication"` // telemetry: none
-	Scope             *string `access:"authentication"`
-	AuthEndpoint      *string `access:"authentication"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication"` // telemetry: none
-	UserApiEndpoint   *string `access:"authentication"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication"` // telemetry: none
-	DirectoryId       *string `access:"authentication"` // telemetry: none
+	Enable            *bool   `access:"authentication_openid"`
+	Secret            *string `access:"authentication_openid"` // telemetry: none
+	Id                *string `access:"authentication_openid"` // telemetry: none
+	Scope             *string `access:"authentication_openid"`
+	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
+	UserApiEndpoint   *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
+	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1321,11 +1321,11 @@ func (s *NotificationLogSettings) SetDefaults() {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int  `access:"authentication"`
-	Lowercase     *bool `access:"authentication"`
-	Number        *bool `access:"authentication"`
-	Uppercase     *bool `access:"authentication"`
-	Symbol        *bool `access:"authentication"`
+	MinimumLength *int  `access:"authentication_password"`
+	Lowercase     *bool `access:"authentication_password"`
+	Number        *bool `access:"authentication_password"`
+	Uppercase     *bool `access:"authentication_password"`
+	Symbol        *bool `access:"authentication_password"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1492,12 +1492,12 @@ func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) files
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail             *bool   `access:"authentication"`
-	EnableSignInWithEmail             *bool   `access:"authentication"`
-	EnableSignInWithUsername          *bool   `access:"authentication"`
+	EnableSignUpWithEmail             *bool   `access:"authentication_email"`
+	EnableSignInWithEmail             *bool   `access:"authentication_email"`
+	EnableSignInWithUsername          *bool   `access:"authentication_email"`
 	SendEmailNotifications            *bool   `access:"site"`
 	UseChannelInEmailNotifications    *bool   `access:"experimental"`
-	RequireEmailVerification          *bool   `access:"authentication"`
+	RequireEmailVerification          *bool   `access:"authentication_email"`
 	FeedbackName                      *string `access:"site"`
 	FeedbackEmail                     *string `access:"site,cloud_restrictable"`
 	ReplyToAddress                    *string `access:"site,cloud_restrictable"`
@@ -1869,10 +1869,10 @@ type TeamSettings struct {
 	SiteName                                                  *string  `access:"site"`
 	MaxUsersPerTeam                                           *int     `access:"site"`
 	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // Deprecated: do not use
-	EnableUserCreation                                        *bool    `access:"authentication"`
-	EnableOpenServer                                          *bool    `access:"authentication"`
+	EnableUserCreation                                        *bool    `access:"authentication_signup"`
+	EnableOpenServer                                          *bool    `access:"authentication_signup"`
 	EnableUserDeactivation                                    *bool    `access:"experimental"`
-	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: none
+	RestrictCreationToDomains                                 *string  `access:"authentication_signup"` // telemetry: none
 	EnableCustomUserStatuses                                  *bool    `access:"site"`
 	EnableCustomBrand                                         *bool    `access:"site"`
 	CustomBrandText                                           *string  `access:"site"`
@@ -2064,55 +2064,55 @@ type ClientRequirements struct {
 
 type LdapSettings struct {
 	// Basic
-	Enable             *bool   `access:"authentication"`
-	EnableSync         *bool   `access:"authentication"`
-	LdapServer         *string `access:"authentication"` // telemetry: none
-	LdapPort           *int    `access:"authentication"` // telemetry: none
-	ConnectionSecurity *string `access:"authentication"`
-	BaseDN             *string `access:"authentication"` // telemetry: none
-	BindUsername       *string `access:"authentication"` // telemetry: none
-	BindPassword       *string `access:"authentication"` // telemetry: none
+	Enable             *bool   `access:"authentication_ldap"`
+	EnableSync         *bool   `access:"authentication_ldap"`
+	LdapServer         *string `access:"authentication_ldap"` // telemetry: none
+	LdapPort           *int    `access:"authentication_ldap"` // telemetry: none
+	ConnectionSecurity *string `access:"authentication_ldap"`
+	BaseDN             *string `access:"authentication_ldap"` // telemetry: none
+	BindUsername       *string `access:"authentication_ldap"` // telemetry: none
+	BindPassword       *string `access:"authentication_ldap"` // telemetry: none
 
 	// Filtering
-	UserFilter        *string `access:"authentication"` // telemetry: none
-	GroupFilter       *string `access:"authentication"`
-	GuestFilter       *string `access:"authentication"`
+	UserFilter        *string `access:"authentication_ldap"` // telemetry: none
+	GroupFilter       *string `access:"authentication_ldap"`
+	GuestFilter       *string `access:"authentication_ldap"`
 	EnableAdminFilter *bool
 	AdminFilter       *string
 
 	// Group Mapping
-	GroupDisplayNameAttribute *string `access:"authentication"`
-	GroupIdAttribute          *string `access:"authentication"`
+	GroupDisplayNameAttribute *string `access:"authentication_ldap"`
+	GroupIdAttribute          *string `access:"authentication_ldap"`
 
 	// User Mapping
-	FirstNameAttribute *string `access:"authentication"`
-	LastNameAttribute  *string `access:"authentication"`
-	EmailAttribute     *string `access:"authentication"`
-	UsernameAttribute  *string `access:"authentication"`
-	NicknameAttribute  *string `access:"authentication"`
-	IdAttribute        *string `access:"authentication"`
-	PositionAttribute  *string `access:"authentication"`
-	LoginIdAttribute   *string `access:"authentication"`
-	PictureAttribute   *string `access:"authentication"`
+	FirstNameAttribute *string `access:"authentication_ldap"`
+	LastNameAttribute  *string `access:"authentication_ldap"`
+	EmailAttribute     *string `access:"authentication_ldap"`
+	UsernameAttribute  *string `access:"authentication_ldap"`
+	NicknameAttribute  *string `access:"authentication_ldap"`
+	IdAttribute        *string `access:"authentication_ldap"`
+	PositionAttribute  *string `access:"authentication_ldap"`
+	LoginIdAttribute   *string `access:"authentication_ldap"`
+	PictureAttribute   *string `access:"authentication_ldap"`
 
 	// Synchronization
-	SyncIntervalMinutes *int `access:"authentication"`
+	SyncIntervalMinutes *int `access:"authentication_ldap"`
 
 	// Advanced
-	SkipCertificateVerification *bool   `access:"authentication"`
-	PublicCertificateFile       *string `access:"authentication"`
-	PrivateKeyFile              *string `access:"authentication"`
-	QueryTimeout                *int    `access:"authentication"`
-	MaxPageSize                 *int    `access:"authentication"`
+	SkipCertificateVerification *bool   `access:"authentication_ldap"`
+	PublicCertificateFile       *string `access:"authentication_ldap"`
+	PrivateKeyFile              *string `access:"authentication_ldap"`
+	QueryTimeout                *int    `access:"authentication_ldap"`
+	MaxPageSize                 *int    `access:"authentication_ldap"`
 
 	// Customization
-	LoginFieldName *string `access:"authentication"`
+	LoginFieldName *string `access:"authentication_ldap"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"authentication_ldap"`
+	LoginButtonBorderColor *string `access:"authentication_ldap"`
+	LoginButtonTextColor   *string `access:"authentication_ldap"`
 
-	Trace *bool `access:"authentication"` // telemetry: none
+	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2302,49 +2302,49 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type SamlSettings struct {
 	// Basic
-	Enable                        *bool `access:"authentication"`
-	EnableSyncWithLdap            *bool `access:"authentication"`
-	EnableSyncWithLdapIncludeAuth *bool `access:"authentication"`
-	IgnoreGuestsLdapSync          *bool `access:"authentication"`
+	Enable                        *bool `access:"authentication_saml"`
+	EnableSyncWithLdap            *bool `access:"authentication_saml"`
+	EnableSyncWithLdapIncludeAuth *bool `access:"authentication_saml"`
+	IgnoreGuestsLdapSync          *bool `access:"authentication_saml"`
 
-	Verify      *bool `access:"authentication"`
-	Encrypt     *bool `access:"authentication"`
-	SignRequest *bool `access:"authentication"`
+	Verify      *bool `access:"authentication_saml"`
+	Encrypt     *bool `access:"authentication_saml"`
+	SignRequest *bool `access:"authentication_saml"`
 
-	IdpUrl                      *string `access:"authentication"` // telemetry: none
-	IdpDescriptorUrl            *string `access:"authentication"` // telemetry: none
-	IdpMetadataUrl              *string `access:"authentication"` // telemetry: none
-	ServiceProviderIdentifier   *string `access:"authentication"` // telemetry: none
-	AssertionConsumerServiceURL *string `access:"authentication"` // telemetry: none
+	IdpUrl                      *string `access:"authentication_saml"` // telemetry: none
+	IdpDescriptorUrl            *string `access:"authentication_saml"` // telemetry: none
+	IdpMetadataUrl              *string `access:"authentication_saml"` // telemetry: none
+	ServiceProviderIdentifier   *string `access:"authentication_saml"` // telemetry: none
+	AssertionConsumerServiceURL *string `access:"authentication_saml"` // telemetry: none
 
-	SignatureAlgorithm *string `access:"authentication"`
-	CanonicalAlgorithm *string `access:"authentication"`
+	SignatureAlgorithm *string `access:"authentication_saml"`
+	CanonicalAlgorithm *string `access:"authentication_saml"`
 
-	ScopingIDPProviderId *string `access:"authentication"`
-	ScopingIDPName       *string `access:"authentication"`
+	ScopingIDPProviderId *string `access:"authentication_saml"`
+	ScopingIDPName       *string `access:"authentication_saml"`
 
-	IdpCertificateFile    *string `access:"authentication"` // telemetry: none
-	PublicCertificateFile *string `access:"authentication"` // telemetry: none
-	PrivateKeyFile        *string `access:"authentication"` // telemetry: none
+	IdpCertificateFile    *string `access:"authentication_saml"` // telemetry: none
+	PublicCertificateFile *string `access:"authentication_saml"` // telemetry: none
+	PrivateKeyFile        *string `access:"authentication_saml"` // telemetry: none
 
 	// User Mapping
-	IdAttribute          *string `access:"authentication"`
-	GuestAttribute       *string `access:"authentication"`
+	IdAttribute          *string `access:"authentication_saml"`
+	GuestAttribute       *string `access:"authentication_saml"`
 	EnableAdminAttribute *bool
 	AdminAttribute       *string
-	FirstNameAttribute   *string `access:"authentication"`
-	LastNameAttribute    *string `access:"authentication"`
-	EmailAttribute       *string `access:"authentication"`
-	UsernameAttribute    *string `access:"authentication"`
-	NicknameAttribute    *string `access:"authentication"`
-	LocaleAttribute      *string `access:"authentication"`
-	PositionAttribute    *string `access:"authentication"`
+	FirstNameAttribute   *string `access:"authentication_saml"`
+	LastNameAttribute    *string `access:"authentication_saml"`
+	EmailAttribute       *string `access:"authentication_saml"`
+	UsernameAttribute    *string `access:"authentication_saml"`
+	NicknameAttribute    *string `access:"authentication_saml"`
+	LocaleAttribute      *string `access:"authentication_saml"`
+	PositionAttribute    *string `access:"authentication_saml"`
 
-	LoginButtonText *string `access:"authentication"`
+	LoginButtonText *string `access:"authentication_saml"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"authentication_saml"`
+	LoginButtonBorderColor *string `access:"authentication_saml"`
+	LoginButtonTextColor   *string `access:"authentication_saml"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -2887,10 +2887,10 @@ func (s *DisplaySettings) SetDefaults() {
 }
 
 type GuestAccountsSettings struct {
-	Enable                           *bool   `access:"authentication"`
-	AllowEmailAccounts               *bool   `access:"authentication"`
-	EnforceMultifactorAuthentication *bool   `access:"authentication"`
-	RestrictCreationToDomains        *string `access:"authentication"`
+	Enable                           *bool   `access:"authentication_guest_access"`
+	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
+	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
+	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {

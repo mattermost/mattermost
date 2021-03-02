@@ -141,6 +141,36 @@ var PERMISSION_SYSCONSOLE_WRITE_SITE *Permission
 var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION *Permission
 var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION *Permission
 
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GITLAB *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GITLAB *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OAUTH *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OAUTH *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS *Permission
+
 var PERMISSION_SYSCONSOLE_READ_PLUGINS *Permission
 var PERMISSION_SYSCONSOLE_WRITE_PLUGINS *Permission
 
@@ -852,16 +882,138 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// Deprecated
 	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION = &Permission{
 		"sysconsole_read_authentication",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// Deprecated
 	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION = &Permission{
 		"sysconsole_write_authentication",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP = &Permission{
+		"sysconsole_read_authentication_signup",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP = &Permission{
+		"sysconsole_write_authentication_signup",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL = &Permission{
+		"sysconsole_read_authentication_email",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL = &Permission{
+		"sysconsole_write_authentication_email",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD = &Permission{
+		"sysconsole_read_authentication_password",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD = &Permission{
+		"sysconsole_write_authentication_password",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA = &Permission{
+		"sysconsole_read_authentication_mfa",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA = &Permission{
+		"sysconsole_write_authentication_mfa",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP = &Permission{
+		"sysconsole_read_authentication_ldap",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP = &Permission{
+		"sysconsole_write_authentication_ldap",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GITLAB = &Permission{
+		"sysconsole_read_authentication_gitlab",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GITLAB = &Permission{
+		"sysconsole_write_authentication_gitlab",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML = &Permission{
+		"sysconsole_read_authentication_saml",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML = &Permission{
+		"sysconsole_write_authentication_saml",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OAUTH = &Permission{
+		"sysconsole_read_authentication_oauth",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OAUTH = &Permission{
+		"sysconsole_write_authentication_oauth",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID = &Permission{
+		"sysconsole_read_authentication_openid",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID = &Permission{
+		"sysconsole_write_authentication_openid",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS = &Permission{
+		"sysconsole_read_authentication_guest_access",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS = &Permission{
+		"sysconsole_write_authentication_guest_access",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_PLUGINS = &Permission{
@@ -975,7 +1127,16 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
 		PERMISSION_SYSCONSOLE_READ_SITE,
-		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GITLAB,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OAUTH,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
@@ -996,7 +1157,16 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT,
 		PERMISSION_SYSCONSOLE_WRITE_SITE,
-		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GITLAB,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OAUTH,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS,
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
@@ -1104,6 +1274,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
 	}
 
 	AllPermissions = []*Permission{}
