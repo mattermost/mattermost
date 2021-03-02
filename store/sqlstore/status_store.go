@@ -103,10 +103,10 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 }
 
 // MySql doesn't has support for RETURNING clause or any euivalent so use transaction
-func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
+func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]string, error) {
 	currUnixTime := time.Now().UTC().Unix()
 	selectQuery, selectParams, _ := s.getQueryBuilder().
-		Select("UserId, Status").
+		Select("UserId").
 		From("Status").
 		Where(
 			sq.And{
@@ -115,8 +115,8 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
 			},
 		).ToSql()
-	var selectedStatuses []*model.Status
-	_, err := t.Select(&selectedStatuses, selectQuery, selectParams...)
+	var selectedUsers []string
+	_, err := t.Select(&selectedUsers, selectQuery, selectParams...)
 	if err != nil {
 		return nil, errors.Wrap(err, "getExpiredDNDStatusesT: failed to get expired dnd statuses")
 	}
@@ -138,25 +138,24 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 	if _, err := t.Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update statuses")
 	}
-	return selectedStatuses, nil
+	return selectedUsers, nil
 }
 
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
-	var statuses []*model.Status
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
-		statuses, err = s.updateExpiredStatuses(transaction)
+		userIds, err := s.updateExpiredStatuses(transaction)
 		if err != nil {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 		}
 		if err := transaction.Commit(); err != nil {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 		}
-		return statuses, nil
+		return s.GetByIds(userIds)
 	}
 
 	queryString, args, _ := s.getQueryBuilder().
@@ -180,6 +179,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
 	defer rows.Close()
+	var statuses []*model.Status
 	for rows.Next() {
 		var status model.Status
 		if err = rows.Scan(&status.UserId, &status.Status); err != nil {
