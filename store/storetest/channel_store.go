@@ -906,9 +906,6 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMember(member)
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
@@ -1407,9 +1404,6 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
@@ -1944,9 +1938,6 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().UpdateMember(member)
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -2440,9 +2431,6 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {

@@ -320,9 +320,6 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 
 		_, err := ss.Bot().Save(bot)
 		require.Error(t, err)
-		var appErr *model.AppError
-		require.True(t, errors.As(err, &appErr))
-		// require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
 	})
 
 	t.Run("normal bot", func(t *testing.T) {
@@ -371,9 +368,6 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 		bot.Username = "invalid username"
 		_, err := ss.Bot().Update(bot)
 		require.Error(t, err)
-		var appErr *model.AppError
-		require.True(t, errors.As(err, &appErr))
-		require.Equal(t, "model.bot.is_valid.username.app_error", appErr.Id)
 	})
 
 	t.Run("existing bot should update", func(t *testing.T) {

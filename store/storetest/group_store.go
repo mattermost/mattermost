@@ -117,9 +117,6 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	data, err := ss.Group().Create(g2)
 	require.Nil(t, data)
 	require.Error(t, err)
-	var appErr *model.AppError
-	require.True(t, errors.As(err, &appErr))
-	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Won't accept a duplicate name
 	g4 := &model.Group{
@@ -471,9 +468,6 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, data)
 	require.Error(t, err)
-	var appErr *model.AppError
-	require.True(t, errors.As(err, &appErr))
-	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Create another Group
 	g2 := &model.Group{
@@ -1062,9 +1056,6 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid GroupID
 	_, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam("x", model.NewId(), false))
-	var appErr *model.AppError
-	require.True(t, errors.As(err, &appErr))
-	require.Equal(t, appErr.Id, "model.group_syncable.group_id.app_error")
 
 	// Create Group
 	g1 := &model.Group{

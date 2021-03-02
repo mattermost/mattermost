@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -1973,9 +1972,6 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().UpdateMember(member)
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
 	})
 
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
@@ -2282,9 +2278,6 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().UpdateMultipleMembers([]*model.TeamMember{m1, m2})
 		require.Error(t, nErr)
-		var appErr *model.AppError
-		require.True(t, errors.As(nErr, &appErr))
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
 	})
 
 	t.Run("update members correctly (in team without scheme)", func(t *testing.T) {
