@@ -22,4 +22,3 @@ CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_team_id ON outgoingwebhooks (tea
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_update_at ON outgoingwebhooks (updateat);
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_create_at ON outgoingwebhooks (createat);
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_delete_at ON outgoingwebhooks (deleteat);
-
