@@ -46,12 +46,6 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-	mockStore := th.App.Srv().Store.(*mocks.Store)
-	mockStatusStore := mocks.StatusStore{}
-	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
-	mockStore.On("Status").Return(&mockStatusStore)
 	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
 	a.HubRegister(wc)
 	go wc.Pump()

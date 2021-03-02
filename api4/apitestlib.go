@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
@@ -254,6 +255,8 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
@@ -266,6 +269,8 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
@@ -278,6 +283,8 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
