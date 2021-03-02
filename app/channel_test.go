@@ -337,7 +337,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id, false)
 		require.Nil(t, err, "Expected nil, didn't receive nil")
 
-		member, err := th.App.GetChannelMember(channel.Id, user.Id)
+		member, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 
 		require.NotNil(t, member, "Expected member object, got nil")
 		require.Nil(t, err, "Expected nil object, didn't receive nil")
@@ -526,14 +526,14 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		err = th.App.LeaveChannel(townSquare.Id, th.BasicUser.Id)
 		assert.NotNil(t, err, "It should fail to remove a regular user from the default channel")
 		assert.Equal(t, err.Id, "api.channel.remove.default.app_error")
-		_, err = th.App.GetChannelMember(townSquare.Id, th.BasicUser.Id)
+		_, err = th.App.GetChannelMember(context.Background(), townSquare.Id, th.BasicUser.Id)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Guest leaves the default channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(townSquare.Id, guest.Id)
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
-		_, err = th.App.GetChannelMember(townSquare.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), townSquare.Id, guest.Id)
 		assert.NotNil(t, err)
 	})
 }
@@ -560,7 +560,7 @@ func TestLeaveLastChannel(t *testing.T) {
 	t.Run("Guest leaves last channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
-		_, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
 		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should remove the team membership")
@@ -636,11 +636,11 @@ func TestSetChannelsMuted(t *testing.T) {
 		th.AddUserToChannel(th.BasicUser, channel2)
 
 		// Ensure that both channels start unmuted
-		member1, err := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		member1, err := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.False(t, member1.IsChannelMuted())
 
-		member2, err := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		member2, err := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.False(t, member2.IsChannelMuted())
 
@@ -651,11 +651,11 @@ func TestSetChannelsMuted(t *testing.T) {
 		assert.True(t, updated[1].IsChannelMuted())
 
 		// Verify that the channels are muted in the database
-		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.True(t, member1.IsChannelMuted())
 
-		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.True(t, member2.IsChannelMuted())
 
@@ -666,11 +666,11 @@ func TestSetChannelsMuted(t *testing.T) {
 		assert.False(t, updated[1].IsChannelMuted())
 
 		// Verify that the channels are muted in the database
-		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		member1, err = th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.False(t, member1.IsChannelMuted())
 
-		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		member2, err = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.False(t, member2.IsChannelMuted())
 	})
@@ -1411,7 +1411,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// verify user was added as a non-admin
-	cm1, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser1.Id)
+	cm1, err := th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, ruser1.Id)
 	require.Nil(t, err)
 	require.False(t, cm1.SchemeAdmin)
 
@@ -1435,7 +1435,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// verify user was added as an admin
-	cm2, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser2.Id)
+	cm2, err := th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, ruser2.Id)
 	require.Nil(t, err)
 	require.True(t, cm2.SchemeAdmin)
 
@@ -1967,7 +1967,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	}
 	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
-	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
+	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
 }

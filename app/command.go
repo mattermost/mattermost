@@ -571,7 +571,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.SetProps(response.Props)
 
 	if response.ChannelId != "" {
-		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
+		_, err := a.GetChannelMember(context.Background(), response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
 			return nil, err

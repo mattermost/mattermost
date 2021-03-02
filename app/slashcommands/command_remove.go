@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"context"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -122,7 +123,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	_, err = a.GetChannelMember(args.ChannelId, userProfile.Id)
+	_, err = a.GetChannelMember(context.Background(), args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{
