@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -439,11 +440,11 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 	}
 }
 
-func (a *App) buildPostReplies(postId string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
+func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
 	var replies []ReplyImportData
 	var attachments []AttachmentImportData
 
-	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postId)
+	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postID)
 	if nErr != nil {
 		return nil, nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -474,16 +475,16 @@ func (a *App) buildPostReplies(postId string, withAttachments bool) ([]ReplyImpo
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
-	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postId, true)
+	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
 	if nErr != nil {
 		return nil, model.NewAppError("BuildPostReactions", "app.reaction.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store.User().Get(reaction.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
@@ -499,8 +500,8 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 
 }
 
-func (a *App) buildPostAttachments(postId string) ([]AttachmentImportData, *model.AppError) {
-	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postId, false, false, false)
+func (a *App) buildPostAttachments(postID string) ([]AttachmentImportData, *model.AppError) {
+	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postID, false, false, false)
 	if nErr != nil {
 		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

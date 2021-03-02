@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -584,12 +585,12 @@ func (a *App) GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelID string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelId, userID, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelID, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "app.webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -674,7 +675,7 @@ func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookReq
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(hook.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), hook.UserId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()

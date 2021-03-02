@@ -2011,14 +2011,6 @@
     "translation": "Per favore verifica la tua email cliccando qui sotto."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Si può accedere da:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ti permette di condividere messaggi e file dal PC o telefono, con ricerche istantanee e archiviazione."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ti sei iscritto/a a {{ .ServerURL }}"
   },
@@ -3611,32 +3603,12 @@
     "translation": "Bollettino di Sicurezza di Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Errore cercando di autenticare il token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA invalido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Errore nella pulizia del segreto MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Errore durante la generazione del QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Errore nel salvataggio del segreto MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4893,46 +4865,6 @@
   {
     "id": "system.message.name",
     "translation": "Sistema"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Impossibile impostare HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Apertura di una connesione fallita."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Apertura di una connesione TLS fallita."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Impossibile autenticarsi sul server SMTP."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Impossibile aggiungere l'allegato all'email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Impossibile chiudere la connessione al server SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Errore durante l'impostazione del campo \"Indirizzo Mittente\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Impossibile scrivere il messaggio email."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Impossibile aggiungere informazioni al messaggio email."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Errore durante l'impostazione del campo \"Indirizzo Destinatario\"."
   },
   {
     "id": "web.command_webhook.command.app_error",
