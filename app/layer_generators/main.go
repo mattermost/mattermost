@@ -160,7 +160,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 
 	file, err := os.Open(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open %s file: %w", inputFile, err)
+		return nil, fmt.Errorf("unable to open %s file: %w", inputFile, err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {
