@@ -270,9 +270,9 @@ migrations-bindata: ## Generates bindata migrations
 	@echo Generating bindata for migrations
 	$(GO) generate $(GOFLAGS) ./db/migrations/
 
-filesstore-mocks: ## Creates mock files.
+filestore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
