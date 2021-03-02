@@ -24,10 +24,6 @@ const (
 	CmdCustomStatusTrigger = "status"
 )
 
-const (
-	CmdCustomStatusTrigger = "status"
-)
-
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
