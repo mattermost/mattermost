@@ -24,12 +24,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/opentracing/opentracing-go/ext"
@@ -2415,7 +2415,7 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(userID string, channel *model.Ch
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
+func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateZipFileAndAddFiles")
 
@@ -3688,7 +3688,7 @@ func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) FileBackend() (filesstore.FileBackend, *model.AppError) {
+func (a *OpenTracingAppLayer) FileBackend() (filestore.FileBackend, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileBackend")
 
@@ -3754,7 +3754,7 @@ func (a *OpenTracingAppLayer) FileModTime(path string) (time.Time, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
+func (a *OpenTracingAppLayer) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileReader")
 
@@ -14636,9 +14636,9 @@ func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestFilesStoreConnection() *model.AppError {
+func (a *OpenTracingAppLayer) TestFileStoreConnection() *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFilesStoreConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFileStoreConnection")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -14648,7 +14648,7 @@ func (a *OpenTracingAppLayer) TestFilesStoreConnection() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestFilesStoreConnection()
+	resultVar0 := a.app.TestFileStoreConnection()
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14658,9 +14658,9 @@ func (a *OpenTracingAppLayer) TestFilesStoreConnection() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+func (a *OpenTracingAppLayer) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFilesStoreConnectionWithConfig")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFileStoreConnectionWithConfig")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -14670,7 +14670,7 @@ func (a *OpenTracingAppLayer) TestFilesStoreConnectionWithConfig(cfg *model.File
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestFilesStoreConnectionWithConfig(cfg)
+	resultVar0 := a.app.TestFileStoreConnectionWithConfig(cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15677,7 +15677,7 @@ func (a *OpenTracingAppLayer) UpdateTeamScheme(team *model.Team) (*model.Team, *
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId string, state bool) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, teamID string, threadID string, state bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadFollowForUser")
 
@@ -15689,7 +15689,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadFollowForUser(userID, threadId, state)
+	resultVar0 := a.app.UpdateThreadFollowForUser(userID, teamID, threadID, state)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15699,7 +15699,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID string, threadId string, timestamp int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUser")
 
@@ -15711,14 +15711,14 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID stri
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadReadForUser(userID, teamID, threadId, timestamp)
+	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(userID, teamID, threadID, timestamp)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userID string, teamID string) *model.AppError {
