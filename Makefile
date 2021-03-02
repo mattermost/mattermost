@@ -183,7 +183,7 @@ endif
 
 stop-haserver: 
 	@echo Stopping docker containers for HA topology
-	docker-compose -f docker-compose.yaml down --remove-orphans 
+	docker-compose stop
 
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)
