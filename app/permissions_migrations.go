@@ -728,5 +728,12 @@ func (a *App) DoPermissionsMigrations() error {
 			return err
 		}
 	}
+	// Need to increase the size of the Permissions column in the Roles table
+	for _, db := range a.Srv().sqlStore.GetAllConns() {
+		_, err := db.Exec("ALTER TABLE Roles ALTER COLUMN Permissions TYPE VARCHAR(8192)")
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
