@@ -385,9 +385,7 @@ CREATE TABLE public.posts (
     id character varying(26) NOT NULL,
     createat bigint,
     updateat bigint,
-    editat bigint,
     deleteat bigint,
-    ispinned boolean,
     userid character varying(26),
     channelid character varying(26),
     rootid character varying(26),
@@ -399,7 +397,9 @@ CREATE TABLE public.posts (
     hashtags character varying(1000),
     filenames character varying(4000),
     fileids character varying(150),
-    hasreactions boolean
+    hasreactions boolean DEFAULT false,
+    editat bigint DEFAULT 0,
+    ispinned boolean DEFAULT false
 );
 
 
