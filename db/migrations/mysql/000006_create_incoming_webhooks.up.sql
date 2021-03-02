@@ -7,9 +7,8 @@ CREATE TABLE IF NOT EXISTS IncomingWebhooks (
     ChannelId varchar(26) DEFAULT NULL,
     TeamId varchar(26) DEFAULT NULL,
     DisplayName varchar(64) DEFAULT NULL,
-    Description text,
-    Username varchar(255) DEFAULT NULL,
-    IconURL text,
+    Description varchar(128) DEFAULT NULL,
+    Username varchar(64) DEFAULT NULL,
     PRIMARY KEY(Id)
 );
 
@@ -20,8 +19,8 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'UserName'
     ) > 0,
-    'SELECT 1',
-    'ALTER TABLE IncomingWebhooks ADD UserName text;'
+    'ALTER TABLE IncomingWebhooks MODIFY UserName VARCHAR(255);',
+    'SELECT 1'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
@@ -65,8 +64,8 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'Description'
     ) > 0,
-    'SELECT 1',
-    'ALTER TABLE IncomingWebhooks ADD Description text;'
+    'ALTER TABLE IncomingWebhooks MODIFY Description VARCHAR(500);',
+    'SELECT 1'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

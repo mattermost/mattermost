@@ -7,9 +7,7 @@ CREATE TABLE IF NOT EXISTS incomingwebhooks (
     channelid VARCHAR(26),
     teamid VARCHAR(26),
     displayname VARCHAR(64),
-    description VARCHAR(500),
-    username VARCHAR(255),
-    iconurl VARCHAR(1024)
+    description VARCHAR(128)
 );
 
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_user_id ON incomingwebhooks (userid);
@@ -21,7 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_incoming_webhook_delete_at ON incomingwebhooks (d
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS username VARCHAR(255);
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS iconurl VARCHAR(1024);
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS channellocked boolean default false;
-ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS description VARCHAR(500);
+ALTER TABLE incomingwebhooks ALTER COLUMN description TYPE VARCHAR(500);
 
 DO $$
 <<checks>>
