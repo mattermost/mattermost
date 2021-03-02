@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/shared/mfa"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 

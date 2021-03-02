@@ -35,8 +35,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type migrationDirection string
@@ -1336,7 +1336,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1346,7 +1346,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1356,7 +1356,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_array"))
+				return errors.New(i18n.T("store.sql.convert_string_array"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1366,7 +1366,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1376,7 +1376,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)

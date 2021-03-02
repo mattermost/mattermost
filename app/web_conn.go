@@ -18,11 +18,11 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/mailru/easygo/netpoll"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 const (
@@ -43,7 +43,7 @@ type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        net.Conn
-	T                goi18n.TranslateFunc
+	T                i18n.TranslateFunc
 	Locale           string
 	Sequence         int64
 	UserId           string
@@ -58,10 +58,11 @@ type WebConn struct {
 	isWindows                 bool
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
+	closeOnce                 sync.Once
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
 	if session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)
@@ -94,15 +95,20 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateF
 }
 
 // Close closes the WebConn.
+// It is made idempotent in nature by using a sync.Once
+// to avoid a race condition that happens when an EventReadHup event
+// and a connection close event happens at the same time.
 func (wc *WebConn) Close() {
-	wc.WebSocket.Close()
-	if !wc.isWindows {
-		// This triggers the pump exit.
-		// If the pump has already exited, this just becomes a noop.
-		close(wc.endWritePump)
-	}
-	// We wait for the pump to fully exit.
-	<-wc.pumpFinished
+	wc.closeOnce.Do(func() {
+		wc.WebSocket.Close()
+		if !wc.isWindows {
+			// This triggers the pump exit.
+			// If the pump has already exited, this just becomes a noop.
+			close(wc.endWritePump)
+		}
+		// We wait for the pump to fully exit.
+		<-wc.pumpFinished
+	})
 }
 
 // GetSessionExpiresAt returns the time at which the session expires.

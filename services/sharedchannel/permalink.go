@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 var (
@@ -44,7 +44,7 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		if postList.Posts[postList.Order[0]].ChannelId != p.ChannelId {
 			// Send ephemeral message to OP (only once per message).
 			if !sent {
-				scs.sendEphemeralPost(p.ChannelId, p.UserId, utils.T("sharedchannel.permalink.not_found"))
+				scs.sendEphemeralPost(p.ChannelId, p.UserId, i18n.T("sharedchannel.permalink.not_found"))
 				sent = true
 			}
 			// But don't modify msg

@@ -39,7 +39,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.FilesSearch = false
 	f.CustomUserStatuses = false
-	f.PluginIncidentManagement = "1.4.0"
+	f.PluginIncidentManagement = "1.5.1"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

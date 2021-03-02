@@ -9,12 +9,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type syncTask struct {
@@ -495,5 +493,5 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	if locale == "" {
 		locale = model.DEFAULT_LOCALE
 	}
-	return utils.GetUserTranslations(locale)
+	return i18n.GetUserTranslations(locale)
 }
