@@ -252,3 +252,16 @@ func (scf *SharedChannelAttachment) IsValid() *AppError {
 	}
 	return nil
 }
+
+type SharedChannelFilterOpts struct {
+	TeamId        string
+	CreatorId     string
+	ExcludeHome   bool
+	ExcludeRemote bool
+}
+
+type SharedChannelRemoteFilterOpts struct {
+	ChannelId       string
+	RemoteId        string
+	InclUnconfirmed bool
+}

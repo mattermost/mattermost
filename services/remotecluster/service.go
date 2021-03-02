@@ -53,6 +53,9 @@ type ServerIface interface {
 // a specific topic.
 type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error
 
+// ConnectionStateListener is used to listen to remote cluster connection state changes.
+type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
+
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {
 	server     ServerIface
@@ -60,11 +63,12 @@ type Service struct {
 	send       []chan interface{}
 
 	// everything below guarded by `mux`
-	mux              sync.RWMutex
-	active           bool
-	leaderListenerId string
-	topicListeners   map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
-	done             chan struct{}
+	mux                      sync.RWMutex
+	active                   bool
+	leaderListenerId         string
+	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
+	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
+	done                     chan struct{}
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance.
@@ -91,9 +95,10 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	}
 
 	service := &Service{
-		server:         server,
-		httpClient:     client,
-		topicListeners: make(map[string]map[string]TopicListener),
+		server:                   server,
+		httpClient:               client,
+		topicListeners:           make(map[string]map[string]TopicListener),
+		connectionStateListeners: make(map[string]ConnectionStateListener),
 	}
 
 	service.send = make([]chan interface{}, MaxConcurrentSends)
@@ -166,6 +171,22 @@ func (rcs *Service) getTopicListeners(topic string) []TopicListener {
 		listenersCopy = append(listenersCopy, l)
 	}
 	return listenersCopy
+}
+
+func (rcs *Service) AddConnectionStateListener(listener ConnectionStateListener) string {
+	id := model.NewId()
+
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+
+	rcs.connectionStateListeners[id] = listener
+	return id
+}
+
+func (rcs *Service) RemoveConnectionStateListener(listenerId string) {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+	delete(rcs.connectionStateListeners, listenerId)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.

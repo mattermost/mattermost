@@ -8232,7 +8232,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemoteByIds(channelId string, remo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+func (a *OpenTracingAppLayer) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannelRemotes")
 
@@ -8244,7 +8244,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemotes(channelId string) ([]*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSharedChannelRemotes(channelId)
+	resultVar0, resultVar1 := a.app.GetSharedChannelRemotes(opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8276,7 +8276,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemotesStatus(channelId string) ([
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (a *OpenTracingAppLayer) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannels")
 
@@ -8298,7 +8298,7 @@ func (a *OpenTracingAppLayer) GetSharedChannels(page int, perPage int, opts stor
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (a *OpenTracingAppLayer) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannelsCount")
 

@@ -70,8 +70,19 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			if rc == nil {
 				return
 			}
+
+			online := rc.IsOnline()
+
 			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed", mlog.Err(err))
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+					mlog.String("remote", rc.DisplayName),
+					mlog.String("remoteId", rc.RemoteId),
+					mlog.Err(err),
+				)
+			}
+
+			if online != rc.IsOnline() {
+				rcs.fireConnectionStateChgEvent(rc)
 			}
 		case <-done:
 			return
@@ -99,6 +110,15 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 		return err
 	}
 
+	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
+		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+	}
+	rc.LastPingAt = model.GetMillis()
+
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
 		sentAt := time.Unix(0, ping.SentAt*int64(time.Millisecond))
 		elapsed := time.Since(sentAt).Seconds()
@@ -111,6 +131,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
+		mlog.String("remoteId", rc.RemoteId),
 		mlog.Int64("SentAt", ping.SentAt),
 		mlog.Int64("RecvAt", ping.RecvAt),
 		mlog.Int64("Diff", ping.RecvAt-ping.SentAt),
@@ -134,4 +155,17 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 		Msg:      msg,
 	}
 	return frame, nil
+}
+
+func (rcs *Service) fireConnectionStateChgEvent(rc *model.RemoteCluster) {
+	rcs.mux.RLock()
+	listeners := make([]ConnectionStateListener, 0, len(rcs.connectionStateListeners))
+	for _, l := range rcs.connectionStateListeners {
+		listeners = append(listeners, l)
+	}
+	rcs.mux.RUnlock()
+
+	for _, l := range listeners {
+		l(rc, rc.IsOnline())
+	}
 }

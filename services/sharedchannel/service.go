@@ -72,15 +72,16 @@ type Service struct {
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
-	mux                   sync.RWMutex
-	active                bool
-	leaderListenerId      string
-	done                  chan struct{}
-	tasks                 map[string]syncTask
-	syncTopicListenerId   string
-	inviteTopicListenerId string
-	uploadTopicListenerId string
-	siteURL               *url.URL
+	mux                       sync.RWMutex
+	active                    bool
+	leaderListenerId          string
+	connectionStateListenerId string
+	done                      chan struct{}
+	tasks                     map[string]syncTask
+	syncTopicListenerId       string
+	inviteTopicListenerId     string
+	uploadTopicListenerId     string
+	siteURL                   *url.URL
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
@@ -111,6 +112,7 @@ func (scs *Service) Start() error {
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
+	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
 	scs.mux.Unlock()
 
 	scs.onClusterLeaderChange()
@@ -131,6 +133,8 @@ func (scs *Service) Shutdown() error {
 	scs.syncTopicListenerId = ""
 	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
 	scs.inviteTopicListenerId = ""
+	rcs.RemoveConnectionStateListener(scs.connectionStateListenerId)
+	scs.connectionStateListenerId = ""
 	scs.mux.Unlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
@@ -217,4 +221,19 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 
 	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
 	return err
+}
+
+// onConnectionStateChange is called whenever the connection state of a remote cluster changes,
+// for example when one comes back online.
+func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool) {
+	if online {
+		// when a previously offline remote comes back online force a sync.
+		scs.ForceSyncForRemote(rc)
+	}
+
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
+		mlog.String("remote", rc.DisplayName),
+		mlog.String("remoteId", rc.RemoteId),
+		mlog.Bool("online", online),
+	)
 }

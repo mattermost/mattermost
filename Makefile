@@ -178,7 +178,7 @@ run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
-	docker-compose -f docker-compose.yaml up haproxy
+	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
 endif
 
 stop-haserver: 

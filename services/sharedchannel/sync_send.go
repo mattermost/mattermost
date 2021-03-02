@@ -60,6 +60,34 @@ func (scs *Service) NotifyChannelChanged(channelId string) {
 	scs.addTask(task)
 }
 
+// ForceSyncForRemote causes all channels shared with the remote to be synchronized.
+func (scs *Service) ForceSyncForRemote(rc *model.RemoteCluster) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs == nil {
+		return
+	}
+
+	// fetch all channels shared with this remote.
+	opts := model.SharedChannelRemoteFilterOpts{
+		RemoteId: rc.RemoteId,
+	}
+	scrs, err := scs.server.GetStore().SharedChannel().GetRemotes(opts)
+	if err != nil {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel remotes",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, scr := range scrs {
+		task := newSyncTask(scr.ChannelId, rc.RemoteId, nil)
+		task.schedule = time.Now().Add(NotifyMinimumDelay)
+		scs.addTask(task)
+	}
+}
+
+// addTask adds or re-adds a task to the queue.
 func (scs *Service) addTask(task syncTask) {
 	task.AddedAt = time.Now()
 	scs.mux.Lock()
@@ -207,6 +235,7 @@ func (scs *Service) processTask(task syncTask) error {
 			} else {
 				scs.server.GetLogger().Error("Failed to synchronize shared channel for remote cluster",
 					mlog.String("channelId", rtask.channelId),
+					mlog.String("remote", rc.DisplayName),
 					mlog.String("remoteId", rtask.remoteId),
 					mlog.Err(err),
 				)

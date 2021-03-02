@@ -6094,7 +6094,7 @@ func (s *TimerLayerSharedChannelStore) Get(channelId string) (*model.SharedChann
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetAll(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (s *TimerLayerSharedChannelStore) GetAll(offset int, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	start := timemodule.Now()
 
 	result, err := s.SharedChannelStore.GetAll(offset, limit, opts)
@@ -6110,7 +6110,7 @@ func (s *TimerLayerSharedChannelStore) GetAll(offset int, limit int, opts store.
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+func (s *TimerLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.SharedChannelStore.GetAllCount(opts)
@@ -6174,10 +6174,10 @@ func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+func (s *TimerLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetRemotes(channelId)
+	result, err := s.SharedChannelStore.GetRemotes(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -808,8 +808,8 @@ type SharedChannelStore interface {
 	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
 	Get(channelId string) (*model.SharedChannel, error)
 	HasChannel(channelID string) (bool, error)
-	GetAll(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
-	GetAllCount(opts SharedChannelFilterOpts) (int64, error)
+	GetAll(offset, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetAllCount(opts model.SharedChannelFilterOpts) (int64, error)
 	Update(sc *model.SharedChannel) (*model.SharedChannel, error)
 	Delete(channelId string) (bool, error)
 
@@ -818,7 +818,7 @@ type SharedChannelStore interface {
 	GetRemote(id string) (*model.SharedChannelRemote, error)
 	HasRemote(channelID string, remoteId string) (bool, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
-	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteNextSyncAt(id string, syncTime int64) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
@@ -869,11 +869,4 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-type SharedChannelFilterOpts struct {
-	TeamId        string
-	CreatorId     string
-	ExcludeHome   bool
-	ExcludeRemote bool
 }
