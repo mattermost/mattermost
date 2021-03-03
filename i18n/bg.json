@@ -4036,14 +4036,6 @@
     "translation": "Присъединихте се към {{.ServerURL}}"
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Можете да влезете от:"
-  },
-  {
     "id": "api.templates.welcome_body.info",
     "translation": "Моля, потвърдете своя адрес за ел.поща, като натиснете по-долу."
   },
@@ -8589,5 +8581,25 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Грешка при задаване на състоянието."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Неуспешно изчистване на файлови индекси."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Нови потребители не могат да се присъединяват към вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Някой наскоро се опита да се присъедини към Вашето работно пространство, но не успя, тъй като е достигнато ограничението за потребители в безплатната версия на Mattermost cloud. Надстройте сега, за да позволите на повече потребители да се присъединят към Вашето работно пространство."
   }
 ]

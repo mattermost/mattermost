@@ -2016,14 +2016,6 @@
     "translation": "Будь-ласка, підтвердьте свою електронну адресу, натиснувши нижче."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Ви можете увійти з:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost дозволяє вам обмінюватися повідомленнями та файлами з комп'ютера або телефону з миттєвим пошуком та архівацією."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ви приєдналися {{ .ServerURL }}"
   },

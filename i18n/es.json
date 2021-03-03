@@ -2011,14 +2011,6 @@
     "translation": "Por favor verifica tu correo electrónico haciendo clic en el botón de abajo."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Puedes acceder desde:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Te has unido a {{ .ServerURL }}"
   },

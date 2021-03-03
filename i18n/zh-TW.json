@@ -2006,14 +2006,6 @@
     "translation": "請按下方連結來驗證電子郵件地址。"
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "現在可以登入："
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。"
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "已加入{{ .ServerURL }}"
   },

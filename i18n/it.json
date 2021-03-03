@@ -2011,14 +2011,6 @@
     "translation": "Per favore verifica la tua email cliccando qui sotto."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Si può accedere da:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ti permette di condividere messaggi e file dal PC o telefono, con ricerche istantanee e archiviazione."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ti sei iscritto/a a {{ .ServerURL }}"
   },

@@ -2016,14 +2016,6 @@
     "translation": "Zweryfikuj swój adres email klikając poniżej."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Możesz się zalogować z:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z błyskawicznym wyszukiwaniem i archiwizacją."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Dołączyłeś do {{ .ServerURL }}"
   },

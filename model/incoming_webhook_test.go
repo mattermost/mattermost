@@ -21,55 +21,55 @@ func TestIncomingWebhookJson(t *testing.T) {
 func TestIncomingWebhookIsValid(t *testing.T) {
 	o := IncomingWebhook{}
 
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Id = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = "123"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = NewId()
 	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 64)
 	require.Nil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 501)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 500)
 	require.Nil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 65)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 64)
 	require.Nil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1025)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1024)
 	require.Nil(t, o.IsValid())
