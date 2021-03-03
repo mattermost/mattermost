@@ -2507,6 +2507,10 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Invalid or missing request body."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
