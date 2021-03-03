@@ -18,7 +18,6 @@ require (
 	github.com/aws/aws-sdk-go v1.36.29
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v1.0.14
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -32,12 +31,10 @@ require (
 	github.com/getsentry/sentry-go v0.9.0
 	github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.3 // indirect
-	github.com/go-bindata/go-bindata v3.1.2+incompatible // indirect
 	github.com/go-redis/redis/v8 v8.4.9 // indirect
 	github.com/go-resty/resty/v2 v2.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gobwas/ws v1.1.0-rc.2
-	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2 // indirect
@@ -109,7 +106,6 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cobra v1.1.1
 	github.com/splitio/go-client/v6 v6.0.2
-	github.com/splitio/go-split-commons/v2 v2.0.1 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/throttled/throttled v2.2.5+incompatible
