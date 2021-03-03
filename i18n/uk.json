@@ -2016,14 +2016,6 @@
     "translation": "Будь-ласка, підтвердьте свою електронну адресу, натиснувши нижче."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Ви можете увійти з:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost дозволяє вам обмінюватися повідомленнями та файлами з комп'ютера або телефону з миттєвим пошуком та архівацією."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Ви приєдналися {{ .ServerURL }}"
   },
@@ -3616,32 +3608,12 @@
     "translation": "Бюлетень безпеки Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Помилка спроби автентифікації токену MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невірний MFA токен"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Неможливо оновити активний статус MFA для користувача"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Помилка очищення MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Помилка при створенні QR-коду"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Помилка збереження MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",

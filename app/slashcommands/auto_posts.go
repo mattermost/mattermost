@@ -73,10 +73,10 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, error) {
 }
 
 func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*model.Post, error) {
-	var fileIds []string
+	var fileIDs []string
 	if cfg.HasImage {
 		var err error
-		fileIds, err = cfg.UploadTestFile()
+		fileIDs, err = cfg.UploadTestFile()
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 		ParentId:  parentId,
 		RootId:    rootId,
 		Message:   postText,
-		FileIds:   fileIds,
+		FileIds:   fileIDs,
 	}
 	rpost, err := cfg.a.CreatePostMissingChannel(post, true)
 	if err != nil {

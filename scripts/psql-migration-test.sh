@@ -30,7 +30,7 @@ echo "Removing databases created for db comparison"
 docker exec mattermost-postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
 echo "Generating diff"
-diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
+git diff --word-diff=color $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
 if [ $diffErrorCode -eq 0 ]; then

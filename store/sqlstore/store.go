@@ -8,7 +8,9 @@ import (
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,18 +20,26 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+	mysqlmigrate "github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/db/migrations"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
@@ -44,6 +54,9 @@ const (
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	MinimumRequiredPostgresVersion = 100000
+
+	migrationsDirectionUp   migrationDirection = "up"
+	migrationsDirectionDown migrationDirection = "down"
 )
 
 const (
@@ -148,6 +161,12 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
+	err := store.migrate(migrationsDirectionUp)
+	if err != nil {
+		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
+		os.Exit(ExitGenericFailure)
+	}
+
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
 	store.stores.post = newSqlPostStore(store, metrics)
@@ -182,7 +201,8 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-	err := store.GetMaster().CreateTablesIfNotExists()
+	err = store.GetMaster().CreateTablesIfNotExists()
+
 	if err != nil {
 		if IsDuplicate(err) {
 			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(err))
@@ -199,7 +219,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		os.Exit(ExitGenericFailure)
 	}
 
-	store.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
@@ -234,7 +253,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	return store
 }
 
-func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+func setupConnection(connType string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
@@ -243,7 +262,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	for i := 0; i < DBPingAttempts; i++ {
-		mlog.Info("Pinging SQL", mlog.String("database", con_type))
+		mlog.Info("Pinging SQL", mlog.String("database", connType))
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -1191,6 +1210,88 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.license = license
 }
 
+func (ss *SqlStore) migrate(direction migrationDirection) error {
+	var driver database.Driver
+	var err error
+
+	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
+	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
+	dataSource := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	conn := setupConnection("migrations", dataSource, ss.settings)
+	defer conn.Db.Close()
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
+		if err != nil {
+			return err
+		}
+	} else {
+		driver, err = postgres.WithInstance(conn.Db, &postgres.Config{})
+		if err != nil {
+			return err
+		}
+	}
+
+	var assetNamesForDriver []string
+	for _, assetName := range migrations.AssetNames() {
+		if strings.HasPrefix(assetName, ss.DriverName()) {
+			assetNamesForDriver = append(assetNamesForDriver, filepath.Base(assetName))
+		}
+	}
+
+	source := bindata.Resource(assetNamesForDriver, func(name string) ([]byte, error) {
+		return migrations.Asset(filepath.Join(ss.DriverName(), name))
+	})
+
+	sourceDriver, err := bindata.WithInstance(source)
+	if err != nil {
+		return err
+	}
+
+	migrations, err := migrate.NewWithInstance("go-bindata",
+		sourceDriver,
+		ss.DriverName(),
+		driver)
+
+	if err != nil {
+		return err
+	}
+	defer migrations.Close()
+
+	switch direction {
+	case migrationsDirectionUp:
+		err = migrations.Up()
+	case migrationsDirectionDown:
+		err = migrations.Down()
+	default:
+		return errors.New(fmt.Sprintf("unsupported migration direction %s", direction))
+	}
+
+	if err != nil && err != migrate.ErrNoChange && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	return nil
+}
+
+func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
+	// We need to tell the MySQL driver that we want to use multiStatements
+	// in order to make migrations work.
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			mlog.Critical("Invalid database url found", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		q := u.Query()
+		q.Set("multiStatements", "true")
+		u.RawQuery = q.Encode()
+		return u.String()
+	}
+
+	return dataSource
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
@@ -1221,7 +1322,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1231,7 +1332,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_map"))
+				return errors.New(i18n.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1241,7 +1342,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_array"))
+				return errors.New(i18n.T("store.sql.convert_string_array"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1251,7 +1352,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
@@ -1261,7 +1362,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
-				return errors.New(utils.T("store.sql.convert_string_interface"))
+				return errors.New(i18n.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
