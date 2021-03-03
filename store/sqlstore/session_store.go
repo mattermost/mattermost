@@ -83,7 +83,9 @@ func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*mo
 	}
 	session := sessions[0]
 
-	tempMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
+	tempMembers, err := me.Team().GetTeamsForUser(
+		WithMaster(context.Background()),
+		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
