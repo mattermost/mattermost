@@ -102,7 +102,6 @@ func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
 func (s *Store) GetCurrentSchemaVersion() string       { return "" }
-func (s *Store) SetReplicationLagForTesting(int) error { return nil }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
