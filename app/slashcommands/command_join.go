@@ -37,7 +37,7 @@ func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 }
 
 func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	channelName := message
+	channelName := strings.ToLower(message)
 
 	if strings.HasPrefix(message, "~") {
 		channelName = message[1:]
