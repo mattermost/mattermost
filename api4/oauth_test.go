@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
@@ -58,7 +59,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	r, err := Client.DoApiPost("/oauth/apps", "garbage")
-	require.Error(t, err, "expected error from garbage post")
+	require.NotNil(t, err, "expected error from garbage post")
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()

@@ -4,49 +4,71 @@
 package app
 
 import (
+	"context"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		upgrader := &websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
+		upgrader := ws.HTTPUpgrader{
+			Timeout: 5 * time.Second,
 		}
-		conn, err := upgrader.Upgrade(w, req, nil)
+
+		var hdr ws.Header
+		conn, _, _, err := upgrader.Upgrade(req, w)
+		rd := wsutil.Reader{
+			Source:          conn,
+			State:           ws.StateServerSide,
+			CheckUTF8:       true,
+			SkipHeaderCheck: true,
+		}
 		for err == nil {
-			_, _, err = conn.ReadMessage()
+			hdr, err = rd.NextFrame()
+			if err != nil {
+				continue
+			}
+			if hdr.OpCode.IsControl() {
+				continue
+			}
+			if hdr.OpCode&(ws.OpText|ws.OpBinary) == 0 {
+				err = rd.Discard()
+				continue
+			}
+
+			_, err = ioutil.ReadAll(&rd)
 		}
-		if _, ok := err.(*websocket.CloseError); !ok {
-			require.NoError(t, err)
+		if err != io.EOF {
+			require.Fail(t, "unexpected error:", err)
 		}
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 
-	d := websocket.Dialer{}
-	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
+	c, _, _, err := ws.Dial(context.Background(), "ws://"+addr.String()+"/ws")
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -68,6 +90,20 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer wc3.Close()
 }
 
+func TestWebConnDoubleClose(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "userID")
+	wc1.Close()
+	require.NotPanics(t, func() {
+		wc1.Close()
+	})
+}
+
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
@@ -78,8 +114,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	th.App.HubStart()
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	defer wc1.Close()
+	registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 
 	hub := th.App.Srv().hubs[0]
 	th.App.HubStop()
@@ -173,7 +208,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamId", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
 		}
 		close(done)
 	}()

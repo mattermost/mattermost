@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"testing"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 func TestParseStaticListArgument(t *testing.T) {
@@ -643,7 +644,7 @@ func (p *testProvider) GetTrigger() string {
 	return "bogus"
 }
 
-func (p *testProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+func (p *testProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Command {
 	top := model.NewAutocompleteData(p.GetTrigger(), "[command]", "Just a test.")
 	top.AddNamedDynamicListArgument("dynaArg", "A dynamic list", "builtin:bogus", true)
 

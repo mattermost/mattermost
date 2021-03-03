@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -66,7 +66,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
 	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
@@ -100,8 +100,8 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv().Go(func() {
-		if err := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
+		if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
+			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
@@ -170,7 +170,11 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		if err != nil {
+			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
+			normalizedPostMessage = postMessage
+		}
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
@@ -283,22 +287,20 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
-func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		mlog.Error("Encountered error while looking up team by name", mlog.String("team_name", teamName), mlog.Err(err))
-		return postMessage
+		return "", err
 	}
 
 	channelNames := model.ChannelMentions(postMessage)
 	if len(channelNames) == 0 {
-		return postMessage
+		return postMessage, nil
 	}
 
 	channels, err := a.GetChannelsByNames(channelNames, team.Id)
 	if err != nil {
-		mlog.Error("Encountered error while getting channels", mlog.Err(err))
-		return postMessage
+		return "", err
 	}
 
 	visited := make(map[string]bool)
@@ -310,11 +312,11 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 			visited[ch.Id] = true
 		}
 	}
-	return postMessage
+	return postMessage, nil
 }
 
 func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
+	if strings.TrimSpace(post.Message) != "" || len(post.FileIds) == 0 {
 		return post.Message
 	}
 

@@ -14,10 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetPing(t *testing.T) {
@@ -72,7 +73,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
@@ -85,7 +86,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
@@ -182,6 +183,34 @@ func TestEmailTest(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestGenerateSupportPacket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("As a System Administrator", func(t *testing.T) {
+		l := model.NewTestLicense()
+		th.App.Srv().SetLicense(l)
+
+		file, resp := th.SystemAdminClient.GenerateSupportPacket()
+		require.Nil(t, resp.Error)
+		require.NotZero(t, len(file))
+	})
+
+	t.Run("As a Regular User", func(t *testing.T) {
+		_, resp := th.Client.GenerateSupportPacket()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Server with no License", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		require.True(t, ok)
+
+		_, resp = th.SystemAdminClient.GenerateSupportPacket()
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -478,7 +507,7 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
+		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 
 		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
@@ -588,7 +617,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
 			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)

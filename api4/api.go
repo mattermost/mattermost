@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/web"
-
-	_ "github.com/mattermost/go-i18n/i18n"
 )
 
 type Routes struct {
@@ -125,6 +125,8 @@ type Routes struct {
 	Cloud *mux.Router // 'api/v4/cloud'
 
 	Imports *mux.Router // 'api/v4/imports'
+	Exports *mux.Router // 'api/v4/exports'
+	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 }
 
 type API struct {
@@ -238,6 +240,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Cloud = api.BaseRoutes.ApiRoot.PathPrefix("/cloud").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -276,6 +280,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitAction()
 	api.InitCloud()
 	api.InitImport()
+	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
@@ -344,6 +349,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 
@@ -363,6 +370,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitRoleLocal()
 	api.InitUploadLocal()
 	api.InitImportLocal()
+	api.InitExportLocal()
 	api.InitJobLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))

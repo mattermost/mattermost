@@ -91,7 +91,7 @@ func TestFileStoreNew(t *testing.T) {
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -105,7 +105,7 @@ func TestFileStoreNew(t *testing.T) {
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -119,26 +119,26 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("absolute path, already minimally configured", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
 		defer tearDown()
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
-		assertFileEqualsConfig(t, minimalConfig, path)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
 	t.Run("absolute path, already minimally configured, with custom defaults", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
 		defer tearDown()
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -146,7 +146,7 @@ func TestFileStoreNew(t *testing.T) {
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
 		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
-		assertFileEqualsConfig(t, minimalConfig, path)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
 	t.Run("absolute path, file does not exist", func(t *testing.T) {
@@ -160,7 +160,7 @@ func TestFileStoreNew(t *testing.T) {
 		path := filepath.Join(tempDir, "does_not_exist")
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -179,7 +179,7 @@ func TestFileStoreNew(t *testing.T) {
 		path := filepath.Join(tempDir, "does_not_exist")
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -198,7 +198,7 @@ func TestFileStoreNew(t *testing.T) {
 		path := filepath.Join(tempDir, "does/not/exist")
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.Nil(t, configStore)
 		require.Error(t, err)
 	})
@@ -220,7 +220,7 @@ func TestFileStoreNew(t *testing.T) {
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -239,7 +239,7 @@ func TestFileStoreNew(t *testing.T) {
 		path := "TestFileStoreNew/a/b/c/config.json"
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, nil)
+		configStore, err := config.NewStoreFromBacking(fs, nil, false)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -254,7 +254,7 @@ func TestFileStoreGet(t *testing.T) {
 
 	fs, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
-	configStore, err := config.NewStoreFromBacking(fs, nil)
+	configStore, err := config.NewStoreFromBacking(fs, nil, false)
 	require.NoError(t, err)
 	defer configStore.Close()
 
@@ -280,7 +280,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -292,7 +292,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -306,7 +306,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, customConfigDefaults)
+		fs, err := config.NewStoreFromBacking(fsInner, customConfigDefaults, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -318,7 +318,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, customConfigDefaults)
+		fs, err = config.NewStoreFromBacking(fsInner, customConfigDefaults, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -333,7 +333,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -345,7 +345,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -359,7 +359,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -371,7 +371,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -385,7 +385,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -397,7 +397,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -411,7 +411,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -423,7 +423,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -440,7 +440,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -452,7 +452,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, nil)
+		fs, err = config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -468,7 +468,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -489,7 +489,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -508,7 +508,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -529,7 +529,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -548,7 +548,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -570,7 +570,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -598,7 +598,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, true)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -630,7 +630,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -647,7 +647,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -671,7 +671,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -696,7 +696,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -721,7 +721,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -746,7 +746,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -771,7 +771,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -798,7 +798,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -820,7 +820,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -841,7 +841,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -860,7 +860,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -882,15 +882,12 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		t.Skip("skipping watcher test in short mode")
 	}
 
-	t.Parallel()
-
-	path, tearDown := setupConfigFile(t, emptyConfig)
-	defer tearDown()
-
 	t.Run("disabled", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -912,9 +909,11 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	})
 
 	t.Run("enabled", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
 		fsInner, err := config.NewFileStore(path, true)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, nil)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -925,11 +924,40 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		cfgData, err := config.MarshalConfig(emptyConfig)
+		cfgData, err := config.MarshalConfig(minimalConfig)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(path, cfgData, 0644)
+		f, err := os.OpenFile(path, os.O_WRONLY, 0644)
+		require.NoError(t, err)
+		defer f.Close()
+		_, err = f.Write(cfgData)
+		require.NoError(t, err)
+
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
+	})
+
+	t.Run("no change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+		fsInner, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// Let the initial call to invokeConfigListeners finish.
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldfg, newCfg *model.Config) {
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		_, err = fs.Set(minimalConfig)
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since no change has happened")
 	})
 }
 
@@ -939,7 +967,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	fsInner, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -1262,4 +1290,26 @@ func wasCalled(c chan bool, duration time.Duration) bool {
 	case <-time.After(duration):
 	}
 	return false
+}
+
+func TestFileStoreReadOnly(t *testing.T) {
+	path, tearDown := setupConfigFile(t, emptyConfig)
+	defer tearDown()
+	fsInner, err := config.NewFileStore(path, true)
+	require.NoError(t, err)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, true)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	called := make(chan bool, 1)
+	callback := func(oldfg, newCfg *model.Config) {
+		called <- true
+	}
+	fs.AddListener(callback)
+
+	cfg, err := fs.Set(minimalConfig)
+	require.Nil(t, cfg)
+	require.Equal(t, config.ErrReadOnlyStore, err)
+
+	require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since config is read-only")
 }

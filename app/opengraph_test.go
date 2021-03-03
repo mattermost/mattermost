@@ -4,12 +4,12 @@
 package app
 
 import (
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
@@ -110,7 +110,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			og := opengraph.NewOpenGraph()
 			err := og.ProcessHTML(strings.NewReader(tc.HTML))
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 

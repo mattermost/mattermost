@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "İlgisiz"
+    "translation": "Konu Dışı"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
@@ -1085,14 +1085,6 @@
     "translation": "Bu sunucuda ek dosyalarının kullanımı devre dışı bırakılmış."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Dosyanın var olup olmadığı denetlenemedi."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Dosyanın var olup olmadığı denetlenemedi."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Herkese açık bağlantı geçersiz görünüyor."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Dosyanın herkese açık bağlantısı alınamadı. Geçerli kullanıcı tarafından okunabilmesi için dosya bir iletiye eklenmiş olmalıdır."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Dosya S3 üzerine kopyalanamadı."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Dosya S3 üzerinden silinemedi."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Dosya yerel olarak taşınamadı."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Herhangi bir dosya sürücüsü seçilmemiş."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Yerel sunucu depolaması okunurken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "S3 sunucu depolaması okunurken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Yerel sunucu depolamasından bir okuyucu açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "S3 sunucu depolamasından bir okuyucu açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Belirtilen yola yazma izni yok ya da başka bir sorun var."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "{{.Filename}} dosyası yüklenemedi. {{.Length}} bayt izin verilen {{.Limit}} bayt değerini aşıyor."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "S3 üzerine yazılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Yeni dosya için klasör eklenirken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Yerel sunucu depolamasına yazılırken bir sorun çıktı."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1592,11 +1540,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Hız sınırlama bellek deposu hazırlanamadı. MemoryStoreSize yapılandırma ayarını denetleyin."
+    "translation": "Hız sınırlaması bellek deposu hazırlanamadı. MemoryStoreSize yapılandırma ayarını denetleyin."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Hız sınırlama hazırlanamadı."
+    "translation": "Hız sınırlaması hazırlanamadı."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -2040,11 +1988,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Lütfen aşağıya tıklayarak e-posta adresinizi doğrulayın."
+    "translation": "Bu e-posta adresi ile açılmış bir Mattermost hesabı var."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "{{ .ServerURL }} üzerine katıldınız"
+    "translation": "E-posta adresinizi doğrulayın"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2052,7 +2000,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "En iyi deneyim için Windows, Mac, iOS ve Android uygulamalarını şuradan indirebilirsiniz:"
+    "translation": "En iyi deneyim için Windows, Mac, iOS ve Android uygulamalarını indirebilirsiniz."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2060,19 +2008,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Lütfen aşağıya tıklayarak e-posta adresinizi doğrulayın."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Şuradan oturum açabilirsiniz:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost kullanarak ileti ve dosyaları bilgisayarınız ya da telefonunuz üzerinden paylaşabilir ve anında arama ve arşivleme özelliklerine sahip olabilirsiniz."
+    "translation": "Bu e-posta adresi ile açılmış bir Mattermost hesabı var."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }} üzerine katıldınız"
+    "translation": "Takıma hoş geldiniz"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -3276,7 +3216,7 @@
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Yüklenen dosya gönderilmek için çok büyük olduğundan Genel Aktarıcı dışa aktarma sırasından çıkarıldı."
+    "translation": "Yüklenen dosya gönderilmek için çok büyük olduğundan Global Relay dışa aktarmasından çıkarıldı."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
@@ -3284,7 +3224,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Genel Aktarıcı geçici dışa aktarma dosyası yeniden okunamadı."
+    "translation": "Global Relay geçici dışa aktarma dosyası yeniden okunamadı."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3492,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Ek dosya Genel Aktarıcı dışa aktarma dosyasına eklenemedi."
+    "translation": "Ek dosya Global Relay dışa aktarma dosyasına eklenemedi."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
@@ -3508,7 +3448,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "E-posta Genel Aktarıcı üzerine aktarılamadı."
+    "translation": "E-posta Global Relay üzerine aktarılamadı."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
@@ -3663,32 +3603,12 @@
     "translation": "Mattermost Güvenlik Duyurusu"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama kodu doğrulanırken sorun çıktı."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Çok Aşamalı Kimlik Doğrulama kodu geçersiz."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası temizlenirken sorun çıktı."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR kodu üretilirken sorun çıktı."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası kaydedilirken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4156,27 +4076,27 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance', 'csv' ya da 'genelaktarıcı' seçeneklerinden biri olmalıdır."
+    "translation": "İleti dışa aktarma görevinde ExportFormat 'actiance', 'csv' ya da 'globalrelay' seçeneklerinden biri olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "İleti dışa aktarma görevi DışaAktarmaBiçimi 'GenelAktarıcı' olarak ayarlanmış ancak GenelAktarıcıAyarları eksik."
+    "translation": "İleti dışa aktarma görevinde ExportFormat 'globalrelay' olarak ayarlanmış ancak GlobalRelaySettings eksik."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.MüşteriTürü 'A9' ya da 'A10' seçeneklerinden biri olmalıdır."
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomerType 'A9' ya da 'A10' seçeneklerinden biri olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "İleti dışa aktarma görevinin GenelAktarıcıAyarları.E-postaAdresi ayarı geçerli bir e-posta adresi olmalıdır."
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.EmailAddress ayarı geçerli bir e-posta adresi olmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.SmtpParolası ayarlanmalıdır."
+    "translation": "İleti dışa aktarma görevi GlobalRelaySettings.SmtpPassword ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.SmtpKullanıcıAdı ayarlanmalıdır."
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.SmtpUsername ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -4184,11 +4104,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Bellek depolama boyutu hız sınırı ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
+    "translation": "Hız sınırlaması ayarı için bellek depolama boyutu geçersiz. Değer pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Saniyelik hız sınırı ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
+    "translation": "Saniyelik hız sınırlaması ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -4604,7 +4524,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4945,70 +4865,6 @@
   {
     "id": "system.message.name",
     "translation": "Sistem"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Klasör yerel sunucu depolaması üzerinde görüntülenirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Klasör S3 üzerinden görüntülenirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Klasör yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Klasör S3 üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Dosya yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Dosya S3 üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELO ayarlanamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Bağlantı açılamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLS bağlantısı açılamadı."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Ek dosya e-postaya eklenemedi"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTP sunucu bağlantısı kapatılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "\"Kimden\" adresi ayarlanırken sorun çıktı"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "E-posta ileti verileri eklenemedi."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "\"Kime\" adresi ayarlanırken sorun çıktı."
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5616,7 +5472,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen lisansı yenileyin."
+    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen şimdi lisansı yenileyin."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -7247,18 +7103,6 @@
     "translation": "Eski ürün bildirimleri temizlenemedi"
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Bir dosya S3 üzerine eklenirken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Dosya açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Dosya bulunamadı."
-  },
-  {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP kullanılamıyor."
   },
@@ -7293,10 +7137,6 @@
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
     "translation": "Kanallar alınamadı."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "S3 üzerine yazılırken bir sorun çıktı."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7389,10 +7229,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Klasör eklenemedi."
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7731,14 +7567,6 @@
     "translation": "Salt Okunur Duyuru Kanalları"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Nesneler listelenirken sorun çıktı."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "S3 bağlantısı kurulurken bir sorun çıktı."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "CWS isteği işlenirken sorun çıktı."
   },
@@ -7853,10 +7681,6 @@
   {
     "id": "app.user.update_update.app_error",
     "translation": "Kullanıcının son güncellenme tarihi güncellenemedi."
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kullanıcı parolası güncellenemedi."
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -8020,15 +7844,15 @@
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": "Hız sınırlayıcıda sorun çıktı."
+    "translation": "Hız sınırlamasında sorun çıktı."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Çağrı e-postaları hız sınırı aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
+    "translation": "Çağrı e-postaları hız sınırlaması aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": "Hız sınırlayıcı ayarlanmamış."
+    "translation": "Hız sınırlaması ayarlanmamış."
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8068,7 +7892,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8311,18 +8135,6 @@
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "Sistem Yöneticisi rolü düzenlenemez ya da değiştirilemez"
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "Dosya boyutu alınamadı."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Dosya boyutu alınamadı."
-  },
-  {
     "id": "app.select_error",
     "translation": "seçme sorunu"
   },
@@ -8440,6 +8252,374 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": " "
+    "translation": "Uç nokta Keşif Belgesinden alınırken sorun çıktı."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Global Relay dosyasına yazılamadı."
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "CSV dosyasına yazılamadı."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Dışa aktarma dosyasına yazılamadı."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Herhangi bir lisans yok"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Bu lisans türü yenileme kodu üretilmesini desteklemiyor"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Yeni bir yenileme kodu üretilemedi."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Lisans yenileme bağlantısı alınırken sorun çıktı"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Dosyaya yazılamadı."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Dosya depolamasına erişilemedi."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Dosya silinemedi."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Klasör silinemedi."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Dosya okunamadı."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Dosya taşınamadı."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Klasör listesi alınamadı."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Dosya boyutu alınamadı."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Bir dosya okuyucu bulunamadı."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Dosyanın var olup olmadığı denetlenemedi."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Veriler dosyaya eklenemedi."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Arama sonuçlarının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Arama tamamlanamadı"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch dosyaları bu sunucu üzerinde devre dışı bırakılmış"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Dosya dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Kullanıcı dosyaları silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "İleti dosyaları silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Dosya silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Dosyalar için Elasticsearch kalıbı oluşturulamadı"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Dosya dizini kapatılamadı."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Dosya araması tamamlanamadı."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Dosya yığını dizine eklenemedi."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Dosya dizine eklenemedi."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Kullanıcı dosyaları silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "İleti dosyaları silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Dosyalar silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Dosya silinemedi."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Bleve dosya dizini oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "İndirmek istediğiniz görev türü şu anda desteklenmiyor"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "error",
+    "translation": "Hata"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Uygulamaya geri yönlendiriliyorsunuz."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Bu tarayıcı sekmesini kapatabilirsiniz."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Kimlik doğrulandı"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Belirtilen yönlendirme adresi geçersiz"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Belirtilen özel adres şeması geçersiz"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Güvenlik nedeniyle {{.Name}} değişikliğine izin verilmiyor."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} sitesine geri dön"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "İstekte AuthData ya da AuthService parametresi eksik."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL ayarlarında bağlantının en fazla boşta kalma süresi geçersiz. Negatif olmayan bir sayı olmalıdır."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Dosyanın en son değişiklik zamanı alınamadı."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Kullanıcı işlemi bulunamadı ya da izlenmiyor"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Dosya arka bölümden okunurken sorun çıktı"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zip dosyası oluşurulurken sorun çıktı."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Bu uç noktayı kullanabilmek için E10 ya da E20 lisansı gereklidir."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser için Before ve After parametreleri birbirini dışlar"
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "RetentionDays değeri geçersiz. 0 değerinden büyük olmalı"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Klasör değeri boş olamaz."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "SMTP sunucusu ile bağlantı kurulamadı"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "İçe aktarma sırasında ek dosya okunamadı."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Dışa aktarma sırasında dosya zip arşivine eklenemedi."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Yanıt iletilemedi."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Dışa aktarma sırasında zip üst bilgisi oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Dışa aktarma sırasında klasör oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Dışa aktarma sırasında dosya oluşturulamadı."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Dışa aktarma sırasında dosya kopyalanamadı."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Dışa aktarma dosyası bulunamadı."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Hiç bir e-posta gönderilemedi"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Yöneticiye kullanıcı sayısı sınırı bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} çalışma alanııza yeni üyeler çağırmak istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Çalışma alanınız Mattermost cloud ücretsiz sürümünün kullanıcı sınırına ulaştığından, çağrı gönderilemez. Çalışma alanınıza daha fazla kullanıcının ekleyebilmek için sürümünüzü yükseltin."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatif olarak, Yönetici Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama durumu etkin olarak güncellenemedi."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama durumu etkin olarak güncellenemedi."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Dosya dizinleri boşaltılamadı."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Son durum silinemedi. Lütfen önce bir durum eklemeyi deneyin ya da ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Özel durum özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal içinde üste açılan durum penceresinden değiştirebilirsiniz."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "durum"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] ya da temizleyin"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Durumunuzu ayarlayın ya da temizleyin"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Durumunuz temizlendi."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Durum temizlenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Durum ayarlanırken sorun çıktı."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Bu işlemi siz yapmadıysanız bu e-postayı yok sayabilirsiniz."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Masaüstü ve mobil uygulamaları indirin"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "İndir"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Sorularınız mı var?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Bize istediğiniz zaman şu adresten e-posta gönderebilirsiniz "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Bu özellik henüz geliştirme aşamasında olduğundan yalnız işaret olarak görüntülenir."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "İstek içeriği işlenemedi."
   }
 ]

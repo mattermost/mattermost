@@ -5,12 +5,12 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
-	"fmt"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/spf13/cobra"
 )
 
 var ImportCmd = &cobra.Command{
@@ -38,6 +38,7 @@ func init() {
 	BulkImportCmd.Flags().Bool("apply", false, "Save the import data to the database. Use with caution - this cannot be reverted.")
 	BulkImportCmd.Flags().Bool("validate", false, "Validate the import data without making any changes to the system.")
 	BulkImportCmd.Flags().Int("workers", 2, "How many workers to run whilst doing the import.")
+	BulkImportCmd.Flags().String("import-path", "", "A path to the data directory to import files from.")
 
 	ImportCmd.AddCommand(
 		BulkImportCmd,
@@ -118,6 +119,11 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Workers flag error")
 	}
 
+	importPath, err := command.Flags().GetString("import-path")
+	if err != nil {
+		return errors.New("import-path flag error")
+	}
+
 	if len(args) != 1 {
 		return errors.New("Incorrect number of arguments.")
 	}
@@ -143,7 +149,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImport(fileReader, !apply, workers); err != nil {
+	if err, lineNumber := a.BulkImportWithPath(fileReader, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))

@@ -4,16 +4,16 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type ShrugProvider struct {
 }
 
 const (
-	CMD_SHRUG = "shrug"
+	CmdShrug = "shrug"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (*ShrugProvider) GetTrigger() string {
-	return CMD_SHRUG
+	return CmdShrug
 }
 
-func (*ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ShrugProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SHRUG,
+		Trigger:          CmdShrug,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_shrug.desc"),
 		AutoCompleteHint: T("api.command_shrug.hint"),
@@ -36,7 +36,7 @@ func (*ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comm
 
 func (*ShrugProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
-	if len(message) > 0 {
+	if message != "" {
 		rmsg = message + " " + rmsg
 	}
 

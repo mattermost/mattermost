@@ -14,7 +14,6 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -278,7 +277,7 @@ func (a *App) ListImports() ([]string, *model.AppError) {
 	results := make([]string, 0, len(imports))
 	for i := 0; i < len(imports); i++ {
 		filename := filepath.Base(imports[i])
-		if !strings.HasSuffix(filename, incompleteUploadSuffix) {
+		if !strings.HasSuffix(filename, IncompleteUploadSuffix) {
 			results = append(results, filename)
 		}
 	}

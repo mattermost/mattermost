@@ -31,13 +31,13 @@ var (
 )
 
 const (
-	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
-	APP_ERROR_TYPE             = "*model.AppError"
-	ERROR_TYPE                 = "error"
+	OpenTracingParamsMarker = "@openTracingParams"
+	AppErrorType            = "*model.AppError"
+	ErrorType               = "error"
 )
 
 func isError(typeName string) bool {
-	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
+	return strings.Contains(typeName, AppErrorType) || strings.Contains(typeName, ErrorType)
 }
 
 func init() {
@@ -108,8 +108,8 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	if method.Doc != nil {
 		for _, comment := range method.Doc.List {
 			s := comment.Text
-			if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
-				for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
+			if idx := strings.Index(s, OpenTracingParamsMarker); idx != -1 {
+				for _, p := range strings.Split(s[idx+len(OpenTracingParamsMarker):], ",") {
 					paramsToTrace[strings.TrimSpace(p)] = true
 				}
 			}
@@ -148,7 +148,7 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 			}
 		}
 		if !found {
-			log.Fatalf("Unable to find a parameter called '%s' (method '%s') that is mentioned in the '%s' comment. Maybe it was renamed?", paramName, method.Names[0].Name, OPEN_TRACING_PARAMS_MARKER)
+			log.Fatalf("Unable to find a parameter called '%s' (method '%s') that is mentioned in the '%s' comment. Maybe it was renamed?", paramName, method.Names[0].Name, OpenTracingParamsMarker)
 		}
 	}
 	return methodData{Params: params, Results: results, ParamsToTrace: paramsToTrace}
@@ -160,7 +160,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 
 	file, err := os.Open(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open %s file: %w", inputFile, err)
+		return nil, fmt.Errorf("unable to open %s file: %w", inputFile, err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {

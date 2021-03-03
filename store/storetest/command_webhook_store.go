@@ -7,10 +7,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestCommandWebhookStore(t *testing.T, ss store.Store) {
@@ -25,11 +26,11 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h1.UserId = model.NewId()
 	h1.ChannelId = model.NewId()
 	h1, err := cws.Save(h1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var r1 *model.CommandWebhook
 	r1, nErr := cws.Get(h1.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	assert.Equal(t, *r1, *h1, "invalid returned webhook")
 
 	_, nErr = cws.Get("123")
@@ -42,25 +43,25 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2.UserId = model.NewId()
 	h2.ChannelId = model.NewId()
 	h2, err = cws.Save(h2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, nErr = cws.Get(h2.Id)
-	require.NotNil(t, nErr, "Should have set the status as not found for expired webhook")
+	require.Error(t, nErr, "Should have set the status as not found for expired webhook")
 	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
 	cws.Cleanup()
 
 	_, nErr = cws.Get(h1.Id)
-	require.Nil(t, nErr, "Should have no error getting unexpired webhook")
+	require.NoError(t, nErr, "Should have no error getting unexpired webhook")
 
 	_, nErr = cws.Get(h2.Id)
 	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
 	nErr = cws.TryUse(h1.Id, 1)
-	require.Nil(t, nErr, "Should be able to use webhook once")
+	require.NoError(t, nErr, "Should be able to use webhook once")
 
 	nErr = cws.TryUse(h1.Id, 1)
-	require.NotNil(t, nErr, "Should be able to use webhook once")
+	require.Error(t, nErr, "Should be able to use webhook once")
 	var invErr *store.ErrInvalidInput
 	require.True(t, errors.As(nErr, &invErr), "Should be able to use webhook once")
 }

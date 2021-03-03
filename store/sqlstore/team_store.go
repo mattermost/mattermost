@@ -10,16 +10,16 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
-	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
+	TeamMemberExistsError = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
@@ -233,24 +233,10 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	return s
 }
 
-func (s SqlTeamStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
-	s.RemoveIndexIfExists("idx_teams_description", "Teams")
-	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
-	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
-	s.CreateIndexIfNotExists("idx_teams_delete_at", "Teams", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
-
-	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
-	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
-	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
-}
-
 // Save adds the team to the database if a team with the same name does not already
 // exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
-	if len(team.Id) > 0 {
+	if team.Id != "" {
 		return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 	}
 
@@ -335,7 +321,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
 
-	if len(inviteId) == 0 || team.InviteId != inviteId {
+	if inviteId == "" || team.InviteId != inviteId {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
 	return &team, nil
@@ -405,7 +391,7 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 	}
 
-	if len(term) > 0 {
+	if term != "" {
 		term = sanitizeSearchTerm(term, "\\")
 		term = wildcardSearchTerm(term)
 
@@ -1065,7 +1051,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 			query = query.OrderBy(model.USERNAME)
 		}
 
-		query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
+		query = applyTeamMemberViewRestrictionsFilter(query, teamMembersGetOptions.ViewRestrictions)
 	}
 
 	queryString, args, err := query.ToSql()
@@ -1092,7 +1078,7 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 		Where("TeamMembers.UserId = Users.Id").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId})
 
-	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return int64(0), errors.Wrap(err, "team_tosql")
@@ -1116,7 +1102,7 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 		Where("Users.DeleteAt = 0").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId})
 
-	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "team_tosql")
@@ -1143,7 +1129,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 		Where(sq.Eq{"TeamMembers.UserId": userIds}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0})
 
-	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilter(query, restrictions)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1168,15 +1154,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
-
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = s.GetMaster()
-	} else {
-		db = s.GetReplica()
-	}
-
-	_, err = db.Select(&dbMembers, queryString, args...)
+	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1420,6 +1398,7 @@ func (s SqlTeamStore) ResetAllTeamSchemes() error {
 func (s SqlTeamStore) ClearCaches() {}
 
 // InvalidateAllTeamIdsForUser does not execute anything because the store does not handle the cache.
+//nolint:unparam
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 // ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers.
@@ -1517,6 +1496,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 }
 
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
+//nolint:unparam
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
 	var teamIds []string
 	query, args, err := s.getQueryBuilder().
@@ -1598,7 +1578,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 	return nil
 }
 
-func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
+func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
 	if restrictions == nil {
 		return query
 	}
@@ -1628,7 +1608,7 @@ func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string
 	return resultQuery.Distinct()
 }
 
-func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
+func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
 	if restrictions == nil {
 		return query
 	}

@@ -6,17 +6,17 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type InvitePeopleProvider struct {
 }
 
 const (
-	CMD_INVITE_PEOPLE = "invite_people"
+	CmdInvite_PEOPLE = "invite_people"
 )
 
 func init() {
@@ -24,16 +24,16 @@ func init() {
 }
 
 func (*InvitePeopleProvider) GetTrigger() string {
-	return CMD_INVITE_PEOPLE
+	return CmdInvite_PEOPLE
 }
 
-func (*InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	autoComplete := true
 	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
 		autoComplete = false
 	}
 	return &model.Command{
-		Trigger:          CMD_INVITE_PEOPLE,
+		Trigger:          CmdInvite_PEOPLE,
 		AutoComplete:     autoComplete,
 		AutoCompleteDesc: T("api.command.invite_people.desc"),
 		AutoCompleteHint: T("api.command.invite_people.hint"),

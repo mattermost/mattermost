@@ -13,15 +13,15 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 type storeType struct {
@@ -172,10 +172,12 @@ func tearDownStores() {
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
-	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
-	settings.DataSourceReplicas = []string{":memory:"}
-	settings.DataSourceSearchReplicas = []string{":memory:"}
+	settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
 	store := New(*settings, nil)
+	defer func() {
+		store.Close()
+		storetest.CleanupSqlSettings(settings)
+	}()
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
@@ -201,54 +203,54 @@ func TestStoreLicenseRace(t *testing.T) {
 func TestGetReplica(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		Description              string
-		DataSourceReplicas       []string
-		DataSourceSearchReplicas []string
+		Description                string
+		DataSourceReplicaNum       int
+		DataSourceSearchReplicaNum int
 	}{
 		{
 			"no replicas",
-			[]string{},
-			[]string{},
+			0,
+			0,
 		},
 		{
 			"one source replica",
-			[]string{":memory:"},
-			[]string{},
+			1,
+			0,
 		},
 		{
 			"multiple source replicas",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{},
+			3,
+			0,
 		},
 		{
 			"one source search replica",
-			[]string{},
-			[]string{":memory:"},
+			0,
+			1,
 		},
 		{
 			"multiple source search replicas",
-			[]string{},
-			[]string{":memory:", ":memory:", ":memory:"},
+			0,
+			3,
 		},
 		{
 			"one source replica, one source search replica",
-			[]string{":memory:"},
-			[]string{":memory:"},
+			1,
+			1,
 		},
 		{
 			"one source replica, multiple source search replicas",
-			[]string{":memory:"},
-			[]string{":memory:", ":memory:", ":memory:"},
+			1,
+			3,
 		},
 		{
 			"multiple source replica, one source search replica",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{":memory:"},
+			3,
+			1,
 		},
 		{
 			"multiple source replica, multiple source search replicas",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{":memory:", ":memory:", ":memory:"},
+			3,
+			3,
 		},
 	}
 
@@ -257,10 +259,24 @@ func TestGetReplica(t *testing.T) {
 		t.Run(testCase.Description+" with license", func(t *testing.T) {
 			t.Parallel()
 
-			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
-			settings.DataSourceReplicas = testCase.DataSourceReplicas
-			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			dataSourceReplicas := []string{}
+			dataSourceSearchReplicas := []string{}
+			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
+			}
+			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
+			}
+
+			settings.DataSourceReplicas = dataSourceReplicas
+			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
 			store := New(*settings, nil)
+			defer func() {
+				store.Close()
+				storetest.CleanupSqlSettings(settings)
+			}()
+
 			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
@@ -273,40 +289,40 @@ func TestGetReplica(t *testing.T) {
 				searchReplicas[store.GetSearchReplica()] = true
 			}
 
-			if len(testCase.DataSourceReplicas) > 0 {
+			if testCase.DataSourceReplicaNum > 0 {
 				// If replicas were defined, ensure none are the master.
-				assert.Len(t, replicas, len(testCase.DataSourceReplicas))
+				assert.Len(t, replicas, testCase.DataSourceReplicaNum)
 
 				for replica := range replicas {
-					assert.NotEqual(t, store.GetMaster(), replica)
+					assert.NotSame(t, store.GetMaster(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
-			if len(testCase.DataSourceSearchReplicas) > 0 {
+			if testCase.DataSourceSearchReplicaNum > 0 {
 				// If search replicas were defined, ensure none are the master nor the replicas.
-				assert.Len(t, searchReplicas, len(testCase.DataSourceSearchReplicas))
+				assert.Len(t, searchReplicas, testCase.DataSourceSearchReplicaNum)
 
 				for searchReplica := range searchReplicas {
-					assert.NotEqual(t, store.GetMaster(), searchReplica)
+					assert.NotSame(t, store.GetMaster(), searchReplica)
 					for replica := range replicas {
-						assert.NotEqual(t, searchReplica, replica)
+						assert.NotSame(t, searchReplica, replica)
 					}
 				}
-
-			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
-
-			} else if assert.Len(t, searchReplicas, 1) {
+			} else if testCase.DataSourceReplicaNum > 0 {
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
+			} else if testCase.DataSourceReplicaNum == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -314,10 +330,23 @@ func TestGetReplica(t *testing.T) {
 		t.Run(testCase.Description+" without license", func(t *testing.T) {
 			t.Parallel()
 
-			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
-			settings.DataSourceReplicas = testCase.DataSourceReplicas
-			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			dataSourceReplicas := []string{}
+			dataSourceSearchReplicas := []string{}
+			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
+			}
+			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
+			}
+
+			settings.DataSourceReplicas = dataSourceReplicas
+			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
 			store := New(*settings, nil)
+			defer func() {
+				store.Close()
+				storetest.CleanupSqlSettings(settings)
+			}()
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -329,7 +358,7 @@ func TestGetReplica(t *testing.T) {
 				searchReplicas[store.GetSearchReplica()] = true
 			}
 
-			if len(testCase.DataSourceReplicas) > 0 {
+			if testCase.DataSourceReplicaNum > 0 {
 				// If replicas were defined, ensure none are the master.
 				assert.Len(t, replicas, 1)
 
@@ -340,11 +369,11 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
-			if len(testCase.DataSourceSearchReplicas) > 0 {
+			if testCase.DataSourceSearchReplicaNum > 0 {
 				// If search replicas were defined, ensure none are the master nor the replicas.
 				assert.Len(t, searchReplicas, 1)
 
@@ -352,14 +381,15 @@ func TestGetReplica(t *testing.T) {
 					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 
-			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
-
+			} else if testCase.DataSourceReplicaNum > 0 {
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -370,7 +400,6 @@ func TestGetDbVersion(t *testing.T) {
 	testDrivers := []string{
 		model.DATABASE_DRIVER_POSTGRES,
 		model.DATABASE_DRIVER_MYSQL,
-		model.DATABASE_DRIVER_SQLITE,
 	}
 
 	for _, driver := range testDrivers {
@@ -379,9 +408,28 @@ func TestGetDbVersion(t *testing.T) {
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
-			version, err := store.GetDbVersion()
-			require.Nil(t, err)
+			version, err := store.GetDbVersion(false)
+			require.NoError(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
+		})
+	}
+}
+
+func TestUpAndDownMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should be reversible for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+			defer store.Close()
+
+			err := store.migrate(migrationsDirectionDown)
+			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}
 }
@@ -389,63 +437,63 @@ func TestGetDbVersion(t *testing.T) {
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		Description              string
-		DataSourceReplicas       []string
-		DataSourceSearchReplicas []string
-		ExpectedNumConnections   int
+		Description                string
+		DataSourceReplicaNum       int
+		DataSourceSearchReplicaNum int
+		ExpectedNumConnections     int
 	}{
 		{
 			"no replicas",
-			[]string{},
-			[]string{},
+			0,
+			0,
 			1,
 		},
 		{
 			"one source replica",
-			[]string{":memory:"},
-			[]string{},
+			1,
+			0,
 			2,
 		},
 		{
 			"multiple source replicas",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{},
+			3,
+			0,
 			4,
 		},
 		{
 			"one source search replica",
-			[]string{},
-			[]string{":memory:"},
+			0,
+			1,
 			1,
 		},
 		{
 			"multiple source search replicas",
-			[]string{},
-			[]string{":memory:", ":memory:", ":memory:"},
+			0,
+			3,
 			1,
 		},
 		{
 			"one source replica, one source search replica",
-			[]string{":memory:"},
-			[]string{":memory:"},
+			1,
+			1,
 			2,
 		},
 		{
 			"one source replica, multiple source search replicas",
-			[]string{":memory:"},
-			[]string{":memory:", ":memory:", ":memory:"},
+			1,
+			3,
 			2,
 		},
 		{
 			"multiple source replica, one source search replica",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{":memory:"},
+			3,
+			1,
 			4,
 		},
 		{
 			"multiple source replica, multiple source search replicas",
-			[]string{":memory:", ":memory:", ":memory:"},
-			[]string{":memory:", ":memory:", ":memory:"},
+			3,
+			3,
 			4,
 		},
 	}
@@ -454,10 +502,23 @@ func TestGetAllConns(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
-			settings.DataSourceReplicas = testCase.DataSourceReplicas
-			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+			dataSourceReplicas := []string{}
+			dataSourceSearchReplicas := []string{}
+			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
+			}
+			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
+			}
+
+			settings.DataSourceReplicas = dataSourceReplicas
+			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
 			store := New(*settings, nil)
+			defer func() {
+				store.Close()
+				storetest.CleanupSqlSettings(settings)
+			}()
 
 			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
 		})
@@ -466,11 +527,11 @@ func TestGetAllConns(t *testing.T) {
 
 func TestIsDuplicate(t *testing.T) {
 	testErrors := map[error]bool{
-		&pq.Error{Code: "42P06"}:                              false,
-		&pq.Error{Code: PG_DUP_TABLE_ERROR_CODE}:              true,
-		&mysql.MySQLError{Number: uint16(1000)}:               false,
-		&mysql.MySQLError{Number: MYSQL_DUP_TABLE_ERROR_CODE}: true,
-		errors.New("Random error"):                            false,
+		&pq.Error{Code: "42P06"}:                          false,
+		&pq.Error{Code: PGDupTableErrorCode}:              true,
+		&mysql.MySQLError{Number: uint16(1000)}:           false,
+		&mysql.MySQLError{Number: MySQLDupTableErrorCode}: true,
+		errors.New("Random error"):                        false,
 	}
 
 	for err, expected := range testErrors {
@@ -481,33 +542,38 @@ func TestIsDuplicate(t *testing.T) {
 	}
 }
 
+func TestVersionString(t *testing.T) {
+	versions := []struct {
+		input  int
+		output string
+	}{
+		{
+			input:  100000,
+			output: "10.0",
+		},
+		{
+			input:  90603,
+			output: "9.603",
+		},
+		{
+			input:  120005,
+			output: "12.5",
+		},
+	}
+
+	for _, v := range versions {
+		out := VersionString(v.input)
+		assert.Equal(t, v.output, out)
+	}
+}
+
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:
 		return storetest.MakeSqlSettings(driver)
 	case model.DATABASE_DRIVER_MYSQL:
 		return storetest.MakeSqlSettings(driver)
-	case model.DATABASE_DRIVER_SQLITE:
-		return makeSqliteSettings()
 	}
 
 	return nil
-}
-
-func makeSqliteSettings() *model.SqlSettings {
-	driverName := model.DATABASE_DRIVER_SQLITE
-	dataSource := ":memory:"
-	maxIdleConns := 1
-	connMaxLifetimeMilliseconds := 3600000
-	maxOpenConns := 1
-	queryTimeout := 5
-
-	return &model.SqlSettings{
-		DriverName:                  &driverName,
-		DataSource:                  &dataSource,
-		MaxIdleConns:                &maxIdleConns,
-		ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
-		MaxOpenConns:                &maxOpenConns,
-		QueryTimeout:                &queryTimeout,
-	}
 }

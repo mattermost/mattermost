@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func makeTestLocalProxy() *ImageProxy {
@@ -212,7 +213,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "image/png", contentType)
 
 		respBody, _ := ioutil.ReadAll(body)
@@ -231,7 +232,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/file.pdf")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, "", contentType)
 		assert.Equal(t, ErrLocalRequestFailed, err)
 		assert.Nil(t, body)
@@ -254,7 +255,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/file.pdf")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, "", contentType)
 		assert.Equal(t, ErrLocalRequestFailed, err)
 		assert.Nil(t, body)
@@ -272,7 +273,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, "", contentType)
 		assert.Equal(t, ErrLocalRequestFailed, err)
 		assert.Nil(t, body)
@@ -290,7 +291,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, "", contentType)
 		assert.Equal(t, ErrLocalRequestFailed, err)
 		assert.Nil(t, body)
@@ -313,7 +314,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 
 		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, "", contentType)
 		assert.Equal(t, ErrLocalRequestFailed, err)
 		assert.Nil(t, body)

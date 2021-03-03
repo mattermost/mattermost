@@ -18,9 +18,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
+
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
 const (
@@ -105,11 +106,13 @@ type User struct {
 // It is used to generate methods which can be used for fast serialization/de-serialization.
 type UserMap map[string]*User
 
+//msgp:ignore UserUpdate
 type UserUpdate struct {
 	Old *User
 	New *User
 }
 
+//msgp:ignore UserPatch
 type UserPatch struct {
 	Username    *string   `json:"username"`
 	Password    *string   `json:"password,omitempty"`
@@ -124,12 +127,14 @@ type UserPatch struct {
 	Timezone    StringMap `json:"timezone"`
 }
 
+//msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"`
+	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
+//msgp:ignore UserForIndexing
 type UserForIndexing struct {
 	Id          string   `json:"id"`
 	Username    string   `json:"username"`
@@ -143,6 +148,7 @@ type UserForIndexing struct {
 	ChannelsIds []string `json:"channel_id"`
 }
 
+//msgp:ignore ViewUsersRestrictions
 type ViewUsersRestrictions struct {
 	Teams    []string
 	Channels []string
@@ -159,6 +165,7 @@ func (r *ViewUsersRestrictions) Hash() string {
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
+//msgp:ignore UserSlice
 type UserSlice []*User
 
 func (u UserSlice) Usernames() []string {
@@ -267,7 +274,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("username", u.Id)
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
 		return InvalidUserError("email", u.Id)
 	}
 
@@ -291,11 +298,11 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data", u.Id)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
+	if u.AuthData != nil && *u.AuthData != "" && u.AuthService == "" {
 		return InvalidUserError("auth_data_type", u.Id)
 	}
 
-	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
+	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
@@ -374,7 +381,7 @@ func (u *User) PreSave() {
 		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
-	if len(u.Password) > 0 {
+	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
 }
@@ -407,7 +414,7 @@ func (u *User) PreUpdate() {
 		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
-			if len(key) > 0 {
+			if key != "" {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
@@ -589,12 +596,22 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
+func (u *User) SetCustomStatus(cs *CustomStatus) {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+}
+
+func (u *User) ClearCustomStatus() {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = ""
+}
+
 func (u *User) GetFullName() string {
-	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
+	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName
-	} else if len(u.FirstName) > 0 {
+	} else if u.FirstName != "" {
 		return u.FirstName
-	} else if len(u.LastName) > 0 {
+	} else if u.LastName != "" {
 		return u.LastName
 	} else {
 		return ""
@@ -605,13 +622,13 @@ func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if len(u.Nickname) > 0 {
+		if u.Nickname != "" {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); len(fullName) > 0 {
+		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); len(fullName) > 0 {
+		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	}
@@ -761,7 +778,7 @@ func HashPassword(password string) string {
 // ComparePassword compares the hash
 func ComparePassword(hash string, password string) bool {
 
-	if len(password) == 0 || len(hash) == 0 {
+	if password == "" || hash == "" {
 		return false
 	}
 
@@ -859,6 +876,7 @@ func IsValidLocale(locale string) bool {
 	return true
 }
 
+//msgp:ignore UserWithGroups
 type UserWithGroups struct {
 	User
 	GroupIDs    *string  `json:"-"`
@@ -873,12 +891,13 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 		return nil
 	}
 	trimmed := strings.TrimSpace(*u.GroupIDs)
-	if len(trimmed) == 0 {
+	if trimmed == "" {
 		return nil
 	}
 	return strings.Split(trimmed, ",")
 }
 
+//msgp:ignore UsersWithGroupsAndCount
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
@@ -891,6 +910,7 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	return uwg
 }
 
+//msgp:ignore lockedRand
 type lockedRand struct {
 	mu sync.Mutex
 	rn *rand.Rand

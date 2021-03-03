@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -6,6 +6,15 @@ ifeq ($(OS),Windows_NT)
 	PLATFORM := Windows
 else
 	PLATFORM := $(shell uname)
+endif
+
+# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
+# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
+# satisfactorily.
+ifeq ($(PLATFORM),Linux)
+	export IS_LINUX = -linux
+else
+	export IS_LINUX =
 endif
 
 IS_CI ?= false
@@ -65,7 +74,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseR
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
-MINIMUM_SUPPORTED_GO_MINOR_VERSION = 13
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 15
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
@@ -83,20 +92,22 @@ TESTS=.
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
+TEMPLATES_DIR=templates
+
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.1.1
+PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.5.1
+PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -157,6 +168,13 @@ else
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
+endif
+
+run-haserver: run-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Starting mattermost in an HA topology
+
+	docker-compose -f docker-compose.yaml up haproxy
 endif
 
 stop-docker: ## Stops the docker containers for local development.
@@ -221,9 +239,10 @@ i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
-i18n-check: ## Exit on empty translation strings except in english base file
+i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
+	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -236,9 +255,27 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
-filesstore-mocks: ## Creates mock files.
+migration-prereqs: ## Builds prerequisite packages for migrations
+	$(GO) get -modfile=go.tools.mod github.com/golang-migrate/migrate/v4/cmd/migrate
+
+new-migration: migration-prereqs ## Creates a new migration
+	@echo "Generating new migration for mysql"
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/mysql -seq $(name)
+
+	@echo "Generating new migration for postgres"
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
+
+	@echo "When you are done writing your migration, run 'make migrations'"
+
+migrations-bindata: ## Generates bindata migrations
+	$(GO) get -modfile=go.tools.mod github.com/go-bindata/go-bindata/...
+
+	@echo Generating bindata for migrations
+	$(GO) generate $(GOFLAGS) ./db/migrations/
+
+filestore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -401,6 +438,9 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		exit 1; \
 	fi
 
+build-templates: ## Compile all mjml email templates
+	cd $(TEMPLATES_DIR) && $(MAKE) build
+
 run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
@@ -475,6 +515,13 @@ restart: restart-server restart-client ## Restarts the server and webapp.
 
 restart-server: | stop-server run-server ## Restarts the mattermost server to pick up development change.
 
+restart-haserver:
+	@echo Restarting mattermost in an HA topology
+
+	docker-compose restart follower
+	docker-compose restart leader
+	docker-compose restart haproxy
+
 restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
@@ -544,18 +591,18 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
-	# Tidy up
-	$(GO) mod tidy
-
 	# Copy everything to vendor directory
 	$(GO) mod vendor
+
+	# Tidy up
+	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=serialized_gen.go -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \
@@ -570,10 +617,16 @@ endif
 
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
-	# So you would need to move the structs that need to be serialized temporarily
-	# to session.go and run the tool.
+	# There will be some warnings about "unresolved identifiers",
+	# but that is because of the above problem. Since we are generating
+	# methods for all the relevant files at a package level, all
+	# identifiers will be resolved. An alternative to remove the warnings
+	# would be to temporarily move all the structs to the same file,
+	# but that involves a lot of manual work.
 	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
-	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
+	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO

@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestSaveReaction(t *testing.T) {
@@ -245,7 +246,7 @@ func TestGetReactions(t *testing.T) {
 
 	for _, userReaction := range userReactions {
 		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		reactions = append(reactions, reaction)
 	}
 
@@ -596,7 +597,7 @@ func TestGetBulkReactions(t *testing.T) {
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
 		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		reactions = append(reactions, reaction)
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions
 	}

@@ -6,9 +6,10 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestLicenseStore(t *testing.T, ss store.Store) {
@@ -22,15 +23,15 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	l1.Bytes = "junk"
 
 	_, err := ss.License().Save(&l1)
-	require.Nil(t, err, "couldn't save license record")
+	require.NoError(t, err, "couldn't save license record")
 
 	_, err = ss.License().Save(&l1)
-	require.Nil(t, err, "shouldn't fail on trying to save existing license record")
+	require.NoError(t, err, "shouldn't fail on trying to save existing license record")
 
 	l1.Id = ""
 
 	_, err = ss.License().Save(&l1)
-	require.NotNil(t, err, "should fail on invalid license")
+	require.Error(t, err, "should fail on invalid license")
 }
 
 func testLicenseStoreGet(t *testing.T, ss store.Store) {
@@ -39,13 +40,13 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 	l1.Bytes = "junk"
 
 	_, err := ss.License().Save(&l1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	record, err := ss.License().Get(l1.Id)
-	require.Nil(t, err, "couldn't get license")
+	require.NoError(t, err, "couldn't get license")
 
 	require.Equal(t, record.Bytes, l1.Bytes, "license bytes didn't match")
 
 	_, err = ss.License().Get("missing")
-	require.NotNil(t, err, "should fail on get license")
+	require.Error(t, err, "should fail on get license")
 }

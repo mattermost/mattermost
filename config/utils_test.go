@@ -6,9 +6,10 @@ package config
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -143,6 +144,51 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.True(t, changed)
 	assert.NotContains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultServerLocale should not be added to AvailableLocales")
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
+}
+
+func TestIsDatabaseDSN(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		DSN      string
+		Expected bool
+	}{
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Postgresql DSN",
+			DSN:      "postgres://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Empty DSN",
+			DSN:      "",
+			Expected: false,
+		},
+		{
+			Name:     "Default file DSN",
+			DSN:      "config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Relative path DSN",
+			DSN:      "configuration/config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Absolute path DSN",
+			DSN:      "/opt/mattermost/configuration/config.json",
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsDatabaseDSN(tc.DSN))
+		})
+	}
 }
 
 func TestStripPassword(t *testing.T) {

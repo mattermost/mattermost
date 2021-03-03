@@ -84,7 +84,7 @@ func (s *BleveEngineTestSuite) TearDownSuite() {
 
 func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 	searchTestEngine := &searchtest.SearchTestEngine{
-		Driver: searchtest.ENGINE_BLEVE,
+		Driver: searchtest.EngineBleve,
 	}
 
 	s.Run("TestSearchChannelStore", func() {
@@ -97,6 +97,10 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 
 	s.Run("TestSearchPostStore", func() {
 		searchtest.TestSearchPostStore(s.T(), s.Store, searchTestEngine)
+	})
+
+	s.Run("TestSearchFileInfoStore", func() {
+		searchtest.TestSearchFileInfoStore(s.T(), s.Store, searchTestEngine)
 	})
 }
 
@@ -121,10 +125,10 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		s.SearchEngine.BleveEngine.DeleteChannelPosts(channelID)
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), postToAvoid.Id, doc.ID)
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
 	})
 
@@ -141,9 +145,9 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 		s.SearchEngine.BleveEngine.DeleteChannelPosts(channelToDeleteID)
 
 		_, err := s.BleveEngine.PostIndex.Document(post.Id)
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
 	})
 }
@@ -169,10 +173,10 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		s.SearchEngine.BleveEngine.DeleteUserPosts(userID)
 
 		doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), postToAvoid.Id, doc.ID)
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
 	})
 
@@ -189,9 +193,9 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		s.SearchEngine.BleveEngine.DeleteUserPosts(userToDeleteID)
 
 		_, err := s.BleveEngine.PostIndex.Document(post.Id)
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		numberDocs, err := s.BleveEngine.PostIndex.DocCount()
-		require.Nil(s.T(), err)
+		require.NoError(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
 	})
 }
@@ -217,13 +221,13 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 	query.SetField("UserId")
 	search := bleve.NewSearchRequest(query)
 	count, err := s.BleveEngine.deletePosts(search, 1)
-	require.Nil(s.T(), err)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), 10, int(count))
 
 	doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
-	require.Nil(s.T(), err)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), postToAvoid.Id, doc.ID)
 	numberDocs, err := s.BleveEngine.PostIndex.DocCount()
-	require.Nil(s.T(), err)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), 1, int(numberDocs))
 }

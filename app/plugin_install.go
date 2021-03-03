@@ -50,7 +50,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -82,7 +82,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signature filesstore.ReadCloseSeeker
+	var signature filestore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = a.FileReader(plugin.signaturePath)
 		if appErr != nil {
@@ -111,11 +111,11 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	if err := a.removePluginLocally(data.Id); err != nil {
-		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
+		mlog.Warn("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -161,11 +161,11 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStr
 	)
 
 	if err := a.notifyPluginEnabled(manifest); err != nil {
-		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
+		mlog.Warn("Failed notify plugin enabled", mlog.Err(err))
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -413,7 +413,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = a.removeSignature(id); err != nil {
-		mlog.Error("Can't remove signature", mlog.Err(err))
+		mlog.Warn("Can't remove signature", mlog.Err(err))
 	}
 
 	a.notifyClusterPluginEvent(
@@ -424,7 +424,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	)
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return nil
@@ -466,14 +466,14 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) removeSignature(pluginId string) *model.AppError {
-	filePath := a.getSignatureStorePath(pluginId)
+func (a *App) removeSignature(pluginID string) *model.AppError {
+	filePath := a.getSignatureStorePath(pluginID)
 	exists, err := a.FileExists(filePath)
 	if err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if !exists {
-		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginId))
+		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginID))
 		return nil
 	}
 	if err = a.RemoveFile(filePath); err != nil {

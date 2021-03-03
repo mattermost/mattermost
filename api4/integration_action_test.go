@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 )
 
 type testHandler struct {
@@ -23,7 +23,7 @@ type testHandler struct {
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	bb, err := ioutil.ReadAll(r.Body)
-	assert.Nil(th.t, err)
+	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
 	assert.NotEmpty(th.t, poir.UserId)
@@ -237,8 +237,7 @@ func TestSubmitDialog(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.SubmitDialogRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
-		require.Nil(t, err)
-		assert.NotNil(t, request)
+		require.NoError(t, err)
 
 		assert.Equal(t, request.URL, "")
 		assert.Equal(t, request.UserId, submit.UserId)

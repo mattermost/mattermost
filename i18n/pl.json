@@ -1088,14 +1088,6 @@
     "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Link wydaje się być niepoprawny."
   },
@@ -1116,44 +1108,12 @@
     "translation": "Nie można uzyskać publicznego łącza do pliku. Plik musi być załączony do wiadomości, którą możesz odczytać."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Nie można skopiować pliku w S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Nie można skasować pliku z usługi S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Nie można przenieść pliku lokalnie."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Nie wybrano sterownika pliku."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Wystąpił błąd podczas odczytu z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Napotkano błąd podczas odczytu z zasobnika S3"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Wystąpił błąd podczas otwierania czytnika z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Napotkano błąd przy odczycie z magazynu S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Nie ma uprawnień do zapisu na podaną lokalną ścieżkę lub innego błędu."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Błąd podczas sprawdzania czy wiadro istnieje."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1190,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Nie można przesłać pliku {{.Filename}}. {{.Length}} bajtów przekracza maksymalną dozwoloną liczbę {{.Limit}} bajtów."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Napotkano błąd podczas tworzenia katalogu dla nowych plików"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do lokalnego magazynu"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2066,14 +2014,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Zweryfikuj swój adres email klikając poniżej."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Możesz się zalogować z:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z błyskawicznym wyszukiwaniem i archiwizacją."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3668,32 +3608,12 @@
     "translation": "Serwis wiadomości o bezpieczeństwie Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Błąd podczas próby uwierzytelnienia tokenu MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Nieprawidłowy token MFA"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Błąd przy czyszczeniu sekretu MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Błąd podczas generowania kodu QR"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Błąd podczas zapisywania sekretu MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4609,7 +4529,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 10 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
+    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 5 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4950,70 +4870,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z S3."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Nie udało się ustawić HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Nie można otworzyć połączenia"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Nie można otworzyć połączenia TLS"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Uwierzytelnienie na serwerze SMTP nie powiodło się."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Nie udało się dodać załącznika do e-maila"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Nie można zamknąć połączenia z serwerem SMTP"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Błąd podczas ustawiania \"Z adresu\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Nie można napisać wiadomość"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Błąd podczas dodawania danych wiadomości e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Błąd podczas ustawiania \"Do adresu\""
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -6920,10 +6776,6 @@
     "translation": "Nie udało się pobrać członków kanału"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Nie udało się stworzyć wiadra."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7066,14 +6918,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nie można utworzyć wiadomości na usuniętym kanale."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot nie istnieje"
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",

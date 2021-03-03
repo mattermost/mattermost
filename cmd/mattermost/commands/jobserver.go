@@ -8,10 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/spf13/cobra"
 )
 
 var JobserverCmd = &cobra.Command{
@@ -33,7 +34,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
 	// Initialize
-	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), false)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	SESSIONS_CLEANUP_DELAY_MILLISECONDS = 100
+	SessionsCleanupDelayMilliseconds = 100
 )
 
 type SqlSessionStore struct {
@@ -49,7 +49,7 @@ func (me SqlSessionStore) createIndexesIfNotExists() {
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
-	if len(session.Id) > 0 {
+	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
 	session.PreSave()
@@ -84,7 +84,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		withMaster(context.Background()),
+		WithMaster(context.Background()),
 		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -249,9 +249,9 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
-	if appErr != nil {
-		return appErr
+	oldSession, err := me.Get(session.Id)
+	if err != nil {
+		return err
 	}
 	oldSession.Props = session.Props
 
@@ -292,18 +292,18 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	var rowsAffected int64 = 1
 
 	for rowsAffected > 0 {
-		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
+		sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize})
+		if err != nil {
 			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 			return
-		} else {
-			var rowErr error
-			rowsAffected, rowErr = sqlResult.RowsAffected()
-			if rowErr != nil {
-				mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-				return
-			}
+		}
+		var rowErr error
+		rowsAffected, rowErr = sqlResult.RowsAffected()
+		if rowErr != nil {
+			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
+			return
 		}
 
-		time.Sleep(SESSIONS_CLEANUP_DELAY_MILLISECONDS * time.Millisecond)
+		time.Sleep(SessionsCleanupDelayMilliseconds * time.Millisecond)
 	}
 }

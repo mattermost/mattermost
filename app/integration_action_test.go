@@ -116,7 +116,7 @@ func TestPostAction(t *testing.T) {
 					assert.Equal(t, request.TeamId, th.BasicTeam.Id)
 					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 				}
-				assert.True(t, len(request.TriggerId) > 0)
+				assert.True(t, request.TriggerId != "")
 				if request.Type == model.POST_ACTION_TYPE_SELECT {
 					assert.Equal(t, request.DataSource, "some_source")
 					assert.Equal(t, request.Context["selected_option"], "selected")
@@ -420,7 +420,7 @@ func TestPostActionProps(t *testing.T) {
 	assert.True(t, len(clientTriggerId) == 26)
 
 	newPost, nErr := th.App.Srv().Store.Post().GetSingle(post.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
@@ -453,7 +453,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.SubmitDialogRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, request)
 
 		assert.Equal(t, request.URL, "")
@@ -509,7 +509,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
 	submit.URL = ts.URL
@@ -791,7 +791,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
 	t.Run("invalid relative URL", func(t *testing.T) {
@@ -1010,7 +1010,7 @@ func TestDoPluginRequest(t *testing.T) {
 		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
 	resp, err := th.App.doPluginRequest("GET", "/plugins/myplugin", nil, nil)

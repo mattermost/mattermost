@@ -4,16 +4,16 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type AwayProvider struct {
 }
 
 const (
-	CMD_AWAY = "away"
+	CmdAway = "away"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (*AwayProvider) GetTrigger() string {
-	return CMD_AWAY
+	return CmdAway
 }
 
-func (*AwayProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*AwayProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_AWAY,
+		Trigger:          CmdAway,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_away.desc"),
 		DisplayName:      T("api.command_away.name"),

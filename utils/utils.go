@@ -4,12 +4,15 @@
 package utils
 
 import (
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -91,24 +94,24 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
+func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
-		if len(header) > 0 {
+		if header != "" {
 			addresses := strings.Fields(header)
 			if len(addresses) > 0 {
 				address = strings.TrimRight(addresses[0], ",")
 			}
 		}
 
-		if len(address) > 0 {
+		if address != "" {
 			return address
 		}
 	}
 
-	if len(address) == 0 {
+	if address == "" {
 		address, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
 
@@ -132,7 +135,7 @@ type RequestCache struct {
 
 // Fetch JSON data from the notices server
 // if skip is passed, does a fetch without touching the cache
-func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
+func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
 	// Build a GET Request, including optional If-None-Match header.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -171,4 +174,44 @@ func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 	cache.Key = resp.Header.Get("ETag")
 	cache.Date = resp.Header.Get("Date")
 	return cache.Data, err
+}
+
+// Append tokens to passed baseUrl as query params
+func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
+	u, err := url.Parse(baseUrl)
+	if err != nil {
+		return ""
+	}
+	q, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return ""
+	}
+	for key, value := range params {
+		q.Add(key, value)
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+// Validates RedirectURL passed during OAuth or SAML
+func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
+	u, err := url.Parse(redirectURL)
+	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
+		if config.ServiceSettings.SiteURL != nil {
+			siteURL := *config.ServiceSettings.SiteURL
+			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
+		}
+		return false
+	}
+	return true
+}
+
+// Validates Mobile Custom URL Scheme passed during OAuth or SAML
+func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool {
+	for _, URLScheme := range config.NativeAppSettings.AppCustomURLSchemes {
+		if strings.Index(strings.ToLower(redirectURL), strings.ToLower(URLScheme)) == 0 {
+			return true
+		}
+	}
+	return false
 }

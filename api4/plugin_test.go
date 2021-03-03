@@ -18,15 +18,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
 	svg "github.com/h2non/go-is-svg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestPlugin(t *testing.T) {
@@ -35,7 +34,7 @@ func TestPlugin(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		states := map[string]*model.PluginState{}
 		json.Unmarshal(statesJson, &states)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -69,8 +68,8 @@ func TestPlugin(t *testing.T) {
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		// Stored in File Store: Install Plugin from URL case
-		pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.Nil(t, err)
+		pluginStored, appErr := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
@@ -128,8 +127,8 @@ func TestPlugin(t *testing.T) {
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		// Stored in File Store: Upload Plugin case
-		pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.Nil(t, err)
+		pluginStored, appErr = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
 		// Upload error cases
@@ -297,8 +296,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	// Stored in File Store: Upload Plugin case
 	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	pluginStored, err := th.App.FileExists(expectedPath)
-	require.Nil(t, err)
+	pluginStored, appErr := th.App.FileExists(expectedPath)
+	require.Nil(t, appErr)
 	require.True(t, pluginStored)
 
 	messages := testCluster.GetMessages()
@@ -321,8 +320,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
-	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
-	require.Nil(t, err)
+	webSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
+	require.Nil(t, appErr)
 	webSocketClient.Listen()
 	defer webSocketClient.Close()
 	done := make(chan bool)
@@ -360,8 +359,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	actualMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, actualMessages)
 
-	pluginStored, err = th.App.FileExists(expectedPath)
-	require.Nil(t, err)
+	pluginStored, appErr = th.App.FileExists(expectedPath)
+	require.Nil(t, appErr)
 	require.False(t, pluginStored)
 }
 
@@ -1226,6 +1225,21 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
+
+	t.Run("prepackaged plugins are not shown in Cloud", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.ElementsMatch(t, marketplacePlugins, plugins)
+		require.Len(t, plugins, 1)
+	})
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
@@ -1241,9 +1255,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	sigFile, err := ioutil.ReadAll(signatureFileReader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
@@ -1406,15 +1420,15 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "1.2.3", manifest.Version)
 
 		filePath := filepath.Join("plugins", "testplugin2.tar.gz.sig")
-		savedSigFile, err := th.App.ReadFile(filePath)
-		require.Nil(t, err)
+		savedSigFile, appErr := th.App.ReadFile(filePath)
+		require.Nil(t, appErr)
 		require.EqualValues(t, sigFile, savedSigFile)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
-		exists, err := th.App.FileExists(filePath)
-		require.Nil(t, err)
+		exists, appErr := th.App.FileExists(filePath)
+		require.Nil(t, appErr)
 		require.False(t, exists)
 
 		appErr = th.App.DeletePublicKey("pub_key")
@@ -1537,9 +1551,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		th2 := SetupConfig(t, func(cfg *model.Config) {
@@ -1550,9 +1564,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		th2.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			pluginSignatureFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz.asc"))
-			require.Nil(t, err)
+			require.NoError(t, err)
 			pluginSignatureData, err := ioutil.ReadAll(pluginSignatureFile)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
 			require.NoError(t, err)
@@ -1672,7 +1686,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {

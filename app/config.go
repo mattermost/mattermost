@@ -22,11 +22,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
-	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "app.terms_of_service.get.no_rows.app_error"
+	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
 
 func (s *Server) Config() *model.Config {
@@ -46,6 +47,9 @@ func (a *App) EnvironmentConfig() map[string]interface{} {
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
+	if s.configStore.IsReadOnly() {
+		return
+	}
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)
@@ -138,7 +142,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = s.Store.System().Save(system); err != nil {
-			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(err))
+			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
 		}
@@ -201,7 +205,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = s.Store.System().Save(system); err != nil {
-			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(err))
+			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
 		}
@@ -446,4 +450,26 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
 		}
 	}
+}
+
+func (s *Server) MailServiceConfig() *mailservice.SMTPConfig {
+	emailSettings := s.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	cfg := mailservice.SMTPConfig{
+		Hostname:                          hostname,
+		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
+		SkipServerCertificateVerification: *emailSettings.SkipServerCertificateVerification,
+		ServerName:                        *emailSettings.SMTPServer,
+		Server:                            *emailSettings.SMTPServer,
+		Port:                              *emailSettings.SMTPPort,
+		ServerTimeout:                     *emailSettings.SMTPServerTimeout,
+		Username:                          *emailSettings.SMTPUsername,
+		Password:                          *emailSettings.SMTPPassword,
+		EnableSMTPAuth:                    *emailSettings.EnableSMTPAuth,
+		SendEmailNotifications:            *emailSettings.SendEmailNotifications,
+		FeedbackName:                      *emailSettings.FeedbackName,
+		FeedbackEmail:                     *emailSettings.FeedbackEmail,
+		ReplyToAddress:                    *emailSettings.ReplyToAddress,
+	}
+	return &cfg
 }

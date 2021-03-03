@@ -12,9 +12,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
-const GUEST_ROLES_CREATION_MIGRATION_KEY = "GuestRolesCreationMigrationComplete"
-const SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY = "SystemConsoleRolesCreationMigrationComplete"
+const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
+const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
+const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
+const ContentExtractionConfigMigrationKey = "ContentExtractionConfigMigrationComplete"
+const usersLimitToAutoEnableContentExtraction = 500
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -91,7 +93,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 
 func (a *App) DoEmojisPermissionsMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(EmojisPermissionsMigrationKey); err == nil {
 		return
 	}
 
@@ -145,7 +147,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 	}
 
 	system := model.System{
-		Name:  EMOJIS_PERMISSIONS_MIGRATION_KEY,
+		Name:  EmojisPermissionsMigrationKey,
 		Value: "true",
 	}
 
@@ -156,7 +158,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 func (a *App) DoGuestRolesCreationMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(GuestRolesCreationMigrationKey); err == nil {
 		return
 	}
 
@@ -232,7 +234,7 @@ func (a *App) DoGuestRolesCreationMigration() {
 	}
 
 	system := model.System{
-		Name:  GUEST_ROLES_CREATION_MIGRATION_KEY,
+		Name:  GuestRolesCreationMigrationKey,
 		Value: "true",
 	}
 
@@ -243,7 +245,7 @@ func (a *App) DoGuestRolesCreationMigration() {
 
 func (a *App) DoSystemConsoleRolesCreationMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(SystemConsoleRolesCreationMigrationKey); err == nil {
 		return
 	}
 
@@ -274,12 +276,41 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	}
 
 	system := model.System{
-		Name:  SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY,
+		Name:  SystemConsoleRolesCreationMigrationKey,
 		Value: "true",
 	}
 
 	if err := a.Srv().Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark system console roles creation migration as completed.", mlog.Err(err))
+	}
+}
+
+func (a *App) doContentExtractionConfigMigration() {
+	if !a.Config().FeatureFlags.FilesSearch {
+		return
+	}
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := a.Srv().Store.System().GetByName(ContentExtractionConfigMigrationKey); err == nil {
+		return
+	}
+
+	if usersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{}); err != nil {
+		mlog.Critical("Failed to get the users count for migrating the content extraction, using default value", mlog.Err(err))
+	} else {
+		if usersCount < usersLimitToAutoEnableContentExtraction {
+			a.UpdateConfig(func(config *model.Config) {
+				config.FileSettings.ExtractContent = model.NewBool(true)
+			})
+		}
+	}
+
+	system := model.System{
+		Name:  ContentExtractionConfigMigrationKey,
+		Value: "true",
+	}
+
+	if err := a.Srv().Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark content extraction config migration as completed.", mlog.Err(err))
 	}
 }
 
@@ -294,4 +325,5 @@ func (a *App) DoAppMigrations() {
 	if err != nil {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
+	a.doContentExtractionConfigMigration()
 }

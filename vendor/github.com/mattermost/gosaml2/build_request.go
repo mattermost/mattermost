@@ -41,9 +41,11 @@ func (sp *SAMLServiceProvider) buildAuthnRequest(includeSig bool) (*etree.Docume
 		authnRequest.CreateElement("saml:Issuer").SetText(sp.IdentityProviderIssuer)
 	}
 
-	nameIdPolicy := authnRequest.CreateElement("samlp:NameIDPolicy")
-	nameIdPolicy.CreateAttr("AllowCreate", "true")
-	nameIdPolicy.CreateAttr("Format", sp.NameIdFormat)
+	if sp.NameIdFormat != "" {
+		nameIdPolicy := authnRequest.CreateElement("samlp:NameIDPolicy")
+		nameIdPolicy.CreateAttr("AllowCreate", "true")
+		nameIdPolicy.CreateAttr("Format", sp.NameIdFormat)
+	}
 
 	if sp.RequestedAuthnContext != nil {
 		requestedAuthnContext := authnRequest.CreateElement("samlp:RequestedAuthnContext")

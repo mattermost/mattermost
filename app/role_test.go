@@ -11,9 +11,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/require"
 )
 
 type permissionInheritanceTestData struct {
@@ -101,15 +102,15 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// Get the truth table from CSV
 	file, e := os.Open("tests/channel-role-has-permission.csv")
-	require.Nil(t, e)
+	require.NoError(t, e)
 	defer file.Close()
 
 	b, e := ioutil.ReadAll(file)
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	r := csv.NewReader(strings.NewReader(string(b)))
 	records, e := r.ReadAll()
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	test := func(higherScopedGuest, higherScopedUser, higherScopedAdmin string) {
 		for _, roleNameUnderTest := range []string{higherScopedGuest, higherScopedUser, higherScopedAdmin} {
@@ -120,19 +121,19 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				higherSchemeHasPermission, e := strconv.ParseBool(row[0])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				permissionIsModerated, e := strconv.ParseBool(row[1])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				channelSchemeHasPermission, e := strconv.ParseBool(row[2])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				channelRoleIsChannelAdmin, e := strconv.ParseBool(row[3])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				shouldHavePermission, e := strconv.ParseBool(row[4])
-				require.Nil(t, e)
+				require.NoError(t, e)
 
 				// skip some invalid combinations because of the outer loop iterating all 3 channel roles
 				if (channelRoleIsChannelAdmin && roleNameUnderTest != higherScopedAdmin) || (!channelRoleIsChannelAdmin && roleNameUnderTest == higherScopedAdmin) {

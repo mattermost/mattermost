@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten"
+    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -1085,14 +1085,6 @@
     "translation": "Dateianhänge wurden auf diesem Server deaktiviert."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Der öffentliche Link scheint nicht gültig zu sein."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Benutzer gelesen werden kann."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Kopieren der Datei innerhalb von S3 fehlgeschlagen."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Die Datei von S3 kann nicht gelöscht werden."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Die Datei kann lokal nicht verschoben werden."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Kein Datei-Treiber ausgewählt."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Ein Fehler ist während des Lesens vom lokalen Server-Speicher ist aufgetreten."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Keine Berechtigungen zum Schreiben in lokalen Pfad oder anderer Fehler."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Fehler bei der Überprüfung, ob Bucket existiert."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1189,18 +1149,6 @@
     "translation": "Konnte Datei {{.Filename}} nicht hochladen. {{.Length}} Bytes überschreiten die maximal erlaubten {{.Limit}} Bytes."
   },
   {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Ein Fehler ist beim Erstellen des Verzeichnisses für die neue Datei aufgetreten."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Ein Fehler ist beim Schreiben auf den lokalen Server aufgetreten."
-  },
-  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
@@ -1218,7 +1166,7 @@
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt keine LDAP-Gruppen"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -2061,14 +2009,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Bitte bestätigen Sie ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Sie können sich anmelden von:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mit Mattermost können Sie Nachrichten und Dateien von ihrem PC oder Telefon aus teilen, suchen und archivieren."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3663,32 +3603,12 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Fehler beim Versuch der Authentifizierung des MFA-Tokens."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ungültiges MFA-Token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Konnte MFA-Aktivstatus nicht für den Benutzer aktualisieren."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Konnte MFA-Aktivstatus nicht für den Benutzer aktualisieren."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Fehler beim Löschen des MFA-Secrets."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Fehler beim Generieren des QR-Codes."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fehler beim Speichern des MFA-Secrets."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4604,7 +4524,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal zehn Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
+    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal fünf Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4945,70 +4865,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server ist aufgetreten."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Ein Fehler ist beim Auflisten des Verzeichnisses von S3 aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens des Verzeichnisses vom lokalen Server aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Ein Fehler ist beim Entfernen des Verzeichnisses von S3 aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens der Datei vom lokalen Server aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Ein Fehler ist beim Entfernen der Datei von S3 aufgetreten."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Fehler beim Setzen von HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fehler beim Öffnen der Verbindung"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Fehler beim Öffnen der TLS Verbindung"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Fehler beim Authentifizieren am SMTP-Server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Fehler beim Hinzufügen des Mailanhanges"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Fehler beim Schließen der Verbindung zum SMTP-Server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fehler beim Setzen von \"Absenderadresse\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Fehler bei Schreiben der E-Mail"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Fehler bei Hinzufügen der E-Mail Daten"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fehler beim Setzen von \"Empfängeradresse\""
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -6084,11 +5940,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn zu diesem Kanal hinzuzufügen, muss er zu den verknüpften Gruppen hinzugefügt werden."
+    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn diesem Kanal hinzuzufügen, muss er den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie zu diesem Kanal hinzuzufügen, müssen sie zu den verknüpften Gruppen hinzugefügt werden."
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie diesem Kanal hinzuzufügen, müssen sie den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
@@ -6112,15 +5968,15 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "Gruppenname existiert bereits als Benutzername"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "Gruppenname existiert bereits als reservierter Name"
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "Gruppenmitglied existiert bereits"
+    "translation": "Gruppenname existiert bereits"
   },
   {
     "id": "api.image.get.app_error",
@@ -6140,7 +5996,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Der Benutzer kann von ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
+    "translation": "Der Benutzer kann von Ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
@@ -6208,7 +6064,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Ihre Lizenz unterstützt Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt keine Gruppen"
   },
   {
     "id": "api.channel.add_members.user_denied",
@@ -6871,10 +6727,6 @@
     "translation": "Konnte die Dateiinformationen nicht abrufen."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
-  },
-  {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
   },
@@ -6929,10 +6781,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fehler beim Abrufen der Kanalmitglieder."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Konnte Bucket nicht erstellen."
   },
   {
     "id": "api.server.warn_metric.start_trial",
@@ -7077,10 +6925,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Kann nicht in gelöschten Kanal senden."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot existiert nicht."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7265,5 +7109,9 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "Bot-Anmeldung ist verboten."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Kanäle tragen dazu bei, die Kommunikation zu verbessern, aber dass alle Benutzer in Mattermost Kanäle erstellen und Kanälen beitreten können, vergrößert das Problem der Übersichtlichkeit. Erweiterte Rechte ermöglichen Ihnen festzulegen, welche Benutzer oder Rollen bestimmte Aktionen durchführen dürfen, einschließlich der Verwaltung von Kanaleinstellungen und -mitgliedern, der Nutzung von @channel oder @here, um große Gruppen von Mitgliedern zu benachrichtigen, und der Erstellung von neuen Webhooks.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Klicken auf \"Kontakt\" teilen Sie Ihre Daten mit Mattermost, Inc. [mehr](https://mattermost.com/pl/default-admin-advisory)"
   }
 ]

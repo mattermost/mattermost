@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestSanitizePath(t *testing.T) {
@@ -91,33 +91,33 @@ func TestUnzipToPath(t *testing.T) {
 	require.NotEmpty(t, testDir)
 
 	dir, err := ioutil.TempDir("", "unzip")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
 	t.Run("invalid archive", func(t *testing.T) {
 		file, err := os.Open(testDir + "/testplugin.tar.gz")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer file.Close()
 
 		info, err := file.Stat()
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		paths, err := UnzipToPath(file, info.Size(), dir)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.True(t, errors.Is(err, zip.ErrFormat))
 		require.Nil(t, paths)
 	})
 
 	t.Run("valid archive", func(t *testing.T) {
 		file, err := os.Open(testDir + "/testarchive.zip")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer file.Close()
 
 		info, err := file.Stat()
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		paths, err := UnzipToPath(file, info.Size(), dir)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, paths)
 
 		expectedFiles := map[string]int64{
@@ -132,7 +132,7 @@ func TestUnzipToPath(t *testing.T) {
 		}
 
 		err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			if path == dir {
 				return nil
 			}
@@ -144,6 +144,6 @@ func TestUnzipToPath(t *testing.T) {
 			}
 			return nil
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }

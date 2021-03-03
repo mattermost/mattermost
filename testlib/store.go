@@ -25,6 +25,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore := mocks.Store{}
 	systemStore := mocks.SystemStore{}
 	systemStore.On("GetByName", "UpgradedFromTE").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
+	systemStore.On("GetByName", "ContentExtractionConfigMigrationComplete").Return(&model.System{Name: "ContentExtractionConfigMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "AsymmetricSigningKey").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
 	systemStore.On("GetByName", "PostActionCookieSecret").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
 	systemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: strconv.FormatInt(model.GetMillis(), 10)}, nil)
@@ -48,6 +49,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)

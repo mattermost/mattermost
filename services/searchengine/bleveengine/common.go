@@ -36,6 +36,16 @@ type BLVPost struct {
 	Attachments string
 }
 
+type BLVFile struct {
+	Id        string
+	CreatorId string
+	ChannelId string
+	CreateAt  int64
+	Name      string
+	Content   string
+	Extension string
+}
+
 func BLVChannelFromChannel(channel *model.Channel) *BLVChannel {
 	displayNameInputs := searchengine.GetSuggestionInputsSplitBy(channel.DisplayName, " ")
 	nameInputs := searchengine.GetSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
@@ -112,5 +122,36 @@ func BLVPostFromPostForIndexing(post *model.PostForIndexing) *BLVPost {
 		Message:   post.Message,
 		Type:      post.Type,
 		Hashtags:  strings.Fields(post.Hashtags),
+	}
+}
+
+func splitFilenameWords(name string) string {
+	result := name
+	result = strings.ReplaceAll(result, "-", " ")
+	result = strings.ReplaceAll(result, ".", " ")
+	return result
+}
+
+func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
+	return &BLVFile{
+		Id:        fileInfo.Id,
+		ChannelId: channelId,
+		CreatorId: fileInfo.CreatorId,
+		CreateAt:  fileInfo.CreateAt,
+		Content:   fileInfo.Content,
+		Extension: fileInfo.Extension,
+		Name:      fileInfo.Name + " " + splitFilenameWords(fileInfo.Name),
+	}
+}
+
+func BLVFileFromFileForIndexing(file *model.FileForIndexing) *BLVFile {
+	return &BLVFile{
+		Id:        file.Id,
+		ChannelId: file.ChannelId,
+		CreatorId: file.CreatorId,
+		CreateAt:  file.CreateAt,
+		Content:   file.Content,
+		Extension: file.Extension,
+		Name:      file.Name + " " + splitFilenameWords(file.Name),
 	}
 }

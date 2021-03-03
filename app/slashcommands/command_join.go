@@ -6,16 +6,16 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type JoinProvider struct {
 }
 
 const (
-	CMD_JOIN = "join"
+	CmdJoin = "join"
 )
 
 func init() {
@@ -23,12 +23,12 @@ func init() {
 }
 
 func (*JoinProvider) GetTrigger() string {
-	return CMD_JOIN
+	return CmdJoin
 }
 
-func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_JOIN,
+		Trigger:          CmdJoin,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_join.desc"),
 		AutoCompleteHint: T("api.command_join.hint"),
@@ -37,7 +37,7 @@ func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comma
 }
 
 func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	channelName := message
+	channelName := strings.ToLower(message)
 
 	if strings.HasPrefix(message, "~") {
 		channelName = message[1:]

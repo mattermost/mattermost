@@ -19,12 +19,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var testDir = ""
@@ -60,18 +61,18 @@ func fileBytes(t *testing.T, path string) []byte {
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
 	contentLength int64) (*model.FileUploadResponse, *model.Response) {
 	req, err := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, bytes.NewReader(blob))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	if contentLength != 0 {
 		req.ContentLength = contentLength
 	}
 	req.Header.Set("Content-Type", contentType)
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
 	resp, err := c.HttpClient.Do(req)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer closeBody(resp)
 
@@ -155,13 +156,13 @@ func testUploadFilesMultipart(
 	mw := multipart.NewWriter(mwBody)
 
 	err := mw.WriteField("channel_id", channelId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	for i, blob := range blobs {
 		ct := http.DetectContentType(blob)
 		if len(clientIds) > i {
 			err = mw.WriteField("client_ids", clientIds[i])
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 
 		h := textproto.MIMEHeader{}
@@ -171,10 +172,10 @@ func testUploadFilesMultipart(
 
 		// If we error here, writing to mw, the deferred handler
 		part, err := mw.CreatePart(h)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = io.Copy(part, bytes.NewReader(blob))
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	require.NoError(t, mw.Close())
@@ -627,7 +628,7 @@ func TestUploadFiles(t *testing.T) {
 					}
 
 					dbInfo, err := th.App.Srv().Store.FileInfo().Get(ri.Id)
-					require.Nil(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
 					assert.Equal(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
 					assert.Equal(t, dbInfo.PostId, "", "File shouldn't have a post")
@@ -635,7 +636,7 @@ func TestUploadFiles(t *testing.T) {
 					_, fname := filepath.Split(dbInfo.Path)
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
-					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FILE_TEAM_ID, channel.Id, ri.CreatorId, ri.Id)
+					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
@@ -665,13 +666,13 @@ func TestUploadFiles(t *testing.T) {
 							require.Nil(t, resp.Error)
 
 							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
-							require.Nil(t, err)
+							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
 								defer tf.Close()
-								require.Nil(t, err)
+								require.NoError(t, err)
 								_, err = io.Copy(tf, bytes.NewReader(data))
-								require.Nil(t, err)
+								require.NoError(t, err)
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
@@ -859,7 +860,7 @@ func TestGetFileLink(t *testing.T) {
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp = Client.GetFileLink(fileId)
@@ -890,7 +891,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckNoError(t, resp)
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.cleanupTestFile(fileInfo)
 }
 
@@ -1004,10 +1005,10 @@ func TestGetPublicFile(t *testing.T) {
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
 
 	resp, err := http.Get(link)
@@ -1037,12 +1038,174 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
-	require.Nil(t, th.cleanupTestFile(fileInfo))
+	require.NoError(t, err)
+	require.NoError(t, th.cleanupTestFile(fileInfo))
 
 	th.cleanupTestFile(info)
 	link = th.App.GeneratePublicLink(Client.Url, info)
 	resp, err = http.Get(link)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
+}
+
+func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	require.NotNil(t, resp.Error)
+}
+
+func TestSearchFiles(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	Client := th.Client
+
+	filename := "search for fileInfo1"
+	fileInfo1, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "search for fileInfo2"
+	fileInfo2, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged search for fileInfo3"
+	fileInfo3, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged for fileInfo4"
+	fileInfo4, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	archivedChannel := th.CreatePublicChannel()
+	fileInfo5, err := th.App.UploadFile(data, archivedChannel.Id, "tagged for fileInfo3")
+	require.Nil(t, err)
+	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
+	rpost, resp := Client.CreatePost(post)
+	CheckNoError(t, resp)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	th.Client.DeleteChannel(archivedChannel.Id)
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	fileInfos, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	terms = "search"
+	page := 0
+	perPage := 2
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Len(t, fileInfos2.Order, 3, "Wrong number of fileInfos")
+	assert.Equal(t, fileInfos.Order[0], fileInfos2.Order[0])
+	assert.Equal(t, fileInfos.Order[1], fileInfos2.Order[1])
+
+	page = 1
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Empty(t, fileInfos2.Order, "Wrong number of fileInfos")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "search", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo2", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 1, "wrong number of fileInfos")
+	require.Equal(t, fileInfo2.Id, fileInfos.Order[0], "wrong search")
+
+	terms = "tagged"
+	includeDeletedChannels := true
+	searchParams = model.SearchParameter{
+		Terms:                  &terms,
+		IsOrSearch:             &isOrSearch,
+		TimeZoneOffset:         &timezoneOffset,
+		IncludeDeletedChannels: &includeDeletedChannels,
+	}
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search")
+
+	fileInfos, _ = Client.SearchFiles(th.BasicTeam.Id, "*", false)
+	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo1 fileInfo2", true)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search results")
+
+	_, resp = Client.SearchFiles("junk", "#sgtitlereview", false)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "", false)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckUnauthorizedStatus(t, resp)
 }

@@ -6,16 +6,16 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type CodeProvider struct {
 }
 
 const (
-	CMD_CODE = "code"
+	CmdCode = "code"
 )
 
 func init() {
@@ -23,12 +23,12 @@ func init() {
 }
 
 func (*CodeProvider) GetTrigger() string {
-	return CMD_CODE
+	return CmdCode
 }
 
-func (*CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CodeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_CODE,
+		Trigger:          CmdCode,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_code.desc"),
 		AutoCompleteHint: T("api.command_code.hint"),
@@ -37,7 +37,7 @@ func (*CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comma
 }
 
 func (*CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	rmsg := "    " + strings.Join(strings.Split(message, "\n"), "\n    ")

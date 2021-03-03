@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -45,8 +44,8 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FILE_PATH = "export"
-	const FILE_MIME = "application/zip"
+	const FilePath = "export"
+	const FileMime = "application/zip"
 
 	c.RequireJobId()
 	if c.Err != nil {
@@ -58,15 +57,19 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	job, err := c.App.GetJob(c.Params.JobId)
-	if err != nil {
-		mlog.Error(err.Error())
-		c.Err = err
+	// Currently, this endpoint only supports downloading the compliance report.
+	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
+	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
+		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+		return
+	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -77,10 +80,9 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileName := job.Id + ".zip"
-	filePath := filepath.Join(FILE_PATH, fileName)
+	filePath := filepath.Join(FilePath, fileName)
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
-		mlog.Error(err.Error())
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
@@ -89,12 +91,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	err = writeFileResponse(fileName, FILE_MIME, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
-	if err != nil {
-		mlog.Error(err.Error())
-		c.Err = err
-		return
-	}
+	writeFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {

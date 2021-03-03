@@ -1088,14 +1088,6 @@
     "translation": "Вложения отключены на этом сервере."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Не удалось проверить, существует ли файл."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Не удалось проверить, существует ли файл."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Неправильная публичная ссылка."
   },
@@ -1116,44 +1108,12 @@
     "translation": "Не удалось получить публичную ссылку для файла. Файл должен быть прикреплен к сообщению, которое может быть прочитано текущим пользователем."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Невозможно скопировать файл в пределах S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Невозможно удалить файл из S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Не удалось локально переместить файл."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Не выбран файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Произошла ошибка при чтении из локального серверного хранилища."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Произошла ошибка при чтении из хранилища S3."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Произошла ошибка открытия читателя из хранилища S3."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Нет разрешения на запись по указанному локальному пути или другая ошибка."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Ошибка проверки существования bucket."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1190,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Не удалось загрузить файл {{.Filename}}. {{.Length}} байт превышает максимально разрешенный лимит {{.Limit}} байт."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Произошла ошибка при записи в S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Произошла ошибка при создании директории для нового файла."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Произошла ошибка при записи в локальное серверное хранилище."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2066,14 +2014,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Пожалуйста, подтвердите свой адрес электронной почты, нажав на ссылку ниже."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Вы можете войти в систему с:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost позволяет обмениваться сообщениями и файлами с компьютера или телефона, с возможностью моментального поиска."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3668,32 +3608,12 @@
     "translation": "Бюллетень безопасности Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Ошибка при попытке аутентификации токена МФА."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Неверный токен МФА."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Невозможно обновить активный статус МФА для пользователя."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Невозможно обновить активный статус МФА для пользователя."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Ошибка очистки МФА секрета."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Ошибка генерации QR-кода."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Ошибка сохранения секрета МФА."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4609,7 +4529,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 10 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
+    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 5 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4950,70 +4870,6 @@
   {
     "id": "system.message.name",
     "translation": "Система"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Обнаружена ошибка получения списка каталогов от S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Обнаружена ошибка при удалении каталога из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Обнаружена ошибка удаления каталога из S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Обнаружена ошибка удаления файла из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Обнаружена ошибка удаления файла из S3."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Не удалось установить HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Не удалось открыть соединение."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Не удалось открыть TLS соединение."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Не удалось авторизоваться на SMTP сервере."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Не удалось записать вложение в электронное письмо"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Не удалось закрыть соединение с SMTP сервером."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Ошибка установки адреса «От кого»"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Не удалось записать почтовое сообщение."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Не удалось добавить данные почтового сообщения."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Ошибка настройки адреса «Кому»."
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -7228,22 +7084,6 @@
     "translation": "Невозможно проанализировать тело запроса."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Произошла ошибка при записи в S3."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Произошла ошибка при дописывании в файл в S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Произошла ошибка при открытии файла."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Файл не существует."
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Не удалось перенести хранилище конфигурации."
   },
@@ -7306,10 +7146,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Не удалось получить участников канала."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Невозможно создать bucket."
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7740,14 +7576,6 @@
     "translation": "Не удалось получить пробную лицензию, попробуйте еще раз или свяжитесь с support@mattermost.com. Невозможно получить количество зарегистрированных пользователей."
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Ошибка при попытке перечислить объекты."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Произошла ошибка при открытии соединения с S3."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Ошибка обработки запроса к CWS."
   },
@@ -7778,5 +7606,77 @@
   {
     "id": "api.server.warn_metric.mfa.notification_body",
     "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о принудительной многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Теперь Вы можете закрыть эту вкладку браузера."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Авторизация завершена"
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Ошибка получения ссылки обновления лицензии"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Параметры Before и After запроса getThreadsForUser являются взаимоисключающими"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Невозможно записать файл."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Нет доступа к файловому хранилищу."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Невозможно удалить файл."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Невозможно удалить каталог."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Невозможно прочитать файл."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Невозможно перенести файл."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Невозможно отобразить каталог."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Невозможно получить размер файла."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Невозможно получить время последнего изменения файла."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Невозможно проверить существование файла."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Невозможно добавить данные к файлу."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Невозможно найти файл экспорта."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Изменение {{.Name}} не разрешено по соображениям безопасности."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Обратно к {{.SiteName}}"
   }
 ]

@@ -4,19 +4,20 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
-	"github.com/pkg/errors"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -27,7 +28,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv().Store.User().GetAllProfilesInChannel(channel.Id, true)
+		props, err := a.Srv().Store.User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
 		pchan <- store.StoreResult{Data: props, NErr: err}
 		close(pchan)
 	}()
@@ -122,10 +123,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 && parentPostList != nil {
+		if post.RootId != "" && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				if profile == nil {
+					continue
+				}
+				// If this is the root post and it was posted by an OAuth bot, don't notify the user
+				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
+					continue
+				}
+				if profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
 						mentionType = CommentMention
@@ -159,7 +167,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
@@ -173,16 +181,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
 		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
-			go func(userId string) {
+			go func(userID string) {
 				defer close(mac)
 				incrementMentions := false
 				for mid := range mentions.Mentions {
-					if userId == mid {
+					if userID == mid {
 						incrementMentions = true
 						break
 					}
 				}
-				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
@@ -197,9 +205,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		mentionedUsersList = append(mentionedUsersList, id)
 
 		umc := make(chan *model.AppError, 1)
-		go func(userId string) {
+		go func(userID string) {
 			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId, *a.Config().ServiceSettings.ThreadAutoFollow)
+			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow)
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				return
@@ -224,7 +232,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
 				continue
 			}
 
@@ -236,7 +244,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		T := utils.GetUserTranslations(sender.Locale)
+		T := i18n.GetUserTranslations(sender.Locale)
 
 		if mentions.HereMentioned {
 			a.SendEphemeralPost(
@@ -339,7 +347,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				)
 			} else {
 				// register that a notification was not sent
-				a.NotificationsLog().Warn("Notification not sent",
+				a.NotificationsLog().Debug("Notification not sent",
 					mlog.String("ackId", ""),
 					mlog.String("type", model.PUSH_TYPE_MESSAGE),
 					mlog.String("userId", id),
@@ -371,7 +379,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					)
 				} else {
 					// register that a notification was not sent
-					a.NotificationsLog().Warn("Notification not sent",
+					a.NotificationsLog().Debug("Notification not sent",
 						mlog.String("ackId", ""),
 						mlog.String("type", model.PUSH_TYPE_MESSAGE),
 						mlog.String("userId", id),
@@ -419,22 +427,24 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	a.Publish(message)
 	// If this is a reply in a thread, notify participants
-	if *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
+	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
 		thread, err := a.Srv().Store.Thread().Get(post.RootId)
 		if err != nil {
-			mlog.Error("Cannot get thread", mlog.String("id", post.RootId))
-			return nil, err
+			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
-		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent, _ = strconv.ParseBool(preference.Value)
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
-				message.Add("thread", payload)
+
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
+				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+				message.Add("thread", userThread.ToJson())
 				a.Publish(message)
 			}
 		}
@@ -478,7 +488,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 }
 
 func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
 		RootId:    post.RootId,
@@ -578,7 +588,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	ogUsers := model.UserSlice(outOfGroupsUsers)
 	ogUsernames := ogUsers.Usernames()
 
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 
 	ephemeralPostId := model.NewId()
 	var message string
@@ -596,7 +606,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	}
 
 	if len(outOfGroupsUsers) == 1 {
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -606,7 +616,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	} else if len(outOfGroupsUsers) > 1 {
 		preliminary, final := splitAtFinal(ogUsernames)
 
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -698,16 +708,16 @@ const (
 	GroupMention
 )
 
-func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
+func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {
 		m.Mentions = make(map[string]MentionType)
 	}
 
-	if currentType, ok := m.Mentions[userId]; ok && currentType >= mentionType {
+	if currentType, ok := m.Mentions[userID]; ok && currentType >= mentionType {
 		return
 	}
 
-	m.Mentions[userId] = mentionType
+	m.Mentions[userID] = mentionType
 }
 
 func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model.Group) bool {
@@ -738,14 +748,14 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 	return true
 }
 
-func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
-	for _, userId := range userIds {
-		m.addMention(userId, mentionType)
+func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
+	for _, userID := range userIDs {
+		m.addMention(userID, mentionType)
 	}
 }
 
-func (m *ExplicitMentions) removeMention(userId string) {
-	delete(m.Mentions, userId)
+func (m *ExplicitMentions) removeMention(userID string) {
+	delete(m.Mentions, userID)
 }
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
@@ -780,10 +790,10 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret = append(ret, post.Message)
 	for _, attachment := range post.Attachments() {
 
-		if len(attachment.Pretext) != 0 {
+		if attachment.Pretext != "" {
 			ret = append(ret, attachment.Pretext)
 		}
-		if len(attachment.Text) != 0 {
+		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
 		}
 	}
@@ -830,7 +840,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
 
-	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin
 		if channel.IsGroupConstrained() {
 			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
@@ -995,7 +1005,7 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 // and whether or not the username has been overridden by an integration.
 func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
 	if n.Post.IsSystemMessage() {
-		return utils.T("system.message.name")
+		return i18n.T("system.message.name")
 	}
 
 	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {
@@ -1084,7 +1094,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		foundWithoutSuffix := false
 		wordWithoutSuffix := word
 
-		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
 			if m.checkForMention(wordWithoutSuffix, keywords, groups) {

@@ -22,7 +22,7 @@ import (
 	"time"
 	"unicode"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -31,10 +31,10 @@ const (
 	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS           = "0123456789"
 	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	MB                = 1 << 20
 )
 
 type StringInterface map[string]interface{}
-type StringMap map[string]string
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
@@ -73,10 +73,10 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
-var translateFunc goi18n.TranslateFunc
+var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
-func AppErrorInit(t goi18n.TranslateFunc) {
+func AppErrorInit(t i18n.TranslateFunc) {
 	translateFuncOnce.Do(func() {
 		translateFunc = t
 	})
@@ -101,7 +101,7 @@ func (er *AppError) Error() string {
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 
-func (er *AppError) Translate(T goi18n.TranslateFunc) {
+func (er *AppError) Translate(T i18n.TranslateFunc) {
 	if T == nil {
 		er.Message = er.Id
 		return
@@ -114,12 +114,11 @@ func (er *AppError) Translate(T goi18n.TranslateFunc) {
 	}
 }
 
-func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
+func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 	if er.params == nil {
 		return T(er.Id)
-	} else {
-		return T(er.Id, er.params)
 	}
+	return T(er.Id, er.params)
 }
 
 func (er *AppError) ToJson() string {
@@ -140,11 +139,10 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
 	err := decoder.Decode(&er)
-	if err == nil {
-		return &er
-	} else {
+	if err != nil {
 		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
 	}
+	return &er
 }
 
 func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
@@ -189,14 +187,6 @@ func NewRandomString(length int) string {
 	data := make([]byte, 1+(length*5/8))
 	rand.Read(data)
 	return encoding.EncodeToString(data)[:length]
-}
-
-// NewRandomBase32String returns a base32 encoded string of a random slice
-// of bytes of the given size. The resulting entropy will be (8 * size) bits.
-func NewRandomBase32String(size int) string {
-	data := make([]byte, size)
-	rand.Read(data)
-	return base32.StdEncoding.EncodeToString(data)
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.
@@ -262,9 +252,8 @@ func MapFromJson(data io.Reader) map[string]string {
 	var objmap map[string]string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]string)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 // MapFromJson will decode the key/value pair map
@@ -274,9 +263,8 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 	var objmap map[string]bool
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]bool)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func ArrayToJson(objmap []string) string {
@@ -290,9 +278,8 @@ func ArrayFromJson(data io.Reader) []string {
 	var objmap []string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make([]string, 0)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func ArrayFromInterface(data interface{}) []string {
@@ -323,9 +310,8 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 	var objmap map[string]interface{}
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]interface{})
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func StringToJson(s string) string {
@@ -339,14 +325,13 @@ func StringFromJson(data io.Reader) string {
 	var s string
 	if err := decoder.Decode(&s); err != nil {
 		return ""
-	} else {
-		return s
 	}
+	return s
 }
 
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
-	if len(iface) == 0 {
+	if iface == "" {
 		var err error
 		addrs, err = net.InterfaceAddrs()
 		if err != nil {
@@ -405,6 +390,7 @@ var reservedName = []string{
 	"channel",
 	"claim",
 	"error",
+	"files",
 	"help",
 	"landing",
 	"login",
@@ -492,25 +478,6 @@ func ParseHashtags(text string) (string, string) {
 	}
 
 	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
-}
-
-func IsFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	for _, imgExt := range IMAGE_EXTENSIONS {
-		if ext == imgExt {
-			return true
-		}
-	}
-	return false
-}
-
-func GetImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if len(IMAGE_MIME_TYPES[ext]) == 0 {
-		return "image"
-	} else {
-		return IMAGE_MIME_TYPES[ext]
-	}
 }
 
 func ClearMentionTags(post string) string {

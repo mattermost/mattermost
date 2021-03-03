@@ -4,7 +4,6 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -57,7 +56,6 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, pos
 	}
 
 	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
-		mlog.Error(err.Error())
 		return false, err
 	}
 
@@ -78,8 +76,8 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	}
 }
 
-func (a *App) DisableAutoResponder(userId string, asAdmin bool) *model.AppError {
-	user, err := a.GetUser(userId)
+func (a *App) DisableAutoResponder(userID string, asAdmin bool) *model.AppError {
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
@@ -91,7 +89,7 @@ func (a *App) DisableAutoResponder(userId string, asAdmin bool) *model.AppError 
 		patch.NotifyProps = user.NotifyProps
 		patch.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] = "false"
 
-		_, err := a.PatchUser(userId, patch, asAdmin)
+		_, err := a.PatchUser(userID, patch, asAdmin)
 		if err != nil {
 			return err
 		}

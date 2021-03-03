@@ -6,18 +6,17 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type InviteProvider struct {
 }
 
 const (
-	CMD_INVITE = "invite"
+	CmdInvite = "invite"
 )
 
 func init() {
@@ -25,12 +24,12 @@ func init() {
 }
 
 func (*InviteProvider) GetTrigger() string {
-	return CMD_INVITE
+	return CmdInvite
 }
 
-func (*InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_INVITE,
+		Trigger:          CmdInvite,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_invite.desc"),
 		AutoCompleteHint: T("api.command_invite.hint"),
@@ -113,14 +112,13 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 					}),
 					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 				}
-			} else {
-				// User doing the inviting is *not* a member of the channel.
-				return &model.CommandResponse{
-					Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
-						"Channel": channelToJoin.Name,
-					}),
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-				}
+			}
+			// User doing the inviting is *not* a member of the channel.
+			return &model.CommandResponse{
+				Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
+					"Channel": channelToJoin.Name,
+				}),
+				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	default:

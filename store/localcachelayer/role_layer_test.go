@@ -6,11 +6,12 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRoleStore(t *testing.T) {
@@ -27,10 +28,10 @@ func TestRoleStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		role, err := cachedStore.Role().GetByName("role-name")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, role, &fakeRole)
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, role, &fakeRole)
 		cachedStore.Role().GetByName("role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)

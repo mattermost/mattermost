@@ -12,13 +12,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -631,10 +632,9 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 				if test.errChecker != nil {
 					test.errChecker(t, resp)
 					return
-				} else {
-					CheckNoError(t, resp)
-					CheckOKStatus(t, resp)
 				}
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
 				require.Equal(t, test.wantType, team.Type)
 				require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
 				if test.wantInviteIdChanged {
@@ -1856,10 +1856,10 @@ func TestAddTeamMember(t *testing.T) {
 	Client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1871,7 +1871,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
 	_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
-	require.NotNil(t, nErr, "The token must be deleted after be used")
+	require.Error(t, nErr, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1879,9 +1879,9 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token = model.NewToken(app.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1890,10 +1890,10 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestId()
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1932,10 +1932,10 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 
@@ -2360,42 +2360,42 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
-	const TEAM_MEMBER = "team_user"
-	const TEAM_ADMIN = "team_user team_admin"
+	const TeamMember = "team_user"
+	const TeamAdmin = "team_user team_admin"
 
 	// user 1 tries to promote user 2
-	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 	require.False(t, ok, "should have returned false")
 
 	// user 1 tries to promote himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 tries to demote someone
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckForbiddenStatus(t, resp)
 
 	// system admin promotes user 1
-	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckNoError(t, resp)
 	require.True(t, ok, "should have returned true")
 
 	// user 1 (team admin) promotes user 2
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) demotes user 2 (team admin)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNoError(t, resp)
 	// Note from API v3
 	// Note to anyone who thinks this (above) test is wrong:
@@ -2404,19 +2404,19 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// System admins should be able to manipulate permission no matter what their team level permissions are.
 	// system admin promotes user 2
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// system admin demotes user 2 (team admin)
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to promote himself to a random team
-	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 (team admin) tries to promote a random user
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TeamAdmin)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
@@ -2424,7 +2424,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// user 1 (team admin) demotes himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamMember)
 	CheckNoError(t, resp)
 }
 
@@ -2681,7 +2681,7 @@ func TestImportTeam(t *testing.T) {
 		CheckNoError(t, resp)
 
 		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
-		require.Nil(t, err, "failed to decode base64 results data")
+		require.NoError(t, err, "failed to decode base64 results data")
 
 		fileReturned := fmt.Sprintf("%s", fileData)
 		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
@@ -2704,7 +2704,7 @@ func TestImportTeam(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
 
-		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "")
+		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false)
 		CheckNoError(t, resp)
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
@@ -2794,7 +2794,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_subject",
+	expectedSubject := i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2805,7 +2805,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	okMsg, resp = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
-	expectedSubject = utils.T("api.templates.invite_subject",
+	expectedSubject = i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2925,7 +2925,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	require.True(t, okMsg, "should return true")
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_guest_subject",
+	expectedSubject := i18n.T("api.templates.invite_guest_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -3039,7 +3039,7 @@ func TestSetTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err, err)
+	require.NoError(t, err, err)
 
 	th.LoginTeamAdmin()
 
@@ -3075,19 +3075,19 @@ func TestSetTeamIcon(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	teamBefore, err := th.App.GetTeam(team.Id)
-	require.Nil(t, err)
+	teamBefore, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.SetTeamIcon(team.Id, data)
 	CheckNoError(t, resp)
 
-	teamAfter, err := th.App.GetTeam(team.Id)
-	require.Nil(t, err)
+	teamAfter, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
 	err = th.cleanupTestFile(info)
-	require.Nil(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestGetTeamIcon(t *testing.T) {

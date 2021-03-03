@@ -69,12 +69,21 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, activeUsersInterface.MakeScheduler())
 	}
+
 	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
 	}
 
 	if cloudInterface := srv.Cloud; cloudInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
+	}
+
+	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, importDeleteInterface.MakeScheduler())
+	}
+
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
@@ -167,13 +176,13 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	scheduler := schedulers.schedulers[idx]
 
 	if !pendingJobs {
-		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
+		pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+		if err != nil {
 			mlog.Error("Failed to set next job run time", mlog.Err(err))
 			schedulers.nextRunTimes[idx] = nil
 			return
-		} else {
-			pendingJobs = pj
 		}
+		pendingJobs = pj
 	}
 
 	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())

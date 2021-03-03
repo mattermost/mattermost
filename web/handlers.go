@@ -15,16 +15,18 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -107,15 +109,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.InitServer()
 
-	t, _ := utils.GetTranslationsAndLocale(w, r)
+	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.App.SetUserAgent(r.UserAgent())
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
-	c.Log = c.App.Log()
+	c.Logger = c.App.Log()
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
@@ -171,11 +173,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+
+		// Add unsafe-eval to the content security policy for faster source maps in development mode
+		devCSP := ""
+		if model.BuildNumber == "dev" {
+			devCSP = " 'unsafe-eval'"
+		}
+
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
 			cloudCSP,
 			h.cspShaDirective,
+			devCSP,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
@@ -188,10 +198,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
+		defer app.ReturnSessionToPool(session)
+
 		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
+			c.Logger.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
@@ -210,18 +222,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if len(token) != 0 && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Log.Warn("Invalid CWS token", mlog.Err(err))
+			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
 			c.App.SetSession(session)
 		}
 	}
 
-	c.Log = c.App.Log().With(
+	c.Logger = c.App.Log().With(
 		mlog.String("path", c.App.Path()),
 		mlog.String("request_id", c.App.RequestId()),
 		mlog.String("ip_addr", c.App.IpAddress()),
@@ -264,12 +276,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		c.Err.Translate(c.App.T)
 		c.Err.RequestId = c.App.RequestId()
-
-		if c.Err.Id == "api.context.session_expired.app_error" {
-			c.LogInfo(c.Err)
-		} else {
-			c.LogError(c.Err)
-		}
+		c.LogErrorByCode(c.Err)
 
 		c.Err.Where = r.URL.Path
 
@@ -288,7 +295,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
+		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -342,9 +349,9 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-				c.Log.Warn(csrfErrorMessage, fields...)
+				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
-				c.Log.Debug(csrfErrorMessage, fields...)
+				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
 		}

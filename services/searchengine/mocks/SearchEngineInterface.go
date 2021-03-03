@@ -64,6 +64,38 @@ func (_m *SearchEngineInterface) DeleteChannelPosts(channelID string) *model.App
 	return r0
 }
 
+// DeleteFile provides a mock function with given fields: fileID
+func (_m *SearchEngineInterface) DeleteFile(fileID string) *model.AppError {
+	ret := _m.Called(fileID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(fileID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeleteFilesBatch provides a mock function with given fields: endTime, limit
+func (_m *SearchEngineInterface) DeleteFilesBatch(endTime int64, limit int64) *model.AppError {
+	ret := _m.Called(endTime, limit)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(int64, int64) *model.AppError); ok {
+		r0 = rf(endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeletePost provides a mock function with given fields: post
 func (_m *SearchEngineInterface) DeletePost(post *model.Post) *model.AppError {
 	ret := _m.Called(post)
@@ -71,6 +103,22 @@ func (_m *SearchEngineInterface) DeletePost(post *model.Post) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(*model.Post) *model.AppError); ok {
 		r0 = rf(post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeletePostFiles provides a mock function with given fields: postID
+func (_m *SearchEngineInterface) DeletePostFiles(postID string) *model.AppError {
+	ret := _m.Called(postID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(postID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -96,6 +144,22 @@ func (_m *SearchEngineInterface) DeleteUser(user *model.User) *model.AppError {
 	return r0
 }
 
+// DeleteUserFiles provides a mock function with given fields: userID
+func (_m *SearchEngineInterface) DeleteUserFiles(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteUserPosts provides a mock function with given fields: userID
 func (_m *SearchEngineInterface) DeleteUserPosts(userID string) *model.AppError {
 	ret := _m.Called(userID)
@@ -112,6 +176,20 @@ func (_m *SearchEngineInterface) DeleteUserPosts(userID string) *model.AppError 
 	return r0
 }
 
+// GetFullVersion provides a mock function with given fields:
+func (_m *SearchEngineInterface) GetFullVersion() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetName provides a mock function with given fields:
 func (_m *SearchEngineInterface) GetName() string {
 	ret := _m.Called()
@@ -121,6 +199,22 @@ func (_m *SearchEngineInterface) GetName() string {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// GetPlugins provides a mock function with given fields:
+func (_m *SearchEngineInterface) GetPlugins() []string {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
 	return r0
@@ -147,6 +241,22 @@ func (_m *SearchEngineInterface) IndexChannel(channel *model.Channel) *model.App
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(*model.Channel) *model.AppError); ok {
 		r0 = rf(channel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// IndexFile provides a mock function with given fields: file, channelId
+func (_m *SearchEngineInterface) IndexFile(file *model.FileInfo, channelId string) *model.AppError {
+	ret := _m.Called(file, channelId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.FileInfo, string) *model.AppError); ok {
+		r0 = rf(file, channelId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -306,6 +416,31 @@ func (_m *SearchEngineInterface) SearchChannels(teamId string, term string) ([]s
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
 		r1 = rf(teamId, term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchFiles provides a mock function with given fields: channels, searchParams, page, perPage
+func (_m *SearchEngineInterface) SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page int, perPage int) ([]string, *model.AppError) {
+	ret := _m.Called(channels, searchParams, page, perPage)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(*model.ChannelList, []*model.SearchParams, int, int) []string); ok {
+		r0 = rf(channels, searchParams, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.ChannelList, []*model.SearchParams, int, int) *model.AppError); ok {
+		r1 = rf(channels, searchParams, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

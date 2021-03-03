@@ -56,7 +56,7 @@ func TestProgressiveRetry(t *testing.T) {
 
 			err := ProgressiveRetry(tt.args.operation)
 			if !tt.wantErr {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 
 			assert.Equal(t, tt.expectedRetries, retries)

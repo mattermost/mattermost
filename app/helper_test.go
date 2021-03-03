@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
-	"testing"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -23,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -56,6 +56,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	*config.PluginSettings.AutomaticPrepackagedPlugins = false
 	*config.LogSettings.EnableSentry = false // disable error reporting during tests
 	*config.AnnouncementSettings.AdminNoticesEnabled = false
 	*config.AnnouncementSettings.UserNoticesEnabled = false
@@ -130,18 +131,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th.App.InitServer()
 
 	return th
-}
-
-func SetupEnterprise(tb testing.TB) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-
-	return setupTestHelper(dbStore, true, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -239,9 +228,6 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(team); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -271,16 +257,10 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	var err *model.AppError
 	if guest {
 		if user, err = th.App.CreateGuest(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
 			panic(err)
 		}
 	} else {
 		if user, err = th.App.CreateUser(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
 			panic(err)
 		}
 	}
@@ -298,15 +278,10 @@ func (th *TestHelper) CreateBot() *model.Bot {
 		OwnerId:     th.BasicUser.Id,
 	}
 
-	th.App.Log().SetConsoleLevel(mlog.LevelError)
 	bot, err := th.App.CreateBot(bot)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
-	th.App.Log().SetConsoleLevel(mlog.LevelDebug)
 	return bot
 }
 
@@ -332,9 +307,6 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -346,9 +318,6 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -360,9 +329,6 @@ func (th *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -382,9 +348,6 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -402,9 +365,6 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -416,9 +376,6 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -430,9 +387,6 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 
 	err := th.App.RemoveUserFromTeam(team.Id, user.Id, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -444,9 +398,6 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := th.App.AddUserToChannel(user, channel)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -509,9 +460,6 @@ func (th *TestHelper) CreateGroup() *model.Group {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if group, err = th.App.CreateGroup(group); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -611,49 +559,45 @@ func (*TestHelper) ResetEmojisMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EmojisPermissionsMigrationKey}); err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(false)
-	require.Nil(t, err, "Failed to get team count.")
+	require.NoError(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
 	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	require.Nilf(t, err, "Failed to get channel count.")
+	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
 
 func (th *TestHelper) SetupTeamScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupChannelScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupPluginAPI() *PluginAPI {

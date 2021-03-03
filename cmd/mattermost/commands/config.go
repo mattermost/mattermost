@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -106,7 +107,7 @@ func init() {
 
 func configValidateCmdF(command *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	_, err := getConfigStore(command)
 	if err != nil {
@@ -145,7 +146,7 @@ func getConfigStore(command *cobra.Command) (*config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), false, nil)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), false, false, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}

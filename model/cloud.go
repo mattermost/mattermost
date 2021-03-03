@@ -6,6 +6,8 @@ package model
 const (
 	EventTypeFailedPayment       = "failed-payment"
 	EventTypeFailedPaymentNoCard = "failed-payment-no-card"
+	JoinLimitation               = "join"
+	InviteLimitation             = "invite"
 )
 
 // Product model represents a product on the cloud system.
@@ -127,4 +129,9 @@ type FailedPayment struct {
 	CardBrand      string `json:"card_brand"`
 	LastFour       int    `json:"last_four"`
 	FailureMessage string `json:"failure_message"`
+}
+
+type SubscriptionStats struct {
+	RemainingSeats int    `json:"remaining_seats"`
+	IsPaidTier     string `json:"is_paid_tier"`
 }

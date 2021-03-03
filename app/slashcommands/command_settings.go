@@ -4,16 +4,16 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type SettingsProvider struct {
 }
 
 const (
-	CMD_SETTINGS = "settings"
+	CmdSettings = "settings"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (settings *SettingsProvider) GetTrigger() string {
-	return CMD_SETTINGS
+	return CmdSettings
 }
 
-func (settings *SettingsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (settings *SettingsProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SETTINGS,
+		Trigger:          CmdSettings,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_settings.desc"),
 		AutoCompleteHint: "",

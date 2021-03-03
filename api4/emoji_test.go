@@ -11,14 +11,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestCreateEmoji(t *testing.T) {
@@ -130,7 +129,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too wide")
+	require.NotNil(t, resp.Error, "should fail - emoji is too wide")
 
 	// try to create an emoji that's too tall
 	emoji = &model.Emoji{
@@ -139,7 +138,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too tall")
+	require.NotNil(t, resp.Error, "should fail - emoji is too tall")
 
 	// try to create an emoji that's too large
 	emoji = &model.Emoji{
@@ -148,7 +147,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	_, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too big")
+	require.NotNil(t, resp.Error, "should fail - emoji is too big")
 
 	// try to create an emoji with data that isn't an image
 	emoji = &model.Emoji{
@@ -291,7 +290,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	_, resp = Client.GetEmoji(newEmoji.Id)
 	require.NotNil(t, resp, "nil response")
-	require.Error(t, resp.Error, "expected error fetching deleted emoji")
+	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
 
 	//Admin can delete other users emoji
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
@@ -303,7 +302,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetEmoji(newEmoji.Id)
 	require.NotNil(t, resp, "nil response")
-	require.Error(t, resp.Error, "expected error fetching deleted emoji")
+	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji
 	_, resp = Client.DeleteEmoji(newEmoji.Id)

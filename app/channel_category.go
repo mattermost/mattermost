@@ -6,35 +6,30 @@ package app
 import (
 	"errors"
 	"net/http"
-	"time"
-
-	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func (a *App) createInitialSidebarCategories(userId, teamId string) *model.AppError {
-	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userId, teamId)
-
+func (a *App) createInitialSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	categories, nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userID, teamID)
 	if nErr != nil {
-		return model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
+	return categories, nil
 }
 
-func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
-	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
-
+func (a *App) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	var appErr *model.AppError
+	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, teamID)
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		appErr := a.createInitialSidebarCategories(userId, teamId)
+		categories, appErr = a.createInitialSidebarCategories(userID, teamID)
 		if appErr != nil {
 			return nil, appErr
 		}
-
-		categories, err = a.waitForSidebarCategories(userId, teamId)
 	}
 
 	if err != nil {
@@ -50,34 +45,8 @@ func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebar
 	return categories, nil
 }
 
-// waitForSidebarCategories is used to get a user's sidebar categories after they've been created since there may be
-// replication lag if any database replicas exist. It will wait until results are available to return them.
-func (a *App) waitForSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	if len(a.Config().SqlSettings.DataSourceReplicas) == 0 {
-		// The categories should be available immediately on a single database
-		return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
-	}
-
-	now := model.GetMillis()
-
-	for model.GetMillis()-now < 12000 {
-		time.Sleep(100 * time.Millisecond)
-
-		categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
-
-		if err != nil || len(categories.Categories) > 0 {
-			// We've found something, so return
-			return categories, err
-		}
-	}
-
-	mlog.Error("waitForSidebarCategories giving up", mlog.String("user_id", userId), mlog.String("team_id", teamId))
-
-	return &model.OrderedSidebarCategories{}, nil
-}
-
-func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
-	categories, err := a.Srv().Store.Channel().GetSidebarCategoryOrder(userId, teamId)
+func (a *App) GetSidebarCategoryOrder(userID, teamID string) ([]string, *model.AppError) {
+	categories, err := a.Srv().Store.Channel().GetSidebarCategoryOrder(userID, teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -106,8 +75,8 @@ func (a *App) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithC
 	return category, nil
 }
 
-func (a *App) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
-	category, err := a.Srv().Store.Channel().CreateSidebarCategory(userId, teamId, newCategory)
+func (a *App) CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	category, err := a.Srv().Store.Channel().CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -117,14 +86,14 @@ func (a *App) CreateSidebarCategory(userId, teamId string, newCategory *model.Si
 			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_CREATED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_CREATED, teamID, "", userID, nil)
 	message.Add("category_id", category.Id)
 	a.Publish(message)
 	return category, nil
 }
 
-func (a *App) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
-	err := a.Srv().Store.Channel().UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
+func (a *App) UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) *model.AppError {
+	err := a.Srv().Store.Channel().UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -137,27 +106,27 @@ func (a *App) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED, teamID, "", userID, nil)
 	message.Add("order", categoryOrder)
 	a.Publish(message)
 	return nil
 }
 
-func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	updatedCategories, originalCategories, err := a.Srv().Store.Channel().UpdateSidebarCategories(userId, teamId, categories)
+func (a *App) UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	updatedCategories, originalCategories, err := a.Srv().Store.Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamID, "", userID, nil)
 	a.Publish(message)
 
-	a.muteChannelsForUpdatedCategories(userId, updatedCategories, originalCategories)
+	a.muteChannelsForUpdatedCategories(userID, updatedCategories, originalCategories)
 
 	return updatedCategories, nil
 }
 
-func (a *App) muteChannelsForUpdatedCategories(userId string, updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
+func (a *App) muteChannelsForUpdatedCategories(userID string, updatedCategories []*model.SidebarCategoryWithChannels, originalCategories []*model.SidebarCategoryWithChannels) {
 	var channelsToMute []string
 	var channelsToUnmute []string
 
@@ -192,35 +161,35 @@ func (a *App) muteChannelsForUpdatedCategories(userId string, updatedCategories 
 		updatedCategoriesById := makeCategoryMap(updatedCategories)
 		originalCategoriesById := makeCategoryMap(originalCategories)
 
-		for channelId, diff := range channelsDiff {
+		for channelID, diff := range channelsDiff {
 			fromCategory := originalCategoriesById[diff.fromCategoryId]
 			toCategory := updatedCategoriesById[diff.toCategoryId]
 
 			if toCategory.Muted && !fromCategory.Muted {
-				channelsToMute = append(channelsToMute, channelId)
+				channelsToMute = append(channelsToMute, channelID)
 			} else if !toCategory.Muted && fromCategory.Muted {
-				channelsToUnmute = append(channelsToUnmute, channelId)
+				channelsToUnmute = append(channelsToUnmute, channelID)
 			}
 		}
 	}
 
 	if len(channelsToMute) > 0 {
-		_, err := a.setChannelsMuted(channelsToMute, userId, true)
+		_, err := a.setChannelsMuted(channelsToMute, userID, true)
 		if err != nil {
 			mlog.Error(
 				"Failed to mute channels to match category",
-				mlog.String("user_id", userId),
+				mlog.String("user_id", userID),
 				mlog.Err(err),
 			)
 		}
 	}
 
 	if len(channelsToUnmute) > 0 {
-		_, err := a.setChannelsMuted(channelsToUnmute, userId, false)
+		_, err := a.setChannelsMuted(channelsToUnmute, userID, false)
 		if err != nil {
 			mlog.Error(
 				"Failed to unmute channels to match category",
-				mlog.String("user_id", userId),
+				mlog.String("user_id", userID),
 				mlog.Err(err),
 			)
 		}
@@ -237,8 +206,8 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	mapChannelIdsToCategories := func(categories []*model.SidebarCategoryWithChannels) map[string]string {
 		result := make(map[string]string)
 		for _, category := range categories {
-			for _, channelId := range category.Channels {
-				result[channelId] = category.Id
+			for _, channelID := range category.Channels {
+				result[channelID] = category.Id
 			}
 		}
 
@@ -251,18 +220,18 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	// Check for any channels that have changed categories. Note that we don't worry about any channels that have moved
 	// outside of these categories since that heavily complicates things and doesn't currently happen in our apps.
 	channelsDiff := make(map[string]*categoryChannelDiff)
-	for channelId, originalCategoryId := range originalChannelIdsMap {
-		updatedCategoryId := updatedChannelIdsMap[channelId]
+	for channelID, originalCategoryId := range originalChannelIdsMap {
+		updatedCategoryId := updatedChannelIdsMap[channelID]
 
 		if originalCategoryId != updatedCategoryId && updatedCategoryId != "" {
-			channelsDiff[channelId] = &categoryChannelDiff{originalCategoryId, updatedCategoryId}
+			channelsDiff[channelID] = &categoryChannelDiff{originalCategoryId, updatedCategoryId}
 		}
 	}
 
 	return channelsDiff
 }
 
-func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError {
+func (a *App) DeleteSidebarCategory(userID, teamID, categoryId string) *model.AppError {
 	err := a.Srv().Store.Channel().DeleteSidebarCategory(categoryId)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -274,7 +243,7 @@ func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.Ap
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED, teamID, "", userID, nil)
 	message.Add("category_id", categoryId)
 	a.Publish(message)
 

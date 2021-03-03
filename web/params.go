@@ -9,17 +9,18 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
-	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
-	PER_PAGE_MAXIMUM      = 200
-	LOGS_PER_PAGE_DEFAULT = 10000
-	LOGS_PER_PAGE_MAXIMUM = 10000
-	LIMIT_DEFAULT         = 60
-	LIMIT_MAXIMUM         = 200
+	PageDefault        = 0
+	PerPageDefault     = 60
+	PerPageMaximum     = 200
+	LogsPerPageDefault = 10000
+	LogsPerPageMaximum = 10000
+	LimitDefault       = 60
+	LimitMaximum       = 200
 )
 
 type Params struct {
@@ -82,6 +83,7 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+	ExportName                string
 
 	// Cloud
 	InvoiceId string
@@ -232,7 +234,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
-		params.Page = PAGE_DEFAULT
+		params.Page = PageDefault
 	} else {
 		params.Page = val
 	}
@@ -248,33 +250,33 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
-		params.PerPage = PER_PAGE_DEFAULT
-	} else if val > PER_PAGE_MAXIMUM {
-		params.PerPage = PER_PAGE_MAXIMUM
+		params.PerPage = PerPageDefault
+	} else if val > PerPageMaximum {
+		params.PerPage = PerPageMaximum
 	} else {
 		params.PerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
-		params.LogsPerPage = LOGS_PER_PAGE_DEFAULT
-	} else if val > LOGS_PER_PAGE_MAXIMUM {
-		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
+		params.LogsPerPage = LogsPerPageDefault
+	} else if val > LogsPerPageMaximum {
+		params.LogsPerPage = LogsPerPageMaximum
 	} else {
 		params.LogsPerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_after")); err != nil || val < 0 {
-		params.LimitAfter = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitAfter = LIMIT_MAXIMUM
+		params.LimitAfter = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitAfter = LimitMaximum
 	} else {
 		params.LimitAfter = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_before")); err != nil || val < 0 {
-		params.LimitBefore = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitBefore = LIMIT_MAXIMUM
+		params.LimitBefore = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitBefore = LimitMaximum
 	} else {
 		params.LimitBefore = val
 	}
@@ -343,6 +345,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["warn_metric_id"]; ok {
 		params.WarnMetricId = val
+	}
+
+	if val, ok := props["export_name"]; ok {
+		params.ExportName = val
 	}
 
 	return params

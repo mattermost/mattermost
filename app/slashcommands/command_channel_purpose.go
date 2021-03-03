@@ -4,17 +4,16 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type PurposeProvider struct {
 }
 
 const (
-	CMD_PURPOSE = "purpose"
+	CmdPurpose = "purpose"
 )
 
 func init() {
@@ -22,12 +21,12 @@ func init() {
 }
 
 func (*PurposeProvider) GetTrigger() string {
-	return CMD_PURPOSE
+	return CmdPurpose
 }
 
-func (*PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_PURPOSE,
+		Trigger:          CmdPurpose,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_purpose.desc"),
 		AutoCompleteHint: T("api.command_channel_purpose.hint"),
@@ -66,7 +65,7 @@ func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

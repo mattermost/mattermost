@@ -172,6 +172,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -712,6 +716,34 @@
     "translation": "Image links now collapse by default"
   },
   {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error setting the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error clearing the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Set or clear your status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] or clear"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Your status is set to “{{.EmojiName}} {{.StatusMessage}}”. You can change your status from the status popover in the channel sidebar header."
+  },
+  {
     "id": "api.command_dnd.desc",
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
@@ -1139,6 +1171,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1197,6 +1233,14 @@
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -1317,39 +1361,31 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "File does not exist."
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Unable to find export file."
   },
   {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Encountered an error opening the file."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Encountered an error appending to a file in S3."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Encountered an error writing to S3."
+    "id": "api.file.append_file.app_error",
+    "translation": "Unable to append data to the file."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
+    "id": "api.file.file_exists.app_error",
     "translation": "Unable to check if the file exists."
   },
   {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to check if the file exists."
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Unable to get last modification time for file."
   },
   {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Unable to get the file size."
+    "id": "api.file.file_reader.app_error",
+    "translation": "Unable to get a file reader."
   },
   {
-    "id": "api.file.file_size.s3.app_error",
+    "id": "api.file.file_size.app_error",
     "translation": "Unable to get the file size."
   },
   {
@@ -1373,56 +1409,36 @@
     "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Unable to copy file within S3."
+    "id": "api.file.list_directory.app_error",
+    "translation": "Unable to list directory."
   },
   {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Unable to delete file from S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Unable to move file locally."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Encountered an error opening a connection to S3."
+    "id": "api.file.move_file.app_error",
+    "translation": "Unable to move file."
   },
   {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
   {
+    "id": "api.file.read_file.app_error",
+    "translation": "Unable to read the file."
+  },
+  {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server file storage."
   },
   {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Encountered an error reading from S3 storage."
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Unable to remove the directory."
   },
   {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Encountered an error opening a reader from local server file storage."
+    "id": "api.file.remove_file.app_error",
+    "translation": "Unable to remove the file."
   },
   {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Encountered an error opening a reader from S3 storage."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Don't have permissions to write to local path specified or other error."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Unable to create bucket."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Error checking if bucket exists."
-  },
-  {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Error trying to list objects."
+    "id": "api.file.test_connection.app_error",
+    "translation": "Unable to access the file storage."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -1465,16 +1481,12 @@
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Encountered an error writing to S3."
+    "id": "api.file.write_file.app_error",
+    "translation": "Unable to write the file."
   },
   {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Encountered an error writing to local server storage."
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
   },
   {
     "id": "api.image.get.app_error",
@@ -1493,12 +1505,24 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme has been provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
   {
     "id": "api.job.unable_to_download_job",
     "translation": "Unable to download this job"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "The job type you are trying to download is not supported at the moment"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -1573,6 +1597,10 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error getting the license renewal link"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -1593,6 +1621,10 @@
     "translation": "Unable to migrate SAML."
   },
   {
+    "id": "api.no_license",
+    "translation": "E10 or E20 license required to use this endpoint."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -1601,8 +1633,16 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1663,6 +1703,10 @@
   {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1827,6 +1871,14 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "This feature is in development, and is only available using a feature flag."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -1953,10 +2005,6 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
-  },
-  {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "System Admin role cannot be edited or changed"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2603,6 +2651,10 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+  },
+  {
     "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
   },
@@ -2612,7 +2664,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -2661,6 +2713,10 @@
   {
     "id": "api.templates.email_footer",
     "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -2907,12 +2963,20 @@
     "translation": "Go To Post"
   },
   {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Email us any time at "
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Questions?"
+  },
+  {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -2959,6 +3023,26 @@
     "translation": "Upgrade"
   },
   {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost user request upgrade of workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "New users are unable to join your workspace"
+  },
+  {
     "id": "api.templates.user_access_token_body.info",
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
@@ -2988,11 +3072,27 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Verify your email address"
   },
   {
     "id": "api.templates.verify_subject",
@@ -3027,8 +3127,16 @@
     "translation": "Mattermost Contact Us request"
   },
   {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Download"
+  },
+  {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Download the desktop and mobile apps"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3036,23 +3144,39 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
+    "id": "api.templates.welcome_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Welcome to the team"
   },
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Error creating zip file."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Error reading file from backend"
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -3264,7 +3388,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": ""
+    "translation": "Error retreiving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -3435,6 +3559,10 @@
     "translation": "Failed to send update password email successfully"
   },
   {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Failed to send email to user limit notification to admin"
+  },
+  {
     "id": "api.user.send_user_access_token.error",
     "translation": "Failed to send \"Personal access token added\" email successfully"
   },
@@ -3499,6 +3627,10 @@
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Request is missing either AuthData or AuthService parameter."
+  },
+  {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Custom Permission Schemes not supported by current license"
   },
@@ -3557,6 +3689,10 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Invalid Origin header set during websocket upgrade."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -4071,6 +4207,22 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Failed to copy file during export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Failed to create file during export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Failed to create directory during export."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Failed to create zip header during export."
+  },
+  {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
   },
@@ -4081,6 +4233,14 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Unable to marshal response."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Failed to add file to zip archive during export."
   },
   {
     "id": "app.file_info.get.app_error",
@@ -4129,6 +4289,10 @@
   {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Failed to read file attachment during import."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -4719,6 +4883,18 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Failed to generate a new renewal token."
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "This type of license doesn't support renewal token generation"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "No license present"
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -5041,6 +5217,10 @@
   {
     "id": "app.post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -5619,6 +5799,10 @@
     "translation": "Unable to get user threads"
   },
   {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "User thread doesn't exist or is not followed"
+  },
+  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
   },
@@ -5667,6 +5851,10 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
+    "id": "app.user.send_emails.app_error",
+    "translation": "No emails were successfully sent"
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
@@ -5689,10 +5877,6 @@
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "Unable to update the user password."
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
@@ -5855,6 +6039,10 @@
     "translation": "Error creating the bleve channel index."
   },
   {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Error creating the bleve file index."
+  },
+  {
     "id": "bleveengine.create_post_index.error",
     "translation": "Error creating the bleve post index."
   },
@@ -5871,12 +6059,28 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Failed to delete the file."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Failed to delete the files."
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Failed to delete the post files."
+  },
+  {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Failed to delete the user files."
   },
   {
     "id": "bleveengine.delete_user_posts.error",
@@ -5885,6 +6089,10 @@
   {
     "id": "bleveengine.index_channel.error",
     "translation": "Failed to index the channel."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Failed to index the file."
   },
   {
     "id": "bleveengine.index_post.error",
@@ -5897,6 +6105,10 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
     "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Failed to index file batch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
@@ -5931,6 +6143,10 @@
     "translation": "Failed to purge channel indexes."
   },
   {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Failed to purge file indexes."
+  },
+  {
     "id": "bleveengine.purge_post_index.error",
     "translation": "Failed to purge post indexes."
   },
@@ -5941,6 +6157,10 @@
   {
     "id": "bleveengine.search_channels.error",
     "translation": "Channel search failed to complete."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "File search failed to complete."
   },
   {
     "id": "bleveengine.search_posts.error",
@@ -5961,6 +6181,10 @@
   {
     "id": "bleveengine.stop_channel_index.error",
     "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Failed to close file index."
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -6013,6 +6237,10 @@
   {
     "id": "ent.actiance.export.marshalToXml.appError",
     "translation": "Unable to convert export to XML."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Unable to write the export file."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -6095,6 +6323,10 @@
     "translation": "Unable to create the warning file."
   },
   {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Unable to write the csv file."
+  },
+  {
     "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Unable to create the zip export file."
   },
@@ -6109,6 +6341,10 @@
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
     "translation": "Unable to re-read the Global Relay temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Unable to write the global relay file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -6171,6 +6407,10 @@
     "translation": "Failed to create Elasticsearch template for channels"
   },
   {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for files"
+  },
+  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
     "translation": "Failed to create Elasticsearch template for posts"
   },
@@ -6195,12 +6435,24 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Failed to delete file"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Failed to delete post files"
+  },
+  {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Failed to delete user files"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -6217,6 +6469,10 @@
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Unable to get the channels batch for indexing."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Failed to index the file"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -6247,6 +6503,10 @@
     "translation": "Elasticsearch is not started"
   },
   {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
+  },
+  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Unable to get the posts batch for indexing."
   },
@@ -6268,6 +6528,18 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch files searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Failed to decode search results"
   },
   {
@@ -6531,6 +6803,10 @@
     "translation": "Unable to set the email To address."
   },
   {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Unable to connect to the smtp server"
+  },
+  {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
     "translation": "Unable to get the information of the export temporary file."
   },
@@ -6647,6 +6923,10 @@
     "translation": "Unable to complete SAML login with an empty email address."
   },
   {
+    "id": "error",
+    "translation": "Error"
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
@@ -6727,32 +7007,20 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token."
+    "id": "mfa.activate.app_error",
+    "translation": "Unable to update MFA active status for the user."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Invalid MFA token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
+    "id": "mfa.deactivate.app_error",
     "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generating QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -7163,6 +7431,14 @@
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
   {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Value for Directory should not be empty."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Invalid value for RetentionDays. Value should be greater than 0"
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
   },
@@ -7377,6 +7653,10 @@
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
@@ -7780,7 +8060,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -7861,6 +8141,10 @@
   {
     "id": "model.reaction.is_valid.post_id.app_error",
     "translation": "Invalid post id."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
@@ -8215,6 +8499,10 @@
     "translation": "Command does not exist."
   },
   {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Searching files has been disabled on this server. Please contact your System Administrator."
+  },
+  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
@@ -8233,70 +8521,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Encountered an error removing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Encountered an error removing file from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Failed to open TLS connection."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Failed to authenticate on SMTP server."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Failed to close connection to SMTP server."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email message data."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\"."
   },
   {
     "id": "web.command_webhook.command.app_error",

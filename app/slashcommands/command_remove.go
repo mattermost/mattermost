@@ -6,11 +6,10 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type RemoveProvider struct {
@@ -20,8 +19,8 @@ type KickProvider struct {
 }
 
 const (
-	CMD_REMOVE = "remove"
-	CMD_KICK   = "kick"
+	CmdRemove = "remove"
+	CmdKick   = "kick"
 )
 
 func init() {
@@ -30,16 +29,16 @@ func init() {
 }
 
 func (*RemoveProvider) GetTrigger() string {
-	return CMD_REMOVE
+	return CmdRemove
 }
 
 func (*KickProvider) GetTrigger() string {
-	return CMD_KICK
+	return CmdKick
 }
 
-func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*RemoveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_REMOVE,
+		Trigger:          CmdRemove,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_remove.desc"),
 		AutoCompleteHint: T("api.command_remove.hint"),
@@ -47,9 +46,9 @@ func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_KICK,
+		Trigger:          CmdKick,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_remove.desc"),
 		AutoCompleteHint: T("api.command_remove.hint"),
@@ -96,7 +95,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

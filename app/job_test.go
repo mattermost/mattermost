@@ -6,8 +6,9 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetJob(t *testing.T) {
@@ -19,12 +20,12 @@ func TestGetJob(t *testing.T) {
 		Status: model.NewId(),
 	}
 	_, err := th.App.Srv().Store.Job().Save(status)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	defer th.App.Srv().Store.Job().Delete(status.Id)
 
-	received, err := th.App.GetJob(status.Id)
-	require.Nil(t, err)
+	received, appErr := th.App.GetJob(status.Id)
+	require.Nil(t, appErr)
 	require.Equal(t, status, received, "incorrect job status received")
 }
 
@@ -54,7 +55,7 @@ func TestGetJobByType(t *testing.T) {
 
 	for _, status := range statuses {
 		_, err := th.App.Srv().Store.Job().Save(status)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(status.Id)
 	}
 
