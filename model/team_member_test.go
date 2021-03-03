@@ -21,11 +21,11 @@ func TestTeamMemberJson(t *testing.T) {
 func TestTeamMemberIsValid(t *testing.T) {
 	o := TeamMember{}
 
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.TeamId = NewId()
 
-	require.Error(t, o.IsValid(), "should be invalid")
+	require.NotNil(t, o.IsValid(), "should be invalid")
 }
 
 func TestUnreadMemberJson(t *testing.T) {

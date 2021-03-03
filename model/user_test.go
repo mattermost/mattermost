@@ -126,11 +126,11 @@ func TestUserIsValid(t *testing.T) {
 	require.True(t, HasExpectedUserIsValidError(err, "nickname", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Nickname = strings.Repeat("a", 64)
-	require.Error(t, user.IsValid())
+	require.Nil(t, user.IsValid())
 
 	user.FirstName = ""
 	user.LastName = ""
-	require.Error(t, user.IsValid())
+	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
 	err = user.IsValid()
@@ -143,7 +143,7 @@ func TestUserIsValid(t *testing.T) {
 
 	user.LastName = strings.Repeat("a", 64)
 	user.Position = strings.Repeat("a", 128)
-	require.Error(t, user.IsValid())
+	require.Nil(t, user.IsValid())
 
 	user.Position = strings.Repeat("a", 129)
 	err = user.IsValid()

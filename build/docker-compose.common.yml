@@ -48,7 +48,7 @@ services:
     networks:
       - mm-test
   openldap:
-    image: "osixia/openldap:1.2.2"
+    image: "osixia/openldap:1.4.0"
     restart: always
     networks:
       - mm-test
