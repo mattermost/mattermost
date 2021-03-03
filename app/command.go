@@ -191,19 +191,19 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	}
 	trigger = strings.TrimPrefix(trigger, "/")
 
-	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+	clientTriggerID, triggerID, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
 		mlog.Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
-	args.TriggerId = triggerId
+	args.TriggerId = triggerID
 
 	// Plugins can override built in and custom commands
 	cmd, response, appErr := a.tryExecutePluginCommand(args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
-		response.TriggerId = clientTriggerId
+		response.TriggerId = clientTriggerID
 		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
@@ -212,7 +212,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
-		response.TriggerId = clientTriggerId
+		response.TriggerId = clientTriggerID
 		return a.HandleCommandResponse(cmd, args, response, false)
 	}
 
@@ -229,7 +229,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap {
 	type mentionMapItem struct {
 		Name string
-		Id   string
+		ID   string
 	}
 
 	possibleMentions := model.PossibleAtMentions(message)
@@ -290,7 +290,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 
 	atMentionMap := make(model.UserMentionMap)
 	for mention := range mentionChan {
-		atMentionMap[mention.Name] = mention.Id
+		atMentionMap[mention.Name] = mention.ID
 	}
 
 	return atMentionMap
@@ -301,7 +301,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 func (a *App) MentionsToPublicChannels(message, teamID string) model.ChannelMentionMap {
 	type mentionMapItem struct {
 		Name string
-		Id   string
+		ID   string
 	}
 
 	channelMentions := model.ChannelMentions(message)
@@ -330,7 +330,7 @@ func (a *App) MentionsToPublicChannels(message, teamID string) model.ChannelMent
 
 	channelMentionMap := make(model.ChannelMentionMap)
 	for mention := range mentionChan {
-		channelMentionMap[mention.Name] = mention.Id
+		channelMentionMap[mention.Name] = mention.ID
 	}
 
 	return channelMentionMap

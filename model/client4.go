@@ -4148,7 +4148,7 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 }
 
 // GetGroupsByUserId retrieves Mattermost Groups for a user
-func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
+func (c *Client4) GetGroupsByUserID(userId string) ([]*Group, *Response) {
 	path := fmt.Sprintf(
 		"%s/%v/groups",
 		c.GetUsersRoute(),

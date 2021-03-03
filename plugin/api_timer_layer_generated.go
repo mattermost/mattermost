@@ -42,9 +42,9 @@ func (api *apiTimerLayer) RegisterCommand(command *model.Command) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UnregisterCommand(teamId, trigger string) error {
+func (api *apiTimerLayer) UnregisterCommand(teamID, trigger string) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UnregisterCommand(teamId, trigger)
+	_returnsA := api.apiImpl.UnregisterCommand(teamID, trigger)
 	api.recordTime(startTime, "UnregisterCommand", _returnsA == nil)
 	return _returnsA
 }
@@ -56,9 +56,9 @@ func (api *apiTimerLayer) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetSession(sessionId string) (*model.Session, *model.AppError) {
+func (api *apiTimerLayer) GetSession(sessionID string) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSession(sessionId)
+	_returnsA, _returnsB := api.apiImpl.GetSession(sessionID)
 	api.recordTime(startTime, "GetSession", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -147,9 +147,9 @@ func (api *apiTimerLayer) CreateUser(user *model.User) (*model.User, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteUser(userId string) *model.AppError {
+func (api *apiTimerLayer) DeleteUser(userID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteUser(userId)
+	_returnsA := api.apiImpl.DeleteUser(userID)
 	api.recordTime(startTime, "DeleteUser", _returnsA == nil)
 	return _returnsA
 }
@@ -161,9 +161,9 @@ func (api *apiTimerLayer) GetUsers(options *model.UserGetOptions) ([]*model.User
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUser(userId string) (*model.User, *model.AppError) {
+func (api *apiTimerLayer) GetUser(userID string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUser(userId)
+	_returnsA, _returnsB := api.apiImpl.GetUser(userID)
 	api.recordTime(startTime, "GetUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -189,51 +189,51 @@ func (api *apiTimerLayer) GetUsersByUsernames(usernames []string) ([]*model.User
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (api *apiTimerLayer) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUsersInTeam(teamId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetUsersInTeam(teamID, page, perPage)
 	api.recordTime(startTime, "GetUsersInTeam", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+func (api *apiTimerLayer) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPreferencesForUser(userId)
+	_returnsA, _returnsB := api.apiImpl.GetPreferencesForUser(userID)
 	api.recordTime(startTime, "GetPreferencesForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+func (api *apiTimerLayer) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UpdatePreferencesForUser(userId, preferences)
+	_returnsA := api.apiImpl.UpdatePreferencesForUser(userID, preferences)
 	api.recordTime(startTime, "UpdatePreferencesForUser", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeletePreferencesForUser(userId, preferences)
+	_returnsA := api.apiImpl.DeletePreferencesForUser(userID, preferences)
 	api.recordTime(startTime, "DeletePreferencesForUser", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+func (api *apiTimerLayer) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamIcon(teamId)
+	_returnsA, _returnsB := api.apiImpl.GetTeamIcon(teamID)
 	api.recordTime(startTime, "GetTeamIcon", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SetTeamIcon(teamId string, data []byte) *model.AppError {
+func (api *apiTimerLayer) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetTeamIcon(teamId, data)
+	_returnsA := api.apiImpl.SetTeamIcon(teamID, data)
 	api.recordTime(startTime, "SetTeamIcon", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) RemoveTeamIcon(teamId string) *model.AppError {
+func (api *apiTimerLayer) RemoveTeamIcon(teamID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RemoveTeamIcon(teamId)
+	_returnsA := api.apiImpl.RemoveTeamIcon(teamID)
 	api.recordTime(startTime, "RemoveTeamIcon", _returnsA == nil)
 	return _returnsA
 }
@@ -245,44 +245,44 @@ func (api *apiTimerLayer) UpdateUser(user *model.User) (*model.User, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUserStatus(userId string) (*model.Status, *model.AppError) {
+func (api *apiTimerLayer) GetUserStatus(userID string) (*model.Status, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUserStatus(userId)
+	_returnsA, _returnsB := api.apiImpl.GetUserStatus(userID)
 	api.recordTime(startTime, "GetUserStatus", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (api *apiTimerLayer) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUserStatusesByIds(userIds)
+	_returnsA, _returnsB := api.apiImpl.GetUserStatusesByIds(userIDs)
 	api.recordTime(startTime, "GetUserStatusesByIds", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateUserStatus(userId, status string) (*model.Status, *model.AppError) {
+func (api *apiTimerLayer) UpdateUserStatus(userID, status string) (*model.Status, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateUserStatus(userId, status)
+	_returnsA, _returnsB := api.apiImpl.UpdateUserStatus(userID, status)
 	api.recordTime(startTime, "UpdateUserStatus", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateUserActive(userId string, active bool) *model.AppError {
+func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UpdateUserActive(userId, active)
+	_returnsA := api.apiImpl.UpdateUserActive(userID, active)
 	api.recordTime(startTime, "UpdateUserActive", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+func (api *apiTimerLayer) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUsersInChannel(channelId, sortBy, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetUsersInChannel(channelID, sortBy, page, perPage)
 	api.recordTime(startTime, "GetUsersInChannel", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+func (api *apiTimerLayer) GetLDAPUserAttributes(userID string, attributes []string) (map[string]string, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetLDAPUserAttributes(userId, attributes)
+	_returnsA, _returnsB := api.apiImpl.GetLDAPUserAttributes(userID, attributes)
 	api.recordTime(startTime, "GetLDAPUserAttributes", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -294,9 +294,9 @@ func (api *apiTimerLayer) CreateTeam(team *model.Team) (*model.Team, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteTeam(teamId string) *model.AppError {
+func (api *apiTimerLayer) DeleteTeam(teamID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteTeam(teamId)
+	_returnsA := api.apiImpl.DeleteTeam(teamID)
 	api.recordTime(startTime, "DeleteTeam", _returnsA == nil)
 	return _returnsA
 }
@@ -308,9 +308,9 @@ func (api *apiTimerLayer) GetTeams() ([]*model.Team, *model.AppError) {
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeam(teamId string) (*model.Team, *model.AppError) {
+func (api *apiTimerLayer) GetTeam(teamID string) (*model.Team, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeam(teamId)
+	_returnsA, _returnsB := api.apiImpl.GetTeam(teamID)
 	api.recordTime(startTime, "GetTeam", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -322,9 +322,9 @@ func (api *apiTimerLayer) GetTeamByName(name string) (*model.Team, *model.AppErr
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+func (api *apiTimerLayer) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamsUnreadForUser(userId)
+	_returnsA, _returnsB := api.apiImpl.GetTeamsUnreadForUser(userID)
 	api.recordTime(startTime, "GetTeamsUnreadForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -343,65 +343,65 @@ func (api *apiTimerLayer) SearchTeams(term string) ([]*model.Team, *model.AppErr
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+func (api *apiTimerLayer) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamsForUser(userId)
+	_returnsA, _returnsB := api.apiImpl.GetTeamsForUser(userID)
 	api.recordTime(startTime, "GetTeamsForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateTeamMember(teamId, userId)
+	_returnsA, _returnsB := api.apiImpl.CreateTeamMember(teamID, userID)
 	api.recordTime(startTime, "CreateTeamMember", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) CreateTeamMembers(teamID string, userIds []string, requestorID string) ([]*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateTeamMembers(teamId, userIds, requestorId)
+	_returnsA, _returnsB := api.apiImpl.CreateTeamMembers(teamID, userIds, requestorID)
 	api.recordTime(startTime, "CreateTeamMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
+func (api *apiTimerLayer) CreateTeamMembersGracefully(teamID string, userIds []string, requestorID string) ([]*model.TeamMemberWithError, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateTeamMembersGracefully(teamId, userIds, requestorId)
+	_returnsA, _returnsB := api.apiImpl.CreateTeamMembersGracefully(teamID, userIds, requestorID)
 	api.recordTime(startTime, "CreateTeamMembersGracefully", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
+func (api *apiTimerLayer) DeleteTeamMember(teamID, userID, requestorID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteTeamMember(teamId, userId, requestorId)
+	_returnsA := api.apiImpl.DeleteTeamMember(teamID, userID, requestorID)
 	api.recordTime(startTime, "DeleteTeamMember", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamMembers(teamId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetTeamMembers(teamID, page, perPage)
 	api.recordTime(startTime, "GetTeamMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamMember(teamId, userId)
+	_returnsA, _returnsB := api.apiImpl.GetTeamMember(teamID, userID)
 	api.recordTime(startTime, "GetTeamMember", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) GetTeamMembersForUser(userID string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamMembersForUser(userId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetTeamMembersForUser(userID, page, perPage)
 	api.recordTime(startTime, "GetTeamMembersForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
+func (api *apiTimerLayer) UpdateTeamMemberRoles(teamID, userID, newRoles string) (*model.TeamMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateTeamMemberRoles(teamId, userId, newRoles)
+	_returnsA, _returnsB := api.apiImpl.UpdateTeamMemberRoles(teamID, userID, newRoles)
 	api.recordTime(startTime, "UpdateTeamMemberRoles", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -413,30 +413,30 @@ func (api *apiTimerLayer) CreateChannel(channel *model.Channel) (*model.Channel,
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteChannel(channelId string) *model.AppError {
+func (api *apiTimerLayer) DeleteChannel(channelID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteChannel(channelId)
+	_returnsA := api.apiImpl.DeleteChannel(channelID)
 	api.recordTime(startTime, "DeleteChannel", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPublicChannelsForTeam(teamId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetPublicChannelsForTeam(teamID, page, perPage)
 	api.recordTime(startTime, "GetPublicChannelsForTeam", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannel(channelId string) (*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetChannel(channelID string) (*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannel(channelId)
+	_returnsA, _returnsB := api.apiImpl.GetChannel(channelID)
 	api.recordTime(startTime, "GetChannel", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelByName(teamId, name, includeDeleted)
+	_returnsA, _returnsB := api.apiImpl.GetChannelByName(teamID, name, includeDeleted)
 	api.recordTime(startTime, "GetChannelByName", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -448,23 +448,23 @@ func (api *apiTimerLayer) GetChannelByNameForTeamName(teamName, channelName stri
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetChannelsForTeamForUser(teamID, userID string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelsForTeamForUser(teamId, userId, includeDeleted)
+	_returnsA, _returnsB := api.apiImpl.GetChannelsForTeamForUser(teamID, userID, includeDeleted)
 	api.recordTime(startTime, "GetChannelsForTeamForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
+func (api *apiTimerLayer) GetChannelStats(channelID string) (*model.ChannelStats, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelStats(channelId)
+	_returnsA, _returnsB := api.apiImpl.GetChannelStats(channelID)
 	api.recordTime(startTime, "GetChannelStats", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetDirectChannel(userId1, userId2)
+	_returnsA, _returnsB := api.apiImpl.GetDirectChannel(userID1, userID2)
 	api.recordTime(startTime, "GetDirectChannel", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -483,9 +483,9 @@ func (api *apiTimerLayer) UpdateChannel(channel *model.Channel) (*model.Channel,
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchChannels(teamId, term)
+	_returnsA, _returnsB := api.apiImpl.SearchChannels(teamID, term)
 	api.recordTime(startTime, "SearchChannels", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -497,79 +497,79 @@ func (api *apiTimerLayer) SearchUsers(search *model.UserSearch) ([]*model.User, 
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+func (api *apiTimerLayer) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeam(teamId, paramsList)
+	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeam(teamID, paramsList)
 	api.recordTime(startTime, "SearchPostsInTeam", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+func (api *apiTimerLayer) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeamForUser(teamId, userId, searchParams)
+	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeamForUser(teamID, userID, searchParams)
 	api.recordTime(startTime, "SearchPostsInTeamForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.AddChannelMember(channelId, userId)
+	_returnsA, _returnsB := api.apiImpl.AddChannelMember(channelID, userID)
 	api.recordTime(startTime, "AddChannelMember", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) AddUserToChannel(channelId, userId, asUserId string) (*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) AddUserToChannel(channelID, userID, asuserID string) (*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.AddUserToChannel(channelId, userId, asUserId)
+	_returnsA, _returnsB := api.apiImpl.AddUserToChannel(channelID, userID, asuserID)
 	api.recordTime(startTime, "AddUserToChannel", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelMember(channelId, userId)
+	_returnsA, _returnsB := api.apiImpl.GetChannelMember(channelID, userID)
 	api.recordTime(startTime, "GetChannelMember", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelMembers(channelId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetChannelMembers(channelID, page, perPage)
 	api.recordTime(startTime, "GetChannelMembers", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembersByIds(channelID string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelMembersByIds(channelId, userIds)
+	_returnsA, _returnsB := api.apiImpl.GetChannelMembersByIds(channelID, userIds)
 	api.recordTime(startTime, "GetChannelMembersByIds", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) GetChannelMembersForUser(teamID, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetChannelMembersForUser(teamId, userId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetChannelMembersForUser(teamID, userID, page, perPage)
 	api.recordTime(startTime, "GetChannelMembersForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberRoles(channelId, userId, newRoles)
+	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberRoles(channelID, userID, newRoles)
 	api.recordTime(startTime, "UpdateChannelMemberRoles", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+func (api *apiTimerLayer) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberNotifications(channelId, userId, notifications)
+	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberNotifications(channelID, userID, notifications)
 	api.recordTime(startTime, "UpdateChannelMemberNotifications", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppError) {
+func (api *apiTimerLayer) GetGroup(groupID string) (*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetGroup(groupId)
+	_returnsA, _returnsB := api.apiImpl.GetGroup(groupID)
 	api.recordTime(startTime, "GetGroup", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -581,16 +581,16 @@ func (api *apiTimerLayer) GetGroupByName(name string) (*model.Group, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
+func (api *apiTimerLayer) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetGroupsForUser(userId)
+	_returnsA, _returnsB := api.apiImpl.GetGroupsForUser(userID)
 	api.recordTime(startTime, "GetGroupsForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteChannelMember(channelId, userId string) *model.AppError {
+func (api *apiTimerLayer) DeleteChannelMember(channelID, userID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteChannelMember(channelId, userId)
+	_returnsA := api.apiImpl.DeleteChannelMember(channelID, userID)
 	api.recordTime(startTime, "DeleteChannelMember", _returnsA == nil)
 	return _returnsA
 }
@@ -616,85 +616,85 @@ func (api *apiTimerLayer) RemoveReaction(reaction *model.Reaction) *model.AppErr
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+func (api *apiTimerLayer) GetReactions(postID string) ([]*model.Reaction, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetReactions(postId)
+	_returnsA, _returnsB := api.apiImpl.GetReactions(postID)
 	api.recordTime(startTime, "GetReactions", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+func (api *apiTimerLayer) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SendEphemeralPost(userId, post)
+	_returnsA := api.apiImpl.SendEphemeralPost(userID, post)
 	api.recordTime(startTime, "SendEphemeralPost", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+func (api *apiTimerLayer) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UpdateEphemeralPost(userId, post)
+	_returnsA := api.apiImpl.UpdateEphemeralPost(userID, post)
 	api.recordTime(startTime, "UpdateEphemeralPost", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) DeleteEphemeralPost(userId, postId string) {
+func (api *apiTimerLayer) DeleteEphemeralPost(userID, postID string) {
 	startTime := timePkg.Now()
-	api.apiImpl.DeleteEphemeralPost(userId, postId)
+	api.apiImpl.DeleteEphemeralPost(userID, postID)
 	api.recordTime(startTime, "DeleteEphemeralPost", true)
 }
 
-func (api *apiTimerLayer) DeletePost(postId string) *model.AppError {
+func (api *apiTimerLayer) DeletePost(postID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeletePost(postId)
+	_returnsA := api.apiImpl.DeletePost(postID)
 	api.recordTime(startTime, "DeletePost", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostThread(postID string) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostThread(postId)
+	_returnsA, _returnsB := api.apiImpl.GetPostThread(postID)
 	api.recordTime(startTime, "GetPostThread", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPost(postId string) (*model.Post, *model.AppError) {
+func (api *apiTimerLayer) GetPost(postID string) (*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPost(postId)
+	_returnsA, _returnsB := api.apiImpl.GetPost(postID)
 	api.recordTime(startTime, "GetPost", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostsSince(channelId, time)
+	_returnsA, _returnsB := api.apiImpl.GetPostsSince(channelID, time)
 	api.recordTime(startTime, "GetPostsSince", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostsAfter(channelId, postId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetPostsAfter(channelID, postID, page, perPage)
 	api.recordTime(startTime, "GetPostsAfter", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostsBefore(channelId, postId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetPostsBefore(channelID, postID, page, perPage)
 	api.recordTime(startTime, "GetPostsBefore", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostsForChannel(channelId, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetPostsForChannel(channelID, page, perPage)
 	api.recordTime(startTime, "GetPostsForChannel", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+func (api *apiTimerLayer) GetTeamStats(teamID string) (*model.TeamStats, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetTeamStats(teamId)
+	_returnsA, _returnsB := api.apiImpl.GetTeamStats(teamID)
 	api.recordTime(startTime, "GetTeamStats", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -706,16 +706,16 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetProfileImage(userId string) ([]byte, *model.AppError) {
+func (api *apiTimerLayer) GetProfileImage(userID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetProfileImage(userId)
+	_returnsA, _returnsB := api.apiImpl.GetProfileImage(userID)
 	api.recordTime(startTime, "GetProfileImage", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SetProfileImage(userId string, data []byte) *model.AppError {
+func (api *apiTimerLayer) SetProfileImage(userID string, data []byte) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetProfileImage(userId, data)
+	_returnsA := api.apiImpl.SetProfileImage(userID, data)
 	api.recordTime(startTime, "SetProfileImage", _returnsA == nil)
 	return _returnsA
 }
@@ -734,23 +734,23 @@ func (api *apiTimerLayer) GetEmojiByName(name string) (*model.Emoji, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+func (api *apiTimerLayer) GetEmoji(emojiID string) (*model.Emoji, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetEmoji(emojiId)
+	_returnsA, _returnsB := api.apiImpl.GetEmoji(emojiID)
 	api.recordTime(startTime, "GetEmoji", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+func (api *apiTimerLayer) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CopyFileInfos(userId, fileIds)
+	_returnsA, _returnsB := api.apiImpl.CopyFileInfos(userID, fileIds)
 	api.recordTime(startTime, "CopyFileInfos", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+func (api *apiTimerLayer) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetFileInfo(fileId)
+	_returnsA, _returnsB := api.apiImpl.GetFileInfo(fileID)
 	api.recordTime(startTime, "GetFileInfo", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -762,16 +762,16 @@ func (api *apiTimerLayer) GetFileInfos(page, perPage int, opt *model.GetFileInfo
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetFile(fileId string) ([]byte, *model.AppError) {
+func (api *apiTimerLayer) GetFile(fileID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetFile(fileId)
+	_returnsA, _returnsB := api.apiImpl.GetFile(fileID)
 	api.recordTime(startTime, "GetFile", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetFileLink(fileId string) (string, *model.AppError) {
+func (api *apiTimerLayer) GetFileLink(fileID string) (string, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetFileLink(fileId)
+	_returnsA, _returnsB := api.apiImpl.GetFileLink(fileID)
 	api.recordTime(startTime, "GetFileLink", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -783,16 +783,16 @@ func (api *apiTimerLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+func (api *apiTimerLayer) GetEmojiImage(emojiID string) ([]byte, string, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB, _returnsC := api.apiImpl.GetEmojiImage(emojiId)
+	_returnsA, _returnsB, _returnsC := api.apiImpl.GetEmojiImage(emojiID)
 	api.recordTime(startTime, "GetEmojiImage", _returnsC == nil)
 	return _returnsA, _returnsB, _returnsC
 }
 
-func (api *apiTimerLayer) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+func (api *apiTimerLayer) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UploadFile(data, channelId, filename)
+	_returnsA, _returnsB := api.apiImpl.UploadFile(data, channelID, filename)
 	api.recordTime(startTime, "UploadFile", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -915,23 +915,23 @@ func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string
 	api.recordTime(startTime, "PublishWebSocketEvent", true)
 }
 
-func (api *apiTimerLayer) HasPermissionTo(userId string, permission *model.Permission) bool {
+func (api *apiTimerLayer) HasPermissionTo(userID string, permission *model.Permission) bool {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.HasPermissionTo(userId, permission)
+	_returnsA := api.apiImpl.HasPermissionTo(userID, permission)
 	api.recordTime(startTime, "HasPermissionTo", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+func (api *apiTimerLayer) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.HasPermissionToTeam(userId, teamId, permission)
+	_returnsA := api.apiImpl.HasPermissionToTeam(userID, teamID, permission)
 	api.recordTime(startTime, "HasPermissionToTeam", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+func (api *apiTimerLayer) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.HasPermissionToChannel(userId, channelId, permission)
+	_returnsA := api.apiImpl.HasPermissionToChannel(userID, channelID, permission)
 	api.recordTime(startTime, "HasPermissionToChannel", true)
 	return _returnsA
 }
@@ -974,16 +974,16 @@ func (api *apiTimerLayer) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (api *apiTimerLayer) PatchBot(botuserID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.PatchBot(botUserId, botPatch)
+	_returnsA, _returnsB := api.apiImpl.PatchBot(botuserID, botPatch)
 	api.recordTime(startTime, "PatchBot", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (api *apiTimerLayer) GetBot(botuserID string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetBot(botUserId, includeDeleted)
+	_returnsA, _returnsB := api.apiImpl.GetBot(botuserID, includeDeleted)
 	api.recordTime(startTime, "GetBot", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -995,37 +995,37 @@ func (api *apiTimerLayer) GetBots(options *model.BotGetOptions) ([]*model.Bot, *
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (api *apiTimerLayer) UpdateBotActive(botuserID string, active bool) (*model.Bot, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateBotActive(botUserId, active)
+	_returnsA, _returnsB := api.apiImpl.UpdateBotActive(botuserID, active)
 	api.recordTime(startTime, "UpdateBotActive", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) PermanentDeleteBot(botUserId string) *model.AppError {
+func (api *apiTimerLayer) PermanentDeleteBot(botuserID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.PermanentDeleteBot(botUserId)
+	_returnsA := api.apiImpl.PermanentDeleteBot(botuserID)
 	api.recordTime(startTime, "PermanentDeleteBot", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+func (api *apiTimerLayer) GetBotIconImage(botuserID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetBotIconImage(botUserId)
+	_returnsA, _returnsB := api.apiImpl.GetBotIconImage(botuserID)
 	api.recordTime(startTime, "GetBotIconImage", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SetBotIconImage(botUserId string, data []byte) *model.AppError {
+func (api *apiTimerLayer) SetBotIconImage(botuserID string, data []byte) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SetBotIconImage(botUserId, data)
+	_returnsA := api.apiImpl.SetBotIconImage(botuserID, data)
 	api.recordTime(startTime, "SetBotIconImage", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) DeleteBotIconImage(botUserId string) *model.AppError {
+func (api *apiTimerLayer) DeleteBotIconImage(botuserID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteBotIconImage(botUserId)
+	_returnsA := api.apiImpl.DeleteBotIconImage(botuserID)
 	api.recordTime(startTime, "DeleteBotIconImage", _returnsA == nil)
 	return _returnsA
 }
@@ -1037,9 +1037,9 @@ func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+func (api *apiTimerLayer) PublishUserTyping(userID, channelID, parentID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.PublishUserTyping(userId, channelId, parentId)
+	_returnsA := api.apiImpl.PublishUserTyping(userID, channelID, parentID)
 	api.recordTime(startTime, "PublishUserTyping", _returnsA == nil)
 	return _returnsA
 }
