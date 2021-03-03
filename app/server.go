@@ -504,8 +504,8 @@ func NewServer(options ...Option) (*Server, error) {
 	} else {
 		nErr := backend.TestConnection()
 		if nErr != nil {
-			if errors.Is(nErr, filesstore.ErrNoS3Bucket) {
-				nErr = backend.(*filesstore.S3FileBackend).MakeBucket()
+			if errors.Is(nErr, filestore.ErrNoS3Bucket) {
+				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
 			}
 			if nErr != nil {
 				mlog.Error("Problem with file storage settings", mlog.Err(nErr))
