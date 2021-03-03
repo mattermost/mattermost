@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type ShareProvider struct {
@@ -30,7 +29,7 @@ func (sp *ShareProvider) GetTrigger() string {
 	return CommandTriggerShare
 }
 
-func (sp *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	share := model.NewAutocompleteData(CommandTriggerShare, "[action]", T("api.command_share.available_actions", map[string]interface{}{"Actions": AvailableShareActions}))
 
 	shareChannel := model.NewAutocompleteData("share_channel", "", T("api.command_share.share_current"))

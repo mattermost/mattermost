@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 const (
@@ -34,7 +33,7 @@ func (rp *RemoteProvider) GetTrigger() string {
 	return CommandTriggerRemote
 }
 
-func (rp *RemoteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 
 	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", T("api.command_remote.remote_add_remove.help", map[string]interface{}{"Actions": AvailableRemoteActions}))
 
