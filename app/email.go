@@ -246,6 +246,39 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	return nil
 }
 
+// SendCloudWelcomeEmail sends the cloud version of the welcome email
+func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+	subject := utils.T("api.templates.cloud_welcome_email.subject")
+
+	bodyPage := es.newEmailTemplate("cloud_welcome_email", locale)
+	bodyPage.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["SubTitle"] = T("api.templates.cloud_welcome_email.subtitle")
+	bodyPage.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
+	bodyPage.Props["Info"] = T("api.templates.cloud_welcome_email.info", map[string]interface{}{"Dns": dns})
+	bodyPage.Props["WorkSpacePath"] = fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
+	bodyPage.Props["InviteInfo"] = T("api.templates.cloud_welcome_email.invite_info")
+	bodyPage.Props["InviteSubInfo"] = T("api.templates.cloud_welcome_email.invite_sub_info", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", dns, teamInviteID)
+	bodyPage.Props["AddAppsInfo"] = T("api.templates.cloud_welcome_email.add_apps_info")
+	bodyPage.Props["AddAppsSubInfo"] = T("api.templates.cloud_welcome_email.add_apps_sub_info")
+	bodyPage.Props["AppMarketPlace"] = T("api.templates.cloud_welcome_email.app_market_place")
+	bodyPage.Props["AppMarketPlaceLink"] = "https://integrations.mattermost.com/"
+	bodyPage.Props["DownloadMMInfo"] = T("api.templates.cloud_welcome_email.download_mm_info")
+	bodyPage.Props["SignInSubInfo"] = T("api.templates.cloud_welcome_email.signin_sub_info")
+	bodyPage.Props["MMApps"] = T("api.templates.cloud_welcome_email.mm_apps")
+	bodyPage.Props["SignInSubInfo2"] = T("api.templates.cloud_welcome_email.signin_sub_info2")
+	bodyPage.Props["DownloadMMAppsLink"] = "https://mattermost.com/download/"
+	bodyPage.Props["Button"] = T("api.templates.cloud_welcome_email.button")
+	bodyPage.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
+
+	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (es *EmailService) sendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
