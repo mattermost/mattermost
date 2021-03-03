@@ -53,41 +53,41 @@ func TestChannelPatch(t *testing.T) {
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Id = NewId()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Name = "zzzzz"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Type = "U"
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Type = "P"
-	require.Error(t, o.IsValid())
+	require.Nil(t, o.IsValid())
 
 	o.Header = strings.Repeat("01234567890", 100)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Header = "1234"
 	require.Nil(t, o.IsValid())
 
 	o.Purpose = strings.Repeat("01234567890", 30)
-	require.Error(t, o.IsValid())
+	require.NotNil(t, o.IsValid())
 
 	o.Purpose = "1234"
 	require.Nil(t, o.IsValid())
