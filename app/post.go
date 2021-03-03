@@ -1391,8 +1391,10 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	}
 
 	mentions := getExplicitMentions(post, keywords, groups)
-	if _, ok := mentions.Mentions[user.Id]; ok {
-		count += 1
+	if post.UpdateAt >= timestamp {
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
 	}
 
 	for _, p := range posts {
