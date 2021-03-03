@@ -114,6 +114,8 @@ ifneq (Darwin,$(PLATFORM))
 	DOCKER_MAKEFILE := ./docker-compose.makefile.yml
 else ifeq (arm64, $(ARCH))
     DOCKER_MAKEFILE := ./docker-compose.makefile.m1.yml
+else
+	DOCKER_MAKEFILE := ./docker-compose.makefile.yml
 endif
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
