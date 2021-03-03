@@ -5010,7 +5010,7 @@ func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForRetentionPolicy(policyId string, offset int, limit int) ([]*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsForRetentionPolicy(policyId string, offset int, limit int) (model.ChannelListWithTeamData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForRetentionPolicy")
 

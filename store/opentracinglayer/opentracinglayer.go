@@ -5963,7 +5963,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) ([]*model.Channel, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetChannels")
 	s.Root.Store.SetContext(newCtx)

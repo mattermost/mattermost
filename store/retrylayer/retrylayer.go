@@ -6450,7 +6450,7 @@ func (s *RetryLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*model
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) ([]*model.Channel, error) {
+func (s *RetryLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {

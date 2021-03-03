@@ -5397,7 +5397,7 @@ func (s *TimerLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) ([]*model.Channel, error) {
+func (s *TimerLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.GetChannels(policyId, offset, limit)

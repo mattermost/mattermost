@@ -380,10 +380,15 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (channels []*model.Channel, err error) {
+func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int) (channels model.ChannelListWithTeamData, err error) {
 	const query = `
-	SELECT Channels.* FROM RetentionPoliciesChannels
+	SELECT Channels.*,
+	       Teams.DisplayName AS TeamDisplayName,
+	       Teams.Name AS TeamName,
+	       Teams.UpdateAt AS TeamUpdateAt
+	FROM RetentionPoliciesChannels
 	INNER JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
+	INNER JOIN Teams ON Channels.TeamId = Teams.Id
 	WHERE RetentionPoliciesChannels.PolicyId = :PolicyId
 	ORDER BY Channels.DisplayName, Channels.Id
 	LIMIT :Limit

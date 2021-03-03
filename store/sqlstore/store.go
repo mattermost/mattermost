@@ -952,23 +952,19 @@ func (ss *SqlStore) CreateForeignKeyIfNotExists(
 	tableName, columnName, refTableName, refColumnName string,
 	onDeleteCascade bool,
 ) (err error) {
-	if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		err = errors.New("sqlite does not support ADD CONSTRAINT")
-	} else {
-		deleteClause := ""
-		if onDeleteCascade {
-			deleteClause = "ON DELETE CASCADE"
-		}
-		constraintName := "FK_" + tableName + "_" + refTableName
-		sQuery := `
-		ALTER TABLE ` + tableName + `
-		ADD CONSTRAINT ` + constraintName + `
-		FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
-		` + deleteClause + `;`
-		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
-		if IsConstraintAlreadyExistsError(err) {
-			err = nil
-		}
+	deleteClause := ""
+	if onDeleteCascade {
+		deleteClause = "ON DELETE CASCADE"
+	}
+	constraintName := "FK_" + tableName + "_" + refTableName
+	sQuery := `
+	ALTER TABLE ` + tableName + `
+	ADD CONSTRAINT ` + constraintName + `
+	FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
+	` + deleteClause + `;`
+	_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	if IsConstraintAlreadyExistsError(err) {
+		err = nil
 	}
 	if err != nil {
 		mlog.Warn("Could not create foreign key: " + err.Error())

@@ -18,7 +18,7 @@ type DataRetentionInterface interface {
 	GetTeamsForPolicy(policyId string, offset, limit int) ([]*model.Team, *model.AppError)
 	AddTeamsToPolicy(policyId string, teamIds []string) *model.AppError
 	RemoveTeamsFromPolicy(policyId string, teamIds []string) *model.AppError
-	GetChannelsForPolicy(policyId string, offset, limit int) ([]*model.Channel, *model.AppError)
+	GetChannelsForPolicy(policyId string, offset, limit int) (model.ChannelListWithTeamData, *model.AppError)
 	AddChannelsToPolicy(policyId string, channelIds []string) *model.AppError
 	RemoveChannelsFromPolicy(policyId string, channelIds []string) *model.AppError
 }

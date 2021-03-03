@@ -79,7 +79,7 @@ func (a *App) RemoveTeamsFromRetentionPolicy(policyId string, teamIds []string) 
 	return a.DataRetention().RemoveTeamsFromPolicy(policyId, teamIds)
 }
 
-func (a *App) GetChannelsForRetentionPolicy(policyId string, offset, limit int) ([]*model.Channel, *model.AppError) {
+func (a *App) GetChannelsForRetentionPolicy(policyId string, offset, limit int) (model.ChannelListWithTeamData, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetChannelsForRetentionPolicy")
 	}
