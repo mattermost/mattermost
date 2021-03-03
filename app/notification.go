@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -168,7 +167,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
@@ -433,16 +432,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if err != nil {
 			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
-		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent, _ = strconv.ParseBool(preference.Value)
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
-				message.Add("thread", payload)
+
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
+				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+				message.Add("thread", userThread.ToJson())
 				a.Publish(message)
 			}
 		}
