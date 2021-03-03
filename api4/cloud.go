@@ -423,14 +423,14 @@ func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	sub, err := c.App.Cloud().GetSubscription()
+	sub, err := c.App.Cloud().GetSubscription("")
 	if err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err = c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	if appErr := c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 		return
 	}
 
