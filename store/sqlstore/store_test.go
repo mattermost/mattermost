@@ -563,8 +563,6 @@ func makeSqlSettings(driver string) *model.SqlSettings {
 		return storetest.MakeSqlSettings(driver, false)
 	case model.DATABASE_DRIVER_MYSQL:
 		return storetest.MakeSqlSettings(driver, false)
-	case model.DATABASE_DRIVER_SQLITE:
-		return storetest.MakeSqlSettings(driver, false)
 	}
 
 	return nil
