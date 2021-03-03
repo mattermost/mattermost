@@ -4,10 +4,9 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type OpenProvider struct {
@@ -26,7 +25,7 @@ func (open *OpenProvider) GetTrigger() string {
 	return CmdOpen
 }
 
-func (open *OpenProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (open *OpenProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	cmd := open.JoinProvider.GetCommand(a, T)
 	cmd.Trigger = CmdOpen
 	cmd.DisplayName = T("api.command_open.name")
