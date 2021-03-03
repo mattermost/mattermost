@@ -12,7 +12,7 @@ func IsEnterpriseLicensedOrDevelopment(config *model.Config, license *model.Lice
 		return true
 	}
 
-	return isConfiguredForDevelopment(config)
+	return IsConfiguredForDevelopment(config)
 }
 
 // IsE20LicensedOrDevelopment returns true when the server is licensed with a Mattermost
@@ -26,10 +26,12 @@ func IsE20LicensedOrDevelopment(config *model.Config, license *model.License) bo
 		return true
 	}
 
-	return isConfiguredForDevelopment(config)
+	return IsConfiguredForDevelopment(config)
 }
 
-func isConfiguredForDevelopment(config *model.Config) bool {
+// IsConfiguredForDevelopment returns true when the server has `EnableDeveloper` and `EnableTesting`
+// configuration settings enabled, signaling a non-production, developer mode.
+func IsConfiguredForDevelopment(config *model.Config) bool {
 	if config != nil &&
 		config.ServiceSettings.EnableTesting != nil &&
 		*config.ServiceSettings.EnableTesting &&
