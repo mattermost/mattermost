@@ -12158,7 +12158,7 @@ func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(teamMember *model.TeamMem
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, removerUserID string, channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUserFromChannel")
 
@@ -12170,7 +12170,7 @@ func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, remov
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveUserFromChannel(userIDToRemove, removerUserID, channel)
+	resultVar0 := a.app.RemoveUserFromChannel(userIDToRemove, removerUserId, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
