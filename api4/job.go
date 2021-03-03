@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -28,14 +29,19 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
-		return
-	}
-
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), job.Type)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("getJob", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+		return
+	}
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 
@@ -134,12 +140,19 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
-		return
+	var validJobTypes []string
+	for _, jobType := range model.ALL_JOB_TYPES {
+		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), jobType)
+		if permissionRequired == nil {
+			mlog.Warn("The job types of a job you are trying to retreive does not contain permissions", mlog.String("jobType", jobType))
+			continue
+		}
+		if hasPermission {
+			validJobTypes = append(validJobTypes, jobType)
+		}
 	}
 
-	jobs, err := c.App.GetJobsPage(c.Params.Page, c.Params.PerPage)
+	jobs, err := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -154,8 +167,13 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), c.Params.JobType)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+		return
+	}
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 

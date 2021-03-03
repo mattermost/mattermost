@@ -52,6 +52,18 @@ func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job
 	return jobs, nil
 }
 
+func (a *App) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.GetJobsByTypes(jobType, page*perPage, perPage)
+}
+
+func (a *App) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store.Job().GetAllByTypesPage(jobTypes, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return jobs, nil
+}
+
 func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
 	return a.Srv().Jobs.CreateJob(job.Type, job.Data)
 }
@@ -87,8 +99,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 	return false, nil
 }
 
-func (a *App) SessionHasPermissionToReadJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	switch job.Type {
+func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
+	switch jobType {
 	case model.JOB_TYPE_DATA_RETENTION:
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_DATA_RETENTION_JOB), model.PERMISSION_READ_DATA_RETENTION_JOB
 	case model.JOB_TYPE_MESSAGE_EXPORT:
@@ -107,7 +119,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, job *model.Jo
 		model.JOB_TYPE_EXPORT_PROCESS,
 		model.JOB_TYPE_EXPORT_DELETE,
 		model.JOB_TYPE_CLOUD:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_JOBS), model.PERMISSION_MANAGE_JOBS
+		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_JOBS), model.PERMISSION_READ_JOBS
 	}
 
 	return false, nil

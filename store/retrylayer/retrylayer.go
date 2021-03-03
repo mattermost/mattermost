@@ -4416,6 +4416,26 @@ func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 
 }
 
+func (s *RetryLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 
 	tries := 0
