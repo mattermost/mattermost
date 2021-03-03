@@ -212,7 +212,7 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 
 	// reject the syncable creation if the group isn't already associated to the parent team
 	if groupSyncable.Type == model.GroupSyncableTypeChannel {
-		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, false)
+		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {

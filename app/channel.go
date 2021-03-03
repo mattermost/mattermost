@@ -70,7 +70,7 @@ func (a *App) JoinDefaultChannels(teamID string, user *model.User, shouldBeAdmin
 	var requestor *model.User
 	var nErr error
 	if userRequestorId != "" {
-		requestor, nErr = a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userRequestorId)
+		requestor, nErr = a.Srv().Store.User().Get(context.Background(), userRequestorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
