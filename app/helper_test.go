@@ -540,7 +540,6 @@ func (th *TestHelper) ConfigureInbucketMail() {
 		inbucket_port = "10025"
 	}
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.EmailSettings.SMTPServer = inbucket_host
 		*cfg.EmailSettings.SMTPPort = inbucket_port
 	})

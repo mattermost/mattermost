@@ -140,6 +140,10 @@ func TestSendInviteEmails(t *testing.T) {
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
 	emailTo := "test@example.com"
 	mailservice.DeleteMailBox(emailTo)
 
