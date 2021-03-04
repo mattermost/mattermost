@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 )
 
 func TestCondenseSiteURL(t *testing.T) {
@@ -132,4 +134,50 @@ func TestSendAdminUpgradeRequestEmailOnJoin(t *testing.T) {
 	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription, model.JoinLimitation)
 	require.NotNil(t, err)
 	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+}
+
+func TestSendInviteEmails(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "localhost"
+	}
+	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "10025"
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.EmailSettings.SMTPServer = inbucket_host
+		*cfg.EmailSettings.SMTPPort = inbucket_port
+	})
+
+	emailTo := "test@example.com"
+	mailservice.DeleteMailBox(emailTo)
+
+	err := th.App.Srv().EmailService.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+	require.Nil(t, err)
+
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	err3 := mailservice.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = mailservice.GetMailBox(emailTo)
+		return err
+	})
+	if err3 != nil {
+		t.Log(err3)
+		t.Log("No email was received, maybe due load on the server. Skipping this verification")
+	} else {
+		if len(resultsMailbox) > 0 {
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := mailservice.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.NoError(t, err, "Could not get message from mailbox")
+			require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+		}
+	}
 }
