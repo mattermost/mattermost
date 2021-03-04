@@ -2006,14 +2006,6 @@
     "translation": "請按下方連結來驗證電子郵件地址。"
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "現在可以登入："
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。"
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "已加入{{ .ServerURL }}"
   },
@@ -3606,32 +3598,12 @@
     "translation": "Mattermost 安全性公告"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "無效的多重要素驗證 Token"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "清除多重要素驗證密碼時遇到錯誤"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "產生 QR code 時遇到錯誤"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "儲存多重要素驗證密碼時遇到錯誤"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
