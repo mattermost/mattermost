@@ -580,15 +580,6 @@ func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 
 		// migrating user's accepted terms of service data into the new table
 		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
-
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
-			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
-			sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
-			sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
-			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
-		}
-
 		saveSchemaVersion(sqlStore, Version560)
 	}
 

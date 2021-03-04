@@ -47,3 +47,9 @@ CREATE INDEX IF NOT EXISTS idx_users_all_txt ON users USING gin(to_tsvector('eng
 CREATE INDEX IF NOT EXISTS idx_users_all_no_full_name_txt ON users USING gin(to_tsvector('english', username || ' ' || nickname || ' ' || email));
 CREATE INDEX IF NOT EXISTS idx_users_names_txt ON users USING gin(to_tsvector('english', username || ' ' || firstname || ' ' || lastname || ' ' || nickname));
 CREATE INDEX IF NOT EXISTS idx_users_names_no_full_name_txt ON users USING gin(to_tsvector('english', username || ' ' || nickname));
+
+DROP INDEX IF EXISTS idx_users_email_lower;
+DROP INDEX IF EXISTS idx_users_username_lower;
+DROP INDEX IF EXISTS idx_users_nickname_lower;
+DROP INDEX IF EXISTS idx_users_firstname_lower;
+DROP INDEX IF EXISTS idx_users_lastname_lower;
