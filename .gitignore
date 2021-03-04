@@ -10,7 +10,7 @@ webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
 config/config.json
-config/saml-idp.crt
+config/*.crt
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map

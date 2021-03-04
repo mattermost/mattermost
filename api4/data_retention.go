@@ -42,6 +42,11 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	limit := c.Params.PerPage
 	offset := c.Params.Page * limit
 
@@ -59,6 +64,11 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	count, err := c.App.GetRetentionPoliciesCount()
 	if err != nil {
 		c.Err = err
@@ -70,6 +80,11 @@ func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policy, err := c.App.GetRetentionPolicy(c.Params.PolicyId)
 	if err != nil {
@@ -88,6 +103,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy", policy)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -116,6 +132,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("patch", patch)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -152,6 +169,11 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
@@ -233,6 +255,7 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("team_ids", teamIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -249,6 +272,11 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
@@ -305,6 +333,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", channelIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -333,6 +362,7 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", channelIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
