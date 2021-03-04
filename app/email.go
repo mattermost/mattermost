@@ -290,7 +290,7 @@ func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, w
 	bodyPage.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
 
 	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
-		return model.NewAppError("SendCloudWelcomeEmail", "Failed to send cloud welcome email", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
