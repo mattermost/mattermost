@@ -568,7 +568,7 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/splitio/go-client/v6 v6.0.1
+# github.com/splitio/go-client/v6 v6.0.2
 ## explicit
 github.com/splitio/go-client/v6/splitio
 github.com/splitio/go-client/v6/splitio/client
@@ -582,42 +582,47 @@ github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes
 github.com/splitio/go-client/v6/splitio/engine/hash
 github.com/splitio/go-client/v6/splitio/impressionListener
 # github.com/splitio/go-split-commons/v2 v2.0.1
-github.com/splitio/go-split-commons/v2/conf
-github.com/splitio/go-split-commons/v2/dtos
-github.com/splitio/go-split-commons/v2/provisional
-github.com/splitio/go-split-commons/v2/push
-github.com/splitio/go-split-commons/v2/service
-github.com/splitio/go-split-commons/v2/service/api
-github.com/splitio/go-split-commons/v2/service/api/sse
-github.com/splitio/go-split-commons/v2/service/local
-github.com/splitio/go-split-commons/v2/storage
-github.com/splitio/go-split-commons/v2/storage/mocks
-github.com/splitio/go-split-commons/v2/storage/mutexmap
-github.com/splitio/go-split-commons/v2/storage/mutexqueue
-github.com/splitio/go-split-commons/v2/storage/redis
-github.com/splitio/go-split-commons/v2/synchronizer
-github.com/splitio/go-split-commons/v2/synchronizer/worker/event
-github.com/splitio/go-split-commons/v2/synchronizer/worker/impression
-github.com/splitio/go-split-commons/v2/synchronizer/worker/impressionscount
-github.com/splitio/go-split-commons/v2/synchronizer/worker/metric
-github.com/splitio/go-split-commons/v2/synchronizer/worker/segment
-github.com/splitio/go-split-commons/v2/synchronizer/worker/split
-github.com/splitio/go-split-commons/v2/tasks
-github.com/splitio/go-split-commons/v2/util
-# github.com/splitio/go-toolkit/v3 v3.0.1
-github.com/splitio/go-toolkit/v3/asynctask
-github.com/splitio/go-toolkit/v3/common
-github.com/splitio/go-toolkit/v3/datastructures/set
-github.com/splitio/go-toolkit/v3/injection
-github.com/splitio/go-toolkit/v3/logging
-github.com/splitio/go-toolkit/v3/nethelpers
-github.com/splitio/go-toolkit/v3/provisional/hashing
-github.com/splitio/go-toolkit/v3/provisional/int64cache
-github.com/splitio/go-toolkit/v3/queuecache
-github.com/splitio/go-toolkit/v3/redis
-github.com/splitio/go-toolkit/v3/redis/helpers
-github.com/splitio/go-toolkit/v3/sse
-github.com/splitio/go-toolkit/v3/workerpool
+## explicit
+# github.com/splitio/go-split-commons/v3 v3.0.0
+github.com/splitio/go-split-commons/v3/conf
+github.com/splitio/go-split-commons/v3/dtos
+github.com/splitio/go-split-commons/v3/provisional
+github.com/splitio/go-split-commons/v3/push
+github.com/splitio/go-split-commons/v3/service
+github.com/splitio/go-split-commons/v3/service/api
+github.com/splitio/go-split-commons/v3/service/api/sse
+github.com/splitio/go-split-commons/v3/service/local
+github.com/splitio/go-split-commons/v3/storage
+github.com/splitio/go-split-commons/v3/storage/mocks
+github.com/splitio/go-split-commons/v3/storage/mutexmap
+github.com/splitio/go-split-commons/v3/storage/mutexqueue
+github.com/splitio/go-split-commons/v3/storage/redis
+github.com/splitio/go-split-commons/v3/synchronizer
+github.com/splitio/go-split-commons/v3/synchronizer/worker/event
+github.com/splitio/go-split-commons/v3/synchronizer/worker/impression
+github.com/splitio/go-split-commons/v3/synchronizer/worker/impressionscount
+github.com/splitio/go-split-commons/v3/synchronizer/worker/metric
+github.com/splitio/go-split-commons/v3/synchronizer/worker/segment
+github.com/splitio/go-split-commons/v3/synchronizer/worker/split
+github.com/splitio/go-split-commons/v3/tasks
+github.com/splitio/go-split-commons/v3/util
+# github.com/splitio/go-toolkit/v4 v4.0.0
+github.com/splitio/go-toolkit/v4/asynctask
+github.com/splitio/go-toolkit/v4/backoff
+github.com/splitio/go-toolkit/v4/common
+github.com/splitio/go-toolkit/v4/datastructures/set
+github.com/splitio/go-toolkit/v4/injection
+github.com/splitio/go-toolkit/v4/logging
+github.com/splitio/go-toolkit/v4/nethelpers
+github.com/splitio/go-toolkit/v4/provisional/hashing
+github.com/splitio/go-toolkit/v4/provisional/int64cache
+github.com/splitio/go-toolkit/v4/queuecache
+github.com/splitio/go-toolkit/v4/redis
+github.com/splitio/go-toolkit/v4/redis/helpers
+github.com/splitio/go-toolkit/v4/sse
+github.com/splitio/go-toolkit/v4/struct/traits/lifecycle
+github.com/splitio/go-toolkit/v4/sync
+github.com/splitio/go-toolkit/v4/workerpool
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 github.com/ssor/bom
 # github.com/steveyen/gtreap v0.1.0
