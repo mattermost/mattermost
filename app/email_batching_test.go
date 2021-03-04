@@ -304,7 +304,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	var rendered = th.Server.EmailService.RenderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
 	require.NotContains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
 }
 
@@ -329,6 +329,6 @@ func TestRenderBatchedPostFull(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	var rendered = th.Server.EmailService.RenderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
 	require.Contains(t, rendered, post.Message, "Rendered email should contain post contents when email notification contents type is set to Full.")
 }

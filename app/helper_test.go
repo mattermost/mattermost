@@ -216,6 +216,12 @@ func (*TestHelper) MakeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }
 
+func (th *TestHelper) WithMockEmailService() (*TestHelper, *EmailRecorder) {
+	es, r := NewMockEmailService(th.App.Srv(), nil)
+	th.App.Srv().EmailService = es
+	return th, r
+}
+
 func (th *TestHelper) CreateTeam() *model.Team {
 	id := model.NewId()
 	team := &model.Team{

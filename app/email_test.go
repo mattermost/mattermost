@@ -133,3 +133,16 @@ func TestSendAdminUpgradeRequestEmailOnJoin(t *testing.T) {
 	require.NotNil(t, err)
 	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
 }
+
+func TestSendUpgradeEmail(t *testing.T) {
+	t.Run("Successful send", func(t *testing.T) {
+		th, r := Setup(t).InitBasic().WithMockEmailService()
+
+		user := th.BasicUser
+
+		_, err := th.App.Srv().EmailService.SendUpgradeEmail(user.Username, user.Email, user.Locale, "", model.InviteLimitation)
+		require.Nil(t, err)
+		assert.Equal(t, r.to, user.Email)
+		assert.Equal(t, r.subject, "Mattermost user request upgrade of workspace")
+	})
+}

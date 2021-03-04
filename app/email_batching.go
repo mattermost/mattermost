@@ -61,9 +61,9 @@ type EmailBatchingJob struct {
 	taskMutex            sync.Mutex
 }
 
-func NewEmailBatchingJob(es *EmailService, bufferSize int) *EmailBatchingJob {
+func NewEmailBatchingJob(es EmailServiceIface, bufferSize int) *EmailBatchingJob {
 	return &EmailBatchingJob{
-		server:               es.srv,
+		server:               es.ESrv(),
 		newNotifications:     make(chan *batchedNotification, bufferSize),
 		pendingNotifications: make(map[string][]*batchedNotification),
 	}
@@ -222,7 +222,7 @@ func (es *EmailService) SendBatchedEmailNotification(userID string, notification
 			emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
 		}
 
-		contents += es.renderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
+		contents += es.RenderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
@@ -244,7 +244,7 @@ func (es *EmailService) SendBatchedEmailNotification(userID string, notification
 	}
 }
 
-func (es *EmailService) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
+func (es *EmailService) RenderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
 	// don't include message contents if email notification contents type is set to generic
 	var template *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {

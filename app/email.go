@@ -50,21 +50,14 @@ type EmailRecorder struct {
 type SendMailFunc func(to, subject, htmlBody string, config *mailservice.SMTPConfig, enableComplianceFeatures bool, ccMail string) error
 
 // GetMockSendMailFunc is mock equivalent of SendMail
-func GetMockSendMailFunc(testErr error) (SendMailFunc, EmailRecorder) {
+func GetMockSendMailFunc(testErr error) (SendMailFunc, *EmailRecorder) {
 	emailTrailRec := new(EmailRecorder)
 	return func(to, subject, htmlBody string, config *mailservice.SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
-		emailTrailRec = &EmailRecorder{
-			to,
-			subject,
-		}
-
+		emailTrailRec.to = to
+		emailTrailRec.subject = subject
 		return testErr
-	}, *emailTrailRec
+	}, emailTrailRec
 }
-
-// type EmailServiceInterface interface {
-// 	SendMail(to, subject, htmlBody, ccMail string) error
-// }
 
 type EmailService struct {
 	srv                     *Server
@@ -83,22 +76,12 @@ func (es *EmailService) SendMail(to, subject, htmlBody, ccMail string) error {
 }
 
 // NewMockEmailService When this returns we get the ability to assign it service.tsendMail = GetMockSendMailFunc(customError)
-func NewMockEmailService(srv *Server, emailError error) (EmailServiceIface, EmailRecorder) {
+func NewMockEmailService(srv *Server, emailError error) (EmailServiceIface, *EmailRecorder) {
 	service, _ := NewEmailService(srv)
 	f, r := GetMockSendMailFunc(emailError)
 	service.SetTSendMail(f)
 	return service, r
 }
-
-// func NewEmailService(srv *Server) (*EmailService, error) {
-// 	service := &EmailService{srv: srv}
-// 	if err := service.setUpRateLimiters(); err != nil {
-// 		return nil, err
-// 	}
-// 	service.InitEmailBatching()
-// 	service.tsendMail = mailservice.SendMailUsingConfig
-// 	return service, nil
-// }
 
 // NewEmailService returns a type that implements the EmailServiceIface
 func NewEmailService(srv *Server) (EmailServiceIface, error) {
@@ -152,6 +135,10 @@ func (es *EmailService) PerDayEmailRateLimiter() *throttled.GCRARateLimiter {
 
 func (es *EmailService) SetTSendMail(f SendMailFunc) {
 	es.tsendMail = f
+}
+
+func (es *EmailService) ESrv() *Server {
+	return es.srv
 }
 
 func (es *EmailService) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError {
@@ -733,7 +720,7 @@ func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action st
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
-	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := es.SendMail(email, subject, bodyPage.Render(), ""); err != nil {
 		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

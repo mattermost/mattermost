@@ -4,6 +4,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/throttled/throttled"
 )
@@ -18,10 +19,12 @@ type EmailServiceIface interface {
 	SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError)
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError)
+	ESrv() *Server
 	InitEmailBatching()
 	NewEmailTemplate(name, locale string) *utils.HTMLTemplate
 	PerDayEmailRateLimiter() *throttled.GCRARateLimiter
 	PerHourEmailRateLimiter() *throttled.GCRARateLimiter
+	RenderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string
 	SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError)
 	SendBatchedEmailNotification(userID string, notifications []*batchedNotification)
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError
