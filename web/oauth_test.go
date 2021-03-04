@@ -365,6 +365,52 @@ func TestOAuthAccessToken(t *testing.T) {
 	ApiClient.ClearOAuthToken()
 }
 
+func TestAuthorizeOAuthPage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.Login(ApiClient, th.SystemAdminUser)
+	defer th.TearDown()
+	c := &Context{
+		App: th.App,
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.SiteURL = "/company/mattermost"
+	})
+
+	oapp := &model.OAuthApp{
+		Name:         GenerateTestAppName(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com"},
+		CreatorId:    th.SystemAdminUser.Id,
+	}
+
+	rapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	u, _ := url.Parse(th.App.GetSiteURL())
+	passedRedirectTo := u.Path + "/oauth/authorize"
+	u.Path = passedRedirectTo
+	q, _ := url.ParseQuery(u.RawQuery)
+	q.Add("response_type", "code")
+	q.Add("redirect_uri", rapp.CallbackUrls[0])
+	q.Add("client_id", rapp.Id)
+	q.Add("state", "123")
+	u.RawQuery = q.Encode()
+
+	responseWriter := httptest.NewRecorder()
+	request, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	request.RequestURI = u.String()
+
+	authorizeOAuthPage(c, responseWriter, request)
+
+	u, _ = url.Parse(responseWriter.Result().Header.Get("Location"))
+	q, _ = url.ParseQuery(u.RawQuery)
+
+	// Should remove SubPath from redirect_to
+	assert.NotEqual(t, strings.Index(q.Get("redirect_to"), passedRedirectTo), 0)
+}
+
 func TestOAuthComplete(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
