@@ -1026,15 +1026,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1053,14 +1053,18 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 
+	conditions := sq.And{
+		direction,
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("Id").
 		From(table).
-		Where(sq.And{
-			direction,
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
@@ -1082,7 +1086,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -1090,15 +1094,18 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
-
+	conditions := sq.And{
+		sq.Gt{"CreateAt": time},
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("*").
 		From(table).
-		Where(sq.And{
-			sq.Gt{"CreateAt": time},
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
