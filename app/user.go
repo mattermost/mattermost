@@ -149,16 +149,16 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
+	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
+
 	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if !user.DisableWelcomeEmail {
-		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-			mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
-		}
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+		mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -170,10 +170,10 @@ func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User,
 		return nil, err
 	}
 
-	if !user.DisableWelcomeEmail {
-		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-			mlog.Warn("Failed to send welcome email on create admin user", mlog.Err(err))
-		}
+	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
+
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+		mlog.Warn("Failed to send welcome email on create admin user", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -196,10 +196,10 @@ func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.Us
 		return nil, err
 	}
 
-	if !user.DisableWelcomeEmail {
-		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-			mlog.Warn("Failed to send welcome email on create user from signup", mlog.Err(err))
-		}
+	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
+
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+		mlog.Warn("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
 	return ruser, nil

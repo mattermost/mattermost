@@ -5,7 +5,7 @@
     <div
         style="display: flex; flex-direction: column; align-items: center; padding: 24px; position: static; width: 660px; height: 1157.07px; left: 32px; top: 32px; border-radius: 8px; background: #FFFFFF; flex: none; order: 0; flex-grow: 0; margin: 0px 10px;">
         <div style="position: relative; width: 500px; margin-top: 20px; margin-bottom: 30px; display: flex; align-items: center;">
-            <img src="{{.WorkSpacePath}}/static/images/logo_email_blue.png" style="position: absolute; left: 188px; height: 21.7px;"
+            <img src="http://localhost:9005/static/images/logo_email_blue.png" style="position: absolute; left: 188px; height: 21.7px;"
                 alt="logo_email_blue">
         </div>
         <div style="margin-bottom: 30px;">
@@ -14,8 +14,8 @@
                 {{.Props.Title}}
             </p>
             <p
-                style="position: static; width: 485px; height: 48px; left: 24px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 16px; line-height: 24px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
-                {{.Props.Info}}
+                style="position: static; width: 485px; height: 48px; left: 24px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
+                {{.Props.Info}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.WorkSpacePath}}">{{.Props.DNS}}.</a> {{.Props.Info2}}
             </p>
             <p>
                 <a href="{{.Props.WorkSpacePath}}" target="_blank"
@@ -27,16 +27,16 @@
 
         <div style="margin-bottom: 30px;">
             <p
-                style="position: static; width: 485px; height: 40px; left: 24px; top: 0px; font-family: Metropolis; font-size: 22px; line-height: 28px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
+                style="position: static; width: 485px; height: 40px; left: 24px; top: 0px; font-family: Metropolis; font-weight: 600; font-size: 22px; line-height: 28px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
                 {{.Props.SubTitle}}
             </p>
             <p
-                style="position: static; width: 492px; height: 40px; left: 0px; top: 36px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px;">
+                style="position: static; width: 492px; height: 40px; left: 0px; top: 36px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px;">
                 {{.Props.SubTitleInfo}}
             </p>
         </div>
 
-        <div style="position: relative; margin-left: -36px; margin-bottom: 50px;">
+        <div style="position: relative; margin-left: -15px; margin-bottom: 50px;">
             <span>
                 <svg width="15" height="15" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -49,13 +49,13 @@
                 {{.Props.InviteInfo}}
             </span>
             <p
-                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px;">
+                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
                 {{.Props.InviteSubInfo}}
-                <a style="text-decoration: none;" target="_blank" href="{{.Props.InviteSubInfoLink}}">{{.Props.InviteSubInfoLink}}</a>
+                <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.InviteSubInfoLink}}">{{.Props.InviteSubInfoLink}}</a>
             </p>
         </div>
 
-        <div style="position: relative; margin-left: -36px; margin-bottom: 50px;">
+        <div style="position: relative; margin-left: -15px; margin-bottom: 50px;">
             <span>
                 <svg width="15" height="15" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -68,12 +68,12 @@
                 {{.Props.AddAppsInfo}}
             </span>
             <p
-                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px;">
-                {{.Props.AddAppsSubInfo}} <a style="text-decoration: none;" target="_blank" href="{{.Props.AppMarketPlaceLink}}">{{.Props.AppMarketPlace}}</a>
+                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
+                {{.Props.AddAppsSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.AppMarketPlaceLink}}">{{.Props.AppMarketPlace}}</a>
             </p>
         </div>
 
-        <div style="position: relative; margin-left: -36px; margin-bottom: 50px;">
+        <div style="position: relative; margin-left: -15px; margin-bottom: 50px;">
             <span>
                 <svg width="15" height="15" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -86,24 +86,23 @@
                 {{.Props.DownloadMMInfo}}
             </span>
             <p
-                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px;">
-                {{.Props.SignInSubInfo}} <a style="text-decoration: none;" target="_blank" href="{{.Props.DownloadMMAppsLink}}">{{.Props.MMApps}}</a> {{.Props.SignInSubInfo2}}
+                style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
+                {{.Props.SignInSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.DownloadMMAppsLink}}">{{.Props.MMApps}}</a> {{.Props.SignInSubInfo2}}
             </p>
         </div>
 
         <div>
             <p
-                style="position: static; width: 500px; height: 40px; left: 80px; top: 738.07px; font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 3; flex-grow: 0; margin: 40px 0px;">
-                {{.Props.GettingStartedQuestions}} <a style="text-decoration: none;"
-                    href="mailto:support@mattermost.com">support@mattermost.com.</a>
+                style="position: static; width: 500px; height: 40px; left: 80px; top: 738.07px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 3; flex-grow: 0; margin: 40px 0px;">
+                {{.Props.GettingStartedQuestions}} <a style="text-decoration: none; color: #6DA4EB;" href="mailto:support@mattermost.com">support@mattermost.com.</a>
             </p>
         </div>
         <div>
-            <img src="{{.WorkSpacePath}}/static/images/invite_illustration.png" width="320px" alt="invite_illustration">
+            <img src="http://localhost:9005/static/images/invite_illustration.png" width="320px" alt="invite_illustration">
         </div>
         <div>
             <p
-                style="font-family: Open Sans; font-style: normal; font-weight: normal; font-size: 12px; line-height: 16px; display: flex; align-items: center; text-align: center; color: rgba(61, 60, 64, 0.56); flex: none; order: 0; align-self: stretch; flex-grow: 0; margin: 24px 0px;">
+                style="font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 12px; line-height: 16px; display: flex; align-items: center; text-align: center; color: rgba(61, 60, 64, 0.56); flex: none; order: 0; align-self: stretch; flex-grow: 0; margin: 10px 0px;">
                 © 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301
             </p>
         </div>

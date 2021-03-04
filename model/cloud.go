@@ -6,11 +6,11 @@ package model
 import "strings"
 
 const (
-	EventTypeFailedPayment                   = "failed-payment"
-	EventTypeFailedPaymentNoCard             = "failed-payment-no-card"
-	EventTypeSendFirstCloudAdminWelcomeEmail = "send-first-cloud-admin-welcome-email"
-	JoinLimitation                           = "join"
-	InviteLimitation                         = "invite"
+	EventTypeFailedPayment         = "failed-payment"
+	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
+	JoinLimitation                 = "join"
+	InviteLimitation               = "invite"
 )
 
 // Product model represents a product on the cloud system.
@@ -142,8 +142,7 @@ type FailedPayment struct {
 
 // CloudWorkspaceOwner is part of the CWS Webhook payload that contains information about the user that created the workspace from the CWS
 type CloudWorkspaceOwner struct {
-	UserName      string `json:"username"`
-	FirstTeamName string `json:"first_team_name"`
+	UserName string `json:"username"`
 }
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
