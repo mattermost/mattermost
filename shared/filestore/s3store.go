@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package filesstore
+package filestore
 
 import (
 	"context"
@@ -371,7 +371,7 @@ func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
-		// appending "/" to make it consistent across all filesstores
+		// appending "/" to make it consistent across all filestores
 		path = path + "/"
 	}
 

@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -106,7 +107,7 @@ func init() {
 
 func configValidateCmdF(command *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	_, err := getConfigStore(command)
 	if err != nil {
