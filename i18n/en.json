@@ -1517,6 +1517,10 @@
     "translation": "input/output error"
   },
   {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "The job types of a job you are trying to retrieve does not contain permissions"
+  },
+  {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
     "translation": "The job type of the job you are trying to create is invalid"
   },

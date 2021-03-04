@@ -629,7 +629,7 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id),
-		Add: []string{model.PERMISSION_READ_DATA_RETENTION_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+		Add: []string{model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
 	})
 
 	transformations = append(transformations, permissionTransformation{

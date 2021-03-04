@@ -2653,11 +2653,11 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance_data_retention"`
-	EnableFileDeletion    *bool   `access:"compliance_data_retention"`
-	MessageRetentionDays  *int    `access:"compliance_data_retention"`
-	FileRetentionDays     *int    `access:"compliance_data_retention"`
-	DeletionJobStartTime  *string `access:"compliance_data_retention"`
+	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
