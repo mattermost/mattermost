@@ -40,11 +40,52 @@ func condenseSiteURL(siteURL string) string {
 	return path.Join(parsedSiteURL.Host, parsedSiteURL.Path)
 }
 
+// EmailRecorder is
+type EmailRecorder struct {
+	to      string
+	subject string
+}
+
+// SendMailFunc is
+type SendMailFunc func(to, subject, htmlBody string, config *mailservice.SMTPConfig, enableComplianceFeatures bool, ccMail string) error
+
+// GetMockSendMailFunc is mock equivalent of SendMail
+func GetMockSendMailFunc(testErr error) (SendMailFunc, EmailRecorder) {
+	emailTrailRec := new(EmailRecorder)
+	return func(to, subject, htmlBody string, config *mailservice.SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
+		emailTrailRec = &EmailRecorder{
+			to,
+			subject,
+		}
+
+		return testErr
+	}, *emailTrailRec
+}
+
+type EmailServiceInterface interface {
+	SendMail(to, subject, htmlBody, ccMail string) error
+}
+
 type EmailService struct {
 	srv                     *Server
 	PerHourEmailRateLimiter *throttled.GCRARateLimiter
 	PerDayEmailRateLimiter  *throttled.GCRARateLimiter
 	EmailBatching           *EmailBatchingJob
+	tsendMail               SendMailFunc
+}
+
+// SendMail is
+func (es *EmailService) SendMail(to, subject, htmlBody, ccMail string) error {
+	license := es.srv.License()
+	mailConfig := es.srv.MailServiceConfig()
+
+	return es.tsendMail(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
+}
+
+// NewMockEmailService When this returns we get the ability to assign it service.tsendMail = GetMockSendMailFunc(customError)
+func NewMockEmailService(srv *Server) *EmailService {
+	service := &EmailService{srv: srv}
+	return service
 }
 
 func NewEmailService(srv *Server) (*EmailService, error) {
@@ -53,6 +94,7 @@ func NewEmailService(srv *Server) (*EmailService, error) {
 		return nil, err
 	}
 	service.InitEmailBatching()
+	service.tsendMail = mailservice.SendMailUsingConfig
 	return service, nil
 }
 
@@ -101,7 +143,7 @@ func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, site
 		map[string]interface{}{"TeamDisplayName": es.srv.Config().TeamSettings.SiteName, "NewUsername": newUsername})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
-	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := es.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("sendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
