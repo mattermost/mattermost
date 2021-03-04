@@ -88,15 +88,15 @@ func (_m *DataRetentionInterface) DeletePolicy(policyId string) *model.AppError 
 }
 
 // GetChannelsForPolicy provides a mock function with given fields: policyId, offset, limit
-func (_m *DataRetentionInterface) GetChannelsForPolicy(policyId string, offset int, limit int) ([]*model.Channel, *model.AppError) {
+func (_m *DataRetentionInterface) GetChannelsForPolicy(policyId string, offset int, limit int) (model.ChannelListWithTeamData, *model.AppError) {
 	ret := _m.Called(policyId, offset, limit)
 
-	var r0 []*model.Channel
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Channel); ok {
+	var r0 model.ChannelListWithTeamData
+	if rf, ok := ret.Get(0).(func(string, int, int) model.ChannelListWithTeamData); ok {
 		r0 = rf(policyId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Channel)
+			r0 = ret.Get(0).(model.ChannelListWithTeamData)
 		}
 	}
 
