@@ -610,7 +610,6 @@ CREATE TABLE public.users (
     nickname character varying(64),
     firstname character varying(64),
     lastname character varying(64),
-    "position" character varying(128),
     roles character varying(256),
     allowmarketing boolean,
     props character varying(4000),
@@ -619,9 +618,10 @@ CREATE TABLE public.users (
     lastpictureupdate bigint,
     failedattempts integer,
     locale character varying(5),
-    timezone character varying(256),
     mfaactive boolean,
-    mfasecret character varying(128)
+    mfasecret character varying(128),
+    "position" character varying(128),
+    timezone character varying(256) DEFAULT '{"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"}'::character varying
 );
 
 

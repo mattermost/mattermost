@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"os"
 	"strings"
 	"time"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
 const (
@@ -315,9 +313,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			sqlStore.RemoveColumnIfExists("OAuthAccessData", "AuthCode")
 		}
 
-		sqlStore.RemoveColumnIfExists("Users", "LastActivityAt")
-		sqlStore.RemoveColumnIfExists("Users", "LastPingAt")
-
 		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "integer", "0")
 
 		saveSchemaVersion(sqlStore, Version330)
@@ -335,8 +330,6 @@ func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version340, Version350) {
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
 		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
 		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
 		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
@@ -359,9 +352,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
 		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
-		// Add a Position column to users.
-		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
 
 		// Remove ActiveChannel column from Status
 		sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
@@ -411,11 +401,6 @@ func upgradeDatabaseToVersion40(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion41(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version400, Version410) {
-		// Increase maximum length of the Users table Roles column.
-		if sqlStore.GetMaxLengthOfColumnIfExists("Users", "Roles") != "256" {
-			sqlStore.AlterColumnTypeIfExists("Users", "Roles", "varchar(256)", "varchar(256)")
-		}
-
 		sqlStore.RemoveTableIfExists("JobStatuses")
 
 		saveSchemaVersion(sqlStore, Version410)
@@ -459,7 +444,6 @@ func upgradeDatabaseToVersion46(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion47(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version460, Version470) {
-		sqlStore.AlterColumnTypeIfExists("Users", "Position", "varchar(128)", "varchar(128)")
 		sqlStore.AlterColumnTypeIfExists("OAuthAuthData", "State", "varchar(1024)", "varchar(1024)")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
@@ -503,12 +487,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
 
 	if shouldPerformUpgrade(sqlStore, Version481, Version490) {
-		defaultTimezone := timezones.DefaultUserTimezone()
-		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
-		if err != nil {
-			mlog.Critical(err.Error())
-		}
-		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
 		saveSchemaVersion(sqlStore, Version490)
 	}
@@ -519,7 +497,6 @@ func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 		saveSchemaVersion(sqlStore, Version4100)
-		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	}
 }
 
