@@ -515,6 +515,44 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
 		assert.Nil(t, user3)
 	})
+
+	t.Run("Only the last token works if verification is required", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		// we update the email a first time and update. The first
+		// token is sent with the email
+		user.Email = th.MakeEmail()
+		_, appErr := th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		time.Sleep(100 * time.Millisecond) // token is created in a different goroutine
+		tokens, err := th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+		require.Nil(t, err)
+		require.Len(t, tokens, 1)
+		firstToken := tokens[0]
+
+		// without using the first token, we update the email a second
+		// time and another token gets sent. The first one should not
+		// work anymore and the second should work properly
+		user.Email = th.MakeEmail()
+		_, appErr = th.App.UpdateUser(user, true)
+		require.Nil(t, appErr)
+
+		time.Sleep(100 * time.Millisecond) // token is created in a different goroutine
+		tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+		require.Nil(t, err)
+		require.Len(t, tokens, 1)
+		secondToken := tokens[0]
+
+		_, err = th.App.Srv().Store.Token().GetByToken(firstToken.Token)
+		require.Error(t, err)
+
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+		require.Nil(t, th.App.VerifyEmailFromToken(secondToken.Token))
+		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+	})
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {

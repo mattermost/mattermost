@@ -3399,6 +3399,18 @@
     "translation": "Unable to get user by email."
   },
   {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating email verification tokens"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating email verification tokens"
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },

@@ -593,6 +593,31 @@ func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, 
 	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
 }
 
+func (es *EmailService) InvalidateVerifyEmailTokensForUser(userID string) *model.AppError {
+	tokens, err := es.srv.Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+	if err != nil {
+		return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, token := range tokens {
+		tokenExtra := struct {
+			UserId string
+			Email  string
+		}{}
+		if err := json.Unmarshal([]byte(token.Extra), &tokenExtra); err != nil {
+			return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_parse.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if tokenExtra.UserId == userID {
+			if err := es.srv.Store.Token().Delete(token.Token); err != nil {
+				return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_delete.error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
@@ -608,6 +633,10 @@ func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (
 	}
 
 	token := model.NewToken(TokenTypeVerifyEmail, string(jsonData))
+
+	if err := es.InvalidateVerifyEmailTokensForUser(userID); err != nil {
+		return nil, err
+	}
 
 	if err = es.srv.Store.Token().Save(token); err != nil {
 		var appErr *model.AppError
