@@ -153,7 +153,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 
 	file, err := os.Open("store.go")
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open store/store.go file: %w", err)
+		return nil, fmt.Errorf("unable to open store/store.go file: %w", err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {

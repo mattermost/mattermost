@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -111,25 +112,26 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	fmt.Fprintln(w, `<!DOCTYPE html><html><head></head>`)
 	fmt.Fprintln(w, `<body onload="window.location = '`+template.HTMLEscapeString(template.JSEscapeString(destination))+`'">`)
 	fmt.Fprintln(w, `<noscript><meta http-equiv="refresh" content="0; url=`+template.HTMLEscapeString(destination)+`"></noscript>`)
+	fmt.Fprintln(w, `<!-- web error message -->`)
 	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
 	fmt.Fprintln(w, `</body></html>`)
 }
 
-func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
+func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 	RenderMobileMessage(w, `
 		<div class="icon text-success" style="font-size: 4em">
 			<i class="fa fa-check-circle" title="Success Icon"></i>
 		</div>
-		<h2> `+T("api.oauth.auth_complete")+` </h2>
-		<p id="redirecting-message"> `+T("api.oauth.redirecting_back")+` </p>
-		<p id="close-tab-message" style="display: none"> `+T("api.oauth.close_browser")+` </p>
-		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectUrl)+`"></noscript>
+		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
+		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
+		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
+		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectURL)+`"></noscript>
 		<script>
 			window.onload = function() {
 				setTimeout(function() {
 					document.getElementById('redirecting-message').style.display = 'none';
 					document.getElementById('close-tab-message').style.display = 'block';
-					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectUrl))+`';
+					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectURL))+`';
 				}, 2000);
 			}
 		</script>
@@ -141,10 +143,10 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
-		<h2> `+T("error")+` </h2>
+		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
 		<a href="`+redirectURL+`">
-			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
 }
@@ -170,6 +172,7 @@ func RenderMobileMessage(w http.ResponseWriter, message string) {
 				</style>
 			</head>
 			<body>
+				<!-- mobile app message -->
 				<div class="container-fluid">
 					<div class="message-container">
 						`+message+`

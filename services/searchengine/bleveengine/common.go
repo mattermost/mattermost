@@ -125,6 +125,13 @@ func BLVPostFromPostForIndexing(post *model.PostForIndexing) *BLVPost {
 	}
 }
 
+func splitFilenameWords(name string) string {
+	result := name
+	result = strings.ReplaceAll(result, "-", " ")
+	result = strings.ReplaceAll(result, ".", " ")
+	return result
+}
+
 func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
 	return &BLVFile{
 		Id:        fileInfo.Id,
@@ -133,7 +140,7 @@ func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
 		CreateAt:  fileInfo.CreateAt,
 		Content:   fileInfo.Content,
 		Extension: fileInfo.Extension,
-		Name:      fileInfo.Name,
+		Name:      fileInfo.Name + " " + splitFilenameWords(fileInfo.Name),
 	}
 }
 
@@ -145,6 +152,6 @@ func BLVFileFromFileForIndexing(file *model.FileForIndexing) *BLVFile {
 		CreateAt:  file.CreateAt,
 		Content:   file.Content,
 		Extension: file.Extension,
-		Name:      file.Name,
+		Name:      file.Name + " " + splitFilenameWords(file.Name),
 	}
 }

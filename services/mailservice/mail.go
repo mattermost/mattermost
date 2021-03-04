@@ -287,7 +287,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig, enableCompli
 func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
-	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"
+	htmlMessage := mail.htmlBody
 
 	txtBody, err := html2text.FromString(mail.htmlBody)
 	if err != nil {

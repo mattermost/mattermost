@@ -22,7 +22,7 @@ import (
 	"time"
 	"unicode"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -73,10 +73,10 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
-var translateFunc goi18n.TranslateFunc
+var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
-func AppErrorInit(t goi18n.TranslateFunc) {
+func AppErrorInit(t i18n.TranslateFunc) {
 	translateFuncOnce.Do(func() {
 		translateFunc = t
 	})
@@ -97,7 +97,7 @@ func (er *AppError) Error() string {
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 
-func (er *AppError) Translate(T goi18n.TranslateFunc) {
+func (er *AppError) Translate(T i18n.TranslateFunc) {
 	if T == nil {
 		er.Message = er.Id
 		return
@@ -110,7 +110,7 @@ func (er *AppError) Translate(T goi18n.TranslateFunc) {
 	}
 }
 
-func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
+func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 	if er.params == nil {
 		return T(er.Id)
 	}
@@ -183,14 +183,6 @@ func NewRandomString(length int) string {
 	data := make([]byte, 1+(length*5/8))
 	rand.Read(data)
 	return encoding.EncodeToString(data)[:length]
-}
-
-// NewRandomBase32String returns a base32 encoded string of a random slice
-// of bytes of the given size. The resulting entropy will be (8 * size) bits.
-func NewRandomBase32String(size int) string {
-	data := make([]byte, size)
-	rand.Read(data)
-	return base32.StdEncoding.EncodeToString(data)
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.
