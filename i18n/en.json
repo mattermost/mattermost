@@ -1559,6 +1559,10 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Error encoding JSON."
+  },
+  {
     "id": "api.context.local_origin_required.app_error",
     "translation": "This endpoint requires a local request origin."
   },

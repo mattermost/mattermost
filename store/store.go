@@ -817,6 +817,7 @@ type SharedChannelStore interface {
 	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	GetRemote(id string) (*model.SharedChannelRemote, error)
 	HasRemote(channelID string, remoteId string) (bool, error)
+	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteNextSyncAt(id string, syncTime int64) error

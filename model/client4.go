@@ -561,6 +561,10 @@ func (c *Client4) GetExportRoute(name string) string {
 	return fmt.Sprintf(c.GetExportsRoute()+"/%v", name)
 }
 
+func (c *Client4) GetRemoteClusterRoute() string {
+	return "/remotecluster"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -6014,4 +6018,18 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 	defer closeBody(r)
 
 	return BuildResponse(r)
+}
+
+func (c *Client4) GetRemoteClusterById(remoteId string) (*RemoteCluster, *Response) {
+	url := fmt.Sprintf("%s/%s", c.GetRemoteClusterRoute(), remoteId)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var rc RemoteCluster
+	json.NewDecoder(r.Body).Decode(&rc)
+
+	return &rc, BuildResponse(r)
 }

@@ -14,10 +14,49 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
+	api.BaseRoutes.RemoteCluster.Handle("/{remote_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getRemoteClusterById)).Methods("GET")
 	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
+}
+
+func getRemoteClusterById(c *Context, w http.ResponseWriter, r *http.Request) {
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	// TODO: check if user belongs to a channel shared with the remote?
+
+	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId)
+	if appErr != nil {
+		c.SetInvalidRemoteIdError(c.Params.RemoteId)
+		return
+	}
+
+	remoteDetails := struct {
+		DisplayName string `json:"display_name"`
+		CreateAt    int64  `json:"create_at"`
+		LastPingAt  int64  `json:"last_ping_at"`
+	}{
+		rc.DisplayName,
+		rc.CreateAt,
+		rc.LastPingAt,
+	}
+
+	b, err := json.Marshal(remoteDetails)
+	if err != nil {
+		c.SetJSONEncodingError()
+		return
+	}
+	w.Write(b)
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {

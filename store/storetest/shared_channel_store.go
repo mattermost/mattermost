@@ -29,6 +29,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, ss) })
+	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteNextSyncAt(t, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
 
@@ -667,6 +668,65 @@ func testHasRemote(t *testing.T, ss store.Store) {
 	})
 }
 
+func testGetRemoteForUser(t *testing.T, ss store.Store) {
+	// add remotes, and users to simulated shared channels.
+	teamId := model.NewId()
+	channel, _, err := createSharedTestChannel(ss, "share_test_channel", true)
+	require.NoError(t, err)
+	remotes := []*model.RemoteCluster{
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 1"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 2"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 3"},
+	}
+	var channelRemotes []*model.SharedChannelRemote
+	for _, rc := range remotes {
+		rc, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		scr := &model.SharedChannelRemote{Id: model.NewId(), CreatorId: rc.CreatorId, ChannelId: channel.Id, RemoteId: rc.RemoteId}
+		scr, err = ss.SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+		channelRemotes = append(channelRemotes, scr)
+	}
+	users := []string{model.NewId(), model.NewId(), model.NewId()}
+	for _, id := range users {
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: false,
+			SchemeUser:  true,
+		}
+		member, err := ss.Channel().SaveMember(member)
+		require.NoError(t, err)
+	}
+
+	t.Run("user is member", func(t *testing.T) {
+		for _, rc := range remotes {
+			for _, userId := range users {
+				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId)
+				assert.NoError(t, err, "remote should be found for user")
+				assert.Equal(t, rc.RemoteId, rcFound.RemoteId, "remoteIds should match")
+			}
+		}
+	})
+
+	t.Run("user is not a member", func(t *testing.T) {
+		for _, rc := range remotes {
+			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId())
+			assert.Error(t, err, "remote should not be found for user")
+			assert.Nil(t, rcFound)
+		}
+	})
+
+	t.Run("invalid remote id", func(t *testing.T) {
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0])
+		assert.Error(t, err, "remote should not be found for user")
+		assert.Nil(t, rcFound)
+	})
+
+}
+
 func testUpdateSharedChannelRemoteNextSyncAt(t *testing.T, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_update_next_sync_at")
 	require.NoError(t, err)
@@ -730,6 +790,11 @@ func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
 }
 
 func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
+	channel, _, err := createSharedTestChannel(ss, name, false)
+	return channel, err
+}
+
+func createSharedTestChannel(ss store.Store, name string, shared bool) (*model.Channel, *model.SharedChannel, error) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		Type:        model.CHANNEL_OPEN,
@@ -738,8 +803,29 @@ func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
 		Header:      name + " header",
 		Purpose:     name + "purpose",
 		CreatorId:   model.NewId(),
+		Shared:      model.NewBool(shared),
 	}
-	return ss.Channel().Save(channel, 10000)
+	channel, err := ss.Channel().Save(channel, 10000)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var sharedChannel *model.SharedChannel
+
+	if shared {
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			CreatorId: channel.CreatorId,
+			ShareName: channel.Name,
+			Home:      true,
+		}
+		sharedChannel, err = ss.SharedChannel().Save(sc)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return channel, sharedChannel, nil
 }
 
 func clearSharedChannels(ss store.Store) error {

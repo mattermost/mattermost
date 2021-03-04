@@ -224,6 +224,10 @@ func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
 
+func (c *Context) SetJSONEncodingError() {
+	c.Err = NewJSONEncodingError()
+}
+
 func (c *Context) SetCommandNotFoundError() {
 	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
 }
@@ -268,6 +272,11 @@ func NewInvalidRemoteIdError(parameter string) *model.AppError {
 
 func NewInvalidRemoteClusterTokenError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", nil, "", http.StatusUnauthorized)
+	return err
+}
+
+func NewJSONEncodingError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusUnauthorized)
 	return err
 }
 
