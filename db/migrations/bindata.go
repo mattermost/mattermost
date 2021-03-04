@@ -22,6 +22,8 @@
 // mysql/000010_create_group_channels.up.sql
 // mysql/000011_create_link_metadata.down.sql
 // mysql/000011_create_link_metadata.up.sql
+// mysql/000012_create_reactions.down.sql
+// mysql/000012_create_reactions.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -44,6 +46,8 @@
 // postgres/000010_create_group_channels.up.sql
 // postgres/000011_create_link_metadata.down.sql
 // postgres/000011_create_link_metadata.up.sql
+// postgres/000012_create_reactions.down.sql
+// postgres/000012_create_reactions.up.sql
 package migrations
 
 import (
@@ -560,6 +564,46 @@ func mysql000011_create_link_metadataUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000012_create_reactionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x4a\x4d\x4c\x2e\xc9\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\x13\x51\x8e\x06\x20\x00\x00\x00")
+
+func mysql000012_create_reactionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000012_create_reactionsDownSql,
+		"mysql/000012_create_reactions.down.sql",
+	)
+}
+
+func mysql000012_create_reactionsDownSql() (*asset, error) {
+	bytes, err := mysql000012_create_reactionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000012_create_reactions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000012_create_reactionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\xcf\xc1\x4a\x03\x31\x18\xc4\xf1\xfb\x3e\xc5\x1c\x13\xd8\x83\x94\x52\x04\xe9\x21\xdd\xfd\xaa\xc1\x18\x4b\x36\x01\x7b\x4c\xdb\xa8\x11\x37\x91\x6c\xf4\xf9\x85\x2a\x55\x3c\xa8\xf7\x1f\xc3\xfc\x3b\x43\xc2\x12\xac\x58\x29\x82\x5c\x43\xdf\x5a\xd0\x9d\x1c\xec\x00\x13\xfc\xbe\xc6\x9c\x26\xb0\x06\x00\xdc\x14\x8a\x3c\xe0\xcd\x97\xfd\xa3\x2f\x6c\xb6\xe0\x47\xad\x9d\x52\xed\x11\x6c\xf2\x54\x7f\x05\x34\xe6\xa7\xa8\xfd\x18\x4e\x66\x31\xff\x69\xba\x12\x7c\x0d\xa2\x62\x17\x1f\x62\xaa\x6c\x76\xc6\xd1\xd3\x5a\x38\xf5\x5d\xb9\x97\xc3\x3f\x54\x1f\x9e\xc3\xdf\x6a\x63\xe4\x8d\x30\x5b\x5c\xd3\x16\xec\xa3\xa1\xfd\x8c\x6d\xbf\x2e\xf3\x86\x83\xf4\xa5\xd4\xb4\x94\x29\xe5\x7e\x75\x5a\xea\xae\x84\x19\xc8\x2e\x5f\xeb\xfd\xf9\xb8\x9b\x5f\x34\xef\x01\x00\x00\xff\xff\x0f\xb2\x63\x5e\x54\x01\x00\x00")
+
+func mysql000012_create_reactionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000012_create_reactionsUpSql,
+		"mysql/000012_create_reactions.up.sql",
+	)
+}
+
+func mysql000012_create_reactionsUpSql() (*asset, error) {
+	bytes, err := mysql000012_create_reactionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000012_create_reactions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -1000,6 +1044,46 @@ func postgres000011_create_link_metadataUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000012_create_reactionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x4a\x4d\x4c\x2e\xc9\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\xc4\xde\x12\x80\x20\x00\x00\x00")
+
+func postgres000012_create_reactionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000012_create_reactionsDownSql,
+		"postgres/000012_create_reactions.down.sql",
+	)
+}
+
+func postgres000012_create_reactionsDownSql() (*asset, error) {
+	bytes, err := postgres000012_create_reactionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000012_create_reactions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000012_create_reactionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xce\x41\xeb\x82\x30\x1c\xc6\xf1\xbb\xaf\xe2\x39\x2a\x78\xfa\xf3\xc7\x4b\xa7\x25\x8b\x24\xb3\x98\x2b\xf2\xb8\xf4\x47\x2c\x72\x93\x6d\xbe\xff\x40\xa3\x20\xa1\xeb\x97\x0f\x3c\x4f\x2e\x38\x93\x1c\x92\xad\x4b\x8e\x62\x83\xea\x20\xc1\x2f\x45\x2d\x6b\x38\x52\x6d\xd0\xd6\xf8\x38\x02\x80\xd1\x93\xd3\x1d\xce\x4c\xe4\x5b\x26\xe2\xbf\x2c\x99\x70\x75\x2a\xcb\x74\x02\x83\xf5\xe1\x27\xa0\xde\xde\xb5\x51\x3d\xbd\x4d\xf6\xff\x6d\x5a\x47\x2a\x90\x0a\xb8\xea\x9b\x36\x61\x8e\xe3\xd0\x2d\x63\x47\x0f\x5a\xc4\xa3\x28\xf6\x4c\x34\xd8\xf1\x06\xf1\x7c\x28\x7d\x3d\x4f\x3f\xfb\x49\x94\xac\xa2\x67\x00\x00\x00\xff\xff\xf9\xfb\xcb\x74\xfa\x00\x00\x00")
+
+func postgres000012_create_reactionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000012_create_reactionsUpSql,
+		"postgres/000012_create_reactions.up.sql",
+	)
+}
+
+func postgres000012_create_reactionsUpSql() (*asset, error) {
+	bytes, err := postgres000012_create_reactionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000012_create_reactions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -1074,6 +1158,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000010_create_group_channels.up.sql":         mysql000010_create_group_channelsUpSql,
 	"mysql/000011_create_link_metadata.down.sql":        mysql000011_create_link_metadataDownSql,
 	"mysql/000011_create_link_metadata.up.sql":          mysql000011_create_link_metadataUpSql,
+	"mysql/000012_create_reactions.down.sql":            mysql000012_create_reactionsDownSql,
+	"mysql/000012_create_reactions.up.sql":              mysql000012_create_reactionsUpSql,
 	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
@@ -1096,6 +1182,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000010_create_group_channels.up.sql":      postgres000010_create_group_channelsUpSql,
 	"postgres/000011_create_link_metadata.down.sql":     postgres000011_create_link_metadataDownSql,
 	"postgres/000011_create_link_metadata.up.sql":       postgres000011_create_link_metadataUpSql,
+	"postgres/000012_create_reactions.down.sql":         postgres000012_create_reactionsDownSql,
+	"postgres/000012_create_reactions.up.sql":           postgres000012_create_reactionsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -1162,6 +1250,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000010_create_group_channels.up.sql":      &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
 		"000011_create_link_metadata.down.sql":     &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
 		"000011_create_link_metadata.up.sql":       &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_reactions.down.sql":         &bintree{mysql000012_create_reactionsDownSql, map[string]*bintree{}},
+		"000012_create_reactions.up.sql":           &bintree{mysql000012_create_reactionsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -1186,6 +1276,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000010_create_group_channels.up.sql":      &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
 		"000011_create_link_metadata.down.sql":     &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
 		"000011_create_link_metadata.up.sql":       &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_reactions.down.sql":         &bintree{postgres000012_create_reactionsDownSql, map[string]*bintree{}},
+		"000012_create_reactions.up.sql":           &bintree{postgres000012_create_reactionsUpSql, map[string]*bintree{}},
 	}},
 }}
 
