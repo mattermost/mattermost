@@ -232,6 +232,10 @@ app-layers: ## Extract interface from App struct
 	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
+email-service-layers: ## Extract interface from EmailService struct
+	$(GO) get -modfile=go.tools.mod github.com/reflog/struct2interface
+	$(GOBIN)/struct2interface -f "app/" -o "app/emailservice_iface.go" -p "app" -s "EmailService" -i "EmailServiceIface"
+
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""

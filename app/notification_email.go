@@ -100,7 +100,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
+		if nErr := a.Srv().EmailService.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
@@ -167,7 +167,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
+		bodyPage = a.Srv().EmailService.NewEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
@@ -177,7 +177,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		}
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
-		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
+		bodyPage = a.Srv().EmailService.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
 	bodyPage.Props["SiteURL"] = a.GetSiteURL()

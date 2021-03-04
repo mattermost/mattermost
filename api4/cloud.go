@@ -424,16 +424,18 @@ func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	sub, err := c.App.Cloud().GetSubscription()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// sub, err := c.App.Cloud().GetSubscription()
+	// if err != nil {
+	// 	c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	if err = c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
-		return
-	}
+	// if err = c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); err != nil {
+	// 	c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	// 	return
+	// }
+
+	c.App.Srv().EmailService.SendSignInChangeEmail("test@gmail.com", "LDAP", "en", "http:localhost:9005")
 
 	ReturnStatusOK(w)
 }

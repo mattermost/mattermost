@@ -102,7 +102,7 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailService *EmailService
+	EmailService EmailServiceIface
 
 	hubs          []*Hub
 	hashSeed      maphash.Seed
