@@ -1021,17 +1021,19 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:    props.NotAssociatedToGroup,
-		ExcludeDefaultChannels:  props.ExcludeDefaultChannels,
-		TeamIds:                 props.TeamIds,
-		GroupConstrained:        props.GroupConstrained,
-		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
-		Public:                  props.Public,
-		Private:                 props.Private,
-		IncludeDeleted:          includeDeleted,
-		Deleted:                 props.Deleted,
-		Page:                    props.Page,
-		PerPage:                 props.PerPage,
+		NotAssociatedToGroup:     props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
+		TeamIds:                  props.TeamIds,
+		GroupConstrained:         props.GroupConstrained,
+		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
+		PolicyID:                 props.PolicyID,
+		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		Public:                   props.Public,
+		Private:                  props.Private,
+		IncludeDeleted:           includeDeleted,
+		Deleted:                  props.Deleted,
+		Page:                     props.Page,
+		PerPage:                  props.PerPage,
 	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)

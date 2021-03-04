@@ -22,9 +22,11 @@ func (api *API) InitDataRetention() {
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(getTeamsForPolicy)).Methods("GET")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(addTeamsToPolicy)).Methods("POST")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(removeTeamsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams/search", api.ApiSessionRequired(searchTeamsInPolicy)).Methods("POST")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForPolicy)).Methods("GET")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels/search", api.ApiSessionRequired(searchChannelsInPolicy)).Methods("POST")
 }
 
 func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -165,6 +167,31 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	props := model.TeamSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("team_search")
+		return
+	}
+	props.PolicyID = model.NewString(c.Params.PolicyId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	teams, _, err := c.App.SearchAllTeams(props)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	c.App.SanitizeTeams(*c.App.Session(), teams)
+
+	payload := []byte(model.TeamListToJson(teams))
+	w.Write(payload)
+}
+
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
@@ -235,6 +262,34 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, _ := json.Marshal(channels)
 	w.Write(b)
+}
+
+func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	opts := model.ChannelSearchOpts{
+		PolicyID:                 c.Params.PolicyId,
+		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+	}
+
+	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	payload := []byte(channels.ToJson())
+	w.Write(payload)
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

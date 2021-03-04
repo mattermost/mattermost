@@ -403,6 +403,16 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
 	}
 
+	if opts.PolicyID != nil && *opts.PolicyID != "" {
+		query = query.
+			InnerJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").
+			Where("RetentionPoliciesTeams.PolicyId = ?", *opts.PolicyID)
+	} else if opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained {
+		query = query.
+			LeftJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").
+			Where("RetentionPoliciesTeams.TeamId IS NULL")
+	}
+
 	var teamFilters sq.Sqlizer
 	var openInviteFilter sq.Sqlizer
 	if opts.AllowOpenInvite != nil {
