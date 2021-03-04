@@ -12,6 +12,10 @@
     "translation": "December"
   },
   {
+    "id": "Failed to send cloud welcome email",
+    "translation": ""
+  },
+  {
     "id": "February",
     "translation": "February"
   },
@@ -6503,10 +6507,6 @@
     "translation": "Failed to delete channel posts"
   },
   {
-    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": "Unable to get the files batch for indexing."
-  },
-  {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "Failed to delete file"
   },
@@ -6573,6 +6573,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
