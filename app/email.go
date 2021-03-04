@@ -261,8 +261,8 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
 func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
-	subject := utils.T("api.templates.cloud_welcome_email.subject")
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_welcome_email.subject")
 
 	workSpacePath := fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
 
