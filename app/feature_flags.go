@@ -17,16 +17,15 @@ import (
 func (s *Server) setupFeatureFlags() {
 	s.featureFlagSynchronizerMutex.Lock()
 	defer s.featureFlagSynchronizerMutex.Unlock()
-	license := s.License()
-	inCloud := license != nil && *license.Features.Cloud
 	splitKey := *s.Config().ServiceSettings.SplitKey
-	syncFeatureFlags := inCloud && splitKey != "" && s.IsLeader()
+	splitConfigured := splitKey != ""
+	syncFeatureFlags := splitConfigured && s.IsLeader()
 
-	s.configStore.PersistFeatures(inCloud)
+	s.configStore.PersistFeatures(splitConfigured)
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
-			s.Log.Warn("Unable to setup synchronization with feature flag management. Will fallback to cloud cache.", mlog.Err(err))
+			s.Log.Warn("Unable to setup synchronization with feature flag management. Will fallback to cache.", mlog.Err(err))
 		}
 	} else {
 		s.stopFeatureFlagUpdateJob()
