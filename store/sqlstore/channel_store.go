@@ -1489,7 +1489,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		User  sql.NullString
 		Admin sql.NullString
 	}
-	_, err = transaction.Select(&defaultChannelsRoles, channelRolesSql, channelRolesArgs...)
+	_, err = s.GetMaster().Select(&defaultChannelsRoles, channelRolesSql, channelRolesArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "default_channel_roles_select")
 	}
@@ -1542,7 +1542,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		User  sql.NullString
 		Admin sql.NullString
 	}
-	_, err = transaction.Select(&defaultTeamsRoles, teamRolesSql, teamRolesArgs...)
+	_, err = s.GetMaster().Select(&defaultTeamsRoles, teamRolesSql, teamRolesArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "default_team_roles_select")
 	}
@@ -1570,7 +1570,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		return nil, errors.Wrap(err, "channel_members_tosql")
 	}
 
-	if _, err := transaction.Exec(sql, args...); err != nil {
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY", "\"primary\""}) {
 			return nil, store.NewErrConflict("ChannelMembers", err, "")
 		}
@@ -3045,7 +3045,7 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*m
 	keys, props := MapStringsToQueryParams(userIds, "User")
 	props["ChannelId"] = channelId
 
-	query := CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY + "WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN " + keys
+	query := ChannelMembersWithSchemeSelectQuery + "WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN " + keys
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		query = `
 			WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(userIds, "','") + `']) id)

@@ -22,6 +22,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	mysqlmigrate "github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -37,6 +38,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
+	_ "github.com/mattermost/mattermost-server/v5/store/sqlstore/imports"
 )
 
 type migrationDirection string
@@ -60,35 +62,36 @@ const (
 )
 
 const (
-	ExitGenericFailure           = 1
-	ExitCreateTable              = 100
-	ExitDBOpen                   = 101
-	ExitPing                     = 102
-	ExitNoDriver                 = 103
-	ExitTableExists              = 104
-	ExitTableExistsMySQL         = 105
-	ExitColumnExists             = 106
-	ExitDoesColumnExistsPostgres = 107
-	ExitDoesColumnExistsMySQL    = 108
-	ExitDoesColumnExistsMissing  = 109
-	ExitCreateColumnPostgres     = 110
-	ExitCreateColumnMySQL        = 111
-	ExitCreateColumnMissing      = 112
-	ExitRemoveColumn             = 113
-	ExitRenameColumn             = 114
-	ExitMaxColumn                = 115
-	ExitAlterColumn              = 116
-	ExitCreateIndexPostgres      = 117
-	ExitCreateIndexMySQL         = 118
-	ExitCreateIndexFullMySQL     = 119
-	ExitCreateIndexMissing       = 120
-	ExitRemoveIndexPostgres      = 121
-	ExitRemoveIndexMySQL         = 122
-	ExitRemoveIndexMissing       = 123
-	ExitRemoveTable              = 134
-	ExitAlterPrimaryKey          = 139
-	ExitCreateIndexCockroach     = 140
-	ExitRemoveIndexCockroach     = 141
+	ExitGenericFailure            = 1
+	ExitCreateTable               = 100
+	ExitDBOpen                    = 101
+	ExitPing                      = 102
+	ExitNoDriver                  = 103
+	ExitTableExists               = 104
+	ExitTableExistsMySQL          = 105
+	ExitColumnExists              = 106
+	ExitDoesColumnExistsPostgres  = 107
+	ExitDoesColumnExistsMySQL     = 108
+	ExitDoesColumnExistsMissing   = 109
+	ExitCreateColumnPostgres      = 110
+	ExitCreateColumnMySQL         = 111
+	ExitCreateColumnMissing       = 112
+	ExitRemoveColumn              = 113
+	ExitRenameColumn              = 114
+	ExitMaxColumn                 = 115
+	ExitAlterColumn               = 116
+	ExitCreateIndexPostgres       = 117
+	ExitCreateIndexMySQL          = 118
+	ExitCreateIndexFullMySQL      = 119
+	ExitCreateIndexMissing        = 120
+	ExitRemoveIndexPostgres       = 121
+	ExitRemoveIndexMySQL          = 122
+	ExitRemoveIndexMissing        = 123
+	ExitRemoveTable               = 134
+	ExitAlterPrimaryKey           = 139
+	ExitCreateIndexCockroach      = 140
+	ExitRemoveIndexCockroach      = 141
+	ExitDoesColumnExistsCockroach = 142
 )
 
 type SqlStoreStores struct {
@@ -536,7 +539,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		if err != nil {
 			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
-			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
+			os.Exit(ExitDoesColumnExistsCockroach)
 		}
 
 		return count > 0
@@ -966,7 +969,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 
 		query := "CREATE " + uniqueStr + "INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 
-		if indexType == INDEX_TYPE_FULL_TEXT {
+		if indexType == IndexTypeFullText {
 			return true
 		}
 
@@ -1291,6 +1294,11 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
+		if err != nil {
+			return err
+		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		driver, err = cockroachdb.WithInstance(conn.Db, &cockroachdb.Config{})
 		if err != nil {
 			return err
 		}

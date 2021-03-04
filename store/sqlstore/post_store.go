@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -1100,37 +1101,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		if err != nil {
 			return nil, errors.Wrap(err, "post_tosql")
 		}
-		fmt.Println(rootQueryString, args)
-		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		_, nErr := s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
+		if nErr != nil {
+			return nil, errors.Wrapf(nErr, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
 	}
 
-	posts, err = s.addReplyCounts(posts, options.ChannelId, false)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before)
 	if err != nil {
 		return nil, err
-	}
-
-	parents, err = s.addReplyCounts(parents, options.ChannelId, false)
-	if err != nil {
-		return nil, err
-	}
-
-	list := model.NewPostList()
-
-	// We need to flip the order if we selected backwards
-	if before {
-		for _, p := range posts {
-			list.AddPost(p)
-			list.AddOrder(p.Id)
-		}
-	} else {
-		l := len(posts)
-		for i := range posts {
-			list.AddPost(posts[l-i-1])
-			list.AddOrder(posts[l-i-1].Id)
-		}
 	}
 
 	for _, p := range parents {
@@ -2040,7 +2019,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		queryString, args := store.CockroachQueryBuilder.BuildDetermineMaxPostSizeQuery()
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, queryString, args...); err != nil {
-			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(i18n.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported post size")

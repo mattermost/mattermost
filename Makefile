@@ -574,6 +574,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f *.out
 	rm -f *.test
 	rm -f imports/imports.go
+	rm -f store/sqlstore/imports.go
 	rm -f cmd/platform/cprofile*.out
 	rm -f cmd/mattermost/cprofile*.out
 

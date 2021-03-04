@@ -1,0 +1,49 @@
+language: go
+
+go:
+  - 1.x
+  - tip
+
+git:
+  depth: 1
+
+# Derived from https://github.com/lib/pq/blob/master/.travis.yml
+before_install:
+  - ./travis/before_install.bash
+
+env:
+  global:
+    - GO111MODULE=on
+    - GOPROXY=https://proxy.golang.org
+    - GOFLAGS=-mod=readonly
+    - PGX_TEST_CONN_STRING=postgres://pgx_md5:secret@127.0.0.1/pgx_test
+    - PGX_TEST_UNIX_SOCKET_CONN_STRING="host=/var/run/postgresql dbname=pgx_test"
+    - PGX_TEST_TCP_CONN_STRING=postgres://pgx_md5:secret@127.0.0.1/pgx_test
+    - PGX_TEST_TLS_CONN_STRING=postgres://pgx_md5:secret@127.0.0.1/pgx_test?sslmode=require
+    - PGX_TEST_MD5_PASSWORD_CONN_STRING=postgres://pgx_md5:secret@127.0.0.1/pgx_test
+    - PGX_TEST_PLAIN_PASSWORD_CONN_STRING=postgres://pgx_pw:secret@127.0.0.1/pgx_test
+  matrix:
+    - CRATEVERSION=2.1 PGX_TEST_CRATEDB_CONN_STRING="host=127.0.0.1 port=6543 user=pgx dbname=pgx_test"
+    - PGVERSION=12
+    - PGVERSION=11
+    - PGVERSION=10
+    - PGVERSION=9.6
+    - PGVERSION=9.5
+    - PGVERSION=9.4
+
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
+before_script:
+  - ./travis/before_script.bash
+
+install: go mod download
+
+script:
+  - ./travis/script.bash
+
+matrix:
+  allow_failures:
+    - go: tip
