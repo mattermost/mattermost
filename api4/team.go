@@ -1003,6 +1003,13 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained != nil && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	// policy ID may only be used through the /data_retention/policies endpoint
+	props.PolicyID = nil
 
 	var teams []*model.Team
 	var totalCount int64

@@ -4631,6 +4631,21 @@ func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int)
 	return teams, BuildResponse(r)
 }
 
+// SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
+func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response) {
+	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams/search", body)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var teams []*Team
+	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.SearchTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return teams, BuildResponse(r)
+}
+
 // AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) *Response {
@@ -4666,6 +4681,21 @@ func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage i
 	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
 	if jsonErr != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.GetChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return channels, BuildResponse(r)
+}
+
+// SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
+func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response) {
+	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams/search", body)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var channels ChannelListWithTeamData
+	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.SearchChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
 	}
 	return channels, BuildResponse(r)
 }

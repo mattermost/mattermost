@@ -17,7 +17,6 @@ type ChannelSearch struct {
 	TeamIds                  []string `json:"team_ids"`
 	GroupConstrained         bool     `json:"group_constrained"`
 	ExcludeGroupConstrained  bool     `json:"exclude_group_constrained"`
-	PolicyID                 string   `json:"policy_id"`
 	ExcludePolicyConstrained bool     `json:"exclude_policy_constrained"`
 	Public                   bool     `json:"public"`
 	Private                  bool     `json:"private"`

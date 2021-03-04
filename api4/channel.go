@@ -1012,6 +1012,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
@@ -1020,13 +1025,13 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
+	// PolicyID is ignored since that may only be used through the /data_retention/policies endpoint
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:     props.NotAssociatedToGroup,
 		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
 		TeamIds:                  props.TeamIds,
 		GroupConstrained:         props.GroupConstrained,
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
-		PolicyID:                 props.PolicyID,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
 		Public:                   props.Public,
 		Private:                  props.Private,
