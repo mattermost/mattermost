@@ -287,8 +287,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig, enableCompli
 func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
-	// Open sans font is needed by the cloud_welcome_email.html teamplate
-	htmlMessage := "\r\n<html><head><link href='https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap' rel='stylesheet'></head><body>" + mail.htmlBody + "</body></html>"
+	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"
 
 	txtBody, err := html2text.FromString(mail.htmlBody)
 	if err != nil {
