@@ -410,18 +410,6 @@ test-client: ## Test client app.
 
 test: test-server test-client ## Runs all checks and tests below (except race detection and postgres).
 
-test-replication-lag: check-prereqs-enterprise start-docker-check start-docker ## Run tests involving replication lag.
-ifeq ($(MM_SQLSETTINGS_DRIVERNAME),mysql)
-	@echo Running replication lag tests
-	$(GO) test $(GOFLAGS) \
-		github.com/mattermost/mattermost-server/v5/api4 \
-		github.com/mattermost/mattermost-server/v5/app \
-		github.com/mattermost/mattermost-server/v5/enterprise/ldap \
-		-run="^TestLoginWithLag|TestReplyToPostWithLag|TestSyncMembershipsWithLag|TestFirstLoginSyncWithLag$$" -mysql-replica
-else
-	@echo Must use 'mysql' database driver for replication lag tests
-endif
-
 cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	@echo Opening coverage info in browser. If this failed run make test first
 
