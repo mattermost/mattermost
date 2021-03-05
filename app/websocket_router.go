@@ -6,9 +6,9 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type webSocketHandler interface {
@@ -103,7 +103,7 @@ func returnWebSocketError(app *App, conn *WebConn, r *model.WebSocketRequest, er
 		"websocket routing error.",
 		mlog.Int64("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
-		mlog.String("system_message", err.SystemMessage(utils.T)),
+		mlog.String("system_message", err.SystemMessage(i18n.T)),
 		mlog.Err(err),
 	)
 

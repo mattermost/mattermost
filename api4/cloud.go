@@ -36,6 +36,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
 
 	// POST /api/v4/cloud/webhook
@@ -53,10 +54,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription()
-
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	subscription, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -75,7 +75,7 @@ func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription()
+	subscription, appErr := c.App.Cloud().GetSubscription("")
 
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -110,9 +110,9 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	products, appErr := c.App.Cloud().GetCloudProducts()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	products, err := c.App.Cloud().GetCloudProducts(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -136,9 +136,9 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, appErr := c.App.Cloud().GetCloudCustomer()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	customer, err := c.App.Cloud().GetCloudCustomer(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -174,7 +174,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomer(customerInfo)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomer(c.App.Session().UserId, customerInfo)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -212,7 +212,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(address)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(c.App.Session().UserId, address)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -241,9 +241,9 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createCustomerPayment", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	intent, appErr := c.App.Cloud().CreateCustomerPayment()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	intent, err := c.App.Cloud().CreateCustomerPayment(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -284,9 +284,9 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr := c.App.Cloud().ConfirmCustomerPayment(confirmRequest)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	err = c.App.Cloud().ConfirmCustomerPayment(c.App.Session().UserId, confirmRequest)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -306,7 +306,7 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription()
+	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription(c.App.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -337,7 +337,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
+	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.App.Session().UserId, c.Params.InvoiceId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -397,20 +397,40 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user, err := c.App.GetUser(c.App.Session().UserId)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	user, appErr := c.App.GetUser(c.App.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 		return
 	}
 
-	sub, err := c.App.Cloud().GetSubscription()
+	sub, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub); err != nil {
-		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
+	if appErr = c.App.SendAdminUpgradeRequestEmail(user.Username, sub, model.InviteLimitation); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	sub, err := c.App.Cloud().GetSubscription("")
+	if err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if appErr := c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
 		return
 	}
 

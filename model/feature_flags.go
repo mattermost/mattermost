@@ -19,9 +19,6 @@ type FeatureFlags struct {
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
-	// Toggle on and off support for Custom User Statuses
-	CustomUserStatuses bool
-
 	// AppsEnabled toggle the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -39,10 +36,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.FilesSearch = false
-	f.CustomUserStatuses = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.4.0"
+	f.PluginIncidentManagement = "1.5.2"
 	f.PluginApps = ""
 }
 
