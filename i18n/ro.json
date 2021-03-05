@@ -1993,11 +1993,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
+    "translation": "Această adresă de e-mail a fost utilizată pentru a crea un cont cu Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Te-ai alăturat {{ .ServerURL }}"
+    "translation": "Verifică-ți adresa de email"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2005,7 +2005,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Pentru cea mai bună experiență, descărcați aplicațiile pentru PC, Mac, iOS și Android de la:"
+    "translation": "Pentru cea mai bună experiență, descărcați aplicațiile pentru PC, Mac, iOS și Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2013,11 +2013,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
+    "translation": "Această adresă de e-mail a fost utilizată pentru a crea un cont cu Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Te-ai alăturat {{ .ServerURL }}"
+    "translation": "Bine ai venit in echipa"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -8606,5 +8606,69 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Eroare la setarea stării."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Căutarea fișierelor a fost dezactivată pe acest server. Vă rugăm să contactați administratorul de sistem."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Faceți clic mai jos pentru a vă confirma adresa de e-mail."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Mersi ca te ai alaturat "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Dacă nu ați fost dvs., puteți ignora în siguranță acest e-mail."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Descărcați aplicațiile desktop și mobile"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Descarca"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Faceți clic mai jos pentru a vă confirma adresa de e-mail."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Mersi ca te ai alaturat "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Dacă nu ați fost dvs., puteți ignora în siguranță acest e-mail."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Întrebări?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Trimiteți-ne un e-mail oricând la "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Imposibil de analizat corpul solicitării."
   }
 ]

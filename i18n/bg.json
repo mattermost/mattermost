@@ -4085,7 +4085,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Моля, потвърдете своя адрес на ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -8601,5 +8601,25 @@
   {
     "id": "api.templates.upgrade_request_info4_2",
     "translation": "Някой наскоро се опита да се присъедини към Вашето работно пространство, но не успя, тъй като е достигнато ограничението за потребители в безплатната версия на Mattermost cloud. Надстройте сега, за да позволите на повече потребители да се присъединят към Вашето работно пространство."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Въпроси?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Пишете ни по всяко време на "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Тази функция е в процес на разработка и е достъпна само с помощта на флаг за функция."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Не можа да се анализира тялото на заявката."
   }
 ]

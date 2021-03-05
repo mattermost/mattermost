@@ -1988,11 +1988,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Por favor verifique seu endereço de e-mail clicando abaixo."
+    "translation": "Este endereço de e-mail foi usado para criar uma conta no Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Você entrou em {{ .ServerURL }}"
+    "translation": "Verifique seu endereço de e-mail"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2000,7 +2000,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Para uma melhor experiência, faça download dos apps para PC, Mac, iOS e Android em:"
+    "translation": "Para uma melhor experiência, faça download dos apps para PC, Mac, iOS e Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2008,11 +2008,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Por favor verifique seu endereço de e-mail clicando abaixo."
+    "translation": "Este endereço de e-mail foi usado para criar uma conta no Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Você entrou em {{ .ServerURL }}"
+    "translation": "Bem vindo a equipe"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -5048,7 +5048,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Update deve ser um tempo válido"
+    "translation": "Update deve ser um tempo válido."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -8409,5 +8409,261 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Erro ao definir o status."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "A pesquisa de arquivos foi desativada neste servidor. Entre em contato com o Administrador do Sistema."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Update deve ser um tempo válido."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Tempo ocioso máximo de conexão inválido para configurações de SQL. Deve ser um número não negativo."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Valor inválido para RetentionDays. O valor deve ser maior que 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "O valor para o Diretório não deve estar vazio."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Não foi possível atualizar o status ativo do MFA para o usuário."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Não foi possível atualizar o status ativo do MFA para o usuário."
+  },
+  {
+    "id": "error",
+    "translation": "Erro"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Não é possível conectar ao servidor smtp"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Falha ao decodificar os resultados da pesquisa"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Não foi possível completar a busca"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "A pesquisa de arquivos do Elasticsearch está desativada neste servidor"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Não foi possível obter o lote de arquivos para indexação."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Falha ao indexar o arquivo"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Falha ao excluir arquivos do usuário"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Falha ao excluir arquivos de publicação"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Falha ao excluir arquivo"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Falha ao criar modelo Elasticsearch para arquivos"
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Não foi possível gravar o arquivo de retransmissão global."
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Não foi possível gravar o arquivo csv."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Não foi possível gravar o arquivo de exportação."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Falha ao fechar o índice do arquivo."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "A pesquisa de arquivo não foi concluída."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Falha ao limpar os índices do arquivo."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Falha ao indexar lote de arquivos."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Falha ao indexar o arquivo."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Falha ao excluir os arquivos do usuário."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Falha ao excluir os arquivos de publicação."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Falha ao excluir os arquivos."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Falha ao excluir o arquivo."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Erro ao criar o índice do arquivo bleve."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Nenhum e-mail foi enviado com sucesso"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "O tópico do usuário não existe ou não é seguido"
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Não foi possível obter o lote de arquivos para indexação."
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Falha ao ler o anexo do arquivo durante a importação."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Falha ao adicionar arquivo ao arquivo zip durante a exportação."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Incapaz de organizar a resposta."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Falha ao criar cabeçalho zip durante a exportação."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Falha ao criar diretório durante a exportação."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Falha ao criar arquivo durante a exportação."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Falha ao copiar o arquivo durante a exportação."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Cabeçalho de origem inválido definido durante a atualização do websocket."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "A solicitação está sem o parâmetro AuthData ou AuthService."
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Falha ao enviar e-mail para notificação de limite do usuário ao administrador"
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Erro ao recuperar o endpoint da Descoberta de Documento."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Clique abaixo para verificar seu endereço de e-mail."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Obrigado por se juntar "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Se não foi você, você pode ignorar este e-mail com segurança."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Baixe os aplicativos de desktop e móveis"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Download"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Clique abaixo para verificar seu endereço de e-mail."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Obrigado por se juntar "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Se não foi você, você pode ignorar este e-mail com segurança."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Novos usuários não conseguem ingressar no seu espaço de trabalho"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} gostaria de convidar membros para o seu espaço de trabalho"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Usuário do Mattermost solicita a atualização do espaço de trabalho"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Alguém recentemente tentou entrar em seu espaço de trabalho, mas não conseguiu, pois seu espaço de trabalho atingiu o limite de usuários para a versão gratuita da nuvem Mattermost. Atualize agora para permitir que mais usuários ingressem em seu espaço de trabalho."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Questões?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Envie-nos um email a qualquer momento em "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Este recurso está em desenvolvimento e só está disponível por meio de um sinalizador de recurso."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Não foi possível analisar o corpo da solicitação."
   }
 ]
