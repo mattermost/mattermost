@@ -62,11 +62,11 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		},
 		{
 			Job:                jobs[1],
-			PermissionRequired: model.PERMISSION_MANAGE_JOBS,
+			PermissionRequired: model.PERMISSION_CREATE_DATA_RETENTION_JOB,
 		},
 		{
 			Job:                jobs[2],
-			PermissionRequired: model.PERMISSION_MANAGE_JOBS,
+			PermissionRequired: model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB,
 		},
 	}
 
@@ -110,7 +110,8 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_JOBS.Id)
+	role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_DATA_RETENTION_JOB.Id)
+	role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
