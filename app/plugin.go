@@ -98,7 +98,7 @@ func (a *App) SyncPluginsActiveState() {
 			}
 
 			// Tie Apps proxy features to the feature flag.
-			if pluginId == "com.mattermost.apps" {
+			if pluginID == "com.mattermost.apps" {
 				pluginEnabled = a.Config().FeatureFlags.AppsEnabled
 			}
 
