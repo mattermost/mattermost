@@ -41,6 +41,7 @@ const (
 	bucketNotFound = "NoSuchBucket"
 )
 
+// ErrNoS3Bucket is returned when testing a connection and no S3 bucket is found
 var ErrNoS3Bucket = errors.New("no such bucket")
 var (
 	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}

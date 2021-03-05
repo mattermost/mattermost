@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -160,6 +161,53 @@ func TestStartServerTLSSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
+}
+
+func TestStartServerNoS3Bucket(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	s, err := NewServer(func(server *Server) error {
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		server.configStore = store
+		server.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings = model.FileSettings{
+				DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
+				AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+				AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+				AmazonS3Bucket:          model.NewString("nosuchbucket"),
+				AmazonS3Endpoint:        model.NewString(s3Endpoint),
+				AmazonS3Region:          model.NewString(""),
+				AmazonS3PathPrefix:      model.NewString(""),
+				AmazonS3SSL:             model.NewBool(false),
+			}
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	serverErr := s.Start()
+	require.NoError(t, serverErr)
+	defer s.Shutdown()
+
+	client := &http.Client{}
+	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+
+	// ensure that a new bucket was created
+	backend, err := s.FileBackend()
+	require.Nil(t, err)
+	err = backend.(*filestore.S3FileBackend).TestConnection()
+	require.Nil(t, err)
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
