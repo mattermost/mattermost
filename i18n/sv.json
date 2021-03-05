@@ -3520,16 +3520,8 @@
     "translation": "Kluster-API endpoint hittades inte."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fel vid bearbetning av begäran till CWS"
-  },
-  {
     "id": "ent.cloud.json_encode.error",
     "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Kunde inte autentisera mot CWS"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
