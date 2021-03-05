@@ -7391,10 +7391,6 @@
     "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Error interno marshaling petición a CWS"
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Petición de tramitación del error a CWS."
   },

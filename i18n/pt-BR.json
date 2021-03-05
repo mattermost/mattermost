@@ -8191,10 +8191,6 @@
     "translation": "Encontramos um erro ao excluir permanentemente o lote de postagens."
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Solicitação de empacotamento de erro interno para CWS"
-  },
-  {
     "id": "app.import.marshal.app_error",
     "translation": "Incapaz de organizar a resposta."
   },

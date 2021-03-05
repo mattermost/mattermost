@@ -8224,10 +8224,6 @@
     "translation": "Am primit o semnătură invalidă în răspunsul furnizorului de identitate. Vă rugăm să contactați administratorul de sistem."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Imposibil de autentificat la CWS"
-  },
-  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Un membru de canal cu acel ID există deja."
   },

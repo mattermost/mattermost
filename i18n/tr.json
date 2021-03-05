@@ -7663,10 +7663,6 @@
     "translation": "En eski varlık (kullanıcı, kanal ya da ileti) veritabanından alınamadı"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWS isteği yapılırken bir iç sorun çıktı"
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "E-posta doğrulama alanı güncellenemedi."
   },

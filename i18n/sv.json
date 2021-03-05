@@ -3520,10 +3520,6 @@
     "translation": "Kluster-API endpoint hittades inte."
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " bifogade en fil."
   },

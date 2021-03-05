@@ -7786,10 +7786,6 @@
     "translation": "CWSへのリクエストを処理する際にエラーが発生しました。"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWSへのリクエストを変換する際に内部エラーが発生しました"
-  },
-  {
     "id": "app.upload.run_plugins_hook.rejected",
     "translation": "ファイル {{.Filename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
   },
