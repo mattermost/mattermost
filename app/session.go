@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -84,7 +85,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 
 	if session.Id == "" {
 		var nErr error
-		if session, nErr = a.Srv().Store.Session().Get(context.Background(), token); nErr == nil {
+		if session, nErr = a.Srv().Store.Session().Get(sqlstore.WithMaster(context.Background()), token); nErr == nil {
 			if session != nil {
 				if session.Token != token {
 					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
