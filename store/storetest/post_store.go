@@ -1580,39 +1580,39 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o2a)
 	require.NoError(t, err)
 
-	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt)
+	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt, false)
 	require.Equal(t, rPostId1, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt)
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false)
 	require.Equal(t, rPostId1, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt)
+	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt, false)
 	require.Equal(t, rPost1.Id, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt)
+	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt, false)
 	require.Empty(t, rPostId2, "should return no post")
 	require.NoError(t, err)
 
-	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt)
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false)
 	require.Equal(t, rPostId2, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt)
+	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt, false)
 	require.Equal(t, rPost2.Id, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt)
+	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt, false)
 	require.Equal(t, rPostId3, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt)
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false)
 	require.Empty(t, rPostId3, "should return no post")
 	require.NoError(t, err)
 
-	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt)
+	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt, false)
 	require.Empty(t, rPost3, "should return no post")
 	require.NoError(t, err)
 }
