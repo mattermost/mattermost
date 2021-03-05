@@ -2256,16 +2256,8 @@
     "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Грешка при обработка на заявката до CWS"
-  },
-  {
     "id": "ent.cloud.json_encode.error",
     "translation": "Вътрешна грешка при построяване на заявка до CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Неуспешно удостоверяване в CWS"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",

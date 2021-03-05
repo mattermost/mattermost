@@ -8191,16 +8191,8 @@
     "translation": "Encontramos um erro ao excluir permanentemente o lote de postagens."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Erro ao processar a solicitação para CWS"
-  },
-  {
     "id": "ent.cloud.json_encode.error",
     "translation": "Solicitação de empacotamento de erro interno para CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Incapaz de autenticar no CWS"
   },
   {
     "id": "app.import.marshal.app_error",

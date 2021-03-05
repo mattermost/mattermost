@@ -8216,20 +8216,12 @@
     "translation": "Comanda / {{.Command}} a blocat pluginul {{.PluginId}}. Vă rugăm să contactați administratorul de sistem"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Solicitarea de eroare internă către CWS"
-  },
-  {
     "id": "ent.saml.do_login.invalid_time.app_error",
     "translation": "Am primit un timp invalid în răspunsul de la furnizorul de identitate. Vă rugăm să contactați administratorul de sistem."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "Am primit o semnătură invalidă în răspunsul furnizorului de identitate. Vă rugăm să contactați administratorul de sistem."
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Eroare la procesarea cererii către CWS"
   },
   {
     "id": "ent.cloud.authentication_failed",
