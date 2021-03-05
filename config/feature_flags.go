@@ -22,6 +22,7 @@ type FeatureFlagSyncParams struct {
 	SplitKey            string
 	SyncIntervalSeconds int
 	Log                 *mlog.Logger
+	Attributes          map[string]interface{}
 }
 
 type FeatureFlagSynchronizer struct {
@@ -54,7 +55,7 @@ func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynch
 	}, nil
 }
 
-// ensureReady blocks until the syncronizer is ready to update feature flag values
+// EnsureReady blocks until the syncronizer is ready to update feature flag values
 func (f *FeatureFlagSynchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
 		return errors.Wrap(err, "split.io client could not initialize")
@@ -64,7 +65,7 @@ func (f *FeatureFlagSynchronizer) EnsureReady() error {
 }
 
 func (f *FeatureFlagSynchronizer) UpdateFeatureFlagValues(base model.FeatureFlags) model.FeatureFlags {
-	featuresMap := f.client.Treatments(f.ServerID, featureNames, nil)
+	featuresMap := f.client.Treatments(f.ServerID, featureNames, f.Attributes)
 	ffm := featureFlagsFromMap(featuresMap, base)
 	return ffm
 }
