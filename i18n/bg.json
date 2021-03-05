@@ -2256,10 +2256,6 @@
     "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Вътрешна грешка при построяване на заявка до CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикачи файл."
   },
@@ -4025,11 +4021,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
+    "translation": "Добре дошли в екипа"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Моля, потвърдете своя адрес за ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -4037,7 +4033,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android от:"
+    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -4073,7 +4069,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
+    "translation": "Проверка на Вашия адрес за ел.поща"
   },
   {
     "id": "api.templates.verify_body.info",
@@ -8613,5 +8609,65 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Не можа да се анализира тялото на заявката."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Грешка при вземане на администраторската ел.поща."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Търсенето на файлове е деактивирано на този сървър. Моля, свържете се със системния си администратор."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Свали настолно и мобилно приложение"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Свали"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
   }
 ]
