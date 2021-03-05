@@ -17,50 +17,50 @@ type SharedChannelServiceIFace interface {
 	Active() bool
 }
 
-type MockOption func(service *mockRemoteClusterService)
+type MockOptionSharedChannelService func(service *mockSharedChannelService)
 
-func WithActive(active bool) MockOption {
-	return func(mrcs *mockRemoteClusterService) {
+func MockOptionSharedChannelServiceWithActive(active bool) MockOptionSharedChannelService {
+	return func(mrcs *mockSharedChannelService) {
 		mrcs.active = active
 	}
 }
 
-func NewMockRemoteClusterService(service SharedChannelServiceIFace, options ...MockOption) *mockRemoteClusterService {
-	mrcs := &mockRemoteClusterService{service, true, []string{}, 0}
+func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...MockOptionSharedChannelService) *mockSharedChannelService {
+	mrcs := &mockSharedChannelService{service, true, []string{}, 0}
 	for _, option := range options {
 		option(mrcs)
 	}
 	return mrcs
 }
 
-type mockRemoteClusterService struct {
+type mockSharedChannelService struct {
 	SharedChannelServiceIFace
 	active         bool
 	notifications  []string
 	numInvitations int
 }
 
-func (mrcs *mockRemoteClusterService) NotifyChannelChanged(channelId string) {
+func (mrcs *mockSharedChannelService) NotifyChannelChanged(channelId string) {
 	mrcs.notifications = append(mrcs.notifications, channelId)
 }
 
-func (mrcs *mockRemoteClusterService) Shutdown() error {
+func (mrcs *mockSharedChannelService) Shutdown() error {
 	return nil
 }
 
-func (mrcs *mockRemoteClusterService) Start() error {
+func (mrcs *mockSharedChannelService) Start() error {
 	return nil
 }
 
-func (mrcs *mockRemoteClusterService) Active() bool {
+func (mrcs *mockSharedChannelService) Active() bool {
 	return mrcs.active
 }
 
-func (mrcs *mockRemoteClusterService) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
+func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
 	mrcs.numInvitations += 1
 	return nil
 }
 
-func (mrcs *mockRemoteClusterService) NumInvitations() int {
+func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
 }

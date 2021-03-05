@@ -220,6 +220,10 @@ func (c *Context) SetInvalidRemoteIdError(id string) {
 	c.Err = NewInvalidRemoteIdError(id)
 }
 
+func (c *Context) SetRemoteIdNotFoundError(id string) {
+	c.Err = NewRemoteIdNotFoundError(id)
+}
+
 func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
@@ -267,6 +271,11 @@ func NewServerBusyError() *model.AppError {
 
 func NewInvalidRemoteIdError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
+	return err
+}
+
+func NewRemoteIdNotFoundError(parameter string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusNotFound)
 	return err
 }
 

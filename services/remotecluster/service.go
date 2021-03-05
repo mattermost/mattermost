@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"sync"
@@ -47,6 +48,23 @@ type ServerIface interface {
 	GetStore() store.Store
 	GetLogger() mlog.LoggerIFace
 	GetMetrics() einterfaces.MetricsInterface
+}
+
+// RemoteClusterServiceIFace is used to allow mocking where a remote cluster service is used (for testing).
+// Unfortunately it lives here because the shared channel service, app layer, and server interface all need it.
+// Putting it in app layer means shared channel service must import app package.
+type RemoteClusterServiceIFace interface {
+	Shutdown() error
+	Start() error
+	Active() bool
+	AddTopicListener(topic string, listener TopicListener) string
+	RemoveTopicListener(listenerId string)
+	AddConnectionStateListener(listener ConnectionStateListener) string
+	RemoveConnectionStateListener(listenerId string)
+	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
+	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
+	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
@@ -125,6 +143,14 @@ func (rcs *Service) Shutdown() error {
 	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
 	rcs.pause()
 	return nil
+}
+
+// Active returns true if this instance of the remote cluster service is active.
+// The active instance is responsible for pinging and sending messages to remotes.
+func (rcs *Service) Active() bool {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+	return rcs.active
 }
 
 // AddTopicListener registers a callback

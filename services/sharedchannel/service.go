@@ -28,7 +28,6 @@ const (
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
-
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
@@ -36,7 +35,7 @@ type ServerIface interface {
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
 	GetLogger() mlog.LoggerIFace
-	GetRemoteClusterService() *remotecluster.Service
+	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 }
 
 type AppIface interface {

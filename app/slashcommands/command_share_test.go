@@ -26,7 +26,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.addPermissionToRole(model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, th.BasicUser.Roles)
 
-		mockSyncService := app.NewMockRemoteClusterService(nil)
+		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
 		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
 		require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.addPermissionToRole(model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, th.BasicUser.Roles)
 
-		mockSyncService := app.NewMockRemoteClusterService(nil)
+		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
 		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
 		require.NoError(t, err)

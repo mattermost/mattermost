@@ -565,6 +565,10 @@ func (c *Client4) GetRemoteClusterRoute() string {
 	return "/remotecluster"
 }
 
+func (c *Client4) GetSharedChannelsRoute() string {
+	return "/sharedchannels"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -6020,16 +6024,16 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) GetRemoteClusterById(remoteId string) (*RemoteCluster, *Response) {
-	url := fmt.Sprintf("%s/%s", c.GetRemoteClusterRoute(), remoteId)
+func (c *Client4) GetRemoteClusterById(remoteId string) (RemoteClusterInfo, *Response) {
+	url := fmt.Sprintf("%s/getremote/%s", c.GetSharedChannelsRoute(), remoteId)
 	r, appErr := c.DoApiGet(url, "")
 	if appErr != nil {
-		return nil, BuildErrorResponse(r, appErr)
+		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	var rc RemoteCluster
-	json.NewDecoder(r.Body).Decode(&rc)
+	var rci RemoteClusterInfo
+	json.NewDecoder(r.Body).Decode(&rci)
 
-	return &rc, BuildResponse(r)
+	return rci, BuildResponse(r)
 }

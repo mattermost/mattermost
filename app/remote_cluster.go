@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
@@ -78,7 +78,7 @@ func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	return nil
 }
 
-func (a *App) GetRemoteClusterService() (*remotecluster.Service, *model.AppError) {
+func (a *App) GetRemoteClusterService() (remotecluster.RemoteClusterServiceIFace, *model.AppError) {
 	service := a.Srv().GetRemoteClusterService()
 	if service == nil {
 		return nil, model.NewAppError("GetRemoteClusterService", "api.remote_cluster.service_not_enabled.app_error", nil, "", http.StatusInternalServerError)

@@ -129,7 +129,8 @@ type Routes struct {
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 
-	RemoteCluster *mux.Router // 'api/v4/remotecluster'
+	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
+	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 }
 
 type API struct {
@@ -247,6 +248,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -286,6 +288,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitCloud()
 	api.InitImport()
 	api.InitRemoteCluster()
+	api.InitSharedChannels()
 	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))

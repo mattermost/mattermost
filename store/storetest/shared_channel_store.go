@@ -719,12 +719,11 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 		}
 	})
 
-	t.Run("invalid remote id", func(t *testing.T) {
+	t.Run("unknown remote id", func(t *testing.T) {
 		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0])
-		assert.Error(t, err, "remote should not be found for user")
+		assert.Error(t, err, "remote should not be found for unknown remote id")
 		assert.Nil(t, rcFound)
 	})
-
 }
 
 func testUpdateSharedChannelRemoteNextSyncAt(t *testing.T, ss store.Store) {

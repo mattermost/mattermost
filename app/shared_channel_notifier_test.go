@@ -16,9 +16,9 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockService := NewMockRemoteClusterService(nil)
+		mockService := NewMockSharedChannelService(nil)
 		mockService.active = false
-		th.App.srv.sharedChannelSyncService = mockService
+		th.App.srv.sharedChannelService = mockService
 
 		th.App.srv.SharedChannelSyncHandler(&model.WebSocketEvent{})
 		assert.Empty(t, mockService.notifications)
@@ -28,9 +28,9 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := NewMockRemoteClusterService(nil)
+		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
-		th.App.srv.sharedChannelSyncService = mockService
+		th.App.srv.sharedChannelService = mockService
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 
 		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, model.NewId(), channel.Id, "", nil)
@@ -43,9 +43,9 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := NewMockRemoteClusterService(nil)
+		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
-		th.App.srv.sharedChannelSyncService = mockService
+		th.App.srv.sharedChannelService = mockService
 
 		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, model.NewId(), model.NewId(), "", nil)
 
@@ -57,9 +57,9 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := NewMockRemoteClusterService(nil)
+		mockService := NewMockSharedChannelService(nil)
 		mockService.active = true
-		th.App.srv.sharedChannelSyncService = mockService
+		th.App.srv.sharedChannelService = mockService
 
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, model.NewId(), channel.Id, "", nil)
