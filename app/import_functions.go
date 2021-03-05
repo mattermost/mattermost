@@ -15,8 +15,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -1064,17 +1064,17 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamID str
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamID)
+		fileIDs, err := a.uploadAttachments(replyData.Attachments, reply, teamID)
 		if err != nil {
 			return err
 		}
 		for _, fileID := range reply.FileIds {
-			if _, ok := fileIds[fileID]; !ok {
+			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
 			}
 		}
 		reply.FileIds = make([]string, 0)
-		for fileID := range fileIds {
+		for fileID := range fileIDs {
 			reply.FileIds = append(reply.FileIds, fileID)
 		}
 
@@ -1328,17 +1328,17 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.Props = *line.Post.Props
 		}
 
-		fileIds, appErr := a.uploadAttachments(line.Post.Attachments, post, team.Id)
+		fileIDs, appErr := a.uploadAttachments(line.Post.Attachments, post, team.Id)
 		if appErr != nil {
 			return line.LineNumber, appErr
 		}
 		for _, fileID := range post.FileIds {
-			if _, ok := fileIds[fileID]; !ok {
+			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
-		for fileID := range fileIds {
+		for fileID := range fileIDs {
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
@@ -1434,21 +1434,21 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	if attachments == nil {
 		return nil, nil
 	}
-	fileIds := make(map[string]bool)
+	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
 		fileInfo, err := a.importAttachment(&attachment, post, teamID)
 		if err != nil {
 			return nil, err
 		}
-		fileIds[fileInfo.Id] = true
+		fileIDs[fileInfo.Id] = true
 	}
-	return fileIds, nil
+	return fileIDs, nil
 }
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
-	for _, fileId := range post.FileIds {
-		if err := a.Srv().Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+	for _, fileID := range post.FileIds {
+		if err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId); err != nil {
 			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
@@ -1624,17 +1624,17 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			post.Props = *line.DirectPost.Props
 		}
 
-		fileIds, err := a.uploadAttachments(line.DirectPost.Attachments, post, "noteam")
+		fileIDs, err := a.uploadAttachments(line.DirectPost.Attachments, post, "noteam")
 		if err != nil {
 			return line.LineNumber, err
 		}
 		for _, fileID := range post.FileIds {
-			if _, ok := fileIds[fileID]; !ok {
+			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
-		for fileID := range fileIds {
+		for fileID := range fileIDs {
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
@@ -1735,7 +1735,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store.Emoji().GetByName(*data.Name, true)
+	emoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {

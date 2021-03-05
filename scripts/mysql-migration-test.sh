@@ -34,7 +34,7 @@ echo "Removing databases created for db comparison"
 docker exec mattermost-mysql mysql -uroot -pmostest -e "DROP DATABASE migrated; DROP DATABASE latest"
 
 echo "Generating diff"
-diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
+git diff --word-diff=color $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
 if [ $diffErrorCode -eq 0 ]; then
