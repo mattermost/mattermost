@@ -7,9 +7,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -150,9 +150,9 @@ func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInt
 	messageExportInterface = f
 }
 
-var cloudInterface func(*App) einterfaces.CloudInterface
+var cloudInterface func(*Server) einterfaces.CloudInterface
 
-func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
+func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
@@ -216,8 +216,5 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
-	}
-	if cloudInterface != nil {
-		a.srv.Cloud = cloudInterface(a)
 	}
 }
