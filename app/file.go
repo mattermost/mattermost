@@ -36,7 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/docextractor"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -76,7 +76,7 @@ const (
 	ImagePreviewPixelWidth    = 1920
 )
 
-func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
+func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
 	return a.Srv().FileBackend()
 }
 
@@ -89,7 +89,7 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
-func (a *App) TestFilesStoreConnection() *model.AppError {
+func (a *App) TestFileStoreConnection() *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -101,9 +101,9 @@ func (a *App) TestFilesStoreConnection() *model.AppError {
 	return nil
 }
 
-func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filesstore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -127,7 +127,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 // Caller must close the first return value
-func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
+func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -1310,7 +1310,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {

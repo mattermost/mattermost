@@ -6,34 +6,30 @@ package app
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func (a *App) createInitialSidebarCategories(userID, teamID string) *model.AppError {
-	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userID, teamID)
-
+func (a *App) createInitialSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	categories, nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userID, teamID)
 	if nErr != nil {
-		return model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
+	return categories, nil
 }
 
 func (a *App) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	var appErr *model.AppError
 	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, teamID)
-
 	if err == nil && len(categories.Categories) == 0 {
 		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		appErr := a.createInitialSidebarCategories(userID, teamID)
+		categories, appErr = a.createInitialSidebarCategories(userID, teamID)
 		if appErr != nil {
 			return nil, appErr
 		}
-
-		categories, err = a.waitForSidebarCategories(userID, teamID)
 	}
 
 	if err != nil {
@@ -47,32 +43,6 @@ func (a *App) GetSidebarCategories(userID, teamID string) (*model.OrderedSidebar
 	}
 
 	return categories, nil
-}
-
-// waitForSidebarCategories is used to get a user's sidebar categories after they've been created since there may be
-// replication lag if any database replicas exist. It will wait until results are available to return them.
-func (a *App) waitForSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, error) {
-	if len(a.Config().SqlSettings.DataSourceReplicas) == 0 {
-		// The categories should be available immediately on a single database
-		return a.Srv().Store.Channel().GetSidebarCategories(userID, teamID)
-	}
-
-	now := model.GetMillis()
-
-	for model.GetMillis()-now < 12000 {
-		time.Sleep(100 * time.Millisecond)
-
-		categories, err := a.Srv().Store.Channel().GetSidebarCategories(userID, teamID)
-
-		if err != nil || len(categories.Categories) > 0 {
-			// We've found something, so return
-			return categories, err
-		}
-	}
-
-	mlog.Error("waitForSidebarCategories giving up", mlog.String("user_id", userID), mlog.String("team_id", teamID))
-
-	return &model.OrderedSidebarCategories{}, nil
 }
 
 func (a *App) GetSidebarCategoryOrder(userID, teamID string) ([]string, *model.AppError) {

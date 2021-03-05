@@ -1735,7 +1735,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, err := a.Srv().Store.Emoji().GetByName(*data.Name, true)
+	emoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
