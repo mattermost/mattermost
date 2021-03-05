@@ -39,7 +39,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
@@ -55,6 +54,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mail"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
@@ -415,6 +415,14 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 
 	})
+
+	// This enterprise init should happen after the store is set
+	// but we don't want to move the s.initEnterprise() call because
+	// we had side-effects with that in the past and needs further
+	// investigation
+	if cloudInterface != nil {
+		s.Cloud = cloudInterface(s)
+	}
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
