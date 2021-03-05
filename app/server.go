@@ -416,6 +416,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
+	// This enterprise init should happen after the store is set
+	// but we don't want to move the s.initEnterprise() call because
+	// we had side-effects with that in the past and needs further
+	// investigation
+	if cloudInterface != nil {
+		s.Cloud = cloudInterface(s)
+	}
+
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	emailService, err := NewEmailService(s)
