@@ -52,6 +52,7 @@ func TestGetJob(t *testing.T) {
 	job := &model.Job{
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
+		Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 	}
 	_, err := th.App.Srv().Store.Job().Save(job)
 	require.NoError(t, err)
@@ -78,23 +79,21 @@ func TestGetJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
-
 	t0 := model.GetMillis()
 	jobs := []*model.Job{
 		{
 			Id:       model.NewId(),
-			Type:     jobType,
+			Type:     model.JOB_TYPE_DATA_RETENTION,
 			CreateAt: t0 + 1,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     jobType,
+			Type:     model.JOB_TYPE_DATA_RETENTION,
 			CreateAt: t0,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     jobType,
+			Type:     model.JOB_TYPE_DATA_RETENTION,
 			CreateAt: t0 + 2,
 		},
 	}
@@ -117,15 +116,16 @@ func TestGetJobs(t *testing.T) {
 
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp = th.Client.GetJobs(0, 60)
-	CheckForbiddenStatus(t, resp)
+	received, resp = th.Client.GetJobs(0, 60)
+	require.Nil(t, resp.Error)
+	require.Equal(t, 0, len(received))
 }
 
 func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JOB_TYPE_DATA_RETENTION
 
 	jobs := []*model.Job{
 		{
@@ -178,7 +178,7 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MIGRATIONS, 0, 60)
 	require.Nil(t, resp.Error)
 }
 
@@ -277,17 +277,17 @@ func TestCancelJob(t *testing.T) {
 	jobs := []*model.Job{
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 			Status: model.JOB_STATUS_PENDING,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 			Status: model.JOB_STATUS_IN_PROGRESS,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 			Status: model.JOB_STATUS_SUCCESS,
 		},
 	}
@@ -311,5 +311,5 @@ func TestCancelJob(t *testing.T) {
 	CheckInternalErrorStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CancelJob(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
