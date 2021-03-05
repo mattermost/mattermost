@@ -680,7 +680,7 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 	}
 	var channelRemotes []*model.SharedChannelRemote
 	for _, rc := range remotes {
-		rc, err := ss.RemoteCluster().Save(rc)
+		_, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
 		scr := &model.SharedChannelRemote{Id: model.NewId(), CreatorId: rc.CreatorId, ChannelId: channel.Id, RemoteId: rc.RemoteId}
@@ -697,7 +697,7 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 			SchemeGuest: false,
 			SchemeUser:  true,
 		}
-		member, err := ss.Channel().SaveMember(member)
+		_, err := ss.Channel().SaveMember(member)
 		require.NoError(t, err)
 	}
 

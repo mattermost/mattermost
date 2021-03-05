@@ -55,7 +55,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 		IsInviteConfirmed: true,
 		RemoteId:          sc.RemoteId,
 	}
-	scr, err = th.App.SaveSharedChannelRemote(scr)
+	_, err = th.App.SaveSharedChannelRemote(scr)
 	require.NoError(t, err)
 
 	t.Run("valid remote, user is member", func(t *testing.T) {
