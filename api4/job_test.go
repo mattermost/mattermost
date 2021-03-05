@@ -79,21 +79,23 @@ func TestGetJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	jobType := model.JOB_TYPE_DATA_RETENTION
+
 	t0 := model.GetMillis()
 	jobs := []*model.Job{
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_DATA_RETENTION,
+			Type:     jobType,
 			CreateAt: t0 + 1,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_DATA_RETENTION,
+			Type:     jobType,
 			CreateAt: t0,
 		},
 		{
 			Id:       model.NewId(),
-			Type:     model.JOB_TYPE_DATA_RETENTION,
+			Type:     jobType,
 			CreateAt: t0 + 2,
 		},
 	}
@@ -273,20 +275,21 @@ func TestCancelJob(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	jobType := model.JOB_TYPE_MESSAGE_EXPORT
 	jobs := []*model.Job{
 		{
 			Id:     model.NewId(),
-			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
+			Type:   jobType,
 			Status: model.JOB_STATUS_PENDING,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
+			Type:   jobType,
 			Status: model.JOB_STATUS_IN_PROGRESS,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.JOB_TYPE_MESSAGE_EXPORT,
+			Type:   jobType,
 			Status: model.JOB_STATUS_SUCCESS,
 		},
 	}
