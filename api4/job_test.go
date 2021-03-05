@@ -116,9 +116,8 @@ func TestGetJobs(t *testing.T) {
 
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	received, resp = th.Client.GetJobs(0, 60)
-	require.Nil(t, resp.Error)
-	require.Equal(t, 0, len(received))
+	_, resp = th.Client.GetJobs(0, 60)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetJobsByType(t *testing.T) {

@@ -151,6 +151,10 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 			validJobTypes = append(validJobTypes, jobType)
 		}
 	}
+	if len(validJobTypes) == 0 {
+		c.SetPermissionError()
+		return
+	}
 
 	jobs, err := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
 	if err != nil {
