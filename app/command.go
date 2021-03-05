@@ -83,7 +83,7 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 	seen := make(map[string]bool)
 
 	// Disable custom status slash command if the feature or the setting is off
-	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
+	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		seen[CmdCustomStatusTrigger] = true
 	}
 

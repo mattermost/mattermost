@@ -19,6 +19,9 @@ type FeatureFlags struct {
 	// Toggle on and off support for Collapsed Threads
 	CollapsedThreads bool
 
+	// Toggle on and off support for Custom User Statuses
+	CustomUserStatuses bool
+
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	// Toggle on and off support for Files search
@@ -31,6 +34,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.FilesSearch = false
+	f.CustomUserStatuses = false
 	f.PluginIncidentManagement = "1.5.2"
 }
 
