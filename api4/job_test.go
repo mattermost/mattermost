@@ -26,7 +26,7 @@ func TestCreateJob(t *testing.T) {
 	}
 
 	_, resp := th.SystemManagerClient.CreateJob(job)
-	require.Nil(t, resp.Error)
+	CheckForbiddenStatus(t, resp)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
