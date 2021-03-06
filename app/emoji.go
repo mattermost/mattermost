@@ -21,8 +21,8 @@ import (
 
 	"github.com/disintegration/imaging"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -186,7 +186,7 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, false)
+	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
