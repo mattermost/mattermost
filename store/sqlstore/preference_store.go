@@ -82,36 +82,38 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		return err
 	}
 
-	params := map[string]interface{}{
-		"UserId":   preference.UserId,
-		"Category": preference.Category,
-		"Name":     preference.Name,
-		"Value":    preference.Value,
-	}
-
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if _, err := transaction.Exec(
-			`INSERT INTO
-				Preferences
-				(UserId, Category, Name, Value)
-			VALUES
-				(:UserId, :Category, :Name, :Value)
-			ON DUPLICATE KEY UPDATE
-				Value = :Value`, params); err != nil {
+		queryString, args, err := s.getQueryBuilder().
+			Insert("Preferences").
+			Columns("UserId", "Category", "Name", "Value").
+			Values(preference.UserId, preference.Category, preference.Name, preference.Value).
+			SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", preference.Value)).
+			ToSql()
+
+		if err != nil {
+			return errors.Wrap(err, "failed to generate sqlquery")
+		}
+
+		if _, err = transaction.Exec(queryString, args...); err != nil {
 			return errors.Wrap(err, "failed to save Preference")
 		}
 		return nil
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+
 		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
-		count, err := transaction.SelectInt(
-			`SELECT
-				count(0)
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, params)
+		queryString, args, err := s.getQueryBuilder().
+			Select("count(0)").
+			From("Preferences").
+			Where(sq.Eq{"UserId": preference.UserId}).
+			Where(sq.Eq{"Category": preference.Category}).
+			Where(sq.Eq{"Name": preference.Name}).
+			ToSql()
+
+		if err != nil {
+			return errors.Wrap(err, "failed to generate sqlquery")
+		}
+
+		count, err := transaction.SelectInt(queryString, args...)
 		if err != nil {
 			return errors.Wrap(err, "failed to count Preferences")
 		}
