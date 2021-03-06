@@ -8653,5 +8653,21 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta begäran."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fel när systemadministratörens mejl skulle hämtas."
   }
 ]
