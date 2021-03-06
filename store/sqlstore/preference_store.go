@@ -44,7 +44,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 		Delete("Preferences").
 		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
 		Where(sq.Eq{"Value": "false"}).
-		Where(sq.Like{"Name": store.FeatureTogglePrefix}).ToSql()
+		Where(sq.Like{"Name": store.FeatureTogglePrefix + "%"}).ToSql()
 	if err != nil {
 		mlog.Warn(errors.Wrap(err, "could not build sql query to delete unused features!").Error())
 	}
