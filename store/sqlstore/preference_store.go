@@ -230,14 +230,17 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 }
 
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
-	_, err := s.GetMaster().Exec(
-		`DELETE FROM
-			Preferences
-		WHERE
-			UserId = :UserId
-			AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category})
+
+	sql, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"Category": category}).ToSql()
 
 	if err != nil {
+		return errors.Wrap(err, "could not build sql query to get delete preference by category")
+	}
+
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete Preference with userId=%s and category=%s", userId, category)
 	}
 
