@@ -248,14 +248,16 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error
 }
 
 func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) error {
-	_, err := s.GetMaster().Exec(
-		`DELETE FROM
-			Preferences
-		WHERE
-			Name = :Name
-			AND Category = :Category`, map[string]interface{}{"Name": name, "Category": category})
+	sql, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"Category": category}).ToSql()
 
 	if err != nil {
+		return errors.Wrap(err, "could not build sql query to get delete preference by category and name")
+	}
+
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete Preference with category=%s and name=%s", category, name)
 	}
 
@@ -263,37 +265,38 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 }
 
 func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
-	query :=
-		`DELETE FROM
-			Preferences
-		WHERE
-			Category = :Category
-			AND Name IN (
-				SELECT
-					*
-				FROM (
-					SELECT
-						Preferences.Name
-					FROM
-						Preferences
-					LEFT JOIN
-						Posts
-					ON
-						Preferences.Name = Posts.Id
-					WHERE
-						Preferences.Category = :Category
-						AND Posts.Id IS null
-					LIMIT
-						:Limit
-				)
-				AS t
-			)`
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
+	nameArr := make([]string, 0)
+	nestedSql, nestedArgs, err := s.getQueryBuilder().
+		Select("Preferences.Name").
+		From("Preferences").
+		LeftJoin("Posts ON Preferences.Name = Posts.Id").
+		Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Eq{"Posts.Id": nil}).
+		Limit(uint64(limit)).
+		ToSql()
+
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
+	}
+	if _, err = s.GetReplica().Select(&nameArr, nestedSql, nestedArgs...); err != nil {
+		return int64(0), errors.Wrapf(err, "failed to fetch nested sqlquery to delete preference")
+	}
+
+	sql, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Eq{"Name": nameArr}).
+		ToSql()
+
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
+	}
+
+	sqlResult, err := s.GetMaster().Exec(sql, args...)
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to delete Preference")
 	}
-
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
 		return int64(0), errors.Wrap(err, "unable to get rows affected")
