@@ -145,7 +145,6 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	var preference *model.Preference
-	fmt.Println("userid ", userId, " ", category, " ", name)
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("Preferences").
