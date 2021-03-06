@@ -8,7 +8,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
-
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -40,20 +40,15 @@ func (s SqlPreferenceStore) createIndexesIfNotExists() {
 
 func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
-
-	sql := `DELETE
-		FROM Preferences
-	WHERE
-	Category = :Category
-	AND Value = :Value
-	AND Name LIKE '` + store.FeatureTogglePrefix + `%'`
-
-	queryParams := map[string]string{
-		"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
-		"Value":    "false",
-	}
-	_, err := s.GetMaster().Exec(sql, queryParams)
+	sql, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Eq{"Category":model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
+		Where(sq.Eq{"Value":"false"}).
+		Where(sq.Like{"Name":store.FeatureTogglePrefix}).ToSql()
 	if err != nil {
+		mlog.Warn(errors.Wrap(err,"could not build sql query to delete unused features!").Error())
+	}
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		mlog.Warn("Failed to delete unused features", mlog.Err(err))
 	}
 }
