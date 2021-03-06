@@ -165,16 +165,17 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) (*m
 
 func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	var preferences model.Preferences
-
-	if _, err := s.GetReplica().Select(&preferences,
-		`SELECT
-				*
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Preferences with userId=%s and category=%s", userId, category)
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Preferences").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"Category": category}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get preference")
+	}
+	if _, err = s.GetReplica().Select(&preferences, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s", userId, category)
 	}
 
 	return preferences, nil
