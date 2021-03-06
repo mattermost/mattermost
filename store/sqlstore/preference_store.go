@@ -6,12 +6,12 @@ package sqlstore
 import (
 	"fmt"
 
-	"github.com/mattermost/gorp"
-	"github.com/pkg/errors"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 )
 
 type SqlPreferenceStore struct {
@@ -42,11 +42,11 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
-		Where(sq.Eq{"Category":model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
-		Where(sq.Eq{"Value":"false"}).
-		Where(sq.Like{"Name":store.FeatureTogglePrefix}).ToSql()
+		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS}).
+		Where(sq.Eq{"Value": "false"}).
+		Where(sq.Like{"Name": store.FeatureTogglePrefix}).ToSql()
 	if err != nil {
-		mlog.Warn(errors.Wrap(err,"could not build sql query to delete unused features!").Error())
+		mlog.Warn(errors.Wrap(err, "could not build sql query to delete unused features!").Error())
 	}
 	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		mlog.Warn("Failed to delete unused features", mlog.Err(err))
@@ -145,18 +145,22 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	var preference *model.Preference
+	fmt.Println("userid ", userId, " ", category, " ", name)
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Preferences").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"Category": category}).
+		Where(sq.Eq{"Name": name}).
+		ToSql()
 
-	if err := s.GetReplica().SelectOne(&preference,
-		`SELECT
-			*
-		FROM
-			Preferences
-		WHERE
-			UserId = :UserId
-			AND Category = :Category
-			AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get preference")
+	}
+	if err = s.GetReplica().SelectOne(&preference, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preference with userId=%s, category=%s, name=%s", userId, category, name)
 	}
+
 	return preference, nil
 }
 
