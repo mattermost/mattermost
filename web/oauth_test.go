@@ -374,7 +374,7 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 	}
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-		*cfg.ServiceSettings.SiteURL = "/company/mattermost"
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065/companies/mattermost"
 	})
 
 	oapp := &model.OAuthApp{
@@ -400,7 +400,7 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 
 	responseWriter := httptest.NewRecorder()
 	request, _ := http.NewRequest(http.MethodGet, u.String(), nil)
-	request.RequestURI = u.String()
+	request.RequestURI = u.Path + "?" + u.RawQuery
 
 	authorizeOAuthPage(c, responseWriter, request)
 
