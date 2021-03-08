@@ -48,9 +48,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -82,7 +82,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signature filesstore.ReadCloseSeeker
+	var signature filestore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = a.FileReader(plugin.signaturePath)
 		if appErr != nil {
@@ -466,14 +466,14 @@ func (a *App) removePluginLocally(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) removeSignature(pluginId string) *model.AppError {
-	filePath := a.getSignatureStorePath(pluginId)
+func (a *App) removeSignature(pluginID string) *model.AppError {
+	filePath := a.getSignatureStorePath(pluginID)
 	exists, err := a.FileExists(filePath)
 	if err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if !exists {
-		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginId))
+		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginID))
 		return nil
 	}
 	if err = a.RemoveFile(filePath); err != nil {

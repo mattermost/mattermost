@@ -18,9 +18,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -211,7 +211,7 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
-	require.Nil(t, reterr)
+	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
@@ -306,7 +306,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	assert.NoError(t, htmlFileErr)
 
 	manifest, activated, reterr := env.Activate(pluginID)
-	require.Nil(t, reterr)
+	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 

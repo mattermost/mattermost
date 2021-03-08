@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/mattermost/mattermost-server/v5/app/slashcommands"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -128,6 +129,13 @@ func testJoinCommands(t *testing.T, alias string) {
 		}
 	}
 	require.True(t, found, "did not join channel")
+
+	// test case insensitively
+	channel4 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel4 = Client.Must(Client.CreateChannel(channel4)).(*model.Channel)
+	Client.Must(Client.RemoveUserFromChannel(channel4.Id, th.BasicUser.Id))
+	rs7 := Client.Must(Client.ExecuteCommand(channel0.Id, "/"+alias+" "+strings.ToUpper(channel4.Name))).(*model.CommandResponse)
+	require.True(t, strings.HasSuffix(rs7.GotoLocation, "/"+team.Name+"/channels/"+channel4.Name), "failed to join channel")
 }
 
 func TestJoinCommands(t *testing.T) {
