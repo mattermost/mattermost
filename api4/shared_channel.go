@@ -9,18 +9,18 @@ import (
 )
 
 func (api *API) InitSharedChannels() {
-	api.BaseRoutes.SharedChannels.Handle("/getremoteinfo/{remote_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getRemoteClusterById)).Methods("GET")
+	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getRemoteClusterInfo)).Methods("GET")
 }
 
-func getRemoteClusterById(c *Context, w http.ResponseWriter, r *http.Request) {
-	// make sure remote cluster service is enabled.
-	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
-		c.Err = appErr
+func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId()
+	if c.Err != nil {
 		return
 	}
 
-	c.RequireRemoteId()
-	if c.Err != nil {
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
 		return
 	}
 

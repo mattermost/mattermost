@@ -276,7 +276,7 @@ func NewInvalidRemoteClusterTokenError() *model.AppError {
 }
 
 func NewJSONEncodingError() *model.AppError {
-	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusUnauthorized)
+	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
 	return err
 }
 
