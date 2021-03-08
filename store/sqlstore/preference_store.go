@@ -267,7 +267,11 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 }
 
 func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
-
+	if limit < 0 {
+		// uint64 does not throw an error, it overflows if it is negative.
+		// it is better to manually check here, or change the function type to uint64
+		return int64(0), errors.Errorf("Received a negative limit")
+	}
 	nameInQ, nameInArgs, err := sq.Select("*").
 		FromSelect(
 			sq.Select("Preferences.Name").
