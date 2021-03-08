@@ -317,7 +317,6 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
-		fmt.Println(err.Error())
 		return int64(0), errors.Wrap(err, "failed to delete Preference")
 	}
 	rowsAffected, err := sqlResult.RowsAffected()
@@ -325,6 +324,5 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		return int64(0), errors.Wrap(err, "unable to get rows affected")
 	}
 
-	fmt.Println("Rows affected, ", rowsAffected)
 	return rowsAffected, nil
 }
