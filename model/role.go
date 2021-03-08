@@ -514,7 +514,6 @@ func (r *Role) IsValidWithoutId() bool {
 	for _, permission := range r.Permissions {
 		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
 		if !permissionValidated {
-			fmt.Printf("\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", permission)
 			return false
 		}
 	}
