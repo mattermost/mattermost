@@ -6,11 +6,10 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type CustomStatusProvider struct {
@@ -31,7 +30,7 @@ func (*CustomStatusProvider) GetTrigger() string {
 	return CmdCustomStatus
 }
 
-func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdCustomStatus,
 		AutoComplete:     true,
@@ -42,7 +41,7 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mod
 }
 
 func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
+	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}
 
