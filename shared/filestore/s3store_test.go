@@ -16,9 +16,9 @@ import (
 
 // Copied from model/config.go to avoid an import cycle
 const (
-	MINIO_ACCESS_KEY = "minioaccesskey"
-	MINIO_SECRET_KEY = "miniosecretkey"
-	IMAGE_DRIVER_S3  = "amazons3"
+	MinioAccessKey = "minioaccesskey"
+	MinioSecretKey = "miniosecretkey"
+	ImageDriverS3  = "amazons3"
 )
 
 func TestCheckMandatoryS3Fields(t *testing.T) {
@@ -61,9 +61,9 @@ func TestMakeBucket(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
 	cfg := FileBackendSettings{
-		DriverName:              IMAGE_DRIVER_S3,
-		AmazonS3AccessKeyId:     MINIO_ACCESS_KEY,
-		AmazonS3SecretAccessKey: MINIO_SECRET_KEY,
+		DriverName:              ImageDriverS3,
+		AmazonS3AccessKeyId:     MinioAccessKey,
+		AmazonS3SecretAccessKey: MinioSecretKey,
 		AmazonS3Bucket:          bucketName,
 		AmazonS3Endpoint:        s3Endpoint,
 		AmazonS3Region:          "",
