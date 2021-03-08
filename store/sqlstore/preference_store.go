@@ -266,31 +266,6 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 	return nil
 }
 
-/*
-
-	nameArr := make([]string, 0)
-	nestedSql, nestedArgs, err := s.getQueryBuilder().
-		Select("Preferences.Name").
-		From("Preferences").
-		LeftJoin("Posts ON Preferences.Name = Posts.Id").
-		Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
-		Where(sq.Eq{"Posts.Id": nil}).
-		Limit(uint64(limit)).
-		ToSql()
-
-	if err != nil {
-		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
-	}
-	if _, err = s.GetReplica().Select(&nameArr, nestedSql, nestedArgs...); err != nil {
-		return int64(0), errors.Wrapf(err, "failed to fetch nested sqlquery to delete preference")
-	}
-
-	sql, args, err := s.getQueryBuilder().
-		Delete("Preferences").
-		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
-		Where(sq.Eq{"Name": nameArr}).
-		ToSql()
-*/
 func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 	nameInQ, nameInArgs, err := sq.Select("*").
