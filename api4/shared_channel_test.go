@@ -59,13 +59,13 @@ func TestGetRemoteClusterById(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid remote, user is member", func(t *testing.T) {
-		rcInfo, resp := th.Client.GetRemoteClusterById(rc.RemoteId)
+		rcInfo, resp := th.Client.GetRemoteClusterInfo(rc.RemoteId)
 		CheckNoError(t, resp)
 		assert.Equal(t, rc.DisplayName, rcInfo.DisplayName)
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
-		_, resp := th.Client.GetRemoteClusterById(model.NewId())
+		_, resp := th.Client.GetRemoteClusterInfo(model.NewId())
 		CheckNotFoundStatus(t, resp)
 	})
 

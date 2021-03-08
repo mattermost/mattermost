@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -98,8 +99,18 @@ func (a *App) HasRemote(channelID string, remoteID string) (bool, error) {
 	return a.Srv().Store.SharedChannel().HasRemote(channelID, remoteID)
 }
 
-func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
-	return a.Srv().Store.SharedChannel().GetRemoteForUser(remoteID, userID)
+func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, *model.AppError) {
+	rc, err := a.Srv().Store.SharedChannel().GetRemoteForUser(remoteID, userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, err.Error(), http.StatusNotFound)
+		}
+	}
+	return rc, nil
 }
 
 func (a *App) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {

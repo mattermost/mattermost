@@ -7745,7 +7745,7 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClusterForUser")
 
