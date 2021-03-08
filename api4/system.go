@@ -195,8 +195,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_EMAIL) {
+		c.SetPermissionError(model.PERMISSION_TEST_EMAIL)
 		return
 	}
 
@@ -229,11 +229,6 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 	siteURL := props["site_url"]
 	if siteURL == "" {
 		c.SetInvalidParam("site_url")
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER) && siteURL != *c.App.Config().ServiceSettings.SiteURL {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER)
 		return
 	}
 
