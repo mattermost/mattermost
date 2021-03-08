@@ -31,7 +31,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
-	f.CustomUserStatuses = false
+	f.CustomUserStatuses = true
 	f.PluginIncidentManagement = "1.4.0"
 }
 
