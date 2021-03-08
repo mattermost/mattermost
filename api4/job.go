@@ -28,14 +28,19 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
-		return
-	}
-
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("getJob", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+		return
+	}
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 

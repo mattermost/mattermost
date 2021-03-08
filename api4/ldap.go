@@ -50,8 +50,8 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_LDAP_SYNC_JOB) {
+		c.SetPermissionError(model.PERMISSION_CREATE_LDAP_SYNC_JOB)
 		return
 	}
 
@@ -67,8 +67,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_LDAP) {
+		c.SetPermissionError(model.PERMISSION_TEST_LDAP)
 		return
 	}
 

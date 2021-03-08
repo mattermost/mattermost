@@ -594,29 +594,58 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
-	permissionsExperimentalRead := []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE.Id, model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES.Id, model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS.Id}
-	permissionsExperimentalWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE.Id, model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES.Id, model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS.Id}
+	permissionsAuthenticationRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID.Id, 
+		model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS.Id,
+	}
+	permissionsAuthenticationWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID.Id, 
+		model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS.Id,
+	}
 
 	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id},
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
+		Add:    permissionsAuthenticationRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id},
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id},
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
+		Add:    permissionsAuthenticationWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id},
 	})
 
-	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
+	// Give the ancillary permissions CREATE_LDAP_SYNC_JOB to anyone with WRITE_AUTHENTICATION_LDAP
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE.Id),
-		Add: []string{model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB.Id, model.PERMISSION_PURGE_BLEVE_INDEXES.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id),
+		Add: []string{model.PERMISSION_CREATE_LDAP_SYNC_JOB.Id},
 	})
 
+	// Give the ancillary permissions PERMISSION_TEST_LDAP to anyone with READ_AUTHENTICATION_LDAP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id),
+		Add: []string{model.PERMISSION_TEST_LDAP.Id, model.PERMISSION_READ_LDAP_SYNC_JOB.Id},
+	})
+
+	// Give the ancillary permissions CREATE_LDAP_SYNC_JOB to anyone with WRITE_AUTHENTICATION_LDAP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id),
+		Add: []string{model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id},
+	})
 	return transformations, nil
 }
 
