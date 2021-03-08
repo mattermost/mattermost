@@ -91,7 +91,6 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
 		table.ColMap("DisplayName").SetMaxSize(128)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("Permissions").SetMaxSize(4096)
 	}
 	return s
 }

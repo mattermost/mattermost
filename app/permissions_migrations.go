@@ -639,32 +639,23 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id},
 	})
 
-	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_WEB_SERVER
-	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER.Id),
-		Add: []string{model.PERMISSION_TEST_SITE_URL.Id},
-	})
-
 	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
 	transformations = append(transformations, permissionTransformation{
 		On: permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id),
 		Add: []string{
-			model.PERMISSION_TEST_ELASTICSEARCH.Id,
 			model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB.Id,
 			model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
 		},
 	})
 
-	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_FILE_STORAGE
-	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE.Id),
-		Add: []string{model.PERMISSION_TEST_S3.Id},
-	})
-
 	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_WEB_SERVER
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id),
-		Add: []string{model.PERMISSION_RELOAD_CONFIG.Id, model.PERMISSION_INVALIDATE_CACHES.Id},
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id),
+		Add: []string{
+			model.PERMISSION_TEST_SITE_URL.Id,
+			model.PERMISSION_RELOAD_CONFIG.Id,
+			model.PERMISSION_INVALIDATE_CACHES.Id,
+		},
 	})
 
 	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_DATABASE
@@ -677,10 +668,17 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 	transformations = append(transformations, permissionTransformation{
 		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id),
 		Add: []string{
+			model.PERMISSION_TEST_ELASTICSEARCH.Id,
 			model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB.Id,
 			model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
 			model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES.Id,
 		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_FILE_STORAGE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id),
+		Add: []string{model.PERMISSION_TEST_S3.Id},
 	})
 
 	return transformations, nil
