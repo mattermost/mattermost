@@ -266,7 +266,7 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 	return nil
 }
 
-func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+/*
 
 	nameArr := make([]string, 0)
 	nestedSql, nestedArgs, err := s.getQueryBuilder().
@@ -290,13 +290,34 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
 		Where(sq.Eq{"Name": nameArr}).
 		ToSql()
+*/
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+
+	nameInQ, nameInArgs, err := sq.Select("*").
+		FromSelect(
+			sq.Select("Preferences.Name").
+				From("Preferences").
+				LeftJoin("Posts ON Preferences.Name = Posts.Id").
+				Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+				Where(sq.Eq{"Posts.Id": nil}).
+				Limit(uint64(limit)),
+			"t").
+		ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
+	}
+	query, args, err := s.getQueryBuilder().Delete("Preferences").
+		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
+		ToSql()
 
 	if err != nil {
 		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
 	}
 
-	sqlResult, err := s.GetMaster().Exec(sql, args...)
+	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
+		fmt.Println(err.Error())
 		return int64(0), errors.Wrap(err, "failed to delete Preference")
 	}
 	rowsAffected, err := sqlResult.RowsAffected()
@@ -304,5 +325,6 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		return int64(0), errors.Wrap(err, "unable to get rows affected")
 	}
 
+	fmt.Println("Rows affected, ", rowsAffected)
 	return rowsAffected, nil
 }
