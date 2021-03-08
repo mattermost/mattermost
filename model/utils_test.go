@@ -858,3 +858,36 @@ func TestIsValidHttpUrl(t *testing.T) {
 		})
 	}
 }
+
+func TestUniqueStrings(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Result []string
+	}{
+		{
+			Input:  []string{"1", "2", "3", "3", "3"},
+			Result: []string{"1", "2", "3"},
+		},
+		{
+			Input:  []string{"1", "2", "3", "4", "5"},
+			Result: []string{"1", "2", "3", "4", "5"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "3", "3"},
+			Result: []string{"1", "3"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "1", "1"},
+			Result: []string{"1"},
+		},
+		{
+			Input:  []string{},
+			Result: []string{},
+		},
+	}
+
+	for _, tc := range cases {
+		actual := UniqueStrings(tc.Input)
+		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
+	}
+}

@@ -7,17 +7,16 @@ import (
 	"context"
 	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
@@ -168,7 +167,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
@@ -245,7 +244,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		T := utils.GetUserTranslations(sender.Locale)
+		T := i18n.GetUserTranslations(sender.Locale)
 
 		if mentions.HereMentioned {
 			a.SendEphemeralPost(
@@ -433,16 +432,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if err != nil {
 			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
-		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent, _ = strconv.ParseBool(preference.Value)
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
-				message.Add("thread", payload)
+
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
+				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+				message.Add("thread", userThread.ToJson())
 				a.Publish(message)
 			}
 		}
@@ -486,7 +488,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 }
 
 func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
 		RootId:    post.RootId,
@@ -586,7 +588,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	ogUsers := model.UserSlice(outOfGroupsUsers)
 	ogUsernames := ogUsers.Usernames()
 
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 
 	ephemeralPostId := model.NewId()
 	var message string
@@ -1003,7 +1005,7 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 // and whether or not the username has been overridden by an integration.
 func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
 	if n.Post.IsSystemMessage() {
-		return utils.T("system.message.name")
+		return i18n.T("system.message.name")
 	}
 
 	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {

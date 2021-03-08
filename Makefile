@@ -92,6 +92,8 @@ TESTS=.
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
+TEMPLATES_DIR=templates
+
 # Plugins Packages
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
@@ -100,7 +102,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.4.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.5.2
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -268,9 +270,9 @@ migrations-bindata: ## Generates bindata migrations
 	@echo Generating bindata for migrations
 	$(GO) generate $(GOFLAGS) ./db/migrations/
 
-filesstore-mocks: ## Creates mock files.
+filestore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	$(GOBIN)/mockery -dir shared/filestore -all -output shared/filestore/mocks -note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -432,6 +434,9 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	fi
+
+build-templates: ## Compile all mjml email templates
+	cd $(TEMPLATES_DIR) && $(MAKE) build
 
 run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
