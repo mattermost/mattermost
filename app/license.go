@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -133,14 +133,14 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
 		}
 		if err := s.Jobs.InitWorkers(); err != nil {
-			mlog.Warn("Initializing job server workers failed", mlog.Err(err))
+			mlog.Error("Initializing job server workers failed", mlog.Err(err))
 		} else if err := s.Jobs.StartWorkers(); err != nil {
-			mlog.Warn("Starting job server workers failed", mlog.Err(err))
+			mlog.Error("Starting job server workers failed", mlog.Err(err))
 		}
 	}
 	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 		if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
-			mlog.Warn("Starting job server schedulers failed", mlog.Err(err))
+			mlog.Error("Starting job server schedulers failed", mlog.Err(err))
 		}
 	}
 

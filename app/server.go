@@ -865,10 +865,10 @@ func (s *Server) Shutdown() {
 		// For simplicity we don't check if workers and schedulers are active
 		// before stopping them as both calls essentially become no-ops
 		// if nothing is running.
-		if err = s.Jobs.StopWorkers(); err != nil {
+		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
 			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
 		}
-		if err = s.Jobs.StopSchedulers(); err != nil {
+		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
 			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
 		}
 	}
