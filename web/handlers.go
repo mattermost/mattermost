@@ -181,7 +181,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380#issuecomment-329085853
+		// see https://github.com/reduxjs/redux-devtools/issues/380
 		if model.BuildNumber == "dev" {
 			devCSP += " 'unsafe-inline'"
 		}
