@@ -6,10 +6,43 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitSharedChannels() {
+	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getSharedChannels)).Methods("GET")
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getRemoteClusterInfo)).Methods("GET")
+}
+
+func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	opts := model.SharedChannelFilterOpts{
+		TeamId: c.Params.TeamId,
+	}
+
+	channels, appErr := c.App.GetSharedChannels(c.Params.Page, c.Params.PerPage, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	b, err := json.Marshal(channels)
+	if err != nil {
+		c.SetJSONEncodingError()
+		return
+	}
+	w.Write(b)
 }
 
 func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
