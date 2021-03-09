@@ -108,7 +108,7 @@ require (
 	github.com/sirupsen/logrus v1.8.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/spf13/cobra v1.1.3
-	github.com/splitio/go-client/v6 v6.0.1
+	github.com/splitio/go-client/v6 v6.0.2
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/throttled/throttled v2.2.5+incompatible
