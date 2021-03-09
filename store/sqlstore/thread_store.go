@@ -509,8 +509,9 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions || updateViewedTimestamp {
-			if updateFollowing {
+		followingNeedsUpdate := (updateFollowing && !membership.Following || membership.Following != following)
+		if followingNeedsUpdate || incrementMentions || updateViewedTimestamp {
+			if followingNeedsUpdate {
 				membership.Following = following
 			}
 			if updateViewedTimestamp {
