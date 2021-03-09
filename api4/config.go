@@ -191,12 +191,11 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
-		return
-	}
-
-	envConfig := c.App.GetEnvironmentConfig()
+	// Only return the environment variables for the subsections which the client is
+	// allowed to see
+	envConfig := c.App.GetEnvironmentConfig(func(structField reflect.StructField) bool {
+		return readFilter(c, structField)
+	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(model.StringInterfaceToJson(envConfig)))

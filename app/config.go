@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -38,12 +39,12 @@ func (a *App) Config() *model.Config {
 	return a.Srv().Config()
 }
 
-func (s *Server) EnvironmentConfig() map[string]interface{} {
-	return s.configStore.GetEnvironmentOverrides()
+func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (a *App) EnvironmentConfig() map[string]interface{} {
-	return a.Srv().EnvironmentConfig()
+func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return a.Srv().EnvironmentConfig(filter)
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
@@ -398,8 +399,9 @@ func (a *App) GetSanitizedConfig() *model.Config {
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
-func (a *App) GetEnvironmentConfig() map[string]interface{} {
-	return a.EnvironmentConfig()
+// If filter is not nil and returns false for a struct field, that field will be omitted.
+func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return a.EnvironmentConfig(filter)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.

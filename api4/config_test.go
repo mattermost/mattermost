@@ -451,15 +451,17 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
 		th.LoginTeamAdminWithClient(TeamAdminClient)
 
-		_, resp := TeamAdminClient.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := TeamAdminClient.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as regular user", func(t *testing.T) {
 		Client := th.Client
 
-		_, resp := Client.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := Client.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as not-regular user", func(t *testing.T) {
