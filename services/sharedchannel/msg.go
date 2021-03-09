@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).

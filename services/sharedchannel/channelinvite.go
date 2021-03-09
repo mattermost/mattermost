@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // channelInviteMsg represents an invitation for a remote cluster to start sharing a channel.

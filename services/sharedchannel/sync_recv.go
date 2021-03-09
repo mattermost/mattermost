@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
