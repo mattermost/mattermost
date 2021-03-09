@@ -480,6 +480,14 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error getting system admins email."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error getting cloud subscription."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
@@ -2843,6 +2851,10 @@
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },
@@ -2913,6 +2925,10 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Invalid or missing request body."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -6659,16 +6675,8 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
+    "id": "ent.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",

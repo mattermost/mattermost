@@ -13,13 +13,15 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5330
+	Version5340            = "5.34.0"
+	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
@@ -198,6 +200,8 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion530(sqlStore)
 	upgradeDatabaseToVersion531(sqlStore)
 	upgradeDatabaseToVersion532(sqlStore)
+	upgradeDatabaseToVersion533(sqlStore)
+	upgradeDatabaseToVersion534(sqlStore)
 
 	return nil
 }
@@ -950,14 +954,26 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
+		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		// Shared channels support
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+		saveSchemaVersion(sqlStore, Version5320)
+	}
+}
+
+func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5320, Version5330) {
+		saveSchemaVersion(sqlStore, Version5330)
+	}
+}
+
+func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
 
 	// Shared channels support
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
@@ -973,6 +989,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	}
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 
-	// saveSchemaVersion(sqlStore, Version5320)
+	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }
