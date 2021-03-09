@@ -388,10 +388,10 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+#      - check-deps:
+#          context: sast-webhook
+#          requires:
+#            - setup
       # - check-i18n:
       #     requires:
       #       - setup
