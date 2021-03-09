@@ -227,9 +227,9 @@ func init() {
 	}
 
 	// Add the ancillary permissions to each system role
-	SystemUserManagerDefaultPermissions = addAncillaryPermissions(SystemUserManagerDefaultPermissions)
-	SystemReadOnlyAdminDefaultPermissions = addAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
-	SystemManagerDefaultPermissions = addAncillaryPermissions(SystemManagerDefaultPermissions)
+	SystemUserManagerDefaultPermissions = AddAncillaryPermissions(SystemUserManagerDefaultPermissions)
+	SystemReadOnlyAdminDefaultPermissions = AddAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
+	SystemManagerDefaultPermissions = AddAncillaryPermissions(SystemManagerDefaultPermissions)
 }
 
 type RoleType string
@@ -832,7 +832,7 @@ func MakeDefaultRoles() map[string]*Role {
 	return roles
 }
 
-func addAncillaryPermissions(permissions []string) []string {
+func AddAncillaryPermissions(permissions []string) []string {
 	for _, permission := range permissions {
 		if ancillaryPermissions, ok := SysconsoleAncillaryPermissions[permission]; ok {
 			for _, ancillaryPermission := range ancillaryPermissions {
