@@ -176,7 +176,10 @@ func (s SqlSharedChannelStore) GetAll(offset, limit int, opts model.SharedChanne
 	var channels []*model.SharedChannel
 	_, err = s.GetReplica().Select(&channels, squery, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get channels")
+		if err == sql.ErrNoRows {
+			return channels, nil
+		}
+		return nil, errors.Wrap(err, "failed to get shared channels")
 	}
 	return channels, nil
 }
