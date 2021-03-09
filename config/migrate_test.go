@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+type cleanUpFn func(store *config.Store)
+
 func TestMigrate(t *testing.T) {
 	files := []string{
 		"IdpCertificateFile",
@@ -47,10 +49,11 @@ func TestMigrate(t *testing.T) {
 		truncateTables(t)
 	}
 
-	setupSource := func(t *testing.T, source *config.Store) {
+	setupSource := func(t *testing.T, source *config.Store) cleanUpFn {
 		t.Helper()
 
 		cfg := source.Get()
+		originalCfg := cfg.Clone()
 		cfg.ServiceSettings.SiteURL = sToP("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
@@ -71,6 +74,11 @@ func TestMigrate(t *testing.T) {
 
 		for i, file := range files {
 			err = source.SetFile(file, []byte(filesData[i]))
+			require.NoError(t, err)
+		}
+
+		return func(store *config.Store) {
+			_, err := store.Set(originalCfg)
 			require.NoError(t, err)
 		}
 	}
@@ -107,7 +115,7 @@ func TestMigrate(t *testing.T) {
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
+		cleanUp := setupSource(t, source)
 		err = config.Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
@@ -116,6 +124,7 @@ func TestMigrate(t *testing.T) {
 		destination, err := config.NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})
@@ -136,7 +145,7 @@ func TestMigrate(t *testing.T) {
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
+		cleanUp := setupSource(t, source)
 		err = config.Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
@@ -145,6 +154,7 @@ func TestMigrate(t *testing.T) {
 		destination, err := config.NewStoreFromBacking(destinationdb, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})

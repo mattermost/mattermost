@@ -20,11 +20,11 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -273,7 +273,7 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 			defer reader.Close()
 
-			var signature filesstore.ReadCloseSeeker
+			var signature filestore.ReadCloseSeeker
 			if *a.Config().PluginSettings.RequirePluginSignature {
 				signature, appErr = a.FileReader(plugin.signaturePath)
 				if appErr != nil {
