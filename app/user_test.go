@@ -117,7 +117,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 		Id:       model.NewId(),
 		Username: "notvaliduser",
 	})
-	require.Error(t, err)
+	require.NotNil(t, err)
 
 	user := th.BasicUser
 
