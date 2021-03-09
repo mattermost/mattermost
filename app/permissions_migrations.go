@@ -591,6 +591,29 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	return transformations, nil
 }
 
+func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsIntegrationsRead := []string{model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_BOT_ACCOUNTS.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_GIF.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id}
+	permissionsIntegrationsWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_BOT_ACCOUNTS.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_GIF.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id}
+
+	// Give the new subsection READ permissions to any user with READ_INTEGRATIONS
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
+		Add:    permissionsIntegrationsRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
+		Add:    permissionsIntegrationsWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -616,6 +639,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Migration: a.getAddIntegrationsSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()

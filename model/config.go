@@ -292,13 +292,13 @@ type ServiceSettings struct {
 	MaximumLoginAttempts                              *int     `access:"authentication,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	GoogleDeveloperKey                                *string  `access:"site,write_restrictable,cloud_restrictable"`
-	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
-	EnableIncomingWebhooks                            *bool    `access:"integrations"`
-	EnableOutgoingWebhooks                            *bool    `access:"integrations"`
-	EnableCommands                                    *bool    `access:"integrations"`
+	EnableOAuthServiceProvider                        *bool    `access:"integrations_integration_management"`
+	EnableIncomingWebhooks                            *bool    `access:"integrations_integration_management"`
+	EnableOutgoingWebhooks                            *bool    `access:"integrations_integration_management"`
+	EnableCommands                                    *bool    `access:"integrations_integration_management"`
 	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
-	EnablePostUsernameOverride                        *bool    `access:"integrations"`
-	EnablePostIconOverride                            *bool    `access:"integrations"`
+	EnablePostUsernameOverride                        *bool    `access:"integrations_integration_management"`
+	EnablePostIconOverride                            *bool    `access:"integrations_integration_management"`
 	EnableLinkPreviews                                *bool    `access:"site"`
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -308,11 +308,11 @@ type ServiceSettings struct {
 	AllowedUntrustedInternalConnections               *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication                   *bool    `access:"authentication"`
 	EnforceMultifactorAuthentication                  *bool    `access:"authentication"`
-	EnableUserAccessTokens                            *bool    `access:"integrations"`
-	AllowCorsFrom                                     *string  `access:"integrations,write_restrictable,cloud_restrictable"`
-	CorsExposedHeaders                                *string  `access:"integrations,write_restrictable,cloud_restrictable"`
-	CorsAllowCredentials                              *bool    `access:"integrations,write_restrictable,cloud_restrictable"`
-	CorsDebug                                         *bool    `access:"integrations,write_restrictable,cloud_restrictable"`
+	EnableUserAccessTokens                            *bool    `access:"integrations_integration_management"`
+	AllowCorsFrom                                     *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsExposedHeaders                                *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsAllowCredentials                              *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsDebug                                         *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	AllowCookiesForSubdomains                         *bool    `access:"write_restrictable,cloud_restrictable"`
 	ExtendSessionLengthWithActivity                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	SessionLengthWebInDays                            *int     `access:"environment,write_restrictable,cloud_restrictable"`
@@ -325,9 +325,9 @@ type ServiceSettings struct {
 	WebserverMode                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableCustomEmoji                                 *bool    `access:"site"`
 	EnableEmojiPicker                                 *bool    `access:"site"`
-	EnableGifPicker                                   *bool    `access:"integrations"`
-	GfycatApiKey                                      *string  `access:"integrations"`
-	GfycatApiSecret                                   *string  `access:"integrations"`
+	EnableGifPicker                                   *bool    `access:"integrations_gif"`
+	GfycatApiKey                                      *string  `access:"integrations_gif"`
+	GfycatApiSecret                                   *string  `access:"integrations_gif"`
 	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // Deprecated: do not use
@@ -356,8 +356,8 @@ type ServiceSettings struct {
 	DisableLegacyMFA                                  *bool `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,write_restrictable,cloud_restrictable"`
-	EnableBotAccountCreation                          *bool `access:"integrations"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
+	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool `access:"site"`
 	EnableLatex                                       *bool `access:"site"`
 	EnableAPIChannelDeletion                          *bool
