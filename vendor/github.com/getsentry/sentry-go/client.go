@@ -13,6 +13,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -212,10 +213,26 @@ func NewClient(options ClientOptions) (*Client, error) {
 		options.Environment = os.Getenv("SENTRY_ENVIRONMENT")
 	}
 
-	if env := os.Getenv("SENTRYGODEBUG"); env == "dumphttp=1" {
+	// SENTRYGODEBUG is a comma-separated list of key=value pairs (similar
+	// to GODEBUG). It is not a supported feature: recognized debug options
+	// may change any time.
+	//
+	// The intended public is SDK developers. It is orthogonal to
+	// options.Debug, which is also available for SDK users.
+	dbg := strings.Split(os.Getenv("SENTRYGODEBUG"), ",")
+	sort.Strings(dbg)
+	// dbgOpt returns true when the given debug option is enabled, for
+	// example SENTRYGODEBUG=someopt=1.
+	dbgOpt := func(opt string) bool {
+		s := opt + "=1"
+		return dbg[sort.SearchStrings(dbg, s)%len(dbg)] == s
+	}
+	if dbgOpt("httpdump") || dbgOpt("httptrace") {
 		options.HTTPTransport = &debug.Transport{
 			RoundTripper: http.DefaultTransport,
 			Output:       os.Stderr,
+			Dump:         dbgOpt("httpdump"),
+			Trace:        dbgOpt("httptrace"),
 		}
 	}
 
@@ -486,7 +503,10 @@ func (client *Client) processEvent(event *Event, hint *EventHint, scope EventMod
 		options.SampleRate = 1.0
 	}
 
-	if !sample(options.SampleRate) {
+	// Transactions are sampled by options.TracesSampleRate or
+	// options.TracesSampler when they are started. All other events
+	// (errors, messages) are sampled here.
+	if event.Type != transactionType && !sample(options.SampleRate) {
 		Logger.Println("Event dropped due to SampleRate hit.")
 		return nil
 	}

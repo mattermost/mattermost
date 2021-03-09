@@ -118,7 +118,7 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		encoder.SetIndent("", "  ")
 	}
 	if err := encoder.Encode(data); err != nil {
-		return nil, fmt.Errorf("failed to marshal fields to JSON, %v", err)
+		return nil, fmt.Errorf("failed to marshal fields to JSON, %w", err)
 	}
 
 	return b.Bytes(), nil
