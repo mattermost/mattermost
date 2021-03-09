@@ -2006,14 +2006,6 @@
     "translation": "전자우편 주소를 검증하려면 클릭하세요."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "{{ .ServerURL }}에 가입했습니다"
   },

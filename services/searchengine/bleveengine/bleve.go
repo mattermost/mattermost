@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -17,8 +18,8 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -302,6 +303,10 @@ func (b *BleveEngine) IsSearchEnabled() bool {
 func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
+
+	if reflect.DeepEqual(cfg.BleveSettings, b.cfg.BleveSettings) {
+		return
+	}
 
 	mlog.Info("UpdateConf Bleve")
 

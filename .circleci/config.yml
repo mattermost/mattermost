@@ -16,7 +16,8 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:oct-2-2018
+      - image: mattermost/mattermost-build-webapp:20200829_node-10.22
+    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -140,6 +141,20 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
+  check-migrations:
+    docker:
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            export GOBIN=${PWD}/mattermost-server/bin
+            cd mattermost-server
+            export PATH=$PATH:$GOBIN
+            make migrations-bindata
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -235,7 +250,8 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
-              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE="
+              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
+              bash -c scripts/diff-email-templates.sh
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
@@ -405,10 +421,12 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #     context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
@@ -421,6 +439,9 @@ workflows:
       - check-mocks:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
@@ -430,6 +451,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -451,6 +473,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -459,11 +482,13 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
 
   release-build:
     jobs:
@@ -474,10 +499,12 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #    context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
@@ -493,12 +520,16 @@ workflows:
       - check-mocks:
           requires:
             - setup
+      - check-migrations:
+          requires:
+            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
             - build-api-spec
       - test:
           name: test-mysql
@@ -508,6 +539,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -516,8 +548,10 @@ workflows:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
+            - check-migrations

@@ -13,10 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -67,7 +66,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
 	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
