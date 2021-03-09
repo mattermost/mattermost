@@ -6025,7 +6025,7 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 }
 
 func (c *Client4) GetRemoteClusterInfo(remoteId string) (RemoteClusterInfo, *Response) {
-	url := fmt.Sprintf("%s/getremoteinfo/%s", c.GetSharedChannelsRoute(), remoteId)
+	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteId)
 	r, appErr := c.DoApiGet(url, "")
 	if appErr != nil {
 		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)

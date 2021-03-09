@@ -107,7 +107,7 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return rc, nil

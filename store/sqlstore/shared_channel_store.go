@@ -460,7 +460,7 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	var rc model.RemoteCluster
 	if err := s.GetReplica().SelectOne(&rc, query, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, err
+			return nil, store.NewErrNotFound("RemoteCluster", remoteId)
 		}
 		return nil, errors.Wrapf(err, "failed to get remote for user_id=%s", userId)
 	}
