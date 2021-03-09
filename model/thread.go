@@ -61,6 +61,12 @@ func (o *ThreadResponse) ToJson() string {
 	return string(b)
 }
 
+func ThreadResponseFromJson(s string) (*ThreadResponse, error) {
+	var t ThreadResponse
+	err := json.Unmarshal([]byte(s), &t)
+	return &t, err
+}
+
 func (o *Threads) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)

@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -111,13 +111,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	handleError := func(err *model.AppError) {
-		if isMobile {
+		if isMobile && hasRedirectURL {
 			err.Translate(c.App.T)
-			if hasRedirectURL {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
-			} else {
-				w.Write([]byte(err.ToJson()))
-			}
+			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound

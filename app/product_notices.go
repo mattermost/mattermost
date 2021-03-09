@@ -16,8 +16,8 @@ import (
 	date_constraints "github.com/reflog/dateconstraints"
 
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -54,7 +54,7 @@ func cleanupVersion(originalVersion string) string {
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
 	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
-	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer string,
+	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer, searchEngineName, searchEngineVer string,
 	notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
@@ -163,6 +163,15 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 				return false, errors.Wrapf(err, "Cannot parse DBMS version %s", dbVer)
 			}
 			return extDepVersion.GreaterThan(serverDBMSVersion), nil
+		case model.SEARCHENGINE_ELASTICSEARCH:
+			if searchEngineName != model.SEARCHENGINE_ELASTICSEARCH {
+				return false, nil
+			}
+			semverESVersion, err := semver.NewVersion(searchEngineVer)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse search engine version %s", searchEngineVer)
+			}
+			return extDepVersion.GreaterThan(semverESVersion), nil
 		default:
 			return false, nil
 		}
@@ -251,6 +260,12 @@ func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClient
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 	dbName := *a.Srv().Config().SqlSettings.DriverName
 
+	var searchEngineName, searchEngineVersion string
+	if engine := a.Srv().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
+		searchEngineName = engine.ElasticsearchEngine.GetName()
+		searchEngineVersion = engine.ElasticsearchEngine.GetFullVersion()
+	}
+
 	filteredNotices := make([]model.NoticeMessage, 0)
 
 	for noticeIndex, notice := range cachedNotices {
@@ -289,6 +304,8 @@ func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClient
 			sku,
 			dbName,
 			cachedDBMSVersion,
+			searchEngineName,
+			searchEngineVersion,
 			&cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)

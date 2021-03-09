@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -592,4 +592,41 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 	}
 	list.MakeNonNil()
 	return list, nil
+}
+
+func (fs SqlFileInfoStore) CountAll() (int64, error) {
+	query := fs.getQueryBuilder().
+		Select("COUNT(*)").
+		From("FileInfo").
+		Where("DeleteAt = 0")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "count_tosql")
+	}
+
+	count, err := fs.GetReplica().SelectInt(queryString, args...)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to count Files")
+	}
+	return count, nil
+}
+
+func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+	var files []*model.FileForIndexing
+	sql, args, _ := fs.getQueryBuilder().
+		Select("fi.*, p.ChannelId").
+		From("FileInfo as fi").
+		LeftJoin("Posts AS p ON fi.PostId = p.Id").
+		Where(sq.GtOrEq{"fi.CreateAt": startTime}).
+		Where(sq.Lt{"fi.CreateAt": endTime}).
+		OrderBy("fi.CreateAt").
+		Limit(uint64(limit)).
+		ToSql()
+	_, err := fs.GetSearchReplica().Select(&files, sql, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Files")
+	}
+
+	return files, nil
 }

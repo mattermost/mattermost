@@ -8,11 +8,10 @@ import (
 	"strings"
 	"time"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var echoSem chan bool
@@ -32,7 +31,7 @@ func (*EchoProvider) GetTrigger() string {
 	return CmdEcho
 }
 
-func (*EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*EchoProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdEcho,
 		AutoComplete:     true,
