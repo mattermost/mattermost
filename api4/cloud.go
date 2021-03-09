@@ -401,9 +401,9 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		team := teams[0]
 
-		subscription, appErr := c.App.Cloud().GetSubscription()
-		if appErr != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		subscription, err := c.App.Cloud().GetSubscription(user.Id)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -411,8 +411,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	default:
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
+		return
 	}
-	// TODO: Return better response in case an event sent wasn't handled by any of the switch statement cases
+
 	ReturnStatusOK(w)
 }
 
