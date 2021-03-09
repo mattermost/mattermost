@@ -7671,18 +7671,6 @@
     "translation": "En eski varlık (kullanıcı, kanal ya da ileti) veritabanından alınamadı"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "CWS isteği işlenirken sorun çıktı"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWS isteği yapılırken bir iç sorun çıktı"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "CWS kimliği doğrulanamadı"
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "E-posta doğrulama alanı güncellenemedi."
   },

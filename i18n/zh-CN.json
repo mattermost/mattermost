@@ -7638,10 +7638,6 @@
     "translation": "获取频道成员失败。"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "处理对 CWS 的请求时出错"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
     "translation": "Mattermost 与我们联系的请求。我有兴趣了解有关试用团队方案实现高级权限的更多信息。\n"
   },
@@ -7742,10 +7738,6 @@
     "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）"
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "无法与 CWS 进行身份验证"
-  },
-  {
     "id": "app.upload.upload_data.read_file.app_error",
     "translation": "读取文件失败。"
   },
@@ -7808,10 +7800,6 @@
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
     "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "封送 CWS 的请求出现内部错误"
   },
   {
     "id": "app.channel.autofollow.app_error",

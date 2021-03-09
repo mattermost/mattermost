@@ -1983,11 +1983,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "以下のリンクをクリックして電子メールアドレスを確認してください。"
+    "translation": "この電子メールアドレスがMattermostアカウントの作成に使用されました。"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "電子メールアドレスを確認してください"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1995,7 +1995,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "PC / Mac / iOS / Android 用のアプリをダウンロードして最高の体験を:"
+    "translation": "PC / Mac / iOS / Android 用のアプリをダウンロードして最高の体験を。"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2003,7 +2003,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "以下のリンクをクリックして電子メールアドレスを確認してください。"
+    "translation": "この電子メールアドレスがMattermostアカウントの作成に使用されました。"
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -2015,7 +2015,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "チームへようこそ"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -7794,18 +7794,6 @@
     "translation": "CWSへのリクエストを処理する際にエラーが発生しました。"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "CWSへのリクエストを処理する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWSへのリクエストを変換する際に内部エラーが発生しました"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "CWSに対する認証ができませんでした"
-  },
-  {
     "id": "app.upload.run_plugins_hook.rejected",
     "translation": "ファイル {{.Filename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
   },
@@ -8468,5 +8456,221 @@
   {
     "id": "api.no_license",
     "translation": "このエンドポイントを使用するにはE10もしくはE20ライセンスが必要です。"
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "RetentionDaysに対する不正な値です。値は0より大きくなくてはなりません"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "ディレクトリに対する値を入力してください。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "SMTPサーバーへ接続できませんでした"
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "ファイルインデックスを破棄できませんでした。"
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "電子メールを正常に送信できませんでした"
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "インポート中に添付ファイルを読み込めませんでした。"
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "エクスポート中にZIPヘッダーを作成できませんでした。"
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "エクスポート中にZIPアーカイブにファイルを追加できませんでした。"
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "レスポンスを変換できませんでした。"
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "エクスポート中にディレクトリを作成できませんでした。"
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "エクスポート中にファイルを作成できませんでした。"
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "エクスポート中にファイルをコピーできませんでした。"
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "WebSocketのアップグレード中、不正なOriginヘッダーが設定されました。"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "ユーザー制限通知の電子メールを管理者に送信できませんでした"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} があなたのワークスペースにメンバーを招待したいようです"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermostユーザーがワークスペースのアップグレードを要求しています"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "あなたのワークスペースが無償版Mattermost Cloudのユーザー制限に達したため、招待を送信できませんでした。追加のユーザーをあなたのワークスペースに参加させるには、アップグレードしてください。"
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "代わりに、管理者コンソールからユーザーを無効化することで、無料枠の範囲内でユーザー枠を空けることができます。"
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "エクスポートファイルが見つかりませんでした。"
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "ユーザーのMFA有効状態を更新できませんでした。"
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "ユーザーのMFA有効状態を更新できませんでした。"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "最新のステータスを削除できませんでした。ステータスの追加を試してみるか、システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "カスタムステータス機能は無効化されています。詳細についてはシステム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "あなたのステータスは “{{.EmojiName}} {{.StatusMessage}}” に設定されました。スチャンネルサイドバーのステータスポップオーバーからステータスの変更を行うことができます。"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "ステータス"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] または クリア"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "あなたのステータスを設定またはクリアします"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "あなたのステータスがクリアされました。"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "ステータスを設定する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "ステータスをクリアする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "このサーバーではファイル検索は無効化されています。システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "下記をクリックして、電子メールアドレスを確認してください。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "ようこそ "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "心当たりがない場合、このメールを無視してください。"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "デスクトップアプリとモバイルアプリをダウンロードする"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "ダウンロード"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "下記をクリックし、電子メールアドレスを確認してください。"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "ようこそ "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "もし心当たりがない場合、この電子メールを無視してください。"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "新規ユーザーはあなたのワークスペースに参加できませんでした"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "誰かがあなたのワークスペースへ参加しようとしましたが、 無料版Mattermostクラウドのユーザー数制限に達しているため参加できませんでした。さらに多くのユーザーをワークスペースに参加させるには、今すぐアップグレードしてください。"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "ご不明な点がございますか?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "いつでもご連絡ください "
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "この機能は開発中であり、フィーチャーフラグを使用した場合のみ利用可能になります。"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "リクエストボディを解析できませんでした。"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "システム管理者の電子メールを取得する際にエラーが発生しました。"
   }
 ]

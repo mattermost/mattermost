@@ -1993,11 +1993,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
+    "translation": "Această adresă de e-mail a fost utilizată pentru a crea un cont cu Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Te-ai alăturat {{ .ServerURL }}"
+    "translation": "Verifică-ți adresa de email"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2005,7 +2005,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Pentru cea mai bună experiență, descărcați aplicațiile pentru PC, Mac, iOS și Android de la:"
+    "translation": "Pentru cea mai bună experiență, descărcați aplicațiile pentru PC, Mac, iOS și Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2013,7 +2013,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verificați adresa dvs. de e-mail făcând clic mai jos."
+    "translation": "Această adresă de e-mail a fost utilizată pentru a crea un cont cu Mattermost."
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -2025,7 +2025,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Te-ai alăturat {{ .ServerURL }}"
+    "translation": "Bine ai venit in echipa"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -8224,24 +8224,12 @@
     "translation": "Comanda / {{.Command}} a blocat pluginul {{.PluginId}}. Vă rugăm să contactați administratorul de sistem"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Solicitarea de eroare internă către CWS"
-  },
-  {
     "id": "ent.saml.do_login.invalid_time.app_error",
     "translation": "Am primit un timp invalid în răspunsul de la furnizorul de identitate. Vă rugăm să contactați administratorul de sistem."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "Am primit o semnătură invalidă în răspunsul furnizorului de identitate. Vă rugăm să contactați administratorul de sistem."
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Eroare la procesarea cererii către CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Imposibil de autentificat la CWS"
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -8526,5 +8514,157 @@
   {
     "id": "api.export.export_not_found.app_error",
     "translation": "Imposibil de găsit fișierul de export."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Imposibil de actualizat starea activă MFA pentru utilizator."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Imposibil de actualizat starea activă MFA pentru utilizator."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Eliminarea indexurilor fișierelor nu a reușit."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Nu s-au trimis e-mailuri"
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Trimiterea e-mailului către utilizator nu a reușit notificarea administratorului"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Utilizatorii noi nu se pot alătura spațiului dvs. de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} ar dori să invite membri în spațiul dvs. de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Cea mai importantă cerere de utilizator actualizare a spațiului de lucru"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Cineva a încercat recent să se alăture spațiului dvs. de lucru, dar nu a reușit, deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a cloud-ului Mattermost. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a Mattermost cloud, invitațiile nu pot fi trimise. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru utilizatori și a rămâne sub limita gratuită a utilizatorilor."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Ștergerea stării recente nu a reușit. Încercați mai întâi să adăugați starea sau contactați administratorul de sistem pentru detalii."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funcția de stare personalizată a fost dezactivată. Vă rugăm să contactați administratorul de sistem pentru detalii."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Starea dvs. este setată la “{{.EmojiName}} {{.StatusMessage}}”. Vă puteți schimba starea din popover-ul de stare din antetul barei laterale a canalului."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "stare"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] sau clar"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Setați sau ștergeți-vă starea"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Starea dvs. a fost ștearsă."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Eroare la ștergerea stării."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Eroare la setarea stării."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Căutarea fișierelor a fost dezactivată pe acest server. Vă rugăm să contactați administratorul de sistem."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Faceți clic mai jos pentru a vă confirma adresa de e-mail."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Mersi ca te ai alaturat "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Dacă nu ați fost dvs., puteți ignora în siguranță acest e-mail."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Descărcați aplicațiile desktop și mobile"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Descarca"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Faceți clic mai jos pentru a vă confirma adresa de e-mail."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Mersi ca te ai alaturat "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Dacă nu ați fost dvs., puteți ignora în siguranță acest e-mail."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Întrebări?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Trimiteți-ne un e-mail oricând la "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Imposibil de analizat corpul solicitării."
   }
 ]

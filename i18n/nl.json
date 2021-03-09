@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Afbeelding links klappen nu standaard in"
+    "translation": "Afbeeldinglinks klappen nu standaard in"
   },
   {
     "id": "api.command_dnd.desc",
@@ -581,7 +581,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Afbeelding links klappen nu standaard uit"
+    "translation": "Afbeeldinglinks klappen nu standaard uit"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -3292,51 +3292,51 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Elasticsearch indexing worker is er niet in geslaagd de eindtijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Elasticsearch indexing worker is er niet in geslaagd de starttijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "Elasticsearch is niet gestart"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Fout bij het verwijderen van de Elastisearch index"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
+    "translation": "Kan zoekresultaten van zoekresultaten niet verwerken"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started"
+    "translation": "Elasticsearch is reeds gestart."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Starten van Elasticsearch-bulkprocessor is mislukt."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
+    "translation": "Elasticsearch is reeds gestopt."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3344,23 +3344,23 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch is uitgeschakeld."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "Jouw licentie biedt geen ondersteuning voor Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "De Elasticsearch Server URL of gebruikersnaam is gewijzigd. Voer het Elasticsearch-wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "ldap interface was nihil."
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Unable to create LDAP user."
+    "translation": "LDAP-gebruiker kon niet worden aangemaakt."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -3372,7 +3372,7 @@
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Ongeldig wachtwoord"
+    "translation": "Ongeldig wachtwoord."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -3380,15 +3380,15 @@
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Gebruikersnaam is in gebruik door meerdere gebruikers"
+    "translation": "Gebruikersnaam is in gebruik door meerdere gebruikers."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Kan niet zoeken op de AD/LDAP server"
+    "translation": "Kan niet zoeken op de AD/LDAP server."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Kan niet verbinden met de AD/LDAP server"
+    "translation": "Kan niet verbinden met de AD/LDAP server."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -3396,99 +3396,99 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Gebruiker is niet bekend op de AD/LDAP server"
+    "translation": "Gebruiker is niet bekend op de AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Niet mogelijk alle gebruikers te krijgen via AD/LDAP"
+    "translation": "Niet mogelijk alle gebruikers op te halen met AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "fout bij ophalen van groepen."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "fout bij het vullen van syncables"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "Fout bij het zoeken naar gebruikers in AD/LDAP. Test of de Mattermost-server verbinding kan maken met jouw AD/LDAP-server en probeer het opnieuw."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Ongeldig AD/LDAP filter"
+    "translation": "Ongeldig AD/LDAP filter."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "fout bij ophalen van ldap-groep"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "fout bij het ophalen van ldap-groepen"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "fout bij ophalen van leden van groep"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "geen groepen gevonden met overeenkomend uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "fout bij ophalen van groepen voor gebruiker"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "translation": "Bijlage kan niet worden toegevoegd aan de Global Relay-export."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
+    "translation": "Het zip-bestand kon niet worden gesloten."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
+    "translation": "Kan het eml-bestand niet aanmaken."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "Kan geen eml-bestand genereren."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
+    "translation": "Kan de e-mail niet afleveren bij Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "Kan het From e-mailadres niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "Kan het e-mailbericht niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "Kan het e-mailbericht niet schrijven."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
+    "translation": "De e-mailgegevens kunnen niet worden gelezen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "Kan het To e-mailadres niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
+    "translation": "Kan de informatie van het tijdelijke export bestand niet krijgen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
+    "translation": "Er kan geen e-mail worden opgehaald uit het tijdelijke bestand."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
+    "translation": "Kan het tijdelijke exportbestand niet openen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -5244,23 +5244,23 @@
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -6924,15 +6924,15 @@
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP synchronization job timeout."
+    "translation": "Time-out voor synchronisatie van AD/LDAP werd bereikt."
   },
   {
     "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
+    "translation": "Fout bij het verwerken van bericht export taak ExportFromTimeStamp."
   },
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
+    "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
   },
   {
     "id": "ent.cluster.model.client.connecting.app_error",
@@ -7803,18 +7803,6 @@
     "translation": "We hebben een ongeldige handtekening ontvangen in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fout bij het verwerken van het verzoek naar CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Interne fout bij het opmaken van het verzoek naar CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Authenticatie tegenover CWS mislukt"
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Fout bij het verwerken van het verzoek naar CWS."
   },
@@ -8601,5 +8589,97 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Fout bij het instellen van de status."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Nieuwe gebruikers kunnen geen lid worden van jouw werkruimte"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Iemand heeft onlangs geprobeerd om deel te nemen aan jouw werkruimte, maar kon dit niet omdat jouw werkruimte de gebruikerslimiet heeft bereikt voor de gratis versie van Mattermost cloud. Upgrade nu om meer gebruikers toe te laten tot jouw werkruimte."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Fout bij het ophalen van de bestandenbatch voor indexering."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klik hieronder om jouw e-mailadres te verifiëren."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Zoeken is uitgeschakeld op deze server. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Bedankt om lid te worden "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Als het niet jij niet was, mag je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Download de desktop- of mobiele apps"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Downloaden"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Klik hieronder om jouw e-mailadres te verifiëren."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Bedankt om lid te worden "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Als het niet jij niet was, mag je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Vragen?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Stuur ons een e-mail op "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Deze functie is in ontwikkeling, en is alleen beschikbaar met een feature flag."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Fout bij het verwerken van request body."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fout bij het ophalen van de e-mail van de systeembeheerder."
   }
 ]
