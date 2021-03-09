@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
@@ -528,6 +528,21 @@ func (th *TestHelper) TearDown() {
 
 func (*TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return mainHelper.GetSQLStore()
+}
+
+func (th *TestHelper) ConfigureInbucketMail() {
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "localhost"
+	}
+	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "10025"
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SMTPServer = inbucket_host
+		*cfg.EmailSettings.SMTPPort = inbucket_port
+	})
 }
 
 func (*TestHelper) ResetRoleMigration() {

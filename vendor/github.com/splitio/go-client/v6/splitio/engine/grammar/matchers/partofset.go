@@ -1,7 +1,7 @@
 package matchers
 
 import (
-	"github.com/splitio/go-toolkit/v3/datastructures/set"
+	"github.com/splitio/go-toolkit/v4/datastructures/set"
 )
 
 // PartOfSetMatcher matches if the set supplied to the getTreatment is a subset of the one in the split

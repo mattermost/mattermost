@@ -480,6 +480,14 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error getting system admins email."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error getting cloud subscription."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
@@ -2433,6 +2441,10 @@
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -6247,16 +6259,8 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
+    "id": "ent.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",
