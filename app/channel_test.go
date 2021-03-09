@@ -1815,12 +1815,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				}
 			}
 
-			moderations, err := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
+			moderations, appErr := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
 			if tc.ShouldError {
-				require.NotNil(t, err)
+				require.NotNil(t, appErr)
 				return
 			}
-			require.Nil(t, err)
+			require.Nil(t, appErr)
 
 			updatedChannel, _ := th.App.GetChannel(channel.Id)
 			if tc.ShouldHaveNoChannelScheme {
