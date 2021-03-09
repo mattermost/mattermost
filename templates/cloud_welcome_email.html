@@ -5,7 +5,7 @@
     style="display: flex; flex-direction: row; align-items: center; padding: 32px; position: relative; width: 724px; height: 1221.07px; background: #F7F7F7; margin: auto;">
 
     <div
-        style="display: flex; flex-direction: column; align-items: center; padding: 24px; position: static; width: 660px; height: 1157.07px; left: 32px; top: 32px; border-radius: 8px; background: #FFFFFF; flex: none; order: 0; flex-grow: 0; margin: 0px 10px;">
+        style="display: flex; flex-direction: column; align-items: center; padding: 24px; position: static; width: 660px; height: 1157.07px; left: 32px; top: 32px; border-radius: 8px; background: #FFFFFF; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 10px;">
         <div style="position: relative; width: 500px; margin-top: 20px; margin-bottom: 30px; display: flex; align-items: center;">
             <img src="{{.Props.WorkSpacePath}}/static/images/logo_email_blue.png" style="position: absolute; left: 188px; height: 21.7px;"
                 alt="logo_email_blue">
@@ -17,10 +17,10 @@
             </p>
             <p
                 style="position: static; width: 485px; height: 48px; left: 24px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 16px; line-height: 24px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
-                {{.Props.Info}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.WorkSpacePath}}">{{.Props.DNS}}.</a> {{.Props.Info2}}
+                {{.Props.Info}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" rel="noopener noreferrer" href="{{.Props.WorkSpacePath}}">{{.Props.DNS}}.</a> {{.Props.Info2}}
             </p>
             <p>
-                <a href="{{.Props.WorkSpacePath}}" target="_blank"
+                <a href="{{.Props.WorkSpacePath}}" target="_blank" rel="noopener noreferrer"
                     style="display: flex; flex-direction: column; align-items: center; padding: 14px 24px; position: static; background: #166DE0; border-radius: 4px; flex: none; order: 0; flex-grow: 0; margin: 0px 150px; font-family: Open Sans; font-style: normal; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; text-decoration: none;">
                     {{.Props.Button }}
                 </a>
@@ -29,7 +29,7 @@
 
         <div style="margin-bottom: 30px;">
             <p
-                style="position: static; width: 485px; height: 40px; left: 24px; top: 0px; font-family: Metropolis; font-weight: 600; font-size: 22px; line-height: 28px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
+                style="position: static; width: 485px; height: 40px; left: 24px; top: 0px; font-family: Open Sans; font-weight: 600; font-size: 22px; line-height: 28px; color: #3D3C40; flex: none; order: 0; flex-grow: 0; margin: 0px 0px;">
                 {{.Props.SubTitle}}
             </p>
             <p
@@ -53,7 +53,7 @@
             <p
                 style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
                 {{.Props.InviteSubInfo}}
-                <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.InviteSubInfoLink}}">{{.Props.InviteSubInfoLink}}</a>
+                <a style="text-decoration: none; color: #6DA4EB;" target="_blank" rel="noopener noreferrer" href="{{.Props.InviteSubInfoLink}}">{{.Props.InviteSubInfoLink}}</a>
             </p>
         </div>
 
@@ -71,7 +71,7 @@
             </span>
             <p
                 style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
-                {{.Props.AddAppsSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.AppMarketPlaceLink}}">{{.Props.AppMarketPlace}}</a>
+                {{.Props.AddAppsSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" rel="noopener noreferrer" href="{{.Props.AppMarketPlaceLink}}">{{.Props.AppMarketPlace}}</a>
             </p>
         </div>
 
@@ -89,7 +89,7 @@
             </span>
             <p
                 style="position: static; width: 458px; height: 20px; left: 0px; top: 0px; font-family: Open Sans; font-style: normal; font-weight: 400; font-size: 14px; line-height: 20px; color: #3D3C40; flex: none; order: 1; flex-grow: 0; margin: 0px 0px; margin-left: 24px;">
-                {{.Props.SignInSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" href="{{.Props.DownloadMMAppsLink}}">{{.Props.MMApps}}</a> {{.Props.SignInSubInfo2}}
+                {{.Props.SignInSubInfo}} <a style="text-decoration: none; color: #6DA4EB;" target="_blank" rel="noopener noreferrer" href="{{.Props.DownloadMMAppsLink}}">{{.Props.MMApps}}</a> {{.Props.SignInSubInfo2}}
             </p>
         </div>
 
