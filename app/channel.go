@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -2378,7 +2378,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		}
 
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
-		if threadMembership != nil {
+		if threadMembership != nil && threadMembership.Following {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
