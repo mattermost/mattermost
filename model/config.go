@@ -1787,7 +1787,7 @@ func (s *SupportSettings) SetDefaults() {
 }
 
 type AnnouncementSettings struct {
-	EnableBanner          *bool   `access:site_announcement_banner"`
+	EnableBanner          *bool   `access:"site_announcement_banner"`
 	BannerText            *string `access:"site_announcement_banner"` // telemetry: none
 	BannerColor           *string `access:"site_announcement_banner"`
 	BannerTextColor       *string `access:"site_announcement_banner"`
