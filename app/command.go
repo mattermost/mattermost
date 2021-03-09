@@ -14,9 +14,9 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -83,7 +83,7 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 	seen := make(map[string]bool)
 
 	// Disable custom status slash command if the feature or the setting is off
-	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
+	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		seen[CmdCustomStatusTrigger] = true
 	}
 
