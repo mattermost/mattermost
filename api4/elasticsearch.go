@@ -21,6 +21,8 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
+	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
+	// which should prevent read-only managers from password sniffing
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_ELASTICSEARCH) {
 		c.SetPermissionError(model.PERMISSION_TEST_ELASTICSEARCH)
 		return
@@ -29,14 +31,6 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("testElasticsearch", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
-	}
-
-	// no sniffing for ports or passwords
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH) {
-		if (*cfg.ElasticsearchSettings.ConnectionUrl != *c.App.Config().ElasticsearchSettings.ConnectionUrl) || (*cfg.ElasticsearchSettings.Password != model.FAKE_SETTING) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH)
-			return
-		}
 	}
 
 	if err := c.App.TestElasticsearch(cfg); err != nil {
