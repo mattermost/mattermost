@@ -184,9 +184,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			go func(userID string) {
 				defer close(mac)
 				_, incrementMentions := mentions.Mentions[userID]
-				nErr := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId)
-				if nErr != nil {
-					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId)
+				if err != nil {
+					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
 

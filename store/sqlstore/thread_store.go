@@ -504,6 +504,10 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
+	// if memebership exists, update it if:
+	// a. user started/stopped following a thread
+	// b. mention count changed
+	// c. user viewed a thread
 	if err == nil {
 		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions || updateViewedTimestamp {
 			if updateFollowing {
