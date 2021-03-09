@@ -18,10 +18,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -172,7 +172,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		appErr := c.App.TestFilesStoreConnection()
+		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
 			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
@@ -450,7 +450,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	appErr := c.App.TestFilesStoreConnectionWithConfig(&cfg.FileSettings)
+	appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return

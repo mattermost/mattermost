@@ -4652,10 +4652,10 @@ func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, time int64) (*model.Post, error) {
+func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostAfterTime(channelID, time)
+	result, err := s.PostStore.GetPostAfterTime(channelID, time, collapsedThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4668,10 +4668,10 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelID string, time int64) (*m
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, time int64) (string, error) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostIdAfterTime(channelID, time)
+	result, err := s.PostStore.GetPostIdAfterTime(channelID, time, collapsedThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4684,10 +4684,10 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelID string, time int64) (
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, time int64) (string, error) {
+func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostIdBeforeTime(channelID, time)
+	result, err := s.PostStore.GetPostIdBeforeTime(channelID, time, collapsedThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
