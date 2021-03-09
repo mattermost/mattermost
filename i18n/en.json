@@ -2735,8 +2735,20 @@
     "translation": "Join Team"
   },
   {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+  },
+  {
     "id": "api.templates.invite_body.title",
     "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -2953,6 +2965,10 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reset Password"
+  },
+  {
+    "id": "api.templates.reset_body.info1",
+    "translation": "To change your password, click \"Reset Password\" below."
   },
   {
     "id": "api.templates.reset_body.info2",
