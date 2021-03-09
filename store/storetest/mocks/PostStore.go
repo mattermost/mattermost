@@ -310,13 +310,13 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string) ([]*mod
 	return r0, r1
 }
 
-// GetPostAfterTime provides a mock function with given fields: channelID, time
-func (_m *PostStore) GetPostAfterTime(channelID string, time int64) (*model.Post, error) {
-	ret := _m.Called(channelID, time)
+// GetPostAfterTime provides a mock function with given fields: channelID, time, collapsedThreads
+func (_m *PostStore) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error) {
+	ret := _m.Called(channelID, time, collapsedThreads)
 
 	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(string, int64) *model.Post); ok {
-		r0 = rf(channelID, time)
+	if rf, ok := ret.Get(0).(func(string, int64, bool) *model.Post); ok {
+		r0 = rf(channelID, time, collapsedThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -324,8 +324,8 @@ func (_m *PostStore) GetPostAfterTime(channelID string, time int64) (*model.Post
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(channelID, time)
+	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
+		r1 = rf(channelID, time, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -333,20 +333,20 @@ func (_m *PostStore) GetPostAfterTime(channelID string, time int64) (*model.Post
 	return r0, r1
 }
 
-// GetPostIdAfterTime provides a mock function with given fields: channelID, time
-func (_m *PostStore) GetPostIdAfterTime(channelID string, time int64) (string, error) {
-	ret := _m.Called(channelID, time)
+// GetPostIdAfterTime provides a mock function with given fields: channelID, time, collapsedThreads
+func (_m *PostStore) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error) {
+	ret := _m.Called(channelID, time, collapsedThreads)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
-		r0 = rf(channelID, time)
+	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
+		r0 = rf(channelID, time, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(channelID, time)
+	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
+		r1 = rf(channelID, time, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -354,20 +354,20 @@ func (_m *PostStore) GetPostIdAfterTime(channelID string, time int64) (string, e
 	return r0, r1
 }
 
-// GetPostIdBeforeTime provides a mock function with given fields: channelID, time
-func (_m *PostStore) GetPostIdBeforeTime(channelID string, time int64) (string, error) {
-	ret := _m.Called(channelID, time)
+// GetPostIdBeforeTime provides a mock function with given fields: channelID, time, collapsedThreads
+func (_m *PostStore) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error) {
+	ret := _m.Called(channelID, time, collapsedThreads)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
-		r0 = rf(channelID, time)
+	if rf, ok := ret.Get(0).(func(string, int64, bool) string); ok {
+		r0 = rf(channelID, time, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(channelID, time)
+	if rf, ok := ret.Get(1).(func(string, int64, bool) error); ok {
+		r1 = rf(channelID, time, collapsedThreads)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // postToAttachments returns the file attachments for a post that need to be synchronized.

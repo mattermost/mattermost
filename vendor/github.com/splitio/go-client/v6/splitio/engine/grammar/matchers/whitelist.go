@@ -1,7 +1,7 @@
 package matchers
 
 import (
-	"github.com/splitio/go-toolkit/v3/datastructures/set"
+	"github.com/splitio/go-toolkit/v4/datastructures/set"
 )
 
 // WhitelistMatcher matches if the key received is present in the matcher's whitelist

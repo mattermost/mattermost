@@ -5,7 +5,7 @@
 package sharedchannel
 
 import (
-	mlog "github.com/mattermost/mattermost-server/v5/mlog"
+	mlog "github.com/mattermost/mattermost-server/v5/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost-server/v5/model"

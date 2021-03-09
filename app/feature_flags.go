@@ -4,10 +4,12 @@
 package app
 
 import (
+	"encoding/json"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // setupFeatureFlags called on startup and when the cluster leader changes.
@@ -15,16 +17,15 @@ import (
 func (s *Server) setupFeatureFlags() {
 	s.featureFlagSynchronizerMutex.Lock()
 	defer s.featureFlagSynchronizerMutex.Unlock()
-	license := s.License()
-	inCloud := license != nil && *license.Features.Cloud
 	splitKey := *s.Config().ServiceSettings.SplitKey
-	syncFeatureFlags := inCloud && splitKey != "" && s.IsLeader()
+	splitConfigured := splitKey != ""
+	syncFeatureFlags := splitConfigured && s.IsLeader()
 
-	s.configStore.PersistFeatures(inCloud)
+	s.configStore.PersistFeatures(splitConfigured)
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
-			s.Log.Warn("Unable to setup synchronization with feature flag management. Will fallback to cloud cache.", mlog.Err(err))
+			s.Log.Warn("Unable to setup synchronization with feature flag management. Will fallback to cache.", mlog.Err(err))
 		}
 	} else {
 		s.stopFeatureFlagUpdateJob()
@@ -39,7 +40,11 @@ func (s *Server) updateFeatureFlagValuesFromManagment() {
 	newCfg := s.configStore.GetNoEnv().Clone()
 	oldFlags := *newCfg.FeatureFlags
 	newFlags := s.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
+	oldFlagsBytes, _ := json.Marshal(oldFlags)
+	newFlagsBytes, _ := json.Marshal(newFlags)
+	s.Log.Debug("Checking feature flags from management service", mlog.String("old_flags", string(oldFlagsBytes)), mlog.String("new_flags", string(newFlagsBytes)))
 	if oldFlags != newFlags {
+		s.Log.Debug("Feature flag change detected, updating config")
 		*newCfg.FeatureFlags = newFlags
 		s.SaveConfig(newCfg, true)
 	}
@@ -56,10 +61,21 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		log = s.Log
 	}
 
+	attributes := map[string]interface{}{}
+
+	// if we are part of a cloud installation, add its installation and group id
+	if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+		attributes["installation_id"] = installationId
+	}
+	if groupId := os.Getenv("MM_CLOUD_GROUP_ID"); groupId != "" {
+		attributes["group_id"] = groupId
+	}
+
 	synchronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
-		ServerID: s.TelemetryId(),
-		SplitKey: *s.Config().ServiceSettings.SplitKey,
-		Log:      log,
+		ServerID:   s.TelemetryId(),
+		SplitKey:   *s.Config().ServiceSettings.SplitKey,
+		Log:        log,
+		Attributes: attributes,
 	})
 	if err != nil {
 		return err
