@@ -138,6 +138,36 @@ var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT *Permission
 var PERMISSION_SYSCONSOLE_READ_SITE *Permission
 var PERMISSION_SYSCONSOLE_WRITE_SITE *Permission
 
+var PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_EMOJI *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_POSTS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_NOTICES *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES *Permission
+
 var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION *Permission
 var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION *Permission
 
@@ -840,16 +870,138 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_SITE = &Permission{
 		"sysconsole_read_site",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_SITE = &Permission{
 		"sysconsole_write_site",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION = &Permission{
+		"sysconsole_read_site_customization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION = &Permission{
+		"sysconsole_write_site_customization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION = &Permission{
+		"sysconsole_read_site_localization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION = &Permission{
+		"sysconsole_write_site_localization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS = &Permission{
+		"sysconsole_read_site_users_and_teams",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS = &Permission{
+		"sysconsole_write_site_users_and_teams",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS = &Permission{
+		"sysconsole_read_site_notifications",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS = &Permission{
+		"sysconsole_write_site_notifications",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER = &Permission{
+		"sysconsole_read_site_announcement_banner",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER = &Permission{
+		"sysconsole_write_site_announcement_banner",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_EMOJI = &Permission{
+		"sysconsole_read_site_emoji",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI = &Permission{
+		"sysconsole_write_site_emoji",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_POSTS = &Permission{
+		"sysconsole_read_site_posts",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS = &Permission{
+		"sysconsole_write_site_posts",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS = &Permission{
+		"sysconsole_read_site_file_sharing_and_downloads",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS = &Permission{
+		"sysconsole_write_site_file_sharing_and_downloads",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS = &Permission{
+		"sysconsole_read_site_public_links",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS = &Permission{
+		"sysconsole_write_site_public_links",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_NOTICES = &Permission{
+		"sysconsole_read_site_notices",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES = &Permission{
+		"sysconsole_write_site_notices",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION = &Permission{
@@ -974,7 +1126,16 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
-		PERMISSION_SYSCONSOLE_READ_SITE,
+		PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION,
+		PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION,
+		PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS,
+		PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS,
+		PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER,
+		PERMISSION_SYSCONSOLE_READ_SITE_EMOJI,
+		PERMISSION_SYSCONSOLE_READ_SITE_POSTS,
+		PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS,
+		PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS,
+		PERMISSION_SYSCONSOLE_READ_SITE_NOTICES,
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
@@ -995,7 +1156,16 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT,
-		PERMISSION_SYSCONSOLE_WRITE_SITE,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES,
 		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
@@ -1104,6 +1274,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_SITE,
+		PERMISSION_SYSCONSOLE_WRITE_SITE,
 	}
 
 	AllPermissions = []*Permission{}
