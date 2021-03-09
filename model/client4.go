@@ -561,6 +561,14 @@ func (c *Client4) GetExportRoute(name string) string {
 	return fmt.Sprintf(c.GetExportsRoute()+"/%v", name)
 }
 
+func (c *Client4) GetRemoteClusterRoute() string {
+	return "/remotecluster"
+}
+
+func (c *Client4) GetSharedChannelsRoute() string {
+	return "/sharedchannels"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -6014,4 +6022,18 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 	defer closeBody(r)
 
 	return BuildResponse(r)
+}
+
+func (c *Client4) GetRemoteClusterInfo(remoteId string) (RemoteClusterInfo, *Response) {
+	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteId)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var rci RemoteClusterInfo
+	json.NewDecoder(r.Body).Decode(&rci)
+
+	return rci, BuildResponse(r)
 }

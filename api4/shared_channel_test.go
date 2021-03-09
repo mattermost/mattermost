@@ -13,6 +13,64 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+func TestGetRemoteClusterById(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	mockService := app.NewMockRemoteClusterService(nil, app.MockOptionRemoteClusterServiceWithActive(true))
+	th.App.Srv().SetRemoteClusterService(mockService)
+
+	// for this test we need a user that belongs to a channel that
+	// is shared with the requested remote id.
+
+	// create a remote cluster
+	rc := &model.RemoteCluster{
+		RemoteId:     model.NewId(),
+		DisplayName:  "Test1",
+		RemoteTeamId: model.NewId(),
+		SiteURL:      model.NewId(),
+		CreatorId:    model.NewId(),
+	}
+	rc, appErr := th.App.AddRemoteCluster(rc)
+	require.Nil(t, appErr)
+
+	// create a shared channel
+	sc := &model.SharedChannel{
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicChannel.TeamId,
+		Home:      false,
+		ShareName: "test_share",
+		CreatorId: th.BasicChannel.CreatorId,
+		RemoteId:  rc.RemoteId,
+	}
+	sc, err := th.App.SaveSharedChannel(sc)
+	require.NoError(t, err)
+
+	// create a shared channel remote to connect them
+	scr := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         sc.ChannelId,
+		CreatorId:         sc.CreatorId,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+		RemoteId:          sc.RemoteId,
+	}
+	_, err = th.App.SaveSharedChannelRemote(scr)
+	require.NoError(t, err)
+
+	t.Run("valid remote, user is member", func(t *testing.T) {
+		rcInfo, resp := th.Client.GetRemoteClusterInfo(rc.RemoteId)
+		CheckNoError(t, resp)
+		assert.Equal(t, rc.DisplayName, rcInfo.DisplayName)
+	})
+
+	t.Run("invalid remote", func(t *testing.T) {
+		_, resp := th.Client.GetRemoteClusterInfo(model.NewId())
+		CheckNotFoundStatus(t, resp)
+	})
+
+}
+
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -40,7 +98,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		Client := th.Client
 		defer Client.Logout()
 
-		mockService := app.NewMockRemoteClusterService(nil, app.WithActive(true))
+		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.App.Srv().SetSharedChannelSyncService(mockService)
 
 		localUser := th.BasicUser
@@ -73,7 +131,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		Client := th.Client
 		defer Client.Logout()
 
-		mockService := app.NewMockRemoteClusterService(nil, app.WithActive(true))
+		mockService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.App.Srv().SetSharedChannelSyncService(mockService)
 
 		localUser := th.BasicUser

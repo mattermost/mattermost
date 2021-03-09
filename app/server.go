@@ -154,8 +154,8 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
-	remoteClusterService     *remotecluster.Service
-	sharedChannelSyncService SharedChannelServiceIFace
+	remoteClusterService remotecluster.RemoteClusterServiceIFace
+	sharedChannelService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
 
@@ -802,7 +802,7 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return err
 	}
 
-	// Shared Channels Sync service
+	// Shared Channels service
 
 	// License check
 	if !*license.Features.SharedChannels {
@@ -812,16 +812,16 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 
 	// Config check
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
-		mlog.Debug("Shared Channel Sync Service disabled via config")
+		mlog.Debug("Shared Channels Service disabled via config")
 		return nil
 	}
 
-	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s, app)
+	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
 
-	if err = s.sharedChannelSyncService.Start(); err != nil {
+	if err = s.sharedChannelService.Start(); err != nil {
 		s.remoteClusterService = nil
 		return err
 	}
@@ -1739,14 +1739,14 @@ func (s *Server) GetStore() store.Store {
 
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
-func (s *Server) GetRemoteClusterService() *remotecluster.Service {
+func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
 	return s.remoteClusterService
 }
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
-	return s.sharedChannelSyncService
+	return s.sharedChannelService
 }
 
 // GetMetrics returns the server's Metrics interface. Exposing via a method
@@ -1757,14 +1757,14 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService *remotecluster.Service) {
+func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
 	s.remoteClusterService = remoteClusterService
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
-func (s *Server) SetSharedChannelSyncService(sharedChannelSyncService SharedChannelServiceIFace) {
-	s.sharedChannelSyncService = sharedChannelSyncService
+func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.sharedChannelService = sharedChannelService
 }
 
 func (s *Server) Poller() netpoll.Poller {

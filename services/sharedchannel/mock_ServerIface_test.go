@@ -67,15 +67,15 @@ func (_m *MockServerIface) GetLogger() mlog.LoggerIFace {
 }
 
 // GetRemoteClusterService provides a mock function with given fields:
-func (_m *MockServerIface) GetRemoteClusterService() *remotecluster.Service {
+func (_m *MockServerIface) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
 	ret := _m.Called()
 
-	var r0 *remotecluster.Service
-	if rf, ok := ret.Get(0).(func() *remotecluster.Service); ok {
+	var r0 remotecluster.RemoteClusterServiceIFace
+	if rf, ok := ret.Get(0).(func() remotecluster.RemoteClusterServiceIFace); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*remotecluster.Service)
+			r0 = ret.Get(0).(remotecluster.RemoteClusterServiceIFace)
 		}
 	}
 

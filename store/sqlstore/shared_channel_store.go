@@ -441,6 +441,32 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 	return hasRemote, nil
 }
 
+// GetRemoteForUser returns a remote cluster for the given userId only if the user belongs to at least one channel
+// shared with the remote.
+func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
+	builder := s.getQueryBuilder().
+		Select("rc.*").
+		From("RemoteClusters AS rc").
+		Join("SharedChannelRemotes AS scr ON rc.RemoteId = scr.RemoteId").
+		Join("ChannelMembers AS cm ON scr.ChannelId = cm.ChannelId").
+		Where(sq.Eq{"rc.RemoteId": remoteId}).
+		Where(sq.Eq{"cm.UserId": userId})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "get_remote_for_user_tosql")
+	}
+
+	var rc model.RemoteCluster
+	if err := s.GetReplica().SelectOne(&rc, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("RemoteCluster", remoteId)
+		}
+		return nil, errors.Wrapf(err, "failed to get remote for user_id=%s", userId)
+	}
+	return &rc, nil
+}
+
 // UpdateRemoteNextSyncAt updates the NextSyncAt timestamp for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 	squery, args, err := s.getQueryBuilder().

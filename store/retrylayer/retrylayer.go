@@ -7406,6 +7406,26 @@ func (s *RetryLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetRemoteForUser(remoteId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 
 	tries := 0

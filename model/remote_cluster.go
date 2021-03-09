@@ -103,6 +103,14 @@ func (rc *RemoteCluster) ToJSON() (string, error) {
 	return string(b), nil
 }
 
+func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
+	return RemoteClusterInfo{
+		DisplayName: rc.DisplayName,
+		CreateAt:    rc.CreateAt,
+		LastPingAt:  rc.LastPingAt,
+	}
+}
+
 func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
 	var rc RemoteCluster
 	err := json.NewDecoder(data).Decode(&rc)
@@ -110,6 +118,13 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
 		return nil, NewAppError("RemoteClusterFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return &rc, nil
+}
+
+// RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
+type RemoteClusterInfo struct {
+	DisplayName string `json:"display_name"`
+	CreateAt    int64  `json:"create_at"`
+	LastPingAt  int64  `json:"last_ping_at"`
 }
 
 // RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.

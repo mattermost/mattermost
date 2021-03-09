@@ -192,6 +192,29 @@ func (_m *SharedChannelStore) GetRemoteByIds(channelId string, remoteId string) 
 	return r0, r1
 }
 
+// GetRemoteForUser provides a mock function with given fields: remoteId, userId
+func (_m *SharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
+	ret := _m.Called(remoteId, userId)
+
+	var r0 *model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string, string) *model.RemoteCluster); ok {
+		r0 = rf(remoteId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(remoteId, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRemotes provides a mock function with given fields: opts
 func (_m *SharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	ret := _m.Called(opts)

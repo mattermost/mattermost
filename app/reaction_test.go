@@ -17,8 +17,8 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	t.Run("adding a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 
-		remoteClusterService := NewMockRemoteClusterService(nil)
-		th.App.srv.sharedChannelSyncService = remoteClusterService
+		sharedChannelService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = sharedChannelService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -44,16 +44,16 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, remoteClusterService.notifications, 2)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Len(t, sharedChannelService.notifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
 	})
 
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 
-		remoteClusterService := NewMockRemoteClusterService(nil)
-		th.App.srv.sharedChannelSyncService = remoteClusterService
+		sharedChannelService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = sharedChannelService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
 
@@ -79,8 +79,8 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, remoteClusterService.notifications, 2)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Len(t, sharedChannelService.notifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
 	})
 }

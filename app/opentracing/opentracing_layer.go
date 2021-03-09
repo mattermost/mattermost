@@ -3138,7 +3138,7 @@ func (a *OpenTracingAppLayer) DeleteScheme(schemeId string) (*model.Scheme, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteSharedChannel(channelId string) (bool, error) {
+func (a *OpenTracingAppLayer) DeleteSharedChannel(channelID string) (bool, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSharedChannel")
 
@@ -3150,7 +3150,7 @@ func (a *OpenTracingAppLayer) DeleteSharedChannel(channelId string) (bool, error
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteSharedChannel(channelId)
+	resultVar0, resultVar1 := a.app.DeleteSharedChannel(channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7745,7 +7745,29 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteClusterService() (*remotecluster.Service, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRemoteClusterForUser(remoteID string, userID string) (*model.RemoteCluster, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClusterForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetRemoteClusterForUser(remoteID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetRemoteClusterService() (remotecluster.RemoteClusterServiceIFace, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClusterService")
 
@@ -8165,7 +8187,7 @@ func (a *OpenTracingAppLayer) GetSessions(userID string) ([]*model.Session, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
+func (a *OpenTracingAppLayer) GetSharedChannel(channelID string) (*model.SharedChannel, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannel")
 
@@ -8177,7 +8199,7 @@ func (a *OpenTracingAppLayer) GetSharedChannel(channelId string) (*model.SharedC
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSharedChannel(channelId)
+	resultVar0, resultVar1 := a.app.GetSharedChannel(channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8209,7 +8231,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemote(id string) (*model.SharedCh
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+func (a *OpenTracingAppLayer) GetSharedChannelRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannelRemoteByIds")
 
@@ -8221,7 +8243,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemoteByIds(channelId string, remo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSharedChannelRemoteByIds(channelId, remoteId)
+	resultVar0, resultVar1 := a.app.GetSharedChannelRemoteByIds(channelID, remoteID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8253,7 +8275,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemotes(opts model.SharedChannelRe
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+func (a *OpenTracingAppLayer) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSharedChannelRemotesStatus")
 
@@ -8265,7 +8287,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelRemotesStatus(channelId string) ([
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSharedChannelRemotesStatus(channelId)
+	resultVar0, resultVar1 := a.app.GetSharedChannelRemotesStatus(channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

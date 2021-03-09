@@ -6174,6 +6174,22 @@ func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetRemoteForUser(remoteId, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemoteForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
