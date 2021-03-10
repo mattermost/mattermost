@@ -606,7 +606,7 @@ func initializePermissions() {
 	}
 
 	PERMISSION_READ_CLOUD_CUSTOMER = &Permission{
-		"create_post_bleve_indexes_job",
+		"read_cloud_customer",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1174,6 +1174,10 @@ func initializePermissions() {
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
 		PERMISSION_READ_LICENSE_INFORMATION,
 		PERMISSION_MANAGE_LICENSE_INFORMATION,
+		PERMISSION_READ_CLOUD_SUBSCRIPTION,
+		PERMISSION_READ_CLOUD_INVOICES,
+		PERMISSION_READ_CLOUD_CUSTOMER,
+		PERMISSION_WRITE_CLOUD_CUSTOMER,
 	}
 
 	TeamScopedPermissions := []*Permission{
