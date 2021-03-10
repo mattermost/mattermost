@@ -45,7 +45,6 @@ func init() {
 		CHANNEL_ADMIN_ROLE_ID,
 	}, NewSystemRoleIDs...)
 
-	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
 		PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION.Id: {
 			PERMISSION_READ_CLOUD_SUBSCRIPTION,
@@ -65,6 +64,7 @@ func init() {
 		},
 		PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION.Id: {
 			PERMISSION_WRITE_CLOUD_CUSTOMER,
+		},
 		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id: {
 			PERMISSION_READ_LICENSE_INFORMATION,
 		},
