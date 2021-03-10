@@ -308,10 +308,12 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	bodyPage := es.newEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Props["Info1"] = i18n.TranslateAsHTML(T, "api.templates.reset_body.info1", nil)
-	bodyPage.Props["Info2"] = T("api.templates.reset_body.info2")
-	bodyPage.Props["ResetUrl"] = link
+	bodyPage.Props["SubTitle"] = T("api.templates.reset_body.subTitle")
+	bodyPage.Props["Info"] = T("api.templates.reset_body.info")
+	bodyPage.Props["ButtonURL"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
+	bodyPage.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	bodyPage.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -371,13 +373,13 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.info",
-				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName})
-			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
+			bodyPage.Props["SenderName"] = senderName
+			bodyPage.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+			bodyPage.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+			bodyPage.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
 			token := model.NewToken(
 				TokenTypeTeamInvitation,
@@ -394,7 +396,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			bodyPage.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if err := es.sendMail(invite, subject, bodyPage.Render()); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
@@ -430,19 +432,17 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body_guest.info",
-				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
-			bodyPage.Props["SenderId"] = senderUserId
 			bodyPage.Props["Message"] = ""
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName})
-			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
+			bodyPage.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+			bodyPage.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+			bodyPage.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
 			channelIDs := []string{}
 			for _, channel := range channels {
@@ -469,7 +469,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			bodyPage.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !*es.srv.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", bodyPage.Props["Link"].(string)))

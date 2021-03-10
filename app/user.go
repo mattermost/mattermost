@@ -169,7 +169,7 @@ func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User,
 	}
 
 	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-		mlog.Warn("Failed to send welcome email on create admin user", mlog.Err(err))
+		mlog.Warn("Failed to send welcome email to the new user, created by system admin", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -2403,7 +2403,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 }
 
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userID, threadID, state, false, true)
+	err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

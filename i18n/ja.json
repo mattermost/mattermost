@@ -1983,11 +1983,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "以下のリンクをクリックして電子メールアドレスを確認してください。"
+    "translation": "この電子メールアドレスがMattermostアカウントの作成に使用されました。"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "電子メールアドレスを確認してください"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1995,7 +1995,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "PC / Mac / iOS / Android 用のアプリをダウンロードして最高の体験を:"
+    "translation": "PC / Mac / iOS / Android 用のアプリをダウンロードして最高の体験を。"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2003,11 +2003,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "以下のリンクをクリックして電子メールアドレスを確認してください。"
+    "translation": "この電子メールアドレスがMattermostアカウントの作成に使用されました。"
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "チームへようこそ"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -7786,18 +7786,6 @@
     "translation": "CWSへのリクエストを処理する際にエラーが発生しました。"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "CWSへのリクエストを処理する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWSへのリクエストを変換する際に内部エラーが発生しました"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "CWSに対する認証ができませんでした"
-  },
-  {
     "id": "app.upload.run_plugins_hook.rejected",
     "translation": "ファイル {{.Filename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
   },
@@ -8584,5 +8572,97 @@
   {
     "id": "api.command_custom_status.clear.app_error",
     "translation": "ステータスをクリアする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "このサーバーではファイル検索は無効化されています。システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "インデックス付与中にファイルを一括取得できませんでした。"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "下記をクリックして、電子メールアドレスを確認してください。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "ようこそ "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "心当たりがない場合、このメールを無視してください。"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "デスクトップアプリとモバイルアプリをダウンロードする"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "ダウンロード"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "下記をクリックし、電子メールアドレスを確認してください。"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "ようこそ "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "もし心当たりがない場合、この電子メールを無視してください。"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "新規ユーザーはあなたのワークスペースに参加できませんでした"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "誰かがあなたのワークスペースへ参加しようとしましたが、 無料版Mattermostクラウドのユーザー数制限に達しているため参加できませんでした。さらに多くのユーザーをワークスペースに参加させるには、今すぐアップグレードしてください。"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "ご不明な点がございますか?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "いつでもご連絡ください "
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "この機能は開発中であり、フィーチャーフラグを使用した場合のみ利用可能になります。"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "リクエストボディを解析できませんでした。"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "システム管理者の電子メールを取得する際にエラーが発生しました。"
   }
 ]
