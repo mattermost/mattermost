@@ -44,7 +44,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 			CreatorId: th.BasicChannel.CreatorId,
 			RemoteId:  model.NewId(),
 		}
-		sc, err := th.App.SaveSharedChannel(sc)
+		_, err := th.App.SaveSharedChannel(sc)
 		require.NoError(t, err)
 		savedIds = append(savedIds, channel.Id)
 	}
@@ -79,10 +79,7 @@ func getIds(channels []*model.SharedChannel) []string {
 }
 
 func randomBool() bool {
-	if rnd.Intn(2) == 0 {
-		return false
-	}
-	return true
+	return rnd.Intn(2) != 0
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
