@@ -4,7 +4,11 @@
 package api4
 
 import (
+	"fmt"
+	"math/rand"
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,6 +16,74 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+var (
+	rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
+)
+
+func TestGetAllSharedChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	const pages = 3
+	const pageSize = 7
+
+	mockService := app.NewMockRemoteClusterService(nil, app.MockOptionRemoteClusterServiceWithActive(true))
+	th.App.Srv().SetRemoteClusterService(mockService)
+
+	savedIds := make([]string, 0, pages*pageSize)
+
+	// make some shared channels
+	for i := 0; i < pages*pageSize; i++ {
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, th.BasicTeam.Id)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			Home:      randomBool(),
+			ShareName: fmt.Sprintf("test_share_%d", i),
+			CreatorId: th.BasicChannel.CreatorId,
+			RemoteId:  model.NewId(),
+		}
+		sc, err := th.App.SaveSharedChannel(sc)
+		require.NoError(t, err)
+		savedIds = append(savedIds, channel.Id)
+	}
+	sort.Strings(savedIds)
+
+	t.Run("get shared channels paginated", func(t *testing.T) {
+		channelIds := make([]string, 0, 21)
+		for i := 0; i < pages; i++ {
+			channels, resp := th.Client.GetAllSharedChannels(th.BasicTeam.Id, i, pageSize)
+			CheckNoError(t, resp)
+			channelIds = append(channelIds, getIds(channels)...)
+		}
+		sort.Strings(channelIds)
+
+		// ids lists should now match
+		assert.Equal(t, savedIds, channelIds, "id lists should match")
+	})
+
+	t.Run("get shared channels for invalid team", func(t *testing.T) {
+		channels, resp := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		CheckNoError(t, resp)
+		assert.Empty(t, channels)
+	})
+}
+
+func getIds(channels []*model.SharedChannel) []string {
+	ids := make([]string, 0, len(channels))
+	for _, c := range channels {
+		ids = append(ids, c.ChannelId)
+	}
+	return ids
+}
+
+func randomBool() bool {
+	if rnd.Intn(2) == 0 {
+		return false
+	}
+	return true
+}
 
 func TestGetRemoteClusterById(t *testing.T) {
 	th := Setup(t).InitBasic()
