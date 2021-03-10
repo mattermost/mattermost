@@ -13,9 +13,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -796,8 +796,6 @@ func upgradeDatabaseToVersion523(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion524(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5230, Version5240) {
-		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-
 		saveSchemaVersion(sqlStore, Version5240)
 	}
 }
@@ -828,9 +826,6 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 			mlog.Critical("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 			os.Exit(ExitGenericFailure)
 		}
-
-		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
 
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
@@ -942,8 +937,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 		saveSchemaVersion(sqlStore, Version5320)
 	}
 }
