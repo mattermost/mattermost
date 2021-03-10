@@ -18,9 +18,6 @@ type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
-	workers       *Workers
-	schedulers    *Schedulers
-	mut           sync.Mutex
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
@@ -38,6 +35,11 @@ type JobServer struct {
 	ExportProcess           tjobs.ExportProcessInterface
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
+
+	// mut is used to protect the following fields from concurrent access.
+	mut        sync.Mutex
+	workers    *Workers
+	schedulers *Schedulers
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
