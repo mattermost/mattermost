@@ -535,3 +535,46 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
 }
+
+// RemoveOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
+// where a channel or team no longer exists.
+func (s *SqlRetentionPolicyStore) RemoveOrphanedRows(limit int) (deleted int, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const rpcDeleteQuery = `
+	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
+		SELECT * FROM (
+			SELECT ChannelId FROM RetentionPoliciesChannels
+			LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	const rptDeleteQuery = `
+	DELETE FROM RetentionPoliciesTeams WHERE TeamId IN (
+		SELECT * FROM (
+			SELECT TeamId FROM RetentionPoliciesTeams
+			LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
+			WHERE Teams.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(rpcDeleteQuery, props)
+	if err != nil {
+		return
+	}
+	rpcDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	result, err = s.GetMaster().Exec(rptDeleteQuery, props)
+	if err != nil {
+		return
+	}
+	rptDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	deleted = int(rpcDeleted + rptDeleted)
+	return
+}

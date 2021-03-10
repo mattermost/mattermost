@@ -6251,6 +6251,24 @@ func (s *OpenTracingLayerRetentionPolicyStore) RemoveChannels(policyId string, c
 	return err
 }
 
+func (s *OpenTracingLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.RemoveOrphanedRows")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.RemoveTeams")
