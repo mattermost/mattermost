@@ -3056,6 +3056,25 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchFiles returns any posts with matching terms string.
+func (c *Client4) SearchFiles(teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response) {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchFilesWithParams(teamId, &params)
+}
+
+// SearchFilesWithParams returns any posts with matching terms string.
+func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) (*FileInfoList, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/files/search", params.SearchParameterToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoListFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
 	params := SearchParameter{
@@ -4543,7 +4562,7 @@ func (c *Client4) GetDataRetentionPoliciesCount() (int64, *Response) {
 }
 
 // GetDataRetentionPolicies will get the current granular data retention policies' details.
-func (c *Client4) GetDataRetentionPolicies(page, perPage int) ([]*RetentionPolicyWithTeamAndChannelCounts, *Response) {
+func (c *Client4) GetDataRetentionPolicies(page, perPage int) (*RetentionPolicyWithTeamAndChannelCountsList, *Response) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
 	r, appErr := c.DoApiGet(c.GetDataRetentionRoute()+"/policies"+query, "")
 	if appErr != nil {
@@ -4559,7 +4578,7 @@ func (c *Client4) GetDataRetentionPolicies(page, perPage int) ([]*RetentionPolic
 
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
 // the specified teams and channels. The Id field of `policy` must be empty.
-func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndChannelIds) (*RetentionPolicyWithTeamAndChannelCounts, *Response) {
+func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response) {
 	r, appErr := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", policy.ToJson())
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
@@ -4584,8 +4603,8 @@ func (c *Client4) DeleteDataRetentionPolicy(policyID string) *Response {
 
 // PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
 // The Id field of `patch` must be non-empty.
-func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChannelIds) (*RetentionPolicyWithTeamAndChannelCounts, *Response) {
-	r, appErr := c.doApiPatchBytes(c.GetDataRetentionPolicyRoute(patch.Id), patch.ToJson())
+func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChannelIDs) (*RetentionPolicyWithTeamAndChannelCounts, *Response) {
+	r, appErr := c.doApiPatchBytes(c.GetDataRetentionPolicyRoute(patch.ID), patch.ToJson())
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
@@ -4598,16 +4617,31 @@ func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithTeamAndChan
 }
 
 // GetTeamsForRetentionPolicy will get the teams to which the specified policy is currently applied.
-func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int) ([]*Team, *Response) {
+func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int) (*TeamsWithCount, *Response) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
 	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/teams"+query, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var teams *TeamsWithCount
+	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return teams, BuildResponse(r)
+}
+
+// SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
+func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response) {
+	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams/search", body)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	var teams []*Team
 	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
 	if jsonErr != nil {
-		return nil, BuildErrorResponse(r, NewAppError("Client4.GetTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+		return nil, BuildErrorResponse(r, NewAppError("Client4.SearchTeamsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
 	}
 	return teams, BuildResponse(r)
 }
@@ -4637,16 +4671,31 @@ func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []stri
 }
 
 // GetChannelsForRetentionPolicy will get the channels to which the specified policy is currently applied.
-func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage int) ([]*Channel, *Response) {
+func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage int) (*ChannelsWithCount, *Response) {
 	query := fmt.Sprintf("?page=%d&per_page=%d", page, perPage)
 	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID)+"/channels"+query, "")
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
-	var channels []*Channel
+	var channels *ChannelsWithCount
 	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
 	if jsonErr != nil {
 		return nil, BuildErrorResponse(r, NewAppError("Client4.GetChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return channels, BuildResponse(r)
+}
+
+// SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
+func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response) {
+	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels/search", body)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var channels ChannelListWithTeamData
+	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.SearchChannelsForRetentionPolicy", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
 	}
 	return channels, BuildResponse(r)
 }
@@ -6123,14 +6172,16 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response) {
 	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
 	if appErr != nil {
-		return BuildErrorResponse(r, appErr)
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
 
-	return BuildResponse(r)
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
@@ -6151,6 +6202,16 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 
 func (c *Client4) SendAdminUpgradeRequestEmail() *Response {
 	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}

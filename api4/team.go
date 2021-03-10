@@ -1003,6 +1003,13 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained != nil && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	// policy ID may only be used through the /data_retention/policies endpoint
+	props.PolicyID = nil
 
 	var teams []*model.Team
 	var totalCount int64
@@ -1206,9 +1213,14 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
 		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 {
-			subscription, subErr := c.App.Cloud().GetSubscription()
+			subscription, subErr := c.App.Cloud().GetSubscription(c.App.Session().UserId)
 			if subErr != nil {
-				c.Err = subErr
+				c.Err = model.NewAppError(
+					"Api4.inviteUsersToTeam",
+					"api.team.cloud.subscription.error",
+					nil,
+					subErr.Error(),
+					http.StatusInternalServerError)
 				return
 			}
 			if subscription == nil || subscription.IsPaidTier != "true" {
@@ -1294,9 +1306,14 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
 		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, subErr := c.App.Cloud().GetSubscription()
-			if subErr != nil {
-				c.Err = subErr
+			subscription, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
+			if err != nil {
+				c.Err = model.NewAppError(
+					"Api4.inviteGuestsToChannel",
+					"api.team.cloud.subscription.error",
+					nil,
+					err.Error(),
+					http.StatusInternalServerError)
 				return
 			}
 			if subscription == nil || subscription.IsPaidTier != "true" {

@@ -19,7 +19,7 @@ type PluginCommand struct {
 	PluginId string
 }
 
-func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) error {
+func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) error {
 	if command.Trigger == "" {
 		return errors.New("invalid command")
 	}
@@ -32,9 +32,9 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 	if command.AutocompleteData == nil {
 		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
 	} else {
-		baseURL, err := url.Parse("/plugins/" + pluginId)
+		baseURL, err := url.Parse("/plugins/" + pluginID)
 		if err != nil {
-			return errors.Wrapf(err, "Can't parse url %s", "/plugins/"+pluginId)
+			return errors.Wrapf(err, "Can't parse url %s", "/plugins/"+pluginID)
 		}
 		err = command.AutocompleteData.UpdateRelativeURLsForPluginCommands(baseURL)
 		if err != nil {
@@ -58,7 +58,7 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 
 	for _, pc := range a.Srv().pluginCommands {
 		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
-			if pc.PluginId == pluginId {
+			if pc.PluginId == pluginID {
 				pc.Command = command
 				return nil
 			}
@@ -67,12 +67,12 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 
 	a.Srv().pluginCommands = append(a.Srv().pluginCommands, &PluginCommand{
 		Command:  command,
-		PluginId: pluginId,
+		PluginId: pluginID,
 	})
 	return nil
 }
 
-func (a *App) UnregisterPluginCommand(pluginId, teamID, trigger string) {
+func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
 	trigger = strings.ToLower(trigger)
 
 	a.Srv().pluginCommandsLock.Lock()
@@ -87,13 +87,13 @@ func (a *App) UnregisterPluginCommand(pluginId, teamID, trigger string) {
 	a.Srv().pluginCommands = remaining
 }
 
-func (a *App) UnregisterPluginCommands(pluginId string) {
+func (a *App) UnregisterPluginCommands(pluginID string) {
 	a.Srv().pluginCommandsLock.Lock()
 	defer a.Srv().pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
 	for _, pc := range a.Srv().pluginCommands {
-		if pc.PluginId != pluginId {
+		if pc.PluginId != pluginID {
 			remaining = append(remaining, pc)
 		}
 	}
@@ -152,8 +152,8 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		args.AddUserMention(username, userID)
 	}
 
-	for channelName, channelId := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
-		args.AddChannelMention(channelName, channelId)
+	for channelName, channelID := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
+		args.AddChannelMention(channelName, channelID)
 	}
 
 	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)

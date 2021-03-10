@@ -244,14 +244,23 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&g)
 	require.NoError(t, err)
 
-	q := model.Team{}
+	q := &model.Team{}
 	q.DisplayName = "CHOCOLATE"
 	q.Name = "ilovecake"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
 	q.AllowOpenInvite = false
 
-	_, err = ss.Team().Save(&q)
+	q, err = ss.Team().Save(q)
+	require.NoError(t, err)
+
+	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 20,
+		},
+		TeamIDs: []string{q.Id},
+	})
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -367,6 +376,12 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
 			2,
 			[]string{p.Id, o.Id},
+		},
+		{
+			"Search for teams which are not part of a data retention policy",
+			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewBool(true)},
+			3,
+			[]string{o.Id, p.Id, g.Id},
 		},
 	}
 

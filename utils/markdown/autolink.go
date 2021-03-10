@@ -13,7 +13,7 @@ import (
 // Based off of extensions/autolink.c from https://github.com/github/cmark
 
 var (
-	DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
+	DefaultURLSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
 	wwwAutoLinkRegex  = regexp.MustCompile(`^www\d{0,3}\.`)
 )
 
@@ -111,7 +111,7 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 
 func isSchemeAllowed(scheme string) bool {
 	// Note that this doesn't support the custom URL schemes implemented by the client
-	for _, allowed := range DefaultUrlSchemes {
+	for _, allowed := range DefaultURLSchemes {
 		if strings.EqualFold(allowed, scheme) {
 			return true
 		}

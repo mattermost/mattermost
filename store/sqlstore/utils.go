@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/gorp"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var escapeLikeSearchChar = []string{

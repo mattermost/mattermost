@@ -358,12 +358,12 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	thread, err := ss.Thread().Get(post.Id)
 	require.Nil(t, err)
 
-	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 30,
 		},
-		ChannelIds: []string{channel.Id},
+		ChannelIDs: []string{channel.Id},
 	})
 	require.Nil(t, err)
 
@@ -379,12 +379,12 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	require.Nil(t, err)
 
 	// Create a team policy which is stricter than the channel policy
-	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 20,
 		},
-		TeamIds: []string{team.Id},
+		TeamIDs: []string{team.Id},
 	})
 	require.Nil(t, err)
 
@@ -395,7 +395,7 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	require.Nil(t, err, "channel policy should have overridden team policy")
 
 	// Delete channel policy and re-run team policy
-	err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 	require.Nil(t, err)
 	_, err = ss.Thread().PermanentDeleteBatchThreadsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
@@ -436,12 +436,12 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 
 	threadMembership := createThreadMembership(userID, post.Id)
 
-	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 30,
 		},
-		ChannelIds: []string{channel.Id},
+		ChannelIDs: []string{channel.Id},
 	})
 	require.Nil(t, err)
 
@@ -455,12 +455,12 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	threadMembership = createThreadMembership(userID, post.Id)
 
 	// Create a team policy which is stricter than the channel policy
-	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
 			PostDuration: 20,
 		},
-		TeamIds: []string{team.Id},
+		TeamIDs: []string{team.Id},
 	})
 	require.Nil(t, err)
 
@@ -471,7 +471,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.Nil(t, err, "channel policy should have overridden team policy")
 
 	// Delete channel policy and re-run team policy
-	err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+	err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 	require.Nil(t, err)
 	_, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
@@ -482,7 +482,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	threadMembership = createThreadMembership(userID, post.Id)
 
 	// Delete team policy and thread
-	err = ss.RetentionPolicy().Delete(teamPolicy.Id)
+	err = ss.RetentionPolicy().Delete(teamPolicy.ID)
 	require.Nil(t, err)
 	err = ss.Thread().Delete(post.Id)
 	require.Nil(t, err)

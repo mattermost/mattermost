@@ -480,6 +480,14 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error getting system admins email."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error getting cloud subscription."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
@@ -714,6 +722,34 @@
   {
     "id": "api.command_collapse.success",
     "translation": "Image links now collapse by default"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error setting the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error clearing the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Set or clear your status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] or clear"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Your status is set to “{{.EmojiName}} {{.StatusMessage}}”. You can change your status from the status popover in the channel sidebar header."
   },
   {
     "id": "api.command_dnd.desc",
@@ -1205,6 +1241,14 @@
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
@@ -1835,6 +1879,14 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "This feature is in development, and is only available using a feature flag."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2391,6 +2443,10 @@
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },
@@ -2671,6 +2727,10 @@
     "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
   },
   {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
     "id": "api.templates.email_info1",
     "translation": "Any questions at all, mail us any time: "
   },
@@ -2699,8 +2759,20 @@
     "translation": "Join Team"
   },
   {
+    "id": "api.templates.invite_body.extra_info",
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
+  },
+  {
+    "id": "api.templates.invite_body.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+  },
+  {
     "id": "api.templates.invite_body.title",
     "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -2903,6 +2975,14 @@
     "translation": "Go To Post"
   },
   {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Email us any time at "
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Questions?"
+  },
+  {
     "id": "api.templates.remove_expired_license.body.renew_button",
     "translation": "Renew License Now"
   },
@@ -2917,6 +2997,10 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reset Password"
+  },
+  {
+    "id": "api.templates.reset_body.info1",
+    "translation": "To change your password, click \"Reset Password\" below."
   },
   {
     "id": "api.templates.reset_body.info2",
@@ -2955,12 +3039,20 @@
     "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
   },
   {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
+  },
+  {
     "id": "api.templates.upgrade_request_subject",
     "translation": "Mattermost user request upgrade of workspace"
   },
   {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "New users are unable to join your workspace"
   },
   {
     "id": "api.templates.user_access_token_body.info",
@@ -2992,11 +3084,27 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Verify your email address"
   },
   {
     "id": "api.templates.verify_subject",
@@ -3031,8 +3139,16 @@
     "translation": "Mattermost Contact Us request"
   },
   {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Download"
+  },
+  {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Download the desktop and mobile apps"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3040,19 +3156,27 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
+    "id": "api.templates.welcome_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Welcome to the team"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -5107,6 +5231,10 @@
     "translation": "Unable to get direct posts."
   },
   {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the files batch for indexing."
+  },
+  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -6027,6 +6155,10 @@
     "translation": "Failed to purge channel indexes."
   },
   {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Failed to purge file indexes."
+  },
+  {
     "id": "bleveengine.purge_post_index.error",
     "translation": "Failed to purge post indexes."
   },
@@ -6127,16 +6259,8 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
+    "id": "ent.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6389,6 +6513,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6895,32 +7023,20 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token."
+    "id": "mfa.activate.app_error",
+    "translation": "Unable to update MFA active status for the user."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Invalid MFA token."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
+    "id": "mfa.deactivate.app_error",
     "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generating QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -8397,6 +8513,10 @@
   {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "Command does not exist."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Searching files has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.disabled",

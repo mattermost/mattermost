@@ -391,12 +391,12 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 	assert.Nil(t, nErr, "newer preference should not have been deleted")
 
 	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 30,
 			},
-			ChannelIds: []string{channel.Id},
+			ChannelIDs: []string{channel.Id},
 		})
 		require.Nil(t, err)
 		post, err := ss.Post().Save(&model.Post{
@@ -427,12 +427,12 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 		require.NotNil(t, err, "preference should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 20,
 			},
-			TeamIds: []string{team.Id},
+			TeamIDs: []string{team.Id},
 		})
 		require.Nil(t, err)
 
@@ -446,7 +446,7 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
-		err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+		err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 		require.Nil(t, err)
 		_, err = ss.Preference().PermanentDeleteFlagsBatchForRetentionPolicies(nowMillis, limit)
 		require.Nil(t, err)
@@ -454,7 +454,7 @@ func testPreferencePermanentDeleteFlagsBatch(t *testing.T, ss store.Store) {
 		require.NotNil(t, err, "preference should have been deleted by team policy")
 
 		// Delete team policy and post
-		err = ss.RetentionPolicy().Delete(teamPolicy.Id)
+		err = ss.RetentionPolicy().Delete(teamPolicy.ID)
 		require.Nil(t, err)
 		numDeleted, err := ss.Post().PermanentDeleteBatch(post.CreateAt+1, 1)
 		require.Nil(t, err)

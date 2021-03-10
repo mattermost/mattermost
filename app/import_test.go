@@ -256,10 +256,10 @@ func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileIn
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
-	postId := files[0].PostId
-	require.NotNil(t, postId)
+	postID := files[0].PostId
+	require.NotNil(t, postID)
 
-	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
+	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postID})
 	require.NoError(t, err)
 
 	require.Len(t, posts, 1)

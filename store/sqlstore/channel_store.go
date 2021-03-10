@@ -16,9 +16,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -2672,6 +2672,16 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 
 	if opts.IsPaginated() && !countQuery {
 		query = query.Offset(uint64(*opts.Page * *opts.PerPage))
+	}
+
+	if opts.PolicyID != "" {
+		query = query.
+			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where("RetentionPoliciesChannels.PolicyId = ?", opts.PolicyID)
+	} else if opts.ExcludePolicyConstrained {
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	}
 
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")

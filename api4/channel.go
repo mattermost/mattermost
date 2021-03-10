@@ -11,8 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) InitChannel() {
@@ -1012,6 +1012,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
@@ -1021,17 +1026,18 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:    props.NotAssociatedToGroup,
-		ExcludeDefaultChannels:  props.ExcludeDefaultChannels,
-		TeamIds:                 props.TeamIds,
-		GroupConstrained:        props.GroupConstrained,
-		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
-		Public:                  props.Public,
-		Private:                 props.Private,
-		IncludeDeleted:          includeDeleted,
-		Deleted:                 props.Deleted,
-		Page:                    props.Page,
-		PerPage:                 props.PerPage,
+		NotAssociatedToGroup:     props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
+		TeamIds:                  props.TeamIds,
+		GroupConstrained:         props.GroupConstrained,
+		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
+		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		Public:                   props.Public,
+		Private:                  props.Private,
+		IncludeDeleted:           includeDeleted,
+		Deleted:                  props.Deleted,
+		Page:                     props.Page,
+		PerPage:                  props.PerPage,
 	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)

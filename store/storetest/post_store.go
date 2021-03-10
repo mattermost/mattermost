@@ -1579,39 +1579,39 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o2a)
 	require.NoError(t, err)
 
-	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt)
+	rPostId1, err := ss.Post().GetPostIdBeforeTime(channelId, o0a.CreateAt, false)
 	require.Equal(t, rPostId1, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt)
+	rPostId1, err = ss.Post().GetPostIdAfterTime(channelId, o0b.CreateAt, false)
 	require.Equal(t, rPostId1, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt)
+	rPost1, err := ss.Post().GetPostAfterTime(channelId, o0b.CreateAt, false)
 	require.Equal(t, rPost1.Id, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt)
+	rPostId2, err := ss.Post().GetPostIdBeforeTime(channelId, o0.CreateAt, false)
 	require.Empty(t, rPostId2, "should return no post")
 	require.NoError(t, err)
 
-	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt)
+	rPostId2, err = ss.Post().GetPostIdAfterTime(channelId, o0.CreateAt, false)
 	require.Equal(t, rPostId2, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt)
+	rPost2, err := ss.Post().GetPostAfterTime(channelId, o0.CreateAt, false)
 	require.Equal(t, rPost2.Id, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt)
+	rPostId3, err := ss.Post().GetPostIdBeforeTime(channelId, o2a.CreateAt, false)
 	require.Equal(t, rPostId3, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt)
+	rPostId3, err = ss.Post().GetPostIdAfterTime(channelId, o2a.CreateAt, false)
 	require.Empty(t, rPostId3, "should return no post")
 	require.NoError(t, err)
 
-	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt)
+	rPost3, err := ss.Post().GetPostAfterTime(channelId, o2a.CreateAt, false)
 	require.Empty(t, rPost3, "should return no post")
 	require.NoError(t, err)
 }
@@ -2592,12 +2592,12 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "Should have found post 3 after purge")
 
 	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 30,
 			},
-			ChannelIds: []string{channel.Id},
+			ChannelIDs: []string{channel.Id},
 		})
 		require.Nil(t, err)
 		post := &model.Post{
@@ -2621,12 +2621,12 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NotNil(t, err, "post should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: 20,
 			},
-			TeamIds: []string{team.Id},
+			TeamIDs: []string{team.Id},
 		})
 		require.Nil(t, err)
 		post.Id = ""
@@ -2640,7 +2640,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
-		err = ss.RetentionPolicy().Delete(channelPolicy.Id)
+		err = ss.RetentionPolicy().Delete(channelPolicy.ID)
 		require.Nil(t, err)
 		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
 		require.Nil(t, err)

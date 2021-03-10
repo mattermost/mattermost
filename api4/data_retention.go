@@ -16,15 +16,17 @@ func (api *API) InitDataRetention() {
 	api.BaseRoutes.DataRetention.Handle("/policies", api.ApiSessionRequired(getPolicies)).Methods("GET")
 	api.BaseRoutes.DataRetention.Handle("/policies_count", api.ApiSessionRequired(getPoliciesCount)).Methods("GET")
 	api.BaseRoutes.DataRetention.Handle("/policies", api.ApiSessionRequired(createPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(getPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(patchPolicy)).Methods("PATCH")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(deletePolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/teams", api.ApiSessionRequired(getTeamsForPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/teams", api.ApiSessionRequired(addTeamsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/teams", api.ApiSessionRequired(removeTeamsFromPolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/channels", api.ApiSessionRequired(getChannelsForPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/channels", api.ApiSessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getPolicy)).Methods("GET")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.ApiSessionRequired(patchPolicy)).Methods("PATCH")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deletePolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(getTeamsForPolicy)).Methods("GET")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(addTeamsToPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequired(removeTeamsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/teams/search", api.ApiSessionRequired(searchTeamsInPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForPolicy)).Methods("GET")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels/search", api.ApiSessionRequired(searchChannelsInPolicy)).Methods("POST")
 }
 
 func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -40,6 +42,11 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	limit := c.Params.PerPage
 	offset := c.Params.Page * limit
 
@@ -48,15 +55,16 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	policyList := &model.RetentionPolicyWithTeamAndChannelCountsList{Policies: policies}
-	if c.Params.IncludeTotalCount {
-		policyList.TotalCount = model.NewInt(len(policies))
-	}
 
-	w.Write(policyList.ToJson())
+	w.Write(policies.ToJson())
 }
 
 func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	count, err := c.App.GetRetentionPoliciesCount()
 	if err != nil {
 		c.Err = err
@@ -68,6 +76,11 @@ func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policy, err := c.App.GetRetentionPolicy(c.Params.PolicyId)
 	if err != nil {
@@ -86,6 +99,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy", policy)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -109,11 +123,12 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("policy")
 	}
 	c.RequirePolicyId()
-	patch.Id = c.Params.PolicyId
+	patch.ID = c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("patch", patch)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -150,6 +165,11 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
@@ -161,8 +181,37 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(teams)
+	b, jsonErr := json.Marshal(teams)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getTeamsForPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Write(b)
+}
+
+func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	props := model.TeamSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("team_search")
+		return
+	}
+	props.PolicyID = model.NewString(c.Params.PolicyId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	teams, _, err := c.App.SearchAllTeams(props)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	c.App.SanitizeTeams(*c.App.Session(), teams)
+
+	payload := []byte(model.TeamListToJson(teams))
+	w.Write(payload)
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -206,6 +255,7 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("team_ids", teamIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -222,6 +272,11 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
@@ -233,8 +288,37 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(channels)
+	b, jsonErr := json.Marshal(channels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getChannelsForPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Write(b)
+}
+
+func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	opts := model.ChannelSearchOpts{PolicyID: c.Params.PolicyId}
+
+	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	payload := []byte(channels.ToJson())
+	w.Write(payload)
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -250,6 +334,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", channelIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -278,6 +363,7 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", channelIDs)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
