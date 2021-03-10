@@ -1827,3 +1827,26 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
 	return nil, warning
 }
+
+func runDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		a.srv.dndnTaskMut.Lock()
+		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		a.srv.dndnTaskMut.Unlock()
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset dnd status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			a.srv.dndnTaskMut.Lock()
+			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.srv.dndnTaskMut.Unlock()
+		} else {
+			a.srv.dndnTaskMut.Lock()
+			if a.srv.dndTask != nil {
+				a.srv.dndTask.Cancel()
+				a.srv.dndTask = nil
+			}
+			a.srv.dndnTaskMut.Unlock()
+		}
+	})
+}
