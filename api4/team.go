@@ -1283,6 +1283,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	if guestsInvite == nil {
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	for i, email := range guestsInvite.Emails {
 		guestsInvite.Emails[i] = strings.ToLower(email)
 	}
