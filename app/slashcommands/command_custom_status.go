@@ -45,6 +45,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 		return nil
 	}
 
+	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
 		if err := a.RemoveCustomStatus(args.UserId); err != nil {
 			mlog.Error(err.Error())
