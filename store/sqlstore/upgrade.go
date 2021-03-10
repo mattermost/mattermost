@@ -23,6 +23,7 @@ const (
 	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
+	VERSION_5_29_1           = "5.29.1"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
@@ -194,6 +195,7 @@ func upgradeDatabase(sqlSupplier *SqlSupplier, currentModelVersionString string)
 	upgradeDatabaseToVersion528(sqlSupplier)
 	upgradeDatabaseToVersion5281(sqlSupplier)
 	upgradeDatabaseToVersion529(sqlSupplier)
+	upgradeDatabaseToVersion5291(sqlSupplier)
 	upgradeDatabaseToVersion530(sqlSupplier)
 	upgradeDatabaseToVersion531(sqlSupplier)
 
@@ -977,13 +979,19 @@ func hasMissingMigrationsVersion529(sqlSupplier *SqlSupplier) bool {
 	return false
 }
 
+func upgradeDatabaseToVersion5291(sqlStore *SqlSupplier) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_29_1) {
+		saveSchemaVersion(sqlStore, VERSION_5_29_1)
+	}
+}
+
 func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
 	if hasMissingMigrationsVersion530(sqlSupplier) {
 		mlog.Info("Applying migrations for version 5.30")
 		sqlSupplier.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 		sqlSupplier.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
 	}
-	if shouldPerformUpgrade(sqlSupplier, VERSION_5_29_0, VERSION_5_30_0) {
+	if shouldPerformUpgrade(sqlSupplier, VERSION_5_29_1, VERSION_5_30_0) {
 		saveSchemaVersion(sqlSupplier, VERSION_5_30_0)
 	}
 }
