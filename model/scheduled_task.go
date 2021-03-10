@@ -46,18 +46,19 @@ func createTask(name string, function TaskFunc, interval time.Duration, recurrin
 	go func() {
 		defer close(task.cancelled)
 
-		var firstC <-chan time.Time
+		var firstTick <-chan time.Time
 		var ticker *time.Ticker
 
 		if task.fromNextIntervalTime {
-			first := time.Now().Truncate(interval)
-			if first.Before(time.Now()) {
+			currTime := time.Now()
+			first := currTime.Truncate(interval)
+			if first.Before(currTime) {
 				first = first.Add(interval)
 			}
-			firstC = time.After(time.Until(first))
+			firstTick = time.After(time.Until(first))
 			ticker = &time.Ticker{C: nil}
 		} else {
-			firstC = nil
+			firstTick = nil
 			ticker = time.NewTicker(interval)
 		}
 		defer func() {
@@ -66,7 +67,7 @@ func createTask(name string, function TaskFunc, interval time.Duration, recurrin
 
 		for {
 			select {
-			case <-firstC:
+			case <-firstTick:
 				ticker = time.NewTicker(interval)
 				function()
 			case <-ticker.C:

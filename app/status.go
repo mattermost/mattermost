@@ -401,7 +401,7 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 func (a *App) UpdateDNDStatusOfUsers() {
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
-		mlog.Error("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
+		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 	}
 	for i := range statuses {
 		a.AddStatusCache(statuses[i])

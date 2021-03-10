@@ -365,9 +365,6 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	// statusMock := storemocks.StatusStore{}
-	// statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
-
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
 

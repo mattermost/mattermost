@@ -102,8 +102,8 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	return statuses, nil
 }
 
-// MySql doesn't has support for RETURNING clause or any euivalent so use transaction
-func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]string, error) {
+// MySQL doesn't have support for RETURNING clause, so we use a transaction to get the updated rows.
+func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
 	currUnixTime := time.Now().UTC().Unix()
 	selectQuery, selectParams, _ := s.getQueryBuilder().
 		Select("UserId").
@@ -138,7 +138,18 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]string, er
 	if _, err := t.Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update statuses")
 	}
-	return selectedUsers, nil
+
+	var updatedStatuses []*model.Status
+	selectQuery, selectParams, _ = s.getQueryBuilder().
+		Select("*").
+		Where("UserId IN ?", selectedUsers).
+		From("Status").
+		ToSql()
+	_, err = t.Select(&updatedStatuses, selectQuery, selectParams...)
+	if err != nil {
+		return nil, errors.Wrap(err, "getExpiredDNDStatusesT: failed to get updated dnd statuses")
+	}
+	return updatedStatuses, nil
 }
 
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
@@ -148,14 +159,14 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
-		userIds, err := s.updateExpiredStatuses(transaction)
+		statuses, err := s.updateExpiredStatuses(transaction)
 		if err != nil {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 		}
 		if err := transaction.Commit(); err != nil {
 			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 		}
-		return s.GetByIds(userIds)
+		return statuses, nil
 	}
 
 	queryString, args, _ := s.getQueryBuilder().
@@ -171,7 +182,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		Set("PrevStatus", model.STATUS_DND).
 		Set("DNDEndTimeUnix", 0).
 		Set("Manual", false).
-		Suffix("RETURNING userId, Status").
+		Suffix("RETURNING *").
 		ToSql()
 
 	rows, err := s.GetMaster().Query(queryString, args...)

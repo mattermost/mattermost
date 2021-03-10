@@ -194,7 +194,8 @@ type Server struct {
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
 
-	dndTask *model.ScheduledTask
+	dndnTaskMut sync.Mutex
+	dndTask     *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {

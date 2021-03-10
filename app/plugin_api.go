@@ -311,12 +311,12 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	return api.app.GetStatus(userID)
 }
 
-func (api *PluginAPI) UpdateUserStatusWithDNDTimeout(userId, status, endtime string) (*model.Status, *model.AppError) {
+func (api *PluginAPI) UpdateUserStatusWithDNDTimeout(userID, status, endTime string) (*model.Status, *model.AppError) {
 	if status == model.STATUS_DND {
-		api.app.SetStatusDoNotDisturbTimed(userId, endtime)
-		return api.app.GetStatus(userId)
+		api.app.SetStatusDoNotDisturbTimed(userID, endTime)
+		return api.app.GetStatus(userID)
 	}
-	return api.UpdateUserStatus(userId, status)
+	return api.UpdateUserStatus(userID, status)
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {

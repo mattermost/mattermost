@@ -98,20 +98,7 @@ func (a *App) InitServer() {
 			})
 		}
 		a.srv.RunJobs()
-		if a.IsLeader() {
-			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-		}
-		a.srv.AddClusterLeaderChangedListener(func() {
-			mlog.Info("Cluster leader changed. Determining if unset dnd status task should be running", mlog.Bool("isLeader", a.IsLeader()))
-			if a.IsLeader() {
-				a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-			} else {
-				if a.srv.dndTask != nil {
-					a.srv.dndTask.Cancel()
-					a.srv.dndTask = nil
-				}
-			}
-		})
+		a.runDNDStatusExpireJob()
 	})
 }
 
@@ -731,4 +718,27 @@ func (a *App) dbHealthCheckKey() string {
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+}
+
+func (a *App) runDNDStatusExpireJob() {
+	if a.IsLeader() {
+		a.srv.dndnTaskMut.Lock()
+		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		a.srv.dndnTaskMut.Unlock()
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset dnd status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			a.srv.dndnTaskMut.Lock()
+			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.srv.dndnTaskMut.Unlock()
+		} else {
+			a.srv.dndnTaskMut.Lock()
+			if a.srv.dndTask != nil {
+				a.srv.dndTask.Cancel()
+				a.srv.dndTask = nil
+			}
+			a.srv.dndnTaskMut.Unlock()
+		}
+	})
 }
