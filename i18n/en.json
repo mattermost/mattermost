@@ -2771,16 +2771,16 @@
     "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
   },
   {
-    "id": "api.templates.invite_body_footer.title",
-    "translation": "What is Mattermost?"
-  },
-  {
     "id": "api.templates.invite_body_footer.info",
     "translation": "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Learn more"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "What is Mattermost?"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
