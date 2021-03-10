@@ -104,12 +104,28 @@ var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
+var PERMISSION_READ_CLOUD_SUBSCRIPTION *Permission
+var PERMISSION_READ_CLOUD_INVOICES *Permission
+var PERMISSION_READ_CLOUD_CUSTOMER *Permission
+var PERMISSION_WRITE_CLOUD_CUSTOMER *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
 
 var PERMISSION_SYSCONSOLE_READ_BILLING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_BILLING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_BILLING_SUBSCRIPTION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_BILLING_BILLING_HISTORY *Permission
+var PERMISSION_SYSCONSOLE_WRITE_BILLING_BILLING_HISTORY *Permission
+
+var PERMISSION_SYSCONSOLE_READ_BILLING_COMPANY_INFORMATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_BILLING_COMPANY_INFORMATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_BILLING_PAYMENT_INFORMATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION *Permission
 
 var PERMISSION_SYSCONSOLE_READ_REPORTING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_REPORTING *Permission
@@ -563,6 +579,34 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_READ_CLOUD_SUBSCRIPTION = &Permission{
+		"read_cloud_subscription",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_READ_CLOUD_INVOICES = &Permission{
+		"read_cloud_invoices",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_READ_CLOUD_CUSTOMER = &Permission{
+		"create_post_bleve_indexes_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_WRITE_CLOUD_CUSTOMER = &Permission{
+		"write_cloud_customer",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT = &Permission{
 		"download_compliance_export_result",
 		"authentication.permissions.download_compliance_export_result.name",
@@ -740,6 +784,54 @@ func initializePermissions() {
 	}
 	PERMISSION_SYSCONSOLE_WRITE_BILLING = &Permission{
 		"sysconsole_write_billing",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION = &Permission{
+		"sysconsole_read_billing_subscription",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_BILLING_SUBSCRIPTION = &Permission{
+		"sysconsole_write_billing_subscription",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_BILLING_BILLING_HISTORY = &Permission{
+		"sysconsole_read_billing_billing_history",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_BILLING_BILLING_HISTORY = &Permission{
+		"sysconsole_write_billing_billing_history",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_BILLING_COMPANY_INFORMATION = &Permission{
+		"sysconsole_read_billing_company_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_BILLING_COMPANY_INFORMATION = &Permission{
+		"sysconsole_write_billing_company_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_BILLING_PAYMENT_INFORMATION = &Permission{
+		"sysconsole_read_billing_payment_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION = &Permission{
+		"sysconsole_write_billing_payment_information",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -965,7 +1057,10 @@ func initializePermissions() {
 
 	SysconsoleReadPermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_READ_ABOUT,
-		PERMISSION_SYSCONSOLE_READ_BILLING,
+		PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION,
+		PERMISSION_SYSCONSOLE_READ_BILLING_BILLING_HISTORY,
+		PERMISSION_SYSCONSOLE_READ_BILLING_COMPANY_INFORMATION,
+		PERMISSION_SYSCONSOLE_READ_BILLING_PAYMENT_INFORMATION,
 		PERMISSION_SYSCONSOLE_READ_REPORTING,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS,
@@ -986,7 +1081,10 @@ func initializePermissions() {
 
 	SysconsoleWritePermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
-		PERMISSION_SYSCONSOLE_WRITE_BILLING,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING_SUBSCRIPTION,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING_BILLING_HISTORY,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING_COMPANY_INFORMATION,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION,
 		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS,
@@ -1104,6 +1202,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_BILLING,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING,
 	}
 
 	AllPermissions = []*Permission{}

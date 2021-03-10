@@ -49,8 +49,8 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_CLOUD_SUBSCRIPTION) {
+		c.SetPermissionError(model.PERMISSION_READ_CLOUD_SUBSCRIPTION)
 		return
 	}
 
@@ -105,8 +105,8 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_CLOUD_SUBSCRIPTION) {
+		c.SetPermissionError(model.PERMISSION_READ_CLOUD_SUBSCRIPTION)
 		return
 	}
 
@@ -131,8 +131,8 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_CLOUD_CUSTOMER) {
+		c.SetPermissionError(model.PERMISSION_READ_CLOUD_CUSTOMER)
 		return
 	}
 
@@ -157,8 +157,8 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_CLOUD_CUSTOMER) {
+		c.SetPermissionError(model.PERMISSION_WRITE_CLOUD_CUSTOMER)
 		return
 	}
 
@@ -195,8 +195,8 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_CLOUD_CUSTOMER) {
+		c.SetPermissionError(model.PERMISSION_WRITE_CLOUD_CUSTOMER)
 		return
 	}
 
@@ -233,8 +233,8 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_CLOUD_CUSTOMER) {
+		c.SetPermissionError(model.PERMISSION_WRITE_CLOUD_CUSTOMER)
 		return
 	}
 
@@ -264,8 +264,8 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_CLOUD_CUSTOMER) {
+		c.SetPermissionError(model.PERMISSION_WRITE_CLOUD_CUSTOMER)
 		return
 	}
 
@@ -301,8 +301,8 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_CLOUD_INVOICES) {
+		c.SetPermissionError(model.PERMISSION_READ_CLOUD_INVOICES)
 		return
 	}
 
@@ -332,8 +332,8 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_CLOUD_INVOICES) {
+		c.SetPermissionError(model.PERMISSION_READ_CLOUD_INVOICES)
 		return
 	}
 

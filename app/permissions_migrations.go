@@ -591,6 +591,72 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	return transformations, nil
 }
 
+func (a *App) getAddBillingSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsBillingRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION.Id,
+		model.PERMISSION_SYSCONSOLE_READ_BILLING_BILLING_HISTORY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_BILLING_COMPANY_INFORMATION.Id,
+		model.PERMISSION_SYSCONSOLE_READ_BILLING_PAYMENT_INFORMATION.Id,
+	}
+	permissionsBillingWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_BILLING_SUBSCRIPTION.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_BILLING_BILLING_HISTORY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_BILLING_COMPANY_INFORMATION.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_BILLING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING.Id),
+		Add:    permissionsBillingRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_BILLING.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_BILLING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_BILLING.Id),
+		Add:    permissionsBillingWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_BILLING.Id},
+	})
+
+	// Give the ancillary permissions READ_CLOUD_SUBSCRIPTION anyone with READ_BILLING_SUBSCRIPTION
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION.Id),
+		Add: []string{model.PERMISSION_READ_CLOUD_SUBSCRIPTION.Id},
+	})
+
+	// Give the ancillary permissions READ_CLOUD_CUSTOMER to anyone with READ_BILLING_SUBSCRIPTION or READ_BILLING_COMPANY_INFORMATION or
+	// READ_BILLING_PAYMENT_INFORMATION
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING_SUBSCRIPTION.Id),
+			permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING_COMPANY_INFORMATION.Id),
+			permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING_PAYMENT_INFORMATION.Id),
+		),
+		Add: []string{model.PERMISSION_READ_CLOUD_CUSTOMER.Id},
+	})
+
+	// Give the ancillary permissions READ_CLOUD_INVOICES to anyone with READ_BILLING_BILLING_HISTORY
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_BILLING_BILLING_HISTORY.Id),
+		Add: []string{model.PERMISSION_READ_CLOUD_INVOICES.Id},
+	})
+
+	// Give the ancillary permissions WRITE_CLOUD_CUSTOMER to anyone with WRITE_BILLING_COMPANY_INFORMATION or
+	// WRITE_BILLING_PAYMENT_INFORMATION
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_BILLING_COMPANY_INFORMATION.Id),
+			permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_BILLING_PAYMENT_INFORMATION.Id),
+		),
+		Add: []string{model.PERMISSION_READ_CLOUD_CUSTOMER.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -616,6 +682,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_BILLING_SUBSECTION_PERMISSIONS, Migration: a.getAddBillingSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()
