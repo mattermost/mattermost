@@ -44,12 +44,12 @@ type channelMember struct {
 	LastViewedAt     int64
 	MsgCount         int64
 	MentionCount     int64
-	MentionCountRoot int64
 	NotifyProps      model.StringMap
 	LastUpdateAt     int64
 	SchemeUser       sql.NullBool
 	SchemeAdmin      sql.NullBool
 	SchemeGuest      sql.NullBool
+	MentionCountRoot int64
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
