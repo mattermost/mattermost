@@ -260,7 +260,7 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
-		// originalValue := *cfg.ServiceSettings.AllowCorsFrom
+		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
 		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
@@ -273,10 +273,9 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckNoError(t, resp)
 
 		// ensure the config setting was not updated
-		cfg, resp = th.Client.GetConfig()
+		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
-		assert.Nil(t, cfg.ServiceSettings.AllowCorsFrom)
-		// assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
+		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
 	})
 
 	t.Run("config value is writeable by specific system console permission", func(t *testing.T) {
