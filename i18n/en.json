@@ -2760,23 +2760,31 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Join Team"
+    "translation": "Join now"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Start collaborating with your team on Mattermost"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "You've been invited"
+    "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Learn more"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "What is Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "You were invited as a guest to collaborate with the team"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -3003,16 +3011,16 @@
     "translation": "Reset Password"
   },
   {
-    "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "id": "api.templates.reset_body.info",
+    "translation": "The password reset link expires in 24 hours."
   },
   {
-    "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Click the button below to reset your password. If you didn’t request this, you can safely ignore this email."
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "You requested a password reset"
+    "translation": "Reset Your Password"
   },
   {
     "id": "api.templates.reset_subject",
