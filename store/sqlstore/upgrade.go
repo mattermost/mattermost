@@ -969,6 +969,8 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }

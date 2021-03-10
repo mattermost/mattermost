@@ -1343,15 +1343,25 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		require.Nil(t, err)
 		th.CreatePost(c2)
 
+		th.App.CreatePost(&model.Post{
+			UserId:    u2.Id,
+			ChannelId: c2.Id,
+			RootId:    p4.Id,
+			CreateAt:  model.GetMillis() + 2000,
+			Message:   "@" + u1.Username,
+		}, c2, false, true)
+
 		response, err := th.App.MarkChannelAsUnreadFromPost(p4.Id, u1.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), response.MsgCount)
-		assert.Equal(t, int64(1), response.MentionCount)
+		assert.Equal(t, int64(2), response.MentionCount)
+		assert.Equal(t, int64(1), response.MentionCountRoot)
 
 		unread, err := th.App.GetChannelUnread(c2.Id, u1.Id)
 		require.Nil(t, err)
-		assert.Equal(t, int64(1), unread.MsgCount)
-		assert.Equal(t, int64(1), unread.MentionCount)
+		assert.Equal(t, int64(2), unread.MsgCount)
+		assert.Equal(t, int64(2), unread.MentionCount)
+		assert.Equal(t, int64(1), unread.MentionCountRoot)
 	})
 
 	t.Run("Unread on a DM channel", func(t *testing.T) {
@@ -1361,15 +1371,20 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		th.CreatePost(dc)
 		th.CreatePost(dc)
 
+		_, err := th.App.CreatePost(&model.Post{ChannelId: dc.Id, UserId: th.BasicUser.Id, Message: "testReply", RootId: dm1.Id}, dc, false, false)
+		assert.Nil(t, err)
+
 		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u2.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), response.MsgCount)
-		assert.Equal(t, int64(3), response.MentionCount)
+		assert.Equal(t, int64(4), response.MentionCount)
+		assert.Equal(t, int64(3), response.MentionCountRoot)
 
 		unread, err := th.App.GetChannelUnread(dc.Id, u2.Id)
 		require.Nil(t, err)
-		assert.Equal(t, int64(3), unread.MsgCount)
-		assert.Equal(t, int64(3), unread.MentionCount)
+		assert.Equal(t, int64(4), unread.MsgCount)
+		assert.Equal(t, int64(4), unread.MentionCount)
+		assert.Equal(t, int64(3), unread.MentionCountRoot)
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {

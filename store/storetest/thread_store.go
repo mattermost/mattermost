@@ -242,7 +242,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {
@@ -262,7 +262,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true)
+		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true, false)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {
@@ -316,7 +316,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {
