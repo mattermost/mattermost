@@ -206,7 +206,10 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) *model.AppError {
+	if disableWelcomeEmail {
+		return nil
+	}
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -251,6 +254,43 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("sendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// SendCloudWelcomeEmail sends the cloud version of the welcome email
+func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_welcome_email.subject")
+
+	workSpacePath := fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
+
+	bodyPage := es.newEmailTemplate("cloud_welcome_email", locale)
+	bodyPage.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["SubTitle"] = T("api.templates.cloud_welcome_email.subtitle")
+	bodyPage.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
+	bodyPage.Props["Info"] = T("api.templates.cloud_welcome_email.info")
+	bodyPage.Props["Info2"] = T("api.templates.cloud_welcome_email.info2")
+	bodyPage.Props["WorkSpacePath"] = workSpacePath
+	bodyPage.Props["DNS"] = dns
+	bodyPage.Props["InviteInfo"] = T("api.templates.cloud_welcome_email.invite_info")
+	bodyPage.Props["InviteSubInfo"] = T("api.templates.cloud_welcome_email.invite_sub_info", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", workSpacePath, teamInviteID)
+	bodyPage.Props["AddAppsInfo"] = T("api.templates.cloud_welcome_email.add_apps_info")
+	bodyPage.Props["AddAppsSubInfo"] = T("api.templates.cloud_welcome_email.add_apps_sub_info")
+	bodyPage.Props["AppMarketPlace"] = T("api.templates.cloud_welcome_email.app_market_place")
+	bodyPage.Props["AppMarketPlaceLink"] = "https://integrations.mattermost.com/"
+	bodyPage.Props["DownloadMMInfo"] = T("api.templates.cloud_welcome_email.download_mm_info")
+	bodyPage.Props["SignInSubInfo"] = T("api.templates.cloud_welcome_email.signin_sub_info")
+	bodyPage.Props["MMApps"] = T("api.templates.cloud_welcome_email.mm_apps")
+	bodyPage.Props["SignInSubInfo2"] = T("api.templates.cloud_welcome_email.signin_sub_info2")
+	bodyPage.Props["DownloadMMAppsLink"] = "https://mattermost.com/download/"
+	bodyPage.Props["Button"] = T("api.templates.cloud_welcome_email.button")
+	bodyPage.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
+
+	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -308,10 +348,12 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	bodyPage := es.newEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Props["Info1"] = i18n.TranslateAsHTML(T, "api.templates.reset_body.info1", nil)
-	bodyPage.Props["Info2"] = T("api.templates.reset_body.info2")
-	bodyPage.Props["ResetUrl"] = link
+	bodyPage.Props["SubTitle"] = T("api.templates.reset_body.subTitle")
+	bodyPage.Props["Info"] = T("api.templates.reset_body.info")
+	bodyPage.Props["ButtonURL"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
+	bodyPage.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	bodyPage.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -371,13 +413,13 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.info",
-				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName})
-			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
+			bodyPage.Props["SenderName"] = senderName
+			bodyPage.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+			bodyPage.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+			bodyPage.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
 			token := model.NewToken(
 				TokenTypeTeamInvitation,
@@ -394,7 +436,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			bodyPage.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if err := es.sendMail(invite, subject, bodyPage.Render()); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
@@ -430,19 +472,17 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
-			bodyPage.HTML["Info"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body_guest.info",
-				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
+			bodyPage.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
-			bodyPage.Props["SenderId"] = senderUserId
 			bodyPage.Props["Message"] = ""
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.HTML["ExtraInfo"] = i18n.TranslateAsHTML(i18n.T, "api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName})
-			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
+			bodyPage.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+			bodyPage.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+			bodyPage.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
 			channelIDs := []string{}
 			for _, channel := range channels {
@@ -469,7 +509,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			bodyPage.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !*es.srv.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", bodyPage.Props["Link"].(string)))
