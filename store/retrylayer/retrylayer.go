@@ -6590,26 +6590,6 @@ func (s *RetryLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
-
-	tries := 0
-	for {
-		result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
 func (s *RetryLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
 
 	tries := 0

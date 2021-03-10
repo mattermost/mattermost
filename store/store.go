@@ -86,7 +86,6 @@ type RetentionPolicyStore interface {
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
-	RemoveOrphanedRows(limit int) (int, error)
 }
 
 type TeamStore interface {

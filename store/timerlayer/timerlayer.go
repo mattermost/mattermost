@@ -5509,22 +5509,6 @@ func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
-	start := timemodule.Now()
-
-	result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveOrphanedRows", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
 	start := timemodule.Now()
 
