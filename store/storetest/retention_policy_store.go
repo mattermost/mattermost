@@ -25,7 +25,6 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetTeams", func(t *testing.T) { testRetentionPolicyStoreGetTeams(t, ss, s) })
 	t.Run("AddTeams", func(t *testing.T) { testRetentionPolicyStoreAddTeams(t, ss, s) })
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
-	t.Run("DeleteOrphanedRows", func(t *testing.T) { testRetentionPolicyStoreDeleteOrphanedRows(t, ss, s) })
 }
 
 func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, policyID string) *model.RetentionPolicyWithTeamAndChannelIDs {
@@ -556,22 +555,4 @@ func testRetentionPolicyStoreRemoveTeams(t *testing.T, ss store.Store, s SqlStor
 		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
 	cleanupRetentionPolicyTest(s)
-}
-
-func testRetentionPolicyStoreDeleteOrphanedRows(t *testing.T, ss store.Store, s SqlStore) {
-	teamID := createTeamsForRetentionPolicy(t, ss, 1)[0]
-	channelID := createChannelsForRetentionPolicy(t, ss, teamID, 1)[0]
-	policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1",
-		[]string{teamID}, []string{channelID})
-
-	err := ss.Channel().PermanentDelete(channelID)
-	require.Nil(t, err)
-	err = ss.Team().PermanentDelete(teamID)
-	require.Nil(t, err)
-	_, err = ss.RetentionPolicy().DeleteOrphanedRows(1000)
-	require.Nil(t, err)
-
-	policy.ChannelIDs = make([]string, 0)
-	policy.TeamIDs = make([]string, 0)
-	checkRetentionPolicyLikeThisExists(t, ss, policy)
 }
