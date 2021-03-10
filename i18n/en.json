@@ -6364,7 +6364,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
+    "translation": "We encountered an error permanently deleting the batch of channel membership histories."
   },
   {
     "id": "ent.data_retention.file_infos_batch.internal_error",
@@ -6393,6 +6393,14 @@
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
+  },
+  {
+    "id": "ent.data_retention.threads_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of threads."
+  },
+  {
+    "id": "ent.data_retention.thread_memberships_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of thread memberships."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",

@@ -661,8 +661,6 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int
 
 func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
-	// This will delete a ThreadMembership if its corresponding Post has already been deleted by
-	// a retention policy.
 	// We need to join on Threads instead of Posts because the root post may already have been deleted.
 	const selectQuery = `
 		SELECT ThreadMemberships.PostId FROM ThreadMemberships

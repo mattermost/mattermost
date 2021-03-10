@@ -216,7 +216,6 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
-	// This will not delete a ChannelMemberHistory if the Channel to which it belonged has already been deleted.
 	const selectQuery = `
 		SELECT ChannelMemberHistory.ChannelId,
 		       ChannelMemberHistory.UserId,

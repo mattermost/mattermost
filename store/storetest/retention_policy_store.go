@@ -568,7 +568,7 @@ func testRetentionPolicyStoreRemoveOrphanedRows(t *testing.T, ss store.Store, s 
 	require.Nil(t, err)
 	err = ss.Team().PermanentDelete(teamID)
 	require.Nil(t, err)
-	_, err = ss.RetentionPolicy().RemoveOrphanedRows(1000)
+	_, err = ss.RetentionPolicy().DeleteOrphanedRows(1000)
 	require.Nil(t, err)
 
 	policy.ChannelIDs = make([]string, 0)

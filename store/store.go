@@ -86,7 +86,7 @@ type RetentionPolicyStore interface {
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
-	RemoveOrphanedRows(limit int) (int, error)
+	DeleteOrphanedRows(limit int) (int64, error)
 }
 
 type TeamStore interface {
@@ -554,8 +554,6 @@ type PreferenceStore interface {
 	DeleteCategory(userId string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userId string) error
-	PermanentDeleteFlagsBatch(endTime, limit int64) (int64, error)
-	PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 }
 
@@ -626,8 +624,6 @@ type ReactionStore interface {
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
-	PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
 }

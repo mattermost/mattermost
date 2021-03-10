@@ -5205,38 +5205,6 @@ func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userId string) error {
 	return err
 }
 
-func (s *TimerLayerPreferenceStore) PermanentDeleteFlagsBatch(endTime int64, limit int64) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.PreferenceStore.PermanentDeleteFlagsBatch(endTime, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.PermanentDeleteFlagsBatch", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies(now, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) error {
 	start := timemodule.Now()
 
@@ -5393,38 +5361,6 @@ func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool)
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPost", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatch", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ReactionStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, err
 }
@@ -5651,22 +5587,6 @@ func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveChannels", success, elapsed)
 	}
 	return err
-}
-
-func (s *TimerLayerRetentionPolicyStore) RemoveOrphanedRows(limit int) (int, error) {
-	start := timemodule.Now()
-
-	result, err := s.RetentionPolicyStore.RemoveOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveOrphanedRows", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {

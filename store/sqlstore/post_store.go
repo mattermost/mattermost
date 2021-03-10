@@ -1883,7 +1883,6 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 // in milliseconds.
 func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
-	// This will not delete a Post if the Channel to which it belonged has already been deleted.
 	const selectQuery = `
 		SELECT Posts.Id FROM Posts
 		INNER JOIN Channels ON Posts.ChannelId = Channels.Id

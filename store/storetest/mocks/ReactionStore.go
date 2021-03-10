@@ -118,48 +118,6 @@ func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*mode
 	return r0, r1
 }
 
-// PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	ret := _m.Called(endTime, limit)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(int64, int64) int64); ok {
-		r0 = rf(endTime, limit)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
-		r1 = rf(endTime, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PermanentDeleteBatchForRetentionPolicies provides a mock function with given fields: now, limit
-func (_m *ReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	ret := _m.Called(now, limit)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(int64, int64) int64); ok {
-		r0 = rf(now, limit)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
-		r1 = rf(now, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Save provides a mock function with given fields: reaction
 func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)

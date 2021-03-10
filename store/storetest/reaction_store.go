@@ -430,7 +430,10 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	_, err = ss.Reaction().PermanentDeleteBatch(2000, limit)
+	_, err = ss.Post().PermanentDeleteBatch(2000, limit)
+	require.Nil(t, err)
+
+	_, err = ss.Reaction().DeleteOrphanedRows(limit)
 	require.Nil(t, err)
 
 	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
@@ -440,84 +443,6 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
 	require.Nil(t, err)
 	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
-
-	t.Run("with data retention policies", func(t *testing.T) {
-		// clear all existing reactions for post
-		post := olderPost
-		_, err := ss.Reaction().PermanentDeleteBatch(10000, limit)
-		require.Nil(t, err)
-
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
-			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: 30,
-			},
-			ChannelIDs: []string{channel.Id},
-		})
-		require.Nil(t, err)
-
-		reaction := &model.Reaction{
-			UserId:    model.NewId(),
-			PostId:    post.Id,
-			EmojiName: "smile",
-		}
-		_, err = ss.Reaction().Save(reaction)
-		require.Nil(t, err)
-
-		_, err = ss.Reaction().PermanentDeleteBatch(2000, limit)
-		require.Nil(t, err)
-		returned, err := ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err)
-		require.Len(t, returned, 1, "global policy should have been ignored due to granular policy")
-
-		nowMillis := post.CreateAt + channelPolicy.PostDuration*24*60*60*1000 + 1
-		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
-		require.Nil(t, err)
-		returned, err = ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err)
-		require.Len(t, returned, 0, "reaction should have been deleted by channel policy")
-
-		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
-			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: 20,
-			},
-			TeamIDs: []string{team.Id},
-		})
-		require.Nil(t, err)
-
-		_, err = ss.Reaction().Save(reaction)
-		require.Nil(t, err)
-
-		nowMillis = post.CreateAt + teamPolicy.PostDuration*24*60*60*1000 + 1
-		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
-		require.Nil(t, err)
-		returned, err = ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err)
-		require.Len(t, returned, 1, "channel policy should have overridden team policy")
-
-		// Delete channel policy and re-run team policy
-		err = ss.RetentionPolicy().Delete(channelPolicy.ID)
-		require.Nil(t, err)
-		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
-		require.Nil(t, err)
-		returned, err = ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err)
-		require.Len(t, returned, 0, "reaction should have been deleted by team policy")
-
-		// Delete team policy and post
-		err = ss.RetentionPolicy().Delete(teamPolicy.ID)
-		require.Nil(t, err)
-		numDeleted, err := ss.Post().PermanentDeleteBatch(post.CreateAt+1, 1)
-		require.Nil(t, err)
-		require.Equal(t, int64(1), numDeleted)
-		_, err = ss.Reaction().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
-		require.Nil(t, err)
-		returned, err = ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err)
-		require.Len(t, returned, 0, "reaction should have been deleted because post no longer exists")
-	})
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
