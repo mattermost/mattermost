@@ -125,6 +125,27 @@ func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit i
 	return r0, r1
 }
 
+// GetChannelsCount provides a mock function with given fields: policyId
+func (_m *RetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
+	ret := _m.Called(policyId)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(policyId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(policyId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCount provides a mock function with given fields:
 func (_m *RetentionPolicyStore) GetCount() (int64, error) {
 	ret := _m.Called()
@@ -169,12 +190,33 @@ func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int)
 	return r0, r1
 }
 
+// GetTeamsCount provides a mock function with given fields: policyId
+func (_m *RetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) {
+	ret := _m.Called(policyId)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(policyId)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(policyId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Patch provides a mock function with given fields: patch
-func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	ret := _m.Called(patch)
 
 	var r0 *model.RetentionPolicyWithTeamAndChannelCounts
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithTeamAndChannelIds) *model.RetentionPolicyWithTeamAndChannelCounts); ok {
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithTeamAndChannelIDs) *model.RetentionPolicyWithTeamAndChannelCounts); ok {
 		r0 = rf(patch)
 	} else {
 		if ret.Get(0) != nil {
@@ -183,7 +225,7 @@ func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndCha
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithTeamAndChannelIds) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithTeamAndChannelIDs) error); ok {
 		r1 = rf(patch)
 	} else {
 		r1 = ret.Error(1)
@@ -242,11 +284,11 @@ func (_m *RetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) e
 }
 
 // Save provides a mock function with given fields: policy
-func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	ret := _m.Called(policy)
 
 	var r0 *model.RetentionPolicyWithTeamAndChannelCounts
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithTeamAndChannelIds) *model.RetentionPolicyWithTeamAndChannelCounts); ok {
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithTeamAndChannelIDs) *model.RetentionPolicyWithTeamAndChannelCounts); ok {
 		r0 = rf(policy)
 	} else {
 		if ret.Get(0) != nil {
@@ -255,7 +297,7 @@ func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndCha
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithTeamAndChannelIds) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithTeamAndChannelIDs) error); ok {
 		r1 = rf(policy)
 	} else {
 		r1 = ret.Error(1)

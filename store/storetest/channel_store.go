@@ -5456,12 +5456,12 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(&o14, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
 			PostDuration: 30,
 		},
-		ChannelIds: []string{o14.Id},
+		ChannelIDs: []string{o14.Id},
 	})
 	require.NoError(t, nErr)
 

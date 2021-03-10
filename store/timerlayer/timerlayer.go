@@ -5413,6 +5413,22 @@ func (s *TimerLayerRetentionPolicyStore) GetChannels(policyId string, offset int
 	return result, err
 }
 
+func (s *TimerLayerRetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetChannelsCount(policyId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetChannelsCount", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRetentionPolicyStore) GetCount() (int64, error) {
 	start := timemodule.Now()
 
@@ -5445,7 +5461,23 @@ func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, l
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *TimerLayerRetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetTeamsCount(policyId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetTeamsCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Patch(patch)
@@ -5509,7 +5541,7 @@ func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Save(policy)

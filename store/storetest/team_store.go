@@ -254,12 +254,12 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	q, err = ss.Team().Save(q)
 	require.NoError(t, err)
 
-	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIds{
+	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
 			PostDuration: 20,
 		},
-		TeamIds: []string{q.Id},
+		TeamIDs: []string{q.Id},
 	})
 	require.NoError(t, err)
 

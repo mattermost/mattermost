@@ -1025,7 +1025,6 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
-	// PolicyID is ignored since that may only be used through the /data_retention/policies endpoint
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:     props.NotAssociatedToGroup,
 		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,

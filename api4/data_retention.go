@@ -55,12 +55,8 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	policyList := &model.RetentionPolicyWithTeamAndChannelCountsList{Policies: policies}
-	if c.Params.IncludeTotalCount {
-		policyList.TotalCount = model.NewInt(len(policies))
-	}
 
-	w.Write(policyList.ToJson())
+	w.Write(policies.ToJson())
 }
 
 func getPoliciesCount(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -127,7 +123,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("policy")
 	}
 	c.RequirePolicyId()
-	patch.Id = c.Params.PolicyId
+	patch.ID = c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -185,7 +181,11 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(teams)
+	b, jsonErr := json.Marshal(teams)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getTeamsForPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Write(b)
 }
 
@@ -288,7 +288,11 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(channels)
+	b, jsonErr := json.Marshal(channels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.getChannelsForPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Write(b)
 }
 
@@ -305,10 +309,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	opts := model.ChannelSearchOpts{
-		PolicyID:                 c.Params.PolicyId,
-		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
-	}
+	opts := model.ChannelSearchOpts{PolicyID: c.Params.PolicyId}
 
 	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
 	if appErr != nil {

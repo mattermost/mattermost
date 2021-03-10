@@ -72,16 +72,18 @@ type Store interface {
 }
 
 type RetentionPolicyStore interface {
-	Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
-	Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
 	Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
 	GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error)
 	GetCount() (int64, error)
 	Delete(id string) error
 	GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error)
+	GetChannelsCount(policyId string) (int64, error)
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error
 	GetTeams(policyId string, offset, limit int) ([]*model.Team, error)
+	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
 	RemoveOrphanedRows(limit int) (int, error)

@@ -6470,6 +6470,26 @@ func (s *RetryLayerRetentionPolicyStore) GetChannels(policyId string, offset int
 
 }
 
+func (s *RetryLayerRetentionPolicyStore) GetChannelsCount(policyId string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetChannelsCount(policyId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRetentionPolicyStore) GetCount() (int64, error) {
 
 	tries := 0
@@ -6510,7 +6530,27 @@ func (s *RetryLayerRetentionPolicyStore) GetTeams(policyId string, offset int, l
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *RetryLayerRetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetTeamsCount(policyId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 
 	tries := 0
 	for {
@@ -6590,7 +6630,7 @@ func (s *RetryLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIds) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
 
 	tries := 0
 	for {
