@@ -6371,10 +6371,6 @@
     "translation": "We encountered an error permanently deleting the batch of file infos."
   },
   {
-    "id": "ent.data_retention.flags_batch.internal_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
   },
@@ -6391,16 +6387,12 @@
     "translation": "We encountered an error permanently deleting the batch of posts."
   },
   {
-    "id": "ent.data_retention.reactions_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions."
+    "id": "ent.data_retention.thread_memberships_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of thread memberships."
   },
   {
     "id": "ent.data_retention.threads_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of threads."
-  },
-  {
-    "id": "ent.data_retention.thread_memberships_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of thread memberships."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -7007,16 +6999,16 @@
     "translation": "Failed to sign generated trigger ID for interactive dialog."
   },
   {
+    "id": "jobs.orphaned_rows.delete_batch.internal_error",
+    "translation": "Failed to delete orphaned rows from database."
+  },
+  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
   },
   {
     "id": "jobs.set_job_error.update.error",
     "translation": "Failed to set job status to error"
-  },
-  {
-    "id": "jobs.orphaned_rows.delete_batch.internal_error",
-    "translation": "Failed to delete orphaned rows from database."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
