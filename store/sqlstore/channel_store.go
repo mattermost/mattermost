@@ -49,10 +49,14 @@ type channelMember struct {
 	SchemeUser       sql.NullBool
 	SchemeAdmin      sql.NullBool
 	SchemeGuest      sql.NullBool
-	MentionCountRoot int64
+	MentionCountRoot sql.NullInt64
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
+	mentionCountRoot := sql.NullInt64{Valid: false}
+	if cm.MentionCountRoot != nil {
+		mentionCountRoot = sql.NullInt64{Valid: true, Int64: *cm.MentionCountRoot}
+	}
 	return &channelMember{
 		ChannelId:        cm.ChannelId,
 		UserId:           cm.UserId,
@@ -60,7 +64,7 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 		LastViewedAt:     cm.LastViewedAt,
 		MsgCount:         cm.MsgCount,
 		MentionCount:     cm.MentionCount,
-		MentionCountRoot: cm.MentionCountRoot,
+		MentionCountRoot: mentionCountRoot,
 		NotifyProps:      cm.NotifyProps,
 		LastUpdateAt:     cm.LastUpdateAt,
 		SchemeGuest:      sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
@@ -76,7 +80,7 @@ type channelMemberWithSchemeRoles struct {
 	LastViewedAt                  int64
 	MsgCount                      int64
 	MentionCount                  int64
-	MentionCountRoot              int64
+	MentionCountRoot              sql.NullInt64
 	NotifyProps                   model.StringMap
 	LastUpdateAt                  int64
 	SchemeGuest                   sql.NullBool
@@ -227,6 +231,10 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
 		strings.Fields(db.Roles),
 	)
+	var mentionCountRoot *int64
+	if db.MentionCountRoot.Valid {
+		mentionCountRoot = &db.MentionCountRoot.Int64
+	}
 	return &model.ChannelMember{
 		ChannelId:        db.ChannelId,
 		UserId:           db.UserId,
@@ -234,7 +242,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		LastViewedAt:     db.LastViewedAt,
 		MsgCount:         db.MsgCount,
 		MentionCount:     db.MentionCount,
-		MentionCountRoot: db.MentionCountRoot,
+		MentionCountRoot: mentionCountRoot,
 		NotifyProps:      db.NotifyProps,
 		LastUpdateAt:     db.LastUpdateAt,
 		SchemeAdmin:      rolesResult.schemeAdmin,
