@@ -1142,20 +1142,25 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		MentionCountRoot: 0,
 		TeamId:           teamID,
 	}
-
+	migrationNeeded := false
 	for _, cu := range channelUnreads {
 		// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
 		if cu.MentionCountRoot == nil {
-			if err = a.populateMentionCountRoot(teamID, userID); err != nil {
-				return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			// retry
-			channelUnreads, err = a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
-			if err != nil {
-				return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			break
+			migrationNeeded = true
 		}
+	}
+	if migrationNeeded {
+		// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
+		if err = a.populateMentionCountRoot(teamID, userID); err != nil {
+			return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		// retry
+		channelUnreads, err = a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
+		if err != nil {
+			return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	for _, cu := range channelUnreads {
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += *cu.MentionCountRoot
 
