@@ -32,6 +32,7 @@ type Workers struct {
 	ExportProcess            model.Worker
 	ExportDelete             model.Worker
 	Cloud                    model.Worker
+	ResendInvitationEmail    model.Worker
 
 	listenerId string
 }
@@ -106,6 +107,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Cloud = cloudInterface.MakeWorker()
 	}
 
+	if resendInvitationEmailInterface := srv.ResendInvitationEmails; resendInvitationEmailInterface != nil {
+		workers.ResendInvitationEmail = resendInvitationEmailInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -175,6 +180,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Cloud != nil {
 			go workers.Cloud.Run()
+		}
+
+		if workers.ResendInvitationEmail != nil {
+			go workers.ResendInvitationEmail.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -304,6 +313,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Cloud != nil {
 		workers.Cloud.Stop()
+	}
+
+	if workers.ResendInvitationEmail != nil {
+		workers.ResendInvitationEmail.Stop()
 	}
 
 	mlog.Info("Stopped workers")

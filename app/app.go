@@ -140,6 +140,10 @@ func (a *App) initJobs() {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
+	if jobsResendInvitationEmailInterface != nil {
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a.srv)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }

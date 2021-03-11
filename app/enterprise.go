@@ -96,6 +96,15 @@ func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface
 	jobsActiveUsersInterface = f
 }
 
+type resendInvitationEmailInterfaceMaker func(*Server) ejobs.ResendInvitationEmailJobInterface
+
+var jobsResendInvitationEmailInterface resendInvitationEmailInterfaceMaker
+
+// RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
+func RegisterJobsResendInvitationEmailInterface(f resendInvitationEmailInterfaceMaker) {
+	jobsResendInvitationEmailInterface = f
+}
+
 var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
 
 func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {

@@ -35,6 +35,7 @@ type JobServer struct {
 	ExportProcess           tjobs.ExportProcessInterface
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
+	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
