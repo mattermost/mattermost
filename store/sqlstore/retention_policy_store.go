@@ -134,7 +134,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 		teamsSelectQuery, teamsSelectArgs, err := s.getQueryBuilder().
 			Select("Id").
 			From("Teams").
-			Where(inStrings("Id", teamIDs)).
+			Where(sq.Eq{"Id": teamIDs}).
 			ToSql()
 		if err != nil {
 			return err
@@ -165,7 +165,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 		channelsSelectQuery, channelsSelectArgs, err := s.getQueryBuilder().
 			Select("Id").
 			From("Channels").
-			Where(inStrings("Id", channelIDs)).
+			Where(sq.Eq{"Id": channelIDs}).
 			ToSql()
 		if err != nil {
 			return err
@@ -476,7 +476,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 		Delete("RetentionPoliciesChannels").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
-			inStrings("ChannelId", channelIds),
+			sq.Eq{"ChannelId": channelIds},
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
@@ -530,7 +530,7 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 		Delete("RetentionPoliciesTeams").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
-			inStrings("TeamId", teamIds),
+			sq.Eq{"TeamId": teamIds},
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
