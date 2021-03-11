@@ -139,30 +139,6 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	require.Error(t, serverErr)
 }
 
-func TestStartServerTLSSuccess(t *testing.T) {
-	s, err := NewServer()
-	require.NoError(t, err)
-
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-	})
-	serverErr := s.Start()
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
-
-	s.Shutdown()
-	require.NoError(t, serverErr)
-}
-
 func TestStartServerNoS3Bucket(t *testing.T) {
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
@@ -208,6 +184,30 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	require.Nil(t, err)
 	err = backend.(*filestore.S3FileBackend).TestConnection()
 	require.Nil(t, err)
+}
+
+func TestStartServerTLSSuccess(t *testing.T) {
+	s, err := NewServer()
+	require.NoError(t, err)
+
+	testDir, _ := fileutils.FindDir("tests")
+	s.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+	})
+	serverErr := s.Start()
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+
+	s.Shutdown()
+	require.NoError(t, serverErr)
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
