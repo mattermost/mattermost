@@ -79,6 +79,9 @@ func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 	fs.CreateIndexIfNotExists("idx_fileinfo_extension_at", "FileInfo", "Extension")
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_name_txt", "FileInfo", "Name")
+	if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		fs.CreateFullTextFuncIndexIfNotExists("idx_fileinfo_name_splitted", "FileInfo", "Translate(Name, '.,-', '   ')")
+	}
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_content_txt", "FileInfo", "Content")
 }
 
@@ -538,6 +541,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			query = query.Where(sq.Or{
 				sq.Expr("to_tsvector('english', FI.Name) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr("to_tsvector('english', Translate(FI.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
 				sq.Expr("to_tsvector('english', FI.Content) @@  to_tsquery('english', ?)", queryTerms),
 			})
 		} else if fs.DriverName() == model.DATABASE_DRIVER_MYSQL {
