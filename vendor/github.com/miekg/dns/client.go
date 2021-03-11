@@ -23,6 +23,7 @@ type Conn struct {
 	net.Conn                         // a net.Conn holding the connection
 	UDPSize        uint16            // minimum receive buffer for UDP messages
 	TsigSecret     map[string]string // secret(s) for Tsig map[<zonename>]<base64 secret>, zonename must be in canonical form (lowercase, fqdn, see RFC 4034 Section 6.2)
+	TsigProvider   TsigProvider      // An implementation of the TsigProvider interface. If defined it replaces TsigSecret and is used for all TSIG operations.
 	tsigRequestMAC string
 }
 
@@ -40,6 +41,7 @@ type Client struct {
 	ReadTimeout    time.Duration     // net.Conn.SetReadTimeout value for connections, defaults to 2 seconds - overridden by Timeout when that value is non-zero
 	WriteTimeout   time.Duration     // net.Conn.SetWriteTimeout value for connections, defaults to 2 seconds - overridden by Timeout when that value is non-zero
 	TsigSecret     map[string]string // secret(s) for Tsig map[<zonename>]<base64 secret>, zonename must be in canonical form (lowercase, fqdn, see RFC 4034 Section 6.2)
+	TsigProvider   TsigProvider      // An implementation of the TsigProvider interface. If defined it replaces TsigSecret and is used for all TSIG operations.
 	SingleInflight bool              // if true suppress multiple outstanding queries for the same Qname, Qtype and Qclass
 	group          singleflight
 }
@@ -124,7 +126,6 @@ func (c *Client) Dial(address string) (conn *Conn, err error) {
 // of 512 bytes
 // To specify a local address or a timeout, the caller has to set the `Client.Dialer`
 // attribute appropriately
-
 func (c *Client) Exchange(m *Msg, address string) (r *Msg, rtt time.Duration, err error) {
 	co, err := c.Dial(address)
 
@@ -176,7 +177,7 @@ func (c *Client) exchange(m *Msg, co *Conn) (r *Msg, rtt time.Duration, err erro
 		co.UDPSize = c.UDPSize
 	}
 
-	co.TsigSecret = c.TsigSecret
+	co.TsigSecret, co.TsigProvider = c.TsigSecret, c.TsigProvider
 	t := time.Now()
 	// write with the appropriate write timeout
 	co.SetWriteDeadline(t.Add(c.getTimeoutForRequest(c.writeTimeout())))
@@ -223,11 +224,15 @@ func (co *Conn) ReadMsg() (*Msg, error) {
 		return m, err
 	}
 	if t := m.IsTsig(); t != nil {
-		if _, ok := co.TsigSecret[t.Hdr.Name]; !ok {
-			return m, ErrSecret
+		if co.TsigProvider != nil {
+			err = tsigVerifyProvider(p, co.TsigProvider, co.tsigRequestMAC, false)
+		} else {
+			if _, ok := co.TsigSecret[t.Hdr.Name]; !ok {
+				return m, ErrSecret
+			}
+			// Need to work on the original message p, as that was used to calculate the tsig.
+			err = TsigVerify(p, co.TsigSecret[t.Hdr.Name], co.tsigRequestMAC, false)
 		}
-		// Need to work on the original message p, as that was used to calculate the tsig.
-		err = TsigVerify(p, co.TsigSecret[t.Hdr.Name], co.tsigRequestMAC, false)
 	}
 	return m, err
 }
@@ -305,10 +310,14 @@ func (co *Conn) WriteMsg(m *Msg) (err error) {
 	var out []byte
 	if t := m.IsTsig(); t != nil {
 		mac := ""
-		if _, ok := co.TsigSecret[t.Hdr.Name]; !ok {
-			return ErrSecret
+		if co.TsigProvider != nil {
+			out, mac, err = tsigGenerateProvider(m, co.TsigProvider, co.tsigRequestMAC, false)
+		} else {
+			if _, ok := co.TsigSecret[t.Hdr.Name]; !ok {
+				return ErrSecret
+			}
+			out, mac, err = TsigGenerate(m, co.TsigSecret[t.Hdr.Name], co.tsigRequestMAC, false)
 		}
-		out, mac, err = TsigGenerate(m, co.TsigSecret[t.Hdr.Name], co.tsigRequestMAC, false)
 		// Set for the next read, although only used in zone transfers
 		co.tsigRequestMAC = mac
 	} else {
@@ -331,11 +340,10 @@ func (co *Conn) Write(p []byte) (int, error) {
 		return co.Conn.Write(p)
 	}
 
-	l := make([]byte, 2)
-	binary.BigEndian.PutUint16(l, uint16(len(p)))
-
-	n, err := (&net.Buffers{l, p}).WriteTo(co.Conn)
-	return int(n), err
+	msg := make([]byte, 2+len(p))
+	binary.BigEndian.PutUint16(msg, uint16(len(p)))
+	copy(msg[2:], p)
+	return co.Conn.Write(msg)
 }
 
 // Return the appropriate timeout for a specific request
