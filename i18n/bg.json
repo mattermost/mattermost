@@ -8669,5 +8669,9 @@
   {
     "id": "api.templates.verify_body.info1",
     "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Невалидно или липсващо тяло на заявката."
   }
 ]
