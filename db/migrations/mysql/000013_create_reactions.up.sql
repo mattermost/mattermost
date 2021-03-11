@@ -39,7 +39,7 @@ CREATE PROCEDURE AlterPrimaryKey()
 BEGIN
     DECLARE existingPK varchar(26) default '';
 
-    SELECT IFNULL(GROUP_CONCAT(column_name ORDER BY seq_in_index), '') existingPK
+    SELECT IFNULL(GROUP_CONCAT(column_name ORDER BY seq_in_index), '') INTO existingPK
     FROM information_schema.statistics
     WHERE table_schema = DATABASE()
     AND table_name = 'Reactions'
