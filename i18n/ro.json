@@ -8638,5 +8638,13 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Eroare la primirea e-mailului administratorilor de sistem."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Evenimentul Webhook nu a fost gestionat. Fie lipsește, fie nu este valid."
   }
 ]
