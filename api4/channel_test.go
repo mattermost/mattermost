@@ -2151,7 +2151,7 @@ func TestViewChannel(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Equal(t, channel.TotalMsgCount, member.MsgCount, "should match message counts")
 	require.Equal(t, int64(0), member.MentionCount, "should have no mentions")
-	require.Equal(t, int64(0), member.MentionCountRoot, "should have no mentions")
+	require.Equal(t, int64(0), *member.MentionCountRoot, "should have no mentions")
 
 	_, resp = Client.ViewChannel("junk", view)
 	CheckBadRequestStatus(t, resp)
