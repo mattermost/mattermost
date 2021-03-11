@@ -116,6 +116,10 @@ var PERMISSION_REMOVE_SAML_PUBLIC_CERT *Permission
 var PERMISSION_REMOVE_SAML_PRIVATE_CERT *Permission
 var PERMISSION_REMOVE_SAML_IDP_CERT *Permission
 var PERMISSION_GET_SAML_CERT_STATUS *Permission
+var PERMISSION_ADD_LDAP_PUBLIC_CERT *Permission
+var PERMISSION_ADD_LDAP_PRIVATE_CERT *Permission
+var PERMISSION_REMOVE_LDAP_PUBLIC_CERT *Permission
+var PERMISSION_REMOVE_LDAP_PRIVATE_CERT *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -675,6 +679,34 @@ func initializePermissions() {
 
 	PERMISSION_GET_SAML_CERT_STATUS = &Permission{
 		"get_saml_cert_status",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_LDAP_PUBLIC_CERT = &Permission{
+		"add_ldap_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_LDAP_PRIVATE_CERT = &Permission{
+		"add_ldap_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_LDAP_PUBLIC_CERT = &Permission{
+		"remove_ldap_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_LDAP_PRIVATE_CERT = &Permission{
+		"remove_ldap_private_cert",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1282,6 +1314,10 @@ func initializePermissions() {
 		PERMISSION_REMOVE_SAML_PRIVATE_CERT,
 		PERMISSION_REMOVE_SAML_IDP_CERT,
 		PERMISSION_GET_SAML_CERT_STATUS,
+		PERMISSION_ADD_LDAP_PUBLIC_CERT,
+		PERMISSION_ADD_LDAP_PRIVATE_CERT,
+		PERMISSION_REMOVE_LDAP_PUBLIC_CERT,
+		PERMISSION_REMOVE_LDAP_PRIVATE_CERT,
 	}
 
 	TeamScopedPermissions := []*Permission{

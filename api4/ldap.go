@@ -319,8 +319,8 @@ func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_ADD_LDAP_PUBLIC_CERT) {
+		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PUBLIC_CERT)
 		return
 	}
 
@@ -343,8 +343,8 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_ADD_LDAP_PRIVATE_CERT) {
+		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PRIVATE_CERT)
 		return
 	}
 
@@ -367,8 +367,8 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT) {
+		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT)
 		return
 	}
 
@@ -385,8 +385,8 @@ func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT) {
+		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT)
 		return
 	}
 

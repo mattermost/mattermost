@@ -611,16 +611,16 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id},
 	})
 
-	// Give the ancillary permissions CREATE_LDAP_SYNC_JOB to anyone with WRITE_AUTHENTICATION_LDAP
+	// Give the ancillary permissions for LDAP to anyone with WRITE_AUTHENTICATION_LDAP
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id),
-		Add: []string{model.PERMISSION_CREATE_LDAP_SYNC_JOB.Id},
+		Add: []string{model.PERMISSION_CREATE_LDAP_SYNC_JOB.Id, model.PERMISSION_TEST_LDAP.Id, model.PERMISSION_ADD_LDAP_PUBLIC_CERT.Id, model.PERMISSION_ADD_LDAP_PRIVATE_CERT.Id, model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT.Id, model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT.Id},
 	})
 
 	// Give the ancillary permissions PERMISSION_TEST_LDAP to anyone with READ_AUTHENTICATION_LDAP
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id),
-		Add: []string{model.PERMISSION_TEST_LDAP.Id, model.PERMISSION_READ_LDAP_SYNC_JOB.Id},
+		Add: []string{model.PERMISSION_READ_LDAP_SYNC_JOB.Id},
 	})
 
 	// Give the ancillary permissions PERMISSION_INVALIDATE_EMAIL_INVITE to anyone with WRITE_AUTHENTICATION_EMAIL
