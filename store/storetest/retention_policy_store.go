@@ -196,9 +196,10 @@ func restoreRetentionPolicy(t *testing.T, ss store.Store, policy *model.Retentio
 
 func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("teams and channels are nil", func(t *testing.T) {
-		policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Proposal 1", nil, nil)
-		expected := createRetentionPolicyWithTeamAndChannelIds(policy.DisplayName, []string{}, []string{})
-		checkRetentionPolicyLikeThisExists(t, ss, expected)
+		policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1", nil, nil)
+		policy.ChannelIDs = []string{}
+		policy.TeamIDs = []string{}
+		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
 	t.Run("teams and channels are empty", func(t *testing.T) {
 		policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 2", []string{}, []string{})
@@ -206,7 +207,7 @@ func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 	})
 	t.Run("some teams and channels are specified", func(t *testing.T) {
 		teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, ss)
-		policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Proposal 3", teamIDs, channelIDs)
+		policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 3", teamIDs, channelIDs)
 		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
 	t.Run("team specified does not exist", func(t *testing.T) {
@@ -224,7 +225,7 @@ func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 
 func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 	teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, ss)
-	policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Proposal 1", teamIDs, channelIDs)
+	policy := saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1", teamIDs, channelIDs)
 	t.Run("modify DisplayName", func(t *testing.T) {
 		patch := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
