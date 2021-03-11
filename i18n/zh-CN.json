@@ -1867,7 +1867,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "您已经被邀请"
+    "translation": "{{ .SenderName }}邀请加入{{ .TeamDisplayName }}团队。"
   },
   {
     "id": "api.templates.invite_subject",
@@ -1979,7 +1979,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用："
+    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用。"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -8552,5 +8552,33 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "设定状态错误。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "无效或缺少请求正文。"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "获取云订阅时出错"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "此功能正在开发中，仅可通过功能标志使用。"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "无法解析请求内容。"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "获取云订阅时出错。"
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "获取系统管理员电子邮件时出错。"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook 事件未处理。它丢失或无效。"
   }
 ]
