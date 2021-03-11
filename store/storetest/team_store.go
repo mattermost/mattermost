@@ -213,6 +213,8 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
+	cleanupTeamStore(t, ss)
+
 	o := model.Team{}
 	o.DisplayName = "ADisplayName" + model.NewId()
 	o.Name = "zzzzzz-" + model.NewId() + "a"
