@@ -1905,6 +1905,7 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 		if err != nil {
 			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		// retry
 		return a.GetChannelUnread(channelID, userID)
 	}
 	return channelUnread, nil
@@ -2425,6 +2426,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		if err != nil {
 			return nil, model.NewAppError("GetChannelUnread", "app.channel.update_last_viewed_at_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		// retry
 		channelUnread, nErr = a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
 		if nErr != nil {
 			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -3089,7 +3091,7 @@ func (a *App) isUserMentionedInPost(team *model.Team, channel *model.Channel, po
 
 // the following function will go through all unread channels for a user in a team, and for each channel, calculate MentionCountRoot by parsing the root posts after the LastViewedAt for mentions.
 func (a *App) populateMentionCountRoot(teamID, userID string) error {
-	data, err := a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
+	data, err := a.Srv().Store.Channel().GetMembersForUser(teamID, userID)
 	if err != nil {
 		return err
 	}
@@ -3101,25 +3103,36 @@ func (a *App) populateMentionCountRoot(teamID, userID string) error {
 	if err != nil {
 		return err
 	}
-	for _, cu := range data {
-		if cu.MentionCountRoot == nil && cu.MentionCount > 0 {
-			channel, err := a.Srv().Store.Channel().Get(cu.ChannelId, true)
-			if err != nil {
-				return err
+	channelMembersToUpdate := []*model.ChannelMember{}
+	channelIdsToUpdate := []string{}
+	for i := range *data {
+		cm := &(*data)[i]
+		if cm.MentionCountRoot == nil && cm.MentionCount > 0 {
+			channelMembersToUpdate = append(channelMembersToUpdate, cm)
+			channelIdsToUpdate = append(channelIdsToUpdate, cm.ChannelId)
+		}
+	}
+	channels, err := a.Srv().Store.Channel().GetChannelsByIds(channelIdsToUpdate, false)
+	if err != nil {
+		return err
+	}
+	for _, cm := range channelMembersToUpdate {
+		if cm.MentionCountRoot == nil && cm.MentionCount > 0 {
+			var channel *model.Channel
+			for _, c := range channels {
+				if c.Id == cm.ChannelId {
+					channel = c
+					break
+				}
 			}
-			cm, err := a.Srv().Store.Channel().GetMember(cu.ChannelId, userID)
-			if err != nil {
-				return err
-			}
-			posts, err := a.Srv().Store.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: cu.ChannelId, CollapsedThreads: true, Time: cm.LastViewedAt, CollapsedThreadsExtended: false}, true)
-			if err != nil {
-				return err
+			posts, err2 := a.Srv().Store.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: cm.ChannelId, CollapsedThreads: true, Time: cm.LastViewedAt, CollapsedThreadsExtended: false}, true)
+			if err2 != nil {
+				return err2
 			}
 			count := int64(0)
 			for _, post := range posts.Posts {
 				mentioned := false
-				mentioned, err = a.isUserMentionedInPost(team, channel, post, user, map[string]model.StringMap{user.Id: cm.NotifyProps})
-				if err != nil {
+				if mentioned, err = a.isUserMentionedInPost(team, channel, post, user, map[string]model.StringMap{user.Id: cm.NotifyProps}); err != nil {
 					return err
 				}
 				if mentioned {
@@ -3127,11 +3140,11 @@ func (a *App) populateMentionCountRoot(teamID, userID string) error {
 				}
 			}
 			cm.MentionCountRoot = &count
-			_, err = a.Srv().Store.Channel().UpdateMember(cm)
-			if err != nil {
-				return err
-			}
 		}
 	}
+	if _, err = a.Srv().Store.Channel().UpdateMultipleMembers(channelMembersToUpdate); err != nil {
+		return err
+	}
+
 	return nil
 }
