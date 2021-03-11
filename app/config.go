@@ -415,7 +415,7 @@ func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage
 		if s.Metrics != nil {
 			s.Metrics.Register()
 		}
-		s.StartMetricsServer()
+		s.SetupMetricsServer()
 	} else {
 		s.StopMetricsServer()
 	}
