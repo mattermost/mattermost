@@ -5320,20 +5320,8 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} har bjudit in dig till {{ .TeamDisplayName }} som gäst"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]] som gäst."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "{{ .SenderName }} bjöd in dig till teamet {{ .TeamDisplayName }}."
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]]."
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter. Efter att du gått med i [[{{.TeamDisplayName}}]] kan du logga in och använda funktionerna när som helst via webb-adressen:"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -6614,14 +6602,6 @@
   {
     "id": "api.templates.reset_body.title",
     "translation": "Återställ ditt lösenord"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Om du inte vill byta lösenord, vänligen ignorera detta mail så ändras inte ditt lösenord. Länken för byte av lösenord gäller i 24 timmar."
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "För att ändra ditt lösenord, tryck \"Återställ lösenord\" nedan."
   },
   {
     "id": "api.templates.reset_body.button",

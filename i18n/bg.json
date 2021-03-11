@@ -4132,14 +4132,6 @@
     "translation": "Вие поискахте нулиране на паролата"
   },
   {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Ако не искате да нулирате паролата си, моля, игнорирайте тази ел.поща и вашата парола ще остане същата. Връзката за нулиране на паролата изтича след 24 часа."
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "За да промените паролата си, натиснете върху „Нулиране на паролата“ по-долу."
-  },
-  {
     "id": "api.templates.reset_body.button",
     "translation": "Нулиране на парола"
   },
@@ -4356,20 +4348,8 @@
     "translation": "[{{.SiteName}}] {{.SenderName}} ви покани да се присъедините към екипа {{.TeamDisplayName}} като гост"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към екипа [[{{.TeamDisplayName}}]] като гост."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Поканени сте"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към [[{{.TeamDisplayName}}]]."
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране. След като се присъедините към [[{{.TeamDisplayName}}]], можете да влезете в новия си екип и да получите достъп до тези функции по всяко време от уеб адреса:"
   },
   {
     "id": "api.templates.invite_body.button",

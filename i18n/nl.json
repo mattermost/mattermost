@@ -1871,14 +1871,6 @@
     "translation": "Lid worden van team"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Met Mattermost kun je berichten en bestanden delen via PC of mobiel. Je kunt ze onmiddellijk doorzoeken en in het archief bekijken. Nadat je lid bent geworden van [[{{.TeamDisplayName}}]], kun je inloggen bij het team en deze functies ieder moment gebruiken via dit webadres:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Je bent uitgenodigd"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Wachtwoord opnieuw instellen"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Om je wachtwoord te wijzigen, klik \"Reset Wachtwoord\" hieronder."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Als je je wachtwoord niet wenste te wijzigen, negeer dan deze e-mail en je wachtwoord blijft ongewijzigd. De wachtwoord reset link vervalt na 24 uren."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5813,10 +5797,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om deel te nemen aan het {{ .TeamDisplayName }} Team als gast"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] heeft je uitgenodigd om deel te nemen aan het {{ .TeamDisplayName }} Team als gast."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",

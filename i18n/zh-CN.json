@@ -1866,14 +1866,6 @@
     "translation": "加入团队"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 允许您通过电脑、电话分享消息和文件，即时查找和归档。当你加入[[{{.TeamDisplayName}}]]后，你可以登录到你的新团队并在任何时候从网络地址访问这些功能："
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "团队 {{.SenderStatus}} [[{{.SenderName}}]] 邀请您加入 [[{{.TeamDisplayName}}]]。"
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "您已经被邀请"
   },
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "重设密码"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "如想更改您的密码，点击以下 \"重置密码\"。"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "如果您不想重置密码，请无视此邮件并且您的密码会不会更改。重置密码链接将在 24 小时后失效。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5892,10 +5876,6 @@
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
     "translation": "访客帐号已停用"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]]，邀请您以访客加入团队 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
