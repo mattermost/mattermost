@@ -6259,15 +6259,7 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": ""
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": ""
-  },
-  {
-    "id": "ent.cloud.request_error",
+    "id": "ent.cloud.subscription.error",
     "translation": ""
   },
   {
