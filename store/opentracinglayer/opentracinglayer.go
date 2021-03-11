@@ -7738,25 +7738,7 @@ func (s *OpenTracingLayerThreadStore) CollectThreadsWithNewerReplies(userID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) CreateMembershipIfNeeded(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.CreateMembershipIfNeeded")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.ThreadStore.CreateMembershipIfNeeded(userID, postID, following, incrementMentions, updateFollowing)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerThreadStore) Delete(postID string) error {
+func (s *OpenTracingLayerThreadStore) Delete(postId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -7765,7 +7747,7 @@ func (s *OpenTracingLayerThreadStore) Delete(postID string) error {
 	}()
 
 	defer span.Finish()
-	err := s.ThreadStore.Delete(postID)
+	err := s.ThreadStore.Delete(postId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7936,7 +7918,7 @@ func (s *OpenTracingLayerThreadStore) MaintainMembership(userId string, postID s
 	return err
 }
 
-func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, teamID string) error {
+func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userID string, teamID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAllAsRead")
 	s.Root.Store.SetContext(newCtx)
