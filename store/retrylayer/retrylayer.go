@@ -8688,26 +8688,6 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postID, following, incrementMentions, updateFollowing)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
-
-}
-
 func (s *RetryLayerThreadStore) Delete(postId string) error {
 
 	tries := 0
@@ -8883,6 +8863,26 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, 
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) MaintainMembership(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MaintainMembership(userId, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 

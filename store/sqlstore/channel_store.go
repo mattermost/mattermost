@@ -1389,19 +1389,9 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 		defer s.InvalidateAllChannelMembersForUser(member.UserId)
 	}
 
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransaction(transaction)
-
 	newMembers, err := s.saveMultipleMembers(members)
 	if err != nil {
 		return nil, err
-	}
-
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return newMembers, nil
