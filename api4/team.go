@@ -1226,14 +1226,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			"emailList": model.ArrayToJson(emailList),
 			"teamID":    c.Params.TeamId,
 			"senderID":  c.App.Session().UserId,
-			"graceful":  r.URL.Query().Get("graceful"),
 		}
 
 		// we then manually schedule the job
 		_, e := c.App.Srv().Jobs.CreateJob(model.JOB_TYPE_RESEND_INVITATION_EMAIL, jobData)
 		if e != nil {
 			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
-			// Ask Maria if we can just continue and not return
 			return
 		}
 
