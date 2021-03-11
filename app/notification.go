@@ -208,7 +208,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				return
 			}
 			if channelMember.MentionCountRoot == nil {
-				nErr = a.populateMentionCountRoot(post.ChannelId, userID)
+				nErr = a.populateMentionCountRoot(team.Id, userID)
 				if nErr != nil {
 					umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
