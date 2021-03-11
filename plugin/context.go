@@ -7,9 +7,9 @@ package plugin
 // For requests this is built in app/plugin_requests.go
 // For hooks, app.PluginContext() is called.
 type Context struct {
-	SessionID      string
-	RequestID      string
-	IPAddress      string
+	SessionId      string
+	RequestId      string
+	IpAddress      string
 	AcceptLanguage string
 	UserAgent      string
 	SourcePluginID string

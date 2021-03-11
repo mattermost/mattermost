@@ -69,7 +69,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	}
 
 	context := &plugin.Context{
-		RequestID:      model.NewId(),
+		RequestId:      model.NewId(),
 		UserAgent:      r.UserAgent(),
 		SourcePluginID: sourcePluginId,
 	}
@@ -116,8 +116,8 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
 	context := &plugin.Context{
-		RequestID:      model.NewId(),
-		IPAddress:      utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
+		RequestId:      model.NewId(),
+		IpAddress:      utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -192,7 +192,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 
 		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
-			context.SessionID = session.Id
+			context.SessionId = session.Id
 		}
 	}
 
