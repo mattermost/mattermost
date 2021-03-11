@@ -172,13 +172,6 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	serverErr := s.Start()
-	require.NoError(t, serverErr)
-	defer s.Shutdown()
-
-	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
-
 	// ensure that a new bucket was created
 	backend, err := s.FileBackend()
 	require.Nil(t, err)
