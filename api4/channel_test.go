@@ -4064,3 +4064,43 @@ func TestMoveChannel(t *testing.T) {
 		require.Equal(t, team2.Id, newChannel.TeamId)
 	}, "Should be able to (force) move private channel by a member that is not member of target team")
 }
+
+func TestRootMentionsMigrations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	// initially, MentionCountRoot is NULL in the database
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(channel.Id, user.Id)
+	require.NoError(t, err)
+	require.Nil(t, channelMember.MentionCountRoot)
+	require.Equal(t, int64(0), channelMember.MentionCount)
+
+	// mention the user in a root post
+	post1, resp := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: channel.Id, Message: "hey @" + user.Username})
+	CheckNoError(t, resp)
+	// mention the user in a reply post
+	post2 := &model.Post{ChannelId: channel.Id, Message: "reply at @" + user.Username, RootId: post1.Id}
+	_, resp = th.SystemAdminClient.CreatePost(post2)
+	CheckNoError(t, resp)
+
+	// this should perform lazy migration and populate the field
+	channelUnread, resp := Client.GetChannelUnread(channel.Id, user.Id)
+	CheckNoError(t, resp)
+	// reply post is not counted, so we should have one root mention
+	require.EqualValues(t, model.NewInt64(1), channelUnread.MentionCountRoot)
+	// regular count stays the same
+	require.Equal(t, int64(2), channelUnread.MentionCount)
+	// validate that DB is updated
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channel.Id, user.Id)
+	require.NoError(t, err)
+	require.EqualValues(t, model.NewInt64(1), channelMember.MentionCountRoot)
+
+	// validate that Team level counts are calculated
+	counts, appErr := th.App.GetTeamUnread(channel.TeamId, user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, int64(1), counts.MentionCountRoot)
+	require.Equal(t, int64(2), counts.MentionCount)
+}
