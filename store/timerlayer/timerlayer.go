@@ -6968,10 +6968,10 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userID string, channelIds []string, timestamp int64) ([]string, error) {
+func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userID, channelIds, timestamp)
+	result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userId, channelIds, timestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7000,10 +7000,10 @@ func (s *TimerLayerThreadStore) Delete(postID string) error {
 	return err
 }
 
-func (s *TimerLayerThreadStore) DeleteMembershipForUser(userID string, postID string) error {
+func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.DeleteMembershipForUser(userID, postID)
+	err := s.ThreadStore.DeleteMembershipForUser(userId, postID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7032,10 +7032,10 @@ func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetMembershipForUser(userID string, postID string) (*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetMembershipForUser(userID, postID)
+	result, err := s.ThreadStore.GetMembershipForUser(userId, postID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7048,10 +7048,10 @@ func (s *TimerLayerThreadStore) GetMembershipForUser(userID string, postID strin
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetMembershipsForUser(userID string, teamID string) ([]*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetMembershipsForUser(userID, teamID)
+	result, err := s.ThreadStore.GetMembershipsForUser(userId, teamID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7128,10 +7128,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userID string, teamID string, 
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MaintainMembership(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.MaintainMembership(userId, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+	err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7144,7 +7144,7 @@ func (s *TimerLayerThreadStore) MaintainMembership(userId string, postID string,
 	return err
 }
 
-func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, teamID string) error {
+func (s *TimerLayerThreadStore) MarkAllAsRead(userID string, teamID string) error {
 	start := timemodule.Now()
 
 	err := s.ThreadStore.MarkAllAsRead(userID, teamID)
@@ -7256,10 +7256,10 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userID string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
+func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.UpdateUnreadsByChannel(userID, changedThreads, timestamp, updateViewedTimestamp)
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp, updateViewedTimestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

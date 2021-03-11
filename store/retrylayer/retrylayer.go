@@ -8378,11 +8378,11 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 }
 
-func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userID string, channelIds []string, timestamp int64) ([]string, error) {
+func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userID, channelIds, timestamp)
+		result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userId, channelIds, timestamp)
 		if err == nil {
 			return result, nil
 		}
@@ -8399,7 +8399,7 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userID string, ch
 }
 
 func (s *RetryLayerThreadStore) Delete(postID string) error {
-  
+
 	tries := 0
 	for {
 		err := s.ThreadStore.Delete(postID)
@@ -8418,11 +8418,11 @@ func (s *RetryLayerThreadStore) Delete(postID string) error {
 
 }
 
-func (s *RetryLayerThreadStore) DeleteMembershipForUser(userID string, postID string) error {
+func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postID string) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.DeleteMembershipForUser(userID, postID)
+		err := s.ThreadStore.DeleteMembershipForUser(userId, postID)
 		if err == nil {
 			return nil
 		}
@@ -8458,11 +8458,11 @@ func (s *RetryLayerThreadStore) Get(id string) (*model.Thread, error) {
 
 }
 
-func (s *RetryLayerThreadStore) GetMembershipForUser(userID string, postID string) (*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetMembershipForUser(userID, postID)
+		result, err := s.ThreadStore.GetMembershipForUser(userId, postID)
 		if err == nil {
 			return result, nil
 		}
@@ -8478,11 +8478,11 @@ func (s *RetryLayerThreadStore) GetMembershipForUser(userID string, postID strin
 
 }
 
-func (s *RetryLayerThreadStore) GetMembershipsForUser(userID string, teamID string) ([]*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetMembershipsForUser(userID, teamID)
+		result, err := s.ThreadStore.GetMembershipsForUser(userId, teamID)
 		if err == nil {
 			return result, nil
 		}
@@ -8578,11 +8578,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userID string, teamID string, 
 
 }
 
-func (s *RetryLayerThreadStore) MaintainMembership(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MaintainMembership(userId, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+		err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
 		if err == nil {
 			return nil
 		}
@@ -8598,7 +8598,7 @@ func (s *RetryLayerThreadStore) MaintainMembership(userId string, postID string,
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamID string) error {
+func (s *RetryLayerThreadStore) MarkAllAsRead(userID string, teamID string) error {
 
 	tries := 0
 	for {
@@ -8738,11 +8738,11 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 
 }
 
-func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userID string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
+func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.UpdateUnreadsByChannel(userID, changedThreads, timestamp, updateViewedTimestamp)
+		err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp, updateViewedTimestamp)
 		if err == nil {
 			return nil
 		}
