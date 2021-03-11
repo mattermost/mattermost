@@ -137,7 +137,11 @@
       font-size: 14px !important;
       line-height: 20px !important;
       color: #3D3C40 !important;
-      padding: 0px !important;
+      padding: 0px 48px 0px 48px !important;
+    }
+
+    .footerInfo a {
+      color: #166DE0 !important;
     }
 
     .appDownloadButton a {
@@ -158,6 +162,52 @@
       padding: 8px 24px 8px 24px !important;
     }
 
+    .postCard {
+      padding: 0px 24px 40px 24px !important;
+    }
+
+    .messageCard {
+      background: #FFFFFF !important;
+      border: 1px solid rgba(61, 60, 64, 0.08) !important;
+      box-sizing: border-box !important;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
+      border-radius: 4px !important;
+      padding: 32px !important;
+    }
+
+    .messageAvatar img {
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0px !important;
+      border-radius: 32px !important;
+    }
+
+    .messageAvatarCol {
+      width: 32px !important;
+    }
+
+    .senderName div {
+      text-align: left !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 0px 0px 4px 0px !important;
+    }
+
+    .senderMessage div {
+      text-align: left !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 0px !important;
+    }
+
+    .senderInfoCol {
+      width: 394px !important;
+      padding: 0px 0px 0px 12px !important;
+    }
+
     @media all and (min-width: 541px) {
       .emailBody {
         padding: 32px !important;
@@ -168,11 +218,37 @@
       .emailBody {
         padding: 16px !important;
       }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
+      }
     }
 
     @media all and (max-width: 400px) {
       .emailBody {
         padding: 0px !important;
+      }
+
+      .footerInfo div {
+        padding: 0px !important;
+      }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .postCard {
+        padding: 0px 0px 40px 0px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
       }
     }
   </style>
