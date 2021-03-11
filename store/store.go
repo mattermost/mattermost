@@ -262,12 +262,12 @@ type ThreadStore interface {
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
-	GetMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
-	GetMembershipForUser(userID, postID string) (*model.ThreadMembership, error)
-	DeleteMembershipForUser(userID, postID string) error
-	CreateMembershipIfNeeded(userID, postID string, following, incrementMentions, updateFollowing bool) error
-	CollectThreadsWithNewerReplies(userID string, channelIds []string, timestamp int64) ([]string, error)
-	UpdateUnreadsByChannel(userID string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
+	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
+	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
+	DeleteMembershipForUser(userId, postID string) error
+	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error
+	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
+	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
 
 type PostStore interface {
@@ -287,9 +287,9 @@ type PostStore interface {
 	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error)
 	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error)
 	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error)
-	GetPostAfterTime(channelID string, time int64) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, time int64) (string, error)
-	GetPostIdBeforeTime(channelID string, time int64) (string, error)
+	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error)
+	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error)
+	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)

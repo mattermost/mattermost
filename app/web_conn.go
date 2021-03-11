@@ -20,9 +20,9 @@ import (
 	"github.com/mailru/easygo/netpoll"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -58,6 +58,7 @@ type WebConn struct {
 	isWindows                 bool
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
+	closeOnce                 sync.Once
 }
 
 // NewWebConn returns a new WebConn instance.
@@ -94,15 +95,20 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 }
 
 // Close closes the WebConn.
+// It is made idempotent in nature by using a sync.Once
+// to avoid a race condition that happens when an EventReadHup event
+// and a connection close event happens at the same time.
 func (wc *WebConn) Close() {
-	wc.WebSocket.Close()
-	if !wc.isWindows {
-		// This triggers the pump exit.
-		// If the pump has already exited, this just becomes a noop.
-		close(wc.endWritePump)
-	}
-	// We wait for the pump to fully exit.
-	<-wc.pumpFinished
+	wc.closeOnce.Do(func() {
+		wc.WebSocket.Close()
+		if !wc.isWindows {
+			// This triggers the pump exit.
+			// If the pump has already exited, this just becomes a noop.
+			close(wc.endWritePump)
+		}
+		// We wait for the pump to fully exit.
+		<-wc.pumpFinished
+	})
 }
 
 // GetSessionExpiresAt returns the time at which the session expires.

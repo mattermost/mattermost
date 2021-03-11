@@ -37,20 +37,6 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userID string, channelIds 
 	return r0, r1
 }
 
-// CreateMembershipIfNeeded provides a mock function with given fields: userID, postID, following, incrementMentions, updateFollowing
-func (_m *ThreadStore) CreateMembershipIfNeeded(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool) error {
-	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool) error); ok {
-		r0 = rf(userID, postID, following, incrementMentions, updateFollowing)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Delete provides a mock function with given fields: postID
 func (_m *ThreadStore) Delete(postID string) error {
 	ret := _m.Called(postID)
@@ -240,7 +226,21 @@ func (_m *ThreadStore) GetThreadsForUser(userID string, teamID string, opts mode
 	return r0, r1
 }
 
-// MarkAllAsRead provides a mock function with given fields: userID, teamID
+// MaintainMembership provides a mock function with given fields: userId, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp
+func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool) error); ok {
+		r0 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MarkAllAsRead provides a mock function with given fields: userId, teamID
 func (_m *ThreadStore) MarkAllAsRead(userID string, teamID string) error {
 	ret := _m.Called(userID, teamID)
 

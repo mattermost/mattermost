@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -458,12 +458,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
-			return err
-		}
-	}
-
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
@@ -876,8 +870,8 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelID string, time int64) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time)
+func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -885,8 +879,8 @@ func (a *App) GetPostAfterTime(channelID string, time int64) (*model.Post, *mode
 	return post, nil
 }
 
-func (a *App) GetPostIdAfterTime(channelID string, time int64) (string, *model.AppError) {
-	postID, err := a.Srv().Store.Post().GetPostIdAfterTime(channelID, time)
+func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+	postID, err := a.Srv().Store.Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -894,8 +888,8 @@ func (a *App) GetPostIdAfterTime(channelID string, time int64) (string, *model.A
 	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelID string, time int64) (string, *model.AppError) {
-	postID, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelID, time)
+func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+	postID, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -903,11 +897,11 @@ func (a *App) GetPostIdBeforeTime(channelID string, time int64) (string, *model.
 	return postID, nil
 }
 
-func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
-		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt)
+		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
@@ -918,11 +912,11 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
 	return ""
 }
 
-func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
-		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
+		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
@@ -936,7 +930,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
 // AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 // The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 // and only query to database whenever necessary.
-func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int) {
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
 	prevPostIdSet := false
 	prevPostId := ""
 	nextPostIdSet := false
@@ -966,11 +960,11 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	}
 
 	if !nextPostIdSet {
-		nextPostId = a.GetNextPostIdFromPostList(originalList)
+		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads)
 	}
 
 	if !prevPostIdSet {
-		prevPostId = a.GetPrevPostIdFromPostList(originalList)
+		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads)
 	}
 
 	originalList.NextPostId = nextPostId
@@ -985,7 +979,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limit
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {
@@ -1390,8 +1384,10 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	}
 
 	mentions := getExplicitMentions(post, keywords, groups)
-	if _, ok := mentions.Mentions[user.Id]; ok {
-		count += 1
+	if post.UpdateAt >= timestamp {
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
 	}
 
 	for _, p := range posts {
