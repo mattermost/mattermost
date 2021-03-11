@@ -1220,6 +1220,23 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
 			}
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+		jobData := map[string]string{
+			"emailList": model.ArrayToJson(emailList),
+			"teamID":    c.Params.TeamId,
+			"senderID":  c.App.Session().UserId,
+			"graceful":  r.URL.Query().Get("graceful"),
+		}
+
+		// we then manually schedule the job
+		_, e := c.App.Srv().Jobs.CreateJob(model.JOB_TYPE_RESEND_INVITATION_EMAIL, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			// Ask Maria if we can just continue and not return
+			return
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
