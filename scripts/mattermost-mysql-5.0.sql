@@ -722,7 +722,7 @@ CREATE TABLE `Roles` (
   `DeleteAt` bigint(20) DEFAULT NULL,
   `Permissions` text,
   `SchemeManaged` tinyint(1) DEFAULT NULL,
-  `BuiltIn` tinyint(1) DEFAULT NULL,
+  `BuiltIn` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Name` (`Name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
