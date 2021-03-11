@@ -219,7 +219,7 @@ func (l *Logger) Sugar() *SugarLogger {
 }
 
 func (l *Logger) IsLevelEnabled(level LogLevel) bool {
-	return isLevelEnabled(l.getLogger(), logr.Debug)
+	return isLevelEnabled(l.getLogger(), logr.Level(level))
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
