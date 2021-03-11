@@ -108,6 +108,14 @@ var PERMISSION_CREATE_LDAP_SYNC_JOB *Permission
 var PERMISSION_READ_LDAP_SYNC_JOB *Permission
 var PERMISSION_TEST_LDAP *Permission
 var PERMISSION_INVALIDATE_EMAIL_INVITE *Permission
+var PERMISSION_GET_SAML_METADATA_FROM_IDP *Permission
+var PERMISSION_ADD_SAML_PUBLIC_CERT *Permission
+var PERMISSION_ADD_SAML_PRIVATE_CERT *Permission
+var PERMISSION_ADD_SAML_IDP_CERT *Permission
+var PERMISSION_REMOVE_SAML_PUBLIC_CERT *Permission
+var PERMISSION_REMOVE_SAML_PRIVATE_CERT *Permission
+var PERMISSION_REMOVE_SAML_IDP_CERT *Permission
+var PERMISSION_GET_SAML_CERT_STATUS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -613,6 +621,60 @@ func initializePermissions() {
 
 	PERMISSION_INVALIDATE_EMAIL_INVITE = &Permission{
 		"invalidate_email_invite",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_GET_SAML_METADATA_FROM_IDP = &Permission{
+		"get_saml_metadata_from_idp",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_ADD_SAML_PUBLIC_CERT = &Permission{
+		"add_saml_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_SAML_PRIVATE_CERT = &Permission{
+		"add_saml_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_SAML_IDP_CERT = &Permission{
+		"add_saml_idp_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_PUBLIC_CERT = &Permission{
+		"remove_saml_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_PRIVATE_CERT = &Permission{
+		"remove_saml_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_IDP_CERT = &Permission{
+		"remove_saml_idp_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_GET_SAML_CERT_STATUS = &Permission{
+		"get_saml_cert_status",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1212,6 +1274,14 @@ func initializePermissions() {
 		PERMISSION_READ_LDAP_SYNC_JOB,
 		PERMISSION_TEST_LDAP,
 		PERMISSION_INVALIDATE_EMAIL_INVITE,
+		PERMISSION_GET_SAML_METADATA_FROM_IDP,
+		PERMISSION_ADD_SAML_PUBLIC_CERT,
+		PERMISSION_ADD_SAML_PRIVATE_CERT,
+		PERMISSION_ADD_SAML_IDP_CERT,
+		PERMISSION_REMOVE_SAML_PUBLIC_CERT,
+		PERMISSION_REMOVE_SAML_PRIVATE_CERT,
+		PERMISSION_REMOVE_SAML_IDP_CERT,
+		PERMISSION_GET_SAML_CERT_STATUS,
 	}
 
 	TeamScopedPermissions := []*Permission{

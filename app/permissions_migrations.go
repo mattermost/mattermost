@@ -597,14 +597,14 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 	permissionsAuthenticationRead := []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS.Id}
 	permissionsAuthenticationWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS.Id}
 
-	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
+	// Give the new subsection READ permissions to any user with READ_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
 		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
 		Add:    permissionsAuthenticationRead,
 		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id},
 	})
 
-	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
+	// Give the new subsection WRITE permissions to any user with WRITE_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
 		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
 		Add:    permissionsAuthenticationWrite,
@@ -623,10 +623,16 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 		Add: []string{model.PERMISSION_TEST_LDAP.Id, model.PERMISSION_READ_LDAP_SYNC_JOB.Id},
 	})
 
-	// Give the ancillary permissions CREATE_LDAP_SYNC_JOB to anyone with WRITE_AUTHENTICATION_LDAP
+	// Give the ancillary permissions PERMISSION_INVALIDATE_EMAIL_INVITE to anyone with WRITE_AUTHENTICATION_EMAIL
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id),
 		Add: []string{model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id},
+	})
+
+	// Give the ancillary permissions for SAML to anyone with WRITE_AUTHENTICATION_SAML
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML.Id),
+		Add: []string{model.PERMISSION_GET_SAML_METADATA_FROM_IDP.Id, model.PERMISSION_ADD_SAML_PUBLIC_CERT.Id, model.PERMISSION_ADD_SAML_PRIVATE_CERT.Id, model.PERMISSION_ADD_SAML_IDP_CERT.Id, model.PERMISSION_REMOVE_SAML_PUBLIC_CERT.Id, model.PERMISSION_REMOVE_SAML_PRIVATE_CERT.Id, model.PERMISSION_REMOVE_SAML_IDP_CERT.Id, model.PERMISSION_GET_SAML_CERT_STATUS.Id},
 	})
 	return transformations, nil
 }
