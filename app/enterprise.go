@@ -96,7 +96,7 @@ func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface
 	jobsActiveUsersInterface = f
 }
 
-type resendInvitationEmailInterfaceMaker func(*Server) ejobs.ResendInvitationEmailJobInterface
+type resendInvitationEmailInterfaceMaker func(*App) ejobs.ResendInvitationEmailJobInterface
 
 var jobsResendInvitationEmailInterface resendInvitationEmailInterfaceMaker
 

@@ -141,7 +141,7 @@ func (a *App) initJobs() {
 	}
 
 	if jobsResendInvitationEmailInterface != nil {
-		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a.srv)
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
 	}
 
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
