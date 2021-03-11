@@ -603,13 +603,19 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error initiating metrics router.", mlog.Err(err))
 	}
 
-	if *s.Config().MetricsSettings.Enable && s.startMetrics {
-		if s.Metrics != nil {
-			s.Metrics.Register()
+	s.setupMetricsServer()
+
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if oldLicense == nil && newLicense == nil {
+			return
 		}
 
-		s.StartMetricsServer()
-	}
+		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+			return
+		}
+
+		s.setupMetricsServer()
+	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
 	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
@@ -626,6 +632,24 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+func (s *Server) setupMetricsServer() {
+	if !*s.Config().MetricsSettings.Enable || !s.startMetrics {
+		return
+	}
+
+	s.StopMetricsServer()
+
+	if err := s.InitMetricsRouter(); err != nil {
+		mlog.Error("Error initiating metrics router.", mlog.Err(err))
+	}
+
+	if s.Metrics != nil {
+		s.Metrics.Register()
+	}
+
+	s.StartMetricsServer()
 }
 
 func maxInt(a, b int) int {
