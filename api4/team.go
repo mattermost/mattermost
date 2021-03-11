@@ -1222,10 +1222,13 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// we get the emailList after it has finished checks like the emails over the list
+
+		scheduledAt := model.GetMillis()
 		jobData := map[string]string{
-			"emailList": model.ArrayToJson(emailList),
-			"teamID":    c.Params.TeamId,
-			"senderID":  c.App.Session().UserId,
+			"emailList":   model.ArrayToJson(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.App.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
 		}
 
 		// we then manually schedule the job
