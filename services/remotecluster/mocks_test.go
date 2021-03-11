@@ -56,6 +56,9 @@ type mockLogger struct {
 	t *testing.T
 }
 
+func (ml *mockLogger) IsLevelEnabled(level mlog.LogLevel) bool {
+	return true
+}
 func (ml *mockLogger) Debug(s string, flds ...mlog.Field) {
 	ml.t.Log("debug", s, fieldsToStrings(flds))
 }

@@ -23,6 +23,13 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		return errors.New("empty sync message")
 	}
 
+	if scs.server.GetLogger().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesInbound) {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceMessagesOutbound, "inbound message",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("msg", string(msg.Payload)),
+		)
+	}
+
 	var syncMessages []syncMsg
 
 	if err := json.Unmarshal(msg.Payload, &syncMessages); err != nil {

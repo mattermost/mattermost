@@ -58,6 +58,7 @@ var Bool = zap.Bool
 var Duration = zap.Duration
 
 type LoggerIFace interface {
+	IsLevelEnabled(LogLevel) bool
 	Debug(string, ...Field)
 	Info(string, ...Field)
 	Warn(string, ...Field)
@@ -215,6 +216,10 @@ func (l *Logger) Sugar() *SugarLogger {
 		wrappedLogger: l,
 		zapSugar:      l.zap.Sugar(),
 	}
+}
+
+func (l *Logger) IsLevelEnabled(level LogLevel) bool {
+	return isLevelEnabled(l.getLogger(), logr.Debug)
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {

@@ -329,6 +329,13 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	}
 	msg := model.NewRemoteClusterMsg(TopicSync, b)
 
+	if scs.server.GetLogger().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesOutbound) {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceMessagesOutbound, "outbound message",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("msg", string(b)),
+		)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
