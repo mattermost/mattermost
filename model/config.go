@@ -365,7 +365,7 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
 	EnableAWSMetering                                 *bool   // telemetry: none
-	SplitKey                                          *string `access:"environment,write_restrictable"` // telemetry: none
+	SplitKey                                          *string `access:",write_restrictable"`            // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"` // telemetry: none
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
