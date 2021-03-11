@@ -1144,10 +1144,16 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 	}
 
 	for _, cu := range channelUnreads {
-		teamUnread.MentionCount += cu.MentionCount
-		if cu.MentionCountRoot != nil {
-			teamUnread.MentionCountRoot += *cu.MentionCountRoot
+		// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
+		if cu.MentionCountRoot == nil {
+			if err := a.populateMentionCountRoot(teamID, userID); err != nil {
+				return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return a.GetTeamUnread(teamID, userID)
 		}
+		teamUnread.MentionCount += cu.MentionCount
+		teamUnread.MentionCountRoot += *cu.MentionCountRoot
+
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			teamUnread.MsgCount += cu.MsgCount
 		}
@@ -1669,6 +1675,19 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 	data, err := a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
+	for _, cu := range data {
+		if cu.MentionCountRoot == nil {
+			if cu.MentionCountRoot == nil {
+				err := a.populateMentionCountRoot(cu.TeamId, userID)
+				if err != nil {
+					return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return a.GetTeamsUnreadForUser(excludeTeamId, userID)
+			}
+		}
 	}
 
 	members := []*model.TeamUnread{}
