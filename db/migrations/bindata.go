@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Code generated for package migrations by go-bindata DO NOT EDIT. (@generated)
 // sources:
 // mysql/000001_create_teams.down.sql
@@ -324,7 +321,7 @@ var _bindata = map[string]func() (*asset, error){
 // AssetDir("") will return []string{"data"}.
 func AssetDir(name string) ([]string, error) {
 	node := _bintree
-	if name != "" {
+	if len(name) != 0 {
 		cannonicalName := strings.Replace(name, "\\", "/", -1)
 		pathList := strings.Split(cannonicalName, "/")
 		for _, p := range pathList {
