@@ -1868,11 +1868,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Lid worden van team"
+    "translation": "Word nu lid"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Je bent uitgenodigd"
+    "translation": "{{ .SenderName }} heeft je uitgenodigd om lid te worden van het team {{ .TeamDisplayName }} ."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1920,7 +1920,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "U heeft een wachtwoord reset aangevraagd"
+    "translation": "Jouw wachtwoord opnieuw instellen"
   },
   {
     "id": "api.templates.reset_subject",
@@ -3476,15 +3476,15 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Email already used by another SAML user."
+    "translation": "E-mail is al gebruikt door een andere SAML-gebruiker."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "User not found in the users file."
+    "translation": "Gebruiker niet gevonden in het gebruikersbestand."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Username already used by another Mattermost user."
+    "translation": "Gebruikersnaam al gebruikt door een andere Mattermost gebruiker."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3532,7 +3532,7 @@
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Jouw licentie ondersteund geen SAML authenticatie"
+    "translation": "Jouw licentie ondersteund geen SAML authenticatie."
   },
   {
     "id": "ent.saml.metadata.app_error",
@@ -3544,43 +3544,43 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Fout bij decoderen van base64 voor trigger-ID voor interactief dialoogvenster."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger-ID voor interactief dialoogvenster is vervallen. Trigger-ID's hebben een levensduur van maximum {{.Seconds}} seconden."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "Trigger-ID mist vereiste gegevens voor interactief dialoogvenster."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Decoderen van base64-handtekening van trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Verificatie van handtekening voor trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Fout bij ondertekenen van gegenereerde trigger-ID voor interactief dialoogvenster."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Could not request cancellation for job that is not in a cancelable state."
+    "translation": "Kan geen annulering aanvragen voor een taak die niet kan worden geannuleerd."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": "Failed to set job status to error"
+    "translation": "Kan taakstatus niet instellen op fout"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Kan URL niet vewerken"
+    "translation": "Kan URL niet verwerken."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -3588,31 +3588,31 @@
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Ongeldige 'MFA' token"
+    "translation": "Ongeldige 'MFA' token."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "Fout bij het genereren van een QR code"
+    "translation": "Fout bij het genereren van een QR code."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Multi-factor authentication has been disabled on this server."
+    "translation": "Multi-factor authenticatie is uitgeschakeld op deze server."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
+    "translation": "Ongeldige 'MFA' token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
+    "translation": "Migratie is mislukt vanwege ongeldige voortgangsgegevens."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Unable to run migration job due to unknown migration key."
+    "translation": "De migratietaak kan niet worden uitgevoerd vanwege een onbekende migratiesleutel."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
@@ -3620,95 +3620,95 @@
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Ongeldige doorverwijzings uri"
+    "translation": "Ongeldige doorverwijzingsuri."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Ongeldig verversings token"
+    "translation": "Ongeldig verversingstoken."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikers-id."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Ongeldige authorizatie code"
+    "translation": "Ongeldige autorisatiecode."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Ongeldig client id"
+    "translation": "Ongeldig clientid."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Verloopt moet ingesteld zijn"
+    "translation": "Expires moet ingesteld zijn."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": "Ongeldige doorverwijzing uri"
+    "translation": "Ongeldige doorverwijzingsuri."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "Ongeldig antwoordtype."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Ongeldige omgeving"
+    "translation": "Ongeldig bereik."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": "Ongeldige status"
+    "translation": "Ongeldige status."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikersid."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig create at."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig creator id."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige description."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Ongeldige update at."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige user id."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige username."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Naam oet 2 of meer kleine letters bevatten"
+    "translation": "Naam moet 2 of meer kleine letters bevatten."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldige creator id."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Ongeldige weergave naam"
+    "translation": "Ongeldig display name."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "Ongeldige header"
+    "translation": "Ongeldige header."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -5180,7 +5180,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Decoderen van base64-handtekening van trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -6596,7 +6596,7 @@
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": "Failed to select message export data"
+    "translation": "Fout bij selecteren van berichtexportgegevens."
   },
   {
     "id": "app.compliance.save.saving.app_error",
@@ -6876,7 +6876,7 @@
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
+    "translation": "SAML-aanmelding kan niet worden voltooid met een leeg e-mailadres."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
@@ -8649,5 +8649,113 @@
   {
     "id": "api.cloud.get_admins_emails.error",
     "translation": "Fout bij het ophalen van de e-mail van de systeembeheerder."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Klik op de knop hieronder om jouw wachtwoord te resetten. Als u dit niet heeft aangevraagd, kan je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "De link om het wachtwoord te resetten vervalt over 24 uur."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Je bent uitgenodigd als gast om samen te werken met het team"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Wat is Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Meer info"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost is een flexibel, open source messaging platform dat veilige teamsamenwerking mogelijk maakt."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Begin samen te werken met jouw team op Mattermost"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Ongeldige of ontbrekende request body."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Kan geen welkomstmail naar de cloud sturen"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Gefeliciteerd - jouw {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Neem de volgende stappen om jouw teams samen te stellen en het meeste uit jouw werkruimte te halen."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Richt jouw werkruimte in"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Gefeliciteerd!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Vragen over hoe te beginnen? E-mail ons op"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "voor de beste ervaring op PC, Mac, iOS en Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Meld je aan op jouw werkruimte op onze"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "Mobiele en desktop apps"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Deel deze link om jouw leden uit te nodigen om lid te worden van {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Nodig mensen uit op je werkplek"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Zorg ervoor dat je jouw link opslaat of bewaard als bladwijzer voor toekomstig gebruik."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Bedankt voor het maken van "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Download de Mattermost-app"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Mattermost openen"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "app marktplaats."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Stroomlijn jE werk met tools als Github, Google Agenda en Chrome. Ontdek alle integraties die we hebben op onze"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Apps toevoegen aan jouw werkruimte"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook gebeurtenis werd niet behandeld. Ofwel ontbreekt het, ofwel is het niet geldig."
   }
 ]
