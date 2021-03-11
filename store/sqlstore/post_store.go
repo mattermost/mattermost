@@ -942,7 +942,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		Where(sq.GtOrEq{"UpdateAt": options.Since}).
 		Where(sq.Eq{"ChannelId": options.ChannelId}).
 		Limit(uint64(options.Limit)).
-		OrderBy("UpdateAt"+order, "Id")
+		OrderBy("CreateAt"+order, "Id")
 
 	if options.Until > 0 {
 		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
