@@ -7096,22 +7096,6 @@ func (s *TimerLayerThreadStore) GetThreadForUser(userId string, teamId string, t
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ThreadStore.GetThreadMentionsForUserPerChannel(userId, teamId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadMentionsForUserPerChannel", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	start := timemodule.Now()
 

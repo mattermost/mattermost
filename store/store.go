@@ -255,7 +255,6 @@ type ThreadStore interface {
 	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
-	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamID string) error
 	MarkAsRead(userId, threadID string, timestamp int64) error
