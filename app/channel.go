@@ -3104,13 +3104,29 @@ func (a *App) populateMentionCountRoot(teamID, userID string) error {
 		return err
 	}
 	channelMembersToUpdate := []*model.ChannelMember{}
+	channelMembersToZero := []*model.ChannelMember{}
 	channelIdsToUpdate := []string{}
 	for i := range *data {
 		cm := &(*data)[i]
-		if cm.MentionCountRoot == nil && cm.MentionCount > 0 {
-			channelMembersToUpdate = append(channelMembersToUpdate, cm)
-			channelIdsToUpdate = append(channelIdsToUpdate, cm.ChannelId)
+		if cm.MentionCountRoot == nil {
+			if cm.MentionCount > 0 {
+				channelMembersToUpdate = append(channelMembersToUpdate, cm)
+				channelIdsToUpdate = append(channelIdsToUpdate, cm.ChannelId)
+			} else {
+				channelMembersToZero = append(channelMembersToZero, cm)
+			}
 		}
+	}
+	if len(channelIdsToUpdate) == 0 {
+		if len(channelMembersToZero) > 0 {
+			for _, c := range channelMembersToZero {
+				c.MentionCountRoot = model.NewInt64(0)
+			}
+		}
+		if _, err = a.Srv().Store.Channel().UpdateMultipleMembers(channelMembersToZero); err != nil {
+			return err
+		}
+		return nil
 	}
 	channels, err := a.Srv().Store.Channel().GetChannelsByIds(channelIdsToUpdate, false)
 	if err != nil {
