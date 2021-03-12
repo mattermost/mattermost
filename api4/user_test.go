@@ -3372,7 +3372,7 @@ func TestLoginWithLag(t *testing.T) {
 		defer mainHelper.ToggleReplicasOff()
 
 		cmdErr := mainHelper.SetReplicationLagForTesting(5)
-		require.Nil(t, cmdErr)
+		require.NoError(t, cmdErr)
 		defer mainHelper.SetReplicationLagForTesting(0)
 
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
