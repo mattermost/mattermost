@@ -364,7 +364,7 @@ func (a *App) disableUserBots(userID string) *model.AppError {
 
 		// Get next set of bots if we got the max number of bots
 		if len(userBots) == perPage {
-			options.Page++
+			options.Page += 1
 			continue
 		}
 		break
@@ -396,7 +396,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError 
 			break
 		}
 
-		botOptions.Page++
+		botOptions.Page += 1
 	}
 
 	// user does not own bots
@@ -424,7 +424,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError 
 			break
 		}
 
-		userOptions.Page++
+		userOptions.Page += 1
 	}
 
 	// user being disabled

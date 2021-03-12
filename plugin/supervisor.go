@@ -89,7 +89,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 		return nil, err
 	}
 	for _, hookName := range impl {
-		if hookID, ok := hookNameToID[hookName]; ok {
+		if hookID, ok := hookNameToId[hookName]; ok {
 			sup.implemented[hookID] = true
 		}
 	}

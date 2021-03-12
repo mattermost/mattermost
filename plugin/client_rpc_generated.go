@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	hookNameToID["OnDeactivate"] = OnDeactivateID
+	hookNameToId["OnDeactivate"] = OnDeactivateID
 }
 
 type ZOnDeactivateArgs struct {
@@ -49,7 +49,7 @@ func (s *hooksRPCServer) OnDeactivate(args *ZOnDeactivateArgs, returns *ZOnDeact
 }
 
 func init() {
-	hookNameToID["OnConfigurationChange"] = OnConfigurationChangeID
+	hookNameToId["OnConfigurationChange"] = OnConfigurationChangeID
 }
 
 type ZOnConfigurationChangeArgs struct {
@@ -83,7 +83,7 @@ func (s *hooksRPCServer) OnConfigurationChange(args *ZOnConfigurationChangeArgs,
 }
 
 func init() {
-	hookNameToID["ExecuteCommand"] = ExecuteCommandID
+	hookNameToId["ExecuteCommand"] = ExecuteCommandID
 }
 
 type ZExecuteCommandArgs struct {
@@ -119,7 +119,7 @@ func (s *hooksRPCServer) ExecuteCommand(args *ZExecuteCommandArgs, returns *ZExe
 }
 
 func init() {
-	hookNameToID["UserHasBeenCreated"] = UserHasBeenCreatedID
+	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedID
 }
 
 type ZUserHasBeenCreatedArgs struct {
@@ -153,7 +153,7 @@ func (s *hooksRPCServer) UserHasBeenCreated(args *ZUserHasBeenCreatedArgs, retur
 }
 
 func init() {
-	hookNameToID["UserWillLogIn"] = UserWillLogInID
+	hookNameToId["UserWillLogIn"] = UserWillLogInID
 }
 
 type ZUserWillLogInArgs struct {
@@ -188,7 +188,7 @@ func (s *hooksRPCServer) UserWillLogIn(args *ZUserWillLogInArgs, returns *ZUserW
 }
 
 func init() {
-	hookNameToID["UserHasLoggedIn"] = UserHasLoggedInID
+	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInID
 }
 
 type ZUserHasLoggedInArgs struct {
@@ -222,7 +222,7 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *ZUserHasLoggedInArgs, returns *ZU
 }
 
 func init() {
-	hookNameToID["MessageHasBeenPosted"] = MessageHasBeenPostedID
+	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedID
 }
 
 type ZMessageHasBeenPostedArgs struct {
@@ -256,7 +256,7 @@ func (s *hooksRPCServer) MessageHasBeenPosted(args *ZMessageHasBeenPostedArgs, r
 }
 
 func init() {
-	hookNameToID["MessageHasBeenUpdated"] = MessageHasBeenUpdatedID
+	hookNameToId["MessageHasBeenUpdated"] = MessageHasBeenUpdatedID
 }
 
 type ZMessageHasBeenUpdatedArgs struct {
@@ -291,7 +291,7 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *ZMessageHasBeenUpdatedArgs,
 }
 
 func init() {
-	hookNameToID["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
+	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
 type ZChannelHasBeenCreatedArgs struct {
@@ -325,7 +325,7 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *ZChannelHasBeenCreatedArgs,
 }
 
 func init() {
-	hookNameToID["UserHasJoinedChannel"] = UserHasJoinedChannelID
+	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelID
 }
 
 type ZUserHasJoinedChannelArgs struct {
@@ -360,7 +360,7 @@ func (s *hooksRPCServer) UserHasJoinedChannel(args *ZUserHasJoinedChannelArgs, r
 }
 
 func init() {
-	hookNameToID["UserHasLeftChannel"] = UserHasLeftChannelID
+	hookNameToId["UserHasLeftChannel"] = UserHasLeftChannelID
 }
 
 type ZUserHasLeftChannelArgs struct {
@@ -395,7 +395,7 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *ZUserHasLeftChannelArgs, retur
 }
 
 func init() {
-	hookNameToID["UserHasJoinedTeam"] = UserHasJoinedTeamID
+	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamID
 }
 
 type ZUserHasJoinedTeamArgs struct {
@@ -430,7 +430,7 @@ func (s *hooksRPCServer) UserHasJoinedTeam(args *ZUserHasJoinedTeamArgs, returns
 }
 
 func init() {
-	hookNameToID["UserHasLeftTeam"] = UserHasLeftTeamID
+	hookNameToId["UserHasLeftTeam"] = UserHasLeftTeamID
 }
 
 type ZUserHasLeftTeamArgs struct {
@@ -465,7 +465,7 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *ZUserHasLeftTeamArgs, returns *ZU
 }
 
 func init() {
-	hookNameToID["ReactionHasBeenAdded"] = ReactionHasBeenAddedID
+	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedID
 }
 
 type ZReactionHasBeenAddedArgs struct {
@@ -499,7 +499,7 @@ func (s *hooksRPCServer) ReactionHasBeenAdded(args *ZReactionHasBeenAddedArgs, r
 }
 
 func init() {
-	hookNameToID["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedID
+	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedID
 }
 
 type ZReactionHasBeenRemovedArgs struct {

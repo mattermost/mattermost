@@ -25,7 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var hookNameToID map[string]int = make(map[string]int)
+var hookNameToId map[string]int = make(map[string]int)
 
 type hooksRPCClient struct {
 	client      *rpc.Client
@@ -118,7 +118,7 @@ var _ Hooks = &hooksRPCClient{}
 func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 	err = g.client.Call("Plugin.Implemented", struct{}{}, &impl)
 	for _, hookName := range impl {
-		if hookID, ok := hookNameToID[hookName]; ok {
+		if hookID, ok := hookNameToId[hookName]; ok {
 			g.implemented[hookID] = true
 		}
 	}
@@ -268,7 +268,7 @@ func (s *apiRPCServer) LoadPluginConfiguration(args *ZLoadPluginConfigurationArg
 }
 
 func init() {
-	hookNameToID["ServeHTTP"] = ServeHTTPID
+	hookNameToId["ServeHTTP"] = ServeHTTPID
 }
 
 type ZServeHTTPArgs struct {
@@ -442,7 +442,7 @@ func (s *apiRPCServer) PluginHTTP(args *ZPluginHTTPArgs, returns *ZPluginHTTPRet
 }
 
 func init() {
-	hookNameToID["FileWillBeUploaded"] = FileWillBeUploadedID
+	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedID
 }
 
 type ZFileWillBeUploadedArgs struct {
@@ -533,7 +533,7 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *ZFileWillBeUploadedArgs, retur
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
-	hookNameToID["MessageWillBePosted"] = MessageWillBePostedID
+	hookNameToId["MessageWillBePosted"] = MessageWillBePostedID
 }
 
 type ZMessageWillBePostedArgs struct {
@@ -573,7 +573,7 @@ func (s *hooksRPCServer) MessageWillBePosted(args *ZMessageWillBePostedArgs, ret
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
-	hookNameToID["MessageWillBeUpdated"] = MessageWillBeUpdatedID
+	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedID
 }
 
 type ZMessageWillBeUpdatedArgs struct {
