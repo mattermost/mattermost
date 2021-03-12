@@ -1099,7 +1099,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "api.file.no_driver.app_error",
@@ -1371,15 +1371,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @all이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @channel이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @channel이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @here이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @here이 비활성화 되었습니다."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1631,7 +1631,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v이/가 %v를 채널에 추가했습니다."
+    "translation": "%v님이 %v님을 채널에 추가했습니다."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -4763,7 +4763,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
