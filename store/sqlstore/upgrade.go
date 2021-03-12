@@ -968,8 +968,8 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
-		sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
-		saveSchemaVersion(sqlStore, Version5340)
-	}
+	//if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
+	//	saveSchemaVersion(sqlStore, Version5340)
+	//}
 }
