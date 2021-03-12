@@ -2112,9 +2112,9 @@ type LdapSettings struct {
 	// Customization
 	LoginFieldName *string `access:"authentication"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"experimental_features"`
+	LoginButtonBorderColor *string `access:"experimental_features"`
+	LoginButtonTextColor   *string `access:"experimental_features"`
 
 	Trace *bool `access:"authentication"` // telemetry: none
 }
@@ -2346,9 +2346,9 @@ type SamlSettings struct {
 
 	LoginButtonText *string `access:"authentication"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"experimental_features"`
+	LoginButtonBorderColor *string `access:"experimental_features"`
+	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
