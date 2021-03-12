@@ -2112,7 +2112,7 @@ type LdapSettings struct {
 	// Customization
 	LoginFieldName *string `access:"authentication"`
 
-	LoginButtonColor       *string `access:"authenticatio"`
+	LoginButtonColor       *string `access:"authentication"`
 	LoginButtonBorderColor *string `access:"authentication"`
 	LoginButtonTextColor   *string `access:"authentication"`
 
