@@ -71,7 +71,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
 		UserAgent:      r.UserAgent(),
-		SourcePluginID: sourcePluginId,
+		SourcePluginId: sourcePluginId,
 	}
 
 	hooks.ServeHTTP(context, w, r)
