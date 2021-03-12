@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -1925,6 +1926,7 @@ func TestThreadMembership(t *testing.T) {
 func TestCollapsedThreadFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -1968,5 +1970,44 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+	})
+
+	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.CollapsedThreads = true
+		})
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+		defer th.App.DeleteChannel(channel, user1.Id)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// we introduce a race to trigger an unexpected error from the db side.
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			th.Server.Store.Post().PermanentDeleteByUser(user1.Id)
+		}()
+
+		require.NotPanics(t, func() {
+			_, err = th.App.CreatePost(&model.Post{
+				UserId:    user1.Id,
+				ChannelId: channel.Id,
+				RootId:    postRoot.Id,
+				Message:   fmt.Sprintf("@%s", user2.Username),
+			}, channel, false, true)
+			require.Nil(t, err)
+		})
+
+		wg.Wait()
 	})
 }
