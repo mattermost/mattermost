@@ -206,7 +206,10 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) *model.AppError {
+	if disableWelcomeEmail {
+		return nil
+	}
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -251,6 +254,43 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("sendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// SendCloudWelcomeEmail sends the cloud version of the welcome email
+func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_welcome_email.subject")
+
+	workSpacePath := fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
+
+	bodyPage := es.newEmailTemplate("cloud_welcome_email", locale)
+	bodyPage.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["SubTitle"] = T("api.templates.cloud_welcome_email.subtitle")
+	bodyPage.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
+	bodyPage.Props["Info"] = T("api.templates.cloud_welcome_email.info")
+	bodyPage.Props["Info2"] = T("api.templates.cloud_welcome_email.info2")
+	bodyPage.Props["WorkSpacePath"] = workSpacePath
+	bodyPage.Props["DNS"] = dns
+	bodyPage.Props["InviteInfo"] = T("api.templates.cloud_welcome_email.invite_info")
+	bodyPage.Props["InviteSubInfo"] = T("api.templates.cloud_welcome_email.invite_sub_info", map[string]interface{}{"WorkSpace": workSpaceName})
+	bodyPage.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", workSpacePath, teamInviteID)
+	bodyPage.Props["AddAppsInfo"] = T("api.templates.cloud_welcome_email.add_apps_info")
+	bodyPage.Props["AddAppsSubInfo"] = T("api.templates.cloud_welcome_email.add_apps_sub_info")
+	bodyPage.Props["AppMarketPlace"] = T("api.templates.cloud_welcome_email.app_market_place")
+	bodyPage.Props["AppMarketPlaceLink"] = "https://integrations.mattermost.com/"
+	bodyPage.Props["DownloadMMInfo"] = T("api.templates.cloud_welcome_email.download_mm_info")
+	bodyPage.Props["SignInSubInfo"] = T("api.templates.cloud_welcome_email.signin_sub_info")
+	bodyPage.Props["MMApps"] = T("api.templates.cloud_welcome_email.mm_apps")
+	bodyPage.Props["SignInSubInfo2"] = T("api.templates.cloud_welcome_email.signin_sub_info2")
+	bodyPage.Props["DownloadMMAppsLink"] = "https://mattermost.com/download/"
+	bodyPage.Props["Button"] = T("api.templates.cloud_welcome_email.button")
+	bodyPage.Props["GettingStartedQuestions"] = T("api.templates.cloud_welcome_email.start_questions")
+
+	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
