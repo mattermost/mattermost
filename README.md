@@ -10,10 +10,24 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 
 <img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/13119842/56807911-1bf66f00-67fe-11e9-9b7b-96ce9ceab645.png">
 
+Table of Contents
+=================
+
+  * [Try out Mattermost](#try-out-mattermost)
+  * [Deploy on Heroku](#deploy-on-heroku)
+  * [Deploy on a Cloud Platform via Bitnami](#deploy-on-a-cloud-platform-via-bitnami)
+  * [Install on Your Own Machine](#install-on-your-own-machine)
+  * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
+  * [Get Security Bulletins](#get-security-bulletins)
+  * [Get Involved](#get-involved)
+  * [Learn More](#learn-more)
+  * [Get the Latest News](#get-the-latest-news)
+  * [Contributing](#contributing)
+
 ## Try out Mattermost
 
-- [Join the Mattermost Contributor's server](https://pre-release.mattermost.com/) (latest nightly builds, unstable)
-- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) (latest stable version)
+- [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=codoy5s743rq5mk18i7u5ksz7e) to join community discussions about contributions, development and more
+- [Get started with Mattermost Cloud](https://customers.mattermost.com/cloud/signup) to try out Mattermost
 
 ## Deploy on Heroku
 
@@ -28,7 +42,7 @@ _Note: Heroku preview does not include email or persistent storage_
 ## Install on Your Own Machine
 
 - [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install)
-- [Developer Machine Setup](https://docs.mattermost.com/developer/dev-setup.html)
+- [Developer Machine Setup](https://developers.mattermost.com/contribute/server/developer-setup)
 - [Production Install Guides using Linux Binary](https://mattermost.com/download/)
 - [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html)
 
@@ -46,13 +60,13 @@ Receive notifications of critical security updates. The sophistication of online
 
 ## Get Involved
 
-- [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
+- [Contribute Code](https://developers.mattermost.com/contribute/getting-started/)
 - [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
-- [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
+- [Join Developer Discussion on a Mattermost Server for contributors](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](https://www.mattermost.org/feature-ideas/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
-- [Help translate Mattermost](http://docs.mattermost.com/developer/localization.html#translation-process)
+- [Help translate Mattermost](https://handbook.mattermost.com/contributors/contributors/localization)
 
 ## Learn More
 
@@ -60,11 +74,21 @@ Receive notifications of critical security updates. The sophistication of online
 - [See who's using Mattermost](https://mattermost.com/blog/category/customer-stories/)
 - [Browse over 700 Mattermost integrations](https://integrations.mattermost.com/)
 
+## License
+
+See the [LICENSE file](LICENSE.txt) for license rights and limitations.
+
 ## Get the Latest News
 
-- **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
+- **Twitter** - Follow [Mattermost](https://twitter.com/mattermost).
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
-- **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
-- **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd))
+- **Facebook** - Follow [Mattermost](https://www.facebook.com/MattermostHQ).
+- **LinkedIn** - Follow [Mattermost](https://www.linkedin.com/company/mattermost/).
+- **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
+- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com). 
+- **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
+
+## Contributing
+Please see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!

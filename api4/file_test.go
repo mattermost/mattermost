@@ -1,10 +1,11 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,47 +19,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 var testDir = ""
 
 func init() {
 	testDir, _ = fileutils.FindDir("tests")
-}
-
-func checkCond(tb testing.TB, cond bool, text string) {
-	if !cond {
-		tb.Error(text)
-	}
-}
-
-func checkEq(tb testing.TB, v1, v2 interface{}, text string) {
-	checkCond(tb, fmt.Sprintf("%+v", v1) == fmt.Sprintf("%+v", v2), text)
-}
-
-func checkNeq(tb testing.TB, v1, v2 interface{}, text string) {
-	checkCond(tb, fmt.Sprintf("%+v", v1) != fmt.Sprintf("%+v", v2), text)
-}
-
-type zeroReader struct {
-	limit, read int
-}
-
-func (z *zeroReader) Read(b []byte) (int, error) {
-	for i := range b {
-		if z.read == z.limit {
-			return i, io.EOF
-		}
-		b[i] = 0
-		z.read++
-	}
-
-	return len(b), nil
 }
 
 // File Section
@@ -68,70 +41,106 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-type UploadOpener func() (io.ReadCloser, int64, error)
-
-func NewUploadOpenerReader(in io.Reader) UploadOpener {
-	return func() (io.ReadCloser, int64, error) {
-		rc, ok := in.(io.ReadCloser)
-		if ok {
-			return rc, -1, nil
-		} else {
-			return ioutil.NopCloser(in), -1, nil
-		}
-	}
+func randomBytes(t *testing.T, n int) []byte {
+	bb := make([]byte, n)
+	_, err := rand.Read(bb)
+	require.NoError(t, err)
+	return bb
 }
 
-func NewUploadOpenerFile(path string) UploadOpener {
-	return func() (io.ReadCloser, int64, error) {
-		fi, err := os.Stat(path)
-		if err != nil {
-			return nil, 0, err
-		}
-		f, err := os.Open(path)
-		if err != nil {
-			return nil, 0, err
-		}
-		return f, fi.Size(), nil
-	}
+func fileBytes(t *testing.T, path string) []byte {
+	path = filepath.Join(testDir, path)
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer f.Close()
+	bb, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	return bb
 }
 
-// testUploadFile and testUploadFiles have been "staged" here, eventually they
-// should move back to being model.Client4 methods, once the specifics of the
-// public API are sorted out.
-func testUploadFile(c *model.Client4, url string, body io.Reader, contentType string,
+func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
 	contentLength int64) (*model.FileUploadResponse, *model.Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, body)
+	req, err := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, bytes.NewReader(blob))
+	require.NoError(t, err)
+
 	if contentLength != 0 {
-		rq.ContentLength = contentLength
+		req.ContentLength = contentLength
 	}
-	rq.Header.Set("Content-Type", contentType)
-
-	if len(c.AuthToken) > 0 {
-		rq.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
-	}
-
-	rp, err := c.HttpClient.Do(rq)
-	if err != nil || rp == nil {
-		return nil, model.BuildErrorResponse(rp, model.NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
-	}
-	defer closeBody(rp)
-
-	if rp.StatusCode >= 300 {
-		return nil, model.BuildErrorResponse(rp, model.AppErrorFromJson(rp.Body))
+	req.Header.Set("Content-Type", contentType)
+	if c.AuthToken != "" {
+		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
-	return model.FileUploadResponseFromJson(rp.Body), model.BuildResponse(rp)
+	resp, err := c.HttpClient.Do(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	defer closeBody(resp)
+
+	if resp.StatusCode >= 300 {
+		return nil, model.BuildErrorResponse(resp, model.AppErrorFromJson(resp.Body))
+	}
+
+	return model.FileUploadResponseFromJson(resp.Body), model.BuildResponse(resp)
 }
 
-func testUploadFiles(
+func testUploadFilesPost(
+	t testing.TB,
 	c *model.Client4,
 	channelId string,
 	names []string,
-	openers []UploadOpener,
-	contentLengths []int64,
+	blobs [][]byte,
 	clientIds []string,
-	useMultipart,
-	useChunkedInSimplePost bool,
+	useChunked bool,
+) (*model.FileUploadResponse, *model.Response) {
+
+	// Do not check len(clientIds), leave it entirely to the user to
+	// provide. The server will error out if it does not match the number
+	// of files, but it's not critical here.
+	require.NotEmpty(t, names)
+	require.NotEmpty(t, blobs)
+	require.Equal(t, len(names), len(blobs))
+
+	fileUploadResponse := &model.FileUploadResponse{}
+	for i, blob := range blobs {
+		var cl int64
+		if useChunked {
+			cl = -1
+		} else {
+			cl = int64(len(blob))
+		}
+		ct := http.DetectContentType(blob)
+
+		postURL := fmt.Sprintf("?channel_id=%v", url.QueryEscape(channelId)) +
+			fmt.Sprintf("&filename=%v", url.QueryEscape(names[i]))
+		if len(clientIds) > i {
+			postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
+		}
+
+		fur, resp := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
+		if resp.Error != nil {
+			return nil, resp
+		}
+
+		fileUploadResponse.FileInfos = append(fileUploadResponse.FileInfos, fur.FileInfos[0])
+		if len(clientIds) > 0 {
+			if len(fur.ClientIds) > 0 {
+				fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, fur.ClientIds[0])
+			} else {
+				fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, "")
+			}
+		}
+	}
+
+	return fileUploadResponse, nil
+}
+
+func testUploadFilesMultipart(
+	t testing.TB,
+	c *model.Client4,
+	channelId string,
+	names []string,
+	blobs [][]byte,
+	clientIds []string,
 ) (
 	fileUploadResponse *model.FileUploadResponse,
 	response *model.Response,
@@ -139,171 +148,42 @@ func testUploadFiles(
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
-	if len(names) == 0 || len(openers) == 0 || len(names) != len(openers) {
-		return nil, &model.Response{
-			Error: model.NewAppError("testUploadFiles",
-				"model.client.upload_post_attachment.file.app_error",
-				nil, "Empty or mismatched file data", http.StatusBadRequest),
+	require.NotEmpty(t, names)
+	require.NotEmpty(t, blobs)
+	require.Equal(t, len(names), len(blobs))
+
+	mwBody := &bytes.Buffer{}
+	mw := multipart.NewWriter(mwBody)
+
+	err := mw.WriteField("channel_id", channelId)
+	require.NoError(t, err)
+
+	for i, blob := range blobs {
+		ct := http.DetectContentType(blob)
+		if len(clientIds) > i {
+			err = mw.WriteField("client_ids", clientIds[i])
+			require.NoError(t, err)
 		}
+
+		h := textproto.MIMEHeader{}
+		h.Set("Content-Disposition",
+			fmt.Sprintf(`form-data; name="files"; filename="%s"`, escapeQuotes(names[i])))
+		h.Set("Content-Type", ct)
+
+		// If we error here, writing to mw, the deferred handler
+		part, err := mw.CreatePart(h)
+		require.NoError(t, err)
+
+		_, err = io.Copy(part, bytes.NewReader(blob))
+		require.NoError(t, err)
 	}
 
-	// emergencyResponse is a convenience wrapper to return an error response
-	emergencyResponse := func(err error, errCode string) *model.Response {
-		return &model.Response{
-			Error: model.NewAppError("testUploadFiles",
-				"model.client."+errCode+".app_error",
-				nil, err.Error(), http.StatusBadRequest),
-		}
-	}
-
-	// For multipart, start writing the request as a goroutine, and pipe
-	// multipart.Writer into it, otherwise generate a new request each
-	// time.
-	pipeReader, pipeWriter := io.Pipe()
-	mw := multipart.NewWriter(pipeWriter)
-
-	if useMultipart {
-		fileUploadResponseChannel := make(chan *model.FileUploadResponse)
-		responseChannel := make(chan *model.Response)
-		closedMultipart := false
-
-		go func() {
-			fur, resp := testUploadFile(c, "", pipeReader, mw.FormDataContentType(), -1)
-			responseChannel <- resp
-			fileUploadResponseChannel <- fur
-		}()
-
-		defer func() {
-			for {
-				select {
-				// Premature response, before the entire
-				// multipart was sent
-				case response = <-responseChannel:
-					// Guaranteed to be there
-					fileUploadResponse = <-fileUploadResponseChannel
-					if !closedMultipart {
-						_ = mw.Close()
-						_ = pipeWriter.Close()
-						closedMultipart = true
-					}
-					return
-
-				// Normal response, after the multipart was sent.
-				default:
-					if !closedMultipart {
-						err := mw.Close()
-						if err != nil {
-							fileUploadResponse = nil
-							response = emergencyResponse(err, "upload_post_attachment.writer")
-							return
-						}
-						err = pipeWriter.Close()
-						if err != nil {
-							fileUploadResponse = nil
-							response = emergencyResponse(err, "upload_post_attachment.writer")
-							return
-						}
-						closedMultipart = true
-					}
-				}
-			}
-		}()
-
-		err := mw.WriteField("channel_id", channelId)
-		if err != nil {
-			return nil, emergencyResponse(err, "upload_post_attachment.channel_id")
-		}
-	} else {
-		fileUploadResponse = &model.FileUploadResponse{}
-	}
-
-	data := make([]byte, 512)
-
-	upload := func(i int, f io.ReadCloser) *model.Response {
-		var cl int64
-		defer f.Close()
-
-		if len(contentLengths) > i {
-			cl = contentLengths[i]
-		}
-
-		n, err := f.Read(data)
-		if err != nil && err != io.EOF {
-			return emergencyResponse(err, "upload_post_attachment")
-		}
-		ct := http.DetectContentType(data[:n])
-		reader := io.MultiReader(bytes.NewReader(data[:n]), f)
-
-		if useMultipart {
-			if len(clientIds) > i {
-				err := mw.WriteField("client_ids", clientIds[i])
-				if err != nil {
-					return emergencyResponse(err, "upload_post_attachment.file")
-				}
-			}
-
-			h := make(textproto.MIMEHeader)
-			h.Set("Content-Disposition",
-				fmt.Sprintf(`form-data; name="files"; filename="%s"`, escapeQuotes(names[i])))
-			h.Set("Content-Type", ct)
-
-			// If we error here, writing to mw, the deferred handler
-			part, err := mw.CreatePart(h)
-			if err != nil {
-				return emergencyResponse(err, "upload_post_attachment.writer")
-			}
-
-			_, err = io.Copy(part, reader)
-			if err != nil {
-				return emergencyResponse(err, "upload_post_attachment.writer")
-			}
-		} else {
-			postURL := fmt.Sprintf("?channel_id=%v", url.QueryEscape(channelId)) +
-				fmt.Sprintf("&filename=%v", url.QueryEscape(names[i]))
-			if len(clientIds) > i {
-				postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
-			}
-			if useChunkedInSimplePost {
-				cl = -1
-			}
-			fur, resp := testUploadFile(c, postURL, reader, ct, cl)
-			if resp.Error != nil {
-				return resp
-			}
-			fileUploadResponse.FileInfos = append(fileUploadResponse.FileInfos, fur.FileInfos[0])
-			if len(clientIds) > 0 {
-				if len(fur.ClientIds) > 0 {
-					fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, fur.ClientIds[0])
-				} else {
-					fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, "")
-				}
-			}
-			response = resp
-		}
-
-		return nil
-	}
-
-	for i, open := range openers {
-		f, _, err := open()
-		if err != nil {
-			return nil, emergencyResponse(err, "upload_post_attachment")
-		}
-
-		resp := upload(i, f)
-		if resp != nil && resp.Error != nil {
-			return nil, resp
-		}
-	}
-
-	// In case of a simple POST, the return values have been set by upload(),
-	// otherwise we finished writing the multipart, and the return values will
-	// be set in defer
-	return fileUploadResponse, response
+	require.NoError(t, mw.Close())
+	return testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
 }
 
 func TestUploadFiles(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
@@ -315,14 +195,10 @@ func TestUploadFiles(t *testing.T) {
 	// Get better error messages
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 
-	op := func(name string) UploadOpener {
-		return NewUploadOpenerFile(filepath.Join(testDir, name))
-	}
-
 	tests := []struct {
 		title     string
 		client    *model.Client4
-		openers   []UploadOpener
+		blobs     [][]byte
 		names     []string
 		clientIds []string
 
@@ -340,51 +216,57 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageThumbnailNames []string
 		expectedImagePreviewNames   []string
 		expectedImageHasPreview     []bool
+		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
 		checkResponse               func(t *testing.T, resp *model.Response)
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
-			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
-			expectedCreatorId: th.BasicUser.Id,
+			title:                    "Happy",
+			names:                    []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{true, true, false, false, true},
 		},
 		// Upload a bunch of files, with clientIds
 		{
-			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
-			clientIds:         []string{"1", "2", "3", "4", "5"},
-			expectedCreatorId: th.BasicUser.Id,
+			title:                    "Happy client_ids",
+			names:                    []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
+			clientIds:                []string{"1", "2", "3", "4", "5"},
+			expectedImageMiniPreview: []bool{true, true, false, false, true},
+			expectedCreatorId:        th.BasicUser.Id,
 		},
 		// Upload a bunch of images. testgif.gif is an animated GIF,
 		// so it does not have HasPreviewImage set.
 		{
-			title:                   "Happy images",
-			names:                   []string{"test.png", "testgif.gif"},
-			expectImage:             true,
-			expectedCreatorId:       th.BasicUser.Id,
-			expectedImageWidths:     []int{408, 118},
-			expectedImageHeights:    []int{336, 118},
-			expectedImageHasPreview: []bool{true, false},
+			title:                    "Happy images",
+			names:                    []string{"test.png", "testgif.gif"},
+			expectImage:              true,
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageWidths:      []int{408, 118},
+			expectedImageHeights:     []int{336, 118},
+			expectedImageHasPreview:  []bool{true, false},
+			expectedImageMiniPreview: []bool{true, true},
 		},
 		{
-			title:                 "Happy invalid image",
-			names:                 []string{"testgif.gif"},
-			openers:               []UploadOpener{NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
-			skipPayloadValidation: true,
-			expectedCreatorId:     th.BasicUser.Id,
+			title:                    "Happy invalid image",
+			names:                    []string{"testgif.gif"},
+			blobs:                    [][]byte{fileBytes(t, "test-search.md")},
+			skipPayloadValidation:    true,
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{false},
 		},
 		// Simple POST, chunked encoding
 		{
-			title:                   "Happy image chunked post",
-			skipMultipart:           true,
-			useChunkedInSimplePost:  true,
-			names:                   []string{"test.png"},
-			expectImage:             true,
-			expectedImageWidths:     []int{408},
-			expectedImageHeights:    []int{336},
-			expectedImageHasPreview: []bool{true},
-			expectedCreatorId:       th.BasicUser.Id,
+			title:                    "Happy image chunked post",
+			skipMultipart:            true,
+			useChunkedInSimplePost:   true,
+			names:                    []string{"test.png"},
+			expectImage:              true,
+			expectedImageWidths:      []int{408},
+			expectedImageHeights:     []int{336},
+			expectedImageHasPreview:  []bool{true},
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{true},
 		},
 		// Image thumbnail and preview: size and orientation. Note that
 		// the expected image dimensions remain the same regardless of the
@@ -400,6 +282,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectedImageMiniPreview:    []bool{true},
 		},
 		{
 			title:                       "Happy image thumbnail/preview 2",
@@ -410,6 +293,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -421,6 +305,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -432,6 +317,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -443,6 +329,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -454,6 +341,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -465,6 +353,7 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
@@ -476,40 +365,80 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		// TIFF preview test
 		{
 			title:                       "Happy image thumbnail/preview 9",
 			names:                       []string{"test.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_thumb.tiff"},
-			expectedImagePreviewNames:   []string{"test_expected_preview.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{701},
 			expectedImageHeights:        []int{701},
 			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// Extremely wide image test
+		{
+			title:                       "Happy image thumbnail/preview 10",
+			names:                       []string{"10000x1.png"},
+			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"10000x1_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{10000},
+			expectedImageHeights:        []int{1},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// Extremely high image test
+		{
+			title:                       "Happy image thumbnail/preview 11",
+			names:                       []string{"1x10000.png"},
+			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"1x10000_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{1},
+			expectedImageHeights:        []int{10000},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// animated GIF
+		{
+			title:                       "Happy image thumbnail/preview 12",
+			names:                       []string{"testgif.gif"},
+			expectedImageThumbnailNames: []string{"testgif_expected_thumbnail.jpg"},
+			expectedImagePreviewNames:   []string{"testgif_expected_preview.jpg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{118},
+			expectedImageHeights:        []int{118},
+			expectedImageHasPreview:     []bool{false},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:             "Happy admin",
-			client:            th.SystemAdminClient,
-			names:             []string{"test.png"},
-			expectedCreatorId: th.SystemAdminUser.Id,
+			title:                    "Happy admin",
+			client:                   th.SystemAdminClient,
+			names:                    []string{"test.png"},
+			expectedImageMiniPreview: []bool{true},
+			expectedCreatorId:        th.SystemAdminUser.Id,
 		},
 		{
 			title:                  "Happy stream",
 			useChunkedInSimplePost: true,
 			skipPayloadValidation:  true,
-			names:                  []string{"50Mb-stream"},
-			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			names:                  []string{"1Mb-stream"},
+			blobs:                  [][]byte{randomBytes(t, 1024*1024)},
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 50 * 1024 * 1024 })
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 1024 * 1024 })
 				return func(a *app.App) {
 					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
 				}
 			},
-			expectedCreatorId: th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{false},
+			expectedCreatorId:        th.BasicUser.Id,
 		},
 		// Error cases
 		{
@@ -522,19 +451,21 @@ func TestUploadFiles(t *testing.T) {
 		{
 			// on simple post this uploads the last file
 			// successfully, without a ClientId
-			title:                 "Error too few client_ids",
-			skipSimplePost:        true,
-			names:                 []string{"test.png", "testplugin.tar.gz", "test-search.md"},
-			clientIds:             []string{"1", "4"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckBadRequestStatus,
+			title:                    "Error too few client_ids",
+			skipSimplePost:           true,
+			names:                    []string{"test.png", "testplugin.tar.gz", "test-search.md"},
+			clientIds:                []string{"1", "4"},
+			expectedImageMiniPreview: []bool{true, false, false},
+			skipSuccessValidation:    true,
+			checkResponse:            CheckBadRequestStatus,
 		},
 		{
-			title:                 "Error invalid channel_id",
-			channelId:             "../../junk",
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckBadRequestStatus,
+			title:                    "Error invalid channel_id",
+			channelId:                "../../junk",
+			names:                    []string{"test.png"},
+			expectedImageMiniPreview: []bool{true},
+			skipSuccessValidation:    true,
+			checkResponse:            CheckBadRequestStatus,
 		},
 		{
 			title:                 "Error admin channel_id does not exist",
@@ -581,12 +512,13 @@ func TestUploadFiles(t *testing.T) {
 		},
 		// File too large (chunked, simple POST only, multipart would've been redundant with above)
 		{
-			title:                  "File too large chunked",
-			useChunkedInSimplePost: true,
-			skipMultipart:          true,
-			names:                  []string{"test.png"},
-			skipSuccessValidation:  true,
-			checkResponse:          CheckRequestEntityTooLargeStatus,
+			title:                    "File too large chunked",
+			useChunkedInSimplePost:   true,
+			skipMultipart:            true,
+			names:                    []string{"test.png"},
+			skipSuccessValidation:    true,
+			checkResponse:            CheckRequestEntityTooLargeStatus,
+			expectedImageMiniPreview: []bool{false},
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 279590 })
@@ -598,13 +530,13 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                 "Error stream too large",
 			skipPayloadValidation: true,
-			names:                 []string{"50Mb-stream"},
-			openers:               []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			names:                 []string{"1Mb-stream"},
+			blobs:                 [][]byte{randomBytes(t, 1024*1024)},
 			skipSuccessValidation: true,
 			checkResponse:         CheckRequestEntityTooLargeStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 100 * 1024 })
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 10 * 1024 })
 				return func(a *app.App) {
 					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
 				}
@@ -618,19 +550,6 @@ func TestUploadFiles(t *testing.T) {
 				continue
 			}
 
-			// Set the default values and title
-			client := th.Client
-			if tc.client != nil {
-				client = tc.client
-			}
-			channelId := channel.Id
-			if tc.channelId != "" {
-				channelId = tc.channelId
-			}
-			if tc.checkResponse == nil {
-				tc.checkResponse = CheckNoError
-			}
-
 			title := ""
 			if useMultipart {
 				title = "multipart "
@@ -642,96 +561,119 @@ func TestUploadFiles(t *testing.T) {
 			}
 			title += fmt.Sprintf("%v", tc.names)
 
-			// Apply any necessary config changes
-			var restoreConfig func(a *app.App)
-			if tc.setupConfig != nil {
-				restoreConfig = tc.setupConfig(th.App)
-			}
-
 			t.Run(title, func(t *testing.T) {
-				if len(tc.openers) == 0 {
-					for _, name := range tc.names {
-						tc.openers = append(tc.openers, op(name))
+				// Apply any necessary config changes
+				if tc.setupConfig != nil {
+					restoreConfig := tc.setupConfig(th.App)
+					if restoreConfig != nil {
+						defer restoreConfig(th.App)
 					}
 				}
-				fileResp, resp := testUploadFiles(client, channelId, tc.names,
-					tc.openers, nil, tc.clientIds, useMultipart,
-					tc.useChunkedInSimplePost)
-				tc.checkResponse(t, resp)
+
+				// Set the default values
+				client := th.Client
+				if tc.client != nil {
+					client = tc.client
+				}
+				channelId := channel.Id
+				if tc.channelId != "" {
+					channelId = tc.channelId
+				}
+
+				blobs := tc.blobs
+				if len(blobs) == 0 {
+					for _, name := range tc.names {
+						blobs = append(blobs, fileBytes(t, name))
+					}
+				}
+
+				var fileResp *model.FileUploadResponse
+				var resp *model.Response
+				if useMultipart {
+					fileResp, resp = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
+				} else {
+					fileResp, resp = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+				}
+
+				if tc.checkResponse != nil {
+					tc.checkResponse(t, resp)
+				} else {
+					if resp != nil {
+						require.Nil(t, resp.Error)
+					}
+				}
 				if tc.skipSuccessValidation {
 					return
 				}
 
-				if fileResp == nil || len(fileResp.FileInfos) == 0 || len(fileResp.FileInfos) != len(tc.names) {
-					t.Fatal("Empty or mismatched actual or expected FileInfos")
-				}
+				require.NotNil(t, fileResp, "Nil fileResp")
+				require.NotEqual(t, 0, len(fileResp.FileInfos), "Empty FileInfos")
+				require.Equal(t, len(tc.names), len(fileResp.FileInfos), "Mismatched actual or expected FileInfos")
 
 				for i, ri := range fileResp.FileInfos {
 					// The returned file info from the upload call will be missing some fields that will be stored in the database
-					checkEq(t, ri.CreatorId, tc.expectedCreatorId, "File should be assigned to user")
-					checkEq(t, ri.PostId, "", "File shouldn't have a post Id")
-					checkEq(t, ri.Path, "", "File path should not be set on returned info")
-					checkEq(t, ri.ThumbnailPath, "", "File thumbnail path should not be set on returned info")
-					checkEq(t, ri.PreviewPath, "", "File preview path should not be set on returned info")
+					assert.Equal(t, ri.CreatorId, tc.expectedCreatorId, "File should be assigned to user")
+					assert.Equal(t, ri.PostId, "", "File shouldn't have a post Id")
+					assert.Equal(t, ri.Path, "", "File path should not be set on returned info")
+					assert.Equal(t, ri.ThumbnailPath, "", "File thumbnail path should not be set on returned info")
+					assert.Equal(t, ri.PreviewPath, "", "File preview path should not be set on returned info")
+					if len(tc.expectedImageMiniPreview) == len(fileResp.FileInfos) {
+						assert.Equal(t, ri.MiniPreview != nil, tc.expectedImageMiniPreview[i], "File: %s mini preview state unexpected", tc.names[i])
+					}
 					if len(tc.clientIds) > i {
-						checkCond(t, len(fileResp.ClientIds) == len(tc.clientIds),
+						assert.True(t, len(fileResp.ClientIds) == len(tc.clientIds),
 							fmt.Sprintf("Wrong number of clientIds returned, expected %v, got %v", len(tc.clientIds), len(fileResp.ClientIds)))
-						checkEq(t, fileResp.ClientIds[i], tc.clientIds[i],
+						assert.Equal(t, fileResp.ClientIds[i], tc.clientIds[i],
 							fmt.Sprintf("Wrong clientId returned, expected %v, got %v", tc.clientIds[i], fileResp.ClientIds[i]))
 					}
 
-					dbInfo, err := th.App.Srv.Store.FileInfo().Get(ri.Id)
-					require.Nil(t, err)
-					checkEq(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
-					checkEq(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
-					checkEq(t, dbInfo.PostId, "", "File shouldn't have a post")
-					checkNeq(t, dbInfo.Path, "", "File path should be set in database")
+					dbInfo, err := th.App.Srv().Store.FileInfo().Get(ri.Id)
+					require.NoError(t, err)
+					assert.Equal(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
+					assert.Equal(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
+					assert.Equal(t, dbInfo.PostId, "", "File shouldn't have a post")
+					assert.NotEqual(t, dbInfo.Path, "", "File path should be set in database")
 					_, fname := filepath.Split(dbInfo.Path)
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
-					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FILE_TEAM_ID, channel.Id, ri.CreatorId, ri.Id)
+					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
-					checkEq(t, dbInfo.Path, expectedPath,
+					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
 
 					if tc.expectImage {
 						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb.jpg", expectedDir, name)
 						expectedPreviewPath := fmt.Sprintf("%s/%s_preview.jpg", expectedDir, name)
-						checkEq(t, dbInfo.ThumbnailPath, expectedThumbnailPath,
+						assert.Equal(t, dbInfo.ThumbnailPath, expectedThumbnailPath,
 							fmt.Sprintf("Thumbnail for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.ThumbnailPath, expectedThumbnailPath))
-						checkEq(t, dbInfo.PreviewPath, expectedPreviewPath,
+						assert.Equal(t, dbInfo.PreviewPath, expectedPreviewPath,
 							fmt.Sprintf("Preview for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.PreviewPath, expectedPreviewPath))
 
-						checkCond(t,
+						assert.True(t,
 							dbInfo.HasPreviewImage == tc.expectedImageHasPreview[i],
 							fmt.Sprintf("Image: HasPreviewImage should be set for %s", dbInfo.Name))
-						checkCond(t,
+						assert.True(t,
 							dbInfo.Width == tc.expectedImageWidths[i] && dbInfo.Height == tc.expectedImageHeights[i],
 							fmt.Sprintf("Image dimensions: expected %dwx%dh, got %vwx%dh",
 								tc.expectedImageWidths[i], tc.expectedImageHeights[i],
 								dbInfo.Width, dbInfo.Height))
 					}
 
-					/*if !tc.skipPayloadValidation {
+					if !tc.skipPayloadValidation {
 						compare := func(get func(string) ([]byte, *model.Response), name string) {
 							data, resp := get(ri.Id)
-							if resp.Error != nil {
-								t.Fatal(resp.Error)
-							}
+							require.NotNil(t, resp)
+							require.Nil(t, resp.Error)
 
 							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
-							if err != nil {
-								t.Fatal(err)
-							}
-
-							if bytes.Compare(data, expected) != 0 {
+							require.NoError(t, err)
+							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
-								if err != nil {
-									t.Fatal(err)
-								}
-								io.Copy(tf, bytes.NewReader(data))
-								tf.Close()
-								t.Errorf("Actual data mismatched %s, written to %q", name, tf.Name())
+								defer tf.Close()
+								require.NoError(t, err)
+								_, err = io.Copy(tf, bytes.NewReader(data))
+								require.NoError(t, err)
+								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
 						if len(tc.expectedPayloadNames) == 0 {
@@ -745,21 +687,18 @@ func TestUploadFiles(t *testing.T) {
 						if len(tc.expectedImageThumbnailNames) > i {
 							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
-					}*/
+					}
 
 					th.cleanupTestFile(dbInfo)
 				}
 			})
 
-			if restoreConfig != nil {
-				restoreConfig(th.App)
-			}
 		}
 	}
 }
 
 func TestGetFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -768,29 +707,20 @@ func TestGetFile(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	data, resp := Client.GetFile(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	for i := range data {
-		if data[i] != sent[i] {
-			t.Fatal("received file didn't match sent one")
-		}
+		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
 	}
 
 	_, resp = Client.GetFile("junk")
@@ -808,7 +738,7 @@ func TestGetFile(t *testing.T) {
 }
 
 func TestGetFileHeaders(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -828,30 +758,19 @@ func TestGetFileHeaders(t *testing.T) {
 			_, resp = Client.GetFile(fileId)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
-				t.Fatal("returned incorrect Content-Type", contentType)
-			}
+			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
 
 			if getInline {
-				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "inline") {
-					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-				}
+				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "inline", "returned incorrect Content-Disposition")
 			} else {
-				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
-					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-				}
+				CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 			}
 
 			_, resp = Client.DownloadFile(fileId, true)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
-				t.Fatal("returned incorrect Content-Type", contentType)
-			}
-
-			if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
-				t.Fatal("returned incorrect Content-Disposition", contentDisposition)
-			}
+			CheckStartsWith(t, resp.Header.Get("Content-Type"), expectedContentType, "returned incorrect Content-Type")
+			CheckStartsWith(t, resp.Header.Get("Content-Disposition"), "attachment", "returned incorrect Content-Disposition")
 		}
 	}
 
@@ -874,7 +793,7 @@ func TestGetFileHeaders(t *testing.T) {
 }
 
 func TestGetFileThumbnail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -883,27 +802,17 @@ func TestGetFileThumbnail(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
+	fileId := fileResp.FileInfos[0].Id
 
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	_, resp = Client.GetFileThumbnail("junk")
 	CheckBadRequestStatus(t, resp)
@@ -926,7 +835,7 @@ func TestGetFileThumbnail(t *testing.T) {
 }
 
 func TestGetFileLink(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -938,37 +847,29 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	fileId := ""
-	if data, err := testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, uploadResp := Client.UploadFile(data, channel.Id, "test.png")
+	CheckNoError(t, uploadResp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	_, resp := Client.GetFileLink(fileId)
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err := th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp = Client.GetFileLink(fileId)
 	CheckNotImplementedStatus(t, resp)
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
-
-	if link == "" {
-		t.Fatal("should've received public link")
-	}
+	require.NotEqual(t, "", link, "should've received public link")
 
 	_, resp = Client.GetFileLink("junk")
 	CheckBadRequestStatus(t, resp)
@@ -989,13 +890,13 @@ func TestGetFileLink(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFileLink(fileId)
 	CheckNoError(t, resp)
 
-	fileInfo, err := th.App.Srv.Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	require.NoError(t, err)
 	th.cleanupTestFile(fileInfo)
 }
 
 func TestGetFilePreview(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -1004,27 +905,16 @@ func TestGetFilePreview(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+	fileId := fileResp.FileInfos[0].Id
 
 	data, resp := Client.GetFilePreview(fileId)
 	CheckNoError(t, resp)
-
-	if len(data) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEqual(t, 0, len(data), "should not be empty")
 
 	_, resp = Client.GetFilePreview("junk")
 	CheckBadRequestStatus(t, resp)
@@ -1047,7 +937,7 @@ func TestGetFilePreview(t *testing.T) {
 }
 
 func TestGetFileInfo(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -1057,41 +947,24 @@ func TestGetFileInfo(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	fileId := ""
-	var sent []byte
-	var err error
-	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
+	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+	CheckNoError(t, resp)
+	fileId := fileResp.FileInfos[0].Id
 
 	info, resp := Client.GetFileInfo(fileId)
 	CheckNoError(t, resp)
 
-	if err != nil {
-		t.Fatal(err)
-	} else if info.Id != fileId {
-		t.Fatal("got incorrect file")
-	} else if info.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if info.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if info.Path != "" {
-		t.Fatal("file path shouldn't have been returned to client")
-	} else if info.ThumbnailPath != "" {
-		t.Fatal("file thumbnail path shouldn't have been returned to client")
-	} else if info.PreviewPath != "" {
-		t.Fatal("file preview path shouldn't have been returned to client")
-	} else if info.MimeType != "image/png" {
-		t.Fatal("mime type should've been image/png")
-	}
+	require.NoError(t, err)
+	require.Equal(t, fileId, info.Id, "got incorrect file")
+	require.Equal(t, user.Id, info.CreatorId, "file should be assigned to user")
+	require.Equal(t, "", info.PostId, "file shouldn't have a post")
+	require.Equal(t, "", info.Path, "file path shouldn't have been returned to client")
+	require.Equal(t, "", info.ThumbnailPath, "file thumbnail path shouldn't have been returned to client")
+	require.Equal(t, "", info.PreviewPath, "file preview path shouldn't have been returned to client")
+	require.Equal(t, "image/png", info.MimeType, "mime type should've been image/png")
 
 	_, resp = Client.GetFileInfo("junk")
 	CheckBadRequestStatus(t, resp)
@@ -1114,7 +987,7 @@ func TestGetFileInfo(t *testing.T) {
 }
 
 func TestGetPublicFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -1122,55 +995,217 @@ func TestGetPublicFile(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	fileId := ""
-	if data, err := testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else {
-		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
-		CheckNoError(t, resp)
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
 
-		fileId = fileResp.FileInfos[0].Id
-	}
+	fileResp, httpResp := Client.UploadFile(data, channel.Id, "test.png")
+	CheckNoError(t, httpResp)
+
+	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err := th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 
-	info, err := th.App.Srv.Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
+	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	require.NoError(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
+	resp, err := http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to get image with public link")
 
-	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
-		t.Log(link)
-		t.Fatal("failed to get image with public link", err)
-	}
-
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link without hash", resp.Status)
-	}
+	resp, err = http.Get(link[:strings.LastIndex(link, "?")])
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link without hash", resp.Status)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link")
-	}
+
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotImplemented, resp.StatusCode, "should've failed to get image with disabled public link")
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link after salt changed")
-	}
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link after salt changed")
-	}
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	fileInfo, err := th.App.Srv.Store.FileInfo().Get(fileId)
-	require.Nil(t, err)
-	require.Nil(t, th.cleanupTestFile(fileInfo))
+	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
+	require.NoError(t, err)
+	require.NoError(t, th.cleanupTestFile(fileInfo))
+
 	th.cleanupTestFile(info)
+	link = th.App.GeneratePublicLink(Client.Url, info)
+	resp, err = http.Get(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
+}
+
+func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	require.NotNil(t, resp.Error)
+}
+
+func TestSearchFiles(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	Client := th.Client
+
+	filename := "search for fileInfo1"
+	fileInfo1, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "search for fileInfo2"
+	fileInfo2, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged search for fileInfo3"
+	fileInfo3, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	filename = "tagged for fileInfo4"
+	fileInfo4, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	archivedChannel := th.CreatePublicChannel()
+	fileInfo5, err := th.App.UploadFile(data, archivedChannel.Id, "tagged for fileInfo3")
+	require.Nil(t, err)
+	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
+	rpost, resp := Client.CreatePost(post)
+	CheckNoError(t, resp)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	th.Client.DeleteChannel(archivedChannel.Id)
+
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	fileInfos, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	terms = "search"
+	page := 0
+	perPage := 2
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp := Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Len(t, fileInfos2.Order, 3, "Wrong number of fileInfos")
+	assert.Equal(t, fileInfos.Order[0], fileInfos2.Order[0])
+	assert.Equal(t, fileInfos.Order[1], fileInfos2.Order[1])
+
+	page = 1
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	fileInfos2, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	// We don't support paging for DB search yet, modify this when we do.
+	require.Empty(t, fileInfos2.Order, "Wrong number of fileInfos")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "search", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo2", false)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 1, "wrong number of fileInfos")
+	require.Equal(t, fileInfo2.Id, fileInfos.Order[0], "wrong search")
+
+	terms = "tagged"
+	includeDeletedChannels := true
+	searchParams = model.SearchParameter{
+		Terms:                  &terms,
+		IsOrSearch:             &isOrSearch,
+		TimeZoneOffset:         &timezoneOffset,
+		IncludeDeletedChannels: &includeDeletedChannels,
+	}
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 3, "wrong search")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+
+	fileInfos, resp = Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search")
+
+	fileInfos, _ = Client.SearchFiles(th.BasicTeam.Id, "*", false)
+	require.Empty(t, fileInfos.Order, "searching for just * shouldn't return any results")
+
+	fileInfos, resp = Client.SearchFiles(th.BasicTeam.Id, "fileInfo1 fileInfo2", true)
+	CheckNoError(t, resp)
+	require.Len(t, fileInfos.Order, 2, "wrong search results")
+
+	_, resp = Client.SearchFiles("junk", "#sgtitlereview", false)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.SearchFiles(model.NewId(), "#sgtitlereview", false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "", false)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SearchFiles(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckUnauthorizedStatus(t, resp)
 }

@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build aix darwin dragonfly freebsd linux netbsd openbsd solaris windows
+//go:build aix || darwin || dragonfly || freebsd || linux || netbsd || openbsd || solaris || windows || zos
+// +build aix darwin dragonfly freebsd linux netbsd openbsd solaris windows zos
 
 package socket
 
@@ -12,6 +13,7 @@ import (
 )
 
 func (c *Conn) recvMsg(m *Message, flags int) error {
+	m.raceWrite()
 	var h msghdr
 	vs := make([]iovec, len(m.Buffers))
 	var sa []byte
@@ -23,7 +25,7 @@ func (c *Conn) recvMsg(m *Message, flags int) error {
 	var n int
 	fn := func(s uintptr) bool {
 		n, operr = recvmsg(s, &h, flags)
-		if operr == syscall.EAGAIN {
+		if operr == syscall.EAGAIN || operr == syscall.EWOULDBLOCK {
 			return false
 		}
 		return true
@@ -48,6 +50,7 @@ func (c *Conn) recvMsg(m *Message, flags int) error {
 }
 
 func (c *Conn) sendMsg(m *Message, flags int) error {
+	m.raceRead()
 	var h msghdr
 	vs := make([]iovec, len(m.Buffers))
 	var sa []byte
@@ -59,7 +62,7 @@ func (c *Conn) sendMsg(m *Message, flags int) error {
 	var n int
 	fn := func(s uintptr) bool {
 		n, operr = sendmsg(s, &h, flags)
-		if operr == syscall.EAGAIN {
+		if operr == syscall.EAGAIN || operr == syscall.EWOULDBLOCK {
 			return false
 		}
 		return true

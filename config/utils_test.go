@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -26,6 +26,7 @@ func TestDesanitize(t *testing.T) {
 	actual.FileSettings.AmazonS3SecretAccessKey = sToP("amazon_s3_secret_access_key")
 	actual.EmailSettings.SMTPPassword = sToP("smtp_password")
 	actual.GitLabSettings.Secret = sToP("secret")
+	actual.OpenIdSettings.Secret = sToP("secret")
 	actual.SqlSettings.DataSource = sToP("data_source")
 	actual.SqlSettings.AtRestEncryptKey = sToP("at_rest_encrypt_key")
 	actual.ElasticsearchSettings.Password = sToP("password")
@@ -47,15 +48,16 @@ func TestDesanitize(t *testing.T) {
 	target.FileSettings.AmazonS3SecretAccessKey = sToP(model.FAKE_SETTING)
 	target.EmailSettings.SMTPPassword = sToP(model.FAKE_SETTING)
 	target.GitLabSettings.Secret = sToP(model.FAKE_SETTING)
+	target.OpenIdSettings.Secret = sToP(model.FAKE_SETTING)
 	target.SqlSettings.DataSource = sToP(model.FAKE_SETTING)
 	target.SqlSettings.AtRestEncryptKey = sToP(model.FAKE_SETTING)
 	target.ElasticsearchSettings.Password = sToP(model.FAKE_SETTING)
-	target.SqlSettings.DataSourceReplicas = append(target.SqlSettings.DataSourceReplicas, "old_replica0")
-	target.SqlSettings.DataSourceSearchReplicas = append(target.SqlSettings.DataSourceReplicas, "old_search_replica0")
+	target.SqlSettings.DataSourceReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
+	target.SqlSettings.DataSourceSearchReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
 
-	actual_clone := actual.Clone()
+	actualClone := actual.Clone()
 	desanitize(actual, target)
-	assert.Equal(t, actual_clone, actual, "actual should not have been changed")
+	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target
 	assert.True(t, *target.LdapSettings.Enable, "LdapSettings.Enable should not have changed")
@@ -67,11 +69,13 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.FileSettings.AmazonS3SecretAccessKey, *target.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, *actual.EmailSettings.SMTPPassword, *target.EmailSettings.SMTPPassword)
 	assert.Equal(t, *actual.GitLabSettings.Secret, *target.GitLabSettings.Secret)
+	assert.Equal(t, *actual.OpenIdSettings.Secret, *target.OpenIdSettings.Secret)
 	assert.Equal(t, *actual.SqlSettings.DataSource, *target.SqlSettings.DataSource)
 	assert.Equal(t, *actual.SqlSettings.AtRestEncryptKey, *target.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, *actual.ElasticsearchSettings.Password, *target.ElasticsearchSettings.Password)
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
+	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 }
 
 func TestFixInvalidLocales(t *testing.T) {
@@ -142,6 +146,106 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
 }
 
+func TestIsDatabaseDSN(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		DSN      string
+		Expected bool
+	}{
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Postgresql DSN",
+			DSN:      "postgres://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Empty DSN",
+			DSN:      "",
+			Expected: false,
+		},
+		{
+			Name:     "Default file DSN",
+			DSN:      "config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Relative path DSN",
+			DSN:      "configuration/config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Absolute path DSN",
+			DSN:      "/opt/mattermost/configuration/config.json",
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsDatabaseDSN(tc.DSN))
+		})
+	}
+}
+
+func TestStripPassword(t *testing.T) {
+	for name, test := range map[string]struct {
+		DSN         string
+		Schema      string
+		ExpectedOut string
+	}{
+		"mysql": {
+			DSN:         "mysql://mmuser:password@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+		},
+		"mysql idempotent": {
+			DSN:         "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+		},
+		"mysql: password with : and @": {
+			DSN:         "mysql://mmuser:p:assw@ord@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+		},
+		"mysql: password with @ and :": {
+			DSN:         "mysql://mmuser:pa@sswo:rd@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s",
+		},
+		"postgres": {
+			DSN:         "postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
+			ExpectedOut: "postgres://mmuser:@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+		},
+		"pipe": {
+			DSN:         "mysql://user@unix(/path/to/socket)/dbname",
+			Schema:      "mysql",
+			ExpectedOut: "mysql://user@unix(/path/to/socket)/dbname",
+		},
+		"malformed without :": {
+			DSN:         "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
+			ExpectedOut: "postgres://mmuserpassword@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+		},
+		"malformed without @": {
+			DSN:         "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10",
+			Schema:      "postgres",
+			ExpectedOut: "(omitted due to error parsing the DSN)",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			out := stripPassword(test.DSN, test.Schema)
+
+			assert.Equal(t, test.ExpectedOut, out)
+		})
+	}
+}
+
 func sToP(s string) *string {
 	return &s
 }
@@ -150,6 +254,33 @@ func bToP(b bool) *bool {
 	return &b
 }
 
-func iToP(i int) *int {
-	return &i
+func TestIsJsonMap(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+		want bool
+	}{
+		{name: "good json", data: `{"local_tcp": {
+			"Type": "tcp","Format": "json","Levels": [
+				{"ID": 5,"Name": "debug","Stacktrace": false}
+			],
+			"Options": {"ip": "localhost","port": 18065},
+			"MaxQueueSize": 1000}}
+			`, want: true,
+		},
+		{name: "empty json", data: "{}", want: true},
+		{name: "string json", data: `"test"`, want: false},
+		{name: "array json", data: `["test1", "test2"]`, want: false},
+		{name: "bad json", data: `{huh?}`, want: false},
+		{name: "filename", data: "/tmp/logger.conf", want: false},
+		{name: "mysql dsn", data: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s", want: false},
+		{name: "postgres dsn", data: "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsJsonMap(tt.data); got != tt.want {
+				t.Errorf("IsJsonMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -29,9 +29,9 @@ type Scheme struct {
 	Scope                   string `json:"scope"`
 	DefaultTeamAdminRole    string `json:"default_team_admin_role"`
 	DefaultTeamUserRole     string `json:"default_team_user_role"`
-	DefaultTeamGuestRole    string `json:"default_team_guest_role"`
 	DefaultChannelAdminRole string `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  string `json:"default_channel_user_role"`
+	DefaultTeamGuestRole    string `json:"default_team_guest_role"`
 	DefaultChannelGuestRole string `json:"default_channel_guest_role"`
 }
 
@@ -101,13 +101,12 @@ func SchemesFromJson(data io.Reader) []*Scheme {
 	var schemes []*Scheme
 	if err := json.NewDecoder(data).Decode(&schemes); err == nil {
 		return schemes
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (scheme *Scheme) IsValid() bool {
-	if len(scheme.Id) != 26 {
+	if !IsValidId(scheme.Id) {
 		return false
 	}
 
@@ -115,7 +114,7 @@ func (scheme *Scheme) IsValid() bool {
 }
 
 func (scheme *Scheme) IsValidForCreate() bool {
-	if len(scheme.DisplayName) == 0 || len(scheme.DisplayName) > SCHEME_DISPLAY_NAME_MAX_LENGTH {
+	if scheme.DisplayName == "" || len(scheme.DisplayName) > SCHEME_DISPLAY_NAME_MAX_LENGTH {
 		return false
 	}
 
@@ -160,15 +159,15 @@ func (scheme *Scheme) IsValidForCreate() bool {
 	}
 
 	if scheme.Scope == SCHEME_SCOPE_CHANNEL {
-		if len(scheme.DefaultTeamAdminRole) != 0 {
+		if scheme.DefaultTeamAdminRole != "" {
 			return false
 		}
 
-		if len(scheme.DefaultTeamUserRole) != 0 {
+		if scheme.DefaultTeamUserRole != "" {
 			return false
 		}
 
-		if len(scheme.DefaultTeamGuestRole) != 0 {
+		if scheme.DefaultTeamGuestRole != "" {
 			return false
 		}
 	}

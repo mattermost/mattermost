@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -51,4 +51,25 @@ func TestInspect(t *testing.T) {
 		"            Paragraph",
 		"                Text",
 	}, visited)
+}
+
+var counterSink int
+
+func BenchmarkInspect(b *testing.B) {
+	text := `Some standard piece of text.
+
+Has a link [post](https://github.com) and also has a blockquote.
+
+> This is a famous quote.
+
+Some bold text **Text for markdown?** to go with it.
+
+At the end, some more lines`
+
+	for i := 0; i < b.N; i++ {
+		Inspect(text, func(_ interface{}) bool {
+			counterSink++
+			return true
+		})
+	}
 }

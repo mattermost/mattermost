@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type Schedulers struct {
@@ -20,6 +20,7 @@ type Schedulers struct {
 	listenerId           string
 	startOnce            sync.Once
 	jobs                 *JobServer
+	isLeader             bool
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
@@ -34,6 +35,7 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		configChanged:        make(chan *model.Config),
 		clusterLeaderChanged: make(chan bool),
 		jobs:                 srv,
+		isLeader:             true,
 	}
 
 	if srv.DataRetentionJob != nil {
@@ -58,6 +60,30 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 
 	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
+	}
+
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
+	}
+
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, activeUsersInterface.MakeScheduler())
+	}
+
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
+	}
+
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
+	}
+
+	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, importDeleteInterface.MakeScheduler())
+	}
+
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
@@ -86,11 +112,13 @@ func (schedulers *Schedulers) Start() *Schedulers {
 			}
 
 			for {
+				timer := time.NewTimer(1 * time.Minute)
 				select {
 				case <-schedulers.stop:
 					mlog.Debug("Schedulers received stop signal.")
+					timer.Stop()
 					return
-				case now = <-time.After(1 * time.Minute):
+				case now = <-timer.C:
 					cfg := schedulers.jobs.Config()
 
 					for idx, nextTime := range schedulers.nextRunTimes {
@@ -101,10 +129,9 @@ func (schedulers *Schedulers) Start() *Schedulers {
 						if time.Now().After(*nextTime) {
 							scheduler := schedulers.schedulers[idx]
 							if scheduler != nil {
-								if scheduler.Enabled(cfg) {
+								if schedulers.isLeader && scheduler.Enabled(cfg) {
 									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-										mlog.Warn(fmt.Sprintf("Failed to schedule job with scheduler: %v", scheduler.Name()))
-										mlog.Error(fmt.Sprint(err))
+										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
 									} else {
 										schedulers.setNextRunTime(cfg, idx, now, true)
 									}
@@ -114,7 +141,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 					}
 				case newCfg := <-schedulers.configChanged:
 					for idx, scheduler := range schedulers.schedulers {
-						if !scheduler.Enabled(newCfg) {
+						if !schedulers.isLeader || !scheduler.Enabled(newCfg) {
 							schedulers.nextRunTimes[idx] = nil
 						} else {
 							schedulers.setNextRunTime(newCfg, idx, now, false)
@@ -122,6 +149,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 					}
 				case isLeader := <-schedulers.clusterLeaderChanged:
 					for idx := range schedulers.schedulers {
+						schedulers.isLeader = isLeader
 						if !isLeader {
 							schedulers.nextRunTimes[idx] = nil
 						} else {
@@ -129,6 +157,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 						}
 					}
 				}
+				timer.Stop()
 			}
 		})
 	}()
@@ -147,24 +176,24 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	scheduler := schedulers.schedulers[idx]
 
 	if !pendingJobs {
-		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
-			mlog.Error("Failed to set next job run time: " + err.Error())
+		pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+		if err != nil {
+			mlog.Error("Failed to set next job run time", mlog.Err(err))
 			schedulers.nextRunTimes[idx] = nil
 			return
-		} else {
-			pendingJobs = pj
 		}
+		pendingJobs = pj
 	}
 
 	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
 	if err != nil {
-		mlog.Error("Failed to set next job run time: " + err.Error())
+		mlog.Error("Failed to set next job run time", mlog.Err(err))
 		schedulers.nextRunTimes[idx] = nil
 		return
 	}
 
 	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
-	mlog.Debug(fmt.Sprintf("Next run time for scheduler %v: %v", scheduler.Name(), schedulers.nextRunTimes[idx]))
+	mlog.Debug("Next run time for scheduler", mlog.String("scheduler_name", scheduler.Name()), mlog.String("next_runtime", fmt.Sprintf("%v", schedulers.nextRunTimes[idx])))
 }
 
 func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
@@ -181,7 +210,7 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
 }
 
-func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
 	schedulers.configChanged <- newConfig
 }

@@ -15,9 +15,11 @@ package prometheus
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
-
-	"github.com/prometheus/procfs"
+	"strconv"
+	"strings"
 )
 
 type processCollector struct {
@@ -59,20 +61,9 @@ type ProcessCollectorOpts struct {
 // collector for the current process with an empty namespace string and no error
 // reporting.
 //
-// Currently, the collector depends on a Linux-style proc filesystem and
-// therefore only exports metrics for Linux.
-//
-// Note: An older version of this function had the following signature:
-//
-//     NewProcessCollector(pid int, namespace string) Collector
-//
-// Most commonly, it was called as
-//
-//     NewProcessCollector(os.Getpid(), "")
-//
-// The following call of the current version is equivalent to the above:
-//
-//     NewProcessCollector(ProcessCollectorOpts{})
+// The collector only works on operating systems with a Linux-style proc
+// filesystem and on Microsoft Windows. On other operating systems, it will not
+// collect any metrics.
 func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 	ns := ""
 	if len(opts.Namespace) > 0 {
@@ -126,7 +117,7 @@ func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 	}
 
 	// Set up process metric collection if supported by the runtime.
-	if _, err := procfs.NewStat(); err == nil {
+	if canCollectProcess() {
 		c.collectFn = c.processCollect
 	} else {
 		c.collectFn = func(ch chan<- Metric) {
@@ -153,46 +144,6 @@ func (c *processCollector) Collect(ch chan<- Metric) {
 	c.collectFn(ch)
 }
 
-func (c *processCollector) processCollect(ch chan<- Metric) {
-	pid, err := c.pidFn()
-	if err != nil {
-		c.reportError(ch, nil, err)
-		return
-	}
-
-	p, err := procfs.NewProc(pid)
-	if err != nil {
-		c.reportError(ch, nil, err)
-		return
-	}
-
-	if stat, err := p.NewStat(); err == nil {
-		ch <- MustNewConstMetric(c.cpuTotal, CounterValue, stat.CPUTime())
-		ch <- MustNewConstMetric(c.vsize, GaugeValue, float64(stat.VirtualMemory()))
-		ch <- MustNewConstMetric(c.rss, GaugeValue, float64(stat.ResidentMemory()))
-		if startTime, err := stat.StartTime(); err == nil {
-			ch <- MustNewConstMetric(c.startTime, GaugeValue, startTime)
-		} else {
-			c.reportError(ch, c.startTime, err)
-		}
-	} else {
-		c.reportError(ch, nil, err)
-	}
-
-	if fds, err := p.FileDescriptorsLen(); err == nil {
-		ch <- MustNewConstMetric(c.openFDs, GaugeValue, float64(fds))
-	} else {
-		c.reportError(ch, c.openFDs, err)
-	}
-
-	if limits, err := p.NewLimits(); err == nil {
-		ch <- MustNewConstMetric(c.maxFDs, GaugeValue, float64(limits.OpenFiles))
-		ch <- MustNewConstMetric(c.maxVsize, GaugeValue, float64(limits.AddressSpace))
-	} else {
-		c.reportError(ch, nil, err)
-	}
-}
-
 func (c *processCollector) reportError(ch chan<- Metric, desc *Desc, err error) {
 	if !c.reportErrors {
 		return
@@ -201,4 +152,21 @@ func (c *processCollector) reportError(ch chan<- Metric, desc *Desc, err error) 
 		desc = NewInvalidDesc(err)
 	}
 	ch <- NewInvalidMetric(desc, err)
+}
+
+// NewPidFileFn returns a function that retrieves a pid from the specified file.
+// It is meant to be used for the PidFn field in ProcessCollectorOpts.
+func NewPidFileFn(pidFilePath string) func() (int, error) {
+	return func() (int, error) {
+		content, err := ioutil.ReadFile(pidFilePath)
+		if err != nil {
+			return 0, fmt.Errorf("can't read pid file %q: %+v", pidFilePath, err)
+		}
+		pid, err := strconv.Atoi(strings.TrimSpace(string(content)))
+		if err != nil {
+			return 0, fmt.Errorf("can't parse pid file %q: %+v", pidFilePath, err)
+		}
+
+		return pid, nil
+	}
 }

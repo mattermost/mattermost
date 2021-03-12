@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -11,11 +11,11 @@ import (
 	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Web struct {
@@ -33,6 +33,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 		MainRouter:          root,
 	}
 
+	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
 	web.InitStatic()
@@ -43,15 +44,16 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 // Due to the complexities of UA detection and the ramifications of a misdetection
 // only older Safari and IE browsers throw incompatibility errors.
 // Map should be of minimum required browser version.
+// -1 means that the browser is not supported in any version.
 var browserMinimumSupported = map[string]int{
-	"BrowserIE":     11,
-	"BrowserSafari": 9,
+	"BrowserIE":     12,
+	"BrowserSafari": 12,
 }
 
-func CheckClientCompatability(agentString string) bool {
+func CheckClientCompatibility(agentString string) bool {
 	ua := uasurfer.Parse(agentString)
 
-	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && ua.Browser.Version.Major < version {
+	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && (ua.Browser.Version.Major < version || version < 0) {
 		return false
 	}
 
@@ -60,7 +62,7 @@ func CheckClientCompatability(agentString string) bool {
 
 func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-	ipAddress := utils.GetIpAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)
+	ipAddress := utils.GetIPAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if IsApiCall(config, r) {
@@ -80,7 +82,7 @@ func IsApiCall(config configservice.ConfigService, r *http.Request) bool {
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
 
-func IsWebhookCall(a *app.App, r *http.Request) bool {
+func IsWebhookCall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")

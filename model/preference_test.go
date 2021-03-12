@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -57,9 +57,7 @@ func TestPreferencePreUpdate(t *testing.T) {
 	preference.PreUpdate()
 
 	var props map[string]string
-	if err := json.NewDecoder(strings.NewReader(preference.Value)).Decode(&props); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, json.NewDecoder(strings.NewReader(preference.Value)).Decode(&props))
 
 	require.Equal(t, "#ff0000", props["color"], "shouldn't have changed valid props")
 	require.Equal(t, "#faf", props["color2"], "shouldn't have changed valid props")

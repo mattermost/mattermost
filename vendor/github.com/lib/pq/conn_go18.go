@@ -1,5 +1,3 @@
-// +build go1.8
-
 package pq
 
 import (
@@ -9,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sync/atomic"
+	"time"
 )
 
 // Implement the "QueryerContext" interface
@@ -76,20 +76,51 @@ func (cn *conn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, 
 	return tx, nil
 }
 
+func (cn *conn) Ping(ctx context.Context) error {
+	if finish := cn.watchCancel(ctx); finish != nil {
+		defer finish()
+	}
+	rows, err := cn.simpleQuery(";")
+	if err != nil {
+		return driver.ErrBadConn // https://golang.org/pkg/database/sql/driver/#Pinger
+	}
+	rows.Close()
+	return nil
+}
+
 func (cn *conn) watchCancel(ctx context.Context) func() {
 	if done := ctx.Done(); done != nil {
-		finished := make(chan struct{})
+		finished := make(chan struct{}, 1)
 		go func() {
 			select {
 			case <-done:
-				_ = cn.cancel()
-				finished <- struct{}{}
+				select {
+				case finished <- struct{}{}:
+				default:
+					// We raced with the finish func, let the next query handle this with the
+					// context.
+					return
+				}
+
+				// Set the connection state to bad so it does not get reused.
+				cn.setBad()
+
+				// At this point the function level context is canceled,
+				// so it must not be used for the additional network
+				// request to cancel the query.
+				// Create a new context to pass into the dial.
+				ctxCancel, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				defer cancel()
+
+				_ = cn.cancel(ctxCancel)
 			case <-finished:
 			}
 		}()
 		return func() {
 			select {
 			case <-finished:
+				cn.setBad()
+				cn.Close()
 			case finished <- struct{}{}:
 			}
 		}
@@ -97,16 +128,19 @@ func (cn *conn) watchCancel(ctx context.Context) func() {
 	return nil
 }
 
-func (cn *conn) cancel() error {
-	c, err := dial(cn.dialer, cn.opts)
+func (cn *conn) cancel(ctx context.Context) error {
+	c, err := dial(ctx, cn.dialer, cn.opts)
 	if err != nil {
 		return err
 	}
 	defer c.Close()
 
 	{
+		bad := &atomic.Value{}
+		bad.Store(false)
 		can := conn{
-			c: c,
+			c:   c,
+			bad: bad,
 		}
 		err = can.ssl(cn.opts)
 		if err != nil {

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,10 +8,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var UserCmd = &cobra.Command{
@@ -75,12 +78,11 @@ var ResetUserPasswordCmd = &cobra.Command{
 }
 
 var updateUserEmailCmd = &cobra.Command{
-	Use:   "email [user] [new email]",
-	Short: "Change email of the user",
-	Long:  "Change email of the user.",
-	Example: `  user email test user@example.com
-  user activate username`,
-	RunE: updateUserEmailCmdF,
+	Use:     "email [user] [new email]",
+	Short:   "Change email of the user",
+	Long:    "Change email of the user.",
+	Example: "  user email testuser user@example.com",
+	RunE:    updateUserEmailCmdF,
 }
 
 var ResetUserMfaCmd = &cobra.Command{
@@ -274,7 +276,7 @@ func userActivateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -303,9 +305,15 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	if _, err := a.UpdateActive(user, activate); err != nil {
+	updatedUser, err := a.UpdateActive(user, activate)
+	if err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
+
+	auditRec := a.MakeAuditRecord("changeActiveUserStatus", audit.Success)
+	auditRec.AddMeta("user", updatedUser)
+	auditRec.AddMeta("activate", activate)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -315,7 +323,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -326,12 +334,13 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+//nolint:unparam
 func userCreateCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
@@ -341,6 +350,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	if erre != nil || email == "" {
 		return errors.New("Email is required")
 	}
+	email = strings.ToLower((email))
 	password, errp := command.Flags().GetString("password")
 	if errp != nil || password == "" {
 		return errors.New("Password is required")
@@ -367,13 +377,13 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if systemAdmin {
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user system_admin", false); err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
-		// created as a system admin unless explicity specified.
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+		// created as a system admin unless explicitly specified.
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
 	}
@@ -386,6 +396,11 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("last_name: " + ruser.LastName)
 	CommandPrettyPrintln("email: " + ruser.Email)
 	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
+
+	auditRec := a.MakeAuditRecord("userCreate", audit.Success)
+	auditRec.AddMeta("user", ruser)
+	auditRec.AddMeta("system_admin", systemAdmin)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -405,10 +420,14 @@ func usersToBots(args []string, a *app.App) {
 		}
 
 		CommandPrettyPrintln(fmt.Sprintf("User %s is converted to bot successfully", bot.UserId))
+
+		auditRec := a.MakeAuditRecord("userToBot", audit.Success)
+		auditRec.AddMeta("user", user)
+		a.LogAuditRec(auditRec, nil)
 	}
 }
 
-func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
+func getUpdatedPassword(command *cobra.Command) (string, error) {
 	password, err := command.Flags().GetString("password")
 	if err != nil {
 		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
@@ -482,7 +501,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
 	}
 
-	password, err := getUpdatedPassword(command, a, user)
+	password, err := getUpdatedPassword(command)
 	if err != nil {
 		return err
 	}
@@ -512,9 +531,9 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	appErr = a.Srv.Store.Bot().PermanentDelete(user.Id)
-	if appErr != nil {
-		return fmt.Errorf("Unable to delete bot. Error: %s", appErr.Error())
+	err = a.Srv().Store.Bot().PermanentDelete(user.Id)
+	if err != nil {
+		return fmt.Errorf("Unable to delete bot. Error: %v", err)
 	}
 
 	CommandPrettyPrintln("id: " + user.Id)
@@ -525,6 +544,12 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	CommandPrettyPrintln("last_name: " + user.LastName)
 	CommandPrettyPrintln("roles: " + user.Roles)
 	CommandPrettyPrintln("locale: " + user.Locale)
+
+	auditRec := a.MakeAuditRecord("botToUser", audit.Success)
+	auditRec.AddMeta("bot", user)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -533,7 +558,7 @@ func userConvertCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	toBot, err := command.Flags().GetBool("bot")
 	if err != nil {
@@ -566,13 +591,14 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
 	}
 
 	email := args[0]
+	email = strings.ToLower(email)
 	if !model.IsValidEmail(email) {
 		return errors.New("Invalid email")
 	}
@@ -599,8 +625,16 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 		return fmt.Errorf("Email invites are disabled.")
 	}
 
-	a.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
+	err := a.Srv().EmailService.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return err
+	}
 	CommandPrettyPrintln("Invites may or may not have been sent.")
+
+	auditRec := a.MakeAuditRecord("inviteUser", audit.Success)
+	auditRec.AddMeta("email", email)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -610,7 +644,7 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
 		return errors.New("Expected two arguments. See help text for details.")
@@ -622,9 +656,13 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if err := a.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
+	if err := a.Srv().Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
 		return err
 	}
+
+	auditRec := a.MakeAuditRecord("resetUserPassword", audit.Success)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -634,14 +672,14 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
 		return errors.New("Expected two arguments. See help text for details.")
 	}
 
 	newEmail := args[1]
-
+	newEmail = strings.ToLower(newEmail)
 	if !model.IsValidEmail(newEmail) {
 		return errors.New("Invalid email: '" + newEmail + "'")
 	}
@@ -661,6 +699,11 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 		return errors.New(errUpdate.Message)
 	}
 
+	auditRec := a.MakeAuditRecord("updateUserEmail", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("email", newEmail)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -669,14 +712,13 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
 	users := getUsersFromUserArgs(a, args)
-
 	for i, user := range users {
 		if user == nil {
 			return errors.New("Unable to find user '" + args[i] + "'")
@@ -685,6 +727,10 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 		if err := a.DeactivateMfa(user.Id); err != nil {
 			return err
 		}
+
+		auditRec := a.MakeAuditRecord("resetUserMfa", audit.Success)
+		auditRec.AddMeta("user", user)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	return nil
@@ -695,7 +741,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -724,9 +770,20 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := a.PermanentDeleteUser(user); err != nil {
-			return err
+		if user.IsBot {
+			if err := a.PermanentDeleteBot(user.Id); err != nil {
+				return err
+			}
+		} else {
+			if err := a.PermanentDeleteUser(user); err != nil {
+				return err
+			}
 		}
+
+		auditRec := a.MakeAuditRecord("deleteUser", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("isBot", user.IsBot)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	return nil
@@ -737,7 +794,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) > 0 {
 		return errors.New("Expected zero arguments.")
@@ -762,8 +819,10 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	if err := a.PermanentDeleteAllUsers(); err != nil {
 		return err
 	}
-
 	CommandPrettyPrintln("All user accounts successfully deleted.")
+
+	auditRec := a.MakeAuditRecord("deleteAllUsers", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -780,12 +839,12 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	fromAuth := args[0]
 	matchField := args[2]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
 		return errors.New("Invalid from_auth argument")
 	}
 
@@ -794,21 +853,28 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if len(matchField) == 0 || (matchField != "email" && matchField != "username") {
+	if matchField == "" || (matchField != "email" && matchField != "username") {
 		return errors.New("Invalid match_field argument")
 	}
 
 	forceFlag, _ := command.Flags().GetBool("force")
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToLdap", audit.Success)
+			auditRec.AddMeta("fromAuth", fromAuth)
+			auditRec.AddMeta("matchField", matchField)
+			auditRec.AddMeta("force", forceFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 
@@ -817,7 +883,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 	autoFlag, _ := command.Flags().GetBool("auto")
@@ -838,7 +904,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 
 	fromAuth := args[0]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
 		return errors.New("Invalid from_auth argument")
 	}
 
@@ -857,14 +923,19 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToSaml(fromAuth, matches, autoFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToSaml", audit.Success)
+			auditRec.AddMeta("auto", autoFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 
@@ -873,7 +944,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -886,7 +957,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := a.Srv.Store.User().VerifyEmail(user.Id, user.Email); err != nil {
+		if _, err := a.Srv().Store.User().VerifyEmail(user.Id, user.Email); err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + err.Error())
 		}
 	}
@@ -899,7 +970,7 @@ func searchUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")

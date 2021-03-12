@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -28,9 +28,8 @@ func (o *PostSearchResults) ToJson() string {
 	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func PostSearchResultsFromJson(data io.Reader) *PostSearchResults {

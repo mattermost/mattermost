@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -16,7 +16,7 @@ func TestUserTermsOfService(t *testing.T) {
 	userTermsOfService, err := th.App.GetUserTermsOfService(th.BasicUser.Id)
 	checkError(t, err)
 	assert.Nil(t, userTermsOfService)
-	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
+	assert.Equal(t, "app.user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	checkNoError(t, err)

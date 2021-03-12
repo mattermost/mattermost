@@ -1,21 +1,21 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCommandWebhookPreSave(t *testing.T) {
 	h := CommandWebhook{}
 	h.PreSave()
-	if len(h.Id) != 26 {
-		t.Fatal("Id should be generated")
-	}
-	if h.CreateAt == 0 {
-		t.Fatal("CreateAt should be set")
-	}
+
+	require.Len(t, h.Id, 26, "Id should be generated")
+	require.NotEqual(t, 0, h.CreateAt, "CreateAt should be set")
 }
 
 func TestCommandWebhookIsValid(t *testing.T) {
@@ -32,10 +32,15 @@ func TestCommandWebhookIsValid(t *testing.T) {
 	}{
 		{func() {}, ""},
 		{func() { h.Id = "asd" }, "model.command_hook.id.app_error"},
+		{func() { h.Id = NewId() }, ""},
 		{func() { h.CreateAt = 0 }, "model.command_hook.create_at.app_error"},
+		{func() { h.CreateAt = GetMillis() }, ""},
 		{func() { h.CommandId = "asd" }, "model.command_hook.command_id.app_error"},
+		{func() { h.CommandId = NewId() }, ""},
 		{func() { h.UserId = "asd" }, "model.command_hook.user_id.app_error"},
+		{func() { h.UserId = NewId() }, ""},
 		{func() { h.ChannelId = "asd" }, "model.command_hook.channel_id.app_error"},
+		{func() { h.ChannelId = NewId() }, ""},
 		{func() { h.RootId = "asd" }, "model.command_hook.root_id.app_error"},
 		{func() { h.RootId = NewId() }, ""},
 		{func() { h.ParentId = "asd" }, "model.command_hook.parent_id.app_error"},
@@ -44,11 +49,14 @@ func TestCommandWebhookIsValid(t *testing.T) {
 		tmp := h
 		test.Transform()
 		err := h.IsValid()
-		if test.ExpectedError == "" && err != nil {
-			t.Fatal("hook should be valid")
-		} else if test.ExpectedError != "" && test.ExpectedError != err.Id {
-			t.Fatal("expected " + test.ExpectedError + " error")
+
+		if test.ExpectedError == "" {
+			assert.Nil(t, err, "hook should be valid")
+		} else {
+			require.NotNil(t, err)
+			assert.Equal(t, test.ExpectedError, err.Id, "expected "+test.ExpectedError+" error")
 		}
+
 		h = tmp
 	}
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package utils_test
 
 import (
@@ -8,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // Test merging maps alone. This isolates the complexity of merging maps from merging maps recursively in
@@ -513,7 +516,8 @@ func TestMergeWithSlices(t *testing.T) {
 		assert.Equal(t, expected, merged)
 		// of course this won't change merged, even if it did copy... but just in case.
 		m2 = append(m2, "test")
-		assert.Equal(t, 0, len(merged))
+		assert.Len(t, m2, 1)
+		assert.Empty(t, merged)
 	})
 
 	t.Run("slice is not copied. change in patch will not affect merged", func(t *testing.T) {

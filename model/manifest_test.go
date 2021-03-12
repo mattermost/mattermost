@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -11,11 +11,221 @@ import (
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
+
+func TestIsValid(t *testing.T) {
+	testCases := []struct {
+		Title       string
+		manifest    *Manifest
+		ExpectError bool
+	}{
+		{"Invalid Id", &Manifest{Id: "some id", Name: "some name"}, true},
+		{"Invalid Name", &Manifest{Id: "com.company.test", Name: "  "}, true},
+		{"Invalid homePageURL", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", Name: "some name", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", Name: "some name", ReleaseNotesURL: "some url"}, true},
+		{"Invalid version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
+		{"Invalid min version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
+		{"SettingSchema error", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
+			Settings: []*PluginSetting{{Type: "Invalid"}},
+		}}, true},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test", Name: "some name"}, false},
+		{"Happy case", &Manifest{
+			Id:               "com.company.test",
+			Name:             "thename",
+			Description:      "thedescription",
+			HomepageURL:      "http://someurl.com",
+			SupportURL:       "http://someotherurl.com",
+			ReleaseNotesURL:  "http://someotherurl.com/releases/v0.0.1",
+			Version:          "0.0.1",
+			MinServerVersion: "5.6.0",
+			Server: &ManifestServer{
+				Executable: "theexecutable",
+			},
+			Webapp: &ManifestWebapp{
+				BundlePath: "thebundlepath",
+			},
+			SettingsSchema: &PluginSettingsSchema{
+				Header: "theheadertext",
+				Footer: "thefootertext",
+				Settings: []*PluginSetting{
+					{
+						Key:         "thesetting",
+						DisplayName: "thedisplayname",
+						Type:        "dropdown",
+						HelpText:    "thehelptext",
+						Options: []*PluginOption{
+							{
+								DisplayName: "theoptiondisplayname",
+								Value:       "thevalue",
+							},
+						},
+						Default: "thedefault",
+					},
+				},
+			},
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			err := tc.manifest.IsValid()
+			if tc.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestIsValidSettingsSchema(t *testing.T) {
+	testCases := []struct {
+		Title          string
+		settingsSchema *PluginSettingsSchema
+		ExpectError    bool
+	}{
+		{"Invalid Setting", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "invalid"}}}, true},
+		{"Happy case", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "text"}}}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			err := tc.settingsSchema.isValid()
+			if tc.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSettingIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		Setting     PluginSetting
+		ExpectError bool
+	}{
+		"Invalid setting type": {
+			PluginSetting{Type: "invalid"},
+			true,
+		},
+		"RegenerateHelpText error": {
+			PluginSetting{Type: "text", RegenerateHelpText: "some text"},
+			true,
+		},
+		"Placeholder error": {
+			PluginSetting{Type: "bool", Placeholder: "some text"},
+			true,
+		},
+		"Nil Options": {
+			PluginSetting{Type: "bool"},
+			false,
+		},
+		"Options error": {
+			PluginSetting{Type: "generated", Options: []*PluginOption{}},
+			true,
+		},
+		"Options displayName error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					Value: "some value",
+				}},
+			},
+			true,
+		},
+		"Options value error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "some name",
+				}},
+			},
+			true,
+		},
+		"Happy case": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "Name",
+					Value:       "value",
+				}},
+			},
+			false,
+		},
+		"Valid number setting": {
+			PluginSetting{
+				Type:    "number",
+				Default: 10,
+			},
+			false,
+		},
+		"Placeholder is disallowed for bool settings": {
+			PluginSetting{
+				Type:        "bool",
+				Placeholder: "some Text",
+			},
+			true,
+		},
+		"Placeholder is allowed for text settings": {
+			PluginSetting{
+				Type:        "text",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+		"Placeholder is allowed for long text settings": {
+			PluginSetting{
+				Type:        "longtext",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Setting.isValid()
+			if test.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestConvertTypeToPluginSettingType(t *testing.T) {
+	testCases := []struct {
+		Title               string
+		Type                string
+		ExpectedSettingType PluginSettingType
+		ExpectError         bool
+	}{
+		{"bool", "bool", Bool, false},
+		{"dropdown", "dropdown", Dropdown, false},
+		{"generated", "generated", Generated, false},
+		{"radio", "radio", Radio, false},
+		{"text", "text", Text, false},
+		{"longtext", "longtext", LongText, false},
+		{"username", "username", Username, false},
+		{"custom", "custom", Custom, false},
+		{"invalid", "invalid", Bool, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			settingType, err := convertTypeToPluginSettingType(tc.Type)
+			if !tc.ExpectError {
+				assert.Equal(t, settingType, tc.ExpectedSettingType)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
 
 func TestFindManifest(t *testing.T) {
 	for _, tc := range []struct {
@@ -64,6 +274,9 @@ func TestFindManifest(t *testing.T) {
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
 		Id:               "theid",
+		HomepageURL:      "https://example.com",
+		SupportURL:       "https://example.com/support",
+		IconPath:         "assets/icon.svg",
 		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
@@ -71,6 +284,12 @@ func TestManifestUnmarshal(t *testing.T) {
 				LinuxAmd64:   "theexecutable-linux-amd64",
 				DarwinAmd64:  "theexecutable-darwin-amd64",
 				WindowsAmd64: "theexecutable-windows-amd64",
+			},
+			AllExecutables: map[string]string{
+				"linux-amd64":   "theexecutable-linux-amd64",
+				"darwin-amd64":  "theexecutable-darwin-amd64",
+				"windows-amd64": "theexecutable-windows-amd64",
+				"linux-arm64":   "theexecutable-linux-arm64",
 			},
 		},
 		Webapp: &ManifestWebapp{
@@ -80,7 +299,7 @@ func TestManifestUnmarshal(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -88,7 +307,7 @@ func TestManifestUnmarshal(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -99,9 +318,13 @@ func TestManifestUnmarshal(t *testing.T) {
 		},
 	}
 
-	var yamlResult Manifest
-	require.NoError(t, yaml.Unmarshal([]byte(`
+	t.Run("yaml", func(t *testing.T) {
+		var yamlResult Manifest
+		require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
+homepage_url: https://example.com
+support_url: https://example.com/support
+icon_path: assets/icon.svg
 min_server_version: 5.6.0
 server:
     executable: theexecutable
@@ -109,6 +332,7 @@ server:
           linux-amd64: theexecutable-linux-amd64
           darwin-amd64: theexecutable-darwin-amd64
           windows-amd64: theexecutable-windows-amd64
+          linux-arm64: theexecutable-linux-arm64
 webapp:
     bundle_path: thebundlepath
 settings_schema:
@@ -126,18 +350,24 @@ settings_schema:
                 value: thevalue
           default: thedefault
 `), &yamlResult))
-	assert.Equal(t, expected, yamlResult)
+		assert.Equal(t, expected, yamlResult)
+	})
 
-	var jsonResult Manifest
-	require.NoError(t, json.Unmarshal([]byte(`{
+	t.Run("json", func(t *testing.T) {
+		var jsonResult Manifest
+		require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
-  "min_server_version": "5.6.0",
+	"homepage_url": "https://example.com",
+	"support_url": "https://example.com/support",
+	"icon_path": "assets/icon.svg",
+	"min_server_version": "5.6.0",
 	"server": {
 		"executable": "theexecutable",
 		"executables": {
 			"linux-amd64": "theexecutable-linux-amd64",
 			"darwin-amd64": "theexecutable-darwin-amd64",
-			"windows-amd64": "theexecutable-windows-amd64"
+			"windows-amd64": "theexecutable-windows-amd64",
+			"linux-arm64": "theexecutable-linux-arm64"
 		}
 	},
 	"webapp": {
@@ -165,7 +395,8 @@ settings_schema:
 		]
     }
 	}`), &jsonResult))
-	assert.Equal(t, expected, jsonResult)
+		assert.Equal(t, expected, jsonResult)
+	})
 }
 
 func TestFindManifest_FileErrors(t *testing.T) {
@@ -215,6 +446,17 @@ func TestManifestJson(t *testing.T) {
 		Id: "theid",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
+			Executables: &ManifestExecutables{
+				LinuxAmd64:   "linux-amd64/path/to/executable",
+				DarwinAmd64:  "darwin-amd64/path/to/executable",
+				WindowsAmd64: "windows-amd64/path/to/executable",
+			},
+			AllExecutables: map[string]string{
+				"linux-amd64":   "linux-amd64/path/to/executable",
+				"darwin-amd64":  "darwin-amd64/path/to/executable",
+				"windows-amd64": "windows-amd64/path/to/executable",
+				"linux-arm64":   "linux-arm64/path/to/executable",
+			},
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
@@ -223,7 +465,7 @@ func TestManifestJson(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -231,7 +473,7 @@ func TestManifestJson(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -290,7 +532,7 @@ func TestManifestClientManifest(t *testing.T) {
 			Header: "theheadertext",
 			Footer: "thefootertext",
 			Settings: []*PluginSetting{
-				&PluginSetting{
+				{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               "dropdown",
@@ -298,7 +540,7 @@ func TestManifestClientManifest(t *testing.T) {
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
-						&PluginOption{
+						{
 							DisplayName: "theoptiondisplayname",
 							Value:       "thevalue",
 						},
@@ -378,22 +620,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"path/to/executable",
 		},
 		{
-			"multiple executables, no match",
-			&Manifest{
-				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
-					},
-				},
-			},
-			"other",
-			"amd64",
-			"",
-		},
-		{
-			"multiple executables, linux-amd64 match",
+			"multiple legacy executables ignored",
 			&Manifest{
 				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
@@ -405,16 +632,49 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			},
 			"linux",
 			"amd64",
+			"",
+		},
+		{
+			"multiple executables, no match",
+			&Manifest{
+				Server: &ManifestServer{
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"other",
+			"amd64",
+			"",
+		},
+		{
+			"multiple executables, linux-amd64 match",
+			&Manifest{
+				Server: &ManifestServer{
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
 			"linux-amd64/path/to/executable",
 		},
 		{
 			"multiple executables, linux-amd64 match, single executable ignored",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 					Executable: "path/to/executable",
 				},
@@ -427,10 +687,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, darwin-amd64 match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -442,10 +703,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, windows-amd64 match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -457,10 +719,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, no match, single executable fallback",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 					Executable: "path/to/executable",
 				},
@@ -473,17 +736,18 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"deprecated backend field, ignored since server present",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable",
-						DarwinAmd64:  "darwin-amd64/path/to/executable",
-						WindowsAmd64: "windows-amd64/path/to/executable",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 				Backend: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
-						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
-						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
 					},
 				},
 			},
@@ -495,16 +759,58 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"deprecated backend field used, since no server present",
 			&Manifest{
 				Backend: &ManifestServer{
-					Executables: &ManifestExecutables{
-						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
-						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
-						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
 					},
 				},
 			},
 			"linux",
 			"amd64",
-			"linux-amd64/path/to/executable/backend",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"all executables, linux-arm64",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"arm64",
+			"linux-arm64/path/to/executable",
+		},
+		{
+			"all executables, linux-amd64, legacy executables ignored",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/ignored/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/ignored/path/to/executable",
+						WindowsAmd64: "windows-amd64/ignored/path/to/executable",
+					},
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
 		},
 	}
 

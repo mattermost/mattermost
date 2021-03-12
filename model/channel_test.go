@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelJson(t *testing.T) {
@@ -13,27 +15,21 @@ func TestChannelJson(t *testing.T) {
 	json := o.ToJson()
 	ro := ChannelFromJson(strings.NewReader(json))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.Id, ro.Id)
 
 	p := ChannelPatch{Name: new(string)}
 	*p.Name = NewId()
 	json = p.ToJson()
 	rp := ChannelPatchFromJson(strings.NewReader(json))
 
-	if *p.Name != *rp.Name {
-		t.Fatal("names do not match")
-	}
+	require.Equal(t, *p.Name, *rp.Name)
 }
 
 func TestChannelCopy(t *testing.T) {
 	o := Channel{Id: NewId(), Name: NewId()}
 	ro := o.DeepCopy()
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.Id, ro.Id, "Ids do not match")
 }
 
 func TestChannelPatch(t *testing.T) {
@@ -47,97 +43,57 @@ func TestChannelPatch(t *testing.T) {
 	o := Channel{Id: NewId(), Name: NewId()}
 	o.Patch(p)
 
-	if *p.Name != o.Name {
-		t.Fatal("do not match")
-	}
-	if *p.DisplayName != o.DisplayName {
-		t.Fatal("do not match")
-	}
-	if *p.Header != o.Header {
-		t.Fatal("do not match")
-	}
-	if *p.Purpose != o.Purpose {
-		t.Fatal("do not match")
-	}
-	if *p.GroupConstrained != *o.GroupConstrained {
-		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
-	}
+	require.Equal(t, *p.Name, o.Name)
+	require.Equal(t, *p.DisplayName, o.DisplayName)
+	require.Equal(t, *p.Header, o.Header)
+	require.Equal(t, *p.Purpose, o.Purpose)
+	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
 
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Name = "zzzzz"
-
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Type = "U"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Type = "P"
-
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.Header = strings.Repeat("01234567890", 100)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Header = "1234"
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.Purpose = strings.Repeat("01234567890", 30)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Purpose = "1234"
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.Purpose = strings.Repeat("0123456789", 25)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 }
 
 func TestChannelPreSave(t *testing.T) {
@@ -159,15 +115,11 @@ func TestGetGroupDisplayNameFromUsers(t *testing.T) {
 	users[3] = &User{Username: NewId()}
 
 	name := GetGroupDisplayNameFromUsers(users, true)
-	if len(name) > CHANNEL_NAME_MAX_LENGTH {
-		t.Fatal("name too long")
-	}
+	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
 }
 
 func TestGetGroupNameFromUserIds(t *testing.T) {
 	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
 
-	if len(name) > CHANNEL_NAME_MAX_LENGTH {
-		t.Fatal("name too long")
-	}
+	require.LessOrEqual(t, len(name), CHANNEL_NAME_MAX_LENGTH)
 }

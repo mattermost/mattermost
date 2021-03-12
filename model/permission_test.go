@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package model
 
 import (
@@ -10,7 +13,7 @@ import (
 // in the database column for role permissions.
 func TestPermissionsLength(t *testing.T) {
 	permissionsString := ""
-	for _, permission := range ALL_PERMISSIONS {
+	for _, permission := range AllPermissions {
 		permissionsString += " " + permission.Id
 	}
 

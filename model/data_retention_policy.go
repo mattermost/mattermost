@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -15,13 +15,13 @@ type DataRetentionPolicy struct {
 	FileRetentionCutoff    int64 `json:"file_retention_cutoff"`
 }
 
-func (me *DataRetentionPolicy) ToJson() string {
-	b, _ := json.Marshal(me)
+func (drp *DataRetentionPolicy) ToJson() string {
+	b, _ := json.Marshal(drp)
 	return string(b)
 }
 
 func DataRetentionPolicyFromJson(data io.Reader) *DataRetentionPolicy {
-	var me *DataRetentionPolicy
-	json.NewDecoder(data).Decode(&me)
-	return me
+	var drp *DataRetentionPolicy
+	json.NewDecoder(data).Decode(&drp)
+	return drp
 }

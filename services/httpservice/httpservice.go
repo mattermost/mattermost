@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package httpservice
 
@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode"
 
-	"github.com/mattermost/mattermost-server/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
 )
 
 // HTTPService wraps the functionality for making http requests to provide some improvements to the default client
@@ -24,13 +25,17 @@ type HTTPService interface {
 	// - A timeout for end-to-end requests
 	// - A Mattermost-specific user agent header
 	// - Additional security for untrusted and insecure connections
-	MakeTransport(trustURLs bool) http.RoundTripper
+	MakeTransport(trustURLs bool) *MattermostTransport
 }
 
 type HTTPServiceImpl struct {
 	configService configservice.ConfigService
 
 	RequestTimeout time.Duration
+}
+
+func splitFields(c rune) bool {
+	return unicode.IsSpace(c) || c == ','
 }
 
 func MakeHTTPService(configService configservice.ConfigService) HTTPService {
@@ -47,7 +52,7 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 	}
 }
 
-func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
+func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
@@ -58,7 +63,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
 		}
-		for _, allowed := range strings.Fields(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
 			if host == allowed {
 				return true
 			}
@@ -85,7 +90,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 		}
 
 		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
-		for _, allowed := range strings.Fields(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+		for _, allowed := range strings.FieldsFunc(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections, splitFields) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
 				return true
 			}

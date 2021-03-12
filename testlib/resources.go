@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
@@ -10,11 +10,12 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -27,6 +28,8 @@ const (
 	actionSymlink
 )
 
+const root = "___mattermost-server"
+
 type testResourceDetails struct {
 	src     string
 	dest    string
@@ -34,23 +37,41 @@ type testResourceDetails struct {
 	action  int8
 }
 
-// commonBaseSearchPaths is a custom version of what fileutils exposes. At some point, consolidate.
-var commonBaseSearchPaths = []string{
-	".",
-	"..",
-	"../..",
-	"../../..",
-	"../../../..",
+// getCommonBaseSearchPaths() is a custom version of what fileutils exposes. At some point, consolidate.
+func getCommonBaseSearchPaths() []string {
+	paths := []string{
+		".",
+		"..",
+		"../..",
+		"../../..",
+		"../../../..",
+	}
+
+	// this enables the server to be used in tests from a different repository
+	if mmPath := os.Getenv("MM_SERVER_PATH"); mmPath != "" {
+		paths = append(paths, mmPath)
+	}
+
+	return paths
 }
 
 func findFile(path string) string {
-	return fileutils.FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	return fileutils.FindPath(path, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return !fileInfo.IsDir()
 	})
 }
 
 func findDir(dir string) (string, bool) {
-	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+	if dir == root {
+		srcPath := findFile("go.mod")
+		if srcPath == "" {
+			return "./", false
+		}
+
+		return path.Dir(srcPath), true
+	}
+
+	found := fileutils.FindPath(dir, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
 	if found == "" {
@@ -65,7 +86,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
-		{"mattermost-server", "mattermost-server", resourceTypeFolder, actionSymlink},
+		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
@@ -84,7 +105,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 			testResourcesToSetup[i].src = srcPath
 		} else if testResource.resType == resourceTypeFolder {
 			srcPath, found = findDir(testResource.src)
-			if found == false {
+			if !found {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
 
@@ -95,6 +116,17 @@ func getTestResourcesToSetup() []testResourceDetails {
 	}
 
 	return testResourcesToSetup
+}
+
+func CopyFile(src, dst string) error {
+	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
+	if err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	if err = fileBackend.CopyFile(src, dst); err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	return nil
 }
 
 func SetupTestResources() (string, error) {
@@ -111,6 +143,12 @@ func SetupTestResources() (string, error) {
 		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
 	}
 
+	clientDir := path.Join(tempDir, "client")
+	err = os.Mkdir(clientDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
+	}
+
 	err = setupConfig(path.Join(tempDir, "config"))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to setup config")
@@ -125,9 +163,8 @@ func SetupTestResources() (string, error) {
 
 		if testResource.action == actionCopy {
 			if testResource.resType == resourceTypeFile {
-				err = utils.CopyFile(testResource.src, resourceDestInTemp)
-				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy file %s to %s", testResource.src, resourceDestInTemp)
+				if err = CopyFile(testResource.src, resourceDestInTemp); err != nil {
+					return "", err
 				}
 			} else if testResource.resType == resourceTypeFolder {
 				err = utils.CopyDir(testResource.src, resourceDestInTemp)
@@ -168,10 +205,10 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
-	configJson := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJson, []byte(config.ToJson()), 0644)
+	configJSON := path.Join(configDir, "config.json")
+	err = ioutil.WriteFile(configJSON, []byte(config.ToJson()), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", configJson)
+		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}
 
 	return nil

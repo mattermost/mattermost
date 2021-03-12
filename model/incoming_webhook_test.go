@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestIncomingWebhookJson(t *testing.T) {
@@ -13,102 +15,64 @@ func TestIncomingWebhookJson(t *testing.T) {
 	json := o.ToJson()
 	ro := IncomingWebhookFromJson(strings.NewReader(json))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.Id, ro.Id)
 }
 
 func TestIncomingWebhookIsValid(t *testing.T) {
 	o := IncomingWebhook{}
 
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.ChannelId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = "123"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.DisplayName = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 501)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Description = strings.Repeat("1", 500)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 65)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.Username = strings.Repeat("1", 64)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1025)
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid())
 
 	o.IconURL = strings.Repeat("1", 1024)
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, o.IsValid())
 }
 
 func TestIncomingWebhookPreSave(t *testing.T) {
@@ -138,7 +102,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 		`,
 	}
 
-	for i, text := range texts {
+	for _, text := range texts {
 		// build a sample payload with the text
 		payload := `{
         "text": "` + text + `",
@@ -179,30 +143,18 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 		// After it has been decoded, the JSON string won't contain the escape char anymore
 		expected := strings.Replace(text, `\"`, `"`, -1)
-		if iwr == nil {
-			t.Fatal("IncomingWebhookRequest should not be nil")
-		}
-		if iwr.Text != expected {
-			t.Fatalf("Sample %d text should be: %s, got: %s", i, expected, iwr.Text)
-		}
+		require.NotNil(t, iwr)
+		require.Equal(t, expected, iwr.Text)
 
 		attachment := iwr.Attachments[0]
-		if attachment.Text != expected {
-			t.Fatalf("Sample %d attachment text should be: %s, got: %s", i, expected, attachment.Text)
-		}
+		require.Equal(t, expected, attachment.Text)
 	}
 }
 
 func TestIncomingWebhookNullArrayItems(t *testing.T) {
 	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
 	iwr, _ := IncomingWebhookRequestFromJson(strings.NewReader(payload))
-	if iwr == nil {
-		t.Fatal("IncomingWebhookRequest should not be nil")
-	}
-	if len(iwr.Attachments) != 1 {
-		t.Fatalf("expected one attachment")
-	}
-	if len(iwr.Attachments[0].Fields) != 1 {
-		t.Fatalf("expected one field")
-	}
+	require.NotNil(t, iwr)
+	require.Len(t, iwr.Attachments, 1)
+	require.Len(t, iwr.Attachments[0].Fields, 1)
 }

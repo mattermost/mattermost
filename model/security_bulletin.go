@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -15,8 +15,8 @@ type SecurityBulletin struct {
 
 type SecurityBulletins []SecurityBulletin
 
-func (me *SecurityBulletin) ToJson() string {
-	b, _ := json.Marshal(me)
+func (sb *SecurityBulletin) ToJson() string {
+	b, _ := json.Marshal(sb)
 	return string(b)
 }
 
@@ -26,12 +26,12 @@ func SecurityBulletinFromJson(data io.Reader) *SecurityBulletin {
 	return o
 }
 
-func (me SecurityBulletins) ToJson() string {
-	if b, err := json.Marshal(me); err != nil {
+func (sb SecurityBulletins) ToJson() string {
+	b, err := json.Marshal(sb)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func SecurityBulletinsFromJson(data io.Reader) SecurityBulletins {

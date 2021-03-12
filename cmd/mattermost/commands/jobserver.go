@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,9 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var JobserverCmd = &cobra.Command{
@@ -31,28 +33,32 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
-	config := viper.GetString("config")
-
 	// Initialize
-	a, err := InitDBCommandContext(config)
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), false)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
-	a.LoadLicense()
+	a.Srv().LoadLicense()
+	a.InitServer()
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")
 	defer mlog.Info("Stopped Mattermost job server")
 
 	if !noJobs {
-		a.Srv.Jobs.StartWorkers()
-		defer a.Srv.Jobs.StopWorkers()
+		a.Srv().Jobs.StartWorkers()
+		defer a.Srv().Jobs.StopWorkers()
 	}
 	if !noSchedule {
-		a.Srv.Jobs.StartSchedulers()
-		defer a.Srv.Jobs.StopSchedulers()
+		a.Srv().Jobs.StartSchedulers()
+		defer a.Srv().Jobs.StopSchedulers()
+	}
+
+	if !noJobs || !noSchedule {
+		auditRec := a.MakeAuditRecord("jobServer", audit.Success)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)

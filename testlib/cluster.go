@@ -1,15 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
 import (
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
+	"sync"
+
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type FakeClusterInterface struct {
 	clusterMessageHandler einterfaces.ClusterMessageHandler
+	mut                   sync.RWMutex
+	messages              []*model.ClusterMessage
 }
 
 func (c *FakeClusterInterface) StartInterNodeCommunication() {}
@@ -20,6 +24,10 @@ func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm e
 	c.clusterMessageHandler = crm
 }
 
+func (c *FakeClusterInterface) HealthScore() int {
+	return 0
+}
+
 func (c *FakeClusterInterface) GetClusterId() string { return "" }
 
 func (c *FakeClusterInterface) IsLeader() bool { return false }
@@ -28,7 +36,11 @@ func (c *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo { return ni
 
 func (c *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo { return nil }
 
-func (c *FakeClusterInterface) SendClusterMessage(cluster *model.ClusterMessage) {}
+func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.messages = append(c.messages, message)
+}
 
 func (c *FakeClusterInterface) NotifyMsg(buf []byte) {}
 
@@ -45,11 +57,25 @@ func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newCo
 }
 
 func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
-	c.clusterMessageHandler(&model.ClusterMessage{
-		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
-	})
+	if c.clusterMessageHandler != nil {
+		c.clusterMessageHandler(&model.ClusterMessage{
+			Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+		})
+	}
 }
 
 func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return nil, nil
+}
+
+func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.messages
+}
+
+func (c *FakeClusterInterface) ClearMessages() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.messages = nil
 }

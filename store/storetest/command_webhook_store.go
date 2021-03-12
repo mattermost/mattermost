@@ -1,17 +1,17 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"net/http"
-
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestCommandWebhookStore(t *testing.T, ss store.Store) {
@@ -26,20 +26,16 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h1.UserId = model.NewId()
 	h1.ChannelId = model.NewId()
 	h1, err := cws.Save(h1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var r1 *model.CommandWebhook
-	if r1, err = cws.Get(h1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if *r1 != *h1 {
-			t.Fatal("invalid returned webhook")
-		}
-	}
+	r1, nErr := cws.Get(h1.Id)
+	require.NoError(t, nErr)
+	assert.Equal(t, *r1, *h1, "invalid returned webhook")
 
-	if _, err = cws.Get("123"); err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for missing id")
-	}
+	_, nErr = cws.Get("123")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for missing id")
 
 	h2 := &model.CommandWebhook{}
 	h2.CreateAt = model.GetMillis() - 2*model.COMMAND_WEBHOOK_LIFETIME
@@ -47,27 +43,25 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2.UserId = model.NewId()
 	h2.ChannelId = model.NewId()
 	h2, err = cws.Save(h2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
-	if _, err := cws.Get(h2.Id); err == nil || err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for expired webhook")
-	}
+	_, nErr = cws.Get(h2.Id)
+	require.Error(t, nErr, "Should have set the status as not found for expired webhook")
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
 	cws.Cleanup()
 
-	if _, err := cws.Get(h1.Id); err != nil {
-		t.Fatal("Should have no error getting unexpired webhook")
-	}
+	_, nErr = cws.Get(h1.Id)
+	require.NoError(t, nErr, "Should have no error getting unexpired webhook")
 
-	if _, err := cws.Get(h2.Id); err.StatusCode != http.StatusNotFound {
-		t.Fatal("Should have set the status as not found for expired webhook")
-	}
+	_, nErr = cws.Get(h2.Id)
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
-	if err := cws.TryUse(h1.Id, 1); err != nil {
-		t.Fatal("Should be able to use webhook once")
-	}
+	nErr = cws.TryUse(h1.Id, 1)
+	require.NoError(t, nErr, "Should be able to use webhook once")
 
-	if err := cws.TryUse(h1.Id, 1); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("Should be able to use webhook once")
-	}
+	nErr = cws.TryUse(h1.Id, 1)
+	require.Error(t, nErr, "Should be able to use webhook once")
+	var invErr *store.ErrInvalidInput
+	require.True(t, errors.As(nErr, &invErr), "Should be able to use webhook once")
 }

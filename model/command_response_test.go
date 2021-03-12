@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -20,6 +20,9 @@ func TestCommandResponseFromHTTPBody(t *testing.T) {
 		{"text/plain", "foo", "foo"},
 		{"application/json", `{"text": "foo"}`, "foo"},
 		{"application/json; charset=utf-8", `{"text": "foo"}`, "foo"},
+		{"application/json", `{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing": true}`,
+			"```haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n```",
+		},
 	} {
 		response, err := CommandResponseFromHTTPBody(test.ContentType, strings.NewReader(test.Body))
 		assert.NoError(t, err)
@@ -146,7 +149,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 			&CommandResponse{
 				Text: "message 1",
 				ExtraResponses: []*CommandResponse{
-					&CommandResponse{
+					{
 						Text: "message 2",
 					},
 				},
@@ -180,7 +183,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 				ExtraResponses: []*CommandResponse{
-					&CommandResponse{
+					{
 						Text: "message 2",
 						Attachments: []*SlackAttachment{
 							{

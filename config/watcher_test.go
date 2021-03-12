@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -49,7 +49,7 @@ func TestWatcher(t *testing.T) {
 	ioutil.WriteFile(filepath.Join(tempDir, "unrelated"), []byte("data"), 0644)
 	select {
 	case <-called:
-		t.Fatal("callback should not have been called for unrelated file")
+		require.Fail(t, "callback should not have been called for unrelated file")
 	case <-time.After(1 * time.Second):
 	}
 
@@ -58,6 +58,6 @@ func TestWatcher(t *testing.T) {
 	select {
 	case <-called:
 	case <-time.After(5 * time.Second):
-		t.Fatal("callback should have been called when file written")
+		require.Fail(t, "callback should have been called when file written")
 	}
 }

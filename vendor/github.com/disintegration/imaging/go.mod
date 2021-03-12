@@ -1,3 +1,3 @@
 module github.com/disintegration/imaging
 
-require golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81
+require golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8

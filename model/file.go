@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -9,12 +9,7 @@ import (
 )
 
 const (
-	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
-)
-
-var (
-	IMAGE_EXTENSIONS = [7]string{".jpg", ".jpeg", ".gif", ".bmp", ".png", ".tiff", "tif"}
-	IMAGE_MIME_TYPES = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+	MaxImageSize = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 )
 
 type FileUploadResponse struct {

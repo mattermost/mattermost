@@ -1,53 +1,70 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
+	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
+	"github.com/mailru/easygo/netpoll"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	SEND_QUEUE_SIZE           = 256
-	SEND_SLOW_WARN            = (SEND_QUEUE_SIZE * 50) / 100
-	SEND_DEADLOCK_WARN        = (SEND_QUEUE_SIZE * 95) / 100
-	WRITE_WAIT                = 30 * time.Second
-	PONG_WAIT                 = 100 * time.Second
-	PING_PERIOD               = (PONG_WAIT * 6) / 10
-	AUTH_TIMEOUT              = 5 * time.Second
-	WEBCONN_MEMBER_CACHE_TIME = 1000 * 60 * 30 // 30 minutes
+	sendQueueSize          = 256
+	sendSlowWarn           = (sendQueueSize * 50) / 100
+	sendFullWarn           = (sendQueueSize * 95) / 100
+	writeWaitTime          = 30 * time.Second
+	pongWaitTime           = 100 * time.Second
+	pingInterval           = (pongWaitTime * 6) / 10
+	authCheckInterval      = 5 * time.Second
+	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
 )
 
+// WebConn represents a single websocket connection to a user.
+// It contains all the necessary state to manage sending/receiving data to/from
+// a websocket.
 type WebConn struct {
-	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	App                       *App
-	WebSocket                 *websocket.Conn
-	Send                      chan model.WebSocketMessage
+	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	App              *App
+	WebSocket        net.Conn
+	T                i18n.TranslateFunc
+	Locale           string
+	Sequence         int64
+	UserId           string
+
+	readMut                   sync.Mutex
+	allChannelMembers         map[string]string
+	lastAllChannelMembersTime int64
+	lastUserActivityAt        int64
+	send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
-	LastUserActivityAt        int64
-	UserId                    string
-	T                         goi18n.TranslateFunc
-	Locale                    string
-	AllChannelMembers         map[string]string
-	LastAllChannelMembersTime int64
-	Sequence                  int64
-	closeOnce                 sync.Once
+	isWindows                 bool
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
+	closeOnce                 sync.Once
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
-	if len(session.UserId) > 0 {
-		a.Srv.Go(func() {
+// NewWebConn returns a new WebConn instance.
+func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
+	if session.UserId != "" {
+		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
@@ -55,12 +72,13 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 
 	wc := &WebConn{
 		App:                a,
-		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		send:               make(chan model.WebSocketMessage, sendQueueSize),
 		WebSocket:          ws,
-		LastUserActivityAt: model.GetMillis(),
+		lastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
 		T:                  t,
 		Locale:             locale,
+		isWindows:          runtime.GOOS == "windows",
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 	}
@@ -69,179 +87,295 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	wc.SetSessionToken(session.Token)
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
+	// epoll/kqueue is not available on Windows.
+	if !wc.isWindows {
+		wc.startPoller()
+	}
 	return wc
 }
 
+// Close closes the WebConn.
+// It is made idempotent in nature by using a sync.Once
+// to avoid a race condition that happens when an EventReadHup event
+// and a connection close event happens at the same time.
 func (wc *WebConn) Close() {
-	wc.WebSocket.Close()
 	wc.closeOnce.Do(func() {
-		close(wc.endWritePump)
+		wc.WebSocket.Close()
+		if !wc.isWindows {
+			// This triggers the pump exit.
+			// If the pump has already exited, this just becomes a noop.
+			close(wc.endWritePump)
+		}
+		// We wait for the pump to fully exit.
+		<-wc.pumpFinished
 	})
-	<-wc.pumpFinished
 }
 
-func (c *WebConn) GetSessionExpiresAt() int64 {
-	return atomic.LoadInt64(&c.sessionExpiresAt)
+// GetSessionExpiresAt returns the time at which the session expires.
+func (wc *WebConn) GetSessionExpiresAt() int64 {
+	return atomic.LoadInt64(&wc.sessionExpiresAt)
 }
 
-func (c *WebConn) SetSessionExpiresAt(v int64) {
-	atomic.StoreInt64(&c.sessionExpiresAt, v)
+// SetSessionExpiresAt sets the time at which the session expires.
+func (wc *WebConn) SetSessionExpiresAt(v int64) {
+	atomic.StoreInt64(&wc.sessionExpiresAt, v)
 }
 
-func (c *WebConn) GetSessionToken() string {
-	return c.sessionToken.Load().(string)
+// GetSessionToken returns the session token of the connection.
+func (wc *WebConn) GetSessionToken() string {
+	return wc.sessionToken.Load().(string)
 }
 
-func (c *WebConn) SetSessionToken(v string) {
-	c.sessionToken.Store(v)
+// SetSessionToken sets the session token of the connection.
+func (wc *WebConn) SetSessionToken(v string) {
+	wc.sessionToken.Store(v)
 }
 
-func (c *WebConn) GetSession() *model.Session {
-	return c.session.Load().(*model.Session)
+// GetSession returns the session of the connection.
+func (wc *WebConn) GetSession() *model.Session {
+	return wc.session.Load().(*model.Session)
 }
 
-func (c *WebConn) SetSession(v *model.Session) {
+// SetSession sets the session of the connection.
+func (wc *WebConn) SetSession(v *model.Session) {
 	if v != nil {
 		v = v.DeepCopy()
 	}
 
-	c.session.Store(v)
+	wc.session.Store(v)
 }
 
-func (c *WebConn) Pump() {
-	ch := make(chan struct{})
+// Pump starts the WebConn instance. After this, the websocket
+// is ready to send messages.
+// This is only used by *nix platforms.
+func (wc *WebConn) Pump() {
+	// writePump is blocking in nature.
+	wc.writePump()
+	// Once it exits, we close everything.
+	wc.App.HubUnregister(wc)
+	close(wc.pumpFinished)
+}
+
+// BlockingPump is the Windows alternative of Pump.
+// It creates two goroutines - one for reading, another
+// for writing.
+func (wc *WebConn) BlockingPump() {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
-		c.writePump()
-		close(ch)
+		defer wg.Done()
+		wc.writePump()
 	}()
-	c.readPump()
-	c.closeOnce.Do(func() {
-		close(c.endWritePump)
-	})
-	<-ch
-	c.App.HubUnregister(c)
-	close(c.pumpFinished)
+	wc.readPump()
+	close(wc.endWritePump)
+	wg.Wait()
+	wc.App.HubUnregister(wc)
+	close(wc.pumpFinished)
+
+	defer ReturnSessionToPool(wc.GetSession())
 }
 
-func (c *WebConn) readPump() {
-	defer func() {
-		c.WebSocket.Close()
-	}()
-	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
-	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-	c.WebSocket.SetPongHandler(func(string) error {
-		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		if c.IsAuthenticated() {
-			c.App.Srv.Go(func() {
-				c.App.SetStatusAwayIfNeeded(c.UserId, false)
-			})
-		}
-		return nil
-	})
-
-	for {
-		var req model.WebSocketRequest
-		if err := c.WebSocket.ReadJSON(&req); err != nil {
-			// browsers will appear as CloseNoStatusReceived
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				mlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
-			} else {
-				mlog.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
-			}
+// startPoller adds the file descriptor of the connection
+// to the global epoll instance and registers a callback.
+func (wc *WebConn) startPoller() {
+	desc := netpoll.Must(netpoll.HandleRead(wc.WebSocket))
+	wc.App.Srv().Poller().Start(desc, func(wsEv netpoll.Event) {
+		if wsEv&(netpoll.EventReadHup|netpoll.EventHup) != 0 {
+			wc.App.Srv().Poller().Stop(desc)
+			wc.Close()
 			return
 		}
-		c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
+
+		// Block until we have a token.
+		wc.App.Srv().GetWebConnToken()
+		// Read from conn.
+		go func() {
+			defer wc.App.Srv().ReleaseWebConnToken()
+			err := wc.ReadMsg()
+			if err != nil {
+				mlog.Debug("Error while reading message from websocket", mlog.Err(err))
+				wc.App.Srv().Poller().Stop(desc)
+				// net.ErrClosed is not available until Go 1.16.
+				// https://github.com/golang/go/issues/4373
+				//
+				// Sometimes, the netpoller generates a data event and a HUP event
+				// close to each other. In that case, we don't want to double-close
+				// the connection.
+				if !strings.Contains(err.Error(), "use of closed network connection") {
+					wc.Close()
+				}
+			}
+		}()
+	})
+}
+
+// GetWebConnToken creates backpressure by using
+// a counting semaphore to limit the number of concurrent goroutines.
+func (s *Server) GetWebConnToken() {
+	s.webConnSemaWg.Add(1)
+	s.webConnSema <- struct{}{}
+}
+
+// ReleaseWebConnToken releases a token
+// got from the semaphore
+func (s *Server) ReleaseWebConnToken() {
+	<-s.webConnSema
+	s.webConnSemaWg.Done()
+}
+
+// ReadMsg will read a single message from the websocket connection.
+func (wc *WebConn) ReadMsg() error {
+	r := wsutil.NewReader(wc.WebSocket, ws.StateServerSide)
+	r.MaxFrameSize = model.SOCKET_MAX_MESSAGE_SIZE_KB
+	decoder := json.NewDecoder(r)
+
+	// The reader's methods are not goroutine safe.
+	// We restrict only one reader goroutine per-connection.
+	wc.readMut.Lock()
+	defer wc.readMut.Unlock()
+
+	var req model.WebSocketRequest
+	hdr, err := r.NextFrame()
+	if err != nil {
+		return errors.Wrap(err, "error while getting the next websocket frame")
+	}
+	switch hdr.OpCode {
+	case ws.OpClose:
+		// Return if closed.
+		// We need to return an error for Windows to let the reader exit.
+		if wc.isWindows {
+			return errors.New("connection closed")
+		}
+		return nil
+	case ws.OpPong:
+		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		// Handle pongs
+		if wc.IsAuthenticated() {
+			wc.App.Srv().Go(func() {
+				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
+			})
+		}
+	default:
+		// Default case of data message.
+		if err := decoder.Decode(&req); err != nil {
+			// We discard any remaining data left in the socket.
+			r.Discard()
+			return errors.Wrap(err, "error during decoding websocket message")
+		}
+
+		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
+	}
+	return nil
+}
+
+func (wc *WebConn) readPump() {
+	defer wc.WebSocket.Close()
+	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+
+	for {
+		if err := wc.ReadMsg(); err != nil {
+			wc.logSocketErr("websocket.read", err)
+			return
+		}
 	}
 }
 
-func (c *WebConn) writePump() {
-	ticker := time.NewTicker(PING_PERIOD)
-	authTicker := time.NewTicker(AUTH_TIMEOUT)
+func (wc *WebConn) writePump() {
+	ticker := time.NewTicker(pingInterval)
+	authTicker := time.NewTicker(authCheckInterval)
 
 	defer func() {
 		ticker.Stop()
 		authTicker.Stop()
-		c.WebSocket.Close()
+		wc.WebSocket.Close()
 	}()
+
+	var buf bytes.Buffer
+	// 2k is seen to be a good heuristic under which 98.5% of message sizes remain.
+	buf.Grow(1024 * 2)
+	enc := json.NewEncoder(&buf)
 
 	for {
 		select {
-		case msg, ok := <-c.Send:
+		case msg, ok := <-wc.send:
 			if !ok {
-				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-				c.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+				wsutil.WriteServerMessage(wc.WebSocket, ws.OpClose, []byte{})
 				return
 			}
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
 			skipSend := false
-			if len(c.Send) >= SEND_SLOW_WARN {
+			if len(wc.send) >= sendSlowWarn {
 				// When the pump starts to get slow we'll drop non-critical messages
-				if msg.EventType() == model.WEBSOCKET_EVENT_TYPING ||
-					msg.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE ||
-					msg.EventType() == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
-					mlog.Info(fmt.Sprintf("websocket.slow: dropping message userId=%v type=%v channelId=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId))
+				switch msg.EventType() {
+				case model.WEBSOCKET_EVENT_TYPING,
+					model.WEBSOCKET_EVENT_STATUS_CHANGE,
+					model.WEBSOCKET_EVENT_CHANNEL_VIEWED:
+					mlog.Warn(
+						"websocket.slow: dropping message",
+						mlog.String("user_id", wc.UserId),
+						mlog.String("type", msg.EventType()),
+						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
+					)
 					skipSend = true
 				}
 			}
 
-			if !skipSend {
-				var msgBytes []byte
-				if evtOk {
-					cpyEvt := &model.WebSocketEvent{}
-					*cpyEvt = *evt
-					cpyEvt.Sequence = c.Sequence
-					msgBytes = []byte(cpyEvt.ToJson())
-					c.Sequence++
-				} else {
-					msgBytes = []byte(msg.ToJson())
-				}
-
-				if len(c.Send) >= SEND_DEADLOCK_WARN {
-					if evtOk {
-						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
-					} else {
-						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
-					}
-				}
-
-				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-				if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-					// browsers will appear as CloseNoStatusReceived
-					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-						mlog.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
-					} else {
-						mlog.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
-					}
-					return
-				}
-
-				if c.App.Metrics != nil {
-					c.App.Srv.Go(func() {
-						c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
-					})
-				}
+			if skipSend {
+				continue
 			}
 
-		case <-ticker.C:
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				// browsers will appear as CloseNoStatusReceived
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					mlog.Debug(fmt.Sprintf("websocket.ticker: client side closed socket userId=%v", c.UserId))
-				} else {
-					mlog.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+			buf.Reset()
+			var err error
+			if evtOk {
+				cpyEvt := evt.SetSequence(wc.Sequence)
+				err = cpyEvt.Encode(enc)
+				wc.Sequence++
+			} else {
+				err = enc.Encode(msg)
+			}
+			if err != nil {
+				mlog.Warn("Error in encoding websocket message", mlog.Err(err))
+				continue
+			}
+
+			if len(wc.send) >= sendFullWarn {
+				logData := []mlog.Field{
+					mlog.String("user_id", wc.UserId),
+					mlog.String("type", msg.EventType()),
+					mlog.Int("size", buf.Len()),
 				}
+				if evtOk {
+					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
+				}
+
+				mlog.Warn("websocket.full", logData...)
+			}
+
+			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpText, buf.Bytes()); err != nil {
+				wc.logSocketErr("websocket.send", err)
 				return
 			}
 
-		case <-c.endWritePump:
+			if wc.App.Metrics() != nil {
+				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
+			}
+		case <-ticker.C:
+			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpPing, []byte{}); err != nil {
+				wc.logSocketErr("websocket.ticker", err)
+				return
+			}
+
+		case <-wc.endWritePump:
 			return
 
 		case <-authTicker.C:
-			if c.GetSessionToken() == "" {
-				mlog.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
+			if wc.GetSessionToken() == "" {
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Any("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -249,53 +383,88 @@ func (c *WebConn) writePump() {
 	}
 }
 
-func (webCon *WebConn) InvalidateCache() {
-	webCon.AllChannelMembers = nil
-	webCon.LastAllChannelMembersTime = 0
-	webCon.SetSession(nil)
-	webCon.SetSessionExpiresAt(0)
+// InvalidateCache resets all internal data of the WebConn.
+func (wc *WebConn) InvalidateCache() {
+	wc.allChannelMembers = nil
+	wc.lastAllChannelMembersTime = 0
+	wc.SetSession(nil)
+	wc.SetSessionExpiresAt(0)
 }
 
-func (webCon *WebConn) IsAuthenticated() bool {
+// IsAuthenticated returns whether the given WebConn is authenticated or not.
+func (wc *WebConn) IsAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
-	if webCon.GetSessionExpiresAt() < model.GetMillis() {
-		if webCon.GetSessionToken() == "" {
+	if wc.GetSessionExpiresAt() < model.GetMillis() {
+		if wc.GetSessionToken() == "" {
 			return false
 		}
 
-		session, err := webCon.App.GetSession(webCon.GetSessionToken())
+		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Invalid session err=%v", err.Error()))
-			webCon.SetSessionToken("")
-			webCon.SetSession(nil)
-			webCon.SetSessionExpiresAt(0)
+			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+				mlog.Debug("Invalid session.", mlog.Err(err))
+			} else {
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+			}
+
+			wc.SetSessionToken("")
+			wc.SetSession(nil)
+			wc.SetSessionExpiresAt(0)
 			return false
 		}
 
-		webCon.SetSession(session)
-		webCon.SetSessionExpiresAt(session.ExpiresAt)
+		wc.SetSession(session)
+		wc.SetSessionExpiresAt(session.ExpiresAt)
 	}
 
 	return true
 }
 
-func (webCon *WebConn) SendHello() {
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, webCon.App.ClientConfigHash(), webCon.App.License() != nil))
-	webCon.Send <- msg
+func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
+	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.Srv().License() != nil))
+	return msg
 }
 
-func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
+	var userID string
+	var canSee bool
+
+	switch msg.EventType() {
+	case model.WEBSOCKET_EVENT_USER_UPDATED:
+		user, ok := msg.GetData()["user"].(*model.User)
+		if !ok {
+			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
+			return false
+		}
+		userID = user.Id
+	case model.WEBSOCKET_EVENT_NEW_USER:
+		userID = msg.GetData()["user_id"].(string)
+	default:
+		return true
+	}
+
+	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userID)
+	if err != nil {
+		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+		return false
+	}
+
+	return canSee
+}
+
+// shouldSendEvent returns whether the message should be sent or not.
+func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
-	if !webCon.IsAuthenticated() {
+	if !wc.IsAuthenticated() {
 		return false
 	}
 
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	if msg.Broadcast.ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+	if msg.GetBroadcast().ContainsSanitizedData {
+		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -303,9 +472,9 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event contains sensitive data, only send to users with permission to see it
-	if msg.Broadcast.ContainsSensitiveData {
+	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -314,68 +483,74 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event is destined to a specific user
-	if len(msg.Broadcast.UserId) > 0 {
-		if webCon.UserId == msg.Broadcast.UserId {
-			return true
-		}
-		return false
+	if msg.GetBroadcast().UserId != "" {
+		return wc.UserId == msg.GetBroadcast().UserId
 	}
 
 	// if the user is omitted don't send the message
-	if len(msg.Broadcast.OmitUsers) > 0 {
-		if _, ok := msg.Broadcast.OmitUsers[webCon.UserId]; ok {
+	if len(msg.GetBroadcast().OmitUsers) > 0 {
+		if _, ok := msg.GetBroadcast().OmitUsers[wc.UserId]; ok {
 			return false
 		}
 	}
 
 	// Only report events to users who are in the channel for the event
-	if len(msg.Broadcast.ChannelId) > 0 {
-		if model.GetMillis()-webCon.LastAllChannelMembersTime > WEBCONN_MEMBER_CACHE_TIME {
-			webCon.AllChannelMembers = nil
-			webCon.LastAllChannelMembersTime = 0
+	if msg.GetBroadcast().ChannelId != "" {
+		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
+			wc.allChannelMembers = nil
+			wc.lastAllChannelMembersTime = 0
 		}
 
-		if webCon.AllChannelMembers == nil {
-			result, err := webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+		if wc.allChannelMembers == nil {
+			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
 			if err != nil {
-				mlog.Error("webhub.shouldSendEvent: " + err.Error())
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
 			}
-			webCon.AllChannelMembers = result
-			webCon.LastAllChannelMembersTime = model.GetMillis()
+			wc.allChannelMembers = result
+			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := webCon.AllChannelMembers[msg.Broadcast.ChannelId]; ok {
+		if _, ok := wc.allChannelMembers[msg.GetBroadcast().ChannelId]; ok {
 			return true
 		}
 		return false
 	}
 
 	// Only report events to users who are in the team for the event
-	if len(msg.Broadcast.TeamId) > 0 {
-		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
+	if msg.GetBroadcast().TeamId != "" {
+		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
+	}
+
+	if wc.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
+		return wc.shouldSendEventToGuest(msg)
 	}
 
 	return true
 }
 
-func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
-	currentSession := webCon.GetSession()
+// IsMemberOfTeam returns whether the user of the WebConn
+// is a member of the given teamID or not.
+func (wc *WebConn) isMemberOfTeam(teamID string) bool {
+	currentSession := wc.GetSession()
 
-	if currentSession == nil || len(currentSession.Token) == 0 {
-		session, err := webCon.App.GetSession(webCon.GetSessionToken())
+	if currentSession == nil || currentSession.Token == "" {
+		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Invalid session err=%v", err.Error()))
+			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+				mlog.Debug("Invalid session.", mlog.Err(err))
+			} else {
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+			}
 			return false
 		}
-		webCon.SetSession(session)
+		wc.SetSession(session)
 		currentSession = session
 	}
 
-	member := currentSession.GetTeamByTeamId(teamId)
+	return currentSession.GetTeamByTeamId(teamID) != nil
+}
 
-	if member != nil {
-		return true
-	}
-	return false
+func (wc *WebConn) logSocketErr(source string, err error) {
+	mlog.Debug(source+": error during writing to websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 }

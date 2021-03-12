@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,19 +11,19 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
@@ -32,27 +32,33 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
+	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	app.SetPluginsEnvironment(env)
-	pluginIds := []string{}
+	pluginIDs := []string{}
 	activationErrors := []error{}
 	for _, code := range pluginCode {
-		pluginId := model.NewId()
-		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		pluginID := model.NewId()
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
-		_, _, activationErr := env.Activate(pluginId)
-		pluginIds = append(pluginIds, pluginId)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		_, _, activationErr := env.Activate(pluginID)
+		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
+				Enable: true,
+			}
+		})
 	}
 
 	return func() {
 		os.RemoveAll(pluginDir)
 		os.RemoveAll(webappPluginDir)
-	}, pluginIds, activationErrors
+	}, pluginIDs, activationErrors
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
@@ -65,8 +71,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -90,7 +96,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -105,8 +111,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -131,7 +137,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -146,8 +152,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -171,13 +177,12 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
 		assert.Equal(t, "message", post.Message)
-		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
-		require.Nil(t, errSingle)
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
+		require.NoError(t, errSingle)
 		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
@@ -190,8 +195,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -216,16 +221,13 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
 		assert.Equal(t, "message_fromplugin", post.Message)
-		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
-			t.Fatal(errSingle)
-		} else {
-			assert.Equal(t, "message_fromplugin", retrievedPost.Message)
-		}
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
+		require.NoError(t, errSingle)
+		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
@@ -237,8 +239,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -246,7 +248,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 
 			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-				
+
 				post.Message = "prefix_" + post.Message
 				return post, ""
 			}
@@ -259,8 +261,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -285,10 +287,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(post, th.BasicChannel, false)
-		if err != nil {
-			t.Fatal(err)
-		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+		require.Nil(t, err)
 		assert.Equal(t, "prefix_message_suffix", post.Message)
 	})
 }
@@ -307,8 +307,8 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -331,10 +331,8 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+	require.Nil(t, err)
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
@@ -347,8 +345,8 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -372,16 +370,12 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	post, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited_"
 	post, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 	assert.Equal(t, "message_edited_fromplugin", post.Message)
 }
 
@@ -399,8 +393,8 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -424,16 +418,12 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	post, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
 	_, err = th.App.UpdatePost(post, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 }
 
 func TestHookFileWillBeUploaded(t *testing.T) {
@@ -451,8 +441,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -497,9 +487,10 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			package main
 
 			import (
+				"fmt"
 				"io"
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -507,7 +498,10 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				output.Write([]byte("ignored"))
+				n, err := output.Write([]byte("ignored"))
+				if err != nil {
+					return info, fmt.Sprintf("FAILED to write output file n: %v, err: %v", n, err)
+				}
 				info.Name = "ignored"
 				return info, "rejected"
 			}
@@ -547,8 +541,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -578,9 +572,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
-		fileId := response.FileInfos[0].Id
 
-		fileInfo, err := th.App.GetFileInfo(fileId)
+		fileID := response.FileInfos[0].Id
+		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
@@ -606,9 +600,10 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
+				"fmt"
 				"bytes"
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -616,13 +611,20 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				p.API.LogDebug(info.Name)
 				var buf bytes.Buffer
-				buf.ReadFrom(file)
-				p.API.LogDebug(buf.String())
+				n, err := buf.ReadFrom(file)
+				if err != nil {
+					panic(fmt.Sprintf("buf.ReadFrom failed, reading %d bytes: %s", err.Error()))
+				}
 
 				outbuf := bytes.NewBufferString("changedtext")
-				io.Copy(output, outbuf)
+				n, err = io.Copy(output, outbuf)
+				if err != nil {
+					panic(fmt.Sprintf("io.Copy failed after %d bytes: %s", n, err.Error()))
+				}
+				if n != 11 {
+					panic(fmt.Sprintf("io.Copy only copied %d bytes", n))
+				}
 				info.Name = "modifiedinfo"
 				return info, ""
 			}
@@ -646,9 +648,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
-		fileId := response.FileInfos[0].Id
+		fileID := response.FileInfos[0].Id
 
-		fileInfo, err := th.App.GetFileInfo(fileId)
+		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
@@ -666,19 +668,15 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
-
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
-
+	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -697,11 +695,9 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "", false, false, false)
 
-	if !strings.HasPrefix(err.Id, "Login rejected by plugin") {
-		t.Errorf("Expected Login rejected by plugin, got %s", err.Id)
-	}
+	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
@@ -710,9 +706,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -720,8 +714,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -740,15 +734,10 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "", false, false, false)
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
-
-	if session.UserId != th.BasicUser.Id {
-		t.Errorf("Expected %s, got %s", th.BasicUser.Id, session.UserId)
-	}
+	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.Equal(t, th.App.Session().UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -757,9 +746,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
 
-	if err != nil {
-		t.Errorf("Error updating user password: %s", err)
-	}
+	assert.Nil(t, err, "Error updating user password: %s", err)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -767,8 +754,8 @@ func TestUserHasLoggedIn(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -788,23 +775,19 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
+	err = th.App.DoLogin(w, r, th.BasicUser, "", false, false, false)
 
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
+	assert.Nil(t, err, "Expected nil, got %s", err)
 
 	time.Sleep(2 * time.Second)
 
 	user, _ := th.App.GetUser(th.BasicUser.Id)
 
-	if user.FirstName != "plugin-callback-success" {
-		t.Errorf("Expected firstname overwrite, got default")
-	}
+	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -813,8 +796,8 @@ func TestUserHasBeenCreated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -846,12 +829,11 @@ func TestUserHasBeenCreated(t *testing.T) {
 
 	user, err = th.App.GetUser(user.Id)
 	require.Nil(t, err)
-
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
 
 func TestErrorString(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("errors.New", func(t *testing.T) {
@@ -863,7 +845,7 @@ func TestErrorString(t *testing.T) {
 			import (
 				"errors"
 
-				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
 			type MyPlugin struct {
@@ -881,7 +863,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 		require.Contains(t, activationErrors[0].Error(), "simulate failure")
 	})
 
@@ -892,8 +874,8 @@ func TestErrorString(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
 			)
 
 			type MyPlugin struct {
@@ -911,7 +893,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 
 		cause := errors.Cause(activationErrors[0])
 		require.IsType(t, &model.AppError{}, cause)
@@ -927,19 +909,19 @@ func TestHookContext(t *testing.T) {
 	defer th.TearDown()
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	th.App.Session.Id = model.NewId()
-	th.App.RequestId = model.NewId()
-	th.App.IpAddress = model.NewId()
-	th.App.AcceptLanguage = model.NewId()
-	th.App.UserAgent = model.NewId()
+	th.App.Session().Id = model.NewId()
+	th.App.requestId = model.NewId()
+	th.App.ipAddress = model.NewId()
+	th.App.acceptLanguage = model.NewId()
+	th.App.userAgent = model.NewId()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
-	mockAPI.On("LogInfo", th.App.RequestId).Return(nil)
-	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
-	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
-	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
+	mockAPI.On("LogDebug", th.App.Session().Id).Return(nil)
+	mockAPI.On("LogInfo", th.App.RequestId()).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress()).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage()).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent()).Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -947,8 +929,8 @@ func TestHookContext(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
 		)
 
 		type MyPlugin struct {
@@ -975,8 +957,262 @@ func TestHookContext(t *testing.T) {
 		Message:   "not this",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
+	_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+}
+
+func TestActiveHooks(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return nil
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				return nil
+			}
+
+			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+				user.Nickname = "plugin-callback-success"
+				p.API.UpdateUser(user)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		user1 := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader1",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		_, appErr := th.App.CreateUser(user1)
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Second)
+		user1, appErr = th.App.GetUser(user1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin-callback-success", user1.Nickname)
+
+		// Disable plugin
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+		require.Error(t, err)
+		require.Nil(t, hooks)
+
+		// Should fail to find pluginID as it was deleted when deactivated
+		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+		require.Error(t, err)
+		require.Empty(t, path)
+	})
+}
+
+func TestHookMetrics(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		metricsMock := &mocks.MetricsInterface{}
+
+		pluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		defer os.RemoveAll(pluginDir)
+		defer os.RemoveAll(webappPluginDir)
+
+		env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), metricsMock)
+		require.NoError(t, err)
+
+		th.App.SetPluginsEnvironment(env)
+
+		pluginID := model.NewId()
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		code :=
+			`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/v5/model"
+		"github.com/mattermost/mattermost-server/v5/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
 	}
+
+	func (p *MyPlugin) OnActivate() error {
+		return nil
+	}
+
+	func (p *MyPlugin) OnConfigurationChange() error {
+		return nil
+	}
+
+	func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+		user.Nickname = "plugin-callback-success"
+		p.API.UpdateUser(user)
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+`
+		utils.CompileGo(t, code, backend)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+
+		// Setup mocks before activating
+		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnActivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnDeactivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnConfigurationChange", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "UserHasBeenCreated", true, mock.Anything).Return()
+
+		// Don't care about these calls.
+		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
+
+		_, _, activationErr := env.Activate(pluginID)
+		require.NoError(t, activationErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
+				Enable: true,
+			}
+		})
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		user1 := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader1",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		_, appErr := th.App.CreateUser(user1)
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Second)
+		user1, appErr = th.App.GetUser(user1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin-callback-success", user1.Nickname)
+
+		// Disable plugin
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		metricsMock.AssertExpectations(t)
+	})
+}
+
+func TestHookReactionHasBeenAdded(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "smile").Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
+			p.API.LogDebug(reaction.EmojiName)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	reaction := &model.Reaction{
+		UserId:    th.BasicUser.Id,
+		PostId:    th.BasicPost.Id,
+		EmojiName: "smile",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.SaveReactionForPost(reaction)
+	require.Nil(t, err)
+}
+
+func TestHookReactionHasBeenRemoved(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "star").Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
+			p.API.LogDebug(reaction.EmojiName)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	reaction := &model.Reaction{
+		UserId:    th.BasicUser.Id,
+		PostId:    th.BasicPost.Id,
+		EmojiName: "star",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	err := th.App.DeleteReactionForPost(reaction)
+
+	require.Nil(t, err)
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -131,6 +131,27 @@ func TestParseImageDimensions(t *testing.T) {
 		},
 		"garbage 4": {
 			Input:         `![alt](https://example.com =100x200x300x400)`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
+		"garbage 5": {
+			Input:         `![alt](https://example.com =100x200`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
+		"garbage 6": {
+			Input:         `![alt](https://example.com =100x`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
+		"garbage 7": {
+			Input:         `![alt](https://example.com =x200`,
 			Position:      27,
 			ExpectedRange: Range{0, 0},
 			ExpectedNext:  0,

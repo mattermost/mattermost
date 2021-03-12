@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -147,7 +147,7 @@ func parseImageDimensions(markdown string, position int) (raw Range, next int, o
 
 	// Read width
 	hasWidth := false
-	for isNumericByte(markdown[position]) {
+	for position < len(markdown)-1 && isNumericByte(markdown[position]) {
 		hasWidth = true
 		position += 1
 	}
@@ -158,14 +158,14 @@ func parseImageDimensions(markdown string, position int) (raw Range, next int, o
 	}
 
 	// Read the x
-	if markdown[position] != 'x' && markdown[position] != 'X' {
+	if (markdown[position] != 'x' && markdown[position] != 'X') || position == len(markdown)-1 {
 		return
 	}
 	position += 1
 
 	// Read height
 	hasHeight := false
-	for isNumericByte(markdown[position]) {
+	for position < len(markdown)-1 && isNumericByte(markdown[position]) {
 		hasHeight = true
 		position += 1
 	}

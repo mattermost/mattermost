@@ -1,4 +1,4 @@
-// Copyright 2013 Google Inc. All rights reserved.
+// Copyright 2013 Google LLC. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/muesli/smartcrop"
 	"github.com/muesli/smartcrop/nfnt"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rwcarlsen/goexif/exif"
+	"golang.org/x/image/bmp"    // register bmp format
 	"golang.org/x/image/tiff"   // register tiff format
 	_ "golang.org/x/image/webp" // register webp format
 	"willnorris.com/go/gifresize"
@@ -79,6 +81,12 @@ func Transform(img []byte, opt Options) ([]byte, error) {
 	// transform and encode image
 	buf := new(bytes.Buffer)
 	switch format {
+	case "bmp":
+		m = transformImage(m, opt)
+		err = bmp.Encode(buf, m)
+		if err != nil {
+			return nil, err
+		}
 	case "gif":
 		fn := func(img image.Image) image.Image {
 			return transformImage(img, opt)
@@ -267,6 +275,9 @@ func exifOrientation(r io.Reader) (opt Options) {
 // transformImage modifies the image m based on the transformations specified
 // in opt.
 func transformImage(m image.Image, opt Options) image.Image {
+	timer := prometheus.NewTimer(metricTransformationDuration)
+	defer timer.ObserveDuration()
+
 	// Parse crop and resize parameters before applying any transforms.
 	// This is to ensure that any percentage-based values are based off the
 	// size of the original image.

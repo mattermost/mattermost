@@ -1,6 +1,8 @@
-// Copyright (c) 2011 The Go Authors.
-// Modified work: Copyright (c) 2019 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// This is a modified version, the original copyright was: Copyright (c) 2011
+// The Go Authors.
 
 package imgutils
 
@@ -32,7 +34,6 @@ type reader interface {
 const (
 	// Fields.
 	fColorTable         = 1 << 7
-	fInterlace          = 1 << 6
 	fColorTableBitsMask = 7
 
 	// Graphic control flags.
@@ -213,7 +214,7 @@ func (b *blockReader) close() error {
 }
 
 // decode reads a GIF image from r and stores the result in d.
-func (d *decoder) decode(r io.Reader, configOnly, keepAllFrames bool) error {
+func (d *decoder) decode(r io.Reader, configOnly bool) error {
 	// Add buffering if r does not provide ReadByte.
 	if rr, ok := r.(reader); ok {
 		d.r = rr
@@ -243,7 +244,7 @@ func (d *decoder) decode(r io.Reader, configOnly, keepAllFrames bool) error {
 			}
 
 		case sImageDescriptor:
-			if err = d.readImageDescriptor(keepAllFrames); err != nil {
+			if err = d.readImageDescriptor(); err != nil {
 				return err
 			}
 
@@ -369,7 +370,7 @@ func (d *decoder) readGraphicControl() error {
 	return nil
 }
 
-func (d *decoder) readImageDescriptor(keepAllFrames bool) error {
+func (d *decoder) readImageDescriptor() error {
 	m, err := d.newImageFromDescriptor()
 	if err != nil {
 		return err
@@ -502,7 +503,7 @@ func (d *decoder) readBlock() (int, error) {
 
 func CountFrames(r io.Reader) (int, error) {
 	var d decoder
-	if err := d.decode(r, false, true); err != nil {
+	if err := d.decode(r, false); err != nil {
 		return -1, err
 	}
 	return d.imageCount, nil

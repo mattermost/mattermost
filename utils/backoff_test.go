@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package utils
 
 import (
@@ -53,7 +56,7 @@ func TestProgressiveRetry(t *testing.T) {
 
 			err := ProgressiveRetry(tt.args.operation)
 			if !tt.wantErr {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 
 			assert.Equal(t, tt.expectedRetries, retries)

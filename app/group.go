@@ -1,129 +1,485 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"strings"
+	"errors"
+	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().Get(id)
+	group, err := a.Srv().Store.Group().Get(id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return group, nil
+}
+
+func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	group, err := a.Srv().Store.Group().GetByName(name, opts)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetGroupByName", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetGroupByName", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return group, nil
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
+	group, err := a.Srv().Store.Group().GetByRemoteID(remoteID, groupSource)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetGroupByRemoteID", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetGroupByRemoteID", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return group, nil
 }
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().GetAllBySource(groupSource)
+	groups, err := a.Srv().Store.Group().GetAllBySource(groupSource)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsBySource", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}
+
+func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetByUser(userID)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByUserId", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().Create(group)
+	group, err := a.Srv().Store.Group().Create(group)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("CreateGroup", "app.group.id.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("CreateGroup", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return group, nil
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().Update(group)
+	updatedGroup, err := a.Srv().Store.Group().Update(group)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", updatedGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpdateGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return updatedGroup, nil
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().Delete(groupID)
+	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", deletedGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteGroup", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("DeleteGroup", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return deletedGroup, nil
+}
+
+func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+	if err != nil {
+		return 0, model.NewAppError("GetGroupMemberCount", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
-	return a.Srv.Store.Group().GetMemberUsers(groupID)
+	users, err := a.Srv().Store.Group().GetMemberUsers(groupID)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupMemberUsers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
 }
 
 func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	members, err := a.Srv.Store.Group().GetMemberUsersPage(groupID, page, perPage)
+	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	count, err := a.Srv.Store.Group().GetMemberCount(groupID)
-	if err != nil {
-		return nil, 0, err
+	count, appErr := a.GetGroupMemberCount(groupID)
+	if appErr != nil {
+		return nil, 0, appErr
 	}
 	return members, int(count), nil
 }
 
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	return a.Srv.Store.Group().UpsertMember(groupID, userID)
+	groupMember, err := a.Srv().Store.Group().UpsertMember(groupID, userID)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("UpsertGroupMember", "app.group.uniqueness_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("UpsertGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return groupMember, nil
 }
 
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	return a.Srv.Store.Group().DeleteMember(groupID, userID)
+	groupMember, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteGroupMember", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("DeleteGroupMember", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return groupMember, nil
 }
 
-func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
+func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	gs, err := a.Srv().Store.Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
+	var notFoundErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return nil, model.NewAppError("UpsertGroupSyncable", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// reject the syncable creation if the group isn't already associated to the parent team
+	if groupSyncable.Type == model.GroupSyncableTypeChannel {
+		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		var team *model.Team
+		team, nErr = a.Srv().Store.Team().Get(channel.TeamId)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.team.get.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+		}
+		if team.IsGroupConstrained() {
+			var teamGroups []*model.GroupWithSchemeAdmin
+			teamGroups, err = a.Srv().Store.Group().GetGroupsByTeam(channel.TeamId, model.GroupSearchOpts{})
+			if err != nil {
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			var permittedGroup bool
+			for _, teamGroup := range teamGroups {
+				if teamGroup.Group.Id == groupSyncable.GroupId {
+					permittedGroup = true
+					break
+				}
+			}
+			if !permittedGroup {
+				return nil, model.NewAppError("UpsertGroupSyncable", "group_not_associated_to_synced_team", nil, "", http.StatusBadRequest)
+			}
+		} else {
+			_, appErr := a.UpsertGroupSyncable(model.NewGroupTeam(groupSyncable.GroupId, team.Id, groupSyncable.AutoAdd))
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+	}
+
+	if gs == nil {
+		gs, err = a.Srv().Store.Group().CreateGroupSyncable(groupSyncable)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return nil, appErr
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	} else {
+		gs, err = a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
+		if err != nil {
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return nil, appErr
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
+
+	return gs, nil
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
+	group, err := a.Srv().Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetGroupSyncable", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetGroupSyncable", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return group, nil
 }
 
 func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
+	groups, err := a.Srv().Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupSyncables", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+	if groupSyncable.DeleteAt == 0 {
+		// updating a *deleted* GroupSyncable, so no need to ensure the GroupTeam is present (as done in the upsert)
+		gs, err := a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
+		if err != nil {
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return nil, appErr
+			default:
+				return nil, model.NewAppError("UpdateGroupSyncable", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		return gs, nil
+	}
+
+	// do an upsert to ensure that there's an associated GroupTeam
+	gs, err := a.UpsertGroupSyncable(groupSyncable)
+	if err != nil {
+		return nil, err
+	}
+
+	return gs, nil
 }
 
 func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
-}
-
-func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToAdd(since)
-}
-
-func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToAdd(since)
-}
-
-func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToRemove()
-}
-
-func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToRemove()
-}
-
-func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
-	groups, err := a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
+	gs, err := a.Srv().Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
-		return nil, 0, err
+		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("DeleteGroupSyncable", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("DeleteGroupSyncable", "app.group.group_syncable_already_deleted", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("DeleteGroupSyncable", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	count, err := a.Srv.Store.Group().CountGroupsByChannel(channelId, opts)
+	// if a GroupTeam is being deleted delete all associated GroupChannels
+	if gs.Type == model.GroupSyncableTypeTeam {
+		allGroupChannels, err := a.Srv().Store.Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, model.NewAppError("DeleteGroupSyncable", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		for _, groupChannel := range allGroupChannels {
+			_, err = a.Srv().Store.Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
+			if err != nil {
+				var invErr *store.ErrInvalidInput
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(err, &nfErr):
+					return nil, model.NewAppError("DeleteGroupSyncable", "app.group.no_rows", nil, nfErr.Error(), http.StatusNotFound)
+				case errors.As(err, &invErr):
+					return nil, model.NewAppError("DeleteGroupSyncable", "app.group.group_syncable_already_deleted", nil, invErr.Error(), http.StatusBadRequest)
+				default:
+					return nil, model.NewAppError("DeleteGroupSyncable", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+			}
+		}
+	}
+
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
+
+	return gs, nil
+}
+
+func (a *App) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	userTeams, err := a.Srv().Store.Group().TeamMembersToAdd(since, teamID)
 	if err != nil {
-		return nil, 0, err
+		return nil, model.NewAppError("TeamMembersToAdd", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userTeams, nil
+}
+
+func (a *App) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID)
+	if err != nil {
+		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userChannels, nil
+}
+
+func (a *App) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store.Group().TeamMembersToRemove(teamID)
+	if err != nil {
+		return nil, model.NewAppError("TeamMembersToRemove", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teamMembers, nil
+}
+
+func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
+	channelMembers, err := a.Srv().Store.Group().ChannelMembersToRemove(teamID)
+	if err != nil {
+		return nil, model.NewAppError("ChannelMembersToRemove", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelMembers, nil
+}
+
+func (a *App) GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroupsByChannel(channelID, opts)
+	if err != nil {
+		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := a.Srv().Store.Group().CountGroupsByChannel(channelID, opts)
+	if err != nil {
+		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groups, int(count), nil
 }
 
-func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
-	groups, err := a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
+// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
+func (a *App) GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroupsByTeam(teamID, opts)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	count, err := a.Srv.Store.Group().CountGroupsByTeam(teamId, opts)
+	count, err := a.Srv().Store.Group().CountGroupsByTeam(teamID, opts)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groups, int(count), nil
+}
+
+func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+	groupsAssociatedByChannelId, err := a.Srv().Store.Group().GetGroupsAssociatedToChannelsByTeam(teamID, opts)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsAssociatedToChannelsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupsAssociatedByChannelId, nil
 }
 
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().GetGroups(page, perPage, opts)
+	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts)
+	if err != nil {
+		return nil, model.NewAppError("GetGroups", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
 }
 
 // TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
@@ -132,15 +488,15 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 // The result can be used, for example, to determine the set of users who would be removed from a team if the team
 // were group-constrained with the given groups.
 func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	users, err := a.Srv.Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
+	users, err := a.Srv().Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -152,9 +508,9 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	}
 
 	// retrieve groups from DB
-	groups, err := a.GetGroupsByIDs(allUsersGroupIDSlice)
-	if err != nil {
-		return nil, 0, err
+	groups, appErr := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	if appErr != nil {
+		return nil, 0, appErr
 	}
 
 	// map groups by id
@@ -166,7 +522,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)
@@ -174,15 +530,20 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 		}
 	}
 
-	totalCount, err := a.Srv.Store.Group().CountTeamMembersMinusGroupMembers(teamID, groupIDs)
+	totalCount, err := a.Srv().Store.Group().CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return users, totalCount, nil
 }
 
 func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
-	return a.Srv.Store.Group().GetByIDs(groupIDs)
+	groups, err := a.Srv().Store.Group().GetByIDs(groupIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByIDs", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
 }
 
 // ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -191,15 +552,15 @@ func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError
 // The result can be used, for example, to determine the set of users who would be removed from a channel if the
 // channel were group-constrained with the given groups.
 func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	users, err := a.Srv.Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+	users, err := a.Srv().Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// parse all group ids of all users
 	allUsersGroupIDMap := map[string]bool{}
 	for _, user := range users {
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			allUsersGroupIDMap[groupID] = true
 		}
 	}
@@ -211,9 +572,9 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	}
 
 	// retrieve groups from DB
-	groups, err := a.GetGroupsByIDs(allUsersGroupIDSlice)
-	if err != nil {
-		return nil, 0, err
+	groups, appErr := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	if appErr != nil {
+		return nil, 0, appErr
 	}
 
 	// map groups by id
@@ -225,7 +586,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 	// populate each instance's groups field
 	for _, user := range users {
 		user.Groups = []*model.Group{}
-		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+		for _, groupID := range user.GetGroupIDs() {
 			group, ok := groupMap[groupID]
 			if ok {
 				user.Groups = append(user.Groups, group)
@@ -233,9 +594,24 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 		}
 	}
 
-	totalCount, err := a.Srv.Store.Group().CountChannelMembersMinusGroupMembers(channelID, groupIDs)
+	totalCount, err := a.Srv().Store.Group().CountChannelMembersMinusGroupMembers(channelID, groupIDs)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return users, totalCount, nil
+}
+
+// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
+// admins in the given syncable.
+func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
+	groupIDs, err := a.Srv().Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+	if err != nil {
+		return false, model.NewAppError("UserIsInAdminRoleGroup", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if len(groupIDs) == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }

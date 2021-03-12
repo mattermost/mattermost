@@ -16,3 +16,24 @@ In the text input box in Mattermost, type: `/test url [file-name-in-testing-fold
 
 ## Manual Testing  
 It is possible to manually test specific sections of any test, instead of using the /test command. Do this by clicking **Raw** in the header for the file when it’s open in GitHub, then copy and paste any section into Mattermost to post it. Manual testing only supports sections of 4000 characters or less per post.
+
+## Test plugins
+
+There are two test plugins: `testplugin.tar.gz` and `testplugin2.tar.gz`. These are use in some integration tests in the `api4` package. Any changes to the plugin bundles require updating the coresponding signatures.
+
+First, import the public and privat development key:
+```
+$ gpg --import ./development-public-key.gpg
+$ gpg --import ./development-private-key.asc
+```
+
+This has to be done only once.
+
+Then update the sigantures:
+```
+$ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign testplugin.tar.gz
+$ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign --armor testplugin.tar.gz
+$ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign testplugin2.tar.gz
+$ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign --armor testplugin2.tar.gz
+
+Finally, include the updates bundles and signatures in your commit.

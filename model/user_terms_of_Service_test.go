@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -8,29 +8,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserTermsOfServiceIsValid(t *testing.T) {
 	s := UserTermsOfService{}
-
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.TermsOfServiceId = NewId()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
-	if err := s.IsValid(); err != nil {
-		t.Fatal("should be valid")
-	}
+	require.Nil(t, s.IsValid(), "should be valid")
 }
 
 func TestUserTermsOfServiceJson(t *testing.T) {

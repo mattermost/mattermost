@@ -6,9 +6,12 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type PluginCommand struct {
@@ -16,74 +19,94 @@ type PluginCommand struct {
 	PluginId string
 }
 
-func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) error {
+func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) error {
 	if command.Trigger == "" {
-		return fmt.Errorf("invalid command")
+		return errors.New("invalid command")
+	}
+	if command.AutocompleteData != nil {
+		if err := command.AutocompleteData.IsValid(); err != nil {
+			return errors.Wrap(err, "invalid autocomplete data in command")
+		}
+	}
+
+	if command.AutocompleteData == nil {
+		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
+	} else {
+		baseURL, err := url.Parse("/plugins/" + pluginID)
+		if err != nil {
+			return errors.Wrapf(err, "Can't parse url %s", "/plugins/"+pluginID)
+		}
+		err = command.AutocompleteData.UpdateRelativeURLsForPluginCommands(baseURL)
+		if err != nil {
+			return errors.Wrap(err, "Can't update relative urls for plugin commands")
+		}
 	}
 
 	command = &model.Command{
-		Trigger:          strings.ToLower(command.Trigger),
-		TeamId:           command.TeamId,
-		AutoComplete:     command.AutoComplete,
-		AutoCompleteDesc: command.AutoCompleteDesc,
-		AutoCompleteHint: command.AutoCompleteHint,
-		DisplayName:      command.DisplayName,
+		Trigger:              strings.ToLower(command.Trigger),
+		TeamId:               command.TeamId,
+		AutoComplete:         command.AutoComplete,
+		AutoCompleteDesc:     command.AutoCompleteDesc,
+		AutoCompleteHint:     command.AutoCompleteHint,
+		DisplayName:          command.DisplayName,
+		AutocompleteData:     command.AutocompleteData,
+		AutocompleteIconData: command.AutocompleteIconData,
 	}
 
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
-	for _, pc := range a.Srv.pluginCommands {
+	for _, pc := range a.Srv().pluginCommands {
 		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
-			if pc.PluginId == pluginId {
+			if pc.PluginId == pluginID {
 				pc.Command = command
 				return nil
 			}
 		}
 	}
 
-	a.Srv.pluginCommands = append(a.Srv.pluginCommands, &PluginCommand{
+	a.Srv().pluginCommands = append(a.Srv().pluginCommands, &PluginCommand{
 		Command:  command,
-		PluginId: pluginId,
+		PluginId: pluginID,
 	})
 	return nil
 }
 
-func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
+func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
 	trigger = strings.ToLower(trigger)
 
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv.pluginCommands {
-		if pc.Command.TeamId != teamId || pc.Command.Trigger != trigger {
+	for _, pc := range a.Srv().pluginCommands {
+		if pc.Command.TeamId != teamID || pc.Command.Trigger != trigger {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv.pluginCommands = remaining
+	a.Srv().pluginCommands = remaining
 }
 
-func (a *App) UnregisterPluginCommands(pluginId string) {
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+func (a *App) UnregisterPluginCommands(pluginID string) {
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv.pluginCommands {
-		if pc.PluginId != pluginId {
+	for _, pc := range a.Srv().pluginCommands {
+		if pc.PluginId != pluginID {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv.pluginCommands = remaining
+	a.Srv().pluginCommands = remaining
 }
 
-func (a *App) PluginCommandsForTeam(teamId string) []*model.Command {
-	a.Srv.pluginCommandsLock.RLock()
-	defer a.Srv.pluginCommandsLock.RUnlock()
+func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
+	a.Srv().pluginCommandsLock.RLock()
+	defer a.Srv().pluginCommandsLock.RUnlock()
 
 	var commands []*model.Command
-	for _, pc := range a.Srv.pluginCommands {
-		if pc.Command.TeamId == "" || pc.Command.TeamId == teamId {
+	for _, pc := range a.Srv().pluginCommands {
+		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}
@@ -97,20 +120,48 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
 
-	a.Srv.pluginCommandsLock.RLock()
-	defer a.Srv.pluginCommandsLock.RUnlock()
-
-	for _, pc := range a.Srv.pluginCommands {
+	var matched *PluginCommand
+	a.Srv().pluginCommandsLock.RLock()
+	for _, pc := range a.Srv().pluginCommands {
 		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
-			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-				pluginHooks, err := pluginsEnvironment.HooksForPlugin(pc.PluginId)
-				if err != nil {
-					return pc.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-				}
-				response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
-				return pc.Command, response, appErr
-			}
+			matched = pc
+			break
 		}
 	}
-	return nil, nil, nil
+	a.Srv().pluginCommandsLock.RUnlock()
+	if matched == nil {
+		return nil, nil, nil
+	}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, nil, nil
+	}
+
+	// Checking if plugin is working or not
+	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]interface{}{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
+	}
+
+	pluginHooks, err := pluginsEnvironment.HooksForPlugin(matched.PluginId)
+	if err != nil {
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	for username, userID := range a.MentionsToTeamMembers(args.Command, args.TeamId) {
+		args.AddUserMention(username, userID)
+	}
+
+	for channelName, channelID := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
+		args.AddChannelMention(channelName, channelID)
+	}
+
+	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
+
+	// Checking if plugin crashed after running the command
+	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
+		errMessage := fmt.Sprintf("err= Plugin %s crashed due to /%s command", matched.PluginId, trigger)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]interface{}{"Command": trigger, "PluginId": matched.PluginId}, errMessage, http.StatusInternalServerError)
+	}
+	return matched.Command, response, appErr
 }

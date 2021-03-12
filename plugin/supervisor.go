@@ -4,29 +4,30 @@
 package plugin
 
 import (
-	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
+	"sync"
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type supervisor struct {
+	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
-	implemented [TotalHooksId]bool
+	implemented [TotalHooksID]bool
 	pid         int
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -44,7 +45,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
 			log:     wrappedLogger,
-			apiImpl: apiImpl,
+			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -81,7 +82,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		return nil, err
 	}
 
-	sup.hooks = raw.(Hooks)
+	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
 
 	impl, err := sup.hooks.Implemented()
 	if err != nil {
@@ -93,41 +94,35 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		}
 	}
 
-	err = sup.Hooks().OnActivate()
-	if err != nil {
-		return nil, err
-	}
-
 	return &sup, nil
 }
 
 func (sup *supervisor) Shutdown() {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	if sup.client != nil {
 		sup.client.Kill()
 	}
 }
 
 func (sup *supervisor) Hooks() Hooks {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.hooks
 }
 
-// PerformHealthCheck checks the plugin through a process check, an RPC ping, and a HealthCheck hook call.
+// PerformHealthCheck checks the plugin through an an RPC ping.
 func (sup *supervisor) PerformHealthCheck() error {
-	if procErr := sup.CheckProcess(); procErr != nil {
-		mlog.Debug(fmt.Sprintf("Error checking plugin process, error: %s", procErr.Error()))
-		return errors.New("Plugin process not found, or not responding")
-	}
-
+	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {
-		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
+		for pingFails := 1; pingFails < HealthCheckPingFailLimit; pingFails++ {
 			pingErr = sup.Ping()
 			if pingErr == nil {
 				break
 			}
 		}
 		if pingErr != nil {
-			mlog.Debug(fmt.Sprintf("Error pinging plugin, error: %s", pingErr.Error()))
-			return fmt.Errorf("Plugin RPC connection is not responding")
+			return fmt.Errorf("plugin RPC connection is not responding")
 		}
 	}
 
@@ -136,8 +131,9 @@ func (sup *supervisor) PerformHealthCheck() error {
 
 // Ping checks that the RPC connection with the plugin is alive and healthy.
 func (sup *supervisor) Ping() error {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	client, err := sup.client.Client()
-
 	if err != nil {
 		return err
 	}
@@ -145,21 +141,8 @@ func (sup *supervisor) Ping() error {
 	return client.Ping()
 }
 
-// CheckProcess checks if the plugin process's PID exists and can respond to a signal.
-func (sup *supervisor) CheckProcess() error {
-	process, err := os.FindProcess(sup.pid)
-	if err != nil {
-		return err
-	}
-
-	err = process.Signal(syscall.Signal(0))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (sup *supervisor) Implements(hookId int) bool {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitAction() {
@@ -18,7 +18,7 @@ func (api *API) InitAction() {
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId().RequireActionId()
+	c.RequirePostId()
 	if c.Err != nil {
 		return
 	}
@@ -41,12 +41,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 			return
 		}
-		if !c.App.SessionHasPermissionToChannel(c.App.Session, cookie.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), cookie.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
@@ -55,7 +55,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId,
+	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.Params.PostId, c.Params.ActionId, c.App.Session().UserId,
 		actionRequest.SelectedOption, cookie)
 	if appErr != nil {
 		c.Err = appErr
@@ -101,14 +101,14 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submit.UserId = c.App.Session.UserId
+	submit.UserId = c.App.Session().UserId
 
-	if !c.App.SessionHasPermissionToChannel(c.App.Session, submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, submit.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), submit.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}

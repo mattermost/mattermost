@@ -399,7 +399,7 @@ func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 		if ctx.isPre {
 			data = node.Data
 		} else {
-			data = strings.Trim(spacingRe.ReplaceAllString(node.Data, " "), " ")
+			data = strings.TrimSpace(spacingRe.ReplaceAllString(node.Data, " "))
 		}
 		return ctx.emit(data)
 

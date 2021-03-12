@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -14,17 +14,16 @@ func (o Audits) Etag() string {
 	if len(o) > 0 {
 		// the first in the list is always the most current
 		return Etag(o[0].CreateAt)
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (o Audits) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func AuditsFromJson(data io.Reader) Audits {

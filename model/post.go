@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 const (
@@ -21,12 +24,14 @@ const (
 	POST_SYSTEM_GENERIC         = "system_generic"
 	POST_JOIN_LEAVE             = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
 	POST_JOIN_CHANNEL           = "system_join_channel"
+	POST_GUEST_JOIN_CHANNEL     = "system_guest_join_channel"
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
 	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
+	POST_ADD_GUEST_TO_CHANNEL   = "system_add_guest_to_chan"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
 	POST_MOVE_CHANNEL           = "system_move_channel"
 	POST_ADD_TO_TEAM            = "system_add_to_team"
@@ -36,6 +41,7 @@ const (
 	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_CHANNEL_RESTORED       = "system_channel_restored"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
@@ -50,9 +56,18 @@ const (
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	POST_ME                     = "me"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
-	POST_PROPS_ADDED_USER_ID    = "addedUserId"
-	POST_PROPS_DELETE_BY        = "deleteBy"
+
+	POST_PROPS_ADDED_USER_ID       = "addedUserId"
+	POST_PROPS_DELETE_BY           = "deleteBy"
+	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
+	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
+
+	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
+	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
+	POST_SYSTEM_WARN_METRIC_STATUS        = "warn_metric_status"
 )
+
+var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
 
 type Post struct {
 	Id         string `json:"id"`
@@ -68,14 +83,14 @@ type Post struct {
 	OriginalId string `json:"original_id"`
 
 	Message string `json:"message"`
-
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
 	MessageSource string `json:"message_source,omitempty" db:"-"`
 
 	Type          string          `json:"type"`
-	Props         StringInterface `json:"props"`
+	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
@@ -83,7 +98,10 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount   int64         `json:"reply_count" db:"-"`
+	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
+	Participants []*User       `json:"participants" db:"-"`
+	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -147,10 +165,54 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-// Clone shallowly copies the post.
+type FileForIndexing struct {
+	FileInfo
+	ChannelId string `json:"channel_id"`
+	Content   string `json:"content"`
+}
+
+// ShallowCopy is an utility function to shallow copy a Post to the given
+// destination without touching the internal RWMutex.
+func (o *Post) ShallowCopy(dst *Post) error {
+	if dst == nil {
+		return errors.New("dst cannot be nil")
+	}
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	dst.propsMu.Lock()
+	defer dst.propsMu.Unlock()
+	dst.Id = o.Id
+	dst.CreateAt = o.CreateAt
+	dst.UpdateAt = o.UpdateAt
+	dst.EditAt = o.EditAt
+	dst.DeleteAt = o.DeleteAt
+	dst.IsPinned = o.IsPinned
+	dst.UserId = o.UserId
+	dst.ChannelId = o.ChannelId
+	dst.RootId = o.RootId
+	dst.ParentId = o.ParentId
+	dst.OriginalId = o.OriginalId
+	dst.Message = o.Message
+	dst.MessageSource = o.MessageSource
+	dst.Type = o.Type
+	dst.Props = o.Props
+	dst.Hashtags = o.Hashtags
+	dst.Filenames = o.Filenames
+	dst.FileIds = o.FileIds
+	dst.PendingPostId = o.PendingPostId
+	dst.HasReactions = o.HasReactions
+	dst.ReplyCount = o.ReplyCount
+	dst.Participants = o.Participants
+	dst.LastReplyAt = o.LastReplyAt
+	dst.Metadata = o.Metadata
+	return nil
+}
+
+// Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := *o
-	return &copy
+	copy := &Post{}
+	o.ShallowCopy(copy)
+	return copy
 }
 
 func (o *Post) ToJson() string {
@@ -165,6 +227,24 @@ func (o *Post) ToUnsanitizedJson() string {
 	return string(b)
 }
 
+type GetPostsSinceOptions struct {
+	ChannelId                string
+	Time                     int64
+	SkipFetchThreads         bool
+	CollapsedThreads         bool
+	CollapsedThreadsExtended bool
+}
+
+type GetPostsOptions struct {
+	ChannelId                string
+	PostId                   string
+	Page                     int
+	PerPage                  int
+	SkipFetchThreads         bool
+	CollapsedThreads         bool
+	CollapsedThreadsExtended bool
+}
+
 func PostFromJson(data io.Reader) *Post {
 	var o *Post
 	json.NewDecoder(data).Decode(&o)
@@ -176,8 +256,7 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -189,27 +268,27 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || o.ParentId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
+	if len(o.ParentId) == 26 && o.RootId == "" {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
+	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -224,14 +303,17 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	switch o.Type {
 	case
 		POST_DEFAULT,
+		POST_SYSTEM_GENERIC,
 		POST_JOIN_LEAVE,
 		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
+		POST_GUEST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
 		POST_JOIN_TEAM,
 		POST_LEAVE_TEAM,
 		POST_ADD_TO_CHANNEL,
+		POST_ADD_GUEST_TO_CHANNEL,
 		POST_REMOVE_FROM_CHANNEL,
 		POST_MOVE_CHANNEL,
 		POST_ADD_TO_TEAM,
@@ -242,9 +324,11 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_DISPLAYNAME_CHANGE,
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
+		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
-		POST_ADD_BOT_TEAMS_CHANNELS:
+		POST_ADD_BOT_TEAMS_CHANNELS,
+		POST_SYSTEM_WARN_METRIC_STATUS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -259,7 +343,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > POST_PROPS_MAX_RUNES {
+	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -272,9 +356,12 @@ func (o *Post) SanitizeProps() {
 	}
 
 	for _, member := range membersToSanitize {
-		if _, ok := o.Props[member]; ok {
-			delete(o.Props, member)
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
 		}
+	}
+	for _, p := range o.Participants {
+		p.Sanitize(map[string]bool{})
 	}
 }
 
@@ -294,8 +381,8 @@ func (o *Post) PreSave() {
 }
 
 func (o *Post) PreCommit() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 
 	if o.Filenames == nil {
@@ -313,41 +400,88 @@ func (o *Post) PreCommit() {
 }
 
 func (o *Post) MakeNonNil() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 }
 
+func (o *Post) DelProp(key string) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	delete(propsCopy, key)
+	o.Props = propsCopy
+}
+
 func (o *Post) AddProp(key string, value interface{}) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	propsCopy[key] = value
+	o.Props = propsCopy
+}
 
-	o.MakeNonNil()
+func (o *Post) GetProps() StringInterface {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props
+}
 
-	o.Props[key] = value
+func (o *Post) SetProps(props StringInterface) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	o.Props = props
+}
+
+func (o *Post) GetProp(key string) interface{} {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props[key]
 }
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
 }
 
-func (p *Post) Patch(patch *PostPatch) {
+func (o *Post) IsJoinLeaveMessage() bool {
+	return o.Type == POST_JOIN_LEAVE ||
+		o.Type == POST_ADD_REMOVE ||
+		o.Type == POST_JOIN_CHANNEL ||
+		o.Type == POST_LEAVE_CHANNEL ||
+		o.Type == POST_JOIN_TEAM ||
+		o.Type == POST_LEAVE_TEAM ||
+		o.Type == POST_ADD_TO_CHANNEL ||
+		o.Type == POST_REMOVE_FROM_CHANNEL ||
+		o.Type == POST_ADD_TO_TEAM ||
+		o.Type == POST_REMOVE_FROM_TEAM
+}
+
+func (o *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
-		p.IsPinned = *patch.IsPinned
+		o.IsPinned = *patch.IsPinned
 	}
 
 	if patch.Message != nil {
-		p.Message = *patch.Message
+		o.Message = *patch.Message
 	}
 
 	if patch.Props != nil {
-		p.Props = *patch.Props
+		newProps := *patch.Props
+		o.SetProps(newProps)
 	}
 
 	if patch.FileIds != nil {
-		p.FileIds = *patch.FileIds
+		o.FileIds = *patch.FileIds
 	}
 
 	if patch.HasReactions != nil {
-		p.HasReactions = *patch.HasReactions
+		o.HasReactions = *patch.HasReactions
 	}
 }
 
@@ -380,31 +514,69 @@ func (o *SearchParameter) SearchParameterToJson() string {
 	return string(b)
 }
 
-func SearchParameterFromJson(data io.Reader) *SearchParameter {
+func SearchParameterFromJson(data io.Reader) (*SearchParameter, error) {
 	decoder := json.NewDecoder(data)
 	var searchParam SearchParameter
-	err := decoder.Decode(&searchParam)
-	if err != nil {
-		return nil
+	if err := decoder.Decode(&searchParam); err != nil {
+		return nil, err
 	}
 
-	return &searchParam
+	return &searchParam, nil
 }
 
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+// DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
+func (o *Post) DisableMentionHighlights() string {
+	mention, hasMentions := findAtChannelMention(o.Message)
+	if hasMentions {
+		o.AddProp(POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
+	}
+	return mention
+}
+
+// DisableMentionHighlights disables mention highlighting for a post patch if required.
+func (o *PostPatch) DisableMentionHighlights() {
+	if o.Message == nil {
+		return
+	}
+	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
+		if o.Props == nil {
+			o.Props = &StringInterface{}
+		}
+		(*o.Props)[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
+	}
+}
+
+func findAtChannelMention(message string) (mention string, found bool) {
+	re := regexp.MustCompile(`(?i)\B@(channel|all|here)\b`)
+	matched := re.FindStringSubmatch(message)
+	if found = (len(matched) > 0); found {
+		mention = strings.ToLower(matched[0])
+	}
+	return
+}
+
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					i := 0
+					for _, action := range decoded.Actions {
+						if action != nil {
+							decoded.Actions[i] = action
+							i++
+						}
+					}
+					decoded.Actions = decoded.Actions[:i]
 					ret = append(ret, &decoded)
 				}
 			}
@@ -517,4 +689,9 @@ func RewriteImageURLs(message string, f func(string) string) string {
 	copy(result[offset:], message[ranges[len(ranges)-1].End:])
 
 	return string(result)
+}
+
+func (o *Post) IsFromOAuthBot() bool {
+	props := o.GetProps()
+	return props["from_webhook"] == "true" && props["override_username"] != ""
 }

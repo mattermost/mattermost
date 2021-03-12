@@ -16,8 +16,10 @@ package procfs
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
+
+	"github.com/prometheus/procfs/internal/fs"
+	"github.com/prometheus/procfs/internal/util"
 )
 
 // Originally, this USER_HZ value was dynamically retrieved via a sysconf call
@@ -99,18 +101,19 @@ type ProcStat struct {
 	// Resident set size in pages.
 	RSS int
 
-	fs FS
+	proc fs.FS
 }
 
 // NewStat returns the current status information of the process.
+//
+// Deprecated: use p.Stat() instead
 func (p Proc) NewStat() (ProcStat, error) {
-	f, err := os.Open(p.path("stat"))
-	if err != nil {
-		return ProcStat{}, err
-	}
-	defer f.Close()
+	return p.Stat()
+}
 
-	data, err := ioutil.ReadAll(f)
+// Stat returns the current status information of the process.
+func (p Proc) Stat() (ProcStat, error) {
+	data, err := util.ReadFileNoStat(p.path("stat"))
 	if err != nil {
 		return ProcStat{}, err
 	}
@@ -118,16 +121,13 @@ func (p Proc) NewStat() (ProcStat, error) {
 	var (
 		ignore int
 
-		s = ProcStat{PID: p.PID, fs: p.fs}
+		s = ProcStat{PID: p.PID, proc: p.fs}
 		l = bytes.Index(data, []byte("("))
 		r = bytes.LastIndex(data, []byte(")"))
 	)
 
 	if l < 0 || r < 0 {
-		return ProcStat{}, fmt.Errorf(
-			"unexpected format, couldn't extract comm: %s",
-			data,
-		)
+		return ProcStat{}, fmt.Errorf("unexpected format, couldn't extract comm %q", data)
 	}
 
 	s.Comm = string(data[l+1 : r])
@@ -175,7 +175,8 @@ func (s ProcStat) ResidentMemory() int {
 
 // StartTime returns the unix timestamp of the process in seconds.
 func (s ProcStat) StartTime() (float64, error) {
-	stat, err := s.fs.NewStat()
+	fs := FS{proc: s.proc}
+	stat, err := fs.Stat()
 	if err != nil {
 		return 0, err
 	}

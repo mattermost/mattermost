@@ -1,11 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTeamSearchJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestTeamSearchJson(t *testing.T) {
 	json := teamSearch.ToJson()
 	rteamSearch := ChannelSearchFromJson(strings.NewReader(json))
 
-	if teamSearch.Term != rteamSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	assert.Equal(t, teamSearch.Term, rteamSearch.Term, "Terms do not match")
 }

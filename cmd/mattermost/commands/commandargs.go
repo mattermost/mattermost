@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const COMMAND_ARGS_SEPARATOR = ":"
+const CommandArgsSeparator = ":"
 
 func getCommandsFromCommandArgs(a *app.App, commandArgs []string) []*model.Command {
 	commands := make([]*model.Command, 0, len(commandArgs))
@@ -25,7 +25,7 @@ func getCommandsFromCommandArgs(a *app.App, commandArgs []string) []*model.Comma
 }
 
 func parseCommandArg(commandArg string) (string, string) {
-	result := strings.SplitN(commandArg, COMMAND_ARGS_SEPARATOR, 2)
+	result := strings.SplitN(commandArg, CommandArgsSeparator, 2)
 
 	if len(result) == 1 {
 		return "", commandArg
@@ -46,15 +46,15 @@ func getCommandFromCommandArg(a *app.App, commandArg string) *model.Command {
 		if team == nil {
 			return nil
 		}
-		var err *model.AppError
-		command, err = a.Srv.Store.Command().GetByTrigger(team.Id, commandPart)
+		var err error
+		command, err = a.Srv().Store.Command().GetByTrigger(team.Id, commandPart)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 	}
 
 	if command == nil {
-		command, _ = a.Srv.Store.Command().Get(commandPart)
+		command, _ = a.Srv().Store.Command().Get(commandPart)
 	}
 
 	return command

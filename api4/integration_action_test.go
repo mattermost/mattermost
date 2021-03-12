@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type testHandler struct {
@@ -23,12 +23,15 @@ type testHandler struct {
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	bb, err := ioutil.ReadAll(r.Body)
-	assert.Nil(th.t, err)
+	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
 	assert.NotEmpty(th.t, poir.UserId)
+	assert.NotEmpty(th.t, poir.UserName)
 	assert.NotEmpty(th.t, poir.ChannelId)
-	assert.Empty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.ChannelName)
+	assert.NotEmpty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.TeamName)
 	assert.NotEmpty(th.t, poir.PostId)
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
@@ -38,68 +41,115 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestPostActionCookies(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	handler := &testHandler{t}
 	server := httptest.NewServer(handler)
-	action := model.PostAction{
-		Id:   model.NewId(),
-		Name: "Test-action",
-		Type: model.POST_ACTION_TYPE_BUTTON,
-		Integration: &model.PostActionIntegration{
-			URL: server.URL,
-			Context: map[string]interface{}{
-				"test-key": "test-value",
-			},
-		},
-	}
 
-	post := &model.Post{
-		Id:        model.NewId(),
-		Type:      model.POST_EPHEMERAL,
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
-		Props: map[string]interface{}{
-			"attachments": []*model.SlackAttachment{
-				{
-					Title:     "some-title",
-					TitleLink: "https://some-url.com",
-					Text:      "some-text",
-					ImageURL:  "https://some-other-url.com",
-					Actions:   []*model.PostAction{&action},
+	for name, test := range map[string]struct {
+		Action             model.PostAction
+		ExpectedSucess     bool
+		ExpectedStatusCode int
+	}{
+		"32 character ID": {
+			Action: model.PostAction{
+				Id:   model.NewId(),
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
 				},
 			},
+			ExpectedSucess:     true,
+			ExpectedStatusCode: http.StatusOK,
 		},
+		"6 character ID": {
+			Action: model.PostAction{
+				Id:   "someID",
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
+				},
+			},
+			ExpectedSucess:     true,
+			ExpectedStatusCode: http.StatusOK,
+		},
+		"Empty ID": {
+			Action: model.PostAction{
+				Id:   "",
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
+				},
+			},
+			ExpectedSucess:     false,
+			ExpectedStatusCode: http.StatusNotFound,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post := &model.Post{
+				Id:        model.NewId(),
+				Type:      model.POST_EPHEMERAL,
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				CreateAt:  model.GetMillis(),
+				UpdateAt:  model.GetMillis(),
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Title:     "some-title",
+							TitleLink: "https://some-url.com",
+							Text:      "some-text",
+							ImageURL:  "https://some-other-url.com",
+							Actions:   []*model.PostAction{&test.Action},
+						},
+					},
+				},
+			}
+
+			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
+
+			ok, resp := Client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			require.NotNil(t, resp)
+			if test.ExpectedSucess {
+				assert.True(t, ok)
+				assert.Nil(t, resp.Error)
+			} else {
+				assert.False(t, ok)
+				assert.NotNil(t, resp.Error)
+			}
+			assert.Equal(t, test.ExpectedStatusCode, resp.StatusCode)
+			assert.NotNil(t, resp.RequestId)
+			assert.NotNil(t, resp.ServerVersion)
+		})
 	}
-
-	post.GenerateActionIds()
-	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
-	post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
-
-	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 200, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-	assert.NotNil(t, resp.RequestId)
-	assert.NotNil(t, resp.ServerVersion)
 }
 
 func TestOpenDialog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
@@ -112,7 +162,7 @@ func TestOpenDialog(t *testing.T) {
 			CallbackId: "callbackid",
 			Title:      "Some Title",
 			Elements: []model.DialogElement{
-				model.DialogElement{
+				{
 					DisplayName: "Element Name",
 					Name:        "element_name",
 					Type:        "text",
@@ -142,8 +192,20 @@ func TestOpenDialog(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
-	// Should pass with no elements
+	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
+	request.Dialog.IntroductionText = "**Some** _introduction text"
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with empty introduction text
+	request.Dialog.IntroductionText = ""
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+
+	// Should pass with no elements
 	request.Dialog.Elements = nil
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckNoError(t, resp)
@@ -155,12 +217,12 @@ func TestOpenDialog(t *testing.T) {
 }
 
 func TestSubmitDialog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
 	submit := model.SubmitDialogRequest{
@@ -175,8 +237,7 @@ func TestSubmitDialog(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.SubmitDialogRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
-		require.Nil(t, err)
-		assert.NotNil(t, request)
+		require.NoError(t, err)
 
 		assert.Equal(t, request.URL, "")
 		assert.Equal(t, request.UserId, submit.UserId)

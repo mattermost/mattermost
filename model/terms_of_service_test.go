@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -13,39 +13,25 @@ import (
 func TestTermsOfServiceIsValid(t *testing.T) {
 	s := TermsOfService{}
 
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.Id = NewId()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.CreateAt = GetMillis()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	if err := s.IsValid(); err != nil {
-		t.Fatal("should be invalid")
-	}
+	assert.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2+1)
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2)
-	if err := s.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = "test"
-	if err := s.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, s.IsValid(), "should be valid")
 }
 
 func TestTermsOfServiceJson(t *testing.T) {

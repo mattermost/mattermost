@@ -1,15 +1,16 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
 )
 
 var ImportCmd = &cobra.Command{
@@ -37,6 +38,7 @@ func init() {
 	BulkImportCmd.Flags().Bool("apply", false, "Save the import data to the database. Use with caution - this cannot be reverted.")
 	BulkImportCmd.Flags().Bool("validate", false, "Validate the import data without making any changes to the system.")
 	BulkImportCmd.Flags().Int("workers", 2, "How many workers to run whilst doing the import.")
+	BulkImportCmd.Flags().String("import-path", "", "A path to the data directory to import files from.")
 
 	ImportCmd.AddCommand(
 		BulkImportCmd,
@@ -50,7 +52,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
 		return errors.New("Incorrect number of arguments.")
@@ -87,6 +89,11 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
+	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("file", args[1])
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -95,7 +102,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	apply, err := command.Flags().GetBool("apply")
 	if err != nil {
@@ -110,6 +117,11 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	workers, err := command.Flags().GetInt("workers")
 	if err != nil {
 		return errors.New("Workers flag error")
+	}
+
+	importPath, err := command.Flags().GetString("import-path")
+	if err != nil {
+		return errors.New("import-path flag error")
 	}
 
 	if len(args) != 1 {
@@ -137,7 +149,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImport(fileReader, !apply, workers); err != nil {
+	if err, lineNumber := a.BulkImportWithPath(fileReader, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
@@ -147,6 +159,9 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
+		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
+		auditRec.AddMeta("file", args[0])
+		a.LogAuditRec(auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}

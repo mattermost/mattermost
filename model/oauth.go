@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -37,7 +37,7 @@ type OAuthApp struct {
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {
 
-	if len(a.Id) != 26 {
+	if !IsValidId(a.Id) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -49,15 +49,15 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.update_at.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.CreatorId) != 26 {
+	if !IsValidId(a.CreatorId) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.ClientSecret) == 0 || len(a.ClientSecret) > 128 {
+	if a.ClientSecret == "" || len(a.ClientSecret) > 128 {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.client_secret.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.Name) == 0 || len(a.Name) > 64 {
+	if a.Name == "" || len(a.Name) > 64 {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.name.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -71,7 +71,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	if len(a.Homepage) == 0 || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
+	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHttpUrl(a.Homepage) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -79,7 +79,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.description.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.IconURL) > 0 {
+	if a.IconURL != "" {
 		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}

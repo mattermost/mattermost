@@ -1,15 +1,17 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestUserTermsOfServiceStore(t *testing.T, ss store.Store) {
@@ -25,7 +27,7 @@ func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 	}
 
 	savedUserTermsOfService, err := ss.UserTermsOfService().Save(userTermsOfService)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, userTermsOfService.UserId, savedUserTermsOfService.UserId)
 	assert.Equal(t, userTermsOfService.TermsOfServiceId, savedUserTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, savedUserTermsOfService.CreateAt)
@@ -38,10 +40,10 @@ func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 	}
 
 	_, err := ss.UserTermsOfService().Save(userTermsOfService)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	fetchedUserTermsOfService, err := ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, userTermsOfService.UserId, fetchedUserTermsOfService.UserId)
 	assert.Equal(t, userTermsOfService.TermsOfServiceId, fetchedUserTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, fetchedUserTermsOfService.CreateAt)
@@ -54,14 +56,16 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 	}
 
 	_, err := ss.UserTermsOfService().Save(userTermsOfService)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = ss.UserTermsOfService().Delete(userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
+	var nfErr *store.ErrNotFound
+	assert.Error(t, err)
+	assert.True(t, errors.As(err, &nfErr))
 }

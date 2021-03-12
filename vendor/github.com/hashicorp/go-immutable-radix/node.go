@@ -79,6 +79,18 @@ func (n *Node) getEdge(label byte) (int, *Node) {
 	return -1, nil
 }
 
+func (n *Node) getLowerBoundEdge(label byte) (int, *Node) {
+	num := len(n.edges)
+	idx := sort.Search(num, func(i int) bool {
+		return n.edges[i].label >= label
+	})
+	// we want lower bound behavior so return even if it's not an exact match
+	if idx < num {
+		return idx, n.edges[idx].node
+	}
+	return -1, nil
+}
+
 func (n *Node) delEdge(label byte) {
 	num := len(n.edges)
 	idx := sort.Search(num, func(i int) bool {
@@ -199,6 +211,12 @@ func (n *Node) Iterator() *Iterator {
 	return &Iterator{node: n}
 }
 
+// ReverseIterator is used to return an iterator at
+// the given node to walk the tree backwards
+func (n *Node) ReverseIterator() *ReverseIterator {
+	return NewReverseIterator(n)
+}
+
 // rawIterator is used to return a raw iterator at the given node to walk the
 // tree.
 func (n *Node) rawIterator() *rawIterator {
@@ -210,6 +228,11 @@ func (n *Node) rawIterator() *rawIterator {
 // Walk is used to walk the tree
 func (n *Node) Walk(fn WalkFn) {
 	recursiveWalk(n, fn)
+}
+
+// WalkBackwards is used to walk the tree in reverse order
+func (n *Node) WalkBackwards(fn WalkFn) {
+	reverseRecursiveWalk(n, fn)
 }
 
 // WalkPrefix is used to walk the tree under a prefix
@@ -285,6 +308,25 @@ func recursiveWalk(n *Node, fn WalkFn) bool {
 	// Recurse on the children
 	for _, e := range n.edges {
 		if recursiveWalk(e.node, fn) {
+			return true
+		}
+	}
+	return false
+}
+
+// reverseRecursiveWalk is used to do a reverse pre-order
+// walk of a node recursively. Returns true if the walk
+// should be aborted
+func reverseRecursiveWalk(n *Node, fn WalkFn) bool {
+	// Visit the leaf values if any
+	if n.leaf != nil && fn(n.leaf.key, n.leaf.val) {
+		return true
+	}
+
+	// Recurse on the children in reverse order
+	for i := len(n.edges) - 1; i >= 0; i-- {
+		e := n.edges[i]
+		if reverseRecursiveWalk(e.node, fn) {
 			return true
 		}
 	}

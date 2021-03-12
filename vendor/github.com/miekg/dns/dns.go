@@ -1,6 +1,9 @@
 package dns
 
-import "strconv"
+import (
+	"encoding/hex"
+	"strconv"
+)
 
 const (
 	year68     = 1 << 31 // For RFC1982 (Serial Arithmetic) calculations in 32 bits.
@@ -54,7 +57,7 @@ type RR interface {
 	// parse parses an RR from zone file format.
 	//
 	// This will only be called on a new and empty RR type with only the header populated.
-	parse(c *zlexer, origin, file string) *ParseError
+	parse(c *zlexer, origin string) *ParseError
 
 	// isDuplicate returns whether the two RRs are duplicates.
 	isDuplicate(r2 RR) bool
@@ -105,13 +108,13 @@ func (h *RR_Header) unpack(msg []byte, off int) (int, error) {
 	panic("dns: internal error: unpack should never be called on RR_Header")
 }
 
-func (h *RR_Header) parse(c *zlexer, origin, file string) *ParseError {
+func (h *RR_Header) parse(c *zlexer, origin string) *ParseError {
 	panic("dns: internal error: parse should never be called on RR_Header")
 }
 
 // ToRFC3597 converts a known RR to the unknown RR representation from RFC 3597.
 func (rr *RFC3597) ToRFC3597(r RR) error {
-	buf := make([]byte, Len(r)*2)
+	buf := make([]byte, Len(r))
 	headerEnd, off, err := packRR(r, buf, 0, compressionMap{}, false)
 	if err != nil {
 		return err
@@ -126,9 +129,30 @@ func (rr *RFC3597) ToRFC3597(r RR) error {
 	}
 
 	_, err = rr.unpack(buf, headerEnd)
+	return err
+}
+
+// fromRFC3597 converts an unknown RR representation from RFC 3597 to the known RR type.
+func (rr *RFC3597) fromRFC3597(r RR) error {
+	hdr := r.Header()
+	*hdr = rr.Hdr
+
+	// Can't overflow uint16 as the length of Rdata is validated in (*RFC3597).parse.
+	// We can only get here when rr was constructed with that method.
+	hdr.Rdlength = uint16(hex.DecodedLen(len(rr.Rdata)))
+
+	if noRdata(*hdr) {
+		// Dynamic update.
+		return nil
+	}
+
+	// rr.pack requires an extra allocation and a copy so we just decode Rdata
+	// manually, it's simpler anyway.
+	msg, err := hex.DecodeString(rr.Rdata)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	_, err = r.unpack(msg, 0)
+	return err
 }

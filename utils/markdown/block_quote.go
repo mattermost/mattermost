@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -34,7 +34,7 @@ func (b *BlockQuote) AddChild(openBlocks []Block) []Block {
 	return openBlocks
 }
 
-func blockQuoteStart(markdown string, indent int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
+func blockQuoteStart(markdown string, indent int, r Range) []Block {
 	if indent > 3 {
 		return nil
 	}

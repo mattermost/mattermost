@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -13,16 +13,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
-	BRAND_FILE_PATH = "brand/"
-	BRAND_FILE_NAME = "image.png"
+	BrandFilePath = "brand/"
+	BrandFileName = "image.png"
 )
 
 func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -38,8 +38,11 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if config.Width*config.Height > model.MaxImageSize {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
@@ -56,9 +59,9 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 
 	t := time.Now()
-	a.MoveFile(BRAND_FILE_PATH+BRAND_FILE_NAME, BRAND_FILE_PATH+t.Format("2006-01-02T15:04:05")+".png")
+	a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png")
 
-	if _, err := a.WriteFile(buf, BRAND_FILE_PATH+BRAND_FILE_NAME); err != nil {
+	if _, err := a.WriteFile(buf, BrandFilePath+BrandFileName); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -66,11 +69,11 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 }
 
 func (a *App) GetBrandImage() ([]byte, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	img, err := a.ReadFile(BRAND_FILE_PATH + BRAND_FILE_NAME)
+	img, err := a.ReadFile(BrandFilePath + BrandFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +82,7 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 }
 
 func (a *App) DeleteBrandImage() *model.AppError {
-	filePath := BRAND_FILE_PATH + BRAND_FILE_NAME
+	filePath := BrandFilePath + BrandFileName
 
 	fileExists, err := a.FileExists(filePath)
 

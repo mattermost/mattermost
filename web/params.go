@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -9,71 +9,84 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/model"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
-	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
-	PER_PAGE_MAXIMUM      = 200
-	LOGS_PER_PAGE_DEFAULT = 10000
-	LOGS_PER_PAGE_MAXIMUM = 10000
-	LIMIT_DEFAULT         = 60
-	LIMIT_MAXIMUM         = 200
+	PageDefault        = 0
+	PerPageDefault     = 60
+	PerPageMaximum     = 200
+	LogsPerPageDefault = 10000
+	LogsPerPageMaximum = 10000
+	LimitDefault       = 60
+	LimitMaximum       = 200
 )
 
 type Params struct {
-	UserId                 string
-	TeamId                 string
-	InviteId               string
-	TokenId                string
-	ChannelId              string
-	PostId                 string
-	FileId                 string
-	Filename               string
-	PluginId               string
-	CommandId              string
-	HookId                 string
-	ReportId               string
-	EmojiId                string
-	AppId                  string
-	Email                  string
-	Username               string
-	TeamName               string
-	ChannelName            string
-	PreferenceName         string
-	EmojiName              string
-	Category               string
-	Service                string
-	JobId                  string
-	JobType                string
-	ActionId               string
-	RoleId                 string
-	RoleName               string
-	SchemeId               string
-	Scope                  string
-	GroupId                string
-	Page                   int
-	PerPage                int
-	LogsPerPage            int
-	Permanent              bool
-	RemoteId               string
-	SyncableId             string
-	SyncableType           model.GroupSyncableType
-	BotUserId              string
-	Q                      string
-	IsLinked               *bool
-	IsConfigured           *bool
-	NotAssociatedToTeam    string
-	NotAssociatedToChannel string
-	Paginate               *bool
-	IncludeMemberCount     bool
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	LimitAfter             int
-	LimitBefore            int
-	GroupIDs               string
-	IncludeTotalCount      bool
+	UserId                    string
+	TeamId                    string
+	InviteId                  string
+	TokenId                   string
+	ThreadId                  string
+	Timestamp                 int64
+	ChannelId                 string
+	PostId                    string
+	FileId                    string
+	Filename                  string
+	UploadId                  string
+	PluginId                  string
+	CommandId                 string
+	HookId                    string
+	ReportId                  string
+	EmojiId                   string
+	AppId                     string
+	Email                     string
+	Username                  string
+	TeamName                  string
+	ChannelName               string
+	PreferenceName            string
+	EmojiName                 string
+	Category                  string
+	Service                   string
+	JobId                     string
+	JobType                   string
+	ActionId                  string
+	RoleId                    string
+	RoleName                  string
+	SchemeId                  string
+	Scope                     string
+	GroupId                   string
+	Page                      int
+	PerPage                   int
+	LogsPerPage               int
+	Permanent                 bool
+	RemoteId                  string
+	SyncableId                string
+	SyncableType              model.GroupSyncableType
+	BotUserId                 string
+	Q                         string
+	IsLinked                  *bool
+	IsConfigured              *bool
+	NotAssociatedToTeam       string
+	NotAssociatedToChannel    string
+	Paginate                  *bool
+	IncludeMemberCount        bool
+	NotAssociatedToGroup      string
+	ExcludeDefaultChannels    bool
+	LimitAfter                int
+	LimitBefore               int
+	GroupIDs                  string
+	IncludeTotalCount         bool
+	IncludeDeleted            bool
+	FilterAllowReference      bool
+	FilterParentTeamPermitted bool
+	CategoryId                string
+	WarnMetricId              string
+	ExportName                string
+
+	// Cloud
+	InvoiceId string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -90,12 +103,20 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.TeamId = val
 	}
 
+	if val, ok := props["category_id"]; ok {
+		params.CategoryId = val
+	}
+
 	if val, ok := props["invite_id"]; ok {
 		params.InviteId = val
 	}
 
 	if val, ok := props["token_id"]; ok {
 		params.TokenId = val
+	}
+
+	if val, ok := props["thread_id"]; ok {
+		params.ThreadId = val
 	}
 
 	if val, ok := props["channel_id"]; ok {
@@ -113,6 +134,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.Filename = query.Get("filename")
+
+	if val, ok := props["upload_id"]; ok {
+		params.UploadId = val
+	}
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val
@@ -202,12 +227,22 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.RemoteId = val
 	}
 
+	if val, ok := props["invoice_id"]; ok {
+		params.InvoiceId = val
+	}
+
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
-		params.Page = PAGE_DEFAULT
+		params.Page = PageDefault
 	} else {
 		params.Page = val
+	}
+
+	if val, err := strconv.ParseInt(props["timestamp"], 10, 64); err != nil || val < 0 {
+		params.Timestamp = 0
+	} else {
+		params.Timestamp = val
 	}
 
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
@@ -215,33 +250,33 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
-		params.PerPage = PER_PAGE_DEFAULT
-	} else if val > PER_PAGE_MAXIMUM {
-		params.PerPage = PER_PAGE_MAXIMUM
+		params.PerPage = PerPageDefault
+	} else if val > PerPageMaximum {
+		params.PerPage = PerPageMaximum
 	} else {
 		params.PerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
-		params.LogsPerPage = LOGS_PER_PAGE_DEFAULT
-	} else if val > LOGS_PER_PAGE_MAXIMUM {
-		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
+		params.LogsPerPage = LogsPerPageDefault
+	} else if val > LogsPerPageMaximum {
+		params.LogsPerPage = LogsPerPageMaximum
 	} else {
 		params.LogsPerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_after")); err != nil || val < 0 {
-		params.LimitAfter = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitAfter = LIMIT_MAXIMUM
+		params.LimitAfter = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitAfter = LimitMaximum
 	} else {
 		params.LimitAfter = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("limit_before")); err != nil || val < 0 {
-		params.LimitBefore = LIMIT_DEFAULT
-	} else if val > LIMIT_MAXIMUM {
-		params.LimitBefore = LIMIT_MAXIMUM
+		params.LimitBefore = LimitDefault
+	} else if val > LimitMaximum {
+		params.LimitBefore = LimitMaximum
 	} else {
 		params.LimitBefore = val
 	}
@@ -276,6 +311,14 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 
+	if val, err := strconv.ParseBool(query.Get("filter_allow_reference")); err == nil {
+		params.FilterAllowReference = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("filter_parent_team_permitted")); err == nil {
+		params.FilterParentTeamPermitted = val
+	}
+
 	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
 		params.Paginate = &val
 	}
@@ -294,6 +337,18 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
 		params.IncludeTotalCount = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
+		params.IncludeDeleted = val
+	}
+
+	if val, ok := props["warn_metric_id"]; ok {
+		params.WarnMetricId = val
+	}
+
+	if val, ok := props["export_name"]; ok {
+		params.ExportName = val
 	}
 
 	return params

@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamMemberJson(t *testing.T) {
@@ -13,33 +15,17 @@ func TestTeamMemberJson(t *testing.T) {
 	json := o.ToJson()
 	ro := TeamMemberFromJson(strings.NewReader(json))
 
-	if o.TeamId != ro.TeamId {
-		t.Fatal("Ids do not match")
-	}
+	require.Equal(t, o.TeamId, ro.TeamId, "Ids do not match")
 }
 
 func TestTeamMemberIsValid(t *testing.T) {
 	o := TeamMember{}
 
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
+	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.TeamId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
 
-	/*o.UserId = NewId()
-	o.Roles = "blahblah"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.Roles = ""
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}*/
+	require.NotNil(t, o.IsValid(), "should be invalid")
 }
 
 func TestUnreadMemberJson(t *testing.T) {
@@ -47,11 +33,8 @@ func TestUnreadMemberJson(t *testing.T) {
 	json := o.ToJson()
 
 	r := TeamUnreadFromJson(strings.NewReader(json))
-	if o.TeamId != r.TeamId {
-		t.Fatal("Ids do not match")
-	}
 
-	if o.MsgCount != r.MsgCount {
-		t.Fatal("MsgCount do not match")
-	}
+	require.Equal(t, o.TeamId, r.TeamId, "Ids do not match")
+
+	require.Equal(t, o.MsgCount, r.MsgCount, "MsgCount do not match")
 }

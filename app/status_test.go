@@ -1,12 +1,14 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestSaveStatus(t *testing.T) {
@@ -30,11 +32,8 @@ func TestSaveStatus(t *testing.T) {
 			th.App.SaveAndBroadcastStatus(status)
 
 			after, err := th.App.GetStatus(user.Id)
-			if err != nil {
-				t.Fatalf("failed to get status after save: %v", err)
-			} else if after.Status != statusString {
-				t.Fatalf("failed to save status, got %v, expected %v", after.Status, statusString)
-			}
+			require.Nil(t, err, "failed to get status after save: %v", err)
+			require.Equal(t, statusString, after.Status, "failed to save status, got %v, expected %v", after.Status, statusString)
 		})
 	}
 }

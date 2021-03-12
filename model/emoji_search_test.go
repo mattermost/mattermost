@@ -1,11 +1,13 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiSearchJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestEmojiSearchJson(t *testing.T) {
 	json := emojiSearch.ToJson()
 	remojiSearch := EmojiSearchFromJson(strings.NewReader(json))
 
-	if emojiSearch.Term != remojiSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	require.Equal(t, emojiSearch.Term, remojiSearch.Term, "Terms do not match")
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -37,8 +37,8 @@ func NewErrorPushResponse(message string) PushResponse {
 	return m
 }
 
-func (me *PushResponse) ToJson() string {
-	b, _ := json.Marshal(me)
+func (pr *PushResponse) ToJson() string {
+	b, _ := json.Marshal(pr)
 	return string(b)
 }
 
@@ -48,7 +48,6 @@ func PushResponseFromJson(data io.Reader) PushResponse {
 	var objmap PushResponse
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]string)
-	} else {
-		return objmap
 	}
+	return objmap
 }

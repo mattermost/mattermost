@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -31,11 +31,10 @@ func UserAutocompleteFromJson(data io.Reader) *UserAutocomplete {
 	decoder := json.NewDecoder(data)
 	autocomplete := new(UserAutocomplete)
 	err := decoder.Decode(&autocomplete)
-	if err == nil {
-		return autocomplete
-	} else {
+	if err != nil {
 		return nil
 	}
+	return autocomplete
 }
 
 func (o *UserAutocompleteInChannel) ToJson() string {

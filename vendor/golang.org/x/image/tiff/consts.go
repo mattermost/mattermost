@@ -42,10 +42,15 @@ const (
 	tCompression               = 259
 	tPhotometricInterpretation = 262
 
+	tFillOrder = 266
+
 	tStripOffsets    = 273
 	tSamplesPerPixel = 277
 	tRowsPerStrip    = 278
 	tStripByteCounts = 279
+
+	tT4Options = 292 // CCITT Group 3 options, a set of 32 flag bits.
+	tT6Options = 293 // CCITT Group 4 options, a set of 32 flag bits.
 
 	tTileWidth      = 322
 	tTileLength     = 323
@@ -112,22 +117,33 @@ const (
 	mRGB
 	mRGBA
 	mNRGBA
+	mCMYK
 )
 
 // CompressionType describes the type of compression used in Options.
 type CompressionType int
 
+// Constants for supported compression types.
 const (
 	Uncompressed CompressionType = iota
 	Deflate
+	LZW
+	CCITTGroup3
+	CCITTGroup4
 )
 
 // specValue returns the compression type constant from the TIFF spec that
 // is equivalent to c.
 func (c CompressionType) specValue() uint32 {
 	switch c {
+	case LZW:
+		return cLZW
 	case Deflate:
 		return cDeflate
+	case CCITTGroup3:
+		return cG3
+	case CCITTGroup4:
+		return cG4
 	}
 	return cNone
 }

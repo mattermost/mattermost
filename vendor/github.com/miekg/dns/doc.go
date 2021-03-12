@@ -83,7 +83,7 @@ with:
 
 	in, err := dns.Exchange(m1, "127.0.0.1:53")
 
-When this functions returns you will get dns message. A dns message consists
+When this functions returns you will get DNS message. A DNS message consists
 out of four sections.
 The question section: in.Question, the answer section: in.Answer,
 the authority section: in.Ns and the additional section: in.Extra.
@@ -194,6 +194,30 @@ request an AXFR for miek.nl. with TSIG key named "axfr." and secret
 You can now read the records from the transfer as they come in. Each envelope
 is checked with TSIG. If something is not correct an error is returned.
 
+A custom TSIG implementation can be used. This requires additional code to
+perform any session establishment and signature generation/verification. The
+client must be configured with an implementation of the TsigProvider interface:
+
+	type Provider struct{}
+
+	func (*Provider) Generate(msg []byte, tsig *dns.TSIG) ([]byte, error) {
+		// Use tsig.Hdr.Name and tsig.Algorithm in your code to
+		// generate the MAC using msg as the payload.
+	}
+
+	func (*Provider) Verify(msg []byte, tsig *dns.TSIG) error {
+		// Use tsig.Hdr.Name and tsig.Algorithm in your code to verify
+		// that msg matches the value in tsig.MAC.
+	}
+
+	c := new(dns.Client)
+	c.TsigProvider = new(Provider)
+	m := new(dns.Msg)
+	m.SetQuestion("miek.nl.", dns.TypeMX)
+	m.SetTsig(keyname, dns.HmacSHA1, 300, time.Now().Unix())
+	...
+	// TSIG RR is calculated by calling your Generate method
+
 Basic use pattern validating and replying to a message that has TSIG set.
 
 	server := &dns.Server{Addr: ":53", Net: "udp"}
@@ -209,7 +233,7 @@ Basic use pattern validating and replying to a message that has TSIG set.
 				// *Msg r has an TSIG record and it was validated
 				m.SetTsig("axfr.", dns.HmacMD5, 300, time.Now().Unix())
 			} else {
-				// *Msg r has an TSIG records and it was not valided
+				// *Msg r has an TSIG records and it was not validated
 			}
 		}
 		w.WriteMsg(m)
@@ -221,7 +245,7 @@ RFC 6895 sets aside a range of type codes for private use. This range is 65,280
 - 65,534 (0xFF00 - 0xFFFE). When experimenting with new Resource Records these
 can be used, before requesting an official type code from IANA.
 
-See https://miek.nl/2014/September/21/idn-and-private-rr-in-go-dns/ for more
+See https://miek.nl/2014/september/21/idn-and-private-rr-in-go-dns/ for more
 information.
 
 EDNS0
@@ -238,9 +262,8 @@ Basic use pattern for creating an (empty) OPT RR:
 
 The rdata of an OPT RR consists out of a slice of EDNS0 (RFC 6891) interfaces.
 Currently only a few have been standardized: EDNS0_NSID (RFC 5001) and
-EDNS0_SUBNET (draft-vandergaast-edns-client-subnet-02). Note that these options
-may be combined in an OPT RR. Basic use pattern for a server to check if (and
-which) options are set:
+EDNS0_SUBNET (RFC 7871). Note that these options may be combined in an OPT RR.
+Basic use pattern for a server to check if (and which) options are set:
 
 	// o is a dns.OPT
 	for _, s := range o.Option {
@@ -261,7 +284,7 @@ From RFC 2931:
     on requests and responses, and protection of the overall integrity of a response.
 
 It works like TSIG, except that SIG(0) uses public key cryptography, instead of
-the shared secret approach in TSIG. Supported algorithms: DSA, ECDSAP256SHA256,
+the shared secret approach in TSIG. Supported algorithms: ECDSAP256SHA256,
 ECDSAP384SHA384, RSASHA1, RSASHA256 and RSASHA512.
 
 Signing subsequent messages in multi-message sessions is not implemented.

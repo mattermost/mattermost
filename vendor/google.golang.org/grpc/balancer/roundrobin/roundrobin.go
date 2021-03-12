@@ -22,22 +22,22 @@
 package roundrobin
 
 import (
-	"context"
 	"sync"
 
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/internal/grpcrand"
-	"google.golang.org/grpc/resolver"
 )
 
 // Name is the name of round_robin balancer.
 const Name = "round_robin"
 
+var logger = grpclog.Component("roundrobin")
+
 // newBuilder creates a new roundrobin balancer builder.
 func newBuilder() balancer.Builder {
-	return base.NewBalancerBuilderWithConfig(Name, &rrPickerBuilder{}, base.Config{HealthCheck: true})
+	return base.NewBalancerBuilder(Name, &rrPickerBuilder{}, base.Config{HealthCheck: true})
 }
 
 func init() {
@@ -46,13 +46,13 @@ func init() {
 
 type rrPickerBuilder struct{}
 
-func (*rrPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
-	grpclog.Infof("roundrobinPicker: newPicker called with readySCs: %v", readySCs)
-	if len(readySCs) == 0 {
+func (*rrPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
+	logger.Infof("roundrobinPicker: newPicker called with info: %v", info)
+	if len(info.ReadySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 	var scs []balancer.SubConn
-	for _, sc := range readySCs {
+	for sc := range info.ReadySCs {
 		scs = append(scs, sc)
 	}
 	return &rrPicker{
@@ -74,10 +74,10 @@ type rrPicker struct {
 	next int
 }
 
-func (p *rrPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balancer.SubConn, func(balancer.DoneInfo), error) {
+func (p *rrPicker) Pick(balancer.PickInfo) (balancer.PickResult, error) {
 	p.mu.Lock()
 	sc := p.subConns[p.next]
 	p.next = (p.next + 1) % len(p.subConns)
 	p.mu.Unlock()
-	return sc, nil, nil
+	return balancer.PickResult{SubConn: sc}, nil
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -5,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/avct/uasurfer"
+	"github.com/stretchr/testify/assert"
 )
 
 type testUserAgent struct {
@@ -17,6 +21,7 @@ var testUserAgents = []testUserAgent{
 	{"Chrome 60", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"},
 	{"Chrome Mobile", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Mobile Safari/537.36"},
 	{"MM Classic App", "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR6.170623.013; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.81 Mobile Safari/537.36 Web-Atoms-Mobile-WebView"},
+	{"mmctl", "mmctl/5.20.0 (linux)"},
 	{"MM App 3.7.1", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"},
 	{"Franz 4.0.4", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Franz/4.0.4 Chrome/52.0.2743.82 Electron/1.3.1 Safari/537.36"},
 	{"Edge 14", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"},
@@ -36,6 +41,7 @@ func TestGetPlatformName(t *testing.T) {
 		"Macintosh",
 		"Linux",
 		"Linux",
+		"Linux",
 		"Macintosh",
 		"Macintosh",
 		"Windows",
@@ -53,9 +59,8 @@ func TestGetPlatformName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetPlatformName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getPlatformName(ua); actual != expected[i] {
-				t.Fatalf("%v Got %v, expected %v", userAgent.Name, actual, expected[i])
-			}
+			actual := getPlatformName(ua)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -66,6 +71,7 @@ func TestGetOSName(t *testing.T) {
 		"Mac OS",
 		"Android",
 		"Android",
+		"Linux",
 		"Mac OS",
 		"Mac OS",
 		"Windows 10",
@@ -83,9 +89,8 @@ func TestGetOSName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetOSName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getOSName(ua); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getOSName(ua)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -96,6 +101,7 @@ func TestGetBrowserName(t *testing.T) {
 		"Chrome",
 		"Chrome",
 		"Chrome",
+		"mmctl",
 		"Desktop App",
 		"Chrome",
 		"Edge",
@@ -113,9 +119,8 @@ func TestGetBrowserName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserName(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserName(ua, userAgent.UserAgent)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }
@@ -126,6 +131,7 @@ func TestGetBrowserVersion(t *testing.T) {
 		"60.0.3112", // Doesn't report the fourth part of the version
 		"60.0.3112", // Doesn't report the fourth part of the version
 		"61.0.3163",
+		"5.20.0",
 		"3.7.1",
 		"4.0.4",
 		"14.14393",
@@ -143,9 +149,8 @@ func TestGetBrowserVersion(t *testing.T) {
 		t.Run(fmt.Sprintf("GetBrowserVersion_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			if actual := getBrowserVersion(ua, userAgent.UserAgent); actual != expected[i] {
-				t.Fatalf("Got %v, expected %v", actual, expected[i])
-			}
+			actual := getBrowserVersion(ua, userAgent.UserAgent)
+			assert.Equal(t, expected[i], actual)
 		})
 	}
 }

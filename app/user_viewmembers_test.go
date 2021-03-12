@@ -1,12 +1,16 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestResctrictedViewMembers(t *testing.T) {
@@ -618,7 +622,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetUsersWithoutTeam(0, 100, tc.Restrictions)
+				results, err := th.App.GetUsersWithoutTeam(&model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions})
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -1004,7 +1008,10 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetTeamMembers(tc.TeamId, 0, 100, tc.Restrictions)
+				getTeamMemberOptions := &model.TeamMembersGetOptions{
+					ViewRestrictions: tc.Restrictions,
+				}
+				results, err := th.App.GetTeamMembers(tc.TeamId, 0, 100, getTeamMemberOptions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {

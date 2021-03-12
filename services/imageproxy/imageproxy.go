@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package imageproxy
 
@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}
@@ -29,6 +29,7 @@ type ImageProxy struct {
 
 	Logger *mlog.Logger
 
+	siteURL *url.URL
 	lock    sync.RWMutex
 	backend ImageProxyBackend
 }
@@ -49,6 +50,11 @@ func MakeImageProxy(configService configservice.ConfigService, httpService https
 		HTTPService:   httpService,
 		Logger:        logger,
 	}
+
+	// We deliberately ignore the error because it's from config.json.
+	// The function returns a nil pointer in case of error, and we handle it when it's used.
+	siteURL, _ := url.Parse(*configService.Config().ServiceSettings.SiteURL)
+	proxy.siteURL = siteURL
 
 	proxy.configListenerId = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)
 
@@ -118,15 +124,32 @@ func (proxy *ImageProxy) GetImageDirect(imageURL string) (io.ReadCloser, string,
 // GetProxiedImageURL takes the URL of an image and returns a URL that can be used to view that image through the
 // image proxy.
 func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
-	return getProxiedImageURL(imageURL, *proxy.ConfigService.Config().ServiceSettings.SiteURL)
-}
-
-func getProxiedImageURL(imageURL, siteURL string) string {
-	if imageURL == "" || imageURL[0] == '/' || strings.HasPrefix(imageURL, siteURL) {
+	if imageURL == "" || proxy.siteURL == nil {
 		return imageURL
 	}
+	// Parse url, return siteURL in case of failure.
+	// Also if the URL is opaque.
+	parsedURL, err := url.Parse(imageURL)
+	if err != nil || parsedURL.Opaque != "" {
+		return proxy.siteURL.String()
+	}
+	// If host is same as siteURL host, return.
+	if parsedURL.Host == proxy.siteURL.Host {
+		return parsedURL.String()
+	}
 
-	return siteURL + "/api/v4/image?url=" + url.QueryEscape(imageURL)
+	// Handle protocol-relative URLs.
+	if parsedURL.Scheme == "" {
+		parsedURL.Scheme = proxy.siteURL.Scheme
+	}
+
+	// If it's a relative URL, fill up the hostname and return.
+	if parsedURL.Host == "" {
+		parsedURL.Host = proxy.siteURL.Host
+		return parsedURL.String()
+	}
+
+	return proxy.siteURL.String() + "/api/v4/image?url=" + url.QueryEscape(parsedURL.String())
 }
 
 // GetUnproxiedImageURL takes the URL of an image on the image proxy and returns the original URL of the image.

@@ -478,13 +478,13 @@ func errRecoverNoErrBadConn(err *error) {
 	}
 }
 
-func (c *conn) errRecover(err *error) {
+func (cn *conn) errRecover(err *error) {
 	e := recover()
 	switch v := e.(type) {
 	case nil:
 		// Do nothing
 	case runtime.Error:
-		c.bad = true
+		cn.setBad()
 		panic(v)
 	case *Error:
 		if v.Fatal() {
@@ -493,8 +493,11 @@ func (c *conn) errRecover(err *error) {
 			*err = v
 		}
 	case *net.OpError:
-		c.bad = true
+		cn.setBad()
 		*err = v
+	case *safeRetryError:
+		cn.setBad()
+		*err = driver.ErrBadConn
 	case error:
 		if v == io.EOF || v.(error).Error() == "remote error: handshake failure" {
 			*err = driver.ErrBadConn
@@ -503,13 +506,13 @@ func (c *conn) errRecover(err *error) {
 		}
 
 	default:
-		c.bad = true
+		cn.setBad()
 		panic(fmt.Sprintf("unknown error: %#v", e))
 	}
 
 	// Any time we return ErrBadConn, we need to remember it since *Tx doesn't
 	// mark the connection bad in database/sql.
 	if *err == driver.ErrBadConn {
-		c.bad = true
+		cn.setBad()
 	}
 }

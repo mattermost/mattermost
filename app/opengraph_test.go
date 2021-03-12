@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,6 +9,7 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
@@ -108,22 +109,17 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			og := opengraph.NewOpenGraph()
-			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
-				t.Fatal(err)
-			}
+			err := og.ProcessHTML(strings.NewReader(tc.HTML))
+			require.NoError(t, err)
 
 			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 
-			if og.URL != tc.URL {
-				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
-			}
+			assert.Equalf(t, og.URL, tc.URL, "incorrect url, expected %v, got %v", tc.URL, og.URL)
 
 			if len(og.Images) > 0 {
-				if og.Images[0].URL != tc.ImageURL {
-					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
-				}
-			} else if tc.ImageURL != "" {
-				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
+				assert.Equalf(t, og.Images[0].URL, tc.ImageURL, "incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
+			} else {
+				assert.Empty(t, tc.ImageURL, "missing image url, expected %v, got nothing", tc.ImageURL)
 			}
 		})
 	}

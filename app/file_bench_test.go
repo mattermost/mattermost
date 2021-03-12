@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var randomJPEG []byte
@@ -60,10 +60,10 @@ func BenchmarkUploadFile(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 	// disable logging in the benchmark, as best we can
-	th.App.Log.SetConsoleLevel(mlog.LevelError)
-	teamId := model.NewId()
-	channelId := model.NewId()
-	userId := model.NewId()
+	th.App.Log().SetConsoleLevel(mlog.LevelError)
+	teamID := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	mb := func(i int) int {
 		return (i + 512*1024) / (1024 * 1024)
@@ -86,12 +86,12 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw-ish DoUploadFile",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info1, err := th.App.DoUploadFile(time.Now(), teamId, channelId,
-					userId, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data)
+				info1, err := th.App.DoUploadFile(time.Now(), teamID, channelID,
+					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data)
 				if err != nil {
 					b.Fatal(err)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 				th.App.RemoveFile(info1.Path)
 
 			},
@@ -99,43 +99,43 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw UploadFileX Content-Length",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
-					UploadFileSetTeamId(teamId),
-					UploadFileSetUserId(userId),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
 					UploadFileSetTimestamp(time.Now()),
 					UploadFileSetContentLength(int64(len(data))),
 					UploadFileSetRaw())
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
 		{
 			title: "raw UploadFileX chunked",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
-					UploadFileSetTeamId(teamId),
-					UploadFileSetUserId(userId),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
 					UploadFileSetTimestamp(time.Now()),
 					UploadFileSetContentLength(-1),
 					UploadFileSetRaw())
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
 		{
 			title: "image UploadFiles",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				resp, err := th.App.UploadFiles(teamId, channelId, userId,
+				resp, err := th.App.UploadFiles(teamID, channelID, userID,
 					[]io.ReadCloser{ioutil.NopCloser(bytes.NewReader(data))},
 					[]string{fmt.Sprintf("BenchmarkDoUploadFiles-%d%s", n, ext)},
 					[]string{},
@@ -143,41 +143,41 @@ func BenchmarkUploadFile(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(resp.FileInfos[0].Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(resp.FileInfos[0].Id)
 				th.App.RemoveFile(resp.FileInfos[0].Path)
 			},
 		},
 		{
 			title: "image UploadFileX Content-Length",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
-					UploadFileSetTeamId(teamId),
-					UploadFileSetUserId(userId),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
 					UploadFileSetTimestamp(time.Now()),
 					UploadFileSetContentLength(int64(len(data))))
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
 		{
 			title: "image UploadFileX chunked",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
-					UploadFileSetTeamId(teamId),
-					UploadFileSetUserId(userId),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
 					UploadFileSetTimestamp(time.Now()),
 					UploadFileSetContentLength(int64(len(data))))
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},

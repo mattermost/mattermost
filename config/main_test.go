@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config_test
 
 import (
@@ -5,9 +8,12 @@ import (
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/testlib"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 var mainHelper *testlib.MainHelper
@@ -16,6 +22,8 @@ func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore: true,
 	}
+
+	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
@@ -26,12 +34,12 @@ func TestMain(m *testing.M) {
 // truncateTable clears the given table
 func truncateTable(t *testing.T, table string) {
 	t.Helper()
-	sqlSetting := mainHelper.GetSqlSettings()
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSetting := mainHelper.GetSQLSettings()
+	sqlStore := mainHelper.GetSQLStore()
 
 	switch *sqlSetting.DriverName {
 	case model.DATABASE_DRIVER_MYSQL:
-		_, err := sqlSupplier.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok {
 				// Ignore if the Configurations table does not exist.
@@ -43,11 +51,19 @@ func truncateTable(t *testing.T, table string) {
 		require.NoError(t, err)
 
 	case model.DATABASE_DRIVER_POSTGRES:
-		_, err := sqlSupplier.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		if err != nil {
+			if driverErr, ok := err.(*pq.Error); ok {
+				// Ignore if the Configurations table does not exist.
+				if driverErr.Code == "42P01" {
+					return
+				}
+			}
+		}
 		require.NoError(t, err)
 
 	default:
-		t.Fatalf("unsupported driver name: %s", *sqlSetting.DriverName)
+		require.Failf(t, "failed", "unsupported driver name: %s", *sqlSetting.DriverName)
 	}
 }
 

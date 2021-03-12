@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	config := viper.GetString("config")
-
-	a, err := InitDBCommandContext(config)
-
+func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool) (*app.App, error) {
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore)
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
@@ -27,25 +26,34 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	return a, nil
 }
 
-func InitDBCommandContext(configDSN string) (*app.App, error) {
+func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
+	return initDBCommandContextCobra(command, true)
+}
+
+func InitDBCommandContextCobraReadWrite(command *cobra.Command) (*app.App, error) {
+	return initDBCommandContextCobra(command, false)
+}
+
+func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false),
-		app.StartElasticsearch,
+		app.Config(configDSN, false, readOnlyConfigStore, nil),
+		app.StartSearchEngine,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	a := s.FakeApp()
+	a := app.New(app.ServerConnector(s))
 
 	if model.BuildEnterpriseReady == "true" {
-		a.LoadLicense()
+		a.Srv().LoadLicense()
 	}
+	a.InitServer()
 
 	return a, nil
 }

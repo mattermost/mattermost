@@ -1,28 +1,27 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package migrations
 
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	MIGRATION_JOB_WEDGED_TIMEOUT_MILLISECONDS = 3600000 // 1 hour
+	MigrationJobWedgedTimeoutMilliseconds = 3600000 // 1 hour
 )
 
 type Scheduler struct {
-	App                    *app.App
+	srv                    *app.Server
 	allMigrationsCompleted bool
 }
 
 func (m *MigrationsJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{m.App, false}
+	return &Scheduler{m.srv, false}
 }
 
 func (scheduler *Scheduler) Name() string {
@@ -33,10 +32,11 @@ func (scheduler *Scheduler) JobType() string {
 	return model.JOB_TYPE_MIGRATIONS
 }
 
-func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
+func (scheduler *Scheduler) Enabled(_ *model.Config) bool {
 	return true
 }
 
+//nolint:unparam
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	if scheduler.allMigrationsCompleted {
 		return nil
@@ -46,38 +46,39 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 	return &nextTime
 }
 
+//nolint:unparam
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
 	// Work through the list of migrations in order. Schedule the first one that isn't done (assuming it isn't in progress already).
 	for _, key := range MakeMigrationsList() {
-		state, job, err := GetMigrationState(key, scheduler.App.Srv.Store)
+		state, job, err := GetMigrationState(key, scheduler.srv.Store)
 		if err != nil {
 			mlog.Error("Failed to determine status of migration: ", mlog.String("scheduler", scheduler.Name()), mlog.String("migration_key", key), mlog.String("error", err.Error()))
 			return nil, nil
 		}
 
-		if state == MIGRATION_STATE_IN_PROGRESS {
+		if state == MigrationStateInProgress {
 			// Check the migration job isn't wedged.
-			if job != nil && job.LastActivityAt < model.GetMillis()-MIGRATION_JOB_WEDGED_TIMEOUT_MILLISECONDS && job.CreateAt < model.GetMillis()-MIGRATION_JOB_WEDGED_TIMEOUT_MILLISECONDS {
+			if job != nil && job.LastActivityAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds && job.CreateAt < model.GetMillis()-MigrationJobWedgedTimeoutMilliseconds {
 				mlog.Warn("Job appears to be wedged. Rescheduling another instance.", mlog.String("scheduler", scheduler.Name()), mlog.String("wedged_job_id", job.Id), mlog.String("migration_key", key))
-				if err := scheduler.App.Srv.Jobs.SetJobError(job, nil); err != nil {
+				if err := scheduler.srv.Jobs.SetJobError(job, nil); err != nil {
 					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", scheduler.Name()), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				}
-				return scheduler.createJob(key, job, scheduler.App.Srv.Store)
+				return scheduler.createJob(key, job)
 			}
 
 			return nil, nil
 		}
 
-		if state == MIGRATION_STATE_COMPLETED {
+		if state == MigrationStateCompleted {
 			// This migration is done. Continue to check the next.
 			continue
 		}
 
-		if state == MIGRATION_STATE_UNSCHEDULED {
+		if state == MigrationStateUnscheduled {
 			mlog.Debug("Scheduling a new job for migration.", mlog.String("scheduler", scheduler.Name()), mlog.String("migration_key", key))
-			return scheduler.createJob(key, job, scheduler.App.Srv.Store)
+			return scheduler.createJob(key, job)
 		}
 
 		mlog.Error("Unknown migration state. Not doing anything.", mlog.String("migration_state", state))
@@ -91,20 +92,20 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 	return nil, nil
 }
 
-func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job, store store.Store) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
 	var lastDone string
 	if lastJob != nil {
-		lastDone = lastJob.Data[JOB_DATA_KEY_MIGRATION_LAST_DONE]
+		lastDone = lastJob.Data[JobDataKeyMigration_LAST_DONE]
 	}
 
 	data := map[string]string{
-		JOB_DATA_KEY_MIGRATION:           migrationKey,
-		JOB_DATA_KEY_MIGRATION_LAST_DONE: lastDone,
+		JobDataKeyMigration:           migrationKey,
+		JobDataKeyMigration_LAST_DONE: lastDone,
 	}
 
-	if job, err := scheduler.App.Srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data); err != nil {
+	job, err := scheduler.srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data)
+	if err != nil {
 		return nil, err
-	} else {
-		return job, nil
 	}
+	return job, nil
 }

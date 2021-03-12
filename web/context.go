@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -9,134 +9,177 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Context struct {
-	App           *app.App
-	Log           *mlog.Logger
+	App           app.AppIface
+	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
 }
 
+// LogAuditRec logs an audit record using default LevelAPI.
+func (c *Context) LogAuditRec(rec *audit.Record) {
+	c.LogAuditRecWithLevel(rec, app.LevelAPI)
+}
+
+// LogAuditRec logs an audit record using specified Level.
+// If the context is flagged with a permissions error then `level`
+// is ignored and the audit record is emitted with `LevelPerms`.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
+	if rec == nil {
+		return
+	}
+	if c.Err != nil {
+		rec.AddMeta("err", c.Err.Id)
+		rec.AddMeta("code", c.Err.StatusCode)
+		if c.Err.Id == "api.context.permissions.app_error" {
+			level = app.LevelPerms
+		}
+		rec.Fail()
+	}
+	c.App.Srv().Audit.LogRecord(level, *rec)
+}
+
+// MakeAuditRecord creates a audit record pre-populated with data from this context.
+func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+	rec := &audit.Record{
+		APIPath:   c.App.Path(),
+		Event:     event,
+		Status:    initialStatus,
+		UserID:    c.App.Session().UserId,
+		SessionID: c.App.Session().Id,
+		Client:    c.App.UserAgent(),
+		IPAddress: c.App.IpAddress(),
+		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
+	}
+	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
+
+	return rec
+}
+
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
+	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
+	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogErrorByCode(appErr)
 	}
 }
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
-	if len(c.App.Session.UserId) > 0 {
-		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session.UserId)
+	if c.App.Session().UserId != "" {
+		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session().UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
-	}
-}
-
-func (c *Context) LogError(err *model.AppError) {
-	// Filter out 404s, endless reconnects and browser compatibility errors
-	if err.StatusCode == http.StatusNotFound ||
-		(c.App.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
-		err.Id == "web.check_browser_compatibility.app_error" {
-		c.LogDebug(err)
-	} else {
-		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
+	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
+	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogErrorByCode(appErr)
 	}
 }
 
-func (c *Context) LogInfo(err *model.AppError) {
-	// Filter out 401s
-	if err.StatusCode == http.StatusUnauthorized {
-		c.LogDebug(err)
-	} else {
-		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogDebug(err *model.AppError) {
-	c.Log.Debug(
-		err.SystemMessage(utils.TDefault),
+func (c *Context) LogErrorByCode(err *model.AppError) {
+	code := err.StatusCode
+	msg := err.SystemMessage(i18n.TDefault)
+	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
 		mlog.String("err_details", err.DetailedError),
-	)
+	}
+	switch {
+	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
+		err.Id == "web.check_browser_compatibility.app_error":
+		c.Logger.Debug(msg, fields...)
+	case code == http.StatusNotImplemented:
+		c.Logger.Info(msg, fields...)
+	default:
+		c.Logger.Error(msg, fields...)
+	}
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
-		c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
-		c.App.Session.Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
+		c.App.Session().Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		c.App.Session().Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
 
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
 
-	if len(c.App.Session.UserId) == 0 {
+	if c.App.Session().UserId == "" {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
+		return
+	}
+}
+
+func (c *Context) CloudKeyRequired() {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 
 	// OAuth integrations are excepted
-	if c.App.Session.IsOAuth {
+	if c.App.Session().IsOAuth {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil {
-		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
 		return
-	} else {
-		// Only required for email and ldap accounts
-		if user.AuthService != "" &&
-			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
-			user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-			return
-		}
+	}
 
-		// Special case to let user get themself
-		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.App.Path == path.Join(subpath, "/api/v4/users/me") {
-			return
-		}
+	if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+		return
+	}
+	// Only required for email and ldap accounts
+	if user.AuthService != "" &&
+		user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
+		user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return
+	}
 
-		// Bots are exempt
-		if user.IsBot {
-			return
-		}
+	// Special case to let user get themself
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+	if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
+		return
+	}
 
-		if !user.MfaActive {
-			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
-			return
-		}
+	// Bots are exempt
+	if user.IsBot {
+		return
+	}
+
+	if !user.MfaActive {
+		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+}
+
+// ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
+// Session cookies will be resent to the client with updated max age.
+func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.App.Session()); ok {
+		c.App.AttachSessionCookies(w, r)
 	}
 }
 
@@ -162,9 +205,17 @@ func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
 }
 
+func (c *Context) SetServerBusyError() {
+	c.Err = NewServerBusyError()
+}
+
+func (c *Context) SetCommandNotFoundError() {
+	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
+}
+
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
-	metrics := c.App.Metrics
-	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
+	metrics := c.App.Metrics()
+	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); etag != "" {
 		if et == etag {
 			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 			w.WriteHeader(http.StatusNotModified)
@@ -190,9 +241,13 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+func NewServerBusyError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
+	return err
+}
 
-func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.App.MakePermissionError(permission)
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	c.Err = c.App.MakePermissionError(permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -209,10 +264,10 @@ func (c *Context) RequireUserId() *Context {
 	}
 
 	if c.Params.UserId == model.ME {
-		c.Params.UserId = c.App.Session.UserId
+		c.Params.UserId = c.App.Session().UserId
 	}
 
-	if len(c.Params.UserId) != 26 {
+	if !model.IsValidId(c.Params.UserId) {
 		c.SetInvalidUrlParam("user_id")
 	}
 	return c
@@ -223,8 +278,19 @@ func (c *Context) RequireTeamId() *Context {
 		return c
 	}
 
-	if len(c.Params.TeamId) != 26 {
+	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidUrlParam("team_id")
+	}
+	return c
+}
+
+func (c *Context) RequireCategoryId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
+		c.SetInvalidUrlParam("category_id")
 	}
 	return c
 }
@@ -234,7 +300,7 @@ func (c *Context) RequireInviteId() *Context {
 		return c
 	}
 
-	if len(c.Params.InviteId) == 0 {
+	if c.Params.InviteId == "" {
 		c.SetInvalidUrlParam("invite_id")
 	}
 	return c
@@ -245,8 +311,30 @@ func (c *Context) RequireTokenId() *Context {
 		return c
 	}
 
-	if len(c.Params.TokenId) != 26 {
+	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
+	}
+	return c
+}
+
+func (c *Context) RequireThreadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ThreadId) {
+		c.SetInvalidUrlParam("thread_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Timestamp == 0 {
+		c.SetInvalidUrlParam("timestamp")
 	}
 	return c
 }
@@ -256,7 +344,7 @@ func (c *Context) RequireChannelId() *Context {
 		return c
 	}
 
-	if len(c.Params.ChannelId) != 26 {
+	if !model.IsValidId(c.Params.ChannelId) {
 		c.SetInvalidUrlParam("channel_id")
 	}
 	return c
@@ -279,7 +367,7 @@ func (c *Context) RequirePostId() *Context {
 		return c
 	}
 
-	if len(c.Params.PostId) != 26 {
+	if !model.IsValidId(c.Params.PostId) {
 		c.SetInvalidUrlParam("post_id")
 	}
 	return c
@@ -290,7 +378,7 @@ func (c *Context) RequireAppId() *Context {
 		return c
 	}
 
-	if len(c.Params.AppId) != 26 {
+	if !model.IsValidId(c.Params.AppId) {
 		c.SetInvalidUrlParam("app_id")
 	}
 	return c
@@ -301,8 +389,20 @@ func (c *Context) RequireFileId() *Context {
 		return c
 	}
 
-	if len(c.Params.FileId) != 26 {
+	if !model.IsValidId(c.Params.FileId) {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireUploadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.UploadId) {
+		c.SetInvalidUrlParam("upload_id")
 	}
 
 	return c
@@ -313,7 +413,7 @@ func (c *Context) RequireFilename() *Context {
 		return c
 	}
 
-	if len(c.Params.Filename) == 0 {
+	if c.Params.Filename == "" {
 		c.SetInvalidUrlParam("filename")
 	}
 
@@ -325,7 +425,7 @@ func (c *Context) RequirePluginId() *Context {
 		return c
 	}
 
-	if len(c.Params.PluginId) == 0 {
+	if c.Params.PluginId == "" {
 		c.SetInvalidUrlParam("plugin_id")
 	}
 
@@ -337,7 +437,7 @@ func (c *Context) RequireReportId() *Context {
 		return c
 	}
 
-	if len(c.Params.ReportId) != 26 {
+	if !model.IsValidId(c.Params.ReportId) {
 		c.SetInvalidUrlParam("report_id")
 	}
 	return c
@@ -348,7 +448,7 @@ func (c *Context) RequireEmojiId() *Context {
 		return c
 	}
 
-	if len(c.Params.EmojiId) != 26 {
+	if !model.IsValidId(c.Params.EmojiId) {
 		c.SetInvalidUrlParam("emoji_id")
 	}
 	return c
@@ -378,11 +478,11 @@ func (c *Context) RequireChannelName() *Context {
 	return c
 }
 
-func (c *Context) RequireEmail() *Context {
+func (c *Context) SanitizeEmail() *Context {
 	if c.Err != nil {
 		return c
 	}
-
+	c.Params.Email = strings.ToLower(c.Params.Email)
 	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
 	}
@@ -407,7 +507,7 @@ func (c *Context) RequireService() *Context {
 		return c
 	}
 
-	if len(c.Params.Service) == 0 {
+	if c.Params.Service == "" {
 		c.SetInvalidUrlParam("service")
 	}
 
@@ -433,7 +533,7 @@ func (c *Context) RequireEmojiName() *Context {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
+	if c.Params.EmojiName == "" || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 
@@ -445,7 +545,7 @@ func (c *Context) RequireHookId() *Context {
 		return c
 	}
 
-	if len(c.Params.HookId) != 26 {
+	if !model.IsValidId(c.Params.HookId) {
 		c.SetInvalidUrlParam("hook_id")
 	}
 
@@ -457,7 +557,7 @@ func (c *Context) RequireCommandId() *Context {
 		return c
 	}
 
-	if len(c.Params.CommandId) != 26 {
+	if !model.IsValidId(c.Params.CommandId) {
 		c.SetInvalidUrlParam("command_id")
 	}
 	return c
@@ -468,7 +568,7 @@ func (c *Context) RequireJobId() *Context {
 		return c
 	}
 
-	if len(c.Params.JobId) != 26 {
+	if !model.IsValidId(c.Params.JobId) {
 		c.SetInvalidUrlParam("job_id")
 	}
 	return c
@@ -479,19 +579,8 @@ func (c *Context) RequireJobType() *Context {
 		return c
 	}
 
-	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
+	if c.Params.JobType == "" || len(c.Params.JobType) > 32 {
 		c.SetInvalidUrlParam("job_type")
-	}
-	return c
-}
-
-func (c *Context) RequireActionId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if len(c.Params.ActionId) != 26 {
-		c.SetInvalidUrlParam("action_id")
 	}
 	return c
 }
@@ -501,7 +590,7 @@ func (c *Context) RequireRoleId() *Context {
 		return c
 	}
 
-	if len(c.Params.RoleId) != 26 {
+	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidUrlParam("role_id")
 	}
 	return c
@@ -512,7 +601,7 @@ func (c *Context) RequireSchemeId() *Context {
 		return c
 	}
 
-	if len(c.Params.SchemeId) != 26 {
+	if !model.IsValidId(c.Params.SchemeId) {
 		c.SetInvalidUrlParam("scheme_id")
 	}
 	return c
@@ -535,7 +624,7 @@ func (c *Context) RequireGroupId() *Context {
 		return c
 	}
 
-	if len(c.Params.GroupId) != 26 {
+	if !model.IsValidId(c.Params.GroupId) {
 		c.SetInvalidUrlParam("group_id")
 	}
 	return c
@@ -546,7 +635,7 @@ func (c *Context) RequireRemoteId() *Context {
 		return c
 	}
 
-	if len(c.Params.RemoteId) == 0 {
+	if c.Params.RemoteId == "" {
 		c.SetInvalidUrlParam("remote_id")
 	}
 	return c
@@ -557,7 +646,7 @@ func (c *Context) RequireSyncableId() *Context {
 		return c
 	}
 
-	if len(c.Params.SyncableId) != 26 {
+	if !model.IsValidId(c.Params.SyncableId) {
 		c.SetInvalidUrlParam("syncable_id")
 	}
 	return c
@@ -579,8 +668,20 @@ func (c *Context) RequireBotUserId() *Context {
 		return c
 	}
 
-	if len(c.Params.BotUserId) != 26 {
+	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
+	return c
+}
+
+func (c *Context) RequireInvoiceId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InvoiceId) != 27 {
+		c.SetInvalidUrlParam("invoice_id")
+	}
+
 	return c
 }

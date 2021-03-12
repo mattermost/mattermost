@@ -1,4 +1,4 @@
-FROM golang:1.12 as build
+FROM golang:1.13 as build
 MAINTAINER Will Norris <will@willnorris.com>
 
 RUN useradd -u 1001 go
@@ -6,6 +6,7 @@ RUN useradd -u 1001 go
 WORKDIR /app
 
 COPY go.mod go.sum ./
+COPY third_party/envy/go.mod ./third_party/envy/
 RUN go mod download
 
 COPY . .

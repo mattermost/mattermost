@@ -1,13 +1,18 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
 import (
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -17,6 +22,29 @@ func StringInSlice(a string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// RemoveStringFromSlice removes the first occurrence of a from slice.
+func RemoveStringFromSlice(a string, slice []string) []string {
+	for i, str := range slice {
+		if str == a {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
+// RemoveStringsFromSlice removes all occurrences of strings from slice.
+func RemoveStringsFromSlice(slice []string, strings ...string) []string {
+	newSlice := []string{}
+
+	for _, item := range slice {
+		if !StringInSlice(item, strings) {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	return newSlice
 }
 
 func StringArrayIntersection(arr1, arr2 []string) []string {
@@ -66,24 +94,24 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
+func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
-		if len(header) > 0 {
+		if header != "" {
 			addresses := strings.Fields(header)
 			if len(addresses) > 0 {
 				address = strings.TrimRight(addresses[0], ",")
 			}
 		}
 
-		if len(address) > 0 {
+		if address != "" {
 			return address
 		}
 	}
 
-	if len(address) == 0 {
+	if address == "" {
 		address, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
 
@@ -97,4 +125,93 @@ func GetHostnameFromSiteURL(siteURL string) string {
 	}
 
 	return u.Hostname()
+}
+
+type RequestCache struct {
+	Data []byte
+	Date string
+	Key  string
+}
+
+// Fetch JSON data from the notices server
+// if skip is passed, does a fetch without touching the cache
+func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
+	// Build a GET Request, including optional If-None-Match header.
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+	if !skip && cache.Data != nil {
+		req.Header.Add("If-None-Match", cache.Key)
+		req.Header.Add("If-Modified-Since", cache.Date)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+	defer resp.Body.Close()
+	// No change from latest known Etag?
+	if resp.StatusCode == http.StatusNotModified {
+		return cache.Data, nil
+	}
+
+	if resp.StatusCode != 200 {
+		cache.Data = nil
+		return nil, errors.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
+	}
+
+	cache.Data, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+
+	// If etags headers are missing, ignore.
+	cache.Key = resp.Header.Get("ETag")
+	cache.Date = resp.Header.Get("Date")
+	return cache.Data, err
+}
+
+// Append tokens to passed baseUrl as query params
+func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
+	u, err := url.Parse(baseUrl)
+	if err != nil {
+		return ""
+	}
+	q, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return ""
+	}
+	for key, value := range params {
+		q.Add(key, value)
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+// Validates RedirectURL passed during OAuth or SAML
+func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
+	u, err := url.Parse(redirectURL)
+	if err == nil && (u.Scheme == "http" || u.Scheme == "https") {
+		if config.ServiceSettings.SiteURL != nil {
+			siteURL := *config.ServiceSettings.SiteURL
+			return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteURL)) == 0
+		}
+		return false
+	}
+	return true
+}
+
+// Validates Mobile Custom URL Scheme passed during OAuth or SAML
+func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool {
+	for _, URLScheme := range config.NativeAppSettings.AppCustomURLSchemes {
+		if strings.Index(strings.ToLower(redirectURL), strings.ToLower(URLScheme)) == 0 {
+			return true
+		}
+	}
+	return false
 }

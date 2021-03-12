@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -19,9 +19,8 @@ func PreferencesFromJson(data io.Reader) (Preferences, error) {
 	decoder := json.NewDecoder(data)
 	var o Preferences
 	err := decoder.Decode(&o)
-	if err == nil {
-		return o, nil
-	} else {
+	if err != nil {
 		return nil, err
 	}
+	return o, nil
 }

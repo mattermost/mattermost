@@ -1,11 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLicenseFeaturesToMap(t *testing.T) {
@@ -29,7 +31,10 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["data_retention"].(bool))
 	CheckTrue(t, m["message_export"].(bool))
 	CheckTrue(t, m["custom_permissions_schemes"].(bool))
+	CheckTrue(t, m["id_loaded"].(bool))
 	CheckTrue(t, m["future"].(bool))
+	CheckTrue(t, m["shared_channels"].(bool))
+	CheckTrue(t, m["remote_cluster_service"].(bool))
 }
 
 func TestLicenseFeaturesSetDefaults(t *testing.T) {
@@ -52,6 +57,10 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccountsPermissions)
+	CheckTrue(t, *f.IDLoadedPushNotifications)
+	CheckTrue(t, *f.SharedChannels)
+	CheckTrue(t, *f.RemoteClusterService)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -73,7 +82,11 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.DataRetention = true
 	*f.MessageExport = true
 	*f.CustomPermissionsSchemes = true
+	*f.GuestAccounts = true
+	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
+	*f.IDLoadedPushNotifications = true
+	*f.SharedChannels = true
 
 	f.SetDefaults()
 
@@ -93,33 +106,40 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccounts)
+	CheckTrue(t, *f.GuestAccountsPermissions)
+	CheckTrue(t, *f.IDLoadedPushNotifications)
+	CheckTrue(t, *f.SharedChannels)
+	CheckTrue(t, *f.RemoteClusterService)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
 func TestLicenseIsExpired(t *testing.T) {
 	l1 := License{}
 	l1.ExpiresAt = GetMillis() - 1000
-	if !l1.IsExpired() {
-		t.Fatal("license should be expired")
-	}
+	assert.True(t, l1.IsExpired())
 
 	l1.ExpiresAt = GetMillis() + 10000
-	if l1.IsExpired() {
-		t.Fatal("license should not be expired")
-	}
+	assert.False(t, l1.IsExpired())
+}
+
+func TestLicenseIsPastGracePeriod(t *testing.T) {
+	l1 := License{}
+	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1000
+	assert.True(t, l1.IsPastGracePeriod())
+
+	l1.ExpiresAt = GetMillis() + 1000
+	assert.False(t, l1.IsPastGracePeriod())
 }
 
 func TestLicenseIsStarted(t *testing.T) {
 	l1 := License{}
 	l1.StartsAt = GetMillis() - 1000
-	if !l1.IsStarted() {
-		t.Fatal("license should be started")
-	}
+
+	assert.True(t, l1.IsStarted())
 
 	l1.StartsAt = GetMillis() + 10000
-	if l1.IsStarted() {
-		t.Fatal("license should not be started")
-	}
+	assert.False(t, l1.IsStarted())
 }
 
 func TestLicenseToFromJson(t *testing.T) {
@@ -132,11 +152,10 @@ func TestLicenseToFromJson(t *testing.T) {
 		StartsAt:  GetMillis(),
 		ExpiresAt: GetMillis(),
 		Customer: &Customer{
-			Id:          NewId(),
-			Name:        NewId(),
-			Email:       NewId(),
-			Company:     NewId(),
-			PhoneNumber: NewId(),
+			Id:      NewId(),
+			Name:    NewId(),
+			Email:   NewId(),
+			Company: NewId(),
 		},
 		Features: &f,
 	}
@@ -144,9 +163,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	j := l.ToJson()
 
 	l1 := LicenseFromJson(strings.NewReader(j))
-	if l1 == nil {
-		t.Fatalf("Decoding failed but should have passed.")
-	}
+	assert.NotNil(t, l1)
 
 	CheckString(t, l1.Id, l.Id)
 	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
@@ -157,7 +174,6 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
 	CheckString(t, l1.Customer.Email, l.Customer.Email)
 	CheckString(t, l1.Customer.Company, l.Customer.Company)
-	CheckString(t, l1.Customer.PhoneNumber, l.Customer.PhoneNumber)
 
 	f1 := l1.Features
 
@@ -176,13 +192,16 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
 	CheckBool(t, *f1.MessageExport, *f.MessageExport)
 	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
+	CheckBool(t, *f1.GuestAccounts, *f.GuestAccounts)
+	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
+	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
+	CheckBool(t, *f1.SharedChannels, *f.SharedChannels)
+	CheckBool(t, *f1.RemoteClusterService, *f.RemoteClusterService)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`
 	l2 := LicenseFromJson(strings.NewReader(invalid))
-	if l2 != nil {
-		t.Fatalf("Should have failed but didn't")
-	}
+	assert.Nil(t, l2)
 }
 
 func TestLicenseRecordIsValid(t *testing.T) {
@@ -191,38 +210,31 @@ func TestLicenseRecordIsValid(t *testing.T) {
 		Bytes:    "asdfghjkl;",
 	}
 
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err := lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	if err := lr.IsValid(); err == nil {
-		t.Fatalf("Should have been invalid")
-	}
+	err = lr.IsValid()
+	assert.NotNil(t, err)
 
 	lr.Bytes = "ASDFGHJKL;"
-	if err := lr.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	err = lr.IsValid()
+	assert.Nil(t, err)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {
 	lr := LicenseRecord{}
 	lr.PreSave()
 
-	if lr.CreateAt == 0 {
-		t.Fatal("CreateAt should not be zero")
-	}
+	assert.NotZero(t, lr.CreateAt)
 }

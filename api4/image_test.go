@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Prevent the test client from following a redirect
@@ -91,5 +92,35 @@ func TestGetImage(t *testing.T) {
 		respBody, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
 		assert.Equal(t, "success", string(respBody))
+
+		// local images should not be proxied, but forwarded
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=/plugins/test/image.png", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusFound, resp.StatusCode)
+
+		// protocol relative URLs should be handled by proxy
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewString("http://foo.com")
+		})
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// opaque URLs are not supported, should return an error
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=mailto:test@example.com", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }

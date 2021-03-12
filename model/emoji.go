@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -17,6 +17,12 @@ const (
 
 var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
 
+// ALL_EMOJI_PATTERN is same as the EMOJI_PATTERN except for allowing a '+' character.
+// This is to allow the system emoji :+1: to be matched.
+// We kept a separate variable to avoid renaming help texts for custom emoji's.
+// TODO: Merge ALL_EMOJI_PATTERN with EMOJI_PATTERN after updating custom emoji help texts
+var ALL_EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
+
 type Emoji struct {
 	Id        string `json:"id"`
 	CreateAt  int64  `json:"create_at"`
@@ -31,8 +37,13 @@ func inSystemEmoji(emojiName string) bool {
 	return ok
 }
 
+func GetSystemEmojiId(emojiName string) (string, bool) {
+	id, found := SystemEmojis[emojiName]
+	return id, found
+}
+
 func (emoji *Emoji) IsValid() *AppError {
-	if len(emoji.Id) != 26 {
+	if !IsValidId(emoji.Id) {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -52,7 +63,7 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if len(name) == 0 || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(name, false) || inSystemEmoji(name) {
+	if name == "" || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(name, false) || inSystemEmoji(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 

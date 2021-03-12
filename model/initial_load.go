@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -18,13 +18,13 @@ type InitialLoad struct {
 	NoAccounts  bool              `json:"no_accounts"`
 }
 
-func (me *InitialLoad) ToJson() string {
-	b, _ := json.Marshal(me)
+func (il *InitialLoad) ToJson() string {
+	b, _ := json.Marshal(il)
 	return string(b)
 }
 
 func InitialLoadFromJson(data io.Reader) *InitialLoad {
-	var o *InitialLoad
-	json.NewDecoder(data).Decode(&o)
-	return o
+	var il *InitialLoad
+	json.NewDecoder(data).Decode(&il)
+	return il
 }

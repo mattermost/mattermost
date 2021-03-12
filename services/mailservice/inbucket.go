@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mailservice
 
@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -15,7 +16,7 @@ import (
 )
 
 const (
-	INBUCKET_API = "/api/v1/mailbox/"
+	InbucketAPI = "/api/v1/mailbox/"
 )
 
 // OutputJSONHeader holds the received Header to test sending emails (inbucket)
@@ -56,34 +57,32 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
-	req, err := http.NewRequest("GET", url, nil)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
+	resp, err := http.Get(url)
+
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	defer func() {
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
 	if resp.Body == nil {
-		return nil, fmt.Errorf("No Mailbox")
+		return nil, fmt.Errorf("no mailbox")
 	}
 
 	var record JSONMessageHeaderInbucket
 	err = json.NewDecoder(resp.Body).Decode(&record)
 	switch {
 	case err == io.EOF:
-		return nil, fmt.Errorf("Error: %s", err)
+		return nil, fmt.Errorf("error: %s", err)
 	case err != nil:
-		return nil, fmt.Errorf("Error: %s", err)
+		return nil, fmt.Errorf("error: %s", err)
 	}
 	if len(record) == 0 {
-		return nil, fmt.Errorf("No mailbox")
+		return nil, fmt.Errorf("no mailbox")
 	}
 
 	return record, nil
@@ -94,12 +93,15 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 
 	var record JSONMessageInbucket
 
-	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), INBUCKET_API, parsedEmail, id)
-	emailResponse, err := get(url)
+	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), InbucketAPI, parsedEmail, id)
+	emailResponse, err := http.Get(url)
 	if err != nil {
 		return record, err
 	}
-	defer emailResponse.Body.Close()
+	defer func() {
+		io.Copy(ioutil.Discard, emailResponse.Body)
+		emailResponse.Body.Close()
+	}()
 
 	if err = json.NewDecoder(emailResponse.Body).Decode(&record); err != nil {
 		return record, err
@@ -122,7 +124,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 }
 
 func downloadAttachment(url string) ([]byte, error) {
-	attachmentResponse, err := get(url)
+	attachmentResponse, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -133,26 +135,11 @@ func downloadAttachment(url string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func get(url string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
 func DeleteMailBox(email string) (err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -184,19 +171,19 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 
 		fmt.Println("retrying...")
 	}
-	return fmt.Errorf("After %d attempts, last error: %s", attempts, err)
+	return fmt.Errorf("after %d attempts, last error: %s", attempts, err)
 }
 
 func getInbucketHost() (host string) {
 
 	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
-		inbucket_host = "dockerhost"
+		inbucket_host = "localhost"
 	}
 
 	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
 	if inbucket_port == "" {
-		inbucket_port = "9000"
+		inbucket_port = "10080"
 	}
 	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
 }

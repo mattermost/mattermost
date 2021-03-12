@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -169,7 +169,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.IsType(t, &PostImage{}, metadata.Data)
 		assert.Equal(t, *image, *metadata.Data.(*PostImage))
 	})
@@ -187,7 +187,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		b, err := json.Marshal(og)
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		metadata := &LinkMetadata{
 			Type: LINK_METADATA_TYPE_OPENGRAPH,
@@ -198,7 +198,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err = metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.IsType(t, &opengraph.OpenGraph{}, metadata.Data)
 		assert.Equal(t, *og, *metadata.Data.(*opengraph.OpenGraph))
 	})
@@ -211,7 +211,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should ignore an invalid type", func(t *testing.T) {
@@ -222,7 +222,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should return error for invalid data", func(t *testing.T) {
@@ -233,7 +233,7 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 		err := metadata.DeserializeDataToConcreteType()
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 }
 
@@ -305,8 +305,8 @@ func TestTruncateOpenGraph(t *testing.T) {
 			sampleImage("metoo.gif"),
 			sampleImage("fifth.ico"),
 			sampleImage("notme.tiff")},
-		Audios:  []*opengraph.Audio{&opengraph.Audio{}},
-		Videos:  []*opengraph.Video{&opengraph.Video{}},
+		Audios:  []*opengraph.Audio{{}},
+		Videos:  []*opengraph.Video{{}},
 		Article: &opengraph.Article{},
 		Book:    &opengraph.Book{},
 		Profile: &opengraph.Profile{},
@@ -316,9 +316,9 @@ func TestTruncateOpenGraph(t *testing.T) {
 	assert.Nil(t, result.Book, "No book stored")
 	assert.Nil(t, result.Profile, "No profile stored")
 	assert.Len(t, result.Images, 5, "Only the first 5 images")
-	assert.Len(t, result.Audios, 0, "No audios stored")
-	assert.Len(t, result.Videos, 0, "No videos stored")
-	assert.Len(t, result.LocalesAlternate, 0, "No alternate locales stored")
+	assert.Empty(t, result.Audios, "No audios stored")
+	assert.Empty(t, result.Videos, "No videos stored")
+	assert.Empty(t, result.LocalesAlternate, "No alternate locales stored")
 	assert.Equal(t, result.Determiner, "", "No determiner stored")
 	assert.Equal(t, utf8.RuneCountInString(result.Title), 305, "Title text is truncated")
 	assert.Equal(t, utf8.RuneCountInString(result.Description), 305, "Description text is truncated")

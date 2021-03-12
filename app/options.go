@@ -1,14 +1,15 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type Option func(s *Server) error
@@ -16,19 +17,19 @@ type Option func(s *Server) error
 // By default, the app will use the store specified by the configuration. This allows you to
 // construct an app with a different store.
 //
-// The override parameter must be either a store.Store or func(App) store.Store.
+// The override parameter must be either a store.Store or func(App) store.Store().
 func StoreOverride(override interface{}) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:
-			s.newStore = func() store.Store {
-				return o
+			s.newStore = func() (store.Store, error) {
+				return o, nil
 			}
 			return nil
 
 		case func(*Server) store.Store:
-			s.newStore = func() store.Store {
-				return o(s)
+			s.newStore = func() (store.Store, error) {
+				return o(s), nil
 			}
 			return nil
 
@@ -38,10 +39,13 @@ func StoreOverride(override interface{}) Option {
 	}
 }
 
-// Config applies the given config dsn, whether a path to config.json or a database connection string.
-func Config(dsn string, watch bool) Option {
+// Config applies the given config dsn, whether a path to config.json
+// or a database connection string. It receives as well a set of
+// custom defaults that will be applied for any unset property of the
+// config loaded from the dsn on top of the normal defaults
+func Config(dsn string, watch, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStore(dsn, watch)
+		configStore, err := config.NewStore(dsn, watch, readOnly, configDefaults)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
@@ -52,7 +56,7 @@ func Config(dsn string, watch bool) Option {
 }
 
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
-func ConfigStore(configStore config.Store) Option {
+func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		s.configStore = configStore
 
@@ -78,8 +82,8 @@ func StartMetrics(s *Server) error {
 	return nil
 }
 
-func StartElasticsearch(s *Server) error {
-	s.startElasticsearch = true
+func StartSearchEngine(s *Server) error {
+	s.startSearchEngine = true
 
 	return nil
 }
@@ -96,23 +100,7 @@ type AppOptionCreator func() []AppOption
 
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
-		a.Srv = s
-
-		a.Log = s.Log
-		a.NotificationsLog = s.NotificationsLog
-
-		a.AccountMigration = s.AccountMigration
-		a.Cluster = s.Cluster
-		a.Compliance = s.Compliance
-		a.DataRetention = s.DataRetention
-		a.Elasticsearch = s.Elasticsearch
-		a.Ldap = s.Ldap
-		a.MessageExport = s.MessageExport
-		a.Metrics = s.Metrics
-		a.Saml = s.Saml
-
-		a.HTTPService = s.HTTPService
-		a.ImageProxy = s.ImageProxy
-		a.Timezones = s.timezones
+		a.srv = s
+		a.searchEngine = s.SearchEngine
 	}
 }

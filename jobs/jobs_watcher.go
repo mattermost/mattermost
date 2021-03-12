@@ -1,20 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // Default polling interval for jobs termination.
 // (Defining as `var` rather than `const` allows tests to lower the interval.)
-var DEFAULT_WATCHER_POLLING_INTERVAL = 15000
+var DefaultWatcherPollingInterval = 15000
 
 type Watcher struct {
 	srv     *JobServer
@@ -68,7 +67,7 @@ func (watcher *Watcher) Stop() {
 func (watcher *Watcher) PollAndNotify() {
 	jobs, err := watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", err.Error()))
+		mlog.Error("Error occurred getting all pending statuses.", mlog.Err(err))
 		return
 	}
 
@@ -101,6 +100,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_BLEVE_POST_INDEXING {
+			if watcher.workers.BleveIndexing != nil {
+				select {
+				case watcher.workers.BleveIndexing.JobChannel() <- *job:
+				default:
+				}
+			}
 		} else if job.Type == model.JOB_TYPE_LDAP_SYNC {
 			if watcher.workers.LdapSync != nil {
 				select {
@@ -119,6 +125,62 @@ func (watcher *Watcher) PollAndNotify() {
 			if watcher.workers.Plugins != nil {
 				select {
 				case watcher.workers.Plugins.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_EXPIRY_NOTIFY {
+			if watcher.workers.ExpiryNotify != nil {
+				select {
+				case watcher.workers.ExpiryNotify.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_PRODUCT_NOTICES {
+			if watcher.workers.ProductNotices != nil {
+				select {
+				case watcher.workers.ProductNotices.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_ACTIVE_USERS {
+			if watcher.workers.ActiveUsers != nil {
+				select {
+				case watcher.workers.ActiveUsers.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_IMPORT_PROCESS {
+			if watcher.workers.ImportProcess != nil {
+				select {
+				case watcher.workers.ImportProcess.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_IMPORT_DELETE {
+			if watcher.workers.ImportDelete != nil {
+				select {
+				case watcher.workers.ImportDelete.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_EXPORT_PROCESS {
+			if watcher.workers.ExportProcess != nil {
+				select {
+				case watcher.workers.ExportProcess.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_EXPORT_DELETE {
+			if watcher.workers.ExportDelete != nil {
+				select {
+				case watcher.workers.ExportDelete.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_CLOUD {
+			if watcher.workers.Cloud != nil {
+				select {
+				case watcher.workers.Cloud.JobChannel() <- *job:
 				default:
 				}
 			}

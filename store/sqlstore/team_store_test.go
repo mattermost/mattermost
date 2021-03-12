@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestTeamStore(t *testing.T) {
@@ -150,7 +150,7 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 
 		m := db.ToModel()
 
-		assert.Equal(t, "team_user custom_role", m.Roles)
+		assert.Equal(t, "custom_role team_user", m.Roles)
 		assert.Equal(t, false, m.SchemeGuest)
 		assert.Equal(t, true, m.SchemeUser)
 		assert.Equal(t, false, m.SchemeAdmin)
@@ -170,7 +170,7 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 
 		m := db.ToModel()
 
-		assert.Equal(t, "team_user team_admin custom_role", m.Roles)
+		assert.Equal(t, "custom_role team_user team_admin", m.Roles)
 		assert.Equal(t, false, m.SchemeGuest)
 		assert.Equal(t, true, m.SchemeUser)
 		assert.Equal(t, true, m.SchemeAdmin)

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -14,26 +14,20 @@ import (
 
 func TestValidateLicense(t *testing.T) {
 	b1 := []byte("junk")
-	if ok, _ := ValidateLicense(b1); ok {
-		t.Fatal("should have failed - bad license")
-	}
+	ok, _ := ValidateLicense(b1)
+	require.False(t, ok, "should have failed - bad license")
 
 	b2 := []byte("junkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunk")
-	if ok, _ := ValidateLicense(b2); ok {
-		t.Fatal("should have failed - bad license")
-	}
+	ok, _ = ValidateLicense(b2)
+	require.False(t, ok, "should have failed - bad license")
 }
 
 func TestGetLicenseFileLocation(t *testing.T) {
 	fileName := GetLicenseFileLocation("")
-	if len(fileName) == 0 {
-		t.Fatal("invalid default file name")
-	}
+	require.NotEmpty(t, fileName, "invalid default file name")
 
 	fileName = GetLicenseFileLocation("mattermost.mattermost-license")
-	if fileName != "mattermost.mattermost-license" {
-		t.Fatal("invalid file name")
-	}
+	require.Equal(t, fileName, "mattermost.mattermost-license", "invalid file name")
 }
 
 func TestGetLicenseFileFromDisk(t *testing.T) {

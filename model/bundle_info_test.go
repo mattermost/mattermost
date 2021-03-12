@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package model
 
 import (
@@ -26,5 +29,5 @@ func TestBundleInfoForPath(t *testing.T) {
 	assert.Equal(t, info.Path, dir)
 	assert.NotNil(t, info.Manifest)
 	assert.Equal(t, info.ManifestPath, path)
-	assert.Nil(t, info.ManifestError)
+	assert.NoError(t, info.ManifestError)
 }

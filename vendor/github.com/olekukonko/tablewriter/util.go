@@ -61,7 +61,7 @@ func Title(name string) string {
 }
 
 // Pad String
-// Attempts to play string in the center
+// Attempts to place string in the center
 func Pad(s, pad string, width int) string {
 	gap := width - DisplayWidth(s)
 	if gap > 0 {
@@ -73,7 +73,7 @@ func Pad(s, pad string, width int) string {
 }
 
 // Pad String Right position
-// This would pace string at the left side fo the screen
+// This would place string at the left side of the screen
 func PadRight(s, pad string, width int) string {
 	gap := width - DisplayWidth(s)
 	if gap > 0 {
@@ -83,7 +83,7 @@ func PadRight(s, pad string, width int) string {
 }
 
 // Pad String Left position
-// This would pace string at the right side fo the screen
+// This would place string at the right side of the screen
 func PadLeft(s, pad string, width int) string {
 	gap := width - DisplayWidth(s)
 	if gap > 0 {

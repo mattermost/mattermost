@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -39,15 +39,15 @@ type AuthorizeRequest struct {
 // correctly.
 func (ad *AuthData) IsValid() *AppError {
 
-	if len(ad.ClientId) != 26 {
+	if !IsValidId(ad.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.UserId) != 26 {
+	if !IsValidId(ad.UserId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.Code) == 0 || len(ad.Code) > 128 {
+	if ad.Code == "" || len(ad.Code) > 128 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.auth_code.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -78,15 +78,15 @@ func (ad *AuthData) IsValid() *AppError {
 // correctly.
 func (ar *AuthorizeRequest) IsValid() *AppError {
 
-	if len(ar.ClientId) != 26 {
+	if !IsValidId(ar.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.ResponseType) == 0 {
+	if ar.ResponseType == "" {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.response_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.RedirectUri) == 0 || len(ar.RedirectUri) > 256 || !IsValidHttpUrl(ar.RedirectUri) {
+	if ar.RedirectUri == "" || len(ar.RedirectUri) > 256 || !IsValidHttpUrl(ar.RedirectUri) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
@@ -110,7 +110,7 @@ func (ad *AuthData) PreSave() {
 		ad.CreateAt = GetMillis()
 	}
 
-	if len(ad.Scope) == 0 {
+	if ad.Scope == "" {
 		ad.Scope = DEFAULT_SCOPE
 	}
 }

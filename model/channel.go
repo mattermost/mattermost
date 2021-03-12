@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -51,6 +51,7 @@ type Channel struct {
 	SchemeId         *string                `json:"scheme_id"`
 	Props            map[string]interface{} `json:"props" db:"-"`
 	GroupConstrained *bool                  `json:"group_constrained"`
+	Shared           *bool                  `json:"shared"`
 }
 
 type ChannelWithTeamData struct {
@@ -84,18 +85,60 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+type ChannelModeration struct {
+	Name  string                 `json:"name"`
+	Roles *ChannelModeratedRoles `json:"roles"`
+}
+
+type ChannelModeratedRoles struct {
+	Guests  *ChannelModeratedRole `json:"guests"`
+	Members *ChannelModeratedRole `json:"members"`
+}
+
+type ChannelModeratedRole struct {
+	Value   bool `json:"value"`
+	Enabled bool `json:"enabled"`
+}
+
+type ChannelModerationPatch struct {
+	Name  *string                     `json:"name"`
+	Roles *ChannelModeratedRolesPatch `json:"roles"`
+}
+
+type ChannelModeratedRolesPatch struct {
+	Guests  *bool `json:"guests"`
+	Members *bool `json:"members"`
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
 // ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// Paginate whether to paginate the results.
+// Page page requested, if results are paginated.
+// PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	IncludeDeleted         bool
-	ExcludeChannelNames    []string
+	NotAssociatedToGroup    string
+	ExcludeDefaultChannels  bool
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
+}
+
+type ChannelMemberCountByGroup struct {
+	GroupId                     string `db:"-" json:"group_id"`
+	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -139,12 +182,30 @@ func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
 	return o
 }
 
+func ChannelModerationsFromJson(data io.Reader) []*ChannelModeration {
+	var o []*ChannelModeration
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelModerationsPatchFromJson(data io.Reader) []*ChannelModerationPatch {
+	var o []*ChannelModerationPatch
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelMemberCountsByGroupFromJson(data io.Reader) []*ChannelMemberCountByGroup {
+	var o []*ChannelMemberCountByGroup
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
 func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -180,6 +241,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	userIds := strings.Split(o.Name, "__")
+	if o.Type != CHANNEL_DIRECT && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -188,6 +254,9 @@ func (o *Channel) PreSave() {
 		o.Id = NewId()
 	}
 
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
@@ -195,10 +264,16 @@ func (o *Channel) PreSave() {
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+}
+
+func (o *Channel) IsOpen() bool {
+	return o.Type == CHANNEL_OPEN
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {
@@ -239,12 +314,35 @@ func (o *Channel) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
+func (o *Channel) IsShared() bool {
+	return o.Shared != nil && *o.Shared
+}
+
+func (o *Channel) GetOtherUserIdForDM(userId string) string {
+	if o.Type != CHANNEL_DIRECT {
+		return ""
+	}
+
+	userIds := strings.Split(o.Name, "__")
+
+	var otherUserId string
+
+	if userIds[0] != userIds[1] {
+		if userIds[0] == userId {
+			otherUserId = userIds[1]
+		} else {
+			otherUserId = userIds[0]
+		}
+	}
+
+	return otherUserId
+}
+
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1
-	} else {
-		return userId1 + "__" + userId2
 	}
+	return userId1 + "__" + userId2
 }
 
 func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {

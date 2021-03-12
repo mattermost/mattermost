@@ -1,20 +1,17 @@
 module google.golang.org/grpc
 
+go 1.11
+
 require (
-	cloud.google.com/go v0.26.0 // indirect
-	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/client9/misspell v0.3.4
+	github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403
+	github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/mock v1.1.1
-	github.com/golang/protobuf v1.2.0
-	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
-	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d
+	github.com/golang/protobuf v1.4.2
+	github.com/google/go-cmp v0.5.0
+	github.com/google/uuid v1.1.2
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be
-	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
-	golang.org/x/sys v0.0.0-20180830151530-49385e6e1522
-	golang.org/x/text v0.3.0 // indirect
-	golang.org/x/tools v0.0.0-20190114222345-bf090417da8b
-	google.golang.org/appengine v1.1.0 // indirect
-	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
-	honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099
+	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
+	google.golang.org/protobuf v1.25.0
 )

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 // This package implements a parser for the subset of the CommonMark spec necessary for us to do
 // server-side processing. It is not a full implementation and lacks many features. But it is
@@ -23,9 +23,8 @@ func isWhitespace(c rune) bool {
 	switch c {
 	case ' ', '\t', '\n', '\u000b', '\u000c', '\r':
 		return true
-	default:
-		return false
 	}
+	return false
 }
 
 func isWhitespaceByte(c byte) bool {

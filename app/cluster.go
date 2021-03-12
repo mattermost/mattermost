@@ -1,10 +1,10 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Registers a given function to be called when the cluster leader may have changed. Returns a unique ID for the
@@ -23,6 +23,10 @@ func (s *Server) RemoveClusterLeaderChangedListener(id string) {
 
 func (s *Server) InvokeClusterLeaderChangedListeners() {
 	s.Log.Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
+	// This needs to be run in a separate goroutine otherwise a recursive lock happens
+	// because the listener function eventually ends up calling .IsLeader().
+	// Fixing this would require the changed event to pass the leader directly, but that
+	// requires a lot of work.
 	s.Go(func() {
 		s.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
 			listener.(func())()

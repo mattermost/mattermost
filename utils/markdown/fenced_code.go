@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -78,7 +78,7 @@ func (b *FencedCode) AllowsBlockStarts() bool {
 	return false
 }
 
-func fencedCodeStart(markdown string, indentation int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
+func fencedCodeStart(markdown string, indentation int, r Range) []Block {
 	s := markdown[r.Position:r.End]
 
 	if !strings.HasPrefix(s, "```") && !strings.HasPrefix(s, "~~~") {

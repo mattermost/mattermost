@@ -692,7 +692,7 @@ CREATE TABLE `Reactions` (
   `PostId` varchar(26) NOT NULL,
   `EmojiName` varchar(64) NOT NULL,
   `CreateAt` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`UserId`,`PostId`,`EmojiName`)
+  PRIMARY KEY (`PostId`,`UserId`,`EmojiName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -789,6 +789,7 @@ CREATE TABLE `Sessions` (
   `DeviceId` text,
   `Roles` varchar(64) DEFAULT NULL,
   `IsOAuth` tinyint(1) DEFAULT NULL,
+  `ExpiredNotify` tinyint(1) DEFAULT NULL,
   `Props` text,
   PRIMARY KEY (`Id`),
   KEY `idx_sessions_user_id` (`UserId`),
@@ -909,9 +910,9 @@ CREATE TABLE `Teams` (
   `CompanyName` varchar(64) DEFAULT NULL,
   `AllowedDomains` text,
   `InviteId` varchar(32) DEFAULT NULL,
+  `SchemeId` varchar(255) DEFAULT NULL,
   `AllowOpenInvite` tinyint(1) DEFAULT NULL,
   `LastTeamIconUpdate` bigint(20) DEFAULT NULL,
-  `SchemeId` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Name` (`Name`),
   KEY `idx_teams_name` (`Name`),

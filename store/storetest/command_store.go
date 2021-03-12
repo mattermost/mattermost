@@ -1,13 +1,16 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestCommandStore(t *testing.T, ss store.Store) {
@@ -30,13 +33,11 @@ func testCommandStoreSave(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	if _, err := ss.Command().Save(&o1); err != nil {
-		t.Fatal("couldn't save item", err)
-	}
+	_, nErr := ss.Command().Save(&o1)
+	require.NoError(t, nErr)
 
-	if _, err := ss.Command().Save(&o1); err == nil {
-		t.Fatal("shouldn't be able to update from save")
-	}
+	_, err := ss.Command().Save(&o1)
+	require.Error(t, err, "shouldn't be able to update from save")
 }
 
 func testCommandStoreGet(t *testing.T, ss store.Store) {
@@ -47,22 +48,17 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().Get(o1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1.CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr := ss.Command().Get(o1.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
-	if _, err := ss.Command().Get("123"); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err := ss.Command().Get("123")
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
@@ -73,26 +69,17 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().GetByTeam(o1.TeamId); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1[0].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr := ss.Command().GetByTeam(o1.TeamId)
+	require.NoError(t, nErr)
+	require.NotEmpty(t, r1, "no command returned")
+	require.Equal(t, r1[0].CreateAt, o1.CreateAt, "invalid returned command")
 
-	if result, err := ss.Command().GetByTeam("123"); err != nil {
-		t.Fatal(err)
-	} else {
-		if len(result) != 0 {
-			t.Fatal("no commands should have returned")
-		}
-	}
+	result, nErr := ss.Command().GetByTeam("123")
+	require.NoError(t, nErr)
+	require.Empty(t, result, "no commands should have returned")
 }
 
 func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
@@ -110,31 +97,24 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o2.URL = "http://nowhere.com/"
 	o2.Trigger = "trigger1"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = ss.Command().Save(o2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Command().Save(o2)
+	require.NoError(t, nErr)
+
 	var r1 *model.Command
-	if r1, err = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1.Id != o1.Id {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
+	require.NoError(t, nErr)
+	require.Equal(t, r1.Id, o1.Id, "invalid returned command")
 
-	err = ss.Command().Delete(o1.Id, model.GetMillis())
-	if err != nil {
-		t.Fatal(err)
-	}
+	nErr = ss.Command().Delete(o1.Id, model.GetMillis())
+	require.NoError(t, nErr)
 
-	if _, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err == nil {
-		t.Fatal("no commands should have returned")
-	}
+	_, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testCommandStoreDelete(t *testing.T, ss store.Store) {
@@ -145,27 +125,20 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().Get(o1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1.CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr := ss.Command().Get(o1.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
-	if err := ss.Command().Delete(o1.Id, model.GetMillis()); err != nil {
-		t.Fatal(err)
-	}
+	nErr = ss.Command().Delete(o1.Id, model.GetMillis())
+	require.NoError(t, nErr)
 
-	if r3, err := ss.Command().Get(o1.Id); err == nil {
-		t.Log(r3)
-		t.Fatal("Missing id should have failed")
-	}
+	_, err := ss.Command().Get(o1.Id)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
@@ -176,27 +149,20 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().Get(o1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1.CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr := ss.Command().Get(o1.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
-	if err := ss.Command().PermanentDeleteByTeam(o1.TeamId); err != nil {
-		t.Fatal(err)
-	}
+	nErr = ss.Command().PermanentDeleteByTeam(o1.TeamId)
+	require.NoError(t, nErr)
 
-	if r3, err := ss.Command().Get(o1.Id); err == nil {
-		t.Log(r3)
-		t.Fatal("Missing id should have failed")
-	}
+	_, err := ss.Command().Get(o1.Id)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
@@ -207,27 +173,20 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().Get(o1.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1.CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned command")
-		}
-	}
+	r1, nErr := ss.Command().Get(o1.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
-	if err := ss.Command().PermanentDeleteByUser(o1.CreatorId); err != nil {
-		t.Fatal(err)
-	}
+	nErr = ss.Command().PermanentDeleteByUser(o1.CreatorId)
+	require.NoError(t, nErr)
 
-	if r3, err := ss.Command().Get(o1.Id); err == nil {
-		t.Log(r3)
-		t.Fatal("Missing id should have failed")
-	}
+	_, err := ss.Command().Get(o1.Id)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testCommandStoreUpdate(t *testing.T, ss store.Store) {
@@ -238,22 +197,18 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
 	o1.Token = model.NewId()
 
-	if _, err := ss.Command().Update(o1); err != nil {
-		t.Fatal(err)
-	}
+	_, nErr = ss.Command().Update(o1)
+	require.NoError(t, nErr)
 
 	o1.URL = "junk"
 
-	if _, err := ss.Command().Update(o1); err == nil {
-		t.Fatal("should have failed - bad URL")
-	}
+	_, err := ss.Command().Update(o1)
+	require.Error(t, err)
 }
 
 func testCommandCount(t *testing.T, ss store.Store) {
@@ -264,24 +219,14 @@ func testCommandCount(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1, err := ss.Command().Save(o1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	o1, nErr := ss.Command().Save(o1)
+	require.NoError(t, nErr)
 
-	if r1, err := ss.Command().AnalyticsCommandCount(""); err != nil {
-		t.Fatal(err)
-	} else {
-		if r1 == 0 {
-			t.Fatal("should be at least 1 command")
-		}
-	}
+	r1, nErr := ss.Command().AnalyticsCommandCount("")
+	require.NoError(t, nErr)
+	require.NotZero(t, r1, "should be at least 1 command")
 
-	if r2, err := ss.Command().AnalyticsCommandCount(o1.TeamId); err != nil {
-		t.Fatal(err)
-	} else {
-		if r2 != 1 {
-			t.Fatal("should be 1 command")
-		}
-	}
+	r2, nErr := ss.Command().AnalyticsCommandCount(o1.TeamId)
+	require.NoError(t, nErr)
+	require.Equal(t, r2, int64(1), "should be 1 command")
 }

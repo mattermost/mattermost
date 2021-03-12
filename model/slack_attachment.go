@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -111,11 +111,7 @@ func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
 		}
 	}
 
-	if s.Timestamp != input.Timestamp {
-		return false
-	}
-
-	return true
+	return s.Timestamp == input.Timestamp
 }
 
 type SlackAttachmentField struct {

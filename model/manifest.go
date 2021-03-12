@@ -1,11 +1,10 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,6 +24,20 @@ type PluginOption struct {
 	// The string value for the option.
 	Value string `json:"value" yaml:"value"`
 }
+
+type PluginSettingType int
+
+const (
+	Bool PluginSettingType = iota
+	Dropdown
+	Generated
+	Radio
+	Text
+	LongText
+	Number
+	Username
+	Custom
+)
 
 type PluginSetting struct {
 	// The key that the setting will be assigned to in the configuration file.
@@ -49,7 +63,11 @@ type PluginSetting struct {
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
+	// "number" will result in in integer setting that can be typed in manually.
+	//
 	// "username" will result in a text setting that will autocomplete to a username.
+	//
+	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user. Supports Markdown formatting.
@@ -58,7 +76,7 @@ type PluginSetting struct {
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
-	// The placeholder to display for "text", "generated" and "username" types when blank.
+	// The placeholder to display for "generated", "text", "longtext", "number" and "username" types when blank.
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
@@ -91,6 +109,10 @@ type PluginSettingsSchema struct {
 //      "id": "com.mycompany.myplugin",
 //      "name": "My Plugin",
 //      "description": "This is my plugin",
+//      "homepage_url": "https://example.com",
+//      "support_url": "https://example.com/support",
+//      "release_notes_url": "https://example.com/releases/v0.0.1",
+//      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
 //      "server": {
@@ -125,10 +147,23 @@ type Manifest struct {
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name" yaml:"name"`
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+
+	// HomepageURL is an optional link to learn more about the plugin.
+	HomepageURL string `json:"homepage_url,omitempty" yaml:"homepage_url,omitempty"`
+
+	// SupportURL is an optional URL where plugin issues can be reported.
+	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
+
+	// ReleaseNotesURL is an optional URL where a changelog for the release can be found.
+	ReleaseNotesURL string `json:"release_notes_url,omitempty" yaml:"release_notes_url,omitempty"`
+
+	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
+	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.
+	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
 
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
@@ -153,12 +188,29 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+
+	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
+	//
+	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
-	// Executables are the paths to your executable binaries, specifying multiple entry points
-	// for different platforms when bundled together in a single plugin.
-	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
+	// AllExecutables are the paths to your executable binaries, specifying multiple entry
+	// points for different platforms when bundled together in a single plugin.
+	AllExecutables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
+
+	// Executables is a legacy field populated with a subset of supported platform executables.
+	// When unmarshalling, Executables is authoritative for the platform executable paths it
+	// contains, overriding any values in AllExecutables. When marshalling, AllExecutables
+	// is authoritative.
+	//
+	// Code duplication is avoided when (un)marshalling by leveraging type aliases in the
+	// various (Un)Marshal(JSON|YAML) methods, since aliases don't inherit the aliased type's
+	// methods.
+	//
+	// In v6.0, we should remove this field and rename AllExecutables back to Executables.
+	Executables *ManifestExecutables `json:"-" yaml:"-"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -170,6 +222,79 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
+func (ms *ManifestServer) MarshalJSON() ([]byte, error) {
+	type auxManifestServer ManifestServer
+
+	// Populate AllExecutables from Executables, if it exists.
+	if ms.Executables != nil {
+		if ms.AllExecutables == nil {
+			ms.AllExecutables = make(map[string]string)
+		}
+
+		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
+		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	}
+
+	return json.Marshal((*auxManifestServer)(ms))
+}
+
+func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
+	type auxManifestServer ManifestServer
+
+	aux := (*auxManifestServer)(ms)
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	if len(aux.AllExecutables) > 0 {
+		ms.Executables = &ManifestExecutables{
+			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
+			WindowsAmd64: aux.AllExecutables["windows-amd64"],
+		}
+	}
+
+	return nil
+}
+
+func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
+	type auxManifestServer ManifestServer
+
+	// Populate AllExecutables from Executables, if it exists.
+	if ms.Executables != nil {
+		if ms.AllExecutables == nil {
+			ms.AllExecutables = make(map[string]string)
+		}
+
+		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
+		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	}
+
+	return yaml.Marshal((*auxManifestServer)(ms))
+}
+
+func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type auxManifestServer ManifestServer
+
+	aux := (*auxManifestServer)(ms)
+	if err := unmarshal(&aux); err != nil {
+		return err
+	}
+
+	if len(aux.AllExecutables) > 0 {
+		ms.Executables = &ManifestExecutables{
+			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
+			WindowsAmd64: aux.AllExecutables["windows-amd64"],
+		}
+	}
+
+	return nil
+}
+
+// ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
@@ -247,14 +372,9 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	}
 
 	var executable string
-	if server.Executables != nil {
-		if goOs == "linux" && goArch == "amd64" {
-			executable = server.Executables.LinuxAmd64
-		} else if goOs == "darwin" && goArch == "amd64" {
-			executable = server.Executables.DarwinAmd64
-		} else if goOs == "windows" && goArch == "amd64" {
-			executable = server.Executables.WindowsAmd64
-		}
+	if len(server.AllExecutables) > 0 {
+		osArch := fmt.Sprintf("%s-%s", goOs, goArch)
+		executable = server.AllExecutables[osArch]
 	}
 
 	if executable == "" {
@@ -282,6 +402,121 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (m *Manifest) IsValid() error {
+	if !IsValidPluginId(m.Id) {
+		return errors.New("invalid plugin ID")
+	}
+
+	if strings.TrimSpace(m.Name) == "" {
+		return errors.New("a plugin name is needed")
+	}
+
+	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+		return errors.New("invalid HomepageURL")
+	}
+
+	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+		return errors.New("invalid SupportURL")
+	}
+
+	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+		return errors.New("invalid ReleaseNotesURL")
+	}
+
+	if m.Version != "" {
+		_, err := semver.Parse(m.Version)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse Version")
+		}
+	}
+
+	if m.MinServerVersion != "" {
+		_, err := semver.Parse(m.MinServerVersion)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse MinServerVersion")
+		}
+	}
+
+	if m.SettingsSchema != nil {
+		err := m.SettingsSchema.isValid()
+		if err != nil {
+			return errors.Wrap(err, "invalid settings schema")
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSettingsSchema) isValid() error {
+	for _, setting := range s.Settings {
+		err := setting.isValid()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSetting) isValid() error {
+	pluginSettingType, err := convertTypeToPluginSettingType(s.Type)
+	if err != nil {
+		return err
+	}
+
+	if s.RegenerateHelpText != "" && pluginSettingType != Generated {
+		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
+	}
+
+	if s.Placeholder != "" && !(pluginSettingType == Generated ||
+		pluginSettingType == Text ||
+		pluginSettingType == LongText ||
+		pluginSettingType == Number ||
+		pluginSettingType == Username) {
+		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+	}
+
+	if s.Options != nil {
+		if pluginSettingType != Radio && pluginSettingType != Dropdown {
+			return errors.New("should not set Options for setting type not in radio or dropdown")
+		}
+
+		for _, option := range s.Options {
+			if option.DisplayName == "" || option.Value == "" {
+				return errors.New("should not have empty Displayname or Value for any option")
+			}
+		}
+	}
+
+	return nil
+}
+
+func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
+	var settingType PluginSettingType
+	switch t {
+	case "bool":
+		return Bool, nil
+	case "dropdown":
+		return Dropdown, nil
+	case "generated":
+		return Generated, nil
+	case "radio":
+		return Radio, nil
+	case "text":
+		return Text, nil
+	case "number":
+		return Number, nil
+	case "longtext":
+		return LongText, nil
+	case "username":
+		return Username, nil
+	case "custom":
+		return Custom, nil
+	default:
+		return settingType, errors.New("invalid setting type: " + t)
+	}
 }
 
 // FindManifest will find and parse the manifest in a given directory.

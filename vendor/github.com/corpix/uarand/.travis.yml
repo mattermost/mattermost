@@ -1,9 +1,3 @@
-language: go
+language: nix
 
-go:
-  - 1.6
-  - 1.7
-  - 1.8
-  - master
-
-script: make test
+script: nix-shell --pure --command "make lint test"

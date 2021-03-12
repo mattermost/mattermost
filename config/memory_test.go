@@ -1,277 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config_test
 
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/config"
 )
 
 func setupConfigMemory(t *testing.T) {
 	t.Helper()
 	os.Clearenv()
-}
-
-func TestMemoryStoreNew(t *testing.T) {
-	t.Run("no existing configuration - initialization required", func(t *testing.T) {
-		ms, err := config.NewMemoryStore()
-		require.NoError(t, err)
-		defer ms.Close()
-
-		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("existing config, initialization required", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: testConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		assert.Equal(t, "http://TestStoreNew", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("already minimally configured", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: minimalConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		assert.Equal(t, "http://minimal", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("invalid config, validation enabled", func(t *testing.T) {
-		_, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: invalidConfig})
-		require.Error(t, err)
-	})
-
-	t.Run("invalid config, validation disabled", func(t *testing.T) {
-		_, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: invalidConfig, SkipValidation: true})
-		require.NoError(t, err)
-	})
-}
-
-func TestMemoryStoreGet(t *testing.T) {
-	setupConfigMemory(t)
-
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: testConfig})
-	require.NoError(t, err)
-	defer ms.Close()
-
-	cfg := ms.Get()
-	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
-
-	cfg2 := ms.Get()
-	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
-
-	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
-
-	newCfg := &model.Config{}
-	oldCfg, err := ms.Set(newCfg)
-	require.NoError(t, err)
-
-	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
-	assert.False(t, newCfg == cfg, "returned config should have been different from original")
-}
-
-func TestMemoryStoreGetEnivironmentOverrides(t *testing.T) {
-	setupConfigMemory(t)
-
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: testConfig})
-	require.NoError(t, err)
-	defer ms.Close()
-
-	assert.Equal(t, "http://TestStoreNew", *ms.Get().ServiceSettings.SiteURL)
-	assert.Empty(t, ms.GetEnvironmentOverrides())
-
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
-
-	ms, err = config.NewMemoryStore()
-	require.NoError(t, err)
-	defer ms.Close()
-
-	assert.Equal(t, "http://override", *ms.Get().ServiceSettings.SiteURL)
-	assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ms.GetEnvironmentOverrides())
-}
-
-func TestMemoryStoreSet(t *testing.T) {
-	t.Run("set same pointer value", func(t *testing.T) {
-		t.Skip("not yet implemented")
-
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: emptyConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		_, err = ms.Set(ms.Get())
-		if assert.Error(t, err) {
-			assert.EqualError(t, err, "old configuration modified instead of cloning")
-		}
-	})
-
-	t.Run("defaults required", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: minimalConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		oldCfg := ms.Get()
-
-		newCfg := &model.Config{}
-
-		retCfg, err := ms.Set(newCfg)
-		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
-
-		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("desanitization required", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: ldapConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		oldCfg := ms.Get()
-
-		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
-
-		retCfg, err := ms.Set(newCfg)
-		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
-
-		assert.Equal(t, "password", *ms.Get().LdapSettings.BindPassword)
-	})
-
-	t.Run("invalid", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: emptyConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = sToP("invalid")
-
-		_, err = ms.Set(newCfg)
-		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
-		}
-
-		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("read-only ignored", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: readOnlyConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		newCfg := &model.Config{
-			ServiceSettings: model.ServiceSettings{
-				SiteURL: sToP("http://new"),
-			},
-		}
-
-		_, err = ms.Set(newCfg)
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://new", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("listeners notified", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: emptyConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		oldCfg := ms.Get()
-
-		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
-			called <- true
-		}
-		ms.AddListener(callback)
-
-		newCfg := &model.Config{}
-
-		retCfg, err := ms.Set(newCfg)
-		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
-
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config written")
-		}
-	})
-}
-
-func TestMemoryStoreLoad(t *testing.T) {
-	t.Run("honour environment", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: minimalConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
-
-		err = ms.Load()
-		require.NoError(t, err)
-		assert.Equal(t, "http://override", *ms.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ms.GetEnvironmentOverrides())
-	})
-
-	t.Run("fixes required", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: fixesRequiredConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		err = ms.Load()
-		require.NoError(t, err)
-		assert.Equal(t, "http://trailingslash", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("listeners notifed", func(t *testing.T) {
-		setupConfigMemory(t)
-
-		ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: emptyConfig})
-		require.NoError(t, err)
-		defer ms.Close()
-
-		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
-			called <- true
-		}
-		ms.AddListener(callback)
-
-		err = ms.Load()
-		require.NoError(t, err)
-
-		select {
-		case <-called:
-		case <-time.After(5 * time.Second):
-			t.Fatal("callback should have been called when config loaded")
-		}
-	})
 }
 
 func TestMemoryGetFile(t *testing.T) {
@@ -280,7 +24,7 @@ func TestMemoryGetFile(t *testing.T) {
 	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
 		InitialConfig: minimalConfig,
 		InitialFiles: map[string][]byte{
-			"empty-file": []byte{},
+			"empty-file": {},
 			"test-file":  []byte("test"),
 		},
 	})

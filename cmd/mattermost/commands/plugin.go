@@ -1,13 +1,18 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"errors"
+	"net/http"
 	"os"
+	"path/filepath"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var PluginCmd = &cobra.Command{
@@ -50,28 +55,60 @@ var PluginDisableCmd = &cobra.Command{
 var PluginListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List plugins",
-	Long:    "List all active and inactive plugins installed on your Mattermost server.",
+	Long:    "List all enabled and disabled plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
 	RunE:    pluginListCmdF,
 }
 
+var PluginPublicKeysCmd = &cobra.Command{
+	Use:   "keys",
+	Short: "List public keys",
+	Long:  "List names of all public keys installed on your Mattermost server.",
+	Example: `  plugin keys
+  plugin keys --verbose`,
+	RunE: pluginPublicKeysCmdF,
+}
+
+var PluginAddPublicKeyCmd = &cobra.Command{
+	Use:     "add [keys]",
+	Short:   "Adds public key(s)",
+	Long:    "Adds public key(s) for plugins on your Mattermost server.",
+	Example: `  plugin keys add my-pk-file1 my-pk-file2`,
+	RunE:    pluginAddPublicKeyCmdF,
+}
+
+var PluginDeletePublicKeyCmd = &cobra.Command{
+	Use:     "delete [keys]",
+	Short:   "Deletes public key(s)",
+	Long:    "Deletes public key(s) for plugins on your Mattermost server.",
+	Example: `  plugin keys delete my-pk-file1 my-pk-file2`,
+	RunE:    pluginDeletePublicKeyCmdF,
+}
+
 func init() {
+	PluginPublicKeysCmd.Flags().Bool("verbose", false, "List names and details of all public keys installed on your Mattermost server.")
+	PluginPublicKeysCmd.AddCommand(
+		PluginAddPublicKeyCmd,
+		PluginDeletePublicKeyCmd,
+	)
 	PluginCmd.AddCommand(
 		PluginAddCmd,
 		PluginDeleteCmd,
 		PluginEnableCmd,
 		PluginDisableCmd,
 		PluginListCmd,
+		PluginPublicKeysCmd,
 	)
+
 	RootCmd.AddCommand(PluginCmd)
 }
 
 func pluginAddCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -87,19 +124,21 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginAdd", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 		fileReader.Close()
 	}
-
 	return nil
 }
 
 func pluginDeleteCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -110,18 +149,20 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginDelete", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
 func pluginEnableCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -132,18 +173,20 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Enabled plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginEnable", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
 func pluginDisableCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -154,9 +197,11 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Disabled plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginDisable", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -165,22 +210,111 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	pluginsResp, appErr := a.GetPlugins()
 	if appErr != nil {
-		return errors.New("Unable to list plugins. Error: " + appErr.Error())
+		return errors.Wrap(appErr, "Unable to list plugins.")
 	}
 
-	CommandPrettyPrintln("Listing active plugins")
+	CommandPrettyPrintln("Listing enabled plugins")
 	for _, plugin := range pluginsResp.Active {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
 	}
 
-	CommandPrettyPrintln("Listing inactive plugins")
+	CommandPrettyPrintln("Listing disabled plugins")
 	for _, plugin := range pluginsResp.Inactive {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
 	}
 
+	return nil
+}
+
+func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Srv().Shutdown()
+
+	verbose, err := command.Flags().GetBool("verbose")
+	if err != nil {
+		return errors.Wrap(err, "Failed reading verbose flag.")
+	}
+
+	pluginPublicKeysResp, appErr := a.GetPluginPublicKeyFiles()
+	if appErr != nil {
+		return errors.Wrap(appErr, "Unable to list public keys.")
+	}
+
+	if verbose {
+		for _, publicKey := range pluginPublicKeysResp {
+			key, err := a.GetPublicKey(publicKey)
+			if err != nil {
+				CommandPrintErrorln("Unable to get plugin public key: " + publicKey + ". Error: " + err.Error())
+			}
+			CommandPrettyPrintln("Plugin name: " + publicKey + ". \nPublic key: \n" + string(key) + "\n")
+		}
+	} else {
+		for _, publicKey := range pluginPublicKeysResp {
+			CommandPrettyPrintln(publicKey)
+		}
+	}
+
+	return nil
+}
+
+func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobraReadWrite(command)
+	if err != nil {
+		return err
+	}
+	defer a.Srv().Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFile := range args {
+		filename := filepath.Base(pkFile)
+		fileReader, err := os.Open(pkFile)
+		if err != nil {
+			return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		defer fileReader.Close()
+
+		if err := a.AddPublicKey(filename, fileReader); err != nil {
+			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Added public key: " + pkFile)
+			auditRec := a.MakeAuditRecord("pluginAddPublicKey", audit.Success)
+			auditRec.AddMeta("file", pkFile)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
+	return nil
+}
+
+func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobraReadWrite(command)
+	if err != nil {
+		return err
+	}
+	defer a.Srv().Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFile := range args {
+		if err := a.DeletePublicKey(pkFile); err != nil {
+			CommandPrintErrorln("Unable to delete public key: " + pkFile + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Deleted public key: " + pkFile)
+			auditRec := a.MakeAuditRecord("pluginDeletePublicKey", audit.Success)
+			auditRec.AddMeta("file", pkFile)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
 )
 
 var ResetCmd = &cobra.Command{
@@ -28,7 +30,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -46,8 +48,11 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	a.Srv.Store.DropAllTables()
+	a.Srv().Store.DropAllTables()
 	CommandPrettyPrintln("Database successfully reset")
+
+	auditRec := a.MakeAuditRecord("reset", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

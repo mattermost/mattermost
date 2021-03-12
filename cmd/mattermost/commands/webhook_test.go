@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,14 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestListWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -53,18 +54,12 @@ func TestListWebhooks(t *testing.T) {
 
 	output := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
-	if !strings.Contains(string(output), dispName) {
-		t.Fatal("should have incoming webhooks")
-	}
-
-	if !strings.Contains(string(output), dispName2) {
-		t.Fatal("should have outgoing webhooks")
-	}
-
+	assert.Contains(t, output, dispName, "should have incoming webhooks")
+	assert.Contains(t, output, dispName2, "should have outgoing webhooks")
 }
 
 func TestShowWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -107,12 +102,8 @@ func TestShowWebhook(t *testing.T) {
 
 	// valid incoming webhook should return webhook data
 	output := th.CheckCommand(t, "webhook", "show", incomingWebhook.Id)
-	if !strings.Contains(string(output), "DisplayName: \""+dispName+"\"") {
-		t.Fatal("incoming: should have incominghook as displayname")
-	}
-	if !strings.Contains(string(output), "ChannelId: \""+hook.ChannelId+"\"") {
-		t.Fatal("incoming: should have a valid channelId")
-	}
+	assert.Contains(t, output, "DisplayName: \""+dispName+"\"", "incoming: should have incominghook as displayname")
+	assert.Contains(t, output, "ChannelId: \""+hook.ChannelId+"\"", "incoming: should have a valid channelId")
 
 	dispName = "outgoinghook"
 	outgoingHook := &model.OutgoingWebhook{
@@ -128,17 +119,13 @@ func TestShowWebhook(t *testing.T) {
 
 	// valid outgoing webhook should return webhook data
 	output = th.CheckCommand(t, "webhook", "show", outgoingWebhook.Id)
-	if !strings.Contains(string(output), "DisplayName: \""+dispName+"\"") {
-		t.Fatal("outgoing: should have outgoinghook as displayname")
-	}
-	if !strings.Contains(string(output), "ChannelId: \""+hook.ChannelId+"\"") {
-		t.Fatal("outgoing: should have a valid channelId")
-	}
 
+	assert.Contains(t, output, "DisplayName: \""+dispName+"\"", "outgoing: should have outgoinghook as displayname")
+	assert.Contains(t, output, "ChannelId: \""+hook.ChannelId+"\"", "outgoing: should have a valid channelId")
 }
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -174,9 +161,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", th.BasicUser.Email, "--description", description, "--display-name", displayName)
 
 	webhooks, err := th.App.GetIncomingWebhooksPage(0, 1000)
-	if err != nil {
-		t.Fatal("unable to retrieve incoming webhooks")
-	}
+	require.Nil(t, err, "unable to retrieve incoming webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
@@ -184,13 +169,11 @@ func TestCreateIncomingWebhook(t *testing.T) {
 			found = true
 		}
 	}
-	if !found {
-		t.Fatal("Failed to create incoming webhook")
-	}
+	require.True(t, found, "Failed to create incoming webhook")
 }
 
 func TestModifyIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -223,9 +206,8 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}
 
 	oldHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, incomingWebhook)
-	if err != nil {
-		t.Fatal("unable to create incoming webhooks")
-	}
+	require.Nil(t, err, "unable to create incoming webhooks")
+
 	defer func() {
 		th.App.DeleteIncomingWebhook(oldHook.Id)
 	}()
@@ -244,16 +226,18 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
 
 	modifiedHook, err := th.App.GetIncomingWebhook(oldHook.Id)
-	if err != nil {
-		t.Fatal("unable to retrieve modified incoming webhook")
-	}
-	if modifiedHook.DisplayName != modifiedDisplayName || modifiedHook.Description != modifiedDescription || modifiedHook.IconURL != modifiedIconUrl || modifiedHook.ChannelLocked != modifiedChannelLocked || modifiedHook.ChannelId != modifiedChannelId {
-		t.Fatal("Failed to update incoming webhook")
-	}
+	require.Nil(t, err, "unable to retrieve modified incoming webhook")
+
+	successUpdate := modifiedHook.DisplayName != modifiedDisplayName ||
+		modifiedHook.Description != modifiedDescription ||
+		modifiedHook.IconURL != modifiedIconUrl ||
+		modifiedHook.ChannelLocked != modifiedChannelLocked ||
+		modifiedHook.ChannelId != modifiedChannelId
+	require.False(t, successUpdate, "Failed to update incoming webhook")
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -306,9 +290,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
-	if err != nil {
-		t.Fatal("Unable to retreive outgoing webhooks")
-	}
+	require.Nil(t, err, "Unable to retrieve outgoing webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
@@ -316,13 +298,11 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 			found = true
 		}
 	}
-	if !found {
-		t.Fatal("Failed to create incoming webhook")
-	}
+	require.True(t, found, "Failed to create incoming webhook")
 }
 
 func TestModifyOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -359,9 +339,8 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	}
 
 	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
-	if err != nil {
-		t.Fatal("unable to create outgoing webhooks: " + err.Error())
-	}
+	require.Nil(t, err, "unable to create outgoing webhooks: ")
+
 	defer func() {
 		th.App.DeleteOutgoingWebhook(oldHook.Id)
 	}()
@@ -398,9 +377,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	)
 
 	modifiedHook, err := th.App.GetOutgoingWebhook(oldHook.Id)
-	if err != nil {
-		t.Fatal("unable to retrieve modified outgoing webhook")
-	}
+	require.Nil(t, err, "unable to retrieve modified outgoing webhook")
 
 	updateFailed := modifiedHook.ChannelId != modifiedChannelID ||
 		modifiedHook.DisplayName != modifiedDisplayName ||
@@ -415,13 +392,11 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 		modifiedHook.CallbackURLs[0] != modifiedCallbackURLs[0] ||
 		modifiedHook.CallbackURLs[1] != modifiedCallbackURLs[1]
 
-	if updateFailed {
-		t.Fatal("Failed to update outgoing webhook")
-	}
+	require.False(t, updateFailed, "Failed to update outgoing webhook")
 }
 
 func TestDeleteWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -459,24 +434,100 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	hooksBeforeDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
-	if !strings.Contains(string(hooksBeforeDeletion), dispName) {
-		t.Fatal("Should have incoming webhooks")
-	}
-
-	if !strings.Contains(string(hooksBeforeDeletion), dispName2) {
-		t.Fatal("Should have outgoing webhooks")
-	}
+	assert.Contains(t, hooksBeforeDeletion, dispName, "should have incoming webhooks")
+	assert.Contains(t, hooksBeforeDeletion, dispName2, "Should have outgoing webhooks")
 
 	th.CheckCommand(t, "webhook", "delete", incomingHook.Id)
 	th.CheckCommand(t, "webhook", "delete", outgoingHook.Id)
 
 	hooksAfterDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
-	if strings.Contains(string(hooksAfterDeletion), dispName) {
-		t.Fatal("Should not have incoming webhooks")
+	assert.NotContains(t, hooksAfterDeletion, dispName, "Should not have incoming webhooks")
+	assert.NotContains(t, hooksAfterDeletion, dispName2, "Should not have outgoing webhooks")
+}
+
+func TestMoveOutgoingWebhook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	th.SetConfig(config)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	description := "myhookoutdesc"
+	displayName := "myhookoutname"
+	triggerWords := model.StringArray{"myhookoutword1"}
+	triggerWhen := 0
+	callbackURLs := model.StringArray{"http://myhookouturl1"}
+	iconURL := "myhookicon1"
+	contentType := "myhookcontent1"
+
+	outgoingWebhookWithChannel := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		ChannelId:    th.BasicChannel.Id,
+		DisplayName:  displayName,
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
 	}
 
-	if strings.Contains(string(hooksAfterDeletion), dispName2) {
-		t.Fatal("Should not have outgoing webhooks")
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithChannel)
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook.Id)
+
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Id))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook", "--channel"))
+
+	newTeam := th.CreateTeam()
+
+	webhookInformation := "oldTeam" + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	webhookInformation = th.BasicTeam.Id + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", "invalid"))
+
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.CHANNEL_OPEN, newTeam.Id)
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Name)
+
+	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)
+	assert.NotNil(t, webhookErr)
+
+	output := th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(output, displayName))
+
+	outgoingWebhookWithoutChannel := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		DisplayName:  displayName + "2",
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
 	}
+
+	oldHook2, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithoutChannel)
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook2.Id)
+
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook2.Id)
+	output = th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(output, displayName+"2"))
 }

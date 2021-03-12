@@ -48,37 +48,40 @@ type Border struct {
 }
 
 type Table struct {
-	out            io.Writer
-	rows           [][]string
-	lines          [][][]string
-	cs             map[int]int
-	rs             map[int]int
-	headers        [][]string
-	footers        [][]string
-	caption        bool
-	captionText    string
-	autoFmt        bool
-	autoWrap       bool
-	reflowText     bool
-	mW             int
-	pCenter        string
-	pRow           string
-	pColumn        string
-	tColumn        int
-	tRow           int
-	hAlign         int
-	fAlign         int
-	align          int
-	newLine        string
-	rowLine        bool
-	autoMergeCells bool
-	hdrLine        bool
-	borders        Border
-	colSize        int
-	headerParams   []string
-	columnsParams  []string
-	footerParams   []string
-	columnsAlign   []int
+	out                     io.Writer
+	rows                    [][]string
+	lines                   [][][]string
+	cs                      map[int]int
+	rs                      map[int]int
+	headers                 [][]string
+	footers                 [][]string
+	caption                 bool
+	captionText             string
+	autoFmt                 bool
+	autoWrap                bool
+	reflowText              bool
+	mW                      int
+	pCenter                 string
+	pRow                    string
+	pColumn                 string
+	tColumn                 int
+	tRow                    int
+	hAlign                  int
+	fAlign                  int
+	align                   int
+	newLine                 string
+	rowLine                 bool
+	autoMergeCells          bool
+	columnsToAutoMergeCells map[int]bool
+	noWhiteSpace            bool
+	tablePadding            string
+	hdrLine                 bool
+	borders                 Border
+	colSize                 int
+	headerParams            []string
+	columnsParams           []string
+	footerParams            []string
+	columnsAlign            []int
 }
 
 // Start New Table
@@ -225,6 +228,16 @@ func (t *Table) SetAlignment(align int) {
 	t.align = align
 }
 
+// Set No White Space
+func (t *Table) SetNoWhiteSpace(allow bool) {
+	t.noWhiteSpace = allow
+}
+
+// Set Table Padding
+func (t *Table) SetTablePadding(padding string) {
+	t.tablePadding = padding
+}
+
 func (t *Table) SetColumnAlignment(keys []int) {
 	for _, v := range keys {
 		switch v {
@@ -264,6 +277,21 @@ func (t *Table) SetAutoMergeCells(auto bool) {
 	t.autoMergeCells = auto
 }
 
+// Set Auto Merge Cells By Column Index
+// This would enable / disable the merge of cells with identical values for specific columns
+// If cols is empty, it is the same as `SetAutoMergeCells(true)`.
+func (t *Table) SetAutoMergeCellsByColumnIndex(cols []int) {
+	t.autoMergeCells = true
+
+	if len(cols) > 0 {
+		m := make(map[int]bool)
+		for _, col := range cols {
+			m[col] = true
+		}
+		t.columnsToAutoMergeCells = m
+	}
+}
+
 // Set Table Border
 // This would enable / disable line around the table
 func (t *Table) SetBorder(border bool) {
@@ -296,6 +324,33 @@ func (t *Table) Append(row []string) {
 	t.lines = append(t.lines, line)
 }
 
+// Append row to table with color attributes
+func (t *Table) Rich(row []string, colors []Colors) {
+	rowSize := len(t.headers)
+	if rowSize > t.colSize {
+		t.colSize = rowSize
+	}
+
+	n := len(t.lines)
+	line := [][]string{}
+	for i, v := range row {
+
+		// Detect string  width
+		// Detect String height
+		// Break strings into words
+		out := t.parseDimension(v, i, n)
+
+		if len(colors) > i {
+			color := colors[i]
+			out[0] = format(out[0], color)
+		}
+
+		// Append broken words
+		line = append(line, out)
+	}
+	t.lines = append(t.lines, line)
+}
+
 // Allow Support for Bulk Append
 // Eliminates repeated for loops
 func (t *Table) AppendBulk(rows [][]string) {
@@ -319,16 +374,29 @@ func (t *Table) ClearFooter() {
 	t.footers = [][]string{}
 }
 
+// Center based on position and border.
+func (t *Table) center(i int) string {
+	if i == -1 && !t.borders.Left {
+		return t.pRow
+	}
+
+	if i == len(t.cs)-1 && !t.borders.Right {
+		return t.pRow
+	}
+
+	return t.pCenter
+}
+
 // Print line based on row width
 func (t *Table) printLine(nl bool) {
-	fmt.Fprint(t.out, t.pCenter)
+	fmt.Fprint(t.out, t.center(-1))
 	for i := 0; i < len(t.cs); i++ {
 		v := t.cs[i]
 		fmt.Fprintf(t.out, "%s%s%s%s",
 			t.pRow,
 			strings.Repeat(string(t.pRow), v),
 			t.pRow,
-			t.pCenter)
+			t.center(i))
 	}
 	if nl {
 		fmt.Fprint(t.out, t.newLine)
@@ -398,11 +466,14 @@ func (t *Table) printHeading() {
 	for x := 0; x < max; x++ {
 		// Check if border is set
 		// Replace with space if not set
-		fmt.Fprint(t.out, ConditionString(t.borders.Left, t.pColumn, SPACE))
+		if !t.noWhiteSpace {
+			fmt.Fprint(t.out, ConditionString(t.borders.Left, t.pColumn, SPACE))
+		}
 
 		for y := 0; y <= end; y++ {
 			v := t.cs[y]
 			h := ""
+
 			if y < len(t.headers) && x < len(t.headers[y]) {
 				h = t.headers[y][x]
 			}
@@ -410,15 +481,30 @@ func (t *Table) printHeading() {
 				h = Title(h)
 			}
 			pad := ConditionString((y == end && !t.borders.Left), SPACE, t.pColumn)
-
+			if t.noWhiteSpace {
+				pad = ConditionString((y == end && !t.borders.Left), SPACE, t.tablePadding)
+			}
 			if is_esc_seq {
-				fmt.Fprintf(t.out, " %s %s",
-					format(padFunc(h, SPACE, v),
-						t.headerParams[y]), pad)
+				if !t.noWhiteSpace {
+					fmt.Fprintf(t.out, " %s %s",
+						format(padFunc(h, SPACE, v),
+							t.headerParams[y]), pad)
+				} else {
+					fmt.Fprintf(t.out, "%s %s",
+						format(padFunc(h, SPACE, v),
+							t.headerParams[y]), pad)
+				}
 			} else {
-				fmt.Fprintf(t.out, " %s %s",
-					padFunc(h, SPACE, v),
-					pad)
+				if !t.noWhiteSpace {
+					fmt.Fprintf(t.out, " %s %s",
+						padFunc(h, SPACE, v),
+						pad)
+				} else {
+					// the spaces between breaks the kube formatting
+					fmt.Fprintf(t.out, "%s%s",
+						padFunc(h, SPACE, v),
+						pad)
+				}
 			}
 		}
 		// Next line
@@ -517,6 +603,9 @@ func (t *Table) printFooter() {
 
 		// Print first junction
 		if i == 0 {
+			if length > 0 && !t.borders.Left {
+				center = t.pRow
+			}
 			fmt.Fprint(t.out, center)
 		}
 
@@ -524,16 +613,27 @@ func (t *Table) printFooter() {
 		if length == 0 {
 			pad = SPACE
 		}
-		// Ignore left space of it has printed before
+		// Ignore left space as it has printed before
 		if hasPrinted || t.borders.Left {
 			pad = t.pRow
 			center = t.pCenter
 		}
 
+		// Change Center end position
+		if center != SPACE {
+			if i == end && !t.borders.Right {
+				center = t.pRow
+			}
+		}
+
 		// Change Center start position
 		if center == SPACE {
 			if i < end && len(t.footers[i+1][0]) != 0 {
-				center = t.pCenter
+				if !t.borders.Left {
+					center = t.pRow
+				} else {
+					center = t.pCenter
+				}
 			}
 		}
 
@@ -627,9 +727,11 @@ func (t *Table) printRow(columns [][]string, rowIdx int) {
 		for y := 0; y < total; y++ {
 
 			// Check if border is set
-			fmt.Fprint(t.out, ConditionString((!t.borders.Left && y == 0), SPACE, t.pColumn))
+			if !t.noWhiteSpace {
+				fmt.Fprint(t.out, ConditionString((!t.borders.Left && y == 0), SPACE, t.pColumn))
+				fmt.Fprintf(t.out, SPACE)
+			}
 
-			fmt.Fprintf(t.out, SPACE)
 			str := columns[y][x]
 
 			// Embedding escape sequence with column value
@@ -661,11 +763,17 @@ func (t *Table) printRow(columns [][]string, rowIdx int) {
 
 				}
 			}
-			fmt.Fprintf(t.out, SPACE)
+			if !t.noWhiteSpace {
+				fmt.Fprintf(t.out, SPACE)
+			} else {
+				fmt.Fprintf(t.out, t.tablePadding)
+			}
 		}
 		// Check if border is set
 		// Replace with space if not set
-		fmt.Fprint(t.out, ConditionString(t.borders.Left, t.pColumn, SPACE))
+		if !t.noWhiteSpace {
+			fmt.Fprint(t.out, ConditionString(t.borders.Left, t.pColumn, SPACE))
+		}
 		fmt.Fprint(t.out, t.newLine)
 	}
 
@@ -706,6 +814,11 @@ func (t *Table) printRowMergeCells(writer io.Writer, columns [][]string, rowIdx 
 	// Pad Each Height
 	pads := []int{}
 
+	// Checking for ANSI escape sequences for columns
+	is_esc_seq := false
+	if len(t.columnsParams) > 0 {
+		is_esc_seq = true
+	}
 	for i, line := range columns {
 		length := len(line)
 		pad := max - length
@@ -727,10 +840,25 @@ func (t *Table) printRowMergeCells(writer io.Writer, columns [][]string, rowIdx 
 
 			str := columns[y][x]
 
+			// Embedding escape sequence with column value
+			if is_esc_seq {
+				str = format(str, t.columnsParams[y])
+			}
+
 			if t.autoMergeCells {
+				var mergeCell bool
+				if t.columnsToAutoMergeCells != nil {
+					// Check to see if the column index is in columnsToAutoMergeCells.
+					if t.columnsToAutoMergeCells[y] {
+						mergeCell = true
+					}
+				} else {
+					// columnsToAutoMergeCells was not set.
+					mergeCell = true
+				}
 				//Store the full line to merge mutli-lines cells
-				fullLine := strings.Join(columns[y], " ")
-				if len(previousLine) > y && fullLine == previousLine[y] && fullLine != "" {
+				fullLine := strings.TrimRight(strings.Join(columns[y], " "), " ")
+				if len(previousLine) > y && fullLine == previousLine[y] && fullLine != "" && mergeCell {
 					// If this cell is identical to the one above but not empty, we don't display the border and keep the cell empty.
 					displayCellBorder = append(displayCellBorder, false)
 					str = ""
@@ -767,7 +895,7 @@ func (t *Table) printRowMergeCells(writer io.Writer, columns [][]string, rowIdx 
 	//The new previous line is the current one
 	previousLine = make([]string, total)
 	for y := 0; y < total; y++ {
-		previousLine[y] = strings.Join(columns[y], " ") //Store the full line for multi-lines cells
+		previousLine[y] = strings.TrimRight(strings.Join(columns[y], " "), " ") //Store the full line for multi-lines cells
 	}
 	//Returns the newly added line and wether or not a border should be displayed above.
 	return previousLine, displayCellBorder

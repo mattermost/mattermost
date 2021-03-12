@@ -1,35 +1,47 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
 import (
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
+	metrics       einterfaces.MetricsInterface
 	Workers       *Workers
 	Schedulers    *Schedulers
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
-	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
+	ElasticsearchIndexer    tjobs.IndexerJobInterface
 	LdapSync                ejobs.LdapSyncInterface
 	Migrations              tjobs.MigrationsJobInterface
 	Plugins                 tjobs.PluginsJobInterface
+	BleveIndexer            tjobs.IndexerJobInterface
+	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
+	ProductNotices          tjobs.ProductNoticesJobInterface
+	ActiveUsers             tjobs.ActiveUsersJobInterface
+	ImportProcess           tjobs.ImportProcessInterface
+	ImportDelete            tjobs.ImportDeleteInterface
+	ExportProcess           tjobs.ExportProcessInterface
+	ExportDelete            tjobs.ExportDeleteInterface
+	Cloud                   ejobs.CloudJobInterface
 }
 
-func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
 	return &JobServer{
 		ConfigService: configService,
 		Store:         store,
+		metrics:       metrics,
 	}
 }
 

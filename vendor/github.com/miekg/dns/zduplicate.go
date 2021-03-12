@@ -52,6 +52,23 @@ func (r1 *ANY) isDuplicate(_r2 RR) bool {
 	return true
 }
 
+func (r1 *APL) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*APL)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if len(r1.Prefixes) != len(r2.Prefixes) {
+		return false
+	}
+	for i := 0; i < len(r1.Prefixes); i++ {
+		if !r1.Prefixes[i].equals(&r2.Prefixes[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 func (r1 *AVC) isDuplicate(_r2 RR) bool {
 	r2, ok := _r2.(*AVC)
 	if !ok {
@@ -82,6 +99,48 @@ func (r1 *CAA) isDuplicate(_r2 RR) bool {
 		return false
 	}
 	if r1.Value != r2.Value {
+		return false
+	}
+	return true
+}
+
+func (r1 *CDNSKEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CDNSKEY)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Flags != r2.Flags {
+		return false
+	}
+	if r1.Protocol != r2.Protocol {
+		return false
+	}
+	if r1.Algorithm != r2.Algorithm {
+		return false
+	}
+	if r1.PublicKey != r2.PublicKey {
+		return false
+	}
+	return true
+}
+
+func (r1 *CDS) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CDS)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.KeyTag != r2.KeyTag {
+		return false
+	}
+	if r1.Algorithm != r2.Algorithm {
+		return false
+	}
+	if r1.DigestType != r2.DigestType {
+		return false
+	}
+	if r1.Digest != r2.Digest {
 		return false
 	}
 	return true
@@ -149,6 +208,27 @@ func (r1 *DHCID) isDuplicate(_r2 RR) bool {
 		return false
 	}
 	_ = r2
+	if r1.Digest != r2.Digest {
+		return false
+	}
+	return true
+}
+
+func (r1 *DLV) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*DLV)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.KeyTag != r2.KeyTag {
+		return false
+	}
+	if r1.Algorithm != r2.Algorithm {
+		return false
+	}
+	if r1.DigestType != r2.DigestType {
+		return false
+	}
 	if r1.Digest != r2.Digest {
 		return false
 	}
@@ -318,6 +398,48 @@ func (r1 *HIP) isDuplicate(_r2 RR) bool {
 		if !isDuplicateName(r1.RendezvousServers[i], r2.RendezvousServers[i]) {
 			return false
 		}
+	}
+	return true
+}
+
+func (r1 *HTTPS) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*HTTPS)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Priority != r2.Priority {
+		return false
+	}
+	if !isDuplicateName(r1.Target, r2.Target) {
+		return false
+	}
+	if len(r1.Value) != len(r2.Value) {
+		return false
+	}
+	if !areSVCBPairArraysEqual(r1.Value, r2.Value) {
+		return false
+	}
+	return true
+}
+
+func (r1 *KEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*KEY)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Flags != r2.Flags {
+		return false
+	}
+	if r1.Protocol != r2.Protocol {
+		return false
+	}
+	if r1.Algorithm != r2.Algorithm {
+		return false
+	}
+	if r1.PublicKey != r2.PublicKey {
+		return false
 	}
 	return true
 }
@@ -832,6 +954,42 @@ func (r1 *RT) isDuplicate(_r2 RR) bool {
 	return true
 }
 
+func (r1 *SIG) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SIG)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.TypeCovered != r2.TypeCovered {
+		return false
+	}
+	if r1.Algorithm != r2.Algorithm {
+		return false
+	}
+	if r1.Labels != r2.Labels {
+		return false
+	}
+	if r1.OrigTtl != r2.OrigTtl {
+		return false
+	}
+	if r1.Expiration != r2.Expiration {
+		return false
+	}
+	if r1.Inception != r2.Inception {
+		return false
+	}
+	if r1.KeyTag != r2.KeyTag {
+		return false
+	}
+	if !isDuplicateName(r1.SignerName, r2.SignerName) {
+		return false
+	}
+	if r1.Signature != r2.Signature {
+		return false
+	}
+	return true
+}
+
 func (r1 *SMIMEA) isDuplicate(_r2 RR) bool {
 	r2, ok := _r2.(*SMIMEA)
 	if !ok {
@@ -934,6 +1092,27 @@ func (r1 *SSHFP) isDuplicate(_r2 RR) bool {
 		return false
 	}
 	if r1.FingerPrint != r2.FingerPrint {
+		return false
+	}
+	return true
+}
+
+func (r1 *SVCB) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SVCB)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Priority != r2.Priority {
+		return false
+	}
+	if !isDuplicateName(r1.Target, r2.Target) {
+		return false
+	}
+	if len(r1.Value) != len(r2.Value) {
+		return false
+	}
+	if !areSVCBPairArraysEqual(r1.Value, r2.Value) {
 		return false
 	}
 	return true

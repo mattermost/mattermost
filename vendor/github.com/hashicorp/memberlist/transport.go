@@ -1,6 +1,7 @@
 package memberlist
 
 import (
+	"fmt"
 	"net"
 	"time"
 )
@@ -62,4 +63,65 @@ type Transport interface {
 	// Shutdown is called when memberlist is shutting down; this gives the
 	// transport a chance to clean up any listeners.
 	Shutdown() error
+}
+
+type Address struct {
+	// Addr is a network address as a string, similar to Dial. This usually is
+	// in the form of "host:port". This is required.
+	Addr string
+
+	// Name is the name of the node being addressed. This is optional but
+	// transports may require it.
+	Name string
+}
+
+func (a *Address) String() string {
+	if a.Name != "" {
+		return fmt.Sprintf("%s (%s)", a.Name, a.Addr)
+	}
+	return a.Addr
+}
+
+type IngestionAwareTransport interface {
+	Transport
+	// IngestPacket pulls a single packet off the conn, and only closes it if shouldClose is true.
+	IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error
+	// IngestStream hands off the conn to the transport and doesn't close it.
+	IngestStream(conn net.Conn) error
+}
+
+type NodeAwareTransport interface {
+	IngestionAwareTransport
+	WriteToAddress(b []byte, addr Address) (time.Time, error)
+	DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error)
+}
+
+type shimNodeAwareTransport struct {
+	Transport
+}
+
+var _ NodeAwareTransport = (*shimNodeAwareTransport)(nil)
+
+func (t *shimNodeAwareTransport) IngestPacket(conn net.Conn, addr net.Addr, now time.Time, shouldClose bool) error {
+	iat, ok := t.Transport.(IngestionAwareTransport)
+	if !ok {
+		panic("shimNodeAwareTransport does not support IngestPacket")
+	}
+	return iat.IngestPacket(conn, addr, now, shouldClose)
+}
+
+func (t *shimNodeAwareTransport) IngestStream(conn net.Conn) error {
+	iat, ok := t.Transport.(IngestionAwareTransport)
+	if !ok {
+		panic("shimNodeAwareTransport does not support IngestStream")
+	}
+	return iat.IngestStream(conn)
+}
+
+func (t *shimNodeAwareTransport) WriteToAddress(b []byte, addr Address) (time.Time, error) {
+	return t.WriteTo(b, addr.Addr)
+}
+
+func (t *shimNodeAwareTransport) DialAddressTimeout(addr Address, timeout time.Duration) (net.Conn, error) {
+	return t.DialTimeout(addr.Addr, timeout)
 }

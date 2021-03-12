@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -31,17 +31,18 @@ type AccessResponse struct {
 	ExpiresIn    int32  `json:"expires_in"`
 	Scope        string `json:"scope"`
 	RefreshToken string `json:"refresh_token"`
+	IdToken      string `json:"id_token"`
 }
 
 // IsValid validates the AccessData and returns an error if it isn't configured
 // correctly.
 func (ad *AccessData) IsValid() *AppError {
 
-	if len(ad.ClientId) == 0 || len(ad.ClientId) > 26 {
+	if ad.ClientId == "" || len(ad.ClientId) > 26 {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.UserId) == 0 || len(ad.UserId) > 26 {
+	if ad.UserId == "" || len(ad.UserId) > 26 {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -53,20 +54,20 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
+	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func (me *AccessData) IsExpired() bool {
+func (ad *AccessData) IsExpired() bool {
 
-	if me.ExpiresAt <= 0 {
+	if ad.ExpiresAt <= 0 {
 		return false
 	}
 
-	if GetMillis() > me.ExpiresAt {
+	if GetMillis() > ad.ExpiresAt {
 		return true
 	}
 

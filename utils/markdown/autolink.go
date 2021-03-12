@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -13,7 +13,8 @@ import (
 // Based off of extensions/autolink.c from https://github.com/github/cmark
 
 var (
-	DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
+	DefaultURLSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
+	wwwAutoLinkRegex  = regexp.MustCompile(`^www\d{0,3}\.`)
 )
 
 // Given a string with a w at the given position, tries to parse and return a range containing a www link.
@@ -30,7 +31,7 @@ func parseWWWAutolink(data string, position int) (Range, bool) {
 	}
 
 	// Check that this starts with www
-	if len(data)-position < 4 || !regexp.MustCompile(`^www\d{0,3}\.`).MatchString(data[position:]) {
+	if len(data)-position < 4 || !wwwAutoLinkRegex.MatchString(data[position:]) {
 		return Range{}, false
 	}
 
@@ -59,9 +60,8 @@ func isAllowedBeforeWWWLink(c byte) bool {
 	switch c {
 	case '*', '_', '~', ')':
 		return true
-	default:
-		return false
 	}
+	return false
 }
 
 // Given a string with a : at the given position, tried to parse and return a range containing a URL scheme
@@ -111,7 +111,7 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 
 func isSchemeAllowed(scheme string) bool {
 	// Note that this doesn't support the custom URL schemes implemented by the client
-	for _, allowed := range DefaultUrlSchemes {
+	for _, allowed := range DefaultURLSchemes {
 		if strings.EqualFold(allowed, scheme) {
 			return true
 		}
@@ -153,9 +153,8 @@ func checkDomain(data string, allowShort bool) int {
 	// this is called from parseWWWAutolink
 	if foundPeriod {
 		return i
-	} else {
-		return 0
 	}
+	return 0
 }
 
 // Returns true if the provided link starts with a valid character for a domain name. Equivalent to
@@ -251,7 +250,6 @@ func canEndAutolink(c rune) bool {
 	switch c {
 	case '?', '!', '.', ',', ':', '*', '_', '~', '\'', '"':
 		return false
-	default:
-		return true
 	}
+	return true
 }

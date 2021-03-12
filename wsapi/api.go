@@ -1,10 +1,10 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package wsapi
 
 import (
-	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/v5/app"
 )
 
 type API struct {
@@ -12,15 +12,14 @@ type API struct {
 	Router *app.WebSocketRouter
 }
 
-func Init(a *app.App, router *app.WebSocketRouter) {
+func Init(s *app.Server) {
+	a := app.New(app.ServerConnector(s))
 	api := &API{
 		App:    a,
-		Router: router,
+		Router: s.WebSocketRouter,
 	}
 
 	api.InitUser()
 	api.InitSystem()
 	api.InitStatus()
-
-	a.HubStart()
 }

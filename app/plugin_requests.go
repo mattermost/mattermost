@@ -4,27 +4,27 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"bytes"
-	"io/ioutil"
-
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		a.Log.Error(err.Error())
+		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(err.ToJson()))
@@ -34,12 +34,47 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		a.Log.Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
+		a.Log().Error("Access to route for non-existent plugin",
+			mlog.String("missing_plugin_id", params["plugin_id"]),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err))
 		http.NotFound(w, r)
 		return
 	}
 
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
+}
+
+func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
+		a.Log().Error(err.Error())
+		w.WriteHeader(err.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(err.ToJson()))
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
+	if err != nil {
+		a.Log().Error("Access to route for non-existent plugin in inter plugin request",
+			mlog.String("source_plugin_id", sourcePluginId),
+			mlog.String("destination_plugin_id", destinationPluginId),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err),
+		)
+		http.NotFound(w, r)
+		return
+	}
+
+	context := &plugin.Context{
+		RequestId:      model.NewId(),
+		UserAgent:      r.UserAgent(),
+		SourcePluginId: sourcePluginId,
+	}
+
+	hooks.ServeHTTP(context, w, r)
 }
 
 // ServePluginPublicRequest serves public plugin files
@@ -54,7 +89,15 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	pluginsEnv := a.GetPluginsEnvironment()
+
+	// Check if someone has nullified the pluginsEnv in the meantime
+	if pluginsEnv == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	publicFilesPath, err := pluginsEnv.PublicFilesPath(pluginID)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -74,7 +117,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
+		IpAddress:      utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -95,6 +138,8 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
+		defer ReturnSessionToPool(session)
+
 		csrfCheckPassed := false
 
 		if err == nil && cookieAuth && r.Method != "GET" {
@@ -119,10 +164,25 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
 			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
+				sid := ""
+				userID := ""
+
+				if session != nil {
+					sid = session.Id
+					userID = session.UserId
+				}
+
+				fields := []mlog.Field{
+					mlog.String("path", r.URL.Path),
+					mlog.String("ip", r.RemoteAddr),
+					mlog.String("session_id", sid),
+					mlog.String("user_id", userID),
+				}
+
 				if *a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-					a.Log.Warn(csrfErrorMessage)
+					a.Log().Warn(csrfErrorMessage, fields...)
 				} else {
-					a.Log.Debug(csrfErrorMessage)
+					a.Log().Debug(csrfErrorMessage, fields...)
 					csrfCheckPassed = true
 				}
 			}
@@ -130,7 +190,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			csrfCheckPassed = true
 		}
 
-		if session != nil && err == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 		}

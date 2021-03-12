@@ -1,14 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var VersionCmd = &cobra.Command{
@@ -18,14 +17,23 @@ var VersionCmd = &cobra.Command{
 }
 
 func init() {
+	VersionCmd.Flags().Bool("skip-server-start", false, "Skip the server initialization and return the Mattermost version without the DB version.")
+
 	RootCmd.AddCommand(VersionCmd)
 }
 
 func versionCmdF(command *cobra.Command, args []string) error {
+	skipStart, _ := command.Flags().GetBool("skip-server-start")
+	if skipStart {
+		printVersionNoDB()
+		return nil
+	}
+
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
+	defer a.Srv().Shutdown()
 
 	printVersion(a)
 
@@ -33,12 +41,14 @@ func versionCmdF(command *cobra.Command, args []string) error {
 }
 
 func printVersion(a *app.App) {
+	printVersionNoDB()
+	CommandPrintln("DB Version: " + a.Srv().Store.GetCurrentSchemaVersion())
+}
+
+func printVersionNoDB() {
 	CommandPrintln("Version: " + model.CurrentVersion)
 	CommandPrintln("Build Number: " + model.BuildNumber)
 	CommandPrintln("Build Date: " + model.BuildDate)
 	CommandPrintln("Build Hash: " + model.BuildHash)
 	CommandPrintln("Build Enterprise Ready: " + model.BuildEnterpriseReady)
-	if supplier, ok := a.Srv.Store.(*store.LayeredStore).DatabaseLayer.(*sqlstore.SqlSupplier); ok {
-		CommandPrintln("DB Version: " + supplier.GetCurrentSchemaVersion())
-	}
 }

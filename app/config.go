@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,20 +14,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
-	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
+	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
 
 func (s *Server) Config() *model.Config {
@@ -35,7 +35,7 @@ func (s *Server) Config() *model.Config {
 }
 
 func (a *App) Config() *model.Config {
-	return a.Srv.Config()
+	return a.Srv().Config()
 }
 
 func (s *Server) EnvironmentConfig() map[string]interface{} {
@@ -43,10 +43,13 @@ func (s *Server) EnvironmentConfig() map[string]interface{} {
 }
 
 func (a *App) EnvironmentConfig() map[string]interface{} {
-	return a.Srv.EnvironmentConfig()
+	return a.Srv().EnvironmentConfig()
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
+	if s.configStore.IsReadOnly() {
+		return
+	}
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)
@@ -56,11 +59,10 @@ func (s *Server) UpdateConfig(f func(*model.Config)) {
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
-	a.Srv.UpdateConfig(f)
+	a.Srv().UpdateConfig(f)
 }
 
 func (s *Server) ReloadConfig() error {
-	debug.FreeOSMemory()
 	if err := s.configStore.Load(); err != nil {
 		return err
 	}
@@ -68,22 +70,22 @@ func (s *Server) ReloadConfig() error {
 }
 
 func (a *App) ReloadConfig() error {
-	return a.Srv.ReloadConfig()
+	return a.Srv().ReloadConfig()
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.Srv.clientConfig
+	return a.Srv().clientConfig.Load().(map[string]string)
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.Srv.clientConfigHash
+	return a.Srv().ClientConfigHash()
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.Srv.limitedClientConfig
+	return a.Srv().limitedClientConfig.Load().(map[string]string)
 }
 
-// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
 func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
@@ -91,7 +93,7 @@ func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) 
 }
 
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return a.Srv.AddConfigListener(listener)
+	return a.Srv().AddConfigListener(listener)
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
@@ -100,20 +102,20 @@ func (s *Server) RemoveConfigListener(id string) {
 }
 
 func (a *App) RemoveConfigListener(id string) {
-	a.Srv.RemoveConfigListener(id)
+	a.Srv().RemoveConfigListener(id)
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
-// and future calls to PostAcrionCookieSecret will always return a valid key, same on all
+// and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
-func (a *App) ensurePostActionCookieSecret() error {
-	if a.Srv.postActionCookieSecret != nil {
+func (s *Server) ensurePostActionCookieSecret() error {
+	if s.postActionCookieSecret != nil {
 		return nil
 	}
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+	value, err := s.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -138,8 +140,10 @@ func (a *App) ensurePostActionCookieSecret() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if err = s.Store.System().Save(system); err != nil {
+			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
+		} else {
 			secret = newSecret
 		}
 	}
@@ -147,7 +151,7 @@ func (a *App) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+		value, err := s.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
 		if err != nil {
 			return err
 		}
@@ -157,20 +161,20 @@ func (a *App) ensurePostActionCookieSecret() error {
 		}
 	}
 
-	a.Srv.postActionCookieSecret = secret.Secret
+	s.postActionCookieSecret = secret.Secret
 	return nil
 }
 
-// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
+// ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
-func (a *App) ensureAsymmetricSigningKey() error {
-	if a.Srv.asymmetricSigningKey != nil {
+func (s *Server) ensureAsymmetricSigningKey() error {
+	if s.AsymmetricSigningKey() != nil {
 		return nil
 	}
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	value, err := s.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -199,8 +203,10 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if err = s.Store.System().Save(system); err != nil {
+			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
+		} else {
 			key = newKey
 		}
 	}
@@ -208,7 +214,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		value, err := s.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 		if err != nil {
 			return err
 		}
@@ -225,37 +231,51 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	a.Srv.asymmetricSigningKey = &ecdsa.PrivateKey{
+	s.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
 			Y:     key.ECDSAKey.Y,
 		},
 		D: key.ECDSAKey.D,
-	}
-	a.regenerateClientConfig()
+	})
+	s.regenerateClientConfig()
 	return nil
 }
 
-func (a *App) ensureInstallationDate() error {
-	_, err := a.getSystemInstallDate()
-	if err == nil {
+func (s *Server) ensureInstallationDate() error {
+	_, appErr := s.getSystemInstallDate()
+	if appErr == nil {
 		return nil
 	}
 
-	installDate, err := a.Srv.Store.User().InferSystemInstallDate()
+	installDate, nErr := s.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if err == nil && installDate > 0 {
+	if nErr == nil && installDate > 0 {
 		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
 
-	err = a.Srv.Store.System().SaveOrUpdate(&model.System{
+	if err := s.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 		Value: strconv.FormatInt(installationDate, 10),
-	})
-	if err != nil {
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Server) ensureFirstServerRunTimestamp() error {
+	_, appErr := s.getFirstServerRunTimestamp()
+	if appErr == nil {
+		return nil
+	}
+
+	if err := s.Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
+		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -263,11 +283,14 @@ func (a *App) ensureInstallationDate() error {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return s.asymmetricSigningKey
+	if key := s.asymmetricSigningKey.Load(); key != nil {
+		return key.(*ecdsa.PrivateKey)
+	}
+	return nil
 }
 
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.Srv.AsymmetricSigningKey()
+	return a.Srv().AsymmetricSigningKey()
 }
 
 func (s *Server) PostActionCookieSecret() []byte {
@@ -275,15 +298,15 @@ func (s *Server) PostActionCookieSecret() []byte {
 }
 
 func (a *App) PostActionCookieSecret() []byte {
-	return a.Srv.PostActionCookieSecret()
+	return a.Srv().PostActionCookieSecret()
 }
 
-func (a *App) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+func (s *Server) regenerateClientConfig() {
+	clientConfig := config.GenerateClientConfig(s.Config(), s.TelemetryId(), s.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.TelemetryId(), s.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := a.GetLatestTermsOfService()
+		termsOfService, err := s.Store.TermsOfService().GetLatest(true)
 		if err != nil {
 			mlog.Err(err)
 		} else {
@@ -292,16 +315,16 @@ func (a *App) regenerateClientConfig() {
 		}
 	}
 
-	if key := a.AsymmetricSigningKey(); key != nil {
+	if key := s.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
 		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
-	a.Srv.clientConfig = clientConfig
-	a.Srv.limitedClientConfig = limitedClientConfig
-	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	s.clientConfig.Store(clientConfig)
+	s.limitedClientConfig.Store(limitedClientConfig)
+	s.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
 }
 
 func (a *App) GetCookieDomain() string {
@@ -318,22 +341,28 @@ func (a *App) GetSiteURL() string {
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithComputed() map[string]string {
+func (s *Server) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range a.ClientConfig() {
+	for k, v := range s.clientConfig.Load().(map[string]string) {
 		respCfg[k] = v
 	}
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
-	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+	respCfg["NoAccounts"] = strconv.FormatBool(s.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(s.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""
-	if installationDate, err := a.getSystemInstallDate(); err == nil {
+	if installationDate, err := s.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 
 	return respCfg
+}
+
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithComputed() map[string]string {
+	return a.Srv().ClientConfigWithComputed()
 }
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
@@ -352,7 +381,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.
 func (a *App) GetConfigFile(name string) ([]byte, error) {
-	data, err := a.Srv.configStore.GetFile(name)
+	data, err := a.Srv().configStore.GetFile(name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get config file %s", name)
 	}
@@ -374,24 +403,27 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg, err := a.Srv.configStore.Set(newCfg)
+func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := s.configStore.Set(newCfg)
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if a.Metrics != nil {
-		if *a.Config().MetricsSettings.Enable {
-			a.Metrics.StartServer()
-		} else {
-			a.Metrics.StopServer()
+	if s.startMetrics && *s.Config().MetricsSettings.Enable {
+		if s.Metrics != nil {
+			s.Metrics.Register()
 		}
+		s.SetupMetricsServer()
+	} else {
+		s.StopMetricsServer()
 	}
 
-	if a.Cluster != nil {
-		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+	if s.Cluster != nil {
+		newCfg = s.configStore.RemoveEnvironmentOverrides(newCfg)
+		oldCfg = s.configStore.RemoveEnvironmentOverrides(oldCfg)
+		err := s.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}
@@ -400,18 +432,45 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	return nil
 }
 
-func (a *App) IsESIndexingEnabled() bool {
-	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
+// SaveConfig replaces the active configuration, optionally notifying cluster peers.
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
-func (a *App) IsESSearchEnabled() bool {
-	esInterface := a.Elasticsearch
-	license := a.License()
-	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
+func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
+	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
+	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
+	// directly and not through the System Console UI.
+	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
+		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+			// When the feature is toggled on, use the current timestamp as the start time for future exports.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
+		} else if !*cfg.MessageExportSettings.EnableExport {
+			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
+			// the feature is re-enabled from the System Console in future.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
+		}
+	}
 }
 
-func (a *App) IsESAutocompletionEnabled() bool {
-	esInterface := a.Elasticsearch
-	license := a.License()
-	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
+func (s *Server) MailServiceConfig() *mailservice.SMTPConfig {
+	emailSettings := s.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	cfg := mailservice.SMTPConfig{
+		Hostname:                          hostname,
+		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
+		SkipServerCertificateVerification: *emailSettings.SkipServerCertificateVerification,
+		ServerName:                        *emailSettings.SMTPServer,
+		Server:                            *emailSettings.SMTPServer,
+		Port:                              *emailSettings.SMTPPort,
+		ServerTimeout:                     *emailSettings.SMTPServerTimeout,
+		Username:                          *emailSettings.SMTPUsername,
+		Password:                          *emailSettings.SMTPPassword,
+		EnableSMTPAuth:                    *emailSettings.EnableSMTPAuth,
+		SendEmailNotifications:            *emailSettings.SendEmailNotifications,
+		FeedbackName:                      *emailSettings.FeedbackName,
+		FeedbackEmail:                     *emailSettings.FeedbackEmail,
+		ReplyToAddress:                    *emailSettings.ReplyToAddress,
+	}
+	return &cfg
 }

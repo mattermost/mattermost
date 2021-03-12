@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -31,6 +31,16 @@ type ChannelUnread struct {
 	NotifyProps  StringMap `json:"-"`
 }
 
+type ChannelUnreadAt struct {
+	TeamId       string    `json:"team_id"`
+	UserId       string    `json:"user_id"`
+	ChannelId    string    `json:"channel_id"`
+	MsgCount     int64     `json:"msg_count"`
+	MentionCount int64     `json:"mention_count"`
+	LastViewedAt int64     `json:"last_viewed_at"`
+	NotifyProps  StringMap `json:"-"`
+}
+
 type ChannelMember struct {
 	ChannelId     string    `json:"channel_id"`
 	UserId        string    `json:"user_id"`
@@ -55,14 +65,19 @@ type ChannelMemberForExport struct {
 }
 
 func (o *ChannelMembers) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelUnread) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
+}
+
+func (o *ChannelUnreadAt) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
 }
@@ -75,6 +90,12 @@ func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
 
 func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
 	var o *ChannelUnread
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelUnreadAtFromJson(data io.Reader) *ChannelUnreadAt {
+	var o *ChannelUnreadAt
 	json.NewDecoder(data).Decode(&o)
 	return o
 }
@@ -92,11 +113,11 @@ func ChannelMemberFromJson(data io.Reader) *ChannelMember {
 
 func (o *ChannelMember) IsValid() *AppError {
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -141,6 +162,18 @@ func (o *ChannelMember) PreUpdate() {
 
 func (o *ChannelMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+func (o *ChannelMember) SetChannelMuted(muted bool) {
+	if o.IsChannelMuted() {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_ALL
+	} else {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_MENTION
+	}
+}
+
+func (o *ChannelMember) IsChannelMuted() bool {
+	return o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] == CHANNEL_MARK_UNREAD_MENTION
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {
