@@ -3520,18 +3520,6 @@
     "translation": "Kluster-API endpoint hittades inte."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fel vid bearbetning av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Kunde inte autentisera mot CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " bifogade en fil."
   },
@@ -8665,5 +8653,21 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta begäran."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fel när systemadministratörens mejl skulle hämtas."
   }
 ]

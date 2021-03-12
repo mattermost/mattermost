@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -456,12 +456,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 
 	if _, err := a.SendNotifications(post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
-	}
-
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
-			return err
-		}
 	}
 
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
