@@ -99,11 +99,12 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
-		Select("*").
-		From("FileInfo").
-		Where(sq.Eq{"Id": ids}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		OrderBy("CreateAt DESC")
+		Select("FI.*, P.ChannelId").
+		From("FileInfo as FI").
+		LeftJoin("Posts as P ON FI.PostId=P.Id").
+		Where(sq.Eq{"FI.Id": ids}).
+		Where(sq.Eq{"FI.DeleteAt": 0}).
+		OrderBy("FI.CreateAt DESC")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -433,7 +434,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		return nil, err
 	}
 	query := fs.getQueryBuilder().
-		Select("FI.*").
+		Select("FI.*, P.ChannelId as ChannelId").
 		From("FileInfo AS FI").
 		LeftJoin("Posts as P ON FI.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
