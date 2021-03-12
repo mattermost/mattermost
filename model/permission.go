@@ -104,9 +104,14 @@ var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
+var PERMISSION_READ_LICENSE_INFORMATION *Permission
+var PERMISSION_MANAGE_LICENSE_INFORMATION *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE *Permission
 
 var PERMISSION_SYSCONSOLE_READ_BILLING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_BILLING *Permission
@@ -563,6 +568,20 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_READ_LICENSE_INFORMATION = &Permission{
+		"read_license_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_MANAGE_LICENSE_INFORMATION = &Permission{
+		"manage_license_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT = &Permission{
 		"download_compliance_export_result",
 		"authentication.permissions.download_compliance_export_result.name",
@@ -720,16 +739,30 @@ func initializePermissions() {
 		"authentication.permissions.edit_brand.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_ABOUT = &Permission{
 		"sysconsole_read_about",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_ABOUT = &Permission{
 		"sysconsole_write_about",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE = &Permission{
+		"sysconsole_read_about_edition_and_license",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE = &Permission{
+		"sysconsole_write_about_edition_and_license",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_BILLING = &Permission{
@@ -964,7 +997,7 @@ func initializePermissions() {
 	}
 
 	SysconsoleReadPermissions = []*Permission{
-		PERMISSION_SYSCONSOLE_READ_ABOUT,
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE,
 		PERMISSION_SYSCONSOLE_READ_BILLING,
 		PERMISSION_SYSCONSOLE_READ_REPORTING,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
@@ -985,7 +1018,7 @@ func initializePermissions() {
 	}
 
 	SysconsoleWritePermissions = []*Permission{
-		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
+		PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE,
 		PERMISSION_SYSCONSOLE_WRITE_BILLING,
 		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
@@ -1041,6 +1074,8 @@ func initializePermissions() {
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
 		PERMISSION_PURGE_BLEVE_INDEXES,
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
+		PERMISSION_READ_LICENSE_INFORMATION,
+		PERMISSION_MANAGE_LICENSE_INFORMATION,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -1104,6 +1139,10 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_ABOUT,
+		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL,
 	}
 
 	AllPermissions = []*Permission{}
