@@ -247,7 +247,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 		)
-	} else if rpost.DeleteAt == 0 {
+	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
 		// update post
 		rpost, appErr = scs.app.UpdatePost(post, false)
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
@@ -255,8 +255,8 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 			mlog.String("channel_id", post.ChannelId),
 		)
 	} else {
-		// this is an re-sync of a deleted post; no need to update it
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Update to deleted sync post ignored",
+		// nothing to update
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 		)
