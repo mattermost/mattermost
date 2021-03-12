@@ -949,7 +949,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	}
 
 	if !options.IncludeDeleted {
-		query = query.Where(sq.NotEq{"Delete": 0})
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
 	if options.ExcludeRemoteId != "" {
