@@ -130,6 +130,7 @@ type Server struct {
 	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
+	appsCache               map[string]*cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -326,6 +327,8 @@ func NewServer(options ...Option) (*Server, error) {
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create status cache")
 	}
+
+	s.createAppsCache()
 
 	s.createPushNotificationsHub()
 
@@ -1656,6 +1659,10 @@ func (s *Server) SetLog(l *mlog.Logger) {
 
 func (s *Server) Poller() netpoll.Poller {
 	return s.poller
+}
+
+func (s *Server) createAppsCache() {
+	s.appsCache = map[string]*cache.Cache{}
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {
