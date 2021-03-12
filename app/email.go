@@ -570,10 +570,10 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
 
 			if !*es.srv.Config().EmailSettings.SendEmailNotifications {
-				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["Link"].(string)))
+				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtomURL"].(string)))
 			}
 
 			embeddedFiles := make(map[string]io.Reader)
