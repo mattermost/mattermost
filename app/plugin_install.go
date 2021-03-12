@@ -48,9 +48,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -82,7 +82,7 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signature filesstore.ReadCloseSeeker
+	var signature filestore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
 		signature, appErr = a.FileReader(plugin.signaturePath)
 		if appErr != nil {

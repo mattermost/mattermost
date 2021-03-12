@@ -1,4 +1,4 @@
-// Copyright 2014-2019 Ulrich Kunitz. All rights reserved.
+// Copyright 2014-2021 Ulrich Kunitz. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -662,7 +662,7 @@ func writeIndex(w io.Writer, index []record) (n int64, err error) {
 
 // readIndexBody reads the index from the reader. It assumes that the
 // index indicator has already been read.
-func readIndexBody(r io.Reader) (records []record, n int64, err error) {
+func readIndexBody(r io.Reader, expectedRecordLen int) (records []record, n int64, err error) {
 	crc := crc32.NewIEEE()
 	// index indicator
 	crc.Write([]byte{0})
@@ -678,6 +678,11 @@ func readIndexBody(r io.Reader) (records []record, n int64, err error) {
 	recLen := int(u)
 	if recLen < 0 || uint64(recLen) != u {
 		return nil, n, errors.New("xz: record number overflow")
+	}
+	if recLen != expectedRecordLen {
+		return nil, n, fmt.Errorf(
+			"xz: index length is %d; want %d",
+			recLen, expectedRecordLen)
 	}
 
 	// list of records

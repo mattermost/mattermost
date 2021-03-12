@@ -2011,14 +2011,6 @@
     "translation": "Por favor verifica tu correo electrónico haciendo clic en el botón de abajo."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Puedes acceder desde:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres."
-  },
-  {
     "id": "api.templates.welcome_body.title",
     "translation": "Te has unido a {{ .ServerURL }}"
   },
@@ -7397,18 +7389,6 @@
   {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Petición de tramitación del error a CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Error interno marshaling petición a CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Incapaz de autenticar a CWS"
   },
   {
     "id": "api.cloud.request_error",

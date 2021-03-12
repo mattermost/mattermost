@@ -333,6 +333,7 @@ func (s *Span) toEvent() *Event {
 			"trace": s.traceContext(),
 		},
 		Tags:      s.Tags,
+		Extra:     s.Data,
 		Timestamp: s.EndTime,
 		StartTime: s.StartTime,
 		Spans:     finished,
