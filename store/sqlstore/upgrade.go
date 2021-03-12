@@ -687,11 +687,6 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
-
-		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
-
 		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
 		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
 
@@ -730,8 +725,6 @@ func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 		saveSchemaVersion(sqlStore, Version5160)
 
 		// Fix mismatches between the canonical and migrated schemas.
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
 		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
 		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
@@ -782,9 +775,6 @@ func upgradeDatabaseToVersion522(sqlStore *SqlStore) {
 		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 
 		saveSchemaVersion(sqlStore, Version5220)
 	}
