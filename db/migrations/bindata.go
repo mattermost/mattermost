@@ -24,6 +24,8 @@
 // mysql/000011_create_link_metadata.up.sql
 // mysql/000012_create_commands.down.sql
 // mysql/000012_create_commands.up.sql
+// mysql/000013_create_systems.down.sql
+// mysql/000013_create_systems.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -48,6 +50,8 @@
 // postgres/000011_create_link_metadata.up.sql
 // postgres/000012_create_commands.down.sql
 // postgres/000012_create_commands.up.sql
+// postgres/000013_create_systems.down.sql
+// postgres/000013_create_systems.up.sql
 package migrations
 
 import (
@@ -604,6 +608,46 @@ func mysql000012_create_commandsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000013_create_systemsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\xae\x2c\x2e\x49\xcd\x2d\xb6\xe6\x02\x04\x00\x00\xff\xff\xed\x75\x1b\xa2\x1e\x00\x00\x00")
+
+func mysql000013_create_systemsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000013_create_systemsDownSql,
+		"mysql/000013_create_systems.down.sql",
+	)
+}
+
+func mysql000013_create_systemsDownSql() (*asset, error) {
+	bytes, err := mysql000013_create_systemsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000013_create_systems.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000013_create_systemsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x0e\x72\x75\x0c\x71\x55\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\x08\xae\x2c\x2e\x49\xcd\x2d\x56\xd0\xe0\x52\x50\x50\x50\xf0\x4b\xcc\x4d\x55\x08\x73\x0c\x72\xf6\x70\x0c\xd2\x30\x33\xd1\x04\xab\xf4\x0b\xf5\xf1\xd1\x01\x4b\x87\x25\xe6\x94\xa6\x2a\x94\xa4\x56\x94\x40\xf8\x01\x41\x9e\xbe\x8e\x41\x91\x0a\xde\xae\x91\x0a\x1a\x20\xbd\x9a\x5c\x9a\xd6\x5c\x80\x00\x00\x00\xff\xff\x23\x0e\x61\x2f\x6e\x00\x00\x00")
+
+func mysql000013_create_systemsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000013_create_systemsUpSql,
+		"mysql/000013_create_systems.up.sql",
+	)
+}
+
+func mysql000013_create_systemsUpSql() (*asset, error) {
+	bytes, err := mysql000013_create_systemsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000013_create_systems.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -1084,6 +1128,46 @@ func postgres000012_create_commandsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000013_create_systemsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x01\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00")
+
+func postgres000013_create_systemsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000013_create_systemsDownSql,
+		"postgres/000013_create_systems.down.sql",
+	)
+}
+
+func postgres000013_create_systemsDownSql() (*asset, error) {
+	bytes, err := postgres000013_create_systemsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000013_create_systems.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000013_create_systemsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x0e\x72\x75\x0c\x71\x55\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\x28\xae\x2c\x2e\x49\xcd\x2d\x56\xd0\xe0\x52\x50\x50\x50\xc8\x4b\xcc\x4d\x55\x08\x73\x0c\x72\xf6\x70\x0c\xd2\x30\x33\xd1\xd4\x01\x8b\x96\x25\xe6\x94\x22\x84\x0d\x0d\x8c\x60\x12\x01\x41\x9e\xbe\x8e\x41\x91\x0a\xde\xae\x91\x0a\x1a\x20\xbd\x9a\x5c\x9a\xd6\x5c\x80\x00\x00\x00\xff\xff\xdf\x68\xa3\x5a\x6e\x00\x00\x00")
+
+func postgres000013_create_systemsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000013_create_systemsUpSql,
+		"postgres/000013_create_systems.up.sql",
+	)
+}
+
+func postgres000013_create_systemsUpSql() (*asset, error) {
+	bytes, err := postgres000013_create_systemsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000013_create_systems.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -1160,6 +1244,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000011_create_link_metadata.up.sql":          mysql000011_create_link_metadataUpSql,
 	"mysql/000012_create_commands.down.sql":             mysql000012_create_commandsDownSql,
 	"mysql/000012_create_commands.up.sql":               mysql000012_create_commandsUpSql,
+	"mysql/000013_create_systems.down.sql":              mysql000013_create_systemsDownSql,
+	"mysql/000013_create_systems.up.sql":                mysql000013_create_systemsUpSql,
 	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
@@ -1184,6 +1270,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000011_create_link_metadata.up.sql":       postgres000011_create_link_metadataUpSql,
 	"postgres/000012_create_commands.down.sql":          postgres000012_create_commandsDownSql,
 	"postgres/000012_create_commands.up.sql":            postgres000012_create_commandsUpSql,
+	"postgres/000013_create_systems.down.sql":           postgres000013_create_systemsDownSql,
+	"postgres/000013_create_systems.up.sql":             postgres000013_create_systemsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -1252,6 +1340,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000011_create_link_metadata.up.sql":       &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
 		"000012_create_commands.down.sql":          &bintree{mysql000012_create_commandsDownSql, map[string]*bintree{}},
 		"000012_create_commands.up.sql":            &bintree{mysql000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_systems.down.sql":           &bintree{mysql000013_create_systemsDownSql, map[string]*bintree{}},
+		"000013_create_systems.up.sql":             &bintree{mysql000013_create_systemsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -1278,6 +1368,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000011_create_link_metadata.up.sql":       &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
 		"000012_create_commands.down.sql":          &bintree{postgres000012_create_commandsDownSql, map[string]*bintree{}},
 		"000012_create_commands.up.sql":            &bintree{postgres000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_systems.down.sql":           &bintree{postgres000013_create_systemsDownSql, map[string]*bintree{}},
+		"000013_create_systems.up.sql":             &bintree{postgres000013_create_systemsUpSql, map[string]*bintree{}},
 	}},
 }}
 
