@@ -15,9 +15,9 @@ import (
 
 type LocalCacheUserStore struct {
 	store.UserStore
-	rootStore                      *LocalCacheStore
-	userProfileByIdsMut            sync.Mutex
-	userProfileByIdsInvalidations  map[string]bool
+	rootStore                     *LocalCacheStore
+	userProfileByIdsMut           sync.Mutex
+	userProfileByIdsInvalidations map[string]bool
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
