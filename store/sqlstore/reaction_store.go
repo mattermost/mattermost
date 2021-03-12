@@ -174,27 +174,6 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
-// DeleteOrphanedRows removes entries from Reactions when a corresponding post no longer exists.
-func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Reactions WHERE PostId IN (
-		SELECT * FROM (
-			SELECT PostId FROM Reactions
-			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-			WHERE Posts.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return
-	}
-	deleted, err = result.RowsAffected()
-	return
-}
-
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
 	params := map[string]interface{}{
 		"UserId":    reaction.UserId,

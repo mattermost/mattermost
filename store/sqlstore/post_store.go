@@ -1922,27 +1922,6 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit
 	return rowsAffected, nil
 }
 
-// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
-func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM Posts WHERE Id IN (
-		SELECT * FROM (
-			SELECT Posts.Id FROM Posts
-			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return
-	}
-	deleted, err = result.RowsAffected()
-	return
-}
-
 func (s *SqlPostStore) GetOldest() (*model.Post, error) {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")

@@ -86,7 +86,6 @@ type RetentionPolicyStore interface {
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
-	DeleteOrphanedRows(limit int) (int64, error)
 }
 
 type TeamStore interface {
@@ -265,7 +264,6 @@ type ChannelMemberHistoryStore interface {
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteBatchForRetentionPolicies(now, limit int64) (int64, error)
-	DeleteOrphanedRows(limit int) (deleted int64, err error)
 }
 type ThreadStore interface {
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
@@ -291,7 +289,6 @@ type ThreadStore interface {
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 	PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error)
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error)
-	DeleteOrphanedRows(limit int) (deleted int64, err error)
 }
 
 type PostStore interface {
@@ -328,7 +325,6 @@ type PostStore interface {
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error)
-	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error)
@@ -625,7 +621,6 @@ type ReactionStore interface {
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
-	DeleteOrphanedRows(limit int) (int64, error)
 }
 
 type JobStore interface {

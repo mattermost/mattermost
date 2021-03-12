@@ -260,24 +260,3 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 	}
 	return rowsAffected, nil
 }
-
-// DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
-func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const query = `
-	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (
-		SELECT * FROM (
-			SELECT ChannelId, UserId, JoinTime FROM ChannelMemberHistory
-			LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return
-	}
-	deleted, err = result.RowsAffected()
-	return
-}

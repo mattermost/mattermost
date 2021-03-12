@@ -2106,22 +2106,6 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 	return result, err
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelMemberHistoryStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
 	start := timemodule.Now()
 
@@ -4518,22 +4502,6 @@ func (s *TimerLayerPostStore) Delete(postID string, time int64, deleteByID strin
 	return err
 }
 
-func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.PostStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
@@ -5333,22 +5301,6 @@ func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 	return err
 }
 
-func (s *TimerLayerReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ReactionStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
@@ -5427,22 +5379,6 @@ func (s *TimerLayerRetentionPolicyStore) Delete(id string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Delete", success, elapsed)
 	}
 	return err
-}
-
-func (s *TimerLayerRetentionPolicyStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.RetentionPolicyStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
@@ -7344,22 +7280,6 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
 	}
 	return err
-}
-
-func (s *TimerLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ThreadStore.DeleteOrphanedRows(limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteOrphanedRows", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {

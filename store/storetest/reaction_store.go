@@ -21,7 +21,6 @@ func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, ss) })
 	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss, s) })
-	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
 }
@@ -374,75 +373,6 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
-}
-
-func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	const limit = 1000
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	})
-	require.Nil(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "DisplayName",
-		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
-	}, -1)
-	require.Nil(t, err)
-	olderPost, err := ss.Post().Save(&model.Post{
-		ChannelId: channel.Id,
-		UserId:    model.NewId(),
-		CreateAt:  1000,
-	})
-	require.Nil(t, err)
-	newerPost, err := ss.Post().Save(&model.Post{
-		ChannelId: channel.Id,
-		UserId:    model.NewId(),
-		CreateAt:  3000,
-	})
-	require.Nil(t, err)
-
-	// Reactions will be deleted based on the timestamp of their post. So the time at
-	// which a reaction was created doesn't matter.
-	reactions := []*model.Reaction{
-		{
-			UserId:    model.NewId(),
-			PostId:    olderPost.Id,
-			EmojiName: "sad",
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    olderPost.Id,
-			EmojiName: "sad",
-		},
-		{
-			UserId:    model.NewId(),
-			PostId:    newerPost.Id,
-			EmojiName: "smile",
-		},
-	}
-
-	for _, reaction := range reactions {
-		_, err = ss.Reaction().Save(reaction)
-		require.Nil(t, err)
-	}
-
-	_, err = ss.Post().PermanentDeleteBatch(2000, limit)
-	require.Nil(t, err)
-
-	_, err = ss.Reaction().DeleteOrphanedRows(limit)
-	require.Nil(t, err)
-
-	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
-	require.Nil(t, err)
-	require.Len(t, returned, 0, "reactions for older post should have been deleted")
-
-	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
-	require.Nil(t, err)
-	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {

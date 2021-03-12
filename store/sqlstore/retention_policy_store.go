@@ -54,6 +54,14 @@ func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
+	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "ChannelId", "Channels", "Id", true)
+	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "TeamId", "Teams", "Id", true)
+	// TODO: place these in their respective files
+	s.CreateForeignKeyIfNotExists("Reactions", "PostId", "Posts", "Id", true)
+	s.CreateForeignKeyIfNotExists("ChannelMemberHistory", "ChannelId", "Channels", "Id", true)
+	s.CreateForeignKeyIfNotExists("Posts", "ChannelId", "Channels", "Id", true)
+	s.CreateForeignKeyIfNotExists("Threads", "ChannelId", "Channels", "Id", true)
+	s.CreateForeignKeyIfNotExists("ThreadMemberships", "PostId", "Threads", "PostId", true)
 }
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
@@ -534,47 +542,4 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
-}
-
-// DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
-// where a channel or team no longer exists.
-func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	const rpcDeleteQuery = `
-	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
-		SELECT * FROM (
-			SELECT ChannelId FROM RetentionPoliciesChannels
-			LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	const rptDeleteQuery = `
-	DELETE FROM RetentionPoliciesTeams WHERE TeamId IN (
-		SELECT * FROM (
-			SELECT TeamId FROM RetentionPoliciesTeams
-			LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
-			WHERE Teams.Id IS NULL
-			LIMIT :Limit
-		) AS A
-	)`
-	props := map[string]interface{}{"Limit": limit}
-	result, err := s.GetMaster().Exec(rpcDeleteQuery, props)
-	if err != nil {
-		return
-	}
-	rpcDeleted, err := result.RowsAffected()
-	if err != nil {
-		return
-	}
-	result, err = s.GetMaster().Exec(rptDeleteQuery, props)
-	if err != nil {
-		return
-	}
-	rptDeleted, err := result.RowsAffected()
-	if err != nil {
-		return
-	}
-	deleted = rpcDeleted + rptDeleted
-	return
 }
