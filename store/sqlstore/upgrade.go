@@ -692,9 +692,6 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 
 		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
-		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
-		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
-
 		saveSchemaVersion(sqlStore, Version5120)
 	}
 }
@@ -812,8 +809,6 @@ func upgradeDatabaseToVersion525(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion526(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5250, Version5260) {
-		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version5260)
 	}
 }
