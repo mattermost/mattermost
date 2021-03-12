@@ -386,6 +386,34 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = nErr
 			return
 		}
+	case model.EventTypeSendAdminWelcomeEmail:
+		user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
+		if appErr != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			return
+		}
+
+		teams, appErr := c.App.GetAllTeams()
+		if appErr != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			return
+		}
+
+		team := teams[0]
+
+		subscription, err := c.App.Cloud().GetSubscription(user.Id)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if appErr := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	default:
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
+		return
 	}
 
 	ReturnStatusOK(w)
