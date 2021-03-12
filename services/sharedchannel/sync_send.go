@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -332,6 +333,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	if scs.server.GetLogger().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesOutbound) {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceMessagesOutbound, "outbound message",
 			mlog.String("remote", rc.DisplayName),
+			mlog.Int64("NextSyncAt", scr.NextSyncAt),
 			mlog.String("msg", string(b)),
 		)
 	}
@@ -339,7 +341,11 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		defer wg.Done()
 		if err != nil {
 			return // this means the response could not be parsed; already logged
 		}
@@ -362,13 +368,15 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		scs.updateSyncUsers(syncResp.UsersSyncd, rc, nextSince)
 	})
 
-	if err == nil && repeat {
-		// Optimistically update SharedChannelRemote's NextSyncAt; if any posts fail they will be retried.
-		scs.updateNextSyncForRemote(scr.Id, rc, nextSince)
+	wg.Wait()
 
-		if repeat {
-			scs.addTask(newSyncTask(task.channelId, task.remoteId, nil))
-		}
+	if err == nil {
+		// Optimistically update SharedChannelRemote's NextSyncAt; if any posts failed they will be retried.
+		scs.updateNextSyncForRemote(scr.Id, rc, nextSince)
+	}
+
+	if repeat {
+		scs.addTask(newSyncTask(task.channelId, task.remoteId, nil))
 	}
 	return err
 }
