@@ -1868,11 +1868,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Takıma Katıl"
+    "translation": "Şimdi Katıl"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Bir çağrınız var"
+    "translation": "{{ .SenderName }} sizi {{ .TeamDisplayName }} takımına katılmaya çağırdı."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1920,7 +1920,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Parola sıfırlama isteği"
+    "translation": "Parolanızı Sıfırlayın"
   },
   {
     "id": "api.templates.reset_subject",
@@ -8589,5 +8589,173 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "İstek içeriği işlenemedi."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Kısa bir süre önce bir kişi çalışma alanınıza katılmak istedi ancak çalışma alanınız ücretsiz Mattermost Cloud sürümünün kullanıcı sayısı sınırına ulaştığından katılamadı. Çalışma alanınıza daha fazla kullanıcı katmak için sürümünüzü yükseltebilirsiniz."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Bu sunucu üzerinde dosya arama özelliği devre dışı bırakılmış. Lütfen BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Takım ile iş birliği yapmak üzere konuk olarak çağrıldınız"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "PC, Mac, iOS ve Android üzerinde en iyi deneyim için."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Çalışma alanınıza şuradan oturum açın"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Cloud aboneliği alınırken sorun çıktı"
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Cloud karşılama iletisi gönderilemedi"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "E-posta adresinizi doğrulamak için aşağıya tıklayın."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Katıldığınız için teşekkürler "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "E-posta adresinizi doğrulamak için aşağıya tıklayın."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Katıldığınız için teşekkürler "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Bu işlemi siz yapmadıysanız bu e-postayı yok sayabilirsiniz."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Yeni kullanıcılar çalışma alanınıza katılamaz"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Parolanızı sıfırlamak için aşağıdaki düğmeye tıklayın. Parola sıfırlama isteğinde bulunmadıysanız bu e-postayı yok sayabilirsiniz."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Parola sıfırlama bağlantısı 24 saat sonra geçersiz olacak."
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Mattermost nedir?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Ayrıntılı bilgi alın"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost güvenli takım işbirliği sağlayan esnek ve açık kaynaklı bir iletişim platformudur."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Mattermost üzerinde takımınızla iş birliği yapmaya başlayın"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Tebrikler - {{.WorkSpace}} çalışma alanınız kullanılmaya hazır!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Aşağıdaki adımları izleyerek takımlarınızı oluşturun ve çalışma alanınızı değerlendirin."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Çalışma alanınızı kurun"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Tebrikler!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Başlamakla ilgili sorularınız mı var? Şu adrese e-posta gönderin"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "mobil ve masaüstü uygulamaları"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Kişileri {{.WorkSpace}} çalışma alanınıza çağırmak için bu bağlantıyı paylaşın:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Kişileri çalışma alanınıza çağırın"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Gelecekte kullanmak için bağlantınızı kaydettiğinizden ya da sık kullanılanlara eklediğinizden emin olun."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Eklediğiniz için teşekkürler "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Mattermost Uygulamasını İndir"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Mattermost Uygulamasını Aç"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "uygulama mağazası."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Çalışmalarınızı GitHub, Google Takvim ve Chrome gibi uygulamalar ile paylaşım. Tüm bütünleştirmeleri şurada görebilirsiniz"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Çalışma alanınıza uygulamalar ekleyin"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "İstek gövdesi geçersiz ya da eksik."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Cloud aboneliği alınırken sorun çıktı"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Cloud aboneliği alınırken sorun çıktı."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Sistem yöneticisinin e-posta adresi alınırken sorun çıktı."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Web bağlantısı işlemi yapılamadı. Eksik ya da geçersiz olabilir."
   }
 ]
