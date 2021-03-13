@@ -60,7 +60,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	} else {
 		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
 	if dsn != "" {
 		cfg.SqlSettings.DataSource = &dsn
 	}
