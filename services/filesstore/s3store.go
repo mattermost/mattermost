@@ -106,12 +106,12 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Region: b.region,
 	}
 
+	tr, err := s3.DefaultTransport(b.secure)
+	if err != nil {
+		return nil, err
+	}
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-		tr, err := s3.DefaultTransport(b.secure)
-		if err != nil {
-			return nil, err
-		}
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
@@ -121,6 +121,11 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 			host:   b.endpoint,
 			scheme: scheme,
 		}
+	} else {
+		// Otherwise, we override some key parameters to work at high scale.
+		tr.MaxIdleConns = 256
+		tr.MaxIdleConnsPerHost = 256
+		opts.Transport = tr
 	}
 
 	s3Clnt, err := s3.New(b.endpoint, &opts)
