@@ -3712,91 +3712,91 @@
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "Ongeldig doel"
+    "translation": "Ongeldig doel."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldig type."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'update at moet een geldige tijd zijn."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldig channel id."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
+    "translation": "Ongeldige waarde voor e-mailmelding."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Ongeldige negeren kanaalvermeldingen status."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": "Ongeldig waarschuwings nivo"
+    "translation": "Ongeldig waarschuwingsniveau."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Invalid push notification level"
+    "translation": "Ongeldig pushmeldingsniveau."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "Ongeldige markering ongelezen nivo"
+    "translation": "Ongeldig markeer ongelezen niveau."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikersid."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt must be set"
+    "translation": "CreateAt moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Hostname must be set"
+    "translation": "Hostnaam moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt must be set"
+    "translation": "LastPingAt moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName must be set"
+    "translation": "ClusterName moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Type must be set"
+    "translation": "Type moet worden ingesteld."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.command.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige description."
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel."
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.command.is_valid.method.app_error",
-    "translation": "Ongeldige methode"
+    "translation": "Ongeldige methode."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
