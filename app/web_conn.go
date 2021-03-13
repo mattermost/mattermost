@@ -72,6 +72,17 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 		})
 	}
 
+	if a.srv.Config().FeatureFlags.WebSocketDelay {
+		// Disable TCP_NO_DELAY for higher throughput
+		tcpConn, ok := ws.(*net.TCPConn)
+		if ok {
+			err := tcpConn.SetNoDelay(false)
+			if err != nil {
+				mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
+			}
+		}
+	}
+
 	wc := &WebConn{
 		App:                a,
 		send:               make(chan model.WebSocketMessage, sendQueueSize),
