@@ -4129,7 +4129,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Вие поискахте нулиране на паролата"
+    "translation": "Нулиране на паролата"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -4349,11 +4349,11 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Поканени сте"
+    "translation": "{{.SenderName}} ви покани да се присъедините към екипа {{.TeamDisplayName}}."
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Присъедини се към екипа"
+    "translation": "Присъедини се"
   },
   {
     "id": "api.templates.email_warning",
@@ -8653,5 +8653,109 @@
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Невалидно или липсващо тяло на заявката."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за добре дошли в облака"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Щракнете върху бутона по-долу, за да нулирате паролата си. Ако не сте го заявили, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Връзката за нулиране на паролата изтича след 24 часа."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Поканени сте като гост да си сътрудничите с екипа"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Какво е Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Виж още"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost е гъвкава платформа за съобщения с отворен код, която позволява сигурна работа в екип."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Започнете да сътрудничите с екипа си в Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Поздравления - вашето работно пространство {{.WorkSpace}} е готово за работа!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Предприемете следните стъпки, за да изградите екипите си и да извлечете максимума от работното си пространство."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Настройте работното си пространство"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Поздравления!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Имате въпроси относно стартирането? Изпратете ни ел.поща на"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "за най-доброто изживяване на PC, Mac, iOS и Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Влезте в работното си пространство на нашия"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "мобилно и настолно приложения"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Споделете тази връзка, за да поканите членовете си да се присъединят към {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Поканете хора във вашето работно пространство"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Не забравяйте да запазите връзката си за бъдеща употреба."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Благодаря за създаването "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Изтеглете приложението Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Отворете Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "пазар на приложения."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Рационализирайте работата си с инструменти като Github, Google Calendar и Chrome. Разгледайте всички интеграции, които имаме в нашия"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Добавете приложения към работното си пространство"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook събитието не беше обработено. Липсва или не е валидно."
   }
 ]
