@@ -426,7 +426,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 	return pl, nil
 }
-func (s *SqlPostStore) getPostWithCollapsedThreads(id, userId string, extended bool) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -447,7 +447,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userId string, extended b
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userId).
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Id": id}).ToSql()
 
@@ -462,9 +462,9 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userId string, extended b
 	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userId string) (*model.PostList, error) {
+func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id, userId, collapsedThreadsExtended)
+		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
 	}
 	pl := model.NewPostList()
 

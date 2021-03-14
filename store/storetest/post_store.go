@@ -427,6 +427,30 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should fail for blank post ids")
 }
 
+func testPostStoreGetForThread(t *testing.T, ss store.Store) {
+	o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: "zz" + model.NewId() + "b"}
+	o1, err := ss.Post().Save(o1)
+	require.NoError(t, err)
+	o2 := &model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: "zz" + model.NewId() + "b", RootId: o1.Id}
+	o2, err2 := ss.Post().Save(o2)
+	require.NoError(t, err2)
+
+	threadMembership := &model.ThreadMembership{
+		PostId:         o1.Id,
+		UserId:         o1.UserId,
+		Following:      true,
+		LastViewed:     0,
+		LastUpdated:    0,
+		UnreadMentions: 0,
+	}
+	_, err = ss.Thread().SaveMembership(threadMembership)
+	require.NoError(t, err)
+	r1, err := ss.Post().Get(o1.Id, false, true, false, o1.UserId)
+	require.NoError(t, err)
+	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
+	require.True(t, r1.Posts[o1.Id].IsFollowing)
+}
+
 func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()

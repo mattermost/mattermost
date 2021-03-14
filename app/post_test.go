@@ -1943,7 +1943,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Message:   "root post",
 		}, channel, false, true)
 		require.Nil(t, err)
-		time.Sleep(1)
+
 		_, err = th.App.CreatePost(&model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
