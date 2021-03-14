@@ -55,6 +55,8 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss, s) })
+	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
+
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -432,9 +434,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	o1 := &model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: "zz" + model.NewId() + "b"}
 	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
-	o2 := &model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: "zz" + model.NewId() + "b", RootId: o1.Id}
-	o2, err2 := ss.Post().Save(o2)
-	require.NoError(t, err2)
+	_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: "zz" + model.NewId() + "b", RootId: o1.Id})
+	require.NoError(t, err)
 
 	threadMembership := &model.ThreadMembership{
 		PostId:         o1.Id,
