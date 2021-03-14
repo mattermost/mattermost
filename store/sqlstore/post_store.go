@@ -462,7 +462,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 	if collapsedThreads {
 		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
 	}
@@ -474,7 +474,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := s.DBFromContext(ctx).SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

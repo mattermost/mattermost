@@ -9,7 +9,7 @@ import (
 	"github.com/avct/uasurfer"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 )
 
 // MattermostApp describes downloads for the Mattermost App
@@ -46,7 +46,13 @@ type SystemBrowser struct {
 
 func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
-	page := utils.NewHTMLTemplate(app.Srv().HTMLTemplates(), "unsupported_browser")
+
+	data := templates.Data{
+		Props: map[string]interface{}{
+			"DownloadAppOrUpgradeBrowserString": app.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
+			"LearnMoreString":                   app.T("web.error.unsupported_browser.learn_more"),
+		},
+	}
 
 	// User Agent info
 	ua := uasurfer.Parse(r.UserAgent())
@@ -57,18 +63,16 @@ func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.R
 
 	// Basic heading translations
 	if isSafari {
-		page.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support_version")
+		data.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support_version")
 	} else {
-		page.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support")
+		data.Props["NoLongerSupportString"] = app.T("web.error.unsupported_browser.no_longer_support")
 	}
-	page.Props["DownloadAppOrUpgradeBrowserString"] = app.T("web.error.unsupported_browser.download_app_or_upgrade_browser")
-	page.Props["LearnMoreString"] = app.T("web.error.unsupported_browser.learn_more")
 
 	// Mattermost app version
 	if isWindows {
-		page.Props["App"] = renderMattermostAppWindows(app)
+		data.Props["App"] = renderMattermostAppWindows(app)
 	} else if isMacOSX {
-		page.Props["App"] = renderMattermostAppMac(app)
+		data.Props["App"] = renderMattermostAppMac(app)
 	}
 
 	// Browsers to download
@@ -78,14 +82,14 @@ func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.R
 	if isSafari {
 		browsers = append(browsers, renderBrowserSafari(app))
 	}
-	page.Props["Browsers"] = browsers
+	data.Props["Browsers"] = browsers
 
 	// If on Windows 10, show link to Edge
 	if isWindows10 {
-		page.Props["SystemBrowser"] = renderSystemBrowserEdge(app, r)
+		data.Props["SystemBrowser"] = renderSystemBrowserEdge(app, r)
 	}
 
-	page.RenderToWriter(w)
+	app.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
 }
 
 func renderMattermostAppMac(app app.AppIface) MattermostApp {
