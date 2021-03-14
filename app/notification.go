@@ -438,10 +438,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
 				}
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
-				message.Add("thread", userThread.ToJson())
-				a.Publish(message)
+				if userThread != nil {
+					a.sanitizeProfiles(userThread.Participants, false)
+					userThread.Post.SanitizeProps()
+					message.Add("thread", userThread.ToJson())
+					a.Publish(message)
+				}
 			}
 		}
 
