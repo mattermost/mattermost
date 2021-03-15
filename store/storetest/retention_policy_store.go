@@ -563,11 +563,11 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, ss store.Store, s 
 	teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, ss)
 	saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1", teamIDs, channelIDs)
 
-	user, err := ss.User().Save(&model.User{
+	user, userSaveErr := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	})
-	require.NoError(t, err)
+	require.NoError(t, userSaveErr)
 
 	t.Run("user has no relevant policies", func(t *testing.T) {
 		// Teams
@@ -588,11 +588,11 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, ss store.Store, s 
 
 	t.Run("user has relevant policies", func(t *testing.T) {
 		for _, teamID := range teamIDs {
-			_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
+			_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
 			require.NoError(t, err)
 		}
 		for _, channelID := range channelIDs {
-			_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+			_, err := ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
 			require.NoError(t, err)
 		}
 		// Teams
