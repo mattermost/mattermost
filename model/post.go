@@ -101,7 +101,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the currect user is following this thread
+	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
