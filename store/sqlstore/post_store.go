@@ -1368,7 +1368,7 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 	}
 
 	filterQuery := `
-		AND p.UserId IN (
+		AND q2.UserId IN (
 			SELECT
 				Id
 			FROM
@@ -1426,10 +1426,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 				Posts q2
             LEFT JOIN Threads as T ON T.PostId = COALESCE(q2.RootId, q2.Id)
 			WHERE
-				DeleteAt = 0
-				AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
+				q2.DeleteAt = 0
+				AND q2.Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
 				POST_FILTER
-				AND ChannelId IN (
+				AND q2.ChannelId IN (
 					SELECT
 						Id
 					FROM
