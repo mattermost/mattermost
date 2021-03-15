@@ -5397,6 +5397,38 @@ func (s *TimerLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*model
 	return result, err
 }
 
+func (s *TimerLayerRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetChannelPoliciesCountForUser(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetChannelPoliciesCountForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForChannel, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetChannelPoliciesForUser(userID, offset, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetChannelPoliciesForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
@@ -5441,6 +5473,38 @@ func (s *TimerLayerRetentionPolicyStore) GetCount() (int64, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetTeamPoliciesCountForUser(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetTeamPoliciesCountForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForTeam, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetTeamPoliciesForUser(userID, offset, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetTeamPoliciesForUser", success, elapsed)
 	}
 	return result, err
 }

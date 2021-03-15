@@ -102,6 +102,50 @@ func (_m *RetentionPolicyStore) GetAll(offset int, limit int) ([]*model.Retentio
 	return r0, r1
 }
 
+// GetChannelPoliciesCountForUser provides a mock function with given fields: userID
+func (_m *RetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
+	ret := _m.Called(userID)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChannelPoliciesForUser provides a mock function with given fields: userID, offset, limit
+func (_m *RetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForChannel, error) {
+	ret := _m.Called(userID, offset, limit)
+
+	var r0 []*model.RetentionPolicyForChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.RetentionPolicyForChannel); ok {
+		r0 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RetentionPolicyForChannel)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(userID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannels provides a mock function with given fields: policyId, offset, limit
 func (_m *RetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 	ret := _m.Called(policyId, offset, limit)
@@ -160,6 +204,50 @@ func (_m *RetentionPolicyStore) GetCount() (int64, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTeamPoliciesCountForUser provides a mock function with given fields: userID
+func (_m *RetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
+	ret := _m.Called(userID)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTeamPoliciesForUser provides a mock function with given fields: userID, offset, limit
+func (_m *RetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForTeam, error) {
+	ret := _m.Called(userID, offset, limit)
+
+	var r0 []*model.RetentionPolicyForTeam
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.RetentionPolicyForTeam); ok {
+		r0 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RetentionPolicyForTeam)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(userID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

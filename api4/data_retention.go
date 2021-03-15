@@ -378,3 +378,49 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func getTeamPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	userID := c.Params.UserId
+	limit := c.Params.PerPage
+	offset := c.Params.Page * limit
+
+	if userID != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	policies, err := c.App.GetTeamPoliciesForUser(userID, offset, limit)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write(policies.ToJson())
+}
+
+func getChannelPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	userID := c.Params.UserId
+	limit := c.Params.PerPage
+	offset := c.Params.Page * limit
+
+	if userID != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	policies, err := c.App.GetChannelPoliciesForUser(userID, offset, limit)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write(policies.ToJson())
+}

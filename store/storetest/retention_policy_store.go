@@ -25,6 +25,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetTeams", func(t *testing.T) { testRetentionPolicyStoreGetTeams(t, ss, s) })
 	t.Run("AddTeams", func(t *testing.T) { testRetentionPolicyStoreAddTeams(t, ss, s) })
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
+	t.Run("GetPoliciesForUser", func(t *testing.T) { testRetentionPolicyStoreGetPoliciesForUser(t, ss, s) })
 }
 
 func getRetentionPolicyWithTeamAndChannelIds(t *testing.T, ss store.Store, policyID string) *model.RetentionPolicyWithTeamAndChannelIDs {
@@ -555,5 +556,60 @@ func testRetentionPolicyStoreRemoveTeams(t *testing.T, ss store.Store, s SqlStor
 		// verify that the policy did not change
 		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
+	cleanupRetentionPolicyTest(s)
+}
+
+func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, ss store.Store, s SqlStore) {
+	teamIDs, channelIDs := createTeamsAndChannelsForRetentionPolicy(t, ss)
+	saveRetentionPolicyWithTeamAndChannelIds(t, ss, "Policy 1", teamIDs, channelIDs)
+
+	user, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	})
+	require.NoError(t, err)
+
+	t.Run("user has no relevant policies", func(t *testing.T) {
+		// Teams
+		teamPolicies, err := ss.RetentionPolicy().GetTeamPoliciesForUser(user.Id, 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, teamPolicies)
+		count, err := ss.RetentionPolicy().GetTeamPoliciesCountForUser(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), count)
+		// Channels
+		channelPolicies, err := ss.RetentionPolicy().GetChannelPoliciesForUser(user.Id, 0, 100)
+		require.NoError(t, err)
+		require.Empty(t, channelPolicies)
+		count, err = ss.RetentionPolicy().GetChannelPoliciesCountForUser(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), count)
+	})
+
+	t.Run("user has relevant policies", func(t *testing.T) {
+		for _, teamID := range teamIDs {
+			_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
+			require.NoError(t, err)
+		}
+		for _, channelID := range channelIDs {
+			_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+			require.NoError(t, err)
+		}
+		// Teams
+		teamPolicies, err := ss.RetentionPolicy().GetTeamPoliciesForUser(user.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, teamPolicies, len(teamIDs))
+		count, err := ss.RetentionPolicy().GetTeamPoliciesCountForUser(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(len(teamIDs)), count)
+		// Channels
+		channelPolicies, err := ss.RetentionPolicy().GetChannelPoliciesForUser(user.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, channelPolicies, len(channelIDs))
+		count, err = ss.RetentionPolicy().GetChannelPoliciesCountForUser(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(len(channelIDs)), count)
+	})
+
 	cleanupRetentionPolicyTest(s)
 }

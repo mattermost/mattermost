@@ -6450,6 +6450,46 @@ func (s *RetryLayerRetentionPolicyStore) GetAll(offset int, limit int) ([]*model
 
 }
 
+func (s *RetryLayerRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetChannelPoliciesCountForUser(userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetChannelPoliciesForUser(userID, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRetentionPolicyStore) GetChannels(policyId string, offset int, limit int) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
@@ -6495,6 +6535,46 @@ func (s *RetryLayerRetentionPolicyStore) GetCount() (int64, error) {
 	tries := 0
 	for {
 		result, err := s.RetentionPolicyStore.GetCount()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetTeamPoliciesCountForUser(userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset int, limit int) ([]*model.RetentionPolicyForTeam, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetTeamPoliciesForUser(userID, offset, limit)
 		if err == nil {
 			return result, nil
 		}

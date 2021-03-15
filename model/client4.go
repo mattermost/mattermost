@@ -4724,6 +4724,34 @@ func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs 
 	return BuildResponse(r)
 }
 
+// GetTeamPoliciesForUser will get the data retention policies for the teams to which a user belongs.
+func (c *Client4) GetTeamPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response) {
+	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/team_policies", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var teams RetentionPolicyForTeamList
+	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetTeamPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return &teams, BuildResponse(r)
+}
+
+// GetChannelPoliciesForUser will get the data retention policies for the channels to which a user belongs.
+func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response) {
+	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/channel_policies", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var channels RetentionPolicyForChannelList
+	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetChannelPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return &channels, BuildResponse(r)
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.

@@ -48,6 +48,26 @@ type RetentionPolicyWithTeamAndChannelCountsList struct {
 	TotalCount int64                                      `json:"total_count"`
 }
 
+type RetentionPolicyForTeam struct {
+	TeamID       string `db:"Id" json:"team_id"`
+	PostDuration int64  `json:"post_duration"`
+}
+
+type RetentionPolicyForTeamList struct {
+	Policies   []*RetentionPolicyForTeam `json:"policies"`
+	TotalCount int64                     `json:"total_count"`
+}
+
+type RetentionPolicyForChannel struct {
+	ChannelID    string `db:"Id" json:"channel_id"`
+	PostDuration int64  `json:"post_duration"`
+}
+
+type RetentionPolicyForChannelList struct {
+	Policies   []*RetentionPolicyForChannel `json:"policies"`
+	TotalCount int64                        `json:"total_count"`
+}
+
 func (rp *GlobalRetentionPolicy) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
@@ -92,5 +112,15 @@ func RetentionPolicyWithTeamAndChannelIdsFromJson(data io.Reader) (*RetentionPol
 
 func (rp *RetentionPolicyWithTeamAndChannelIDs) ToJson() []byte {
 	b, _ := json.Marshal(rp)
+	return b
+}
+
+func (lst *RetentionPolicyForTeamList) ToJson() []byte {
+	b, _ := json.Marshal(lst)
+	return b
+}
+
+func (lst *RetentionPolicyForChannelList) ToJson() []byte {
+	b, _ := json.Marshal(lst)
 	return b
 }
