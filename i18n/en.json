@@ -4411,6 +4411,10 @@
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Error generating password."
+  },
+  {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
     "translation": "Some teams not found"
   },

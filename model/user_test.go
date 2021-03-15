@@ -5,7 +5,6 @@ package model
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 	"testing"
@@ -353,21 +352,21 @@ func TestUserSlice(t *testing.T) {
 }
 
 func TestGeneratePassword(t *testing.T) {
-	passwordRandom = lockedRand{
-		rn: rand.New(rand.NewSource(12345)),
-	}
-
 	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
-		password1 := GeneratePassword(5)
+		password1, err := GeneratePassword(5)
+		require.NoError(t, err)
 		assert.Len(t, password1, 5)
-		password2 := GeneratePassword(10)
+		password2, err := GeneratePassword(10)
+		require.NoError(t, err)
 		assert.Len(t, password2, 10)
-		password3 := GeneratePassword(1)
+		password3, err := GeneratePassword(1)
+		require.NoError(t, err)
 		assert.Len(t, password3, 4)
 	})
 
 	t.Run("Should contain at least one of symbols, upper case, lower case and numbers", func(t *testing.T) {
-		password := GeneratePassword(4)
+		password, err := GeneratePassword(4)
+		require.NoError(t, err)
 		require.Len(t, password, 4)
 		assert.Contains(t, []rune(passwordUpperCaseLetters), []rune(password)[0])
 		assert.Contains(t, []rune(passwordNumbers), []rune(password)[1])

@@ -4,18 +4,17 @@
 package model
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -911,40 +910,51 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	return uwg
 }
 
-//msgp:ignore lockedRand
-type lockedRand struct {
-	mu sync.Mutex
-	rn *rand.Rand
-}
-
-func (r *lockedRand) Intn(n int) int {
-	r.mu.Lock()
-	m := r.rn.Intn(n)
-	r.mu.Unlock()
-	return m
-}
-
-var passwordRandom = lockedRand{
-	rn: rand.New(rand.NewSource(time.Now().Unix())),
-}
-
 var passwordSpecialChars = "!$%^&*(),."
 var passwordNumbers = "0123456789"
 var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
 var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
 
-func GeneratePassword(minimumLength int) string {
+func randInt(max int) (int, error) {
+	val, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0, err
+	}
+	return int(val.Int64()), nil
+}
+
+func GeneratePassword(minimumLength int) (string, error) {
+	upperIdx, err := randInt(len(passwordUpperCaseLetters))
+	if err != nil {
+		return "", err
+	}
+	numberIdx, err := randInt(len(passwordNumbers))
+	if err != nil {
+		return "", err
+	}
+	lowerIdx, err := randInt(len(passwordLowerCaseLetters))
+	if err != nil {
+		return "", err
+	}
+	specialIdx, err := randInt(len(passwordSpecialChars))
+	if err != nil {
+		return "", err
+	}
+
 	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[passwordRandom.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[passwordRandom.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[passwordRandom.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[passwordRandom.Intn(len(passwordSpecialChars))])
+	password := string([]rune(passwordUpperCaseLetters)[upperIdx]) +
+		string([]rune(passwordNumbers)[numberIdx]) +
+		string([]rune(passwordLowerCaseLetters)[lowerIdx]) +
+		string([]rune(passwordSpecialChars)[specialIdx])
 
 	for len(password) < minimumLength {
-		i := passwordRandom.Intn(len(passwordAllChars))
+		i, err := randInt(len(passwordAllChars))
+		if err != nil {
+			return "", err
+		}
 		password = password + string([]rune(passwordAllChars)[i])
 	}
 
-	return password
+	return password, nil
 }
