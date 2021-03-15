@@ -1871,14 +1871,6 @@
     "translation": "Entrar na Equipe"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost permite compartilhar mensagens e arquivos do seu PC ou telefone, com pesquisa instantânea e arquivamento. Depois que você estiver participando de [[{{.TeamDisplayName}}]], você pode fazer login na sua nova equipe e ter acesso a esses recursos a qualquer momento a partir do endereço web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "O {{.SenderStatus}} da equipe [[{{.SenderName}}]], convidou você para participar de [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Você foi convidado"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Redefinir senha"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Para alterar sua senha, clique \"Redefinir Senha\" abaixo."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Se você não quiser redefinir sua senha, ignore este email e sua senha permanecerá a mesma. O link de redefinição de senha expira em 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5789,10 +5773,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para ingressar na equipe {{ .TeamDisplayName }} como convidado"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], convidou você para ingressar na equipe [[{{.TeamDisplayName}}]] como convidado."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
