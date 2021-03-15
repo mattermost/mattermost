@@ -1876,14 +1876,6 @@
     "translation": "Присоединиться к команде"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost позволяет обмениваться сообщениями и файлами с компьютера или телефона с возможностью моментального поиска и архивирования. После того, как Вы присоединитесь к команде {{.TeamDisplayName}}, Вы сможете получить доступ к этим функциям в любое время через Веб-сайт:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Команда {{.SenderStatus}} [[{.SenderName}}]] пригласила вас присоединиться к [[{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Вы приглашены"
   },
@@ -1930,14 +1922,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Сброс пароля"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Чтобы изменить пароль, нажмите «Сбросить пароль» ниже."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Если вы не хотели сбросить свой пароль, пожалуйста, проигнорируйте это письмо, и ваш пароль останется прежним. Ссылка на сброс пароля истекает через 24 часа."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5518,10 +5502,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Недопустимое обновление участника команды: пользователь должен быть гостем или пользователем, но не обоими."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], пригласил вас присоединиться к команде [[{{.TeamDisplayName}}]] в качестве гостя."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",

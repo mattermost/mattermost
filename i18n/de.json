@@ -1871,14 +1871,6 @@
     "translation": "Team beitreten"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} [[{{.SenderName}}]], hat Sie eingeladen, [[{{.TeamDisplayName}}]] beizutreten."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sie wurden eingeladen"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Passwort zurücksetzen"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Um ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Falls Sie ihr Passwort nicht ändern wollten, ignorieren Sie bitte die Mail und ihr Passwort wird nicht geändert. Der Passwort-Link verfällt in 24 Stunden."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5853,10 +5837,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",

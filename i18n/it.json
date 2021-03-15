@@ -1871,14 +1871,6 @@
     "translation": "Entra nel gruppo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost permette di condividere messaggi e file da PC o telefono, con ricerche e archiviazione. Dopo essere entrato in [[{{.TeamDisplayName}}]], potrai iscriverti al tuo nuovo team e accedere a queste funzioni dall'indirizzo web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Il gruppo {{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sei stato invitato"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reimposta password"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Per modificare la password, cliccare \"Reset Password\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Se non intendi modificare la tua password ignora questa email e la password rimarrà invariata. Il link per il reset della password scade tra 24 ore."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5461,10 +5445,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "La paginazione non è implementata per la ricerca nelle sole squadre pubbliche."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ti ha invitato ad unirti alla squadra [[{{.TeamDisplayName}}]] come ospite."
   },
   {
     "id": "api.templates.invite_guest_subject",

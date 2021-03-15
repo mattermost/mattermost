@@ -1866,14 +1866,6 @@
     "translation": "チームに参加する"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermostにより、メッセージやファイルをPCやスマートフォンから共有することができます。検索やアーカイブもできます。[[{{.TeamDisplayName}}]]に参加すると、新しいチームにサインインし、以下のアドレスからいつでもこの機能にアクセスできます。:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "チーム {{.SenderStatus}} [[{{.SenderName}}]] は、あなたを [[{{.TeamDisplayName}}]] に招待しました。"
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "招待されました"
   },
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "パスワードの初期化"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "パスワードを変更するには、\"パスワードの初期化\" をクリックしてください。"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "パスワードを初期化したくない場合、このメールを無視することでパスワードは変更されません。パスワード初期化リンクは24時間後に無効となります。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5792,10 +5776,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} がゲストとしてあなたを {{ .TeamDisplayName }} チームに招待しました"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] がゲストとしてあなたを [[{{.TeamDisplayName}}]] チームに招待しました。"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",

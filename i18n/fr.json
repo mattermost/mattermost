@@ -1871,14 +1871,6 @@
     "translation": "Rejoindre l'équipe"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost vous permet de partager des messages et des fichiers depuis votre PC ou votre téléphone, tout en bénéficiant de fonctionnalités de recherche instantanée et d'archivage. Après avoir rejoint [[{{.TeamDisplayName}}]], vous pourrez vous connecter à votre nouvelle équipe et utiliser ces fonctionnalités quand bon vous semble via l'adresse suivante :"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "L'équipe {{.SenderStatus}} [[{{.SenderName}}]] vous a invité à rejoindre [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Vous avez reçu une invitation"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Réinitialiser le mot de passe"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Pour changer votre mot de passe, cliquez sur « Réinitialiser le mot de passe » ci-dessous."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Si vous ne souhaitiez pas redéfinir votre mot de passe, veuillez ignorer cet e-mail et votre mot de passe restera inchangé. Le lien de redéfinition du mot de passe expire après 24 heures."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5797,10 +5781,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} vous a invité à rejoindre l'équipe {{ .TeamDisplayName }} en tant qu'invité"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], vous a invité à rejoindre l'équipe [[{{.TeamDisplayName}}]] en tant qu'invité."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",

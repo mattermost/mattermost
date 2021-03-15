@@ -1099,7 +1099,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "api.file.no_driver.app_error",
@@ -1371,15 +1371,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @all이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @channel이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @channel이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @here이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @here이 비활성화 되었습니다."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1631,7 +1631,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v이/가 %v를 채널에 추가했습니다."
+    "translation": "%v님이 %v님을 채널에 추가했습니다."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -1866,14 +1866,6 @@
     "translation": "팀 참여하기"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost에서는 PC와 모바일간에 메시지와 파일들을 공유할 수 있으며, 검색과 보관 기능을 사용할 수 있습니다. [[{{.TeamDisplayName}}]] 에 참여한 후에는, 새로운 팀에 들어갈 수 있으며 이러한 기능들을 언제든지 사용할 수 있습니다. 웹 주소:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "팀 {{.SenderStatus}} [[{{.SenderName}}]] 가 당신을 [[{{.TeamDisplayName}}]] 에 초대했습니다."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "당신은 초대되었습니다."
   },
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "비밀번호 재설정"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "비밀번호를 변경하기 위해서는, 아래의 \"비밀번호 초기화\" 를 누르세요."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "만약 비밀번호를 초기화할 의사가 없다면, 이 전자우편은 무시하세요. 당신의 비밀번호는 변경되지 않을 것입니다. 비밀번호 변경 링크는 24시간 안에 폐기됩니다."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -4787,7 +4771,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
@@ -5792,10 +5776,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 가 당신을 {{ .TeamDisplayName }} 팀에 게스트로 초대했습니다."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]]님이 당신을 [[{{.TeamDisplayName}}]]팀에 게스트로 초대했습니다."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
