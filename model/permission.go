@@ -585,7 +585,7 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
-	
+
 	PERMISSION_READ_LICENSE_INFORMATION = &Permission{
 		"read_license_information",
 		"",
