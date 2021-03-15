@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -3586,7 +3587,7 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(token *model.UserAccessToken
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) EnvironmentConfig() map[string]interface{} {
+func (a *OpenTracingAppLayer) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnvironmentConfig")
 
@@ -3598,7 +3599,7 @@ func (a *OpenTracingAppLayer) EnvironmentConfig() map[string]interface{} {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.EnvironmentConfig()
+	resultVar0 := a.app.EnvironmentConfig(filter)
 
 	return resultVar0
 }
@@ -5391,7 +5392,7 @@ func (a *OpenTracingAppLayer) GetEmojiStaticUrl(emojiName string) (string, *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEnvironmentConfig() map[string]interface{} {
+func (a *OpenTracingAppLayer) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEnvironmentConfig")
 
@@ -5403,7 +5404,7 @@ func (a *OpenTracingAppLayer) GetEnvironmentConfig() map[string]interface{} {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetEnvironmentConfig()
+	resultVar0 := a.app.GetEnvironmentConfig(filter)
 
 	return resultVar0
 }
@@ -13677,6 +13678,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Sess
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SessionHasPermissionToReadJob(session, job)
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool {
