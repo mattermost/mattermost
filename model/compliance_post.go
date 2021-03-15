@@ -53,6 +53,7 @@ func CompliancePostHeader() []string {
 		"UserUsername",
 		"UserEmail",
 		"UserNickname",
+		"UserType",
 
 		"PostId",
 		"PostCreateAt",
@@ -66,7 +67,6 @@ func CompliancePostHeader() []string {
 		"PostProps",
 		"PostHashtags",
 		"PostFileIds",
-		"UserType",
 	}
 }
 

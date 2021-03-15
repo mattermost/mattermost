@@ -47,6 +47,12 @@ func init() {
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id: {
+			PERMISSION_READ_LICENSE_INFORMATION,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id: {
+			PERMISSION_MANAGE_LICENSE_INFORMATION,
+		},
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id: {
 			PERMISSION_READ_PUBLIC_CHANNEL,
 			PERMISSION_READ_CHANNEL,
@@ -140,7 +146,7 @@ func init() {
 	}
 
 	SystemReadOnlyAdminDefaultPermissions = []string{
-		PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id,
@@ -161,7 +167,7 @@ func init() {
 	}
 
 	SystemManagerDefaultPermissions = []string{
-		PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS.Id,
 		PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id,
@@ -184,9 +190,9 @@ func init() {
 	}
 
 	// Add the ancillary permissions to each system role
-	SystemUserManagerDefaultPermissions = addAncillaryPermissions(SystemUserManagerDefaultPermissions)
-	SystemReadOnlyAdminDefaultPermissions = addAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
-	SystemManagerDefaultPermissions = addAncillaryPermissions(SystemManagerDefaultPermissions)
+	SystemUserManagerDefaultPermissions = AddAncillaryPermissions(SystemUserManagerDefaultPermissions)
+	SystemReadOnlyAdminDefaultPermissions = AddAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
+	SystemManagerDefaultPermissions = AddAncillaryPermissions(SystemManagerDefaultPermissions)
 }
 
 type RoleType string
@@ -789,7 +795,7 @@ func MakeDefaultRoles() map[string]*Role {
 	return roles
 }
 
-func addAncillaryPermissions(permissions []string) []string {
+func AddAncillaryPermissions(permissions []string) []string {
 	for _, permission := range permissions {
 		if ancillaryPermissions, ok := SysconsoleAncillaryPermissions[permission]; ok {
 			for _, ancillaryPermission := range ancillaryPermissions {

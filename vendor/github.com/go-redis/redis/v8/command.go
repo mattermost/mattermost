@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8/internal"
+	"github.com/go-redis/redis/v8/internal/hscan"
 	"github.com/go-redis/redis/v8/internal/proto"
 	"github.com/go-redis/redis/v8/internal/util"
 )
@@ -369,6 +370,26 @@ func (cmd *SliceCmd) Result() ([]interface{}, error) {
 
 func (cmd *SliceCmd) String() string {
 	return cmdString(cmd, cmd.val)
+}
+
+// Scan scans the results from the map into a destination struct. The map keys
+// are matched in the Redis struct fields by the `redis:"field"` tag.
+func (cmd *SliceCmd) Scan(dst interface{}) error {
+	if cmd.err != nil {
+		return cmd.err
+	}
+
+	// Pass the list of keys and values.
+	// Skip the first two args for: HMGET key
+	var args []interface{}
+	if cmd.args[0] == "hmget" {
+		args = cmd.args[2:]
+	} else {
+		// Otherwise, it's: MGET field field ...
+		args = cmd.args[1:]
+	}
+
+	return hscan.Scan(dst, args, cmd.val)
 }
 
 func (cmd *SliceCmd) readReply(rd *proto.Reader) error {
@@ -917,6 +938,27 @@ func (cmd *StringStringMapCmd) String() string {
 	return cmdString(cmd, cmd.val)
 }
 
+// Scan scans the results from the map into a destination struct. The map keys
+// are matched in the Redis struct fields by the `redis:"field"` tag.
+func (cmd *StringStringMapCmd) Scan(dst interface{}) error {
+	if cmd.err != nil {
+		return cmd.err
+	}
+
+	strct, err := hscan.Struct(dst)
+	if err != nil {
+		return err
+	}
+
+	for k, v := range cmd.val {
+		if err := strct.Scan(k, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (cmd *StringStringMapCmd) readReply(rd *proto.Reader) error {
 	_, err := rd.ReadArrayReply(func(rd *proto.Reader, n int64) (interface{}, error) {
 		cmd.val = make(map[string]string, n/2)
@@ -1399,6 +1441,103 @@ func (cmd *XPendingExtCmd) readReply(rd *proto.Reader) error {
 		return nil, nil
 	})
 	return err
+}
+
+//------------------------------------------------------------------------------
+
+type XInfoConsumersCmd struct {
+	baseCmd
+	val []XInfoConsumer
+}
+
+type XInfoConsumer struct {
+	Name    string
+	Pending int64
+	Idle    int64
+}
+
+var _ Cmder = (*XInfoGroupsCmd)(nil)
+
+func NewXInfoConsumersCmd(ctx context.Context, stream string, group string) *XInfoConsumersCmd {
+	return &XInfoConsumersCmd{
+		baseCmd: baseCmd{
+			ctx:  ctx,
+			args: []interface{}{"xinfo", "consumers", stream, group},
+		},
+	}
+}
+
+func (cmd *XInfoConsumersCmd) Val() []XInfoConsumer {
+	return cmd.val
+}
+
+func (cmd *XInfoConsumersCmd) Result() ([]XInfoConsumer, error) {
+	return cmd.val, cmd.err
+}
+
+func (cmd *XInfoConsumersCmd) String() string {
+	return cmdString(cmd, cmd.val)
+}
+
+func (cmd *XInfoConsumersCmd) readReply(rd *proto.Reader) error {
+	n, err := rd.ReadArrayLen()
+	if err != nil {
+		return err
+	}
+
+	cmd.val = make([]XInfoConsumer, n)
+
+	for i := 0; i < n; i++ {
+		cmd.val[i], err = readXConsumerInfo(rd)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func readXConsumerInfo(rd *proto.Reader) (XInfoConsumer, error) {
+	var consumer XInfoConsumer
+
+	n, err := rd.ReadArrayLen()
+	if err != nil {
+		return consumer, err
+	}
+	if n != 6 {
+		return consumer, fmt.Errorf("redis: got %d elements in XINFO CONSUMERS reply, wanted 6", n)
+	}
+
+	for i := 0; i < 3; i++ {
+		key, err := rd.ReadString()
+		if err != nil {
+			return consumer, err
+		}
+
+		val, err := rd.ReadString()
+		if err != nil {
+			return consumer, err
+		}
+
+		switch key {
+		case "name":
+			consumer.Name = val
+		case "pending":
+			consumer.Pending, err = strconv.ParseInt(val, 0, 64)
+			if err != nil {
+				return consumer, err
+			}
+		case "idle":
+			consumer.Idle, err = strconv.ParseInt(val, 0, 64)
+			if err != nil {
+				return consumer, err
+			}
+		default:
+			return consumer, fmt.Errorf("redis: unexpected content %s in XINFO CONSUMERS reply", key)
+		}
+	}
+
+	return consumer, nil
 }
 
 //------------------------------------------------------------------------------

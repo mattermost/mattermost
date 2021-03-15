@@ -33,9 +33,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/db/migrations"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -132,7 +132,7 @@ type SqlStore struct {
 	rrCounter      int64
 	srCounter      int64
 	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
+	Replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
 	stores         SqlStoreStores
 	settings       *model.SqlSettings
@@ -318,9 +318,9 @@ func (ss *SqlStore) initConnection() {
 	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.Replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
@@ -395,8 +395,8 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 		return ss.GetMaster()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
-	return ss.replicas[rrNum]
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	return ss.Replicas[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -409,7 +409,7 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.replicas {
+	for _, db := range ss.Replicas {
 		count = count + db.Db.Stats().OpenConnections
 	}
 
@@ -1008,9 +1008,9 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.replicas)+1)
-	copy(all, ss.replicas)
-	all[len(ss.replicas)] = ss.master
+	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
+	copy(all, ss.Replicas)
+	all[len(ss.Replicas)] = ss.master
 	return all
 }
 
@@ -1033,7 +1033,7 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.master.Db.Close()
-	for _, replica := range ss.replicas {
+	for _, replica := range ss.Replicas {
 		replica.Db.Close()
 	}
 
@@ -1208,6 +1208,10 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.licenseMutex.Lock()
 	defer ss.licenseMutex.Unlock()
 	ss.license = license
+}
+
+func (ss *SqlStore) GetLicense() *model.License {
+	return ss.license
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {

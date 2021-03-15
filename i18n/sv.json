@@ -653,7 +653,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout måste vara 1 sek eller mer."
+    "translation": "Elasticsearch Request Timeout måste vara minst 1 sekund."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -2141,7 +2141,7 @@
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
-    "translation": "Kunde inte ta fram aktiva användare under angiven tidsperiod."
+    "translation": "Kunde inte ta fram aktiva användare under den efterfrågade tidsperiod."
   },
   {
     "id": "app.upload.upload_data.update.app_error",
@@ -3520,18 +3520,6 @@
     "translation": "Kluster-API endpoint hittades inte."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fel vid bearbetning av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Kunde inte autentisera mot CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " bifogade en fil."
   },
@@ -4797,7 +4785,7 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Tom 'image'-tabell i begäran."
+    "translation": "Tom 'image'-tabell i förfrågan."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -5332,24 +5320,12 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} har bjudit in dig till {{ .TeamDisplayName }} som gäst"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]] som gäst."
-  },
-  {
     "id": "api.templates.invite_body.title",
-    "translation": "Du är inbjuden"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]]."
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter. Efter att du gått med i [[{{.TeamDisplayName}}]] kan du logga in och använda funktionerna när som helst via webb-adressen:"
+    "translation": "{{ .SenderName }} bjöd in dig till teamet {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Gå med i grupp"
+    "translation": "Gå med nu"
   },
   {
     "id": "api.templates.email_warning",
@@ -5585,7 +5561,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Tom 'bild'-tabell i begäran."
+    "translation": "Tom 'bild'-tabell i förfrågan."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
@@ -5669,7 +5645,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Fel vid ogiltig e-post-inbjudan."
+    "translation": "Fel vid ogiltiggörande av e-postinbjudan."
   },
   {
     "id": "api.team.import_team.unknown_import_from.app_error",
@@ -5677,7 +5653,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Felaktigt formaterat anrop: fältet filesize saknas."
+    "translation": "Felaktigt formaterad förfrågan: fältet filesize saknas."
   },
   {
     "id": "api.team.import_team.parse.app_error",
@@ -5689,7 +5665,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Felaktigt formaterat anrop. Fältet importFrom saknas."
+    "translation": "Felaktigt formaterad förfrågan. Fältet importFrom saknas."
   },
   {
     "id": "api.team.import_team.no_file.app_error",
@@ -5741,7 +5717,7 @@
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": "Misslyckades att analysera den valda filen."
+    "translation": "Misslyckades att tolka förfrågan."
   },
   {
     "id": "api.team.add_members.user_denied",
@@ -6273,7 +6249,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": "Antalet användare är inte korrekt."
+    "translation": "Antalet efterfrågade användare är inte korrekt."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -6301,7 +6277,7 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Ingen fil under 'licens' i request."
+    "translation": "Ingen fil under 'licens' i förfrågan."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
@@ -6625,15 +6601,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Du önskar återställa ditt lösenord"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Om du inte vill byta lösenord, vänligen ignorera detta mail så ändras inte ditt lösenord. Länken för byte av lösenord gäller i 24 timmar."
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "För att ändra ditt lösenord, tryck \"Återställ lösenord\" nedan."
+    "translation": "Återställ ditt lösenord"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -7318,7 +7286,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "För många echo-begäran, kan inte behandla begäran."
+    "translation": "För många echo-begäran, kan inte behandla förfrågan."
   },
   {
     "id": "api.command_echo.desc",
@@ -7534,7 +7502,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Kontakta oss-begäran"
+    "translation": "Mattermost Kontakta oss-förfrågan"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
@@ -8132,11 +8100,11 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Inga filer under 'image' i begäran."
+    "translation": "Inga filer under 'image' i förfrågan."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Tom matris för 'bild' i begäran."
+    "translation": "Tom matris för 'bild' i förfrågan."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -8172,7 +8140,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Tom matris för 'bild' i begäran."
+    "translation": "Tom matris för 'bild' i förfrågan."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -8272,11 +8240,11 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Ingen fil under förfrågan om 'certifikat'."
+    "translation": "Ingen fil under 'certifikat' i förfrågan."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ingen fil under förfrågan om 'certifikat'."
+    "translation": "Ingen fil under 'certifikat' i förfrågan."
   },
   {
     "id": "September",
@@ -8436,7 +8404,7 @@
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
-    "translation": "Anropet saknar antingen parametern AuthData eller AuthService."
+    "translation": "Förfrågan saknar antingen parametern AuthData eller AuthService."
   },
   {
     "id": "api.file.file_mod_time.app_error",
@@ -8664,6 +8632,34 @@
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
-    "translation": "Kunde inte bearbeta begäran."
+    "translation": "Kunde inte bearbeta förfrågan."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fel när systemadministratörens mejl skulle hämtas."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Ogiltig eller saknad text i förfrågan."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Lägg till appar till din arbetsyta"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-händelsen hanterades inte. Antingen saknas den eller så var den inte giltig."
   }
 ]
