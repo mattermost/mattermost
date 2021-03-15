@@ -47,6 +47,7 @@ type AppIface interface {
 	PermanentDeleteChannel(channel *model.Channel) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	DeletePost(postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)

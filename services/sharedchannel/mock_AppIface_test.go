@@ -132,6 +132,31 @@ func (_m *MockAppIface) CreateUploadSession(us *model.UploadSession) (*model.Upl
 	return r0, r1
 }
 
+// DeletePost provides a mock function with given fields: postID, deleteByID
+func (_m *MockAppIface) DeletePost(postID string, deleteByID string) (*model.Post, *model.AppError) {
+	ret := _m.Called(postID, deleteByID)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string, string) *model.Post); ok {
+		r0 = rf(postID, deleteByID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(postID, deleteByID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DeleteReactionForPost provides a mock function with given fields: reaction
 func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	ret := _m.Called(reaction)

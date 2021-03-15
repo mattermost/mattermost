@@ -42,7 +42,17 @@ func TestBroadcastMsg(t *testing.T) {
 		merr := merror.New()
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer w.WriteHeader(200)
+			defer func() {
+				w.WriteHeader(200)
+				var resp Response
+				b, errMarshall := json.Marshal(&resp)
+				if errMarshall != nil {
+					merr.Append(errMarshall)
+					return
+				}
+				w.Write(b)
+			}()
+
 			atomic.AddInt32(&countWebReq, 1)
 
 			frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)

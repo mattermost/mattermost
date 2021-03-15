@@ -36,9 +36,11 @@ var (
 	LvlRemoteClusterServiceWarn  = LogLevel{ID: 132, Name: "RemoteClusterServiceWarn"}
 
 	// used by Shared Channel Sync Service
-	LvlSharedChannelServiceDebug = LogLevel{ID: 200, Name: "SharedChannelServiceDebug"}
-	LvlSharedChannelServiceError = LogLevel{ID: 201, Name: "SharedChannelServiceError"}
-	LvlSharedChannelServiceWarn  = LogLevel{ID: 202, Name: "SharedChannelServiceWarn"}
+	LvlSharedChannelServiceDebug            = LogLevel{ID: 200, Name: "SharedChannelServiceDebug"}
+	LvlSharedChannelServiceError            = LogLevel{ID: 201, Name: "SharedChannelServiceError"}
+	LvlSharedChannelServiceWarn             = LogLevel{ID: 202, Name: "SharedChannelServiceWarn"}
+	LvlSharedChannelServiceMessagesInbound  = LogLevel{ID: 203, Name: "SharedChannelServiceMsgInbound"}
+	LvlSharedChannelServiceMessagesOutbound = LogLevel{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
 
 	// add more here ...
 )

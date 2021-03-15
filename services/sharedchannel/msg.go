@@ -78,6 +78,11 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 			postSync = nil
 		}
 
+		// Don't send a deleted post if it is just the original copy from an edit.
+		if p.DeleteAt > 0 && p.OriginalId != "" {
+			postSync = nil
+		}
+
 		// don't sync a post back to the remote it came from.
 		if p.RemoteId != nil && *p.RemoteId == rc.RemoteId {
 			postSync = nil
