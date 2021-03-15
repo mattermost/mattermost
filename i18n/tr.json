@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "İlgisiz"
+    "translation": "Konu Dışı"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
@@ -1988,11 +1988,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Lütfen aşağıya tıklayarak e-posta adresinizi doğrulayın."
+    "translation": "Bu e-posta adresi ile açılmış bir Mattermost hesabı var."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "{{ .ServerURL }} üzerine katıldınız"
+    "translation": "E-posta adresinizi doğrulayın"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2000,7 +2000,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "En iyi deneyim için Windows, Mac, iOS ve Android uygulamalarını şuradan indirebilirsiniz:"
+    "translation": "En iyi deneyim için Windows, Mac, iOS ve Android uygulamalarını indirebilirsiniz."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2008,19 +2008,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Lütfen aşağıya tıklayarak e-posta adresinizi doğrulayın."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Şuradan oturum açabilirsiniz:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost kullanarak ileti ve dosyaları bilgisayarınız ya da telefonunuz üzerinden paylaşabilir ve anında arama ve arşivleme özelliklerine sahip olabilirsiniz."
+    "translation": "Bu e-posta adresi ile açılmış bir Mattermost hesabı var."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }} üzerine katıldınız"
+    "translation": "Takıma hoş geldiniz"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -3611,32 +3603,12 @@
     "translation": "Mattermost Güvenlik Duyurusu"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama kodu doğrulanırken sorun çıktı."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Çok Aşamalı Kimlik Doğrulama kodu geçersiz."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama etkin durumu güncellenemedi."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası temizlenirken sorun çıktı."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR kodu üretilirken sorun çıktı."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Çok Aşamalı Kimlik Doğrulama parolası kaydedilirken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -7691,18 +7663,6 @@
     "translation": "En eski varlık (kullanıcı, kanal ya da ileti) veritabanından alınamadı"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "CWS isteği işlenirken sorun çıktı"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "CWS isteği yapılırken bir iç sorun çıktı"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "CWS kimliği doğrulanamadı"
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "E-posta doğrulama alanı güncellenemedi."
   },
@@ -8541,5 +8501,113 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Hiç bir e-posta gönderilemedi"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Yöneticiye kullanıcı sayısı sınırı bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost kullanıcısı çalışma alanının yükseltilmesini istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} çalışma alanııza yeni üyeler çağırmak istiyor"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Çalışma alanınız Mattermost cloud ücretsiz sürümünün kullanıcı sınırına ulaştığından, çağrı gönderilemez. Çalışma alanınıza daha fazla kullanıcının ekleyebilmek için sürümünüzü yükseltin."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatif olarak, Yönetici Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama durumu etkin olarak güncellenemedi."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Kullanıcının Çok Aşamalı Kimlik Doğrulama durumu etkin olarak güncellenemedi."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Dosya dizinleri boşaltılamadı."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Toplu dosyalar dizine eklenmek üzere alınamadı."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Son durum silinemedi. Lütfen önce bir durum eklemeyi deneyin ya da ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Özel durum özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Durumunuz “{{.EmojiName}} {{.StatusMessage}}” olarak ayarlandı. Durumunuzu, kanal içinde üste açılan durum penceresinden değiştirebilirsiniz."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "durum"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] ya da temizleyin"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Durumunuzu ayarlayın ya da temizleyin"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Durumunuz temizlendi."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Durum temizlenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Durum ayarlanırken sorun çıktı."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Bu işlemi siz yapmadıysanız bu e-postayı yok sayabilirsiniz."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Masaüstü ve mobil uygulamaları indirin"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "İndir"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Sorularınız mı var?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Bize istediğiniz zaman şu adresten e-posta gönderebilirsiniz "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Bu özellik henüz geliştirme aşamasında olduğundan yalnız işaret olarak görüntülenir."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "İstek içeriği işlenemedi."
   }
 ]

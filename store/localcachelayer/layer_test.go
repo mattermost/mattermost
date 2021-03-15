@@ -26,7 +26,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver),
+		SqlSettings: storetest.MakeSqlSettings(driver, false),
 	}
 }
 

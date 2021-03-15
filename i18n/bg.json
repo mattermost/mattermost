@@ -1256,10 +1256,6 @@
     "translation": "Многофакторното удостоверяване е забранено на този сървър."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Грешка при запазване на МФУ тайната."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Грешка при генериране на QR код."
   },
@@ -2260,18 +2256,6 @@
     "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Грешка при обработка на заявката до CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Вътрешна грешка при построяване на заявка до CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Неуспешно удостоверяване в CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикачи файл."
   },
@@ -2632,24 +2616,8 @@
     "translation": "Предоставената схема е невалидна."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Грешка при изчистване на МФУ тайната."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невалиден маркер на МФУ."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Грешка при опит за удостоверяване на МФУ маркера."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4053,19 +4021,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Можете да влезете от:"
+    "translation": "Добре дошли в екипа"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Моля, потвърдете своя адрес за ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -4073,7 +4033,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android от:"
+    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -4109,11 +4069,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
+    "translation": "Проверка на Вашия адрес за ел.поща"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Моля, потвърдете своя адрес на ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -8541,5 +8501,173 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Невалидна Origin заглавка при обновяване на websocket."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Няма успешно изпратена ел.поща"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за ограничението на потребители до администратора"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost потребителска заявка за надстройка на работното пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Тъй като работното ви пространство е достигнало потребителското ограничение за безплатната версия на Mattermost cloud, покани не могат да бъдат изпращани. Надстройте сега, за да позволите на повече потребители да се присъединят към вашето работно пространство."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Като алтернатива можете да деактивирате потребителите в Admin Console, за да отворите места за потребители и да останете под безплатния потребителски лимит."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Неуспешно изтриване на скорошното състояние. Моля, опитайте първо да добавите състояние или се свържете със системния администратор за подробности."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Функцията за персонализирано състояние е забранена. Моля, свържете се със системния администратор за подробности."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Вашето състояние зададено на “{{.EmojiName}} {{.StatusMessage}}”. Можете да промените състоянието си от индикатора на състоянието в заглавката на страничната лента на канала."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "състояние"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] или изчисти"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Задайте или изчистете състоянието си"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Състоянието Ви бе изчистено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Грешка при изчистване на състоянието."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Грешка при задаване на състоянието."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Неуспешно изчистване на файлови индекси."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Нови потребители не могат да се присъединяват към вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Някой наскоро се опита да се присъедини към Вашето работно пространство, но не успя, тъй като е достигнато ограничението за потребители в безплатната версия на Mattermost cloud. Надстройте сега, за да позволите на повече потребители да се присъединят към Вашето работно пространство."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Въпроси?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Пишете ни по всяко време на "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Тази функция е в процес на разработка и е достъпна само с помощта на флаг за функция."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Не можа да се анализира тялото на заявката."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Грешка при вземане на администраторската ел.поща."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Търсенето на файлове е деактивирано на този сървър. Моля, свържете се със системния си администратор."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Свали настолно и мобилно приложение"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Свали"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
   }
 ]

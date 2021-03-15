@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 )
 
 func TestCondenseSiteURL(t *testing.T) {
@@ -85,14 +86,87 @@ func TestSendAdminUpgradeRequestEmail(t *testing.T) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 10
 	})
 
-	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.InviteLimitation)
 	require.Nil(t, err)
 
-	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription)
-	require.Nil(t, err)
-
-	// second attempt by the same user to send emails is blocked by rate limiter
-	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	// other attempts by the same user or other users to send emails are blocked by rate limiter
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.InviteLimitation)
 	require.NotNil(t, err)
 	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription, model.InviteLimitation)
+	require.NotNil(t, err)
+	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+}
+
+func TestSendAdminUpgradeRequestEmailOnJoin(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	mockSubscription := &model.Subscription{
+		ID:         "MySubscriptionID",
+		CustomerID: "MyCustomer",
+		ProductID:  "SomeProductId",
+		AddOns:     []string{},
+		StartAt:    1000000000,
+		EndAt:      2000000000,
+		CreateAt:   1000000000,
+		Seats:      100,
+		DNS:        "some.dns.server",
+		IsPaidTier: "false",
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.CloudUserLimit = 10
+	})
+
+	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.JoinLimitation)
+	require.Nil(t, err)
+
+	// other attempts by the same user or other users to send emails are blocked by rate limiter
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.JoinLimitation)
+	require.NotNil(t, err)
+	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription, model.JoinLimitation)
+	require.NotNil(t, err)
+	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+}
+
+func TestSendInviteEmails(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.ConfigureInbucketMail()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	emailTo := "test@example.com"
+	mailservice.DeleteMailBox(emailTo)
+
+	appErr := th.App.Srv().EmailService.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+	require.Nil(t, appErr)
+
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	err2 := mailservice.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = mailservice.GetMailBox(emailTo)
+		return err
+	})
+	if err2 != nil {
+		t.Log(err2)
+		t.Log("No email was received, maybe due load on the server. Skipping this verification")
+	} else if len(resultsMailbox) > 0 {
+		require.Len(t, resultsMailbox, 1)
+		require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+		resultsEmail, err := mailservice.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+		require.NoError(t, err, "Could not get message from mailbox")
+		require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
+		require.Contains(t, resultsEmail.Body.Text, "test-user", "Wrong received message %s", resultsEmail.Body.Text)
+	}
 }

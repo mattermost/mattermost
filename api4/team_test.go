@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -2794,7 +2794,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_subject",
+	expectedSubject := i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2805,7 +2805,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	okMsg, resp = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
-	expectedSubject = utils.T("api.templates.invite_subject",
+	expectedSubject = i18n.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -2924,8 +2924,15 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
 
+	t.Run("invalid data in request body", func(t *testing.T) {
+		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
+		require.Error(t, err)
+		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := utils.T("api.templates.invite_guest_subject",
+	expectedSubject := i18n.T("api.templates.invite_guest_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})

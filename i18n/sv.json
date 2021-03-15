@@ -1040,32 +1040,12 @@
     "translation": "Flerfaktorauthentisering har avaktiverats på den här servern."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Ett fel inträffade när MFA-hemliga skulle sparas."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Kunde inte skapa QR-kod."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Ett fel inträffade vid radering av MFA-hemligheten."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ogiltigt MFA-token."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Fel vid försök att autentisera MFA-token."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -3538,18 +3518,6 @@
   {
     "id": "ent.cluster.404.app_error",
     "translation": "Kluster-API endpoint hittades inte."
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Fel vid bearbetning av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Kunde inte autentisera mot CWS"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -6537,19 +6505,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Du anslöt till {{.ServerURL}}"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Du kan logga in på:"
+    "translation": "Välkommen till teamet"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verifiera din e-postadress genom att följa länken nedan."
+    "translation": "Din mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -6557,7 +6517,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "För en bättre upplevelse kan du ladda ner program och app för PC, Mac, iOS och Android från:"
+    "translation": "För en bättre upplevelse kan du ladda ner app för PC, Mac, iOS och Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -6593,11 +6553,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Du har anslutit till {{.ServerURL}}"
+    "translation": "Verifiera din mejladress"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verifiera din e-postadress med att följa länken nedan."
+    "translation": "Denna mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -8541,5 +8501,173 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Ogiltig Origin header vid websocket-uppgraderingen."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Din status är satt till “{{.EmojiName}} {{.StatusMessage}}”. Du kan ändra din status med status-popup i överst i kanal-sidomenyn."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] eller rensa"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Sätt eller nollställ status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Din status nollställdes."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fel när status skulle nollställas."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fel då status skulle sättas."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Inbjudningar kan inte skickas eftersom ditt workspace har nått användargränsen för den kostnadsfria av Mattermost Cloud. Uppgradera nu för att tillåta fler användare att ansluta till ditt workspace."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativt kan du spärra användare i administratörskonsolen för att öppna upp plats för användare och hålla dig under gränsen för den kostnadsfria versionen."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Inga mejl blev skickade"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Det gick inte att skicka mejl till administratören om uppnådd användarnivå"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Begäran om uppgradering av workspace från Mattermost-användare"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Misslyckades att ta bort senaste status. Försök sätta status först eller kontakta systemadministratören för detaljer."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Misslyckades att rensa filindex."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Det gick inte att hämta batchen av filer att indexera."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Kunde inte få tag i filerna i batchen att indexera."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Nya användare kan inte gå med i er arbetsyta"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Någon försökte nyligen gå med i er arbetsyta men kunde inte fullfölja pga att arbetsytan har nått gränsen för den kostnadsfria versionen av Mattermost cloud. Uppgradera nu för att tillåta fler användare att gå med i er arbetsyta."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Sökning av filer är inaktiverad på denna server. Kontakta din systemadministratör."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klicka nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Ladda ner desktop och mobilapp"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Ladda ner"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Tryck nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Frågor?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Mejla oss närsomhelst på "
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Funktionen är under utveckling och är endast tillgänglig med en funktionsflagga."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Kunde inte bearbeta begäran."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fel när systemadministratörens mejl skulle hämtas."
   }
 ]
