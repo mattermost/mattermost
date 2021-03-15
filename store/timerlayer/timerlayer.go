@@ -4492,10 +4492,10 @@ func (s *TimerLayerPostStore) Delete(postID string, time int64, deleteByID strin
 	return err
 }
 
-func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.Get(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5642,10 +5642,10 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	}
 }
 
-func (s *TimerLayerSessionStore) Get(sessionIDOrToken string) (*model.Session, error) {
+func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
 	start := timemodule.Now()
 
-	result, err := s.SessionStore.Get(sessionIDOrToken)
+	result, err := s.SessionStore.Get(ctx, sessionIDOrToken)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6425,10 +6425,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetMember(teamID, userId)
+	result, err := s.TeamStore.GetMember(ctx, teamID, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7000,22 +7000,6 @@ func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool) error {
-	start := timemodule.Now()
-
-	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postID, following, incrementMentions, updateFollowing)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CreateMembershipIfNeeded", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerThreadStore) Delete(postId string) error {
 	start := timemodule.Now()
 
@@ -7158,6 +7142,22 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamId string, 
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadsForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerThreadStore) MaintainMembership(userId string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.MaintainMembership(userId, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MaintainMembership", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, teamID string) error {

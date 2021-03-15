@@ -636,6 +636,38 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id),
 		Add: []string{model.PERMISSION_READ_AUDITS.Id},
 	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsAboutRead := []string{model.PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id}
+	permissionsAboutWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id}
+
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
+		Add:    permissionsAboutRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
+		Add:    permissionsAboutWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id),
+		Add: []string{model.PERMISSION_READ_LICENSE_INFORMATION.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id),
+		Add: []string{model.PERMISSION_MANAGE_LICENSE_INFORMATION.Id},
+	})
+
 	return transformations, nil
 }
 
@@ -665,6 +697,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()
