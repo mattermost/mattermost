@@ -422,10 +422,12 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #     context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
@@ -498,10 +500,12 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #    context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
