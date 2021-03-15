@@ -1876,14 +1876,6 @@
     "translation": "Dołącz zespół"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z natychmiastową wyszukiwarką i archiwizacją. Po dołączeniu do [[{{.TeamDisplayName}}]], możesz zalogować się do swojego nowego zespołu i uzyskać dostęp do tych funkcji w dowolnym momencie za pomocą adresu internetowego:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "{{.SenderStatus}} zespołu [[{{.SenderName}}]], zaprosił Cię do dołączenia do [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Jesteś już zaproszony"
   },
@@ -1930,14 +1922,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Zresetuj hasło"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Aby zmienić hasło, kliknij \"Zresetuj hasło\" poniżej."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Jeśli nie chcesz resetować hasła, zignoruj tę wiadomość, a Twoje hasło pozostanie niezmienione. Link do resetowania hasła wygasa za 24 godziny."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5794,10 +5778,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], zaprasza Cię do dołączenia do zespołu [[{{.TeamDisplayName}}]] jako gość."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
