@@ -77,11 +77,23 @@ func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc 
 
 // sendMsg is called when a sendMsgTask is popped from the send channel.
 func (rcs *Service) sendMsg(task sendMsgTask) {
+	var errResp error
+	var response Response
+
 	// Ensure a panic from the callback does not exit the pool goroutine.
 	defer func() {
 		if r := recover(); r != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster sendMsg panic",
 				mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Any("panic", r))
+		}
+
+		if errResp != nil {
+			response.Err = errResp.Error()
+		}
+
+		// If callback provided then call it with the results.
+		if task.f != nil {
+			task.f(task.msg, task.rc, &response, errResp)
 		}
 	}()
 
@@ -97,12 +109,12 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
 		)
+		errResp = err
 		return
 	}
 	u.Path = path.Join(u.Path, SendMsgURL)
 
 	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, u.String())
-	var response Response
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
@@ -110,25 +122,20 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
 		)
-		response.Err = err.Error()
+		errResp = err
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 		)
 
-		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
+		if err = json.Unmarshal(respJSON, &response); err != nil {
 			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster",
 				mlog.String("remote", task.rc.DisplayName),
-				mlog.Err(errDecode),
+				mlog.Err(err),
 			)
-			response.Err = errDecode.Error()
+			errResp = err
 		}
-	}
-
-	// If callback provided then call it with the results.
-	if task.f != nil {
-		task.f(task.msg, task.rc, &response, err)
 	}
 }
 
