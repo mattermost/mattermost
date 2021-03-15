@@ -5,8 +5,8 @@ To use this keycloak image, we suggest you to use this configuration settings:
 - Override SAML bind data with AD/LDAP information: `false`
 - Identity Provider Metadata URL: empty string
 - SAML SSO URL: `http://localhost:8484/auth/realms/mattermost/protocol/saml`
-- Identity Provider Issuer URL: h`ttp://localhost:8065/login/sso/SAML`
-- Identity Provider Public Certificate: The file `keycloak_cert.pem` in this same directory
+- Identity Provider Issuer URL: `http://localhost:8065/login/sso/SAML`
+- Identity Provider Public Certificate: The file `keycloak_cert.crt` in this same directory
 - Verify Signature: `true`
 - Service Provider Login URL: `http://localhost:8065/login/sso/saml`
 - Enable Encryption: `false`
@@ -29,7 +29,7 @@ database configuration) and restart the server:
         "Encrypt": false,
         "SignRequest": false,
         "IdpUrl": "http://localhost:8484/auth/realms/mattermost/protocol/saml",
-        "IdpDescriptorUrl": "http://localhost:8065/login/sso/saml",
+        "IdpDescriptorUrl": "http://localhost:8484/auth/realms/mattermost",
         "IdpMetadataUrl": "",
         "AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml",
         "SignatureAlgorithm": "RSAwithSHA1",
