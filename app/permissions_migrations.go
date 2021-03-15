@@ -660,7 +660,9 @@ func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id),
 		Add: []string{model.PERMISSION_GET_LOGS.Id},
-	}
+	})
+
+	return transformations, nil
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
