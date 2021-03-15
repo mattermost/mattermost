@@ -1884,6 +1884,7 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 	query = us.getQueryBuilder().Update("ChannelMembers").
 		Set("SchemeUser", false).
+		Set("SchemeAdmin", false).
 		Set("SchemeGuest", true).
 		Where(sq.Eq{"UserId": userID})
 
@@ -1898,6 +1899,7 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 	query = us.getQueryBuilder().Update("TeamMembers").
 		Set("SchemeUser", false).
+		Set("SchemeAdmin", false).
 		Set("SchemeGuest", true).
 		Where(sq.Eq{"UserId": userID})
 
