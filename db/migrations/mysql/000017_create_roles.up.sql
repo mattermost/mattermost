@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS Roles (
    SchemeManaged tinyint(1) DEFAULT NULL,
    PRIMARY KEY (Id),
    UNIQUE KEY Name (Name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
     (
