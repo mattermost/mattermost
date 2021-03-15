@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -2861,7 +2861,7 @@ func TestResetPassword(t *testing.T) {
 	th.Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	mailservice.DeleteMailBox(user.Email)
+	mail.DeleteMailBox(user.Email)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		success, resp := client.SendPasswordResetEmail(user.Email)
 		CheckNoError(t, resp)
@@ -2874,10 +2874,10 @@ func TestResetPassword(t *testing.T) {
 		require.True(t, success, "should succeed")
 	})
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	err := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(user.Email)
+		resultsMailbox, err = mail.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -2887,7 +2887,7 @@ func TestResetPassword(t *testing.T) {
 	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		require.Contains(t, resultsMailbox[0].To[0], user.Email, "Correct To recipient")
-		resultsEmail, mailErr := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
+		resultsEmail, mailErr := mail.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
 		require.NoError(t, mailErr)
 		loc := strings.Index(resultsEmail.Body.Text, "token=")
 		require.NotEqual(t, -1, loc, "Code should be found in email")
@@ -4911,12 +4911,30 @@ func TestLoginLockout(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.DemoteUserToGuest(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.PromoteGuestToUser(user, ""))
+	}, "demote a user to guest")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4937,17 +4955,11 @@ func TestDemoteUserToGuest(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.PromoteGuestToUser(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
@@ -4963,13 +4975,31 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+	th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.PromoteGuestToUser(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.DemoteUserToGuest(user))
+	}, "promete a guest to user")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4990,17 +5020,11 @@ func TestPromoteGuestToUser(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.DemoteUserToGuest(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
