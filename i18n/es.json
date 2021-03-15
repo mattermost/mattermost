@@ -1871,14 +1871,6 @@
     "translation": "Unirme al Equipo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo búsquedas instantáneas. Una vez que te hayas unido a [[{{.TeamDisplayName}}]], Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Has sido invitado por {{.SenderStatus}} [[{{.SenderName}}]] a unirte al equipo [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Haz sido invitado"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Restablecer Contraseña"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Para cambiar tu contraseña, haz clic en \"Reiniciar Contraseña\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Si no quisiste realizar un cambio de contraseña, por favor ignora este correo y tu contraseña permanecerá igual. Este enlace para reiniciar la contraseña expirará en 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -5747,10 +5731,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ha invitado a unirte al equipo [[{{.TeamDisplayName}}]] como huésped."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Actualización del miembro de equipo invalido: Un usuario debe ser un huésped o un usuario pero no los dos."
   },
@@ -7389,18 +7369,6 @@
   {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Petición de tramitación del error a CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Error interno marshaling petición a CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Incapaz de autenticar a CWS"
   },
   {
     "id": "api.cloud.request_error",

@@ -318,8 +318,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_REPORTING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_REPORTING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_GET_LOGS) {
+		c.SetPermissionError(model.PERMISSION_GET_LOGS)
 		return
 	}
 
@@ -381,12 +381,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		name = "standard"
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_SYSCONSOLE_READ_REPORTING,
-		model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_GET_ANALYTICS) {
+		c.SetPermissionError(model.PERMISSION_GET_ANALYTICS)
 		return
 	}
 

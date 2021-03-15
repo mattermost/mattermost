@@ -300,6 +300,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
+	RestrictLinkPreviews                              *string  `access:"site"`
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -332,29 +333,29 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // Deprecated: do not use
 	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental,write_restrictable,cloud_restrictable"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool    `access:"write_restrictable"`
 	MinimumHashtagLength                              *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableUserTypingMessages                          *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
-	EnableChannelViewedMessages                       *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
+	EnableUserTypingMessages                          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableChannelViewedMessages                       *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableUserStatuses                                *bool    `access:"write_restrictable,cloud_restrictable"`
-	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
+	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	ClusterLogTimeoutMilliseconds                     *int     `access:"write_restrictable,cloud_restrictable"`
-	CloseUnusedDirectMessages                         *bool    `access:"experimental"`
-	EnablePreviewFeatures                             *bool    `access:"experimental"`
-	EnableTutorial                                    *bool    `access:"experimental"`
-	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
-	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
-	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
+	CloseUnusedDirectMessages                         *bool    `access:"experimental_features"`
+	EnablePreviewFeatures                             *bool    `access:"experimental_features"`
+	EnableTutorial                                    *bool    `access:"experimental_features"`
+	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental_features"`
+	ExperimentalGroupUnreadChannels                   *string  `access:"experimental_features"`
+	ExperimentalChannelOrganization                   *bool    `access:"experimental_features"`
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // Deprecated: do not use
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
-	ExperimentalEnableHardenedMode                    *bool `access:"experimental"`
+	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	DisableLegacyMFA                                  *bool `access:"write_restrictable,cloud_restrictable"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,write_restrictable,cloud_restrictable"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,write_restrictable,cloud_restrictable"`
 	EnableBotAccountCreation                          *bool `access:"integrations"`
@@ -367,10 +368,10 @@ type ServiceSettings struct {
 	SplitKey                                          *string `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
-	ThreadAutoFollow                                  *bool   `access:"experimental"`
-	CollapsedThreads                                  *string `access:"experimental"`
+	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
+	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableLegacySidebar                               *bool   `access:"experimental"`
+	EnableLegacySidebar                               *bool   `access:"experimental_features"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -405,6 +406,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.RestrictLinkPreviews == nil {
+		s.RestrictLinkPreviews = NewString("")
 	}
 
 	if s.EnableTesting == nil {
@@ -920,15 +925,15 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental,cloud_restrictable"`
-	EnableClickToReply              *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental"`
+	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
+	EnableClickToReply              *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
+	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental_features,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels            *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1230,14 +1235,14 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int    `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int    `access:"experimental,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"experimental,write_restrictable,cloud_restrictable"`
+	FileEnabled           *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName              *string `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB         *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize      *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string `access:"experimental_features,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1495,7 +1500,7 @@ type EmailSettings struct {
 	EnableSignInWithEmail             *bool   `access:"authentication"`
 	EnableSignInWithUsername          *bool   `access:"authentication"`
 	SendEmailNotifications            *bool   `access:"site"`
-	UseChannelInEmailNotifications    *bool   `access:"experimental"`
+	UseChannelInEmailNotifications    *bool   `access:"experimental_features"`
 	RequireEmailVerification          *bool   `access:"authentication"`
 	FeedbackName                      *string `access:"site"`
 	FeedbackEmail                     *string `access:"site,cloud_restrictable"`
@@ -1513,14 +1518,14 @@ type EmailSettings struct {
 	PushNotificationContents          *string `access:"site"`
 	PushNotificationBuffer            *int    // telemetry: none
 	EnableEmailBatching               *bool   `access:"site"`
-	EmailBatchingBufferSize           *int    `access:"experimental"`
-	EmailBatchingInterval             *int    `access:"experimental"`
+	EmailBatchingBufferSize           *int    `access:"experimental_features"`
+	EmailBatchingInterval             *int    `access:"experimental_features"`
 	EnablePreviewModeBanner           *bool   `access:"site"`
 	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EmailNotificationContentsType     *string `access:"site"`
-	LoginButtonColor                  *string `access:"experimental"`
-	LoginButtonBorderColor            *string `access:"experimental"`
-	LoginButtonTextColor              *string `access:"experimental"`
+	LoginButtonColor                  *string `access:"experimental_features"`
+	LoginButtonBorderColor            *string `access:"experimental_features"`
+	LoginButtonTextColor              *string `access:"experimental_features"`
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -1840,9 +1845,9 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"experimental"`
-	DefaultTheme         *string `access:"experimental"`
-	AllowCustomThemes    *bool   `access:"experimental"`
+	EnableThemeSelection *bool   `access:"experimental_features"`
+	DefaultTheme         *string `access:"experimental_features"`
+	AllowCustomThemes    *bool   `access:"experimental_features"`
 	AllowedThemes        []string
 }
 
@@ -1870,7 +1875,7 @@ type TeamSettings struct {
 	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // Deprecated: do not use
 	EnableUserCreation                                        *bool    `access:"authentication"`
 	EnableOpenServer                                          *bool    `access:"authentication"`
-	EnableUserDeactivation                                    *bool    `access:"experimental"`
+	EnableUserDeactivation                                    *bool    `access:"experimental_features"`
 	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: none
 	EnableCustomUserStatuses                                  *bool    `access:"site"`
 	EnableCustomBrand                                         *bool    `access:"site"`
@@ -1885,19 +1890,19 @@ type TeamSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // Deprecated: do not use
-	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental"`
-	UserStatusAwayTimeout                                     *int64   `access:"experimental"`
+	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental_features"`
+	UserStatusAwayTimeout                                     *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                                        *int64   `access:"site"`
 	MaxNotificationsPerChannel                                *int64   `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel                       *bool    `access:"site"`
 	TeammateNameDisplay                                       *string  `access:"site"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental,site"`
-	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental"`
-	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental"`
-	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental"`
+	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site"`
+	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental_features"`
+	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental_features"`
+	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay                                   *bool    `access:"site"`
-	ExperimentalPrimaryTeam                                   *string  `access:"experimental"`
-	ExperimentalDefaultChannels                               []string `access:"experimental"`
+	ExperimentalPrimaryTeam                                   *string  `access:"experimental_features"`
+	ExperimentalDefaultChannels                               []string `access:"experimental_features"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -2107,9 +2112,9 @@ type LdapSettings struct {
 	// Customization
 	LoginFieldName *string `access:"authentication"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"experimental_features"`
+	LoginButtonBorderColor *string `access:"experimental_features"`
+	LoginButtonTextColor   *string `access:"experimental_features"`
 
 	Trace *bool `access:"authentication"` // telemetry: none
 }
@@ -2341,9 +2346,9 @@ type SamlSettings struct {
 
 	LoginButtonText *string `access:"authentication"`
 
-	LoginButtonColor       *string `access:"authentication"`
-	LoginButtonBorderColor *string `access:"authentication"`
-	LoginButtonTextColor   *string `access:"authentication"`
+	LoginButtonColor       *string `access:"experimental_features"`
+	LoginButtonBorderColor *string `access:"experimental_features"`
+	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -2622,11 +2627,11 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	IndexDir                      *string `access:"experimental"` // telemetry: none
-	EnableIndexing                *bool   `access:"experimental"`
-	EnableSearching               *bool   `access:"experimental"`
-	EnableAutocomplete            *bool   `access:"experimental"`
-	BulkIndexingTimeWindowSeconds *int    `access:"experimental"`
+	IndexDir                      *string `access:"experimental_bleve"` // telemetry: none
+	EnableIndexing                *bool   `access:"experimental_bleve"`
+	EnableSearching               *bool   `access:"experimental_bleve"`
+	EnableAutocomplete            *bool   `access:"experimental_bleve"`
+	BulkIndexingTimeWindowSeconds *int    `access:"experimental_bleve"`
 }
 
 func (bs *BleveSettings) SetDefaults() {
@@ -2871,7 +2876,7 @@ func (s *MessageExportSettings) SetDefaults() {
 
 type DisplaySettings struct {
 	CustomUrlSchemes     []string `access:"site"`
-	ExperimentalTimezone *bool    `access:"experimental"`
+	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
