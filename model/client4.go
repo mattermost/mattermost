@@ -6024,8 +6024,22 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) GetRemoteClusterInfo(remoteId string) (RemoteClusterInfo, *Response) {
-	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteId)
+func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response) {
+	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.GetSharedChannelsRoute(), teamID, page, perPage)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var channels []*SharedChannel
+	json.NewDecoder(r.Body).Decode(&channels)
+
+	return channels, BuildResponse(r)
+}
+
+func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Response) {
+	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteID)
 	r, appErr := c.DoApiGet(url, "")
 	if appErr != nil {
 		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)

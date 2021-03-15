@@ -57,8 +57,12 @@ func (a *App) HasSharedChannel(channelID string) (bool, error) {
 	return a.Srv().Store.SharedChannel().HasChannel(channelID)
 }
 
-func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
-	return a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
+func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, *model.AppError) {
+	channels, err := a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
+	if err != nil {
+		return nil, model.NewAppError("GetSharedChannels", "app.channel.get_channels.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return channels, nil
 }
 
 func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64, error) {
