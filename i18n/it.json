@@ -4179,11 +4179,11 @@
     "translation": "Il periodo di tempo tra gli aggiornamenti scrittura utente non dovrebbe essere settato a meno di 1000 millisecondi."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "File certificato TLS non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di certificato esistente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "File chiave TLV non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di chiave esistente."
   },
   {
