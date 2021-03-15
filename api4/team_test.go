@@ -17,8 +17,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -2750,8 +2750,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	emailList := []string{user1, user2}
 
 	//Delete all the messages before check the sample email
-	mailservice.DeleteMailBox(user1)
-	mailservice.DeleteMailBox(user2)
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
 
 	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
 	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
@@ -2769,10 +2769,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 	checkEmail := func(t *testing.T, expectedSubject string) {
 		//Check if the email was sent to the right email address
 		for _, email := range emailList {
-			var resultsMailbox mailservice.JSONMessageHeaderInbucket
-			err := mailservice.RetryInbucket(5, func() error {
+			var resultsMailbox mail.JSONMessageHeaderInbucket
+			err := mail.RetryInbucket(5, func() error {
 				var err error
-				resultsMailbox, err = mailservice.GetMailBox(email)
+				resultsMailbox, err = mail.GetMailBox(email)
 				return err
 			})
 			if err != nil {
@@ -2781,7 +2781,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 			}
 			if err == nil && len(resultsMailbox) > 0 {
 				require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
-				resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
+				resultsEmail, err := mail.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
 				if err == nil {
 					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
 				}
@@ -2800,8 +2800,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
 
-	mailservice.DeleteMailBox(user1)
-	mailservice.DeleteMailBox(user2)
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
 	okMsg, resp = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
@@ -2883,8 +2883,8 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	emailList := []string{guest1, guest2}
 
 	//Delete all the messages before check the sample email
-	mailservice.DeleteMailBox(guest1)
-	mailservice.DeleteMailBox(guest2)
+	mail.DeleteMailBox(guest1)
+	mail.DeleteMailBox(guest2)
 
 	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
 	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
@@ -2939,10 +2939,10 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	//Check if the email was send to the right email address
 	for _, email := range emailList {
-		var resultsMailbox mailservice.JSONMessageHeaderInbucket
-		err := mailservice.RetryInbucket(5, func() error {
+		var resultsMailbox mail.JSONMessageHeaderInbucket
+		err := mail.RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = mailservice.GetMailBox(email)
+			resultsMailbox, err = mail.GetMailBox(email)
 			return err
 		})
 		if err != nil {
@@ -2951,7 +2951,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		}
 		if err == nil && len(resultsMailbox) > 0 {
 			require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
-			resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
+			resultsEmail, err := mail.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
 			if err == nil {
 				require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
 			}

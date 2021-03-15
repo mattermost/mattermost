@@ -48,7 +48,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
@@ -57,6 +56,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -517,7 +517,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	mailConfig := s.MailServiceConfig()
 
-	if nErr := mailservice.TestConnection(mailConfig); nErr != nil {
+	if nErr := mail.TestConnection(mailConfig); nErr != nil {
 		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
