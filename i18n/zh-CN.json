@@ -1866,16 +1866,8 @@
     "translation": "加入团队"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 允许您通过电脑、电话分享消息和文件，即时查找和归档。当你加入[[{{.TeamDisplayName}}]]后，你可以登录到你的新团队并在任何时候从网络地址访问这些功能："
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "团队 {{.SenderStatus}} [[{{.SenderName}}]] 邀请您加入 [[{{.TeamDisplayName}}]]。"
-  },
-  {
     "id": "api.templates.invite_body.title",
-    "translation": "您已经被邀请"
+    "translation": "{{ .SenderName }}邀请加入{{ .TeamDisplayName }}团队。"
   },
   {
     "id": "api.templates.invite_subject",
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "重设密码"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "如想更改您的密码，点击以下 \"重置密码\"。"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "如果您不想重置密码，请无视此邮件并且您的密码会不会更改。重置密码链接将在 24 小时后失效。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1995,7 +1979,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用："
+    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用。"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -5894,10 +5878,6 @@
     "translation": "访客帐号已停用"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]]，邀请您以访客加入团队 [[{{.TeamDisplayName}}]]。"
-  },
-  {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost 企业许可证已停用。"
   },
@@ -7630,10 +7610,6 @@
     "translation": "获取频道成员失败。"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "处理对 CWS 的请求时出错"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
     "translation": "Mattermost 与我们联系的请求。我有兴趣了解有关试用团队方案实现高级权限的更多信息。\n"
   },
@@ -7734,10 +7710,6 @@
     "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）"
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "无法与 CWS 进行身份验证"
-  },
-  {
     "id": "app.upload.upload_data.read_file.app_error",
     "translation": "读取文件失败。"
   },
@@ -7800,10 +7772,6 @@
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
     "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "封送 CWS 的请求出现内部错误"
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8584,5 +8552,33 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "设定状态错误。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "无效或缺少请求正文。"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "获取云订阅时出错"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "此功能正在开发中，仅可通过功能标志使用。"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "无法解析请求内容。"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "获取云订阅时出错。"
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "获取系统管理员电子邮件时出错。"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook 事件未处理。它丢失或无效。"
   }
 ]

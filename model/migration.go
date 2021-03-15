@@ -27,5 +27,6 @@ const (
 	MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS      = "manage_remote_clusters_permissions"
 	MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS      = "download_compliance_export_results"
 	MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS     = "experimental_subsection_permissions"
+	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
 	MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS     = "integrations_subsection_permissions"
 )
