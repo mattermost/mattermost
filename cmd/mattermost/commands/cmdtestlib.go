@@ -38,7 +38,7 @@ type testHelper struct {
 
 // Setup creates an instance of testHelper.
 func Setup(t testing.TB) *testHelper {
-	dir, err := ioutil.TempDir("", "testHelper")
+	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
@@ -60,7 +60,7 @@ func Setup(t testing.TB) *testHelper {
 
 // Setup creates an instance of testHelper.
 func SetupWithStoreMock(t testing.TB) *testHelper {
-	dir, err := ioutil.TempDir("", "testHelper")
+	dir, err := testlib.SetupTestResources()
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}

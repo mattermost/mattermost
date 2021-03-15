@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS Reactions (
     EmojiName varchar(64) NOT NULL,
     CreateAt bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET @preparedStatement = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
@@ -33,7 +34,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
-
 
 CREATE PROCEDURE AlterPrimaryKey()
 BEGIN
