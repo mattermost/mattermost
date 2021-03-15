@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS OutgoingWebhooks (
     CallbackURLs text,
     DisplayName varchar(64) DEFAULT NULL,
     PRIMARY KEY(Id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
     (

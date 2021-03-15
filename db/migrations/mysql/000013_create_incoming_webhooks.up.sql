@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS IncomingWebhooks (
     Description varchar(128) DEFAULT NULL,
     Username varchar(64) DEFAULT NULL,
     PRIMARY KEY(Id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
     (
