@@ -671,6 +671,49 @@ func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsReportingRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id,
+	}
+	permissionsReportingWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
+		Add:    permissionsReportingRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
+		Add:    permissionsReportingWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id), permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id)),
+		Add: []string{model.PERMISSION_GET_ANALYTICS.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_LOGS to anyone with PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id),
+		Add: []string{model.PERMISSION_GET_LOGS.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -698,6 +741,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()
