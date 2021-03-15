@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5320
+	CurrentSchemaVersion   = Version5330
+	Version5340            = "5.34.0"
+	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
@@ -1054,4 +1056,16 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	}
 
 	return false
+}
+
+func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5320, Version5330) {
+		saveSchemaVersion(sqlStore, Version5330)
+	}
+}
+
+func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	// 	saveSchemaVersion(sqlStore, Version5340)
+	// }
 }
