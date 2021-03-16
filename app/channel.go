@@ -1886,6 +1886,17 @@ func (a *App) GetChannelCounts(teamID string, userID string) (*model.ChannelCoun
 
 func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, *model.AppError) {
 	channelUnread, err := a.Srv().Store.Channel().GetChannelUnread(channelID, userID)
+	if err == nil {
+		// if we don't have MentionCountRoot yet, calculate it now and retry
+		if channelUnread.MentionCountRoot == nil {
+			if err = a.populateMentionCountRoot(channelUnread.TeamId, userID); err != nil {
+				return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			// retry
+			channelUnread, err = a.Srv().Store.Channel().GetChannelUnread(channelID, userID)
+		}
+
+	}
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1898,15 +1909,6 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
 		channelUnread.MsgCount = 0
-	}
-	// if we don't have MentionCountRoot yet, calculate it now and retry
-	if channelUnread.MentionCountRoot == nil {
-		err := a.populateMentionCountRoot(channelUnread.TeamId, userID)
-		if err != nil {
-			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		// retry
-		return a.GetChannelUnread(channelID, userID)
 	}
 	return channelUnread, nil
 }
