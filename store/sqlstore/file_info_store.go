@@ -81,6 +81,9 @@ func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 	fs.CreateIndexIfNotExists("idx_fileinfo_extension_at", "FileInfo", "Extension")
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_name_txt", "FileInfo", "Name")
+	if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		fs.CreateFullTextFuncIndexIfNotExists("idx_fileinfo_name_splitted", "FileInfo", "Translate(Name, '.,-', '   ')")
+	}
 	fs.CreateFullTextIndexIfNotExists("idx_fileinfo_content_txt", "FileInfo", "Content")
 }
 
@@ -98,11 +101,12 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
-		Select("*").
-		From("FileInfo").
-		Where(sq.Eq{"Id": ids}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		OrderBy("CreateAt DESC")
+		Select("FI.*, P.ChannelId").
+		From("FileInfo as FI").
+		LeftJoin("Posts as P ON FI.PostId=P.Id").
+		Where(sq.Eq{"FI.Id": ids}).
+		Where(sq.Eq{"FI.DeleteAt": 0}).
+		OrderBy("FI.CreateAt DESC")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -432,7 +436,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		return nil, err
 	}
 	query := fs.getQueryBuilder().
-		Select("FI.*").
+		Select("FI.*, P.ChannelId as ChannelId").
 		From("FileInfo AS FI").
 		LeftJoin("Posts as P ON FI.PostId=P.Id").
 		LeftJoin("Channels as C ON C.Id=P.ChannelId").
@@ -540,6 +544,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			query = query.Where(sq.Or{
 				sq.Expr("to_tsvector('english', FI.Name) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr("to_tsvector('english', Translate(FI.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
 				sq.Expr("to_tsvector('english', FI.Content) @@  to_tsquery('english', ?)", queryTerms),
 			})
 		} else if fs.DriverName() == model.DATABASE_DRIVER_MYSQL {

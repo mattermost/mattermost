@@ -99,6 +99,7 @@ type User struct {
 	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool      `db:"-" json:"disable_welcome_email"`
 }
 
 //msgp UserMap

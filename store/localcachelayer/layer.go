@@ -289,10 +289,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		return
 	}
 	localCacheStore.user = &LocalCacheUserStore{
-		UserStore:                      baseStore.User(),
-		rootStore:                      &localCacheStore,
-		userProfileByIdsInvalidations:  make(map[string]bool),
-		profilesInChannelInvalidations: make(map[string]bool),
+		UserStore:                     baseStore.User(),
+		rootStore:                     &localCacheStore,
+		userProfileByIdsInvalidations: make(map[string]bool),
 	}
 
 	// Teams
