@@ -192,7 +192,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userId string) (int, error)
+	CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error)
 	IncrementMentionCount(channelID string, userId string, updateThreads bool) error
 	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
 	GetMembersForUser(teamID string, userId string) (*model.ChannelMembers, error)

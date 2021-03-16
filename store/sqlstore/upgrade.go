@@ -977,6 +977,25 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MsgCountRoot", "bigint", "bigint")
+
+	updateChannelsQuery := "WITH q AS (select channels.id channelid, COALESCE(count(case when posts.rootid = '' then 1 end),0) totalmsgcountroot from channels left join posts on channels.id = posts.channelid group by channels.id) UPDATE channels SET totalmsgcountroot  = q.totalmsgcountroot FROM q where q.channelid=channels.id"
+	updateChannelMembersQuery := "WITH q AS (SELECT channelmembers.channelid, COALESCE(COUNT(CASE WHEN posts.rootid = '' AND posts.updateat < channelmembers.lastviewedat THEN 1 END),0) newcount FROM channelmembers LEFT JOIN posts ON channelmembers.channelid = posts.channelid GROUP BY channelmembers.channelid) UPDATE channelmembers SET msgcountroot = q.newcount FROM q WHERE q.channelid=channelmembers.channelid ;"
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateChannelsQuery = "UPDATE Channels INNER JOIN (SELECT Channels.id channelid, COALESCE(COUNT(CASE WHEN Posts.rootid = '' THEN 1 END),0) newcount FROM Channels LEFT JOIN Posts ON Channels.id = Posts.channelid GROUP BY Channels.id) AS q ON q.channelid=Channels.id SET totalmsgcountroot = q.newcount"
+		updateChannelMembersQuery = "UPDATE ChannelMembers INNER JOIN (SELECT ChannelMembers.channelid, COALESCE(COUNT(CASE WHEN Posts.rootid = '' AND Posts.updateat < ChannelMembers.lastviewedat THEN 1 END),0) newcount FROM ChannelMembers LEFT JOIN Posts ON ChannelMembers.channelid = Posts.channelid GROUP BY ChannelMembers.channelid) AS q ON q.channelid=ChannelMembers.channelid SET msgcountroot = q.newcount"
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelsQuery); err != nil {
+		mlog.Error("Error updating TotalMsgCountRoot in Channels table", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelMembersQuery); err != nil {
+		mlog.Error("Error updating MsgCountRoot in ChannelMembers table", mlog.Err(err))
+	}
+
+	// if _, err := sqlStore.GetMaster().Exec(query); err != nil {
+	// 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	// 	}
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }

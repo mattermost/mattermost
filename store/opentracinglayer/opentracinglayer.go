@@ -625,7 +625,7 @@ func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userId string, te
 	return err
 }
 
-func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, error) {
+func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CountPostsAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -634,13 +634,13 @@ func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timesta
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
+	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {

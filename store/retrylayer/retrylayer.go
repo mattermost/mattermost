@@ -664,21 +664,21 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamID s
 
 }
 
-func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, error) {
+func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
+		result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
