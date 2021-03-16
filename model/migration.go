@@ -28,6 +28,7 @@ const (
 	MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS      = "download_compliance_export_results"
 	MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS       = "compliance_subsection_permissions"
 	MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS     = "experimental_subsection_permissions"
+	MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS      = "environment_subsection_permissions"
 	MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS        = "reporting_subsection_permissions"
 	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
 )
