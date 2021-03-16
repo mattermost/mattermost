@@ -6344,9 +6344,9 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	_, execerr = s.GetMaster().ExecNoTimeout(`
 		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId)
+		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
 		VALUES
-		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId);
+		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, 0);
 	`, map[string]interface{}{
 		"Id":            o3.Id,
 		"CreateAt":      o3.CreateAt,
