@@ -1387,7 +1387,7 @@ func (rr *RFC3597) parse(c *zlexer, o string) *ParseError {
 
 	c.Next() // zBlank
 	l, _ = c.Next()
-	rdlength, e := strconv.Atoi(l.token)
+	rdlength, e := strconv.ParseUint(l.token, 10, 16)
 	if e != nil || l.err {
 		return &ParseError{"", "bad RFC3597 Rdata ", l}
 	}
@@ -1396,7 +1396,7 @@ func (rr *RFC3597) parse(c *zlexer, o string) *ParseError {
 	if e1 != nil {
 		return e1
 	}
-	if rdlength*2 != len(s) {
+	if int(rdlength)*2 != len(s) {
 		return &ParseError{"", "bad RFC3597 Rdata", l}
 	}
 	rr.Rdata = s
