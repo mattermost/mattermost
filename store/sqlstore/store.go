@@ -43,6 +43,7 @@ type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
+	IndexTypeFullTextFunc  = "full_text_func"
 	IndexTypeDefault       = "default"
 	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
 	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
@@ -875,6 +876,10 @@ func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName s
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
+func (ss *SqlStore) CreateFullTextFuncIndexIfNotExists(indexName string, tableName string, function string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, []string{function}, IndexTypeFullTextFunc, false)
+}
+
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
@@ -898,6 +903,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		} else if indexType == IndexTypeFullTextFunc {
+			if len(columnNames) != 1 {
+				mlog.Critical("Unable to create multi column full text index")
+				os.Exit(ExitCreateIndexPostgres)
+			}
+			columnName := columnNames[0]
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
