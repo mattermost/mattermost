@@ -105,6 +105,8 @@ func (s *Store) GetCurrentSchemaVersion() string       { return "" }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
+func (s *Store) ReplicaLagAbs()  {}
+func (s *Store) ReplicaLagTime() {}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
