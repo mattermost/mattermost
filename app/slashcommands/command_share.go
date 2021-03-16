@@ -273,6 +273,12 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		}()
 	}
 
+	// don't allow invitation to shared channel originating from remote.
+	// (also blocks cyclic invitations)
+	if err := a.CheckCanInviteToSharedChannel(args.ChannelId); err != nil {
+		return responsef(args.T("api.command_share.channel_invite_not_home.error"))
+	}
+
 	rc, appErr := a.GetRemoteCluster(remoteId)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]interface{}{"Error": appErr.Error()}))
