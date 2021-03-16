@@ -1455,14 +1455,6 @@
     "translation": "Cannot unshare this channel: {{.Error}}."
   },
   {
-    "id": "api.command_share.sync.help",
-    "translation": "Forces a sync with remote instances this shared channel"
-  },
-  {
-    "id": "api.command_share.sync_initiated",
-    "translation": "Sync initiated."
-  },
-  {
     "id": "api.command_share.uninvite_remote.help",
     "translation": "Uninvites a remote instance from this shared channel"
   },
