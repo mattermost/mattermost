@@ -26,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
@@ -39,7 +40,7 @@ func TestStartServerSuccess(t *testing.T) {
 	serverErr := s.Start()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -59,7 +60,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	} else {
 		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
 	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
 	if dsn != "" {
 		cfg.SqlSettings.DataSource = &dsn
 	}
@@ -138,6 +139,46 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	require.Error(t, serverErr)
 }
 
+func TestStartServerNoS3Bucket(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	s, err := NewServer(func(server *Server) error {
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		server.configStore = store
+		server.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings = model.FileSettings{
+				DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
+				AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+				AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+				AmazonS3Bucket:          model.NewString("nosuchbucket"),
+				AmazonS3Endpoint:        model.NewString(s3Endpoint),
+				AmazonS3Region:          model.NewString(""),
+				AmazonS3PathPrefix:      model.NewString(""),
+				AmazonS3SSL:             model.NewBool(false),
+			}
+		})
+		return nil
+	})
+	require.NoError(t, err)
+
+	// ensure that a new bucket was created
+	backend, err := s.FileBackend()
+	require.Nil(t, err)
+	err = backend.(*filestore.S3FileBackend).TestConnection()
+	require.Nil(t, err)
+}
+
 func TestStartServerTLSSuccess(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
@@ -156,7 +197,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -362,7 +403,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -374,7 +415,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -412,7 +453,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.Error(t, err, "Expected error due to Cipher mismatch")
 	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -429,7 +470,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -439,7 +480,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
-func checkEndpoint(t *testing.T, client *http.Client, url string, expectedStatus int) error {
+func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 	res, err := client.Get(url)
 
 	if err != nil {
@@ -448,8 +489,8 @@ func checkEndpoint(t *testing.T, client *http.Client, url string, expectedStatus
 
 	defer res.Body.Close()
 
-	if res.StatusCode != expectedStatus {
-		t.Errorf("Response code was %d; want %d", res.StatusCode, expectedStatus)
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("Response code was %d; want %d", res.StatusCode, http.StatusNotFound)
 	}
 
 	return nil
