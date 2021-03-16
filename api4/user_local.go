@@ -28,6 +28,8 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/password", api.ApiLocal(updatePassword)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiLocal(convertUserToBot)).Methods("POST")
 	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiLocal(verifyUserEmailWithoutToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/promote", api.ApiLocal(promoteGuestToUser)).Methods("POST")
+	api.BaseRoutes.User.Handle("/demote", api.ApiLocal(demoteUserToGuest)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiLocal(localGetUserByUsername)).Methods("GET")
 	api.BaseRoutes.UserByEmail.Handle("", api.ApiLocal(localGetUserByEmail)).Methods("GET")
