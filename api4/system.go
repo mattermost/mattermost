@@ -245,8 +245,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_AUDITS) {
+		c.SetPermissionError(model.PERMISSION_READ_AUDITS)
 		return
 	}
 

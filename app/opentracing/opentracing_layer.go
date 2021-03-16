@@ -6196,6 +6196,50 @@ func (a *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPag
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypes")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetJobsByTypes(jobTypes, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypesPage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetJobsByTypesPage(jobType, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsPage")
@@ -13680,7 +13724,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Sess
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadJob")
 
@@ -13692,7 +13736,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToReadJob(session model.Sessio
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SessionHasPermissionToReadJob(session, job)
+	resultVar0, resultVar1 := a.app.SessionHasPermissionToReadJob(session, jobType)
 
 	return resultVar0, resultVar1
 }
