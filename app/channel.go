@@ -3032,16 +3032,3 @@ func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *mod
 
 	return channel, nil
 }
-
-func (a *App) populateMsgCountRoot(userID string) error {
-	return nil
-	// 	s := `WITH q AS (
-	// 			SELECT channelmembers.channelid, COALESCE(COUNT(CASE WHEN posts.rootid = '' THEN 1 END),0) newcount
-	// 			FROM channelmembers
-	// 			LEFT JOIN posts ON channelmembers.channelid = posts.channelid AND posts.updateat > :updateAt
-	// 			WHERE channelmembers.userid='apdeondk3fnmzg4tjhncfc36we'
-	// GROUP BY channelmembers.channelid)
-	// UPDATE channelmembers SET msgcountroot = query1.newcount
-	// FROM query1
-	// WHERE query1.channelid=channelmembers.channelid`
-}
