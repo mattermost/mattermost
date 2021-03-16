@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	filesStoreMocks "github.com/mattermost/mattermost-server/v5/services/filesstore/mocks"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost-server/v5/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 

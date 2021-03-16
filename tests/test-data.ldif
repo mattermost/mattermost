@@ -129,6 +129,22 @@ cn: Board3
 mail: success+boardthree@simulator.amazonses.com
 userPassword: Password1
 
+dn: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: FirstLogin1
+mail: success+firstloginuser.one@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: FirstLogin2
+mail: success+firstloginuser.two@simulator.amazonses.com
+userPassword: Password1
+
 dn: ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: organizationalunit
@@ -210,3 +226,9 @@ objectclass: groupOfUniqueNames
 uniqueMember: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one,ou=testgroups,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-two,ou=testgroups,dc=mm,dc=test,dc=com
+
+dn: cn=firstlogingroup,ou=testgroups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=firstloginuser.one,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: uid=firstloginuser.two,ou=testusers,dc=mm,dc=test,dc=com
