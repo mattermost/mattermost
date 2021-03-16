@@ -6260,7 +6260,7 @@
   },
   {
     "id": "ent.cloud.subscription.error",
-    "translation": ""
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",
