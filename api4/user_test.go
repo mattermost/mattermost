@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -2861,7 +2861,7 @@ func TestResetPassword(t *testing.T) {
 	th.Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	mailservice.DeleteMailBox(user.Email)
+	mail.DeleteMailBox(user.Email)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		success, resp := client.SendPasswordResetEmail(user.Email)
 		CheckNoError(t, resp)
@@ -2874,10 +2874,10 @@ func TestResetPassword(t *testing.T) {
 		require.True(t, success, "should succeed")
 	})
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	err := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(user.Email)
+		resultsMailbox, err = mail.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -2887,7 +2887,7 @@ func TestResetPassword(t *testing.T) {
 	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		require.Contains(t, resultsMailbox[0].To[0], user.Email, "Correct To recipient")
-		resultsEmail, mailErr := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
+		resultsEmail, mailErr := mail.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
 		require.NoError(t, mailErr)
 		loc := strings.Index(resultsEmail.Body.Text, "token=")
 		require.NotEqual(t, -1, loc, "Code should be found in email")
@@ -3345,6 +3345,45 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Id, th.BasicUser.Id)
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginWithLag(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	t.Run("with replication lag, caches cleared", func(t *testing.T) {
+		if !replicaFlag {
+			t.Skipf("requires test flag: -mysql-replica")
+		}
+
+		if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+			t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+		}
+
+		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
+		mainHelper.ToggleReplicasOff()
+
+		err := th.App.RevokeAllSessions(th.BasicUser.Id)
+		require.Nil(t, err)
+
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
+
+		cmdErr := mainHelper.SetReplicationLagForTesting(5)
+		require.Nil(t, cmdErr)
+		defer mainHelper.SetReplicationLagForTesting(0)
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+
+		err = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, err)
+
+		session, err := th.App.GetSession(th.Client.AuthToken)
+		require.Nil(t, err)
+		require.NotNil(t, session)
 	})
 }
 

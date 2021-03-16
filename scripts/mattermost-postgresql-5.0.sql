@@ -243,10 +243,10 @@ CREATE TABLE public.incomingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     displayname character varying(64),
-    description character varying(128),
-    username text,
-    iconurl text,
-    channellocked boolean
+    description character varying(500),
+    username character varying(255),
+    iconurl character varying(1024),
+    channellocked boolean DEFAULT false
 );
 
 
@@ -354,11 +354,13 @@ CREATE TABLE public.outgoingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     triggerwords character varying(1024),
-    triggerwhen integer,
     callbackurls character varying(1024),
     displayname character varying(64),
-    description character varying(128),
-    contenttype character varying(128)
+    contenttype character varying(128),
+    triggerwhen integer DEFAULT 0,
+    username character varying(64),
+    iconurl character varying(1024),
+    description character varying(500),
 );
 
 
@@ -447,7 +449,7 @@ CREATE TABLE public.roles (
     deleteat bigint,
     permissions character varying(4096),
     schememanaged boolean,
-    builtin boolean
+    builtin boolean DEFAULT false
 );
 
 
