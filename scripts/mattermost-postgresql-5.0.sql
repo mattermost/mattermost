@@ -387,9 +387,7 @@ CREATE TABLE public.posts (
     id character varying(26) NOT NULL,
     createat bigint,
     updateat bigint,
-    editat bigint,
     deleteat bigint,
-    ispinned boolean,
     userid character varying(26),
     channelid character varying(26),
     rootid character varying(26),
@@ -400,8 +398,10 @@ CREATE TABLE public.posts (
     props character varying(8000),
     hashtags character varying(1000),
     filenames character varying(4000),
-    fileids character varying(150),
-    hasreactions boolean
+    fileids character varying(150) DEFAULT '[]'::character varying,
+    hasreactions boolean DEFAULT false,
+    editat bigint DEFAULT 0,
+    ispinned boolean DEFAULT false
 );
 
 
