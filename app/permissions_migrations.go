@@ -537,7 +537,7 @@ func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
-	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_JOBS.Id}
+	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_DATA_RETENTION_JOB.Id}
 	permissionsToAddComplianceWrite := []string{model.PERMISSION_MANAGE_JOBS.Id}
 
 	// add the new permissions to system admin
@@ -615,6 +615,55 @@ func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
 		Add: []string{model.PERMISSION_EDIT_BRAND.Id},
+    	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsComplianceRead := []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+	permissionsComplianceWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+
+	// Give the new subsection READ permissions to any user with READ_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add:    permissionsComplianceRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add:    permissionsComplianceWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id},
+	})
+
+	// Ancilary permissions
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_CREATE_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_READ_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id),
+		Add: []string{model.PERMISSION_READ_AUDITS.Id},
 	})
 
 	return transformations, nil
@@ -813,6 +862,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS, Migration: a.getAddSiteSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},

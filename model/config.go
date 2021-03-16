@@ -1728,8 +1728,8 @@ type SupportSettings struct {
 	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_customization"`
-	CustomTermsOfServiceEnabled            *bool   `access:"compliance"`
-	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance"`
+	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
+	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
 	EnableAskCommunityLink                 *bool   `access:"site_customization"`
 }
 
@@ -2265,9 +2265,9 @@ func (s *LdapSettings) SetDefaults() {
 }
 
 type ComplianceSettings struct {
-	Enable      *bool   `access:"compliance"`
-	Directory   *string `access:"compliance"` // telemetry: none
-	EnableDaily *bool   `access:"compliance"`
+	Enable      *bool   `access:"compliance_compliance_monitoring"`
+	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
+	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
 }
 
 func (s *ComplianceSettings) SetDefaults() {
@@ -2657,11 +2657,11 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool   `access:"compliance"`
-	EnableFileDeletion    *bool   `access:"compliance"`
-	MessageRetentionDays  *int    `access:"compliance"`
-	FileRetentionDays     *int    `access:"compliance"`
-	DeletionJobStartTime  *string `access:"compliance"`
+	EnableMessageDeletion *bool   `access:"compliance_data_retention_policy"`
+	EnableFileDeletion    *bool   `access:"compliance_data_retention_policy"`
+	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
+	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2806,11 +2806,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType      *string `access:"compliance"` // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername      *string `access:"compliance"`
-	SmtpPassword      *string `access:"compliance"`
-	EmailAddress      *string `access:"compliance"` // the address to send messages to
-	SMTPServerTimeout *int    `access:"compliance"`
+	CustomerType      *string `access:"compliance_compliance_export"` // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername      *string `access:"compliance_compliance_export"`
+	SmtpPassword      *string `access:"compliance_compliance_export"`
+	EmailAddress      *string `access:"compliance_compliance_export"` // the address to send messages to
+	SMTPServerTimeout *int    `access:"compliance_compliance_export"`
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -2832,15 +2832,15 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 }
 
 type MessageExportSettings struct {
-	EnableExport          *bool   `access:"compliance"`
-	ExportFormat          *string `access:"compliance"`
-	DailyRunTime          *string `access:"compliance"`
-	ExportFromTimestamp   *int64  `access:"compliance"`
-	BatchSize             *int    `access:"compliance"`
-	DownloadExportResults *bool   `access:"compliance"`
+	EnableExport          *bool   `access:"compliance_compliance_export"`
+	ExportFormat          *string `access:"compliance_compliance_export"`
+	DailyRunTime          *string `access:"compliance_compliance_export"`
+	ExportFromTimestamp   *int64  `access:"compliance_compliance_export"`
+	BatchSize             *int    `access:"compliance_compliance_export"`
+	DownloadExportResults *bool   `access:"compliance_compliance_export"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance"`
+	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance_compliance_export"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {
