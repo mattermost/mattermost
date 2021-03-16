@@ -114,9 +114,9 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 
 			assert.Equal(t, test.ShouldReturn, ok)
 			if test.ShouldError {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			}
 		})
 	}

@@ -186,7 +186,7 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, false)
+	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
