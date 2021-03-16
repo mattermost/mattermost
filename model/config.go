@@ -1364,7 +1364,7 @@ type FileSettings struct {
 	EnablePublicLink        *bool   `access:"site_public_links,cloud_restrictable"`
 	ExtractContent          *bool   `access:"environment_file_storage,write_restrictable"`
 	ArchiveRecursion        *bool   `access:"environment_file_storage,write_restrictable"`
-	PublicLinkSalt          *string `access:"site_public_links,cloud_restrictable"`              // telemetry: none
+	PublicLinkSalt          *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
 	InitialFont             *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
 	AmazonS3AccessKeyId     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3SecretAccessKey *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1897,10 +1897,6 @@ type TeamSettings struct {
 	EnableConfirmNotificationsToChannel                       *bool    `access:"site_notifications"`
 	TeammateNameDisplay                                       *string  `access:"site_users_and_teams"`
 	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site_users_and_teams"`
-	MaxChannelsPerTeam                                        *int64   `access:"site"`
-	EnableConfirmNotificationsToChannel                       *bool    `access:"site"`
-	TeammateNameDisplay                                       *string  `access:"site"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site"`
 	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental_features"`
 	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental_features"`
 	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental_features"`
