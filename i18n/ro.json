@@ -1876,14 +1876,6 @@
     "translation": "Alatura-te echipei"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost vă permite partajarea mesajelor și fișierelor de pe PC sau telefon, cu căutare instantanee și arhivare. După ce v-ați alăturat la [[{{.TeamDisplayName}}]], vă puteți conecta la noua dvs. echipă și puteți accesa oricând aceste funcții la adresa web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Echipa {{.SenderStatus}} [[{{.SenderName}}]], v-a invitat să vă alăturați [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Ați primit o invitație"
   },
@@ -1930,14 +1922,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reseteaza parola"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Pentru a vă schimba parola, faceți clic pe \"Resetați parola\" de mai jos."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Dacă nu v-ați gândit să vă resetați parola, ignorați acest e-mail și parola dvs. va rămâne aceeași. Legătura de resetare a parolei expiră în 24 de ore."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -4200,11 +4184,11 @@
     "translation": "Timpul dintre utilizator tastarea actualizări setatã în nu mai puţin de 1000 milisecunde."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valoare nevalidă pentru fișierul de certificat TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul de certificat existent."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valoare nevalidă pentru fișierul cheie TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul cheie existent."
   },
   {
@@ -5794,10 +5778,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}} ca oaspete"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], v-a invitat să vă alăturați echipei [[{{.TeamDisplayName}}]] ca oaspete."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -8658,5 +8638,13 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Eroare la primirea e-mailului administratorilor de sistem."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Evenimentul Webhook nu a fost gestionat. Fie lipsește, fie nu este valid."
   }
 ]
