@@ -59,7 +59,7 @@ issues:
 
     - linters:
       - misspell
-      path: "utils/markdown/html_entities.go"
+      path: "shared/markdown/html_entities.go"
 
     - linters:
       - unparam
