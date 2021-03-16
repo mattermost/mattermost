@@ -821,8 +821,8 @@ DROP TABLE IF EXISTS `Status`;
 CREATE TABLE `Status` (
   `UserId` varchar(26) NOT NULL,
   `Status` varchar(32) DEFAULT NULL,
-  `Manual` tinyint(1) DEFAULT NULL,
   `LastActivityAt` bigint(20) DEFAULT NULL,
+  `Manual` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`UserId`),
   KEY `idx_status_user_id` (`UserId`),
   KEY `idx_status_status` (`Status`)

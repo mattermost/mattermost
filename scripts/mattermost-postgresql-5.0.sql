@@ -505,8 +505,8 @@ ALTER TABLE public.sessions OWNER TO mmuser;
 CREATE TABLE public.status (
     userid character varying(26) NOT NULL,
     status character varying(32),
-    manual boolean,
-    lastactivityat bigint
+    lastactivityat bigint,
+    manual boolean DEFAULT false
 );
 
 
