@@ -204,7 +204,7 @@ type SVCB struct {
 	Hdr      RR_Header
 	Priority uint16
 	Target   string         `dns:"domain-name"`
-	Value    []SVCBKeyValue `dns:"pairs"` // Value must be empty if Priority is non-zero.
+	Value    []SVCBKeyValue `dns:"pairs"` // Value must be empty if Priority is zero.
 }
 
 // HTTPS RR. Everything valid for SVCB applies to HTTPS as well.

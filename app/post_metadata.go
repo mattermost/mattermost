@@ -16,9 +16,9 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
@@ -123,7 +123,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	}
 
 	// Embeds and image dimensions
-	firstLink, images := getFirstLinkAndImages(post.Message)
+	firstLink, images := a.getFirstLinkAndImages(post.Message)
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
 		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -212,7 +212,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 			imageURLs = append(imageURLs, embed.URL)
 
 		case model.POST_EMBED_MESSAGE_ATTACHMENT:
-			imageURLs = append(imageURLs, getImagesInMessageAttachments(post)...)
+			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(post)...)
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
@@ -306,23 +306,38 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 	return a.GetMultipleEmojiByName(names)
 }
 
+func (a *App) isLinkAllowedForPreview(link string) bool {
+	domains := a.normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
+	for _, d := range domains {
+		if strings.Contains(link, d) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
 // images of the form ![alt text](image url). Note that this does not return Markdown links of the
 // form [text](url).
-func getFirstLinkAndImages(str string) (string, []string) {
+func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	firstLink := ""
 	images := []string{}
 
 	markdown.Inspect(str, func(blockOrInline interface{}) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			if firstLink == "" {
-				firstLink = v.Destination()
+			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(link) {
+				firstLink = link
 			}
 		case *markdown.InlineImage:
-			images = append(images, v.Destination())
+			if link := v.Destination(); a.isLinkAllowedForPreview(link) {
+				images = append(images, link)
+			}
 		case *markdown.ReferenceImage:
-			images = append(images, v.ReferenceDefinition.Destination())
+			if link := v.ReferenceDefinition.Destination(); a.isLinkAllowedForPreview(link) {
+				images = append(images, link)
+			}
 		}
 
 		return true
@@ -331,19 +346,19 @@ func getFirstLinkAndImages(str string) (string, []string) {
 	return firstLink, images
 }
 
-func getImagesInMessageAttachments(post *model.Post) []string {
+func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 	var images []string
 
 	for _, attachment := range post.Attachments() {
-		_, imagesInText := getFirstLinkAndImages(attachment.Text)
+		_, imagesInText := a.getFirstLinkAndImages(attachment.Text)
 		images = append(images, imagesInText...)
 
-		_, imagesInPretext := getFirstLinkAndImages(attachment.Pretext)
+		_, imagesInPretext := a.getFirstLinkAndImages(attachment.Pretext)
 		images = append(images, imagesInPretext...)
 
 		for _, field := range attachment.Fields {
 			if value, ok := field.Value.(string); ok {
-				_, imagesInFieldValue := getFirstLinkAndImages(value)
+				_, imagesInFieldValue := a.getFirstLinkAndImages(value)
 				images = append(images, imagesInFieldValue...)
 			}
 		}
