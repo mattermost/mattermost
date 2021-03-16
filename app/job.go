@@ -107,28 +107,6 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_DATA_RETENTION_JOB), model.PERMISSION_READ_DATA_RETENTION_JOB
 	case model.JOB_TYPE_MESSAGE_EXPORT:
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB
-	case
-		model.JOB_TYPE_BLEVE_POST_INDEXING,
-		model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING,
-		model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION,
-		model.JOB_TYPE_MIGRATIONS,
-		model.JOB_TYPE_PLUGINS,
-		model.JOB_TYPE_PRODUCT_NOTICES,
-		model.JOB_TYPE_EXPIRY_NOTIFY,
-		model.JOB_TYPE_ACTIVE_USERS,
-		model.JOB_TYPE_IMPORT_PROCESS,
-		model.JOB_TYPE_IMPORT_DELETE,
-		model.JOB_TYPE_EXPORT_PROCESS,
-		model.JOB_TYPE_EXPORT_DELETE,
-		model.JOB_TYPE_CLOUD:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_JOBS), model.PERMISSION_READ_JOBS
-	}
-
-	return false, nil
-}
-
-func (a *App) SessionHasPermissionToReadJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	switch job.Type {
 	case model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB), model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB
 	case model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
@@ -145,7 +123,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, job *model.Jo
 		model.JOB_TYPE_EXPORT_PROCESS,
 		model.JOB_TYPE_EXPORT_DELETE,
 		model.JOB_TYPE_CLOUD:
-		return a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_JOBS), model.PERMISSION_MANAGE_JOBS
+		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_JOBS), model.PERMISSION_READ_JOBS
 	}
 
 	return false, nil
