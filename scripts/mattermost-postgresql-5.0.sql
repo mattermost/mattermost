@@ -449,7 +449,7 @@ CREATE TABLE public.roles (
     deleteat bigint,
     permissions character varying(4096),
     schememanaged boolean,
-    builtin boolean
+    builtin boolean DEFAULT false
 );
 
 
