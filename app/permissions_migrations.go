@@ -609,7 +609,7 @@ func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) 
 		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
 		Add:    permissionsIntegrationsWrite,
 		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id},
-   })
+	})
 
 	return transformations, nil
 }
