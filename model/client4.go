@@ -3889,6 +3889,28 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r)
 }
 
+// ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
+func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response) {
+	params := map[string]interface{}{
+		"include_deleted": includeDeleted,
+		"dry_run":         dryRun,
+		"user_ids":        userIDs,
+	}
+	b, _ := json.Marshal(params)
+	r, err := c.doApiPostBytes(c.GetSamlRoute()+"/resetid", b)
+	if err != nil {
+		return 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	respBody := map[string]int64{}
+	jsonErr := json.NewDecoder(r.Body).Decode(&respBody)
+	if jsonErr != nil {
+		appErr := NewAppError("Api4.ResetSamlAuthDataToEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, BuildErrorResponse(r, appErr)
+	}
+	return respBody["num_affected"], BuildResponse(r)
+}
+
 // Compliance Section
 
 // CreateComplianceReport creates an incoming webhook for a channel.

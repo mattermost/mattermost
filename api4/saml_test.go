@@ -9,7 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 )
 
 func TestGetSamlMetadata(t *testing.T) {
@@ -49,4 +51,38 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, http.StatusUnauthorized, resp.StatusCode)
 	defer resp.Body.Close()
+}
+
+func TestSamlResetId(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
+	saml2 := &mocks.SamlInterface{}
+	saml2.Mock.On(
+		"ResetAuthDataToEmail",
+		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("[]string"),
+	).Return(int64(1), nil)
+	th.App.Srv().Saml = saml2
+
+	/*
+		id := model.NewId()
+		user := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			EmailVerified: true,
+			AuthData:      model.NewString("auth_" + id),
+			AuthService:   model.USER_AUTH_SERVICE_SAML,
+		}
+		user, err := th.App.CreateUser(user)
+		require.Nil(t, err)
+	*/
+
+	_, resp := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
+	CheckForbiddenStatus(t, resp)
+
+	numAffected, resp := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	CheckOKStatus(t, resp)
+	require.Equal(t, int64(1), numAffected)
 }

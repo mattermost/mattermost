@@ -132,6 +132,10 @@
     "translation": "Missing content type."
   },
   {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Failed to reset AuthData field to Email."
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },

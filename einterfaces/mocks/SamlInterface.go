@@ -100,3 +100,24 @@ func (_m *SamlInterface) GetMetadata() (string, *model.AppError) {
 
 	return r0, r1
 }
+
+// ResetAuthDataToEmail provides a mock function with given fields: includeDeleted, dryRun, specifiedUserIDs
+func (_m *SamlInterface) ResetAuthDataToEmail(includeDeleted bool, dryRun bool, specifiedUserIDs []string) (int64, error) {
+	ret := _m.Called(includeDeleted, dryRun, specifiedUserIDs)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(bool, bool, []string) int64); ok {
+		r0 = rf(includeDeleted, dryRun, specifiedUserIDs)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(bool, bool, []string) error); ok {
+		r1 = rf(includeDeleted, dryRun, specifiedUserIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

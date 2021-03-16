@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"mime"
 	"mime/multipart"
@@ -27,6 +28,8 @@ func (api *API) InitSaml() {
 	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
 
 	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
+
+	api.BaseRoutes.SAML.Handle("/resetid", api.ApiSessionRequired(resetAuthDataToEmail)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -246,4 +249,29 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Write([]byte(metadata.ToJson()))
+}
+
+func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	type ResetAuthDataParams struct {
+		IncludeDeleted   bool     `json:"include_deleted"`
+		DryRun           bool     `json:"dry_run"`
+		SpecifiedUserIDs []string `json:"user_ids"`
+	}
+	var params *ResetAuthDataParams
+	jsonErr := json.NewDecoder(r.Body).Decode(&params)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+	numAffected, appErr := c.App.ResetSamlAuthDataToEmail(params.IncludeDeleted, params.DryRun, params.SpecifiedUserIDs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	b, _ := json.Marshal(map[string]interface{}{"num_affected": numAffected})
+	w.Write(b)
 }

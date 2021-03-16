@@ -282,3 +282,16 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 
 	return nil
 }
+
+func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int64, appErr *model.AppError) {
+	if a.Saml() == nil {
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+	numAffected, err := a.Saml().ResetAuthDataToEmail(includeDeleted, dryRun, userIDs)
+	if err != nil {
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.saml.failure_reset_authdata_to_email.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	return
+}
