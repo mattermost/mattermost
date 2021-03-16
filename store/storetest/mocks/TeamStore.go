@@ -462,7 +462,7 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userID string) ([]*
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: ctx, teamID, userId
+// GetMember provides a mock function with given fields: ctx, teamID, userID
 func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
 	ret := _m.Called(ctx, teamID, userID)
 
