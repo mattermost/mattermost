@@ -24,6 +24,7 @@ type filterType string
 
 const filterTypeWrite filterType = "write"
 const filterTypeRead filterType = "read"
+const featureFlagsElementName string = "FeatureFlags"
 
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
@@ -279,7 +280,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
 	return func(c *Context, structField reflect.StructField) bool {
-		if structField.Type.Kind() == reflect.Struct {
+		if structField.Type.Kind() == reflect.Struct || structField.Name == featureFlagsElementName {
 			return true
 		}
 

@@ -90,6 +90,10 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	t.Run("Can read value with permission", func(t *testing.T) {
 		assert.Equal(t, mockVaryByHeader, cfg.RateLimitSettings.VaryByHeader)
 	})
+
+	t.Run("Contains Feature Flags", func(t *testing.T) {
+		assert.NotNil(t, cfg.FeatureFlags)
+	})
 }
 
 func TestReloadConfig(t *testing.T) {
