@@ -1302,7 +1302,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 	// DEPRECATED
-  PERMISSION_SYSCONSOLE_READ_SITE = &Permission{
+	PERMISSION_SYSCONSOLE_READ_SITE = &Permission{
 		"sysconsole_read_site",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",

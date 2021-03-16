@@ -615,7 +615,7 @@ func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
 		Add: []string{model.PERMISSION_EDIT_BRAND.Id},
-    	})
+	})
 
 	return transformations, nil
 }
