@@ -214,7 +214,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 }
 
 // doStatus displays connection status for all remote clusters.
-func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	list, err := a.GetAllRemoteClusters(model.RemoteClusterQueryFilter{})
 	if err != nil {
 		responsef(args.T("api.command_remote.fetch_status.error", map[string]interface{}{"Error": err.Error()}))

@@ -119,7 +119,7 @@ func (sp *ShareProvider) getAutoCompleteInviteRemote(a *app.App, commandArgs *mo
 	}
 }
 
-func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
+func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
 	switch arg.Name {
 	case "remoteId":
 		return getRemoteClusterAutocompleteListItems(a, true)
@@ -309,7 +309,7 @@ func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, m
 	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]interface{}{"RemoteId": remoteId}))
 }
 
-func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	statuses, err := a.GetSharedChannelRemotesStatus(args.ChannelId)
 	if err != nil {
 		return responsef(args.T("api.command_share.fetch_remote_status.error", map[string]interface{}{"Error": err.Error()}))
