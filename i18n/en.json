@@ -2676,7 +2676,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+    "translation": "Alternatively, you can disable users in the System Console to open up spots for users and stay below the free user limit."
   },
   {
     "id": "api.templates.at_limit_subject",
@@ -7787,11 +7787,11 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
   },
   {
