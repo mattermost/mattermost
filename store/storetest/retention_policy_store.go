@@ -406,6 +406,7 @@ func testRetentionPolicyStoreGetChannels(t *testing.T, ss store.Store, s SqlStor
 			require.Equal(t, channelIDs[i], channels[i].Id)
 		}
 	})
+	cleanupRetentionPolicyTest(s)
 }
 
 func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStore) {
@@ -493,6 +494,7 @@ func testRetentionPolicyStoreGetTeams(t *testing.T, ss store.Store, s SqlStore) 
 			require.Equal(t, teamIDs[i], teams[i].Id)
 		}
 	})
+	cleanupRetentionPolicyTest(s)
 }
 
 func testRetentionPolicyStoreAddTeams(t *testing.T, ss store.Store, s SqlStore) {

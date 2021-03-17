@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -58,11 +56,12 @@ func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *gorp.Transaction, query string, args ...interface{}) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *gorp.Transaction, query string, args ...interface{}) error {
 	if query == "" {
-		return nil, nil
+		return nil
 	}
-	return txn.Exec(query, args...)
+	_, err := txn.Exec(query, args...)
+	return err
 }
 
 func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
@@ -111,11 +110,11 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 	// Insert the channel IDs into RetentionPoliciesChannels
-	if _, err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
 		return nil, err
 	}
 	// Insert the team IDs into RetentionPoliciesTeams
-	if _, err = executePossiblyEmptyQuery(txn, teamsInsertQuery, teamsInsertArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, teamsInsertQuery, teamsInsertArgs...); err != nil {
 		return nil, err
 	}
 	// Select the new policy (with team/channel counts) which we just created
@@ -298,23 +297,23 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 	defer finalizeTransaction(txn)
 	// Update the fields of the policy in RetentionPolicies
-	if _, err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
 		return nil, err
 	}
 	// Remove all channels from the policy in RetentionPoliciesChannels
-	if _, err = executePossiblyEmptyQuery(txn, channelsDeleteQuery, channelsDeleteArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, channelsDeleteQuery, channelsDeleteArgs...); err != nil {
 		return nil, err
 	}
 	// Insert the new channels for the policy in RetentionPoliciesChannels
-	if _, err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, channelsInsertQuery, channelsInsertArgs...); err != nil {
 		return nil, err
 	}
 	// Remove all teams from the policy in RetentionPoliciesTeams
-	if _, err = executePossiblyEmptyQuery(txn, teamsDeleteQuery, teamsDeleteArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, teamsDeleteQuery, teamsDeleteArgs...); err != nil {
 		return nil, err
 	}
 	// Insert the new teams for the policy in RetentionPoliciesTeams
-	if _, err = executePossiblyEmptyQuery(txn, teamsInsertQuery, teamsInsertArgs...); err != nil {
+	if err = executePossiblyEmptyQuery(txn, teamsInsertQuery, teamsInsertArgs...); err != nil {
 		return nil, err
 	}
 	// Select the policy which we just updated
