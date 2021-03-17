@@ -837,16 +837,16 @@ func (c *Client) execute(req *Request) (*Response, error) {
 	// Apply Request middleware
 	var err error
 
-	// resty middlewares
-	for _, f := range c.beforeRequest {
+	// user defined on before request methods
+	// to modify the *resty.Request object
+	for _, f := range c.udBeforeRequest {
 		if err = f(c, req); err != nil {
 			return nil, wrapNoRetryErr(err)
 		}
 	}
 
-	// user defined on before request methods
-	// to modify the *resty.Request object
-	for _, f := range c.udBeforeRequest {
+	// resty middlewares
+	for _, f := range c.beforeRequest {
 		if err = f(c, req); err != nil {
 			return nil, wrapNoRetryErr(err)
 		}

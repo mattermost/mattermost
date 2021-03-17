@@ -11,6 +11,7 @@ import (
 	"github.com/gobwas/ws"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) InitWebSocket() {
@@ -27,6 +28,14 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	upgrader := ws.HTTPUpgrader{
 		Timeout: 5 * time.Second,
+	}
+
+	// Uprgade the HTTP version header to 1.1, if we detect a 1.0 header.
+	// This is a hack to work around a flaw in our proxy configs which sends the protocol version as 1.0.
+	// It will be removed in a future version.
+	if r.ProtoMajor == 1 && r.ProtoMinor == 0 {
+		r.ProtoMinor = 1
+		mlog.Warn("The HTTP version field was detected as 1.0 during WebSocket handshake. This is most probably due to an incorrect proxy configuration. Please upgrade your proxy config to set the header version to a minimum of 1.1.")
 	}
 
 	conn, _, _, err := upgrader.Upgrade(r, w)

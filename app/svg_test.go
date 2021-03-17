@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+//nolint:unparam
 func generateSVGData(width int, height int, useViewBox bool, useDimensions bool, useAlternateFormat bool) io.Reader {
 	var (
 		viewBoxAttribute = ""
@@ -64,7 +65,7 @@ func TestParseInvalidSVGData(t *testing.T) {
 	invalidSVGs := []io.Reader{
 		generateSVGData(width, height, false, false, false), // missing viewBox, width & height
 		generateSVGData(width, 0, false, true, false),       // missing viewBox, malformed width & height
-		generateSVGData(300, 0, false, true, false),         // missing viewBox, malformed height, properly formed width
+		generateSVGData(width, 0, false, true, false),       // missing viewBox, malformed height, properly formed width
 	}
 	for index, svg := range invalidSVGs {
 		_, err := parseSVG(svg)

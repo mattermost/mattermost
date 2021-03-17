@@ -212,9 +212,10 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) 
 			var botIDBytes []byte
 
 			err = utils.ProgressiveRetry(func() error {
-				botIDBytes, err = p.API.KVGet(BotUserKey)
-				if err != nil {
-					return err
+				var appErr *model.AppError
+				botIDBytes, appErr = p.API.KVGet(BotUserKey)
+				if appErr != nil {
+					return appErr
 				}
 				return nil
 			})
