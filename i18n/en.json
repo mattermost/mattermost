@@ -1333,10 +1333,6 @@
     "translation": "Custom emoji have been disabled by the system admin."
   },
   {
-    "id": "api.emoji.get_by_name.app_error",
-    "translation": "Unable to get the emoji by name"
-  },
-  {
     "id": "api.emoji.get_image.decode.app_error",
     "translation": "Unable to decode image file for emoji."
   },
