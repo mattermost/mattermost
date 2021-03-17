@@ -537,7 +537,7 @@ func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
-	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_JOBS.Id}
+	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_DATA_RETENTION_JOB.Id}
 	permissionsToAddComplianceWrite := []string{model.PERMISSION_MANAGE_JOBS.Id}
 
 	// add the new permissions to system admin
@@ -591,6 +591,177 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	return transformations, nil
 }
 
+func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsSiteRead := []string{model.PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTICES.Id}
+	permissionsSiteWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES.Id}
+
+	// Give the new subsection READ permissions to any user with READ_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
+		Add:    permissionsSiteRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_SITE.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
+		Add:    permissionsSiteWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id},
+	})
+
+	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
+		Add: []string{model.PERMISSION_EDIT_BRAND.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsComplianceRead := []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+	permissionsComplianceWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+
+	// Give the new subsection READ permissions to any user with READ_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add:    permissionsComplianceRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add:    permissionsComplianceWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id},
+	})
+
+	// Ancilary permissions
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_CREATE_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_READ_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id),
+		Add: []string{model.PERMISSION_READ_AUDITS.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsEnvironmentRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER.Id,
+	}
+	permissionsEnvironmentWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
+		Add:    permissionsEnvironmentRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
+		Add:    permissionsEnvironmentWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id},
+	})
+
+	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_WEB_SERVER
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id),
+		Add: []string{
+			model.PERMISSION_TEST_SITE_URL.Id,
+			model.PERMISSION_RELOAD_CONFIG.Id,
+			model.PERMISSION_INVALIDATE_CACHES.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_DATABASE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id),
+		Add: []string{model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS.Id},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_TEST_ELASTICSEARCH.Id,
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
+			model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_FILE_STORAGE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id),
+		Add: []string{model.PERMISSION_TEST_S3.Id},
+	})
+
+	return transformations, nil
+}
+
 func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -622,6 +793,49 @@ func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsReportingRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id,
+	}
+	permissionsReportingWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
+		Add:    permissionsReportingRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
+		Add:    permissionsReportingWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id), permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id)),
+		Add: []string{model.PERMISSION_GET_ANALYTICS.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_LOGS to anyone with PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id),
+		Add: []string{model.PERMISSION_GET_LOGS.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -647,7 +861,11 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS, Migration: a.getAddSiteSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
 	}
 
 	roles, err := a.GetAllRoles()

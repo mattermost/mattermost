@@ -102,8 +102,27 @@ var PERMISSION_EDIT_BRAND *Permission
 var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
 var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
+var PERMISSION_CREATE_DATA_RETENTION_JOB *Permission
+var PERMISSION_READ_DATA_RETENTION_JOB *Permission
+var PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB *Permission
+var PERMISSION_READ_COMPLIANCE_EXPORT_JOB *Permission
+var PERMISSION_READ_AUDITS *Permission
+var PERMISSION_TEST_ELASTICSEARCH *Permission
+var PERMISSION_TEST_SITE_URL *Permission
+var PERMISSION_TEST_S3 *Permission
+var PERMISSION_RELOAD_CONFIG *Permission
+var PERMISSION_INVALIDATE_CACHES *Permission
+var PERMISSION_RECYCLE_DATABASE_CONNECTIONS *Permission
+var PERMISSION_PURGE_ELASTICSEARCH_INDEXES *Permission
+var PERMISSION_TEST_EMAIL *Permission
+var PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB *Permission
+var PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB *Permission
+var PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB *Permission
+var PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
+var PERMISSION_GET_LOGS *Permission
+var PERMISSION_GET_ANALYTICS *Permission
 var PERMISSION_READ_LICENSE_INFORMATION *Permission
 var PERMISSION_MANAGE_LICENSE_INFORMATION *Permission
 
@@ -118,6 +137,15 @@ var PERMISSION_SYSCONSOLE_WRITE_BILLING *Permission
 
 var PERMISSION_SYSCONSOLE_READ_REPORTING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_REPORTING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS *Permission
 var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS *Permission
@@ -137,11 +165,83 @@ var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS *Permission
 var PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES *Permission
 var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES *Permission
 
+// DEPRECATED
 var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT *Permission
+
+// DEPRECATED
 var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER *Permission
+var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER *Permission
 
 var PERMISSION_SYSCONSOLE_READ_SITE *Permission
 var PERMISSION_SYSCONSOLE_WRITE_SITE *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_EMOJI *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_POSTS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_SITE_NOTICES *Permission
+var PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES *Permission
 
 var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION *Permission
 var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION *Permission
@@ -154,6 +254,18 @@ var PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_COMPLIANCE *Permission
 var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING *Permission
+
+var PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE *Permission
 
 var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL *Permission
 var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL *Permission
@@ -554,6 +666,39 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_CREATE_DATA_RETENTION_JOB = &Permission{
+		"create_data_retention_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_DATA_RETENTION_JOB = &Permission{
+		"read_data_retention_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB = &Permission{
+		"create_compliance_export_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_COMPLIANCE_EXPORT_JOB = &Permission{
+		"read_compliance_export_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_READ_AUDITS = &Permission{
+		"read_audits",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_PURGE_BLEVE_INDEXES = &Permission{
 		"purge_bleve_indexes",
 		"",
@@ -568,8 +713,22 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_GET_LOGS = &Permission{
+		"get_logs",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_READ_LICENSE_INFORMATION = &Permission{
 		"read_license_information",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_GET_ANALYTICS = &Permission{
+		"get_analytics",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -586,6 +745,79 @@ func initializePermissions() {
 		"download_compliance_export_result",
 		"authentication.permissions.download_compliance_export_result.name",
 		"authentication.permissions.download_compliance_export_result.description",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_TEST_SITE_URL = &Permission{
+		"test_site_url",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_TEST_ELASTICSEARCH = &Permission{
+		"test_elasticsearch",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_TEST_S3 = &Permission{
+		"test_s3",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_RELOAD_CONFIG = &Permission{
+		"reload_config",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_INVALIDATE_CACHES = &Permission{
+		"invalidate_caches",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_RECYCLE_DATABASE_CONNECTIONS = &Permission{
+		"recycle_database_connections",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_PURGE_ELASTICSEARCH_INDEXES = &Permission{
+		"purge_elasticsearch_indexes",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_TEST_EMAIL = &Permission{
+		"test_email",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB = &Permission{
+		"create_elasticsearch_post_indexing_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB = &Permission{
+		"create_elasticsearch_post_aggregation_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB = &Permission{
+		"read_elasticsearch_post_indexing_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB = &Permission{
+		"read_elasticsearch_post_aggregation_job",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 
@@ -777,16 +1009,54 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_REPORTING = &Permission{
 		"sysconsole_read_reporting",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_REPORTING = &Permission{
 		"sysconsole_write_reporting",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS = &Permission{
+		"sysconsole_read_reporting_site_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS = &Permission{
+		"sysconsole_write_reporting_site_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS = &Permission{
+		"sysconsole_read_reporting_team_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS = &Permission{
+		"sysconsole_write_reporting_team_statistics",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS = &Permission{
+		"sysconsole_read_reporting_server_logs",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS = &Permission{
+		"sysconsole_write_reporting_server_logs",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS = &Permission{
@@ -861,28 +1131,308 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT = &Permission{
 		"sysconsole_read_environment",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT = &Permission{
 		"sysconsole_write_environment",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER = &Permission{
+		"sysconsole_read_environment_web_server",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER = &Permission{
+		"sysconsole_write_environment_web_server",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE = &Permission{
+		"sysconsole_read_environment_database",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE = &Permission{
+		"sysconsole_write_environment_database",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH = &Permission{
+		"sysconsole_read_environment_elasticsearch",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH = &Permission{
+		"sysconsole_write_environment_elasticsearch",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE = &Permission{
+		"sysconsole_read_environment_file_storage",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE = &Permission{
+		"sysconsole_write_environment_file_storage",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY = &Permission{
+		"sysconsole_read_environment_image_proxy",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY = &Permission{
+		"sysconsole_write_environment_image_proxy",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP = &Permission{
+		"sysconsole_read_environment_smtp",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP = &Permission{
+		"sysconsole_write_environment_smtp",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER = &Permission{
+		"sysconsole_read_environment_push_notification_server",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER = &Permission{
+		"sysconsole_write_environment_push_notification_server",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY = &Permission{
+		"sysconsole_read_environment_high_availability",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY = &Permission{
+		"sysconsole_write_environment_high_availability",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING = &Permission{
+		"sysconsole_read_environment_rate_limiting",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING = &Permission{
+		"sysconsole_write_environment_rate_limiting",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING = &Permission{
+		"sysconsole_read_environment_logging",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING = &Permission{
+		"sysconsole_write_environment_logging",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS = &Permission{
+		"sysconsole_read_environment_session_lengths",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS = &Permission{
+		"sysconsole_write_environment_session_lengths",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING = &Permission{
+		"sysconsole_read_environment_performance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING = &Permission{
+		"sysconsole_write_environment_performance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER = &Permission{
+		"sysconsole_read_environment_developer",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER = &Permission{
+		"sysconsole_write_environment_developer",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_SITE = &Permission{
 		"sysconsole_read_site",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_SITE = &Permission{
 		"sysconsole_write_site",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION = &Permission{
+		"sysconsole_read_site_customization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION = &Permission{
+		"sysconsole_write_site_customization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION = &Permission{
+		"sysconsole_read_site_localization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION = &Permission{
+		"sysconsole_write_site_localization",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS = &Permission{
+		"sysconsole_read_site_users_and_teams",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS = &Permission{
+		"sysconsole_write_site_users_and_teams",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS = &Permission{
+		"sysconsole_read_site_notifications",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS = &Permission{
+		"sysconsole_write_site_notifications",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER = &Permission{
+		"sysconsole_read_site_announcement_banner",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER = &Permission{
+		"sysconsole_write_site_announcement_banner",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_EMOJI = &Permission{
+		"sysconsole_read_site_emoji",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI = &Permission{
+		"sysconsole_write_site_emoji",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_POSTS = &Permission{
+		"sysconsole_read_site_posts",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS = &Permission{
+		"sysconsole_write_site_posts",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS = &Permission{
+		"sysconsole_read_site_file_sharing_and_downloads",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS = &Permission{
+		"sysconsole_write_site_file_sharing_and_downloads",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS = &Permission{
+		"sysconsole_read_site_public_links",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS = &Permission{
+		"sysconsole_write_site_public_links",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_SITE_NOTICES = &Permission{
+		"sysconsole_read_site_notices",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES = &Permission{
+		"sysconsole_write_site_notices",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION = &Permission{
@@ -921,28 +1471,66 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_COMPLIANCE = &Permission{
 		"sysconsole_read_compliance",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE = &Permission{
 		"sysconsole_write_compliance",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PERMISSION_SYSCONSOLE_READ_PLUGINS = &Permission{
-		"sysconsole_read_plugins",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY = &Permission{
+		"sysconsole_read_compliance_data_retention_policy",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
-	PERMISSION_SYSCONSOLE_WRITE_PLUGINS = &Permission{
-		"sysconsole_write_plugins",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY = &Permission{
+		"sysconsole_write_compliance_data_retention_policy",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT = &Permission{
+		"sysconsole_read_compliance_compliance_export",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT = &Permission{
+		"sysconsole_write_compliance_compliance_export",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING = &Permission{
+		"sysconsole_read_compliance_compliance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING = &Permission{
+		"sysconsole_write_compliance_compliance_monitoring",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE = &Permission{
+		"sysconsole_read_compliance_custom_terms_of_service",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE = &Permission{
+		"sysconsole_write_compliance_custom_terms_of_service",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	// DEPRECATED
@@ -999,19 +1587,45 @@ func initializePermissions() {
 	SysconsoleReadPermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE,
 		PERMISSION_SYSCONSOLE_READ_BILLING,
-		PERMISSION_SYSCONSOLE_READ_REPORTING,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS,
+		PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES,
-		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
-		PERMISSION_SYSCONSOLE_READ_SITE,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER,
+		PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION,
+		PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION,
+		PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS,
+		PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS,
+		PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER,
+		PERMISSION_SYSCONSOLE_READ_SITE_EMOJI,
+		PERMISSION_SYSCONSOLE_READ_SITE_POSTS,
+		PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS,
+		PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS,
+		PERMISSION_SYSCONSOLE_READ_SITE_NOTICES,
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
-		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE,
@@ -1020,19 +1634,45 @@ func initializePermissions() {
 	SysconsoleWritePermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE,
 		PERMISSION_SYSCONSOLE_WRITE_BILLING,
-		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES,
-		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT,
-		PERMISSION_SYSCONSOLE_WRITE_SITE,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS,
+		PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES,
 		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
-		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE,
@@ -1072,8 +1712,27 @@ func initializePermissions() {
 		PERMISSION_MANAGE_SHARED_CHANNELS,
 		PERMISSION_MANAGE_REMOTE_CLUSTERS,
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
+		PERMISSION_CREATE_DATA_RETENTION_JOB,
+		PERMISSION_READ_DATA_RETENTION_JOB,
+		PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB,
+		PERMISSION_READ_COMPLIANCE_EXPORT_JOB,
+		PERMISSION_READ_AUDITS,
+		PERMISSION_TEST_SITE_URL,
+		PERMISSION_TEST_ELASTICSEARCH,
+		PERMISSION_TEST_S3,
+		PERMISSION_RELOAD_CONFIG,
+		PERMISSION_INVALIDATE_CACHES,
+		PERMISSION_RECYCLE_DATABASE_CONNECTIONS,
+		PERMISSION_PURGE_ELASTICSEARCH_INDEXES,
+		PERMISSION_TEST_EMAIL,
+		PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB,
+		PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB,
+		PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB,
+		PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB,
 		PERMISSION_PURGE_BLEVE_INDEXES,
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
+		PERMISSION_GET_ANALYTICS,
+		PERMISSION_GET_LOGS,
 		PERMISSION_READ_LICENSE_INFORMATION,
 		PERMISSION_MANAGE_LICENSE_INFORMATION,
 	}
@@ -1139,10 +1798,18 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_SITE,
+		PERMISSION_SYSCONSOLE_WRITE_SITE,
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT,
+		PERMISSION_SYSCONSOLE_READ_REPORTING,
+		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
 		PERMISSION_SYSCONSOLE_READ_ABOUT,
 		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL,
 		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
 	}
 
 	AllPermissions = []*Permission{}

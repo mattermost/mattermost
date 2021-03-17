@@ -77,8 +77,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
 
 	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
@@ -451,15 +451,17 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
 		th.LoginTeamAdminWithClient(TeamAdminClient)
 
-		_, resp := TeamAdminClient.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := TeamAdminClient.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as regular user", func(t *testing.T) {
 		Client := th.Client
 
-		_, resp := Client.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := Client.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as not-regular user", func(t *testing.T) {
