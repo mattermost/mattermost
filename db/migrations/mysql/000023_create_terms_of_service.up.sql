@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS TermsOfService (
     UserId varchar(26) DEFAULT NULL,
     Text text,
     PRIMARY KEY (Id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
