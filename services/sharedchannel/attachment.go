@@ -16,7 +16,7 @@ import (
 )
 
 // postToAttachments returns the file attachments for a post that need to be synchronized.
-func (scs *Service) postToAttachments(post *model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]*model.FileInfo, error) {
+func (scs *Service) postToAttachments(post *model.Post, rc *model.RemoteCluster) ([]*model.FileInfo, error) {
 	infos := make([]*model.FileInfo, 0)
 
 	fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
