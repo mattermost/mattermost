@@ -13,16 +13,19 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5330
+	Version5340            = "5.34.0"
+	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
+	Version5291            = "5.29.1"
 	Version5290            = "5.29.0"
 	Version5281            = "5.28.1"
 	Version5280            = "5.28.0"
@@ -195,9 +198,12 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion5291(sqlStore)
 	upgradeDatabaseToVersion530(sqlStore)
 	upgradeDatabaseToVersion531(sqlStore)
 	upgradeDatabaseToVersion532(sqlStore)
+	upgradeDatabaseToVersion533(sqlStore)
+	upgradeDatabaseToVersion534(sqlStore)
 
 	return nil
 }
@@ -224,7 +230,6 @@ func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expec
 
 func upgradeDatabaseToVersion31(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version300, Version310) {
-		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "ContentType", "varchar(128)", "varchar(128)", "")
 		saveSchemaVersion(sqlStore, Version310)
 	}
 }
@@ -318,8 +323,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 		sqlStore.RemoveColumnIfExists("Users", "LastActivityAt")
 		sqlStore.RemoveColumnIfExists("Users", "LastPingAt")
 
-		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "TriggerWhen", "tinyint", "integer", "0")
-
 		saveSchemaVersion(sqlStore, Version330)
 	}
 }
@@ -342,9 +345,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
 		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
-		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
-		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
-
 		// Increase maximum length of the Channel table Purpose column.
 		if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
 			sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
@@ -358,8 +358,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
-		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
 
@@ -372,18 +370,12 @@ func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion37(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version360, Version370) {
-		// Add EditAt column to Posts
-		sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
-
 		saveSchemaVersion(sqlStore, Version370)
 	}
 }
 
 func upgradeDatabaseToVersion38(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version370, Version380) {
-		// Add the IsPinned column to posts.
-		sqlStore.CreateColumnIfNotExists("Posts", "IsPinned", "boolean", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version380)
 	}
 }
@@ -451,8 +443,6 @@ func upgradeDatabaseToVersion45(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion46(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version450, Version460) {
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "Username", "varchar(64)", "varchar(64)", "")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "IconURL", "varchar(1024)", "varchar(1024)", "")
 		saveSchemaVersion(sqlStore, Version460)
 	}
 }
@@ -547,11 +537,6 @@ func upgradeDatabaseToVersion50(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
 
-		sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "ChannelLocked", "boolean", "boolean", "0")
-
 		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
 
 		saveSchemaVersion(sqlStore, Version500)
@@ -566,8 +551,6 @@ func upgradeDatabaseToVersion51(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion52(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version510, Version520) {
-		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "Username", "varchar(64)", "varchar(64)", "")
-		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "IconURL", "varchar(1024)", "varchar(1024)", "")
 		saveSchemaVersion(sqlStore, Version520)
 	}
 }
@@ -580,8 +563,6 @@ func upgradeDatabaseToVersion53(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion54(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version530, Version540) {
-		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
 		if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
 			mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -632,11 +613,6 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 
 		// Fix column types and defaults where gorp converged on a different schema value than the
 		// original migration.
-		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
-		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
-		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
-		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
 		sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
 
 		saveSchemaVersion(sqlStore, Version580)
@@ -681,11 +657,6 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
-
-		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
-
 		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
 		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
 
@@ -724,8 +695,6 @@ func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 		saveSchemaVersion(sqlStore, Version5160)
 
 		// Fix mismatches between the canonical and migrated schemas.
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
-		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
 		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
 		sqlStore.AlterColumnTypeIfExists("Teams", "GroupConstrained", "tinyint(1)", "boolean")
@@ -776,9 +745,6 @@ func upgradeDatabaseToVersion522(sqlStore *SqlStore) {
 		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
 		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 
 		saveSchemaVersion(sqlStore, Version5220)
 	}
@@ -792,8 +758,6 @@ func upgradeDatabaseToVersion523(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion524(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5230, Version5240) {
-		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-
 		saveSchemaVersion(sqlStore, Version5240)
 	}
 }
@@ -825,13 +789,8 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 			os.Exit(ExitGenericFailure)
 		}
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
-
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
 
 		saveSchemaVersion(sqlStore, Version5280)
 	}
@@ -858,18 +817,6 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 	if err != nil {
 		return err
 	}
-	webhooksQuery, _, err := sqlStore.getQueryBuilder().Select(`COALESCE(SUM(CASE
-				WHEN CHAR_LENGTH(Username) > 255 THEN 1
-				ELSE 0
-			END),0) as usernamewrong,
-			COALESCE(SUM(CASE
-				WHEN CHAR_LENGTH(IconURL) > 1024 THEN 1
-				ELSE 0
-			END),0) as iconurlwrong`).
-		From("IncomingWebhooks").ToSql()
-	if err != nil {
-		return err
-	}
 
 	var schemeIDWrong, typeWrong int
 	row := sqlStore.GetMaster().Db.QueryRow(teamsQuery)
@@ -881,18 +828,6 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 	} else if err == nil && typeWrong > 0 {
 		return errors.New("Migration failure: " +
 			"Teams column Type has data larger that 255 characters")
-	}
-
-	var usernameWrong, iconURLWrong int
-	row = sqlStore.GetMaster().Db.QueryRow(webhooksQuery)
-	if err = row.Scan(&usernameWrong, &iconURLWrong); err != nil && err != sql.ErrNoRows {
-		mlog.Error("Error fetching IncomingWebhooks columns data", mlog.Err(err))
-	} else if err == nil && usernameWrong > 0 {
-		return errors.New("Migration failure: " +
-			"IncomingWebhooks column Username has data larger that 255 characters")
-	} else if err == nil && iconURLWrong > 0 {
-		return errors.New("Migration failure: " +
-			"IncomingWebhooks column IconURL has data larger that 1024 characters")
 	}
 
 	return nil
@@ -919,8 +854,14 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5290, Version5291) {
+		saveSchemaVersion(sqlStore, Version5291)
+	}
+}
+
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
+	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
@@ -935,13 +876,21 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
+		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+		saveSchemaVersion(sqlStore, Version5320)
+	}
+}
 
-	// saveSchemaVersion(sqlStore, Version5320)
+func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5320, Version5330) {
+		saveSchemaVersion(sqlStore, Version5330)
+	}
+}
+
+func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }

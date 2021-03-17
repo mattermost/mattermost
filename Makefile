@@ -102,7 +102,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.5.1
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -165,6 +165,9 @@ else
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
+ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+	./scripts/replica-mysql-config.sh
+endif
 endif
 
 run-haserver: run-client
@@ -192,7 +195,6 @@ else
 	docker-compose down -v
 	docker-compose rm -v
 endif
-
 
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./plugin/checker
