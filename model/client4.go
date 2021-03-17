@@ -3897,7 +3897,7 @@ func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, use
 		"user_ids":        userIDs,
 	}
 	b, _ := json.Marshal(params)
-	r, err := c.doApiPostBytes(c.GetSamlRoute()+"/resetid", b)
+	r, err := c.doApiPostBytes(c.GetSamlRoute()+"/reset_auth_data", b)
 	if err != nil {
 		return 0, BuildErrorResponse(r, err)
 	}

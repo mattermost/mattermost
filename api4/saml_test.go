@@ -65,20 +65,6 @@ func TestSamlResetId(t *testing.T) {
 	).Return(int64(1), nil)
 	th.App.Srv().Saml = saml2
 
-	/*
-		id := model.NewId()
-		user := &model.User{
-			Email:         "success+" + id + "@simulator.amazonses.com",
-			Username:      "un_" + id,
-			Nickname:      "nn_" + id,
-			EmailVerified: true,
-			AuthData:      model.NewString("auth_" + id),
-			AuthService:   model.USER_AUTH_SERVICE_SAML,
-		}
-		user, err := th.App.CreateUser(user)
-		require.Nil(t, err)
-	*/
-
 	_, resp := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
 	CheckForbiddenStatus(t, resp)
 

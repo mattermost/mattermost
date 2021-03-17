@@ -29,7 +29,7 @@ func (api *API) InitSaml() {
 
 	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
 
-	api.BaseRoutes.SAML.Handle("/resetid", api.ApiSessionRequired(resetAuthDataToEmail)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.ApiSessionRequired(resetAuthDataToEmail)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
