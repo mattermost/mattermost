@@ -26,7 +26,7 @@ func TestCreateJob(t *testing.T) {
 	}
 
 	_, resp := th.SystemManagerClient.CreateJob(job)
-	require.Nil(t, resp.Error)
+	CheckForbiddenStatus(t, resp)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
@@ -52,6 +52,7 @@ func TestGetJob(t *testing.T) {
 	job := &model.Job{
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
+		Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 	}
 	_, err := th.App.Srv().Store.Job().Save(job)
 	require.NoError(t, err)
@@ -78,7 +79,7 @@ func TestGetJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JOB_TYPE_DATA_RETENTION
 
 	t0 := model.GetMillis()
 	jobs := []*model.Job{
@@ -125,7 +126,7 @@ func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JOB_TYPE_DATA_RETENTION
 
 	jobs := []*model.Job{
 		{
@@ -178,7 +179,7 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MIGRATIONS, 0, 60)
 	require.Nil(t, resp.Error)
 }
 
@@ -274,20 +275,21 @@ func TestCancelJob(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	jobType := model.JOB_TYPE_MESSAGE_EXPORT
 	jobs := []*model.Job{
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_PENDING,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_IN_PROGRESS,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_SUCCESS,
 		},
 	}
@@ -311,5 +313,5 @@ func TestCancelJob(t *testing.T) {
 	CheckInternalErrorStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CancelJob(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }

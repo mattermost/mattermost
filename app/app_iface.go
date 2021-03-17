@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -150,7 +151,8 @@ type AppIface interface {
 	// and the API route for custom ones. Errors if not found or if custom and deleted.
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
-	GetEnvironmentConfig() map[string]interface{}
+	// If filter is not nil and returns false for a struct field, that field will be omitted.
+	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{}
 	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
@@ -499,7 +501,7 @@ type AppIface interface {
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
-	EnvironmentConfig() map[string]interface{}
+	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{}
 	ExportPermissions(w io.Writer) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filestore.FileBackend, *model.AppError)
@@ -602,6 +604,8 @@ type AppIface interface {
 	GetJobs(offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
+	GetJobsByTypes(jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetJobsByTypesPage(jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
@@ -925,7 +929,7 @@ type AppIface interface {
 	SessionHasPermissionToChannel(session model.Session, channelID string, permission *model.Permission) bool
 	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
-	SessionHasPermissionToReadJob(session model.Session, job *model.Job) (bool, *model.Permission)
+	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(session model.Session, userID string) bool
 	SessionHasPermissionToUserOrBot(session model.Session, userID string) bool
