@@ -40,8 +40,14 @@
 // mysql/000019_create_licenses.up.sql
 // mysql/000020_create_posts.down.sql
 // mysql/000020_create_posts.up.sql
-// mysql/000021_create_audits.down.sql
-// mysql/000021_create_audits.up.sql
+// mysql/000021_create_product_notice_view_state.down.sql
+// mysql/000021_create_product_notice_view_state.up.sql
+// mysql/000022_create_sessions.down.sql
+// mysql/000022_create_sessions.up.sql
+// mysql/000023_create_terms_of_service.down.sql
+// mysql/000023_create_terms_of_service.up.sql
+// mysql/000024_create_audits.down.sql
+// mysql/000024_create_audits.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -82,8 +88,14 @@
 // postgres/000019_create_licenses.up.sql
 // postgres/000020_create_posts.down.sql
 // postgres/000020_create_posts.up.sql
-// postgres/000021_create_audits.down.sql
-// postgres/000021_create_audits.up.sql
+// postgres/000021_create_product_notice_view_state.down.sql
+// postgres/000021_create_product_notice_view_state.up.sql
+// postgres/000022_create_sessions.down.sql
+// postgres/000022_create_sessions.up.sql
+// postgres/000023_create_terms_of_service.down.sql
+// postgres/000023_create_terms_of_service.up.sql
+// postgres/000024_create_audits.down.sql
+// postgres/000024_create_audits.up.sql
 package migrations
 
 import (
@@ -960,42 +972,162 @@ func mysql000020_create_postsUpSql() (*asset, error) {
 	return a, nil
 }
 
-var _mysql000021_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x48\x2c\x4d\xc9\x2c\x29\xb6\xe6\x02\x04\x00\x00\xff\xff\xdc\xcb\xe6\x62\x1d\x00\x00\x00")
+var _mysql000021_create_product_notice_view_stateDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x28\xca\x4f\x29\x4d\x2e\xf1\xcb\x2f\xc9\x4c\x4e\x0d\xcb\x4c\x2d\x0f\x2e\x49\x2c\x49\xb5\xe6\x02\x04\x00\x00\xff\xff\xf5\x0d\x8e\x11\x2d\x00\x00\x00")
 
-func mysql000021_create_auditsDownSqlBytes() ([]byte, error) {
+func mysql000021_create_product_notice_view_stateDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000021_create_auditsDownSql,
-		"mysql/000021_create_audits.down.sql",
+		_mysql000021_create_product_notice_view_stateDownSql,
+		"mysql/000021_create_product_notice_view_state.down.sql",
 	)
 }
 
-func mysql000021_create_auditsDownSql() (*asset, error) {
-	bytes, err := mysql000021_create_auditsDownSqlBytes()
+func mysql000021_create_product_notice_view_stateDownSql() (*asset, error) {
+	bytes, err := mysql000021_create_product_notice_view_stateDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000021_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000021_create_product_notice_view_state.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _mysql000021_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x90\xc1\x4b\xc3\x30\x14\x87\xef\xfb\x2b\x7e\xc7\x04\x3c\xc8\x18\x43\x90\x1d\xb2\xee\x4d\x83\xb5\x4a\x9b\x82\x3b\x95\x6c\xc9\x34\x07\x53\x49\x5e\xa5\x7f\xbe\xb8\xc2\x18\x2a\x78\xcc\x97\x8f\xef\xf1\x5e\x51\x93\x32\x04\xa3\xd6\x25\x41\x6f\x51\x3d\x19\xd0\x8b\x6e\x4c\x03\x3b\xb8\xc0\x19\x62\x06\x00\xda\xe1\xd3\xa6\xc3\x9b\x4d\x62\xbe\x94\x27\xad\x6a\xcb\xf2\xea\xf4\x59\x24\x6f\xd9\x2b\xc6\x3e\xbc\x86\xc8\x62\x7e\x2d\xb1\xa1\xad\x6a\xcb\x4b\xab\xcd\x3e\xfd\xc8\xfc\x96\xd4\x81\x43\x1f\xc1\x7e\xe4\x09\xd0\xc8\xc9\xea\x78\xec\x2f\x98\xfe\x50\xce\x25\x9f\xf3\x39\xb6\x5c\xfc\x15\x6b\x7c\xce\xa1\x8f\xff\x0e\x7d\xae\xf5\xa3\xaa\x77\x78\xa0\x1d\x84\x76\x72\xa2\xdf\xaf\xe0\xc6\x6e\xba\x43\x37\x64\x9f\xba\xe0\x20\xa6\x3d\xe4\x4c\x82\xaa\x3b\x5d\xd1\x4a\xc7\xd8\x6f\xd6\xe7\x6e\x71\xaf\xea\x86\xcc\x6a\xe0\xe3\xcd\xfb\x7e\x71\x3b\xfb\x0a\x00\x00\xff\xff\xab\x09\x48\xe7\x64\x01\x00\x00")
+var _mysql000021_create_product_notice_view_stateUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x95\xdf\x6b\xdb\x30\x10\xc7\xdf\xfd\x57\xdc\x9b\xad\x51\x46\x5b\xc6\x18\x18\x8f\x29\xf6\x79\x11\x73\xe4\x20\xc9\x5d\xfa\x14\x9c\x58\xdd\x04\xb3\x13\x6c\x65\xcd\xfe\xfb\xe1\xc8\x35\x1d\x5b\xb2\x87\x15\x3a\x68\xfc\x60\xd0\x8f\xef\x57\x77\xf7\xd1\xd9\xb1\x40\xaa\x10\x14\x9d\x64\x08\x2c\x05\x9e\x2b\xc0\x05\x93\x4a\xc2\xbc\xdd\x54\xbb\xb5\xe5\x1b\x6b\xd6\xfa\xc6\xe8\x7b\x69\x4b\xab\x21\xf0\x00\x00\x8a\x4e\xb7\xac\x82\x1b\x2a\xe2\x29\x15\xc1\xf5\x5b\x72\x90\xf2\x22\xcb\x2e\x0e\x1b\x9c\xec\xe4\x96\xde\x53\x57\x60\x4d\xf3\xc3\x34\x36\xb8\x22\x6e\x5a\x99\x5a\x77\xb6\xac\xb7\xb0\x32\x5f\xfa\x85\xeb\x4b\x02\x09\xa6\xb4\xc8\x1e\xab\xe7\x82\xcd\xa8\xb8\x85\x4f\x78\x0b\x81\x0b\xe7\x62\x3c\x95\x78\x04\x90\x7f\x64\x1c\x23\xd6\x34\x9b\x64\x32\x1a\xf4\xb1\x48\x54\xd1\xce\xde\xbd\xab\x57\x6f\x42\xcf\x93\xa8\xe0\xc3\xb6\xd5\xdb\xb2\xd5\xd5\x21\xc7\x5a\x37\x16\x22\x08\x24\x66\x18\x2b\x60\xa9\xcb\xd9\xbd\xfb\x67\x58\x88\xf3\x82\xab\xe0\x15\x81\x54\xe4\x33\x60\x3c\xcd\xc5\x8c\x2a\x96\xf3\xa5\x8c\xa7\x38\xa3\xaf\xa5\xa2\x8a\x49\xc5\x62\x39\x4a\x3f\x4f\x51\x20\xd8\x72\xf5\x4d\x2f\x9b\xb2\xd6\x10\x81\xff\xe7\x4a\xfb\xa3\x86\xf2\x64\x50\x74\xeb\xaf\xba\x2e\x21\x82\x84\x2a\x3a\xa1\x12\x03\xf2\xcb\x2e\xd3\x54\x7a\x3f\xfa\x9a\x6a\xbf\x6c\x0e\xa6\xcb\xef\x46\xdf\x77\x0f\x03\x53\x39\x6f\x02\xef\xe1\xd2\x55\xd3\x1f\x52\xba\xf2\x87\xf1\x70\x31\x18\x4f\x70\x01\xc7\x8d\x20\xe7\x47\x2f\xca\x08\x23\xf4\x3d\x42\x42\xcf\x9b\x0b\x9c\x53\x81\xb0\x6e\x75\x69\x35\xeb\x63\x65\x77\x7c\x63\x71\x6f\x3a\xdb\xb9\x2a\xfe\x4e\x22\xf4\x70\x81\x71\xa1\x8e\xe9\x42\x2f\x41\x9a\x65\x79\xdc\xc7\x7b\xfa\x88\x97\x45\xdb\x3e\x34\xd2\xbf\xd2\x1e\x8d\x4e\xd1\x1e\xdb\xf6\x8c\xfb\x79\x70\xef\x3a\xdd\x3e\x41\x6b\x0f\x36\xa7\x50\xbb\xaf\xed\x99\xf3\x33\x72\x76\x33\x4f\xc2\xda\xcd\xfc\x9d\xf7\xa3\xbf\xeb\x7f\x44\xfe\x67\x00\x00\x00\xff\xff\x8e\x80\x20\x9a\xc1\x08\x00\x00")
 
-func mysql000021_create_auditsUpSqlBytes() ([]byte, error) {
+func mysql000021_create_product_notice_view_stateUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_mysql000021_create_auditsUpSql,
-		"mysql/000021_create_audits.up.sql",
+		_mysql000021_create_product_notice_view_stateUpSql,
+		"mysql/000021_create_product_notice_view_state.up.sql",
 	)
 }
 
-func mysql000021_create_auditsUpSql() (*asset, error) {
-	bytes, err := mysql000021_create_auditsUpSqlBytes()
+func mysql000021_create_product_notice_view_stateUpSql() (*asset, error) {
+	bytes, err := mysql000021_create_product_notice_view_stateUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "mysql/000021_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "mysql/000021_create_product_notice_view_state.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000022_create_sessionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x4e\x2d\x2e\xce\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\x5b\xcb\x38\x74\x1f\x00\x00\x00")
+
+func mysql000022_create_sessionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000022_create_sessionsDownSql,
+		"mysql/000022_create_sessions.down.sql",
+	)
+}
+
+func mysql000022_create_sessionsDownSql() (*asset, error) {
+	bytes, err := mysql000022_create_sessionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000022_create_sessions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000022_create_sessionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x96\x51\x6b\xdb\x3c\x14\x86\xef\xfd\x2b\xce\x5d\xec\x8f\x8f\x91\x76\xa5\x0c\x42\xca\x54\xfb\x64\x15\x73\xe4\x60\x2b\xac\xbd\x32\xaa\xad\x2e\x62\x89\x1d\x2c\xa5\x4b\xff\xfd\x48\xe4\x6a\x75\x9b\x12\x46\x68\x29\xa5\xbe\x08\xc4\x7a\xcf\x6b\xe9\x3c\xd2\xd1\x09\x53\x24\x1c\x81\x93\xf3\x18\x81\x8e\x80\x25\x1c\xf0\x92\x66\x3c\x83\x4c\x6a\xad\xea\x4a\x83\xef\x01\x00\xd0\x12\x6e\x45\x53\xcc\x44\xe3\x1f\x9f\x06\x30\x49\xe9\x98\xa4\x57\xf0\x1d\xaf\xfe\xdf\x8e\xf3\xfa\x97\xac\x3a\x92\x08\x47\x64\x1a\x73\x60\xd3\x38\xb6\x9a\xb0\x91\xc2\x48\x62\xe0\x5a\xfd\x54\x95\xf1\x8f\xfb\xbb\x54\xb8\x5e\xaa\x46\xea\x7d\xb2\x58\x68\x43\x0a\xa3\x6e\x95\xb9\xdb\xa7\x9d\x6a\xd9\x3c\x5a\xc0\x53\x51\x24\x6f\x55\x21\x69\x09\x46\xae\x8d\x7d\x95\xd6\x73\xa9\x5d\xd8\xe9\xc9\xae\x30\xaa\x13\xb2\x32\x33\x30\xaa\xba\xdb\xcc\xe0\x28\xb0\xef\x27\x4d\xbd\xd4\x5b\x2f\x2f\x00\x64\xdf\x28\xc3\x21\xad\xaa\x3a\x3a\x77\x26\xe1\x05\x49\x33\xe4\xc3\x95\xb9\xf9\xb2\xb8\x3e\x19\x78\x5e\x86\x1c\xbe\x2e\x1b\xb9\x14\x8d\x2c\x33\x23\x8c\x5c\xc8\xca\xc0\x10\xfc\x0c\x63\x0c\x39\xd0\x91\xc5\x61\x7f\x37\x4f\x3b\x10\x26\x53\xc6\xfd\xff\x02\x18\xa5\xc9\x18\x28\x1b\x25\xe9\x98\x70\x9a\xb0\x3c\x0b\x2f\x70\x4c\x3e\x85\x49\x3c\x1d\xb3\xcc\xc5\xfd\xb8\xc0\x14\xc1\x88\xeb\xb9\xcc\x2b\xb1\x90\x30\x84\xde\x3d\xf3\x9e\x53\x11\x16\xb5\x1a\x5d\xcc\xe4\x42\xc0\x10\x22\xc2\xc9\x39\xc9\xd0\x0f\x3a\xaa\xa2\x9e\xaf\x16\x95\xb3\xb2\x14\x4b\x56\x1b\x75\x73\x67\xfd\x02\x38\x83\xbe\x4d\x4e\xaf\x9d\xf5\x51\xaf\xfd\x4f\x62\x8e\x69\xbb\x0f\xdd\xce\x23\x51\x04\x1d\x9f\x07\x49\x76\x49\xec\x0f\x7a\x5e\x10\x0c\x3c\x6f\x92\xe2\x84\xa4\x08\x62\x6e\x64\x43\x6f\x58\x6d\x70\xad\xb4\xd1\x36\x23\x4f\xb3\x3a\xf0\xf0\x12\xc3\x29\x7f\x1a\x31\xf0\x22\x24\x71\x9c\x84\x9b\xb3\xf1\x9c\xed\xcb\xd2\xca\x38\xe1\x34\xe3\x34\x7c\x39\x60\xaa\x2a\xe5\xda\x39\xa9\x72\x9d\xeb\xd6\x2d\x5f\x69\xd9\xe4\xaa\xdc\x8f\xad\xad\x1f\x94\x45\x78\x09\xbb\x2c\x20\x61\x8e\xa7\x6f\x8f\x61\xf0\x18\x58\xb1\x2d\x0b\x74\x33\x9d\x7f\xc2\xb6\x3b\x6e\x27\xbc\xe7\xa4\xef\x17\xa1\xd9\xd4\xe3\x43\x00\x6e\x0d\x3a\xf8\xb6\x25\xfe\x2d\xd1\x7b\xb7\xf0\xa4\xbd\x02\x73\x61\x0e\x21\xf8\xd7\xa5\x83\xd1\xdd\xaf\x1f\x28\x5f\x01\xa5\x5d\xf0\x81\x24\x9d\x49\x07\xe4\x7d\x3b\xf5\xc1\xf1\x15\x38\xce\x85\x36\xb9\x68\xfb\xcd\x03\x71\x3e\xf6\xea\x50\xed\xf6\xb5\x6f\x89\xad\x17\x61\x8c\x1c\xed\xb7\x5c\x93\xf6\x7b\x26\x1b\xf9\xa0\x69\x3f\x83\xcf\xfd\x07\xcf\xc0\xfb\x13\x00\x00\xff\xff\xf3\x7d\xad\x69\x64\x0c\x00\x00")
+
+func mysql000022_create_sessionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000022_create_sessionsUpSql,
+		"mysql/000022_create_sessions.up.sql",
+	)
+}
+
+func mysql000022_create_sessionsUpSql() (*asset, error) {
+	bytes, err := mysql000022_create_sessionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000022_create_sessions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000023_create_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x49\x2d\xca\x2d\xf6\x4f\x0b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\xb3\xb8\x31\x9d\x25\x00\x00\x00")
+
+func mysql000023_create_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000023_create_terms_of_serviceDownSql,
+		"mysql/000023_create_terms_of_service.down.sql",
+	)
+}
+
+func mysql000023_create_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := mysql000023_create_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000023_create_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000023_create_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\xcc\x3d\x4b\xc5\x30\x18\xc5\xf1\xbd\x9f\xe2\x8c\x09\x38\xc8\x45\x44\x90\x3b\xe4\xb6\x4f\x35\x18\x53\x49\x52\xb0\x63\x5f\x9e\x6a\x87\x56\x48\x63\xe9\xc7\x17\x2a\x88\xe8\x78\x38\x3f\xfe\xb9\x23\x15\x08\x41\x5d\x0c\x41\x97\xb0\x55\x00\xbd\x6a\x1f\x3c\x02\xc7\x79\xad\x46\xcf\x71\x9b\x7a\x86\xc8\x00\x40\x0f\xd8\xda\xd8\xbf\xb7\x51\x9c\x6e\xe5\xc1\x6d\x6d\xcc\xd5\x71\xe6\x91\xdb\xc4\x2a\xa1\x9b\xde\xa6\x25\x89\xd3\xb5\x44\x41\xa5\xaa\xcd\x6f\x55\xaf\x1c\xff\x64\xfe\xa3\xc0\x7b\x42\xe2\x3d\x7d\xcf\x17\xa7\x9f\x95\x6b\xf0\x44\x0d\x84\x1e\x64\x26\x41\xf6\x41\x5b\x3a\xeb\x65\xf9\x28\x2e\x3f\x85\xfc\x51\x39\x4f\xe1\xfc\x99\xc6\xbb\xb9\xbb\xb9\xcf\xbe\x02\x00\x00\xff\xff\x8c\x24\xca\xbe\xe1\x00\x00\x00")
+
+func mysql000023_create_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000023_create_terms_of_serviceUpSql,
+		"mysql/000023_create_terms_of_service.up.sql",
+	)
+}
+
+func mysql000023_create_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := mysql000023_create_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000023_create_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000024_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x70\x2c\x4d\xc9\x2c\x29\xb6\xe6\x02\x04\x00\x00\xff\xff\x8a\xa9\x90\x9b\x1d\x00\x00\x00")
+
+func mysql000024_create_auditsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000024_create_auditsDownSql,
+		"mysql/000024_create_audits.down.sql",
+	)
+}
+
+func mysql000024_create_auditsDownSql() (*asset, error) {
+	bytes, err := mysql000024_create_auditsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000024_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000024_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x92\x6f\x8b\x9b\x40\x10\xc6\xdf\xef\xa7\x98\x77\x71\x4b\x29\xd7\xe3\x38\x0a\x62\xe9\x44\xc7\x66\xa9\x59\x83\xbb\xd2\xdc\x2b\xd9\xc4\x4d\x4f\x68\x34\xb8\x9b\xe2\xc7\x2f\xa7\x22\xd7\xa6\x7f\xde\x08\xee\x3c\xf3\x9b\x87\x67\x26\x2e\x08\x35\x81\xc6\x75\x46\x20\x52\x90\xb9\x06\xda\x0b\xa5\x15\xe0\xb5\x6e\xbc\x83\x80\x01\x00\x88\x1a\x7e\x98\xfe\xf8\x6c\xfa\xe0\xfe\x91\x8f\x32\x59\x66\xd9\xdb\xb1\x18\xf7\xd6\x78\x8b\x1e\x0e\xcd\xb7\xa6\xf5\xc1\xfd\x1d\x87\x84\x52\x2c\xb3\xd7\xaa\xd2\xd9\xfe\x37\xcc\xad\x08\x8f\xbe\xe9\x5a\xf0\x76\xf0\xd3\x03\x0d\xbe\x37\xa2\x3d\x75\xaf\xde\xc4\x05\xeb\xba\xb7\xce\x2d\xb0\xc7\x87\x3f\xc1\x94\x75\xae\xe9\xda\xff\x0e\xdd\x15\x62\x8b\xc5\x13\x7c\xa1\x27\x08\x44\xcd\x19\x07\x92\x9f\x85\xa4\x48\xb4\x6d\x97\xac\x97\x96\x78\x83\x85\x22\x1d\x5d\xfd\xe9\xc3\xf9\xf0\x10\x32\xa6\x48\xc3\xa7\x4b\x6f\x2f\xa6\xb7\xb5\xf2\xc6\xdb\xb3\x6d\x3d\x44\x10\x28\xca\x28\xd6\x20\xd2\x29\xc0\xe9\x3b\xba\x9a\x0a\x71\x5e\x4a\x1d\xbc\xe1\x90\x16\xf9\x16\x84\x4c\xf3\x62\x8b\x5a\xe4\xb2\x52\xf1\x86\xb6\xf8\x4e\x69\xd4\x42\x69\x11\xab\xa5\xf5\xeb\x86\x0a\x02\x6f\x0e\xdf\x6d\xd5\x9a\xb3\x85\x08\x56\xd3\x9a\x56\x8b\x06\x65\x32\x2b\xdc\xf1\xd9\x9e\x0d\x44\x90\xa0\xc6\x35\x2a\x0a\xf8\x2f\xaa\xa6\xad\xed\xb0\x70\x9a\x7a\xa8\xcc\xc8\xaa\xae\xce\xf6\x55\x53\x4f\x4c\x0e\x1f\xe1\x6e\xca\x69\x35\x5b\x7f\xbf\x9a\xff\xe7\xeb\x11\x32\xa1\x3d\xdc\x02\x20\x97\xf3\x15\x05\xd3\xf2\x79\xb8\x62\x9c\x87\x8c\xed\x0a\xda\x61\x41\x70\x1c\x2f\x47\xbc\x18\x11\x27\xd9\x79\x1a\x1a\xe7\xdd\x14\xc9\x6d\xac\x21\xa3\x3d\xc5\xa5\xfe\x5b\x5f\xc8\x12\xc2\x2c\xcb\xe3\x17\x53\xff\x1e\x11\xb2\x9f\x01\x00\x00\xff\xff\x7e\x2c\x97\xa5\xfa\x02\x00\x00")
+
+func mysql000024_create_auditsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000024_create_auditsUpSql,
+		"mysql/000024_create_audits.up.sql",
+	)
+}
+
+func mysql000024_create_auditsUpSql() (*asset, error) {
+	bytes, err := mysql000024_create_auditsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000024_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1800,42 +1932,162 @@ func postgres000020_create_postsUpSql() (*asset, error) {
 	return a, nil
 }
 
-var _postgres000021_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4c\xa9\x88\x4f\x2c\x4d\xc9\x2c\x29\x8e\x2f\x2d\x4e\x2d\x8a\xcf\x4c\xb1\xe6\xe2\x02\xab\x0c\x71\x74\xf2\x71\x45\x52\x09\x51\x65\xcd\x05\x08\x00\x00\xff\xff\xb9\xd9\x49\xb5\x47\x00\x00\x00")
+var _postgres000021_create_product_notice_view_stateDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x28\xca\x4f\x29\x4d\x2e\xc9\xcb\x2f\xc9\x4c\x4e\x2d\xcb\x4c\x2d\x2f\x2e\x49\x2c\x49\xb5\xe6\x02\x04\x00\x00\xff\xff\x3e\x77\xda\x88\x2d\x00\x00\x00")
 
-func postgres000021_create_auditsDownSqlBytes() ([]byte, error) {
+func postgres000021_create_product_notice_view_stateDownSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_postgres000021_create_auditsDownSql,
-		"postgres/000021_create_audits.down.sql",
+		_postgres000021_create_product_notice_view_stateDownSql,
+		"postgres/000021_create_product_notice_view_state.down.sql",
 	)
 }
 
-func postgres000021_create_auditsDownSql() (*asset, error) {
-	bytes, err := postgres000021_create_auditsDownSqlBytes()
+func postgres000021_create_product_notice_view_stateDownSql() (*asset, error) {
+	bytes, err := postgres000021_create_product_notice_view_stateDownSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "postgres/000021_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "postgres/000021_create_product_notice_view_state.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _postgres000021_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\x41\x6b\x84\x30\x10\x46\xef\xf9\x15\x73\x54\xe8\xa1\x4a\xeb\xc5\x53\x6a\x53\x1a\xda\x6a\x89\xa1\xe8\x49\x52\x93\x96\xb9\xc4\x25\x89\xe0\xcf\x5f\x76\xe3\x06\xdc\xeb\x7b\x0c\xf3\xbd\x46\x30\x2a\x19\x48\xfa\xf2\xc9\x80\xbf\x41\xdb\x49\x60\x03\xef\x65\x0f\x6a\xd5\x18\x3c\x64\x04\x00\x00\x35\xfc\x50\xd1\xbc\x53\x91\x95\x55\x0e\xdf\x82\x7f\x51\x31\xc2\x07\x1b\x1f\xae\x7e\x76\x46\x05\xa3\x02\xfc\xe2\x3f\xda\x10\xe1\xea\x8d\x3b\x1e\x46\xae\xe6\x80\x8b\x4d\xfc\xb9\x28\x77\x61\xb6\xe0\x14\xda\xbf\x25\xb9\xe2\xb1\x7c\xda\x25\x9e\x94\xd6\xce\x78\x9f\x64\x75\x53\xde\x78\x8f\x8b\x3d\xfe\x22\x79\x4d\xc8\xde\xc7\xdb\x57\x36\xdc\xf5\xa1\xde\xa6\xd8\x38\x5d\x86\x4e\xa8\xa1\x6b\x53\x75\xdc\x9e\xd7\xe4\x1c\x00\x00\xff\xff\x0b\x8b\x3f\x6b\x22\x01\x00\x00")
+var _postgres000021_create_product_notice_view_stateUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\x31\x4f\xc3\x30\x10\x85\x77\xff\x8a\xa7\x4e\x8e\xd4\x89\x81\x25\x93\x29\x46\x58\x40\x8a\x5c\x0b\xb5\x53\x55\xea\x53\x75\x43\xd3\x2a\xb9\x00\x3f\x1f\x25\x86\x28\x42\x10\x94\x8e\x7e\x3e\x7d\xf7\xbe\x5b\x78\x6b\x82\x45\x30\x37\x8f\x16\xee\x0e\xc5\x32\xc0\xae\xdd\x2a\xac\x70\xae\x4e\xb1\xd9\x4b\x79\x12\xde\xd3\x1b\xd3\x7b\x2d\x3b\x21\x68\x05\x00\x4d\x4d\x15\x47\xbc\x18\xbf\xb8\x37\x5e\x5f\x5d\x67\xf3\x2e\x4f\xd3\xbf\xfd\xb4\x04\x8a\xe0\x52\xe8\x40\x55\xca\x66\xc2\x47\xaa\x65\x77\x3c\xcf\xf0\xca\x07\x2e\x25\xe5\xcf\xde\x3d\x19\xbf\xc1\x83\xdd\x40\xa7\x55\xf3\x1e\x9d\xa9\x2c\x57\xea\xab\xb8\x2b\x6e\xed\xfa\x47\x71\x8e\x1f\xdb\x34\xbc\xed\x6a\x7f\x3f\x38\x62\x59\xfc\xa1\xa5\x7b\x7a\x3e\x09\xdd\x0b\x8c\xa0\x07\x96\x13\xe9\xad\xfa\x78\xed\x74\x9c\x4b\xb0\x29\xf9\x17\x3d\xb8\x7b\xae\x3e\x03\x00\x00\xff\xff\x21\x41\x3b\xae\x2e\x02\x00\x00")
 
-func postgres000021_create_auditsUpSqlBytes() ([]byte, error) {
+func postgres000021_create_product_notice_view_stateUpSqlBytes() ([]byte, error) {
 	return bindataRead(
-		_postgres000021_create_auditsUpSql,
-		"postgres/000021_create_audits.up.sql",
+		_postgres000021_create_product_notice_view_stateUpSql,
+		"postgres/000021_create_product_notice_view_state.up.sql",
 	)
 }
 
-func postgres000021_create_auditsUpSql() (*asset, error) {
-	bytes, err := postgres000021_create_auditsUpSqlBytes()
+func postgres000021_create_product_notice_view_stateUpSql() (*asset, error) {
+	bytes, err := postgres000021_create_product_notice_view_stateUpSqlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "postgres/000021_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "postgres/000021_create_product_notice_view_state.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000022_create_sessionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x4e\x2d\x2e\xce\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\x8b\xc8\x65\x3b\x1f\x00\x00\x00")
+
+func postgres000022_create_sessionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000022_create_sessionsDownSql,
+		"postgres/000022_create_sessions.down.sql",
+	)
+}
+
+func postgres000022_create_sessionsDownSql() (*asset, error) {
+	bytes, err := postgres000022_create_sessionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000022_create_sessions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000022_create_sessionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x92\x41\x6f\x82\x40\x10\x85\xef\xfb\x2b\xe6\x28\x49\x0f\x68\x5b\x2f\x24\x4d\xb6\xb2\xa6\xa4\x08\xcd\x4a\x1b\x3d\x91\x55\xc6\xba\x29\x61\x0d\xbb\x5a\xfd\xf7\x8d\x2e\x28\xe0\xa5\x70\x7c\x33\xf9\x96\x79\xef\x4d\x38\xa3\x09\x83\x84\xbe\x86\x0c\x82\x29\x44\x71\x02\x6c\x11\xcc\x93\x39\x68\xd4\x5a\xaa\x42\xc3\x80\x00\x00\xc8\x0c\xbe\x28\x9f\xbc\x51\x3e\x18\x8d\x1d\xf8\xe0\xc1\x8c\xf2\x25\xbc\xb3\xe5\xc3\x65\x6e\xd4\x0f\x16\xcd\x15\x2b\xaf\x4b\x14\x06\x85\x81\x95\xfc\x96\x85\xb1\x22\x1e\x77\xb2\x44\xdd\x51\x73\xa1\x8d\x58\x1b\x79\x90\xe6\xd4\x19\xed\x35\x96\xed\x1f\xb0\x7a\x86\x07\xb9\xc6\xc6\xe4\x79\x38\xaa\x46\xa5\xca\x51\x5f\xf5\xf1\x53\x25\x4b\xad\xc4\xde\x6c\x61\xa5\x54\x8e\xa2\xb0\xe2\xae\x54\xbb\xdb\xee\xd0\x75\x5d\x87\x38\x1e\x21\x34\x4c\x18\xaf\xcc\xb9\xda\x41\x7d\x1f\x26\x71\xf8\x39\x8b\x3a\x86\xd9\xab\xb2\x42\x19\xb9\x39\xd5\x0f\x40\x86\x1b\xb1\xcf\x0d\x6c\x44\xae\xd1\x23\xa4\x72\x3c\x88\x7c\xb6\xe8\x00\x64\x76\x4c\xeb\x67\xd2\xf3\xc9\xa9\xcc\x20\x8e\x1a\x49\x58\x1f\x1c\xef\xdf\x14\x9b\x4a\x8b\x71\x91\x7a\x20\xaa\xb0\x52\x61\xda\x9c\x6b\x88\x3d\x58\xb6\x0d\x77\xa8\xba\x24\x3d\x48\xe7\xb2\xa4\x75\x5b\xee\x80\xed\x2a\x9d\xa3\xf4\x59\xc8\x12\x06\x53\x1e\xcf\x6e\x7b\xbf\x5b\x2c\xb1\xd1\xc6\x17\x78\x74\x1b\x9f\x47\xfe\x02\x00\x00\xff\xff\xf1\x5a\x57\xe3\x1f\x03\x00\x00")
+
+func postgres000022_create_sessionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000022_create_sessionsUpSql,
+		"postgres/000022_create_sessions.up.sql",
+	)
+}
+
+func postgres000022_create_sessionsUpSql() (*asset, error) {
+	bytes, err := postgres000022_create_sessionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000022_create_sessions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000023_create_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\xba\xce\x63\x8e\x25\x00\x00\x00")
+
+func postgres000023_create_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000023_create_terms_of_serviceDownSql,
+		"postgres/000023_create_terms_of_service.down.sql",
+	)
+}
+
+func postgres000023_create_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := postgres000023_create_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000023_create_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000023_create_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x0e\x72\x75\x0c\x71\x55\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\x55\xd0\xe0\x52\x50\x50\x50\xc8\x4c\x51\x08\x73\x0c\x72\xf6\x70\x0c\xd2\x30\x32\xd3\x54\x08\x08\xf2\xf4\x75\x0c\x8a\x54\xf0\x76\x8d\xd4\x01\xcb\x27\x17\xa5\x26\x96\xa4\x26\x96\x28\x24\x65\xa6\x67\xe6\x95\x40\x04\x4b\x8b\x53\x8b\x50\x35\x42\xc4\x4b\x52\x2b\x4a\xe0\xa2\x66\xa6\xa6\xc6\xa6\x9a\x5c\x9a\xd6\x5c\x80\x00\x00\x00\xff\xff\x4e\x50\xb9\x34\x94\x00\x00\x00")
+
+func postgres000023_create_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000023_create_terms_of_serviceUpSql,
+		"postgres/000023_create_terms_of_service.up.sql",
+	)
+}
+
+func postgres000023_create_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := postgres000023_create_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000023_create_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000024_create_auditsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\xf0\xf4\x73\x71\x8d\x50\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4c\xa9\x88\x4f\x2c\x4d\xc9\x2c\x29\x8e\x2f\x2d\x4e\x2d\x8a\xcf\x4c\xb1\xe6\xe2\x02\xab\x0c\x71\x74\xf2\x71\x45\x52\x09\x51\x65\xcd\x05\x08\x00\x00\xff\xff\xb9\xd9\x49\xb5\x47\x00\x00\x00")
+
+func postgres000024_create_auditsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000024_create_auditsDownSql,
+		"postgres/000024_create_audits.down.sql",
+	)
+}
+
+func postgres000024_create_auditsDownSql() (*asset, error) {
+	bytes, err := postgres000024_create_auditsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000024_create_audits.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000024_create_auditsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\x41\x6b\x84\x30\x10\x46\xef\xf9\x15\x73\x54\xe8\xa1\x4a\xeb\xc5\x53\x6a\x53\x1a\xda\x6a\x89\xa1\xe8\x49\x52\x93\x96\xb9\xc4\x25\x89\xe0\xcf\x5f\x76\xe3\x06\xdc\xeb\x7b\x0c\xf3\xbd\x46\x30\x2a\x19\x48\xfa\xf2\xc9\x80\xbf\x41\xdb\x49\x60\x03\xef\x65\x0f\x6a\xd5\x18\x3c\x64\x04\x00\x00\x35\xfc\x50\xd1\xbc\x53\x91\x95\x55\x0e\xdf\x82\x7f\x51\x31\xc2\x07\x1b\x1f\xae\x7e\x76\x46\x05\xa3\x02\xfc\xe2\x3f\xda\x10\xe1\xea\x8d\x3b\x1e\x46\xae\xe6\x80\x8b\x4d\xfc\xb9\x28\x77\x61\xb6\xe0\x14\xda\xbf\x25\xb9\xe2\xb1\x7c\xda\x25\x9e\x94\xd6\xce\x78\x9f\x64\x75\x53\xde\x78\x8f\x8b\x3d\xfe\x22\x79\x4d\xc8\xde\xc7\xdb\x57\x36\xdc\xf5\xa1\xde\xa6\xd8\x38\x5d\x86\x4e\xa8\xa1\x6b\x53\x75\xdc\x9e\xd7\xe4\x1c\x00\x00\xff\xff\x0b\x8b\x3f\x6b\x22\x01\x00\x00")
+
+func postgres000024_create_auditsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000024_create_auditsUpSql,
+		"postgres/000024_create_audits.up.sql",
+	)
+}
+
+func postgres000024_create_auditsUpSql() (*asset, error) {
+	bytes, err := postgres000024_create_auditsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000024_create_audits.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1892,90 +2144,102 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"mysql/000001_create_teams.down.sql":                mysql000001_create_teamsDownSql,
-	"mysql/000001_create_teams.up.sql":                  mysql000001_create_teamsUpSql,
-	"mysql/000002_create_team_members.down.sql":         mysql000002_create_team_membersDownSql,
-	"mysql/000002_create_team_members.up.sql":           mysql000002_create_team_membersUpSql,
-	"mysql/000003_create_cluster_discovery.down.sql":    mysql000003_create_cluster_discoveryDownSql,
-	"mysql/000003_create_cluster_discovery.up.sql":      mysql000003_create_cluster_discoveryUpSql,
-	"mysql/000004_create_command_webhooks.down.sql":     mysql000004_create_command_webhooksDownSql,
-	"mysql/000004_create_command_webhooks.up.sql":       mysql000004_create_command_webhooksUpSql,
-	"mysql/000005_create_compliances.down.sql":          mysql000005_create_compliancesDownSql,
-	"mysql/000005_create_compliances.up.sql":            mysql000005_create_compliancesUpSql,
-	"mysql/000006_create_emojis.down.sql":               mysql000006_create_emojisDownSql,
-	"mysql/000006_create_emojis.up.sql":                 mysql000006_create_emojisUpSql,
-	"mysql/000007_create_user_groups.down.sql":          mysql000007_create_user_groupsDownSql,
-	"mysql/000007_create_user_groups.up.sql":            mysql000007_create_user_groupsUpSql,
-	"mysql/000008_create_group_members.down.sql":        mysql000008_create_group_membersDownSql,
-	"mysql/000008_create_group_members.up.sql":          mysql000008_create_group_membersUpSql,
-	"mysql/000009_create_group_teams.down.sql":          mysql000009_create_group_teamsDownSql,
-	"mysql/000009_create_group_teams.up.sql":            mysql000009_create_group_teamsUpSql,
-	"mysql/000010_create_group_channels.down.sql":       mysql000010_create_group_channelsDownSql,
-	"mysql/000010_create_group_channels.up.sql":         mysql000010_create_group_channelsUpSql,
-	"mysql/000011_create_link_metadata.down.sql":        mysql000011_create_link_metadataDownSql,
-	"mysql/000011_create_link_metadata.up.sql":          mysql000011_create_link_metadataUpSql,
-	"mysql/000012_create_commands.down.sql":             mysql000012_create_commandsDownSql,
-	"mysql/000012_create_commands.up.sql":               mysql000012_create_commandsUpSql,
-	"mysql/000013_create_incoming_webhooks.down.sql":    mysql000013_create_incoming_webhooksDownSql,
-	"mysql/000013_create_incoming_webhooks.up.sql":      mysql000013_create_incoming_webhooksUpSql,
-	"mysql/000014_create_outgoing_webhooks.down.sql":    mysql000014_create_outgoing_webhooksDownSql,
-	"mysql/000014_create_outgoing_webhooks.up.sql":      mysql000014_create_outgoing_webhooksUpSql,
-	"mysql/000015_create_systems.down.sql":              mysql000015_create_systemsDownSql,
-	"mysql/000015_create_systems.up.sql":                mysql000015_create_systemsUpSql,
-	"mysql/000016_create_reactions.down.sql":            mysql000016_create_reactionsDownSql,
-	"mysql/000016_create_reactions.up.sql":              mysql000016_create_reactionsUpSql,
-	"mysql/000017_create_roles.down.sql":                mysql000017_create_rolesDownSql,
-	"mysql/000017_create_roles.up.sql":                  mysql000017_create_rolesUpSql,
-	"mysql/000018_create_schemes.down.sql":              mysql000018_create_schemesDownSql,
-	"mysql/000018_create_schemes.up.sql":                mysql000018_create_schemesUpSql,
-	"mysql/000019_create_licenses.down.sql":             mysql000019_create_licensesDownSql,
-	"mysql/000019_create_licenses.up.sql":               mysql000019_create_licensesUpSql,
-	"mysql/000020_create_posts.down.sql":                mysql000020_create_postsDownSql,
-	"mysql/000020_create_posts.up.sql":                  mysql000020_create_postsUpSql,
-	"mysql/000021_create_audits.down.sql":               mysql000021_create_auditsDownSql,
-	"mysql/000021_create_audits.up.sql":                 mysql000021_create_auditsUpSql,
-	"postgres/000001_create_teams.down.sql":             postgres000001_create_teamsDownSql,
-	"postgres/000001_create_teams.up.sql":               postgres000001_create_teamsUpSql,
-	"postgres/000002_create_team_members.down.sql":      postgres000002_create_team_membersDownSql,
-	"postgres/000002_create_team_members.up.sql":        postgres000002_create_team_membersUpSql,
-	"postgres/000003_create_cluster_discovery.down.sql": postgres000003_create_cluster_discoveryDownSql,
-	"postgres/000003_create_cluster_discovery.up.sql":   postgres000003_create_cluster_discoveryUpSql,
-	"postgres/000004_create_command_webhooks.down.sql":  postgres000004_create_command_webhooksDownSql,
-	"postgres/000004_create_command_webhooks.up.sql":    postgres000004_create_command_webhooksUpSql,
-	"postgres/000005_create_compliances.down.sql":       postgres000005_create_compliancesDownSql,
-	"postgres/000005_create_compliances.up.sql":         postgres000005_create_compliancesUpSql,
-	"postgres/000006_create_emojis.down.sql":            postgres000006_create_emojisDownSql,
-	"postgres/000006_create_emojis.up.sql":              postgres000006_create_emojisUpSql,
-	"postgres/000007_create_user_groups.down.sql":       postgres000007_create_user_groupsDownSql,
-	"postgres/000007_create_user_groups.up.sql":         postgres000007_create_user_groupsUpSql,
-	"postgres/000008_create_group_members.down.sql":     postgres000008_create_group_membersDownSql,
-	"postgres/000008_create_group_members.up.sql":       postgres000008_create_group_membersUpSql,
-	"postgres/000009_create_group_teams.down.sql":       postgres000009_create_group_teamsDownSql,
-	"postgres/000009_create_group_teams.up.sql":         postgres000009_create_group_teamsUpSql,
-	"postgres/000010_create_group_channels.down.sql":    postgres000010_create_group_channelsDownSql,
-	"postgres/000010_create_group_channels.up.sql":      postgres000010_create_group_channelsUpSql,
-	"postgres/000011_create_link_metadata.down.sql":     postgres000011_create_link_metadataDownSql,
-	"postgres/000011_create_link_metadata.up.sql":       postgres000011_create_link_metadataUpSql,
-	"postgres/000012_create_commands.down.sql":          postgres000012_create_commandsDownSql,
-	"postgres/000012_create_commands.up.sql":            postgres000012_create_commandsUpSql,
-	"postgres/000013_create_incoming_webhooks.down.sql": postgres000013_create_incoming_webhooksDownSql,
-	"postgres/000013_create_incoming_webhooks.up.sql":   postgres000013_create_incoming_webhooksUpSql,
-	"postgres/000014_create_outgoing_webhooks.down.sql": postgres000014_create_outgoing_webhooksDownSql,
-	"postgres/000014_create_outgoing_webhooks.up.sql":   postgres000014_create_outgoing_webhooksUpSql,
-	"postgres/000015_create_systems.down.sql":           postgres000015_create_systemsDownSql,
-	"postgres/000015_create_systems.up.sql":             postgres000015_create_systemsUpSql,
-	"postgres/000016_create_reactions.down.sql":         postgres000016_create_reactionsDownSql,
-	"postgres/000016_create_reactions.up.sql":           postgres000016_create_reactionsUpSql,
-	"postgres/000017_create_roles.down.sql":             postgres000017_create_rolesDownSql,
-	"postgres/000017_create_roles.up.sql":               postgres000017_create_rolesUpSql,
-	"postgres/000018_create_schemes.down.sql":           postgres000018_create_schemesDownSql,
-	"postgres/000018_create_schemes.up.sql":             postgres000018_create_schemesUpSql,
-	"postgres/000019_create_licenses.down.sql":          postgres000019_create_licensesDownSql,
-	"postgres/000019_create_licenses.up.sql":            postgres000019_create_licensesUpSql,
-	"postgres/000020_create_posts.down.sql":             postgres000020_create_postsDownSql,
-	"postgres/000020_create_posts.up.sql":               postgres000020_create_postsUpSql,
-	"postgres/000021_create_audits.down.sql":            postgres000021_create_auditsDownSql,
-	"postgres/000021_create_audits.up.sql":              postgres000021_create_auditsUpSql,
+	"mysql/000001_create_teams.down.sql":                        mysql000001_create_teamsDownSql,
+	"mysql/000001_create_teams.up.sql":                          mysql000001_create_teamsUpSql,
+	"mysql/000002_create_team_members.down.sql":                 mysql000002_create_team_membersDownSql,
+	"mysql/000002_create_team_members.up.sql":                   mysql000002_create_team_membersUpSql,
+	"mysql/000003_create_cluster_discovery.down.sql":            mysql000003_create_cluster_discoveryDownSql,
+	"mysql/000003_create_cluster_discovery.up.sql":              mysql000003_create_cluster_discoveryUpSql,
+	"mysql/000004_create_command_webhooks.down.sql":             mysql000004_create_command_webhooksDownSql,
+	"mysql/000004_create_command_webhooks.up.sql":               mysql000004_create_command_webhooksUpSql,
+	"mysql/000005_create_compliances.down.sql":                  mysql000005_create_compliancesDownSql,
+	"mysql/000005_create_compliances.up.sql":                    mysql000005_create_compliancesUpSql,
+	"mysql/000006_create_emojis.down.sql":                       mysql000006_create_emojisDownSql,
+	"mysql/000006_create_emojis.up.sql":                         mysql000006_create_emojisUpSql,
+	"mysql/000007_create_user_groups.down.sql":                  mysql000007_create_user_groupsDownSql,
+	"mysql/000007_create_user_groups.up.sql":                    mysql000007_create_user_groupsUpSql,
+	"mysql/000008_create_group_members.down.sql":                mysql000008_create_group_membersDownSql,
+	"mysql/000008_create_group_members.up.sql":                  mysql000008_create_group_membersUpSql,
+	"mysql/000009_create_group_teams.down.sql":                  mysql000009_create_group_teamsDownSql,
+	"mysql/000009_create_group_teams.up.sql":                    mysql000009_create_group_teamsUpSql,
+	"mysql/000010_create_group_channels.down.sql":               mysql000010_create_group_channelsDownSql,
+	"mysql/000010_create_group_channels.up.sql":                 mysql000010_create_group_channelsUpSql,
+	"mysql/000011_create_link_metadata.down.sql":                mysql000011_create_link_metadataDownSql,
+	"mysql/000011_create_link_metadata.up.sql":                  mysql000011_create_link_metadataUpSql,
+	"mysql/000012_create_commands.down.sql":                     mysql000012_create_commandsDownSql,
+	"mysql/000012_create_commands.up.sql":                       mysql000012_create_commandsUpSql,
+	"mysql/000013_create_incoming_webhooks.down.sql":            mysql000013_create_incoming_webhooksDownSql,
+	"mysql/000013_create_incoming_webhooks.up.sql":              mysql000013_create_incoming_webhooksUpSql,
+	"mysql/000014_create_outgoing_webhooks.down.sql":            mysql000014_create_outgoing_webhooksDownSql,
+	"mysql/000014_create_outgoing_webhooks.up.sql":              mysql000014_create_outgoing_webhooksUpSql,
+	"mysql/000015_create_systems.down.sql":                      mysql000015_create_systemsDownSql,
+	"mysql/000015_create_systems.up.sql":                        mysql000015_create_systemsUpSql,
+	"mysql/000016_create_reactions.down.sql":                    mysql000016_create_reactionsDownSql,
+	"mysql/000016_create_reactions.up.sql":                      mysql000016_create_reactionsUpSql,
+	"mysql/000017_create_roles.down.sql":                        mysql000017_create_rolesDownSql,
+	"mysql/000017_create_roles.up.sql":                          mysql000017_create_rolesUpSql,
+	"mysql/000018_create_schemes.down.sql":                      mysql000018_create_schemesDownSql,
+	"mysql/000018_create_schemes.up.sql":                        mysql000018_create_schemesUpSql,
+	"mysql/000019_create_licenses.down.sql":                     mysql000019_create_licensesDownSql,
+	"mysql/000019_create_licenses.up.sql":                       mysql000019_create_licensesUpSql,
+	"mysql/000020_create_posts.down.sql":                        mysql000020_create_postsDownSql,
+	"mysql/000020_create_posts.up.sql":                          mysql000020_create_postsUpSql,
+	"mysql/000021_create_product_notice_view_state.down.sql":    mysql000021_create_product_notice_view_stateDownSql,
+	"mysql/000021_create_product_notice_view_state.up.sql":      mysql000021_create_product_notice_view_stateUpSql,
+	"mysql/000022_create_sessions.down.sql":                     mysql000022_create_sessionsDownSql,
+	"mysql/000022_create_sessions.up.sql":                       mysql000022_create_sessionsUpSql,
+	"mysql/000023_create_terms_of_service.down.sql":             mysql000023_create_terms_of_serviceDownSql,
+	"mysql/000023_create_terms_of_service.up.sql":               mysql000023_create_terms_of_serviceUpSql,
+	"mysql/000024_create_audits.down.sql":                       mysql000024_create_auditsDownSql,
+	"mysql/000024_create_audits.up.sql":                         mysql000024_create_auditsUpSql,
+	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
+	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
+	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
+	"postgres/000002_create_team_members.up.sql":                postgres000002_create_team_membersUpSql,
+	"postgres/000003_create_cluster_discovery.down.sql":         postgres000003_create_cluster_discoveryDownSql,
+	"postgres/000003_create_cluster_discovery.up.sql":           postgres000003_create_cluster_discoveryUpSql,
+	"postgres/000004_create_command_webhooks.down.sql":          postgres000004_create_command_webhooksDownSql,
+	"postgres/000004_create_command_webhooks.up.sql":            postgres000004_create_command_webhooksUpSql,
+	"postgres/000005_create_compliances.down.sql":               postgres000005_create_compliancesDownSql,
+	"postgres/000005_create_compliances.up.sql":                 postgres000005_create_compliancesUpSql,
+	"postgres/000006_create_emojis.down.sql":                    postgres000006_create_emojisDownSql,
+	"postgres/000006_create_emojis.up.sql":                      postgres000006_create_emojisUpSql,
+	"postgres/000007_create_user_groups.down.sql":               postgres000007_create_user_groupsDownSql,
+	"postgres/000007_create_user_groups.up.sql":                 postgres000007_create_user_groupsUpSql,
+	"postgres/000008_create_group_members.down.sql":             postgres000008_create_group_membersDownSql,
+	"postgres/000008_create_group_members.up.sql":               postgres000008_create_group_membersUpSql,
+	"postgres/000009_create_group_teams.down.sql":               postgres000009_create_group_teamsDownSql,
+	"postgres/000009_create_group_teams.up.sql":                 postgres000009_create_group_teamsUpSql,
+	"postgres/000010_create_group_channels.down.sql":            postgres000010_create_group_channelsDownSql,
+	"postgres/000010_create_group_channels.up.sql":              postgres000010_create_group_channelsUpSql,
+	"postgres/000011_create_link_metadata.down.sql":             postgres000011_create_link_metadataDownSql,
+	"postgres/000011_create_link_metadata.up.sql":               postgres000011_create_link_metadataUpSql,
+	"postgres/000012_create_commands.down.sql":                  postgres000012_create_commandsDownSql,
+	"postgres/000012_create_commands.up.sql":                    postgres000012_create_commandsUpSql,
+	"postgres/000013_create_incoming_webhooks.down.sql":         postgres000013_create_incoming_webhooksDownSql,
+	"postgres/000013_create_incoming_webhooks.up.sql":           postgres000013_create_incoming_webhooksUpSql,
+	"postgres/000014_create_outgoing_webhooks.down.sql":         postgres000014_create_outgoing_webhooksDownSql,
+	"postgres/000014_create_outgoing_webhooks.up.sql":           postgres000014_create_outgoing_webhooksUpSql,
+	"postgres/000015_create_systems.down.sql":                   postgres000015_create_systemsDownSql,
+	"postgres/000015_create_systems.up.sql":                     postgres000015_create_systemsUpSql,
+	"postgres/000016_create_reactions.down.sql":                 postgres000016_create_reactionsDownSql,
+	"postgres/000016_create_reactions.up.sql":                   postgres000016_create_reactionsUpSql,
+	"postgres/000017_create_roles.down.sql":                     postgres000017_create_rolesDownSql,
+	"postgres/000017_create_roles.up.sql":                       postgres000017_create_rolesUpSql,
+	"postgres/000018_create_schemes.down.sql":                   postgres000018_create_schemesDownSql,
+	"postgres/000018_create_schemes.up.sql":                     postgres000018_create_schemesUpSql,
+	"postgres/000019_create_licenses.down.sql":                  postgres000019_create_licensesDownSql,
+	"postgres/000019_create_licenses.up.sql":                    postgres000019_create_licensesUpSql,
+	"postgres/000020_create_posts.down.sql":                     postgres000020_create_postsDownSql,
+	"postgres/000020_create_posts.up.sql":                       postgres000020_create_postsUpSql,
+	"postgres/000021_create_product_notice_view_state.down.sql": postgres000021_create_product_notice_view_stateDownSql,
+	"postgres/000021_create_product_notice_view_state.up.sql":   postgres000021_create_product_notice_view_stateUpSql,
+	"postgres/000022_create_sessions.down.sql":                  postgres000022_create_sessionsDownSql,
+	"postgres/000022_create_sessions.up.sql":                    postgres000022_create_sessionsUpSql,
+	"postgres/000023_create_terms_of_service.down.sql":          postgres000023_create_terms_of_serviceDownSql,
+	"postgres/000023_create_terms_of_service.up.sql":            postgres000023_create_terms_of_serviceUpSql,
+	"postgres/000024_create_audits.down.sql":                    postgres000024_create_auditsDownSql,
+	"postgres/000024_create_audits.up.sql":                      postgres000024_create_auditsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -2020,92 +2284,104 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"mysql": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":             &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":               &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":      &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":        &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.down.sql": &bintree{mysql000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.up.sql":   &bintree{mysql000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.down.sql":  &bintree{mysql000004_create_command_webhooksDownSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.up.sql":    &bintree{mysql000004_create_command_webhooksUpSql, map[string]*bintree{}},
-		"000005_create_compliances.down.sql":       &bintree{mysql000005_create_compliancesDownSql, map[string]*bintree{}},
-		"000005_create_compliances.up.sql":         &bintree{mysql000005_create_compliancesUpSql, map[string]*bintree{}},
-		"000006_create_emojis.down.sql":            &bintree{mysql000006_create_emojisDownSql, map[string]*bintree{}},
-		"000006_create_emojis.up.sql":              &bintree{mysql000006_create_emojisUpSql, map[string]*bintree{}},
-		"000007_create_user_groups.down.sql":       &bintree{mysql000007_create_user_groupsDownSql, map[string]*bintree{}},
-		"000007_create_user_groups.up.sql":         &bintree{mysql000007_create_user_groupsUpSql, map[string]*bintree{}},
-		"000008_create_group_members.down.sql":     &bintree{mysql000008_create_group_membersDownSql, map[string]*bintree{}},
-		"000008_create_group_members.up.sql":       &bintree{mysql000008_create_group_membersUpSql, map[string]*bintree{}},
-		"000009_create_group_teams.down.sql":       &bintree{mysql000009_create_group_teamsDownSql, map[string]*bintree{}},
-		"000009_create_group_teams.up.sql":         &bintree{mysql000009_create_group_teamsUpSql, map[string]*bintree{}},
-		"000010_create_group_channels.down.sql":    &bintree{mysql000010_create_group_channelsDownSql, map[string]*bintree{}},
-		"000010_create_group_channels.up.sql":      &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
-		"000011_create_link_metadata.down.sql":     &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
-		"000011_create_link_metadata.up.sql":       &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
-		"000012_create_commands.down.sql":          &bintree{mysql000012_create_commandsDownSql, map[string]*bintree{}},
-		"000012_create_commands.up.sql":            &bintree{mysql000012_create_commandsUpSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.down.sql": &bintree{mysql000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.up.sql":   &bintree{mysql000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.down.sql": &bintree{mysql000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.up.sql":   &bintree{mysql000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
-		"000015_create_systems.down.sql":           &bintree{mysql000015_create_systemsDownSql, map[string]*bintree{}},
-		"000015_create_systems.up.sql":             &bintree{mysql000015_create_systemsUpSql, map[string]*bintree{}},
-		"000016_create_reactions.down.sql":         &bintree{mysql000016_create_reactionsDownSql, map[string]*bintree{}},
-		"000016_create_reactions.up.sql":           &bintree{mysql000016_create_reactionsUpSql, map[string]*bintree{}},
-		"000017_create_roles.down.sql":             &bintree{mysql000017_create_rolesDownSql, map[string]*bintree{}},
-		"000017_create_roles.up.sql":               &bintree{mysql000017_create_rolesUpSql, map[string]*bintree{}},
-		"000018_create_schemes.down.sql":           &bintree{mysql000018_create_schemesDownSql, map[string]*bintree{}},
-		"000018_create_schemes.up.sql":             &bintree{mysql000018_create_schemesUpSql, map[string]*bintree{}},
-		"000019_create_licenses.down.sql":          &bintree{mysql000019_create_licensesDownSql, map[string]*bintree{}},
-		"000019_create_licenses.up.sql":            &bintree{mysql000019_create_licensesUpSql, map[string]*bintree{}},
-		"000020_create_posts.down.sql":             &bintree{mysql000020_create_postsDownSql, map[string]*bintree{}},
-		"000020_create_posts.up.sql":               &bintree{mysql000020_create_postsUpSql, map[string]*bintree{}},
-		"000021_create_audits.down.sql":            &bintree{mysql000021_create_auditsDownSql, map[string]*bintree{}},
-		"000021_create_audits.up.sql":              &bintree{mysql000021_create_auditsUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                     &bintree{mysql000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                       &bintree{mysql000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":              &bintree{mysql000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":                &bintree{mysql000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.down.sql":         &bintree{mysql000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.up.sql":           &bintree{mysql000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.down.sql":          &bintree{mysql000004_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.up.sql":            &bintree{mysql000004_create_command_webhooksUpSql, map[string]*bintree{}},
+		"000005_create_compliances.down.sql":               &bintree{mysql000005_create_compliancesDownSql, map[string]*bintree{}},
+		"000005_create_compliances.up.sql":                 &bintree{mysql000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":                    &bintree{mysql000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":                      &bintree{mysql000006_create_emojisUpSql, map[string]*bintree{}},
+		"000007_create_user_groups.down.sql":               &bintree{mysql000007_create_user_groupsDownSql, map[string]*bintree{}},
+		"000007_create_user_groups.up.sql":                 &bintree{mysql000007_create_user_groupsUpSql, map[string]*bintree{}},
+		"000008_create_group_members.down.sql":             &bintree{mysql000008_create_group_membersDownSql, map[string]*bintree{}},
+		"000008_create_group_members.up.sql":               &bintree{mysql000008_create_group_membersUpSql, map[string]*bintree{}},
+		"000009_create_group_teams.down.sql":               &bintree{mysql000009_create_group_teamsDownSql, map[string]*bintree{}},
+		"000009_create_group_teams.up.sql":                 &bintree{mysql000009_create_group_teamsUpSql, map[string]*bintree{}},
+		"000010_create_group_channels.down.sql":            &bintree{mysql000010_create_group_channelsDownSql, map[string]*bintree{}},
+		"000010_create_group_channels.up.sql":              &bintree{mysql000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":             &bintree{mysql000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":               &bintree{mysql000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_commands.down.sql":                  &bintree{mysql000012_create_commandsDownSql, map[string]*bintree{}},
+		"000012_create_commands.up.sql":                    &bintree{mysql000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.down.sql":         &bintree{mysql000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.up.sql":           &bintree{mysql000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.down.sql":         &bintree{mysql000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.up.sql":           &bintree{mysql000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
+		"000015_create_systems.down.sql":                   &bintree{mysql000015_create_systemsDownSql, map[string]*bintree{}},
+		"000015_create_systems.up.sql":                     &bintree{mysql000015_create_systemsUpSql, map[string]*bintree{}},
+		"000016_create_reactions.down.sql":                 &bintree{mysql000016_create_reactionsDownSql, map[string]*bintree{}},
+		"000016_create_reactions.up.sql":                   &bintree{mysql000016_create_reactionsUpSql, map[string]*bintree{}},
+		"000017_create_roles.down.sql":                     &bintree{mysql000017_create_rolesDownSql, map[string]*bintree{}},
+		"000017_create_roles.up.sql":                       &bintree{mysql000017_create_rolesUpSql, map[string]*bintree{}},
+		"000018_create_schemes.down.sql":                   &bintree{mysql000018_create_schemesDownSql, map[string]*bintree{}},
+		"000018_create_schemes.up.sql":                     &bintree{mysql000018_create_schemesUpSql, map[string]*bintree{}},
+		"000019_create_licenses.down.sql":                  &bintree{mysql000019_create_licensesDownSql, map[string]*bintree{}},
+		"000019_create_licenses.up.sql":                    &bintree{mysql000019_create_licensesUpSql, map[string]*bintree{}},
+		"000020_create_posts.down.sql":                     &bintree{mysql000020_create_postsDownSql, map[string]*bintree{}},
+		"000020_create_posts.up.sql":                       &bintree{mysql000020_create_postsUpSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.down.sql": &bintree{mysql000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.up.sql":   &bintree{mysql000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
+		"000022_create_sessions.down.sql":                  &bintree{mysql000022_create_sessionsDownSql, map[string]*bintree{}},
+		"000022_create_sessions.up.sql":                    &bintree{mysql000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":          &bintree{mysql000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":            &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000024_create_audits.down.sql":                    &bintree{mysql000024_create_auditsDownSql, map[string]*bintree{}},
+		"000024_create_audits.up.sql":                      &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
-		"000001_create_teams.down.sql":             &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
-		"000001_create_teams.up.sql":               &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
-		"000002_create_team_members.down.sql":      &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
-		"000002_create_team_members.up.sql":        &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.down.sql": &bintree{postgres000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
-		"000003_create_cluster_discovery.up.sql":   &bintree{postgres000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.down.sql":  &bintree{postgres000004_create_command_webhooksDownSql, map[string]*bintree{}},
-		"000004_create_command_webhooks.up.sql":    &bintree{postgres000004_create_command_webhooksUpSql, map[string]*bintree{}},
-		"000005_create_compliances.down.sql":       &bintree{postgres000005_create_compliancesDownSql, map[string]*bintree{}},
-		"000005_create_compliances.up.sql":         &bintree{postgres000005_create_compliancesUpSql, map[string]*bintree{}},
-		"000006_create_emojis.down.sql":            &bintree{postgres000006_create_emojisDownSql, map[string]*bintree{}},
-		"000006_create_emojis.up.sql":              &bintree{postgres000006_create_emojisUpSql, map[string]*bintree{}},
-		"000007_create_user_groups.down.sql":       &bintree{postgres000007_create_user_groupsDownSql, map[string]*bintree{}},
-		"000007_create_user_groups.up.sql":         &bintree{postgres000007_create_user_groupsUpSql, map[string]*bintree{}},
-		"000008_create_group_members.down.sql":     &bintree{postgres000008_create_group_membersDownSql, map[string]*bintree{}},
-		"000008_create_group_members.up.sql":       &bintree{postgres000008_create_group_membersUpSql, map[string]*bintree{}},
-		"000009_create_group_teams.down.sql":       &bintree{postgres000009_create_group_teamsDownSql, map[string]*bintree{}},
-		"000009_create_group_teams.up.sql":         &bintree{postgres000009_create_group_teamsUpSql, map[string]*bintree{}},
-		"000010_create_group_channels.down.sql":    &bintree{postgres000010_create_group_channelsDownSql, map[string]*bintree{}},
-		"000010_create_group_channels.up.sql":      &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
-		"000011_create_link_metadata.down.sql":     &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
-		"000011_create_link_metadata.up.sql":       &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
-		"000012_create_commands.down.sql":          &bintree{postgres000012_create_commandsDownSql, map[string]*bintree{}},
-		"000012_create_commands.up.sql":            &bintree{postgres000012_create_commandsUpSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.down.sql": &bintree{postgres000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
-		"000013_create_incoming_webhooks.up.sql":   &bintree{postgres000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.down.sql": &bintree{postgres000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
-		"000014_create_outgoing_webhooks.up.sql":   &bintree{postgres000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
-		"000015_create_systems.down.sql":           &bintree{postgres000015_create_systemsDownSql, map[string]*bintree{}},
-		"000015_create_systems.up.sql":             &bintree{postgres000015_create_systemsUpSql, map[string]*bintree{}},
-		"000016_create_reactions.down.sql":         &bintree{postgres000016_create_reactionsDownSql, map[string]*bintree{}},
-		"000016_create_reactions.up.sql":           &bintree{postgres000016_create_reactionsUpSql, map[string]*bintree{}},
-		"000017_create_roles.down.sql":             &bintree{postgres000017_create_rolesDownSql, map[string]*bintree{}},
-		"000017_create_roles.up.sql":               &bintree{postgres000017_create_rolesUpSql, map[string]*bintree{}},
-		"000018_create_schemes.down.sql":           &bintree{postgres000018_create_schemesDownSql, map[string]*bintree{}},
-		"000018_create_schemes.up.sql":             &bintree{postgres000018_create_schemesUpSql, map[string]*bintree{}},
-		"000019_create_licenses.down.sql":          &bintree{postgres000019_create_licensesDownSql, map[string]*bintree{}},
-		"000019_create_licenses.up.sql":            &bintree{postgres000019_create_licensesUpSql, map[string]*bintree{}},
-		"000020_create_posts.down.sql":             &bintree{postgres000020_create_postsDownSql, map[string]*bintree{}},
-		"000020_create_posts.up.sql":               &bintree{postgres000020_create_postsUpSql, map[string]*bintree{}},
-		"000021_create_audits.down.sql":            &bintree{postgres000021_create_auditsDownSql, map[string]*bintree{}},
-		"000021_create_audits.up.sql":              &bintree{postgres000021_create_auditsUpSql, map[string]*bintree{}},
+		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
+		"000001_create_teams.up.sql":                       &bintree{postgres000001_create_teamsUpSql, map[string]*bintree{}},
+		"000002_create_team_members.down.sql":              &bintree{postgres000002_create_team_membersDownSql, map[string]*bintree{}},
+		"000002_create_team_members.up.sql":                &bintree{postgres000002_create_team_membersUpSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.down.sql":         &bintree{postgres000003_create_cluster_discoveryDownSql, map[string]*bintree{}},
+		"000003_create_cluster_discovery.up.sql":           &bintree{postgres000003_create_cluster_discoveryUpSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.down.sql":          &bintree{postgres000004_create_command_webhooksDownSql, map[string]*bintree{}},
+		"000004_create_command_webhooks.up.sql":            &bintree{postgres000004_create_command_webhooksUpSql, map[string]*bintree{}},
+		"000005_create_compliances.down.sql":               &bintree{postgres000005_create_compliancesDownSql, map[string]*bintree{}},
+		"000005_create_compliances.up.sql":                 &bintree{postgres000005_create_compliancesUpSql, map[string]*bintree{}},
+		"000006_create_emojis.down.sql":                    &bintree{postgres000006_create_emojisDownSql, map[string]*bintree{}},
+		"000006_create_emojis.up.sql":                      &bintree{postgres000006_create_emojisUpSql, map[string]*bintree{}},
+		"000007_create_user_groups.down.sql":               &bintree{postgres000007_create_user_groupsDownSql, map[string]*bintree{}},
+		"000007_create_user_groups.up.sql":                 &bintree{postgres000007_create_user_groupsUpSql, map[string]*bintree{}},
+		"000008_create_group_members.down.sql":             &bintree{postgres000008_create_group_membersDownSql, map[string]*bintree{}},
+		"000008_create_group_members.up.sql":               &bintree{postgres000008_create_group_membersUpSql, map[string]*bintree{}},
+		"000009_create_group_teams.down.sql":               &bintree{postgres000009_create_group_teamsDownSql, map[string]*bintree{}},
+		"000009_create_group_teams.up.sql":                 &bintree{postgres000009_create_group_teamsUpSql, map[string]*bintree{}},
+		"000010_create_group_channels.down.sql":            &bintree{postgres000010_create_group_channelsDownSql, map[string]*bintree{}},
+		"000010_create_group_channels.up.sql":              &bintree{postgres000010_create_group_channelsUpSql, map[string]*bintree{}},
+		"000011_create_link_metadata.down.sql":             &bintree{postgres000011_create_link_metadataDownSql, map[string]*bintree{}},
+		"000011_create_link_metadata.up.sql":               &bintree{postgres000011_create_link_metadataUpSql, map[string]*bintree{}},
+		"000012_create_commands.down.sql":                  &bintree{postgres000012_create_commandsDownSql, map[string]*bintree{}},
+		"000012_create_commands.up.sql":                    &bintree{postgres000012_create_commandsUpSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.down.sql":         &bintree{postgres000013_create_incoming_webhooksDownSql, map[string]*bintree{}},
+		"000013_create_incoming_webhooks.up.sql":           &bintree{postgres000013_create_incoming_webhooksUpSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.down.sql":         &bintree{postgres000014_create_outgoing_webhooksDownSql, map[string]*bintree{}},
+		"000014_create_outgoing_webhooks.up.sql":           &bintree{postgres000014_create_outgoing_webhooksUpSql, map[string]*bintree{}},
+		"000015_create_systems.down.sql":                   &bintree{postgres000015_create_systemsDownSql, map[string]*bintree{}},
+		"000015_create_systems.up.sql":                     &bintree{postgres000015_create_systemsUpSql, map[string]*bintree{}},
+		"000016_create_reactions.down.sql":                 &bintree{postgres000016_create_reactionsDownSql, map[string]*bintree{}},
+		"000016_create_reactions.up.sql":                   &bintree{postgres000016_create_reactionsUpSql, map[string]*bintree{}},
+		"000017_create_roles.down.sql":                     &bintree{postgres000017_create_rolesDownSql, map[string]*bintree{}},
+		"000017_create_roles.up.sql":                       &bintree{postgres000017_create_rolesUpSql, map[string]*bintree{}},
+		"000018_create_schemes.down.sql":                   &bintree{postgres000018_create_schemesDownSql, map[string]*bintree{}},
+		"000018_create_schemes.up.sql":                     &bintree{postgres000018_create_schemesUpSql, map[string]*bintree{}},
+		"000019_create_licenses.down.sql":                  &bintree{postgres000019_create_licensesDownSql, map[string]*bintree{}},
+		"000019_create_licenses.up.sql":                    &bintree{postgres000019_create_licensesUpSql, map[string]*bintree{}},
+		"000020_create_posts.down.sql":                     &bintree{postgres000020_create_postsDownSql, map[string]*bintree{}},
+		"000020_create_posts.up.sql":                       &bintree{postgres000020_create_postsUpSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.down.sql": &bintree{postgres000021_create_product_notice_view_stateDownSql, map[string]*bintree{}},
+		"000021_create_product_notice_view_state.up.sql":   &bintree{postgres000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
+		"000022_create_sessions.down.sql":                  &bintree{postgres000022_create_sessionsDownSql, map[string]*bintree{}},
+		"000022_create_sessions.up.sql":                    &bintree{postgres000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":          &bintree{postgres000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":            &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
+		"000024_create_audits.down.sql":                    &bintree{postgres000024_create_auditsDownSql, map[string]*bintree{}},
+		"000024_create_audits.up.sql":                      &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
 	}},
 }}
 
