@@ -318,7 +318,7 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		panic(err)
 	}

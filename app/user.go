@@ -96,7 +96,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -149,7 +149,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 

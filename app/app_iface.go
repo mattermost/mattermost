@@ -370,10 +370,10 @@ type AppIface interface {
 	AddTeamMemberByToken(userID, tokenID string) (*model.TeamMember, *model.AppError)
 	AddTeamMembers(teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError)
 	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
-	AddUserToTeam(teamID string, userID string, userRequestorId string) (*model.Team, *model.AppError)
-	AddUserToTeamByInviteId(inviteId string, userID string) (*model.Team, *model.AppError)
+	AddUserToTeam(teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
+	AddUserToTeamByInviteId(inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(teamID string, user *model.User) *model.AppError
-	AddUserToTeamByToken(userID string, tokenID string) (*model.Team, *model.AppError)
+	AddUserToTeamByToken(userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
@@ -778,7 +778,7 @@ type AppIface interface {
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
-	JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError
+	JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(channelID string, userID string) *model.AppError
 	LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError
