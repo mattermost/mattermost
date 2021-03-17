@@ -3556,7 +3556,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.ConnectionSecurity == CONN_SECURITY_TLS && !*s.UseLetsEncrypt {
-		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
 			return appErr
@@ -3564,7 +3564,7 @@ func (s *ServiceSettings) isValid() *AppError {
 			return appErr
 		}
 
-		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSKeyFile == "" {
 			return appErr
