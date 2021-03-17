@@ -44,6 +44,8 @@
 // mysql/000021_create_product_notice_view_state.up.sql
 // mysql/000022_create_sessions.down.sql
 // mysql/000022_create_sessions.up.sql
+// mysql/000023_create_terms_of_service.down.sql
+// mysql/000023_create_terms_of_service.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -88,6 +90,8 @@
 // postgres/000021_create_product_notice_view_state.up.sql
 // postgres/000022_create_sessions.down.sql
 // postgres/000022_create_sessions.up.sql
+// postgres/000023_create_terms_of_service.down.sql
+// postgres/000023_create_terms_of_service.up.sql
 package migrations
 
 import (
@@ -1044,6 +1048,46 @@ func mysql000022_create_sessionsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000023_create_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x49\x2d\xca\x2d\xf6\x4f\x0b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\xb3\xb8\x31\x9d\x25\x00\x00\x00")
+
+func mysql000023_create_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000023_create_terms_of_serviceDownSql,
+		"mysql/000023_create_terms_of_service.down.sql",
+	)
+}
+
+func mysql000023_create_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := mysql000023_create_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000023_create_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000023_create_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\xcc\x3d\x4b\xc5\x30\x18\xc5\xf1\xbd\x9f\xe2\x8c\x09\x38\xc8\x45\x44\x90\x3b\xe4\xb6\x4f\x35\x18\x53\x49\x52\xb0\x63\x5f\x9e\x6a\x87\x56\x48\x63\xe9\xc7\x17\x2a\x88\xe8\x78\x38\x3f\xfe\xb9\x23\x15\x08\x41\x5d\x0c\x41\x97\xb0\x55\x00\xbd\x6a\x1f\x3c\x02\xc7\x79\xad\x46\xcf\x71\x9b\x7a\x86\xc8\x00\x40\x0f\xd8\xda\xd8\xbf\xb7\x51\x9c\x6e\xe5\xc1\x6d\x6d\xcc\xd5\x71\xe6\x91\xdb\xc4\x2a\xa1\x9b\xde\xa6\x25\x89\xd3\xb5\x44\x41\xa5\xaa\xcd\x6f\x55\xaf\x1c\xff\x64\xfe\xa3\xc0\x7b\x42\xe2\x3d\x7d\xcf\x17\xa7\x9f\x95\x6b\xf0\x44\x0d\x84\x1e\x64\x26\x41\xf6\x41\x5b\x3a\xeb\x65\xf9\x28\x2e\x3f\x85\xfc\x51\x39\x4f\xe1\xfc\x99\xc6\xbb\xb9\xbb\xb9\xcf\xbe\x02\x00\x00\xff\xff\x8c\x24\xca\xbe\xe1\x00\x00\x00")
+
+func mysql000023_create_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000023_create_terms_of_serviceUpSql,
+		"mysql/000023_create_terms_of_service.up.sql",
+	)
+}
+
+func mysql000023_create_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := mysql000023_create_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000023_create_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -1924,6 +1968,46 @@ func postgres000022_create_sessionsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000023_create_terms_of_serviceDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\xb5\xe6\x02\x04\x00\x00\xff\xff\xba\xce\x63\x8e\x25\x00\x00\x00")
+
+func postgres000023_create_terms_of_serviceDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000023_create_terms_of_serviceDownSql,
+		"postgres/000023_create_terms_of_service.down.sql",
+	)
+}
+
+func postgres000023_create_terms_of_serviceDownSql() (*asset, error) {
+	bytes, err := postgres000023_create_terms_of_serviceDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000023_create_terms_of_service.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000023_create_terms_of_serviceUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x0e\x72\x75\x0c\x71\x55\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\xf0\xf3\x0f\x51\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x49\x2d\xca\x2d\xce\x4f\x2b\x4e\x2d\x2a\xcb\x4c\x4e\x55\xd0\xe0\x52\x50\x50\x50\xc8\x4c\x51\x08\x73\x0c\x72\xf6\x70\x0c\xd2\x30\x32\xd3\x54\x08\x08\xf2\xf4\x75\x0c\x8a\x54\xf0\x76\x8d\xd4\x01\xcb\x27\x17\xa5\x26\x96\xa4\x26\x96\x28\x24\x65\xa6\x67\xe6\x95\x40\x04\x4b\x8b\x53\x8b\x50\x35\x42\xc4\x4b\x52\x2b\x4a\xe0\xa2\x66\xa6\xa6\xc6\xa6\x9a\x5c\x9a\xd6\x5c\x80\x00\x00\x00\xff\xff\x4e\x50\xb9\x34\x94\x00\x00\x00")
+
+func postgres000023_create_terms_of_serviceUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000023_create_terms_of_serviceUpSql,
+		"postgres/000023_create_terms_of_service.up.sql",
+	)
+}
+
+func postgres000023_create_terms_of_serviceUpSql() (*asset, error) {
+	bytes, err := postgres000023_create_terms_of_serviceUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000023_create_terms_of_service.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2020,6 +2104,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000021_create_product_notice_view_state.up.sql":      mysql000021_create_product_notice_view_stateUpSql,
 	"mysql/000022_create_sessions.down.sql":                     mysql000022_create_sessionsDownSql,
 	"mysql/000022_create_sessions.up.sql":                       mysql000022_create_sessionsUpSql,
+	"mysql/000023_create_terms_of_service.down.sql":             mysql000023_create_terms_of_serviceDownSql,
+	"mysql/000023_create_terms_of_service.up.sql":               mysql000023_create_terms_of_serviceUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -2064,6 +2150,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000021_create_product_notice_view_state.up.sql":   postgres000021_create_product_notice_view_stateUpSql,
 	"postgres/000022_create_sessions.down.sql":                  postgres000022_create_sessionsDownSql,
 	"postgres/000022_create_sessions.up.sql":                    postgres000022_create_sessionsUpSql,
+	"postgres/000023_create_terms_of_service.down.sql":          postgres000023_create_terms_of_serviceDownSql,
+	"postgres/000023_create_terms_of_service.up.sql":            postgres000023_create_terms_of_serviceUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -2152,6 +2240,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000021_create_product_notice_view_state.up.sql":   &bintree{mysql000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
 		"000022_create_sessions.down.sql":                  &bintree{mysql000022_create_sessionsDownSql, map[string]*bintree{}},
 		"000022_create_sessions.up.sql":                    &bintree{mysql000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":          &bintree{mysql000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":            &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -2198,6 +2288,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000021_create_product_notice_view_state.up.sql":   &bintree{postgres000021_create_product_notice_view_stateUpSql, map[string]*bintree{}},
 		"000022_create_sessions.down.sql":                  &bintree{postgres000022_create_sessionsDownSql, map[string]*bintree{}},
 		"000022_create_sessions.up.sql":                    &bintree{postgres000022_create_sessionsUpSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.down.sql":          &bintree{postgres000023_create_terms_of_serviceDownSql, map[string]*bintree{}},
+		"000023_create_terms_of_service.up.sql":            &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 	}},
 }}
 
