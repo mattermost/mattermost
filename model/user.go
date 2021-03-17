@@ -561,6 +561,7 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.FailedAttempts = 0
 	u.MfaActive = false
 	u.MfaSecret = ""
+	u.Email = strings.TrimSpace(u.Email)
 }
 
 func (u *User) ClearNonProfileFields() {
