@@ -227,7 +227,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
-	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()

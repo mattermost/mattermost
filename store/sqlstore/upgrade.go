@@ -685,13 +685,6 @@ func upgradeDatabaseToVersion515(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5150, Version5160) {
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
-		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
-		}
-		saveSchemaVersion(sqlStore, Version5160)
-
 		// Fix mismatches between the canonical and migrated schemas.
 		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
 		sqlStore.AlterColumnTypeIfExists("Channels", "GroupConstrained", "tinyint(1)", "boolean")
@@ -703,6 +696,8 @@ func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 		// sqlStore.AlterColumnTypeIfExists("ChannelMembers", "SchemeGuest", "tinyint(4)", "boolean")
 
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+
+		saveSchemaVersion(sqlStore, Version5160)
 	}
 }
 
