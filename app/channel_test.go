@@ -1355,13 +1355,13 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), response.MsgCount)
 		assert.Equal(t, int64(2), response.MentionCount)
-		assert.Equal(t, int64(1), *response.MentionCountRoot)
+		assert.Equal(t, int64(1), response.MentionCountRoot)
 
 		unread, err := th.App.GetChannelUnread(c2.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(2), unread.MsgCount)
 		assert.Equal(t, int64(2), unread.MentionCount)
-		assert.Equal(t, int64(1), *unread.MentionCountRoot)
+		assert.Equal(t, int64(1), unread.MentionCountRoot)
 	})
 
 	t.Run("Unread on a DM channel", func(t *testing.T) {
@@ -1378,13 +1378,13 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), response.MsgCount)
 		assert.Equal(t, int64(4), response.MentionCount)
-		assert.Equal(t, int64(3), *response.MentionCountRoot)
+		assert.Equal(t, int64(3), response.MentionCountRoot)
 
 		unread, err := th.App.GetChannelUnread(dc.Id, u2.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(4), unread.MsgCount)
 		assert.Equal(t, int64(4), unread.MentionCount)
-		assert.Equal(t, int64(3), *unread.MentionCountRoot)
+		assert.Equal(t, int64(3), unread.MentionCountRoot)
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {

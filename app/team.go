@@ -1130,25 +1130,6 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userID string) (*model.TeamMembe
 	return teamMember, nil
 }
 
-func (a *App) migrateTeamMentionCountRoot(channelUnreads []*model.ChannelUnread, teamID, userID string) ([]*model.ChannelUnread, error) {
-	migrationNeeded := false
-	for _, cu := range channelUnreads {
-		// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
-		if cu.MentionCountRoot == nil {
-			migrationNeeded = true
-		}
-	}
-	if migrationNeeded {
-		// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
-		if err := a.populateMentionCountRoot(teamID, userID); err != nil {
-			return nil, err
-		}
-		// retry
-		return a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
-	}
-	return channelUnreads, nil
-}
-
 func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
@@ -1161,12 +1142,9 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		MentionCountRoot: 0,
 		TeamId:           teamID,
 	}
-	if channelUnreads, err = a.migrateTeamMentionCountRoot(channelUnreads, teamID, userID); err != nil {
-		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
 	for _, cu := range channelUnreads {
 		teamUnread.MentionCount += cu.MentionCount
-		teamUnread.MentionCountRoot += *cu.MentionCountRoot
+		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			teamUnread.MsgCount += cu.MsgCount
@@ -1691,29 +1669,12 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// if we don't have MentionCountRoot yet for atleast one channel, calculate it now and retry
-	for _, cu := range data {
-		if cu.MentionCountRoot == nil {
-			err := a.populateMentionCountRoot(cu.TeamId, userID)
-			if err != nil {
-				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			// retry fetch
-			if data, err = a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID); err != nil {
-				return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			break
-		}
-	}
-
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
 		tu.MentionCount += cu.MentionCount
-		if cu.MentionCountRoot != nil {
-			tu.MentionCountRoot += *cu.MentionCountRoot
-		}
+		tu.MentionCountRoot += cu.MentionCountRoot
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			tu.MsgCount += cu.MsgCount

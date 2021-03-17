@@ -53,10 +53,6 @@ type channelMember struct {
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
-	mentionCountRoot := sql.NullInt64{Valid: false}
-	if cm.MentionCountRoot != nil {
-		mentionCountRoot = sql.NullInt64{Valid: true, Int64: *cm.MentionCountRoot}
-	}
 	return &channelMember{
 		ChannelId:        cm.ChannelId,
 		UserId:           cm.UserId,
@@ -64,7 +60,7 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 		LastViewedAt:     cm.LastViewedAt,
 		MsgCount:         cm.MsgCount,
 		MentionCount:     cm.MentionCount,
-		MentionCountRoot: mentionCountRoot,
+		MentionCountRoot: sql.NullInt64{Valid: true, Int64: cm.MentionCountRoot},
 		NotifyProps:      cm.NotifyProps,
 		LastUpdateAt:     cm.LastUpdateAt,
 		SchemeGuest:      sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
@@ -231,9 +227,9 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
 		strings.Fields(db.Roles),
 	)
-	var mentionCountRoot *int64
+	mentionCountRoot := int64(0)
 	if db.MentionCountRoot.Valid {
-		mentionCountRoot = &db.MentionCountRoot.Int64
+		mentionCountRoot = db.MentionCountRoot.Int64
 	}
 	return &model.ChannelMember{
 		ChannelId:        db.ChannelId,

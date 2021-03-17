@@ -339,7 +339,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(c2, -1)
 	require.NoError(t, nErr)
 
-	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MentionCount: 5, MentionCountRoot: model.NewInt64(1)}
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MentionCount: 5, MentionCountRoot: 1}
 	_, err = ss.Channel().SaveMember(cm2)
 	require.NoError(t, err)
 

@@ -201,20 +201,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		umc := make(chan *model.AppError, 1)
 		go func(userID string) {
 			defer close(umc)
-			// if the participant is mentioned and they don't have MentionCountRoot setup yet, perform lazy migration
-			channelMember, nErr := a.Srv().Store.Channel().GetMember(post.ChannelId, userID)
-			if nErr != nil {
-				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				return
-			}
-			if channelMember.MentionCountRoot == nil {
-				nErr = a.populateMentionCountRoot(team.Id, userID)
-				if nErr != nil {
-					umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-			nErr = a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow, post.RootId == "")
+			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow, post.RootId == "")
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				return

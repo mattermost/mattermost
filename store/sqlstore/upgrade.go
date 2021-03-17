@@ -970,7 +970,28 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MentionCountRoot", "bigint", "bigint")
-
+	updateMentionCountRootQuery := `
+	UPDATE ChannelMembers INNER JOIN (
+		SELECT Threads.ChannelId, COALESCE(SUM(UnreadMentions),0) AS UnreadMentions FROM Channels
+		LEFT JOIN Threads ON Threads.ChannelId = Channels.Id
+		LEFT Join ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId
+		Group BY Threads.ChannelId
+	) AS q ON q.ChannelId = ChannelMembers.ChannelId
+	SET MentionCountRoot = GREATEST(ChannelMembers.MentionCount - q.UnreadMentions, 0)`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateMentionCountRootQuery = `
+		WITH q AS (
+			SELECT Threads.ChannelId, COALESCE(SUM(UnreadMentions),0) AS UnreadMentions FROM channels
+			LEFT JOIN Threads ON Threads.ChannelId = Channels.Id
+			LEFT Join ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId
+			Group BY Threads.ChannelId
+		)
+		UPDATE ChannelMembers SET MentionCountRoot = GREATEST(ChannelMembers.MentionCount - q.UnreadMentions, 0)
+		FROM q WHERE q.ChannelId = ChannelMembers.ChannelId`
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }
