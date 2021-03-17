@@ -15,9 +15,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/markdown"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -231,7 +231,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				a.sendNotificationEmail(notification, profileMap[id], team)
+				err := a.sendNotificationEmail(notification, profileMap[id], team)
+				if err != nil {
+					mlog.Warn("Unable to send notification email.", mlog.Err(err))
+				}
 			}
 		}
 	}
@@ -434,11 +437,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
-				message.Add("thread", userThread.ToJson())
-				a.Publish(message)
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				if err != nil {
+					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
+				}
+				if userThread != nil {
+					a.sanitizeProfiles(userThread.Participants, false)
+					userThread.Post.SanitizeProps()
+					message.Add("thread", userThread.ToJson())
+					a.Publish(message)
+				}
 			}
 		}
 

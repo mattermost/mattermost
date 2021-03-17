@@ -155,7 +155,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
@@ -168,7 +168,7 @@ func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User,
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email to the new user, created by system admin", mlog.Err(err))
 	}
 
@@ -192,7 +192,7 @@ func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.Us
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
@@ -333,6 +333,9 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 	ruser.Sanitize(map[string]bool{})
+
+	// Determine whether to send the created user a welcome email
+	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
 	return ruser, nil
 }
 

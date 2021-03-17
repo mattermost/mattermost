@@ -4476,10 +4476,10 @@ func (s *TimerLayerPostStore) Delete(postID string, time int64, deleteByID strin
 	return err
 }
 
-func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.Get(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5626,10 +5626,10 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	}
 }
 
-func (s *TimerLayerSessionStore) Get(sessionIDOrToken string) (*model.Session, error) {
+func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
 	start := timemodule.Now()
 
-	result, err := s.SessionStore.Get(sessionIDOrToken)
+	result, err := s.SessionStore.Get(ctx, sessionIDOrToken)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6409,10 +6409,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetMember(teamID, userId)
+	result, err := s.TeamStore.GetMember(ctx, teamID, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
