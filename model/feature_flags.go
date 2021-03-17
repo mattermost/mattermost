@@ -38,7 +38,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.FilesSearch = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.5.2"
+	f.PluginIncidentManagement = "1.6.0"
 	f.PluginApps = ""
 }
 

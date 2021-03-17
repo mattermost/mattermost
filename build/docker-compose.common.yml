@@ -16,6 +16,28 @@ services:
       interval: 5s
       timeout: 10s
       retries: 3
+    volumes:
+      - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
+  mysql-read-replica:
+    image: "mysql:5.7"
+    restart: always
+    networks:
+      - mm-test
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
     image: "postgres:10"
     restart: always

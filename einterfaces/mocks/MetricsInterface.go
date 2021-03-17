@@ -260,12 +260,7 @@ func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success st
 	_m.Called(method, success, elapsed)
 }
 
-// StartServer provides a mock function with given fields:
-func (_m *MetricsInterface) StartServer() {
-	_m.Called()
-}
-
-// StopServer provides a mock function with given fields:
-func (_m *MetricsInterface) StopServer() {
+// Register provides a mock function with given fields:
+func (_m *MetricsInterface) Register() {
 	_m.Called()
 }
