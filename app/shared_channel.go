@@ -41,9 +41,8 @@ func (a *App) checkChannelIsShared(channelId string) error {
 }
 
 func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
-	var err error
-	var sc *model.SharedChannel
-	if sc, err = a.GetSharedChannel(channelId); err != nil {
+	sc, err := a.GetSharedChannel(channelId)
+	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			return errors.New("channel is not shared.")
