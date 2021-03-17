@@ -179,9 +179,8 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	// System manager doesn't have `READ_JOBS` permission by default so he shouldn't be able to read this job type
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MIGRATIONS, 0, 60)
-	require.NotNil(t, resp.Error)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING, 0, 60)
+	require.Nil(t, resp.Error)
 }
 
 func TestDownloadJob(t *testing.T) {
