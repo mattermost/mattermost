@@ -48,6 +48,8 @@
 // mysql/000023_create_terms_of_service.up.sql
 // mysql/000024_create_audits.down.sql
 // mysql/000024_create_audits.up.sql
+// mysql/000025_create_user_access_tokens.down.sql
+// mysql/000025_create_user_access_tokens.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -96,6 +98,8 @@
 // postgres/000023_create_terms_of_service.up.sql
 // postgres/000024_create_audits.down.sql
 // postgres/000024_create_audits.up.sql
+// postgres/000025_create_user_access_tokens.down.sql
+// postgres/000025_create_user_access_tokens.up.sql
 package migrations
 
 import (
@@ -1132,6 +1136,46 @@ func mysql000024_create_auditsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000025_create_user_access_tokensDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x2d\x4e\x2d\x72\x4c\x4e\x4e\x2d\x2e\x0e\xc9\xcf\x4e\xcd\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\x07\x52\x07\x56\x27\x00\x00\x00")
+
+func mysql000025_create_user_access_tokensDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000025_create_user_access_tokensDownSql,
+		"mysql/000025_create_user_access_tokens.down.sql",
+	)
+}
+
+func mysql000025_create_user_access_tokensDownSql() (*asset, error) {
+	bytes, err := mysql000025_create_user_access_tokensDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000025_create_user_access_tokens.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000025_create_user_access_tokensUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xe4\x94\x51\xaf\x93\x30\x14\xc7\xdf\xf9\x14\xe7\x6d\x60\x8c\x71\xc6\x18\x93\x65\xc6\x0e\xce\x5c\x23\x2b\xb3\x2d\x71\xf7\x89\xf4\x42\x97\x4b\x1c\x65\xa1\xdd\xcd\xfc\xf6\x66\x80\xe8\x1d\xbb\xea\x83\x37\x31\x71\x0f\x23\xb4\xff\xf3\xa3\x3d\x3f\x4a\xc8\x91\x48\x04\x49\x16\x31\x02\x5d\x02\x4b\x24\xe0\x96\x0a\x29\x20\xb5\xba\x21\x79\xae\xad\x95\xf5\x17\x6d\x2c\xf8\x1e\x00\x00\x2d\xe0\x5e\x35\xf9\x9d\x6a\xfc\x57\x6f\x82\xb6\x80\xa5\x71\xfc\xbc\x9d\x6c\x93\x0f\xe6\x23\x5c\x92\x34\xfe\x39\x73\xe6\x5e\x40\xc6\xa1\x48\xdb\xbc\x29\x0f\xae\xac\x0d\x38\x7d\x72\xdd\xe8\x86\xd3\x35\xe1\x37\xf0\x11\x6f\xc0\xa7\x45\xd0\x03\x19\xfd\x94\x22\xf8\xed\xc3\x03\x2f\x00\x64\x1f\x28\xc3\x39\x35\xa6\x8e\x16\x03\x3c\x5c\x11\x2e\x50\xce\x8f\x6e\xf7\xb6\xba\x7d\x3d\xf3\x3c\x81\x12\xde\x1f\x1a\x7d\x50\x8d\x2e\x84\x53\x4e\x57\xda\x38\x98\x83\x2f\x30\xc6\x50\x02\x5d\x76\x7b\xee\xfe\xcf\xbf\x7e\x22\x4c\x52\x26\xfd\x67\x01\x2c\x79\xb2\x06\xca\x96\x09\x5f\x13\x49\x13\x96\x89\x70\x85\x6b\xf2\x22\x4c\xe2\x74\xcd\xc4\x50\xf7\x79\x85\x1c\xc1\xa9\xdb\xbd\xce\x8c\xaa\x34\xcc\x61\x72\xd9\xe0\xc9\x90\x26\x2c\xea\xb3\x36\xbf\xd3\x95\x82\x39\x44\x44\x92\x05\x11\xe8\x07\x0f\x52\x79\xbd\x3f\x56\x66\x40\x52\x4b\x72\x57\xde\xeb\x0e\x15\xc0\x3b\x78\xd9\xf5\x68\xd2\x2f\x7c\x3a\xe9\xef\x49\x2c\x91\xf7\xde\x47\xa6\x49\x14\x41\xb7\x03\xf8\x4e\x04\x57\x9a\xaf\xa5\x71\xfe\xf4\x87\xae\xe9\x6c\xe2\x05\xc1\xcc\xf3\x36\x1c\x37\x84\x23\xa8\xbd\xd3\x0d\xab\x1d\xdd\xe1\xa9\xb4\xce\x76\xed\x19\xb7\x78\xe6\xe1\x16\xc3\x54\x8e\x2b\x66\x5e\x84\x24\x8e\x93\xf0\xfc\x56\x3e\x86\x7d\x5a\x75\x42\x12\x49\x85\xa4\xe1\xd3\xdb\x2b\x4d\xa1\x4f\x03\xb1\x2c\x4e\xd9\xd1\xea\x26\x53\x2d\x36\x73\x2d\xb7\xbb\xfc\x5e\x68\x7f\x92\x29\x8b\x70\x0b\xbf\x42\x41\xc2\x46\xc6\xfb\xb3\x73\xe9\x33\x6f\xb4\x72\x9a\x9e\x57\x49\x77\xac\x76\x7f\x6a\xf5\x7a\xdd\x55\xb7\x8f\x45\xff\x27\xc3\xed\x50\x59\xfc\x1d\xc7\x3d\xec\xaa\xe5\xee\xd3\xfb\x2f\x69\xfe\x16\x00\x00\xff\xff\x72\xd2\xd7\x55\x80\x06\x00\x00")
+
+func mysql000025_create_user_access_tokensUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000025_create_user_access_tokensUpSql,
+		"mysql/000025_create_user_access_tokens.up.sql",
+	)
+}
+
+func mysql000025_create_user_access_tokensUpSql() (*asset, error) {
+	bytes, err := mysql000025_create_user_access_tokensUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000025_create_user_access_tokens.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -2092,6 +2136,46 @@ func postgres000024_create_auditsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000025_create_user_access_tokensDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x2d\x4e\x2d\x4a\x4c\x4e\x4e\x2d\x2e\x2e\xc9\xcf\x4e\xcd\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\xb9\xf0\x53\x3f\x27\x00\x00\x00")
+
+func postgres000025_create_user_access_tokensDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000025_create_user_access_tokensDownSql,
+		"postgres/000025_create_user_access_tokens.down.sql",
+	)
+}
+
+func postgres000025_create_user_access_tokensDownSql() (*asset, error) {
+	bytes, err := postgres000025_create_user_access_tokensDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000025_create_user_access_tokens.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000025_create_user_access_tokensUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\x4f\x4b\xc3\x30\x18\xc6\xef\xf9\x14\xcf\xb1\x01\x2f\x0e\xf4\xd2\x53\x6c\x23\x06\xbb\x54\xb3\x54\xb6\x53\xa9\xcd\x2b\x04\xc7\x2a\x4d\x2a\x7e\x7c\x59\x33\x90\xad\x9e\x76\x7a\xe1\xfd\xf3\x7b\x7e\x49\x61\xa4\xb0\x12\x56\x3c\x54\x12\xea\x11\xba\xb6\x90\x5b\xb5\xb1\x1b\x4c\x81\xc6\xae\xef\x29\x84\x38\x7c\xd2\x21\x20\x63\x00\xe0\x1d\xde\x84\x29\x9e\x84\xc9\x56\xf7\x1c\x2f\x46\xad\x85\xd9\xe1\x59\xee\x6e\xe6\xf9\xbc\x7c\xb6\xd2\x68\xf5\xda\xc8\x34\x3d\x42\xcf\x09\xa9\xef\x28\xf4\xa3\xff\x8a\x7e\xf8\xbb\xbd\xbb\x5d\x71\xc6\x73\xc6\x44\x65\xa5\x39\x39\x2e\xac\x44\x59\xa2\xa8\xab\x66\xad\x2f\xfc\x7d\xe8\xfa\xe8\xbf\x09\xef\xc3\xb0\xa7\xee\x00\x47\x1f\xdd\xb4\x8f\x88\xe3\x44\x39\x3b\xbd\x5c\xe9\x52\x6e\x2f\x2f\xdd\x4f\x7b\xcc\x69\x53\x50\x9b\x92\x52\x41\xad\x17\x0e\xd9\x5c\xf8\x35\xcc\xb9\xe5\xdd\xbf\xd4\xf4\x57\x3c\x67\xbf\x01\x00\x00\xff\xff\xe5\xa2\xde\x55\xa5\x01\x00\x00")
+
+func postgres000025_create_user_access_tokensUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000025_create_user_access_tokensUpSql,
+		"postgres/000025_create_user_access_tokens.up.sql",
+	)
+}
+
+func postgres000025_create_user_access_tokensUpSql() (*asset, error) {
+	bytes, err := postgres000025_create_user_access_tokensUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000025_create_user_access_tokens.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2192,6 +2276,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000023_create_terms_of_service.up.sql":               mysql000023_create_terms_of_serviceUpSql,
 	"mysql/000024_create_audits.down.sql":                       mysql000024_create_auditsDownSql,
 	"mysql/000024_create_audits.up.sql":                         mysql000024_create_auditsUpSql,
+	"mysql/000025_create_user_access_tokens.down.sql":           mysql000025_create_user_access_tokensDownSql,
+	"mysql/000025_create_user_access_tokens.up.sql":             mysql000025_create_user_access_tokensUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -2240,6 +2326,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000023_create_terms_of_service.up.sql":            postgres000023_create_terms_of_serviceUpSql,
 	"postgres/000024_create_audits.down.sql":                    postgres000024_create_auditsDownSql,
 	"postgres/000024_create_audits.up.sql":                      postgres000024_create_auditsUpSql,
+	"postgres/000025_create_user_access_tokens.down.sql":        postgres000025_create_user_access_tokensDownSql,
+	"postgres/000025_create_user_access_tokens.up.sql":          postgres000025_create_user_access_tokensUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -2332,6 +2420,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000023_create_terms_of_service.up.sql":            &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 		"000024_create_audits.down.sql":                    &bintree{mysql000024_create_auditsDownSql, map[string]*bintree{}},
 		"000024_create_audits.up.sql":                      &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_user_access_tokens.down.sql":        &bintree{mysql000025_create_user_access_tokensDownSql, map[string]*bintree{}},
+		"000025_create_user_access_tokens.up.sql":          &bintree{mysql000025_create_user_access_tokensUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -2382,6 +2472,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000023_create_terms_of_service.up.sql":            &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 		"000024_create_audits.down.sql":                    &bintree{postgres000024_create_auditsDownSql, map[string]*bintree{}},
 		"000024_create_audits.up.sql":                      &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_user_access_tokens.down.sql":        &bintree{postgres000025_create_user_access_tokensDownSql, map[string]*bintree{}},
+		"000025_create_user_access_tokens.up.sql":          &bintree{postgres000025_create_user_access_tokensUpSql, map[string]*bintree{}},
 	}},
 }}
 

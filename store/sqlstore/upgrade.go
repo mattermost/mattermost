@@ -428,9 +428,6 @@ func upgradeDatabaseToVersion43(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion44(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version430, Version440) {
-		// Add the IsActive column to UserAccessToken.
-		sqlStore.CreateColumnIfNotExists("UserAccessTokens", "IsActive", "boolean", "boolean", "1")
-
 		saveSchemaVersion(sqlStore, Version440)
 	}
 }

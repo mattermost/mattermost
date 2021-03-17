@@ -588,7 +588,7 @@ CREATE TABLE public.useraccesstokens (
     token character varying(26),
     userid character varying(26),
     description character varying(512),
-    isactive boolean
+    isactive boolean DEFAULT true
 );
 
 

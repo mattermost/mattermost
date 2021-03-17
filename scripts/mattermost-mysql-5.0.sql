@@ -971,7 +971,7 @@ CREATE TABLE `UserAccessTokens` (
   `Token` varchar(26) DEFAULT NULL,
   `UserId` varchar(26) DEFAULT NULL,
   `Description` text,
-  `IsActive` tinyint(1) DEFAULT NULL,
+  `IsActive` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Token` (`Token`),
   KEY `idx_user_access_tokens_token` (`Token`),
