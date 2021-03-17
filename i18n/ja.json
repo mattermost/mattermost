@@ -4174,11 +4174,11 @@
     "translation": "ユーザー入力の更新間隔は1000ミリ秒未満に設定しないでください。"
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "TLS証明書ファイルに対する不正な値 - LetsEncryptを使用するか、存在する証明書ファイルを設定してください。"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "TLS鍵ファイルに対する不正な値 - LetsEncryptを使用するか、存在する鍵ファイルを設定してください。"
   },
   {
