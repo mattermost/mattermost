@@ -92,9 +92,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 
-	api.BaseRoutes.User.Handle("/data_retention/team_policies", api.ApiSessionRequired(getTeamPoliciesForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/data_retention/channel_policies", api.ApiSessionRequired(getChannelPoliciesForUser)).Methods("GET")
-
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 	api.BaseRoutes.UserThreads.Handle("/mention_counts", api.ApiSessionRequired(getMentionCountsForAllThreadsByUser)).Methods("GET")

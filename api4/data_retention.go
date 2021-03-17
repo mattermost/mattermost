@@ -27,6 +27,8 @@ func (api *API) InitDataRetention() {
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
 	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id:[A-Za-z0-9]+}/channels/search", api.ApiSessionRequired(searchChannelsInPolicy)).Methods("POST")
+	api.BaseRoutes.User.Handle("/data_retention/team_policies", api.ApiSessionRequired(getTeamPoliciesForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/data_retention/channel_policies", api.ApiSessionRequired(getChannelPoliciesForUser)).Methods("GET")
 }
 
 func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
