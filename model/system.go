@@ -22,7 +22,6 @@ const (
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
 	SYSTEM_UPGRADED_FROM_TE_ID                    = "UpgradedFromTE"
-	SYSTEM_MANUALLY_DISABLED_APPS                 = "ManuallyDisableApps"
 	SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5          = "warn_metric_number_of_teams_5"
 	SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50      = "warn_metric_number_of_channels_50"
 	SYSTEM_WARN_METRIC_MFA                        = "warn_metric_mfa"

@@ -101,8 +101,6 @@ func (a *App) SyncPluginsActiveState() {
 			if pluginID == "com.mattermost.apps" {
 				if !a.Config().FeatureFlags.AppsEnabled {
 					pluginEnabled = false
-				} else if a.getManuallyDisabledApps() == "false" {
-					pluginEnabled = true
 				}
 			}
 
@@ -374,8 +372,6 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
 
-	a.setManuallyDisabledApps("false")
-
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
@@ -419,33 +415,12 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	})
 	a.UnregisterPluginCommands(id)
 
-	a.setManuallyDisabledApps("true")
-
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
-}
-
-func (a *App) setManuallyDisabledApps(value string) error {
-	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_MANUALLY_DISABLED_APPS,
-		Value: value,
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *App) getManuallyDisabledApps() string {
-	manuallyDisabledApps, err := a.Srv().Store.System().GetByName(model.SYSTEM_MANUALLY_DISABLED_APPS)
-	if err != nil {
-		return "false"
-	}
-
-	return manuallyDisabledApps.Value
 }
 
 func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
