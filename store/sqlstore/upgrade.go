@@ -993,9 +993,6 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 		mlog.Error("Error updating MsgCountRoot in ChannelMembers table", mlog.Err(err))
 	}
 
-	// if _, err := sqlStore.GetMaster().Exec(query); err != nil {
-	// 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
-	// 	}
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }
