@@ -48,6 +48,8 @@
 // mysql/000023_create_terms_of_service.up.sql
 // mysql/000024_create_audits.down.sql
 // mysql/000024_create_audits.up.sql
+// mysql/000025_create_upload_sessions.down.sql
+// mysql/000025_create_upload_sessions.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -96,6 +98,8 @@
 // postgres/000023_create_terms_of_service.up.sql
 // postgres/000024_create_audits.down.sql
 // postgres/000024_create_audits.up.sql
+// postgres/000025_create_upload_sessions.down.sql
+// postgres/000025_create_upload_sessions.up.sql
 package migrations
 
 import (
@@ -1132,6 +1136,46 @@ func mysql000024_create_auditsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000025_create_upload_sessionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x08\x2d\xc8\xc9\x4f\x4c\x09\x4e\x2d\x2e\xce\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\x7c\x2e\x04\x94\x25\x00\x00\x00")
+
+func mysql000025_create_upload_sessionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000025_create_upload_sessionsDownSql,
+		"mysql/000025_create_upload_sessions.down.sql",
+	)
+}
+
+func mysql000025_create_upload_sessionsDownSql() (*asset, error) {
+	bytes, err := mysql000025_create_upload_sessionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000025_create_upload_sessions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000025_create_upload_sessionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xec\x55\x4d\x6b\xdb\x40\x10\xbd\xeb\x57\xcc\x4d\x52\x29\x25\x75\x69\x2f\xc6\xa5\x1b\x69\x44\x96\xca\x92\xd1\xae\xa8\x73\x12\x1b\x6b\x5c\x2f\xd8\xb2\xd0\x6e\x8a\xd3\x5f\x5f\xf4\x51\xa5\x49\x95\xe4\x60\x28\x85\x56\x07\x81\x98\x37\x6f\x67\xde\x7b\x68\x83\x0c\x99\x44\x90\xec\x32\x46\xe0\x11\x24\xa9\x04\x5c\x73\x21\x05\xe4\xf5\xfe\xa8\x4a\x41\xc6\xe8\x63\x65\xc0\x73\x00\x00\x78\x09\xdf\x54\xb3\xd9\xa9\xc6\x9b\x7d\xf0\x3b\x78\x92\xc7\xf1\xeb\xae\x28\xef\x6a\x1a\xcb\xef\x66\x3e\x84\x18\xb1\x3c\xfe\x15\x12\x34\xa4\x2c\x31\x0b\x37\xfa\xab\xae\xac\x37\xbb\x98\x42\xe5\x86\x9a\x47\x27\x4d\x50\xed\x54\x55\xd1\xfe\x45\x5c\xa4\xf7\x54\xa9\xc3\xfd\x64\xb3\xf7\x93\xb8\x95\xb2\x3b\xb0\x74\xb2\xf7\x6d\x42\x7f\xa7\xe7\x27\x6d\x51\xe9\x76\x6b\xe8\x85\x8d\x56\x19\x5f\xb2\xec\x1a\x3e\xe3\x35\x78\xbc\xf4\x1d\x7f\xee\x38\x02\x25\x7c\xaa\x1b\xaa\x55\x43\xa5\xb0\xca\xd2\x81\x2a\x0b\x0b\xf0\x04\xc6\x18\x48\xe0\x51\xaf\x7a\xff\x6e\x9f\xa1\x10\xa4\x79\x22\xbd\x57\x3e\x44\x59\xba\x04\x9e\x44\x69\xb6\x64\x92\xa7\x49\x21\x82\x2b\x5c\xb2\x37\x42\x32\xc9\x85\xe4\x81\x18\x5b\xbf\x5c\x61\x86\x60\xd5\xcd\x9e\x8a\x4e\x8f\x05\xb8\x0f\x3d\x76\x47\x2c\x4b\xc2\x01\x69\x36\x3b\x3a\x28\x58\x40\xc8\x24\xbb\x64\x02\x3d\xff\x01\x4a\x57\x25\x9d\x46\x3e\x5d\x9e\x8a\xdb\x8e\xd3\x0c\x9c\xc5\xad\xa1\xa6\xd0\x65\xcf\xed\xc3\x47\xb8\xe8\x15\x71\x87\x55\xde\xba\xc3\xf7\x10\x45\x9e\x84\xb8\x86\xa7\x89\x20\x4d\x1e\x45\xd3\xeb\xe3\xe2\xcf\x5d\xc7\x6f\x65\x5d\x65\xb8\x62\x19\xc2\xa6\xcb\x1a\x6f\x07\xe4\xdb\xe4\x68\xf1\xa4\x8d\x35\xbd\x64\xbf\xcb\x3e\x77\x70\x8d\x41\x2e\x9f\xea\x9b\x3b\x21\xb2\x38\x4e\x83\x76\xc8\xe7\x8f\xf8\x57\xac\xed\xb7\x2f\x94\x3d\xdf\xdc\x91\x6a\xc2\xde\x9f\xff\x8c\xff\x06\xff\x69\x83\xed\x5d\x4d\xe7\x7b\xdb\xb2\x4c\xd8\xda\xde\x16\x7f\x93\xa5\x3f\x02\x00\x00\xff\xff\x21\x44\x7e\xb1\x0b\x07\x00\x00")
+
+func mysql000025_create_upload_sessionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000025_create_upload_sessionsUpSql,
+		"mysql/000025_create_upload_sessions.up.sql",
+	)
+}
+
+func mysql000025_create_upload_sessionsUpSql() (*asset, error) {
+	bytes, err := mysql000025_create_upload_sessionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000025_create_upload_sessions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -2092,6 +2136,46 @@ func postgres000024_create_auditsUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000025_create_upload_sessionsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x28\x2d\xc8\xc9\x4f\x4c\x29\x4e\x2d\x2e\xce\xcc\xcf\x2b\xb6\xe6\x02\x04\x00\x00\xff\xff\xd1\x56\x66\xcc\x25\x00\x00\x00")
+
+func postgres000025_create_upload_sessionsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000025_create_upload_sessionsDownSql,
+		"postgres/000025_create_upload_sessions.down.sql",
+	)
+}
+
+func postgres000025_create_upload_sessionsDownSql() (*asset, error) {
+	bytes, err := postgres000025_create_upload_sessionsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000025_create_upload_sessions.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000025_create_upload_sessionsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x91\xb1\x4e\xc3\x30\x10\x86\x77\x3f\xc5\x8d\xb1\xc4\x42\x50\x59\x32\x99\x62\x44\x04\xa4\xc8\xb5\x50\x3b\x59\x06\x5f\xe8\x49\xc1\x89\x6a\x57\x02\x9e\x1e\xa5\x6e\x0a\x29\x5d\xb2\xfe\xff\xe5\xbb\xcb\xe7\xb9\x92\x42\x4b\xd0\xe2\xe6\x51\x42\x79\x07\xd5\x42\x83\x5c\x95\x4b\xbd\x84\x5d\xd7\xb4\xd6\x05\x0c\x81\x5a\x1f\x20\x63\x00\x00\xe4\xe0\x45\xa8\xf9\xbd\x50\x59\x7e\xcd\xe1\x59\x95\x4f\x42\xad\xe1\x41\xae\x2f\xf6\x7d\xfc\xea\xf0\x38\x71\x95\xf3\x94\xbe\x6d\xd1\x46\xb4\x11\x5e\xe9\x9d\x7c\x4c\xe1\x2e\xe0\x76\x8c\x3b\x0c\x6f\xac\xf7\xd8\x9c\xab\x6a\x6a\xd0\xdb\x8f\xdf\x0d\xf9\x6c\xa8\x3a\x1b\x37\xc7\x78\x76\x99\xff\xf9\x22\xd0\x37\x8e\x36\xf7\x61\x5b\xd7\x01\x87\x83\x18\x2f\x18\x3b\xa8\x28\xab\x5b\xb9\x3a\x51\x41\xee\xd3\x8c\x75\x98\xfe\x7a\x43\x0e\x16\xd5\x89\xa8\x2c\xfd\x17\x2f\x26\x02\x93\x23\x63\xe3\x19\xe4\xe0\x6f\x32\x74\xff\x1c\xff\x79\x7d\xcc\x0b\xf6\x13\x00\x00\xff\xff\x18\x8c\x21\xce\xfd\x01\x00\x00")
+
+func postgres000025_create_upload_sessionsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000025_create_upload_sessionsUpSql,
+		"postgres/000025_create_upload_sessions.up.sql",
+	)
+}
+
+func postgres000025_create_upload_sessionsUpSql() (*asset, error) {
+	bytes, err := postgres000025_create_upload_sessionsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000025_create_upload_sessions.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2192,6 +2276,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000023_create_terms_of_service.up.sql":               mysql000023_create_terms_of_serviceUpSql,
 	"mysql/000024_create_audits.down.sql":                       mysql000024_create_auditsDownSql,
 	"mysql/000024_create_audits.up.sql":                         mysql000024_create_auditsUpSql,
+	"mysql/000025_create_upload_sessions.down.sql":              mysql000025_create_upload_sessionsDownSql,
+	"mysql/000025_create_upload_sessions.up.sql":                mysql000025_create_upload_sessionsUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -2240,6 +2326,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000023_create_terms_of_service.up.sql":            postgres000023_create_terms_of_serviceUpSql,
 	"postgres/000024_create_audits.down.sql":                    postgres000024_create_auditsDownSql,
 	"postgres/000024_create_audits.up.sql":                      postgres000024_create_auditsUpSql,
+	"postgres/000025_create_upload_sessions.down.sql":           postgres000025_create_upload_sessionsDownSql,
+	"postgres/000025_create_upload_sessions.up.sql":             postgres000025_create_upload_sessionsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -2332,6 +2420,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000023_create_terms_of_service.up.sql":            &bintree{mysql000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 		"000024_create_audits.down.sql":                    &bintree{mysql000024_create_auditsDownSql, map[string]*bintree{}},
 		"000024_create_audits.up.sql":                      &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_upload_sessions.down.sql":           &bintree{mysql000025_create_upload_sessionsDownSql, map[string]*bintree{}},
+		"000025_create_upload_sessions.up.sql":             &bintree{mysql000025_create_upload_sessionsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -2382,6 +2472,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000023_create_terms_of_service.up.sql":            &bintree{postgres000023_create_terms_of_serviceUpSql, map[string]*bintree{}},
 		"000024_create_audits.down.sql":                    &bintree{postgres000024_create_auditsDownSql, map[string]*bintree{}},
 		"000024_create_audits.up.sql":                      &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
+		"000025_create_upload_sessions.down.sql":           &bintree{postgres000025_create_upload_sessionsDownSql, map[string]*bintree{}},
+		"000025_create_upload_sessions.up.sql":             &bintree{postgres000025_create_upload_sessionsUpSql, map[string]*bintree{}},
 	}},
 }}
 
