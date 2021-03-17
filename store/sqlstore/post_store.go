@@ -93,22 +93,6 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	return s
 }
 
-func (s *SqlPostStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
-	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
-	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
-	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
-	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
-
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at", "Posts", []string{"ChannelId", "UpdateAt"})
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt"})
-
-	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
-	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
-}
-
 func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)

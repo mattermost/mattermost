@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS Threads (
     PostId varchar(26) NOT NULL,
+    ChannelId varchar(26) DEFAULT NULL,
     ReplyCount bigint(20),
     LastReplyAt bigint(20),
     Participants text,

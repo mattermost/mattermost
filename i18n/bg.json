@@ -592,11 +592,11 @@
     "translation": "Невалидна стойност, предадена за шифър за презапис на TLS - Моля, вижте документацията за валидни стойности."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Невалидна стойност за ключов файл на TLS - Използвайте LetsEncrypt или задайте път към съществуващ файл на ключа."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Невалидна стойност за файл със сертификат TLS - Използвайте LetsEncrypt или задайте път към съществуващ файл на сертификата."
   },
   {
