@@ -19,9 +19,8 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -301,6 +300,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
+	RestrictLinkPreviews                              *string  `access:"site"`
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -406,6 +406,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.RestrictLinkPreviews == nil {
+		s.RestrictLinkPreviews = NewString("")
 	}
 
 	if s.EnableTesting == nil {
@@ -1469,14 +1473,14 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filestore.FileBackendSettings {
 	if *s.DriverName == IMAGE_DRIVER_LOCAL {
-		return filesstore.FileBackendSettings{
+		return filestore.FileBackendSettings{
 			DriverName: *s.DriverName,
 			Directory:  *s.Directory,
 		}
 	}
-	return filesstore.FileBackendSettings{
+	return filestore.FileBackendSettings{
 		DriverName:              *s.DriverName,
 		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
 		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
@@ -3547,7 +3551,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.ConnectionSecurity == CONN_SECURITY_TLS && !*s.UseLetsEncrypt {
-		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
 			return appErr
@@ -3555,7 +3559,7 @@ func (s *ServiceSettings) isValid() *AppError {
 			return appErr
 		}
 
-		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSKeyFile == "" {
 			return appErr

@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
@@ -33,11 +34,11 @@ import (
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/docextractor"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -76,7 +77,7 @@ const (
 	ImagePreviewPixelWidth    = 1920
 )
 
-func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
+func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
 	return a.Srv().FileBackend()
 }
 
@@ -89,7 +90,7 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
-func (a *App) TestFilesStoreConnection() *model.AppError {
+func (a *App) TestFileStoreConnection() *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -101,9 +102,9 @@ func (a *App) TestFilesStoreConnection() *model.AppError {
 	return nil
 }
 
-func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filesstore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -127,7 +128,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 // Caller must close the first return value
-func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
+func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
@@ -406,7 +407,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(post.Id, false, false, false)
+	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false)
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -709,12 +710,10 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, t.newAppError("api.file.upload_file.storage.app_error",
-			"", http.StatusNotImplemented)
+		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.init(a)
@@ -736,8 +735,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
 			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.fileinfo.Size = written
@@ -826,8 +824,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// in 64 bits systems because images can't have more than 32 bits height or
 	// width)
 	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
-			"", http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
@@ -941,7 +938,7 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,
@@ -959,7 +956,7 @@ func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus i
 		params[fmt.Sprintf("%v", extra[i])] = extra[i+1]
 	}
 
-	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
+	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
 func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
@@ -1310,7 +1307,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {

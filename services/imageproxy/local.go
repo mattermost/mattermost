@@ -16,8 +16,8 @@ import (
 
 	"willnorris.com/go/imageproxy"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var imageContentTypes = []string{

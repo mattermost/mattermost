@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -13,11 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
@@ -1925,6 +1926,7 @@ func TestThreadMembership(t *testing.T) {
 func TestCollapsedThreadFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -1968,5 +1970,84 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+	})
+
+	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.CollapsedThreads = true
+		})
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+		defer th.App.DeleteChannel(channel, user1.Id)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// we introduce a race to trigger an unexpected error from the db side.
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			th.Server.Store.Post().PermanentDeleteByUser(user1.Id)
+		}()
+
+		require.NotPanics(t, func() {
+			_, err = th.App.CreatePost(&model.Post{
+				UserId:    user1.Id,
+				ChannelId: channel.Id,
+				RootId:    postRoot.Id,
+				Message:   fmt.Sprintf("@%s", user2.Username),
+			}, channel, false, true)
+			require.Nil(t, err)
+		})
+
+		wg.Wait()
+	})
+}
+
+func TestReplyToPostWithLag(t *testing.T) {
+	if !replicaFlag {
+		t.Skipf("requires test flag -mysql-replica")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+		t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+	}
+
+	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+	t.Run("replication lag time great than reply time", func(t *testing.T) {
+		err := mainHelper.SetReplicationLagForTesting(5)
+		require.Nil(t, err)
+		defer mainHelper.SetReplicationLagForTesting(0)
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
+
+		root, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    root.Id,
+			ParentId:  root.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		require.NotNil(t, reply)
 	})
 }

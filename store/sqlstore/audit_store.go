@@ -31,10 +31,6 @@ func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
 	return s
 }
 
-func (s SqlAuditStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
-}
-
 func (s SqlAuditStore) Save(audit *model.Audit) error {
 	audit.Id = model.NewId()
 	audit.CreateAt = model.GetMillis()
