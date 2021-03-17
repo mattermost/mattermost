@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -347,7 +348,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
+			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
 			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})

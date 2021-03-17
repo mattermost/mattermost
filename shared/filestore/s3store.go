@@ -41,6 +41,8 @@ const (
 	bucketNotFound = "NoSuchBucket"
 )
 
+// ErrNoS3Bucket is returned when testing a connection and no S3 bucket is found
+var ErrNoS3Bucket = errors.New("no such bucket")
 var (
 	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
 	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
@@ -157,16 +159,18 @@ func (b *S3FileBackend) TestConnection() error {
 		}
 	}
 
-	if exists {
-		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
-	} else {
-		mlog.Warn("Bucket specified does not exist. Attempting to create...")
-		err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
-		if err != nil {
-			return errors.Wrap(err, "unable to create the s3 bucket")
-		}
+	if !exists {
+		return ErrNoS3Bucket
 	}
+	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
+	return nil
+}
 
+func (b *S3FileBackend) MakeBucket() error {
+	err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
+	if err != nil {
+		return errors.Wrap(err, "unable to create the s3 bucket")
+	}
 	return nil
 }
 

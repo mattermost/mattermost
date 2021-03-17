@@ -8,8 +8,7 @@ import (
 )
 
 type MetricsInterface interface {
-	StartServer()
-	StopServer()
+	Register()
 
 	IncrementPostCreate()
 	IncrementWebhookPost()

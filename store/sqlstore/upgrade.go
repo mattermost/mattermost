@@ -25,6 +25,7 @@ const (
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
+	Version5291            = "5.29.1"
 	Version5290            = "5.29.0"
 	Version5281            = "5.28.1"
 	Version5280            = "5.28.0"
@@ -197,6 +198,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion5291(sqlStore)
 	upgradeDatabaseToVersion530(sqlStore)
 	upgradeDatabaseToVersion531(sqlStore)
 	upgradeDatabaseToVersion532(sqlStore)
@@ -936,8 +938,14 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5290, Version5291) {
+		saveSchemaVersion(sqlStore, Version5291)
+	}
+}
+
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
+	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
