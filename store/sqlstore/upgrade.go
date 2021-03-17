@@ -935,7 +935,6 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
