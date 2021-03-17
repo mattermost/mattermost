@@ -43,6 +43,7 @@ type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
+	IndexTypeFullTextFunc  = "full_text_func"
 	IndexTypeDefault       = "default"
 	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
 	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
@@ -132,7 +133,7 @@ type SqlStore struct {
 	rrCounter      int64
 	srCounter      int64
 	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
+	Replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
 	stores         SqlStoreStores
 	settings       *model.SqlSettings
@@ -220,16 +221,13 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	}
 
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
-	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	store.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
-	store.stores.webhook.(*SqlWebhookStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
-	store.stores.license.(*SqlLicenseStore).createIndexesIfNotExists()
 	store.stores.token.(*SqlTokenStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
@@ -239,10 +237,8 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
 	store.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	store.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
-	store.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
-	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -313,9 +309,9 @@ func (ss *SqlStore) initConnection() {
 	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.Replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
@@ -390,8 +386,8 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 		return ss.GetMaster()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
-	return ss.replicas[rrNum]
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	return ss.Replicas[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -404,7 +400,7 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.replicas {
+	for _, db := range ss.Replicas {
 		count = count + db.Db.Stats().OpenConnections
 	}
 
@@ -870,6 +866,10 @@ func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName s
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
+func (ss *SqlStore) CreateFullTextFuncIndexIfNotExists(indexName string, tableName string, function string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, []string{function}, IndexTypeFullTextFunc, false)
+}
+
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
@@ -893,6 +893,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		} else if indexType == IndexTypeFullTextFunc {
+			if len(columnNames) != 1 {
+				mlog.Critical("Unable to create multi column full text index")
+				os.Exit(ExitCreateIndexPostgres)
+			}
+			columnName := columnNames[0]
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
@@ -1003,9 +1010,9 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.replicas)+1)
-	copy(all, ss.replicas)
-	all[len(ss.replicas)] = ss.master
+	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
+	copy(all, ss.Replicas)
+	all[len(ss.Replicas)] = ss.master
 	return all
 }
 
@@ -1028,7 +1035,7 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.master.Db.Close()
-	for _, replica := range ss.replicas {
+	for _, replica := range ss.Replicas {
 		replica.Db.Close()
 	}
 
@@ -1203,6 +1210,10 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.licenseMutex.Lock()
 	defer ss.licenseMutex.Unlock()
 	ss.license = license
+}
+
+func (ss *SqlStore) GetLicense() *model.License {
+	return ss.license
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {
