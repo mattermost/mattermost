@@ -291,16 +291,16 @@ type ServiceSettings struct {
 	IdleTimeout                                       *int     `access:"write_restrictable,cloud_restrictable"`
 	MaximumLoginAttempts                              *int     `access:"authentication,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	GoogleDeveloperKey                                *string  `access:"site,write_restrictable,cloud_restrictable"`
 	EnableOAuthServiceProvider                        *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks                            *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks                            *bool    `access:"integrations_integration_management"`
 	EnableCommands                                    *bool    `access:"integrations_integration_management"`
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
 	EnablePostUsernameOverride                        *bool    `access:"integrations_integration_management"`
 	EnablePostIconOverride                            *bool    `access:"integrations_integration_management"`
-	EnableLinkPreviews                                *bool    `access:"site"`
-	RestrictLinkPreviews                              *string  `access:"site"`
+	GoogleDeveloperKey                                *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
+	EnableLinkPreviews                                *bool    `access:"site_posts"`
+	RestrictLinkPreviews                              *string  `access:"site_posts"`
 	EnableTesting                                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -324,11 +324,11 @@ type ServiceSettings struct {
 	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableCustomEmoji                                 *bool    `access:"site"`
-	EnableEmojiPicker                                 *bool    `access:"site"`
 	EnableGifPicker                                   *bool    `access:"integrations_gif"`
 	GfycatApiKey                                      *string  `access:"integrations_gif"`
 	GfycatApiSecret                                   *string  `access:"integrations_gif"`
+	EnableCustomEmoji                                 *bool    `access:"site_emoji"`
+	EnableEmojiPicker                                 *bool    `access:"site_emoji"`
 	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // Deprecated: do not use
@@ -359,8 +359,8 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool `access:"authentication"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
-	EnableSVGs                                        *bool `access:"site"`
-	EnableLatex                                       *bool `access:"site"`
+	EnableSVGs                                        *bool `access:"site_posts"`
+	EnableLatex                                       *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -1355,16 +1355,16 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments   *bool   `access:"site,cloud_restrictable"`
-	EnableMobileUpload      *bool   `access:"site,cloud_restrictable"`
-	EnableMobileDownload    *bool   `access:"site,cloud_restrictable"`
+	EnableFileAttachments   *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
+	EnableMobileUpload      *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
+	EnableMobileDownload    *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
 	MaxFileSize             *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName              *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	EnablePublicLink        *bool   `access:"site,cloud_restrictable"`
+	EnablePublicLink        *bool   `access:"site_public_links,cloud_restrictable"`
 	ExtractContent          *bool   `access:"environment_file_storage,write_restrictable"`
 	ArchiveRecursion        *bool   `access:"environment_file_storage,write_restrictable"`
-	PublicLinkSalt          *string `access:"site,cloud_restrictable"`                                        // telemetry: none
+	PublicLinkSalt          *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
 	InitialFont             *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
 	AmazonS3AccessKeyId     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3SecretAccessKey *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1499,13 +1499,13 @@ type EmailSettings struct {
 	EnableSignUpWithEmail             *bool   `access:"authentication"`
 	EnableSignInWithEmail             *bool   `access:"authentication"`
 	EnableSignInWithUsername          *bool   `access:"authentication"`
-	SendEmailNotifications            *bool   `access:"site"`
+	SendEmailNotifications            *bool   `access:"site_notifications"`
 	UseChannelInEmailNotifications    *bool   `access:"experimental_features"`
 	RequireEmailVerification          *bool   `access:"authentication"`
-	FeedbackName                      *string `access:"site"`
-	FeedbackEmail                     *string `access:"site,cloud_restrictable"`
-	ReplyToAddress                    *string `access:"site,cloud_restrictable"`
-	FeedbackOrganization              *string `access:"site"`
+	FeedbackName                      *string `access:"site_notifications"`
+	FeedbackEmail                     *string `access:"site_notifications,cloud_restrictable"`
+	ReplyToAddress                    *string `access:"site_notifications,cloud_restrictable"`
+	FeedbackOrganization              *string `access:"site_notifications"`
 	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
 	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1515,14 +1515,14 @@ type EmailSettings struct {
 	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	SendPushNotifications             *bool   `access:"environment_push_notification_server"`
 	PushNotificationServer            *string `access:"environment_push_notification_server"` // telemetry: none
-	PushNotificationContents          *string `access:"site"`
+	PushNotificationContents          *string `access:"site_notifications"`
 	PushNotificationBuffer            *int    // telemetry: none
-	EnableEmailBatching               *bool   `access:"site"`
+	EnableEmailBatching               *bool   `access:"site_notifications"`
 	EmailBatchingBufferSize           *int    `access:"experimental_features"`
 	EmailBatchingInterval             *int    `access:"experimental_features"`
-	EnablePreviewModeBanner           *bool   `access:"site"`
+	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
 	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	EmailNotificationContentsType     *string `access:"site"`
+	EmailNotificationContentsType     *string `access:"site_notifications"`
 	LoginButtonColor                  *string `access:"experimental_features"`
 	LoginButtonBorderColor            *string `access:"experimental_features"`
 	LoginButtonTextColor              *string `access:"experimental_features"`
@@ -1707,8 +1707,8 @@ func (s *RateLimitSettings) SetDefaults() {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress *bool `access:"site"`
-	ShowFullName     *bool `access:"site"`
+	ShowEmailAddress *bool `access:"site_users_and_teams"`
+	ShowFullName     *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -1722,15 +1722,15 @@ func (s *PrivacySettings) setDefaults() {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink                     *string `access:"site,write_restrictable,cloud_restrictable"`
-	PrivacyPolicyLink                      *string `access:"site,write_restrictable,cloud_restrictable"`
-	AboutLink                              *string `access:"site,write_restrictable,cloud_restrictable"`
-	HelpLink                               *string `access:"site,write_restrictable,cloud_restrictable"`
-	ReportAProblemLink                     *string `access:"site,write_restrictable,cloud_restrictable"`
-	SupportEmail                           *string `access:"site"`
+	TermsOfServiceLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	PrivacyPolicyLink                      *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	SupportEmail                           *string `access:"site_customization"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
-	EnableAskCommunityLink                 *bool   `access:"site"`
+	EnableAskCommunityLink                 *bool   `access:"site_customization"`
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1792,16 +1792,16 @@ func (s *SupportSettings) SetDefaults() {
 }
 
 type AnnouncementSettings struct {
-	EnableBanner          *bool   `access:"site"`
-	BannerText            *string `access:"site"` // telemetry: none
-	BannerColor           *string `access:"site"`
-	BannerTextColor       *string `access:"site"`
-	AllowBannerDismissal  *bool   `access:"site"`
-	AdminNoticesEnabled   *bool   `access:"site"`
-	UserNoticesEnabled    *bool   `access:"site"`
-	NoticesURL            *string `access:"site,write_restrictable"` // telemetry: none
-	NoticesFetchFrequency *int    `access:"site,write_restrictable"` // telemetry: none
-	NoticesSkipCache      *bool   `access:"site,write_restrictable"` // telemetry: none
+	EnableBanner          *bool   `access:"site_announcement_banner"`
+	BannerText            *string `access:"site_announcement_banner"` // telemetry: none
+	BannerColor           *string `access:"site_announcement_banner"`
+	BannerTextColor       *string `access:"site_announcement_banner"`
+	AllowBannerDismissal  *bool   `access:"site_announcement_banner"`
+	AdminNoticesEnabled   *bool   `access:"site_notices"`
+	UserNoticesEnabled    *bool   `access:"site_notices"`
+	NoticesURL            *string `access:"site_notices,write_restrictable"` // telemetry: none
+	NoticesFetchFrequency *int    `access:"site_notices,write_restrictable"` // telemetry: none
+	NoticesSkipCache      *bool   `access:"site_notices,write_restrictable"` // telemetry: none
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1870,18 +1870,18 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                                  *string  `access:"site"`
-	MaxUsersPerTeam                                           *int     `access:"site"`
+	SiteName                                                  *string  `access:"site_customization"`
+	MaxUsersPerTeam                                           *int     `access:"site_users_and_teams"`
 	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // Deprecated: do not use
 	EnableUserCreation                                        *bool    `access:"authentication"`
 	EnableOpenServer                                          *bool    `access:"authentication"`
 	EnableUserDeactivation                                    *bool    `access:"experimental_features"`
 	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: none
-	EnableCustomUserStatuses                                  *bool    `access:"site"`
-	EnableCustomBrand                                         *bool    `access:"site"`
-	CustomBrandText                                           *string  `access:"site"`
-	CustomDescriptionText                                     *string  `access:"site"`
-	RestrictDirectMessage                                     *string  `access:"site"`
+	EnableCustomUserStatuses                                  *bool    `access:"site_users_and_teams"`
+	EnableCustomBrand                                         *bool    `access:"site_customization"`
+	CustomBrandText                                           *string  `access:"site_customization"`
+	CustomDescriptionText                                     *string  `access:"site_customization"`
+	RestrictDirectMessage                                     *string  `access:"site_users_and_teams"`
 	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string  `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string  `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // Deprecated: do not use
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string  `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // Deprecated: do not use
@@ -1892,15 +1892,15 @@ type TeamSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // Deprecated: do not use
 	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental_features"`
 	UserStatusAwayTimeout                                     *int64   `access:"experimental_features"`
-	MaxChannelsPerTeam                                        *int64   `access:"site"`
+	MaxChannelsPerTeam                                        *int64   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel                                *int64   `access:"environment_push_notification_server"`
-	EnableConfirmNotificationsToChannel                       *bool    `access:"site"`
-	TeammateNameDisplay                                       *string  `access:"site"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site"`
+	EnableConfirmNotificationsToChannel                       *bool    `access:"site_notifications"`
+	TeammateNameDisplay                                       *string  `access:"site_users_and_teams"`
+	ExperimentalViewArchivedChannels                          *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental_features"`
 	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental_features"`
 	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental_features"`
-	LockTeammateNameDisplay                                   *bool    `access:"site"`
+	LockTeammateNameDisplay                                   *bool    `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam                                   *string  `access:"experimental_features"`
 	ExperimentalDefaultChannels                               []string `access:"experimental_features"`
 }
@@ -2285,9 +2285,9 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale *string `access:"site"`
-	DefaultClientLocale *string `access:"site"`
-	AvailableLocales    *string `access:"site"`
+	DefaultServerLocale *string `access:"site_localization"`
+	DefaultClientLocale *string `access:"site_localization"`
+	AvailableLocales    *string `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2492,10 +2492,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"` // telemetry: none
-	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site_customization,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2875,7 +2875,7 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     []string `access:"site"`
+	CustomUrlSchemes     []string `access:"site_customization"`
 	ExperimentalTimezone *bool    `access:"experimental_features"`
 }
 

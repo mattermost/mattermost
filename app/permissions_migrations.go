@@ -614,6 +614,34 @@ func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) 
 	return transformations, nil
 }
 
+func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsSiteRead := []string{model.PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTICES.Id}
+	permissionsSiteWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES.Id}
+
+	// Give the new subsection READ permissions to any user with READ_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
+		Add:    permissionsSiteRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_SITE.Id},
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
+		Add:    permissionsSiteWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id},
+	})
+
+	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
+	})
+
+	return transformations, nil
+}
+
 func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -856,6 +884,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
 		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Migration: a.getAddIntegrationsSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS, Migration: a.getAddSiteSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
