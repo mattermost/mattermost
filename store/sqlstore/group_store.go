@@ -918,6 +918,7 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 		"ChannelMembers.LastViewedAt",
 		"ChannelMembers.MsgCount",
 		"ChannelMembers.MentionCount",
+		"ChannelMembers.MentionCountRoot",
 		"ChannelMembers.NotifyProps",
 		"ChannelMembers.LastUpdateAt",
 		"ChannelMembers.LastUpdateAt",
