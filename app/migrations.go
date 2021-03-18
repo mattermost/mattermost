@@ -105,13 +105,13 @@ func (a *App) DoEmojisPermissionsMigration() {
 	mlog.Info("Migrating emojis config to database.")
 	switch *a.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {
 	case model.RESTRICT_EMOJI_CREATION_ALL:
-		role, err = a.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		role, err = a.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		if err != nil {
 			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 			return
 		}
 	case model.RESTRICT_EMOJI_CREATION_ADMIN:
-		role, err = a.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		role, err = a.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
 		if err != nil {
 			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 			return
@@ -131,7 +131,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 		}
 	}
 
-	systemAdminRole, err = a.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	systemAdminRole, err = a.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
 	if err != nil {
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return

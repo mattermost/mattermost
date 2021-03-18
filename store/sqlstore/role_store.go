@@ -177,13 +177,8 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 }
 
 func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
-	dbMap := s.GetReplica()
-	if hasMaster(ctx) {
-		dbMap = s.GetMaster()
-	}
-
 	var dbRole Role
-	if err := dbMap.SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}

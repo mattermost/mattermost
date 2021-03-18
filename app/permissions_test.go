@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -135,17 +136,17 @@ func TestImportPermissions(t *testing.T) {
 
 	newScheme := results[0]
 
-	channelAdminRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelAdminRole)
+	channelAdminRole, appErr := th.App.GetRoleByName(context.Background(), newScheme.DefaultChannelAdminRole)
 	if appErr != nil {
 		t.Error(appErr)
 	}
 
-	channelUserRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelUserRole)
+	channelUserRole, appErr := th.App.GetRoleByName(context.Background(), newScheme.DefaultChannelUserRole)
 	if appErr != nil {
 		t.Error(appErr)
 	}
 
-	channelGuestRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelGuestRole)
+	channelGuestRole, appErr := th.App.GetRoleByName(context.Background(), newScheme.DefaultChannelGuestRole)
 	if appErr != nil {
 		t.Error(appErr)
 	}
@@ -260,7 +261,7 @@ func TestMigration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	role, err := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	role, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
 	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
@@ -269,7 +270,7 @@ func TestMigration(t *testing.T) {
 
 	th.App.ResetPermissionsSystem()
 
-	role, err = th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	role, err = th.App.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
 	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
