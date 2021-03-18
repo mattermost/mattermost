@@ -5971,7 +5971,7 @@ func (s *OpenTracingLayerRoleStore) GetAll() ([]*model.Role, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *OpenTracingLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -5980,7 +5980,7 @@ func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, error) 
 	}()
 
 	defer span.Finish()
-	result, err := s.RoleStore.GetByName(name)
+	result, err := s.RoleStore.GetByName(ctx, name)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

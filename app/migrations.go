@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
@@ -38,7 +39,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		}
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
-		fetchedRole, err := a.Srv().Store.Role().GetByName(role.Name)
+		fetchedRole, err := a.Srv().Store.Role().GetByName(context.Background(), role.Name)
 		if err != nil {
 			mlog.Critical("Failed to migrate role to database.", mlog.Err(err))
 			allSucceeded = false
@@ -165,19 +166,19 @@ func (a *App) DoGuestRolesCreationMigration() {
 	roles := model.MakeDefaultRoles()
 
 	allSucceeded := true
-	if _, err := a.Srv().Store.Role().GetByName(model.CHANNEL_GUEST_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.CHANNEL_GUEST_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.CHANNEL_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
-	if _, err := a.Srv().Store.Role().GetByName(model.TEAM_GUEST_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.TEAM_GUEST_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.TEAM_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
 		}
 	}
-	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_GUEST_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.SYSTEM_GUEST_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.", mlog.Err(err))
 			allSucceeded = false
@@ -252,19 +253,19 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	roles := model.MakeDefaultRoles()
 
 	allSucceeded := true
-	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_MANAGER_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.SYSTEM_MANAGER_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_MANAGER_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_MANAGER_ROLE_ID))
 			allSucceeded = false
 		}
 	}
-	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID))
 			allSucceeded = false
 		}
 	}
-	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(context.Background(), model.SYSTEM_USER_MANAGER_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_USER_MANAGER_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_USER_MANAGER_ROLE_ID))
 			allSucceeded = false

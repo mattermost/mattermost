@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -191,7 +192,7 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 	assert.Len(t, d1.Id, 26)
 
 	// Get a valid role
-	d2, err := ss.Role().GetByName(d1.Name)
+	d2, err := ss.Role().GetByName(context.Background(), d1.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, d1.Id, d2.Id)
 	assert.Equal(t, r1.Name, d2.Name)
@@ -201,7 +202,7 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 	assert.Equal(t, r1.SchemeManaged, d2.SchemeManaged)
 
 	// Get an invalid role
-	_, err = ss.Role().GetByName(model.NewId())
+	_, err = ss.Role().GetByName(context.Background(), model.NewId())
 	assert.Error(t, err)
 }
 
@@ -309,7 +310,7 @@ func testRoleStoreDelete(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 	assert.NotZero(t, d2.DeleteAt)
 
-	d3, err := ss.Role().GetByName(d1.Name)
+	d3, err := ss.Role().GetByName(context.Background(), d1.Name)
 	assert.NoError(t, err)
 	assert.NotZero(t, d3.DeleteAt)
 
@@ -559,13 +560,13 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 	require.NoError(t, nErr)
 	defer ss.Channel().Delete(channel.Id, 0)
 
-	channelSchemeUserRole, err := ss.Role().GetByName(channelScheme.DefaultChannelUserRole)
+	channelSchemeUserRole, err := ss.Role().GetByName(context.Background(), channelScheme.DefaultChannelUserRole)
 	require.NoError(t, err)
 	channelSchemeUserRole.Permissions = []string{}
 	_, err = ss.Role().Save(channelSchemeUserRole)
 	require.NoError(t, err)
 
-	teamSchemeUserRole, err := ss.Role().GetByName(teamScheme.DefaultChannelUserRole)
+	teamSchemeUserRole, err := ss.Role().GetByName(context.Background(), teamScheme.DefaultChannelUserRole)
 	require.NoError(t, err)
 	teamSchemeUserRole.Permissions = []string{model.PERMISSION_UPLOAD_FILE.Id}
 	_, err = ss.Role().Save(teamSchemeUserRole)

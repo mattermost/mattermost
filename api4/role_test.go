@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -180,7 +181,7 @@ func TestPatchRole(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 
 		// Cannot edit a system admin
-		adminRole, err := th.App.Srv().Store.Role().GetByName("system_admin")
+		adminRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_admin")
 		assert.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
 
@@ -188,7 +189,7 @@ func TestPatchRole(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
-		systemManager, err := th.App.Srv().Store.Role().GetByName("system_manager")
+		systemManager, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_manager")
 		assert.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
 
@@ -271,7 +272,7 @@ func TestPatchRole(t *testing.T) {
 			license.Features.GuestAccountsPermissions = model.NewBool(false)
 			th.App.Srv().SetLicense(license)
 
-			guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
+			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
 			received, resp = client.PatchRole(guestRole.Id, patch)
 			CheckNotImplementedStatus(t, resp)
@@ -281,7 +282,7 @@ func TestPatchRole(t *testing.T) {
 			license := model.NewTestLicense()
 			license.Features.GuestAccountsPermissions = model.NewBool(true)
 			th.App.Srv().SetLicense(license)
-			guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
+			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
 			_, resp = client.PatchRole(guestRole.Id, patch)
 			CheckNoError(t, resp)

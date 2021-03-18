@@ -5403,10 +5403,10 @@ func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, error) {
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *TimerLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	start := timemodule.Now()
 
-	result, err := s.RoleStore.GetByName(name)
+	result, err := s.RoleStore.GetByName(ctx, name)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

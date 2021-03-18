@@ -6460,11 +6460,11 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 
 }
 
-func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *RetryLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.RoleStore.GetByName(name)
+		result, err := s.RoleStore.GetByName(ctx, name)
 		if err == nil {
 			return result, nil
 		}
