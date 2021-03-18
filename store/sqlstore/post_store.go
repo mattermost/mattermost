@@ -905,55 +905,24 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions,
-	userId string) (*model.PostList, error) {
+func (s *SqlPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) ([]*model.Post, error) {
 
 	var posts []*model.Post
 
-	var query string
-
-	// union of IDs and then join to get full posts is faster in mysql
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		query = `SELECT * FROM Posts p1 JOIN (
-		(SELECT
-		  Id
-		  FROM
-			  Posts p2
-		  WHERE
-			  (UpdateAt > :Time
-				  AND ChannelId = :ChannelId)
-			  LIMIT 1000)
-		  UNION
-			  (SELECT
-				  Id
-			  FROM
-				  Posts p3
-			  WHERE
-				  Id
-			  IN
-				  (SELECT * FROM (SELECT
-					  RootId
-				  FROM
-					  Posts
-				  WHERE
-					  UpdateAt > :Time
-						  AND ChannelId = :ChannelId
-				  LIMIT 1000) temp_tab))
-		) j ON p1.Id = j.Id
-	  ORDER BY CreateAt DESC`
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `WITH cte AS (SELECT
-		   *
+	query := `SELECT
+		*
 	FROM
-		   Posts
+		Posts
 	WHERE
-		   UpdateAt > :Time AND ChannelId = :ChannelId AND UserId = :UserId
-		   LIMIT 100)
-	(SELECT * FROM cte)
-	UNION
-	(SELECT * FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
-	ORDER BY CreateAt DESC`
-	}
+		UpdateAT >= :Time
+		AND
+		ChannelId = :ChannelId
+		AND
+		UserId = :UserId
+	ORDER BY 
+		UpdateAt DESC
+	LIMIT
+		1000`
 
 	_, err := s.GetReplica().Select(&posts, query,
 		map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time, "UserId": userId})
@@ -963,16 +932,7 @@ func (s *SqlPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceO
 			"failed to find Post with channelId=%s and userId=%s since %s", options.ChannelId, userId, options.Time)
 	}
 
-	list := model.NewPostList()
-
-	for _, p := range posts {
-		list.AddPost(p)
-		if p.UpdateAt > options.Time {
-			list.AddOrder(p.Id)
-		}
-	}
-
-	return list, nil
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {

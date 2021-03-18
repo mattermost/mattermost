@@ -13,7 +13,7 @@ import (
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) bool {
 	// get last post in a calender day sent by user and if it's auto responder post then don't send again
 	y, m, d := time.Unix(createdAt, 0).Date()
-	since := time.Date(y, m, d, 0, 0, 0, 0, time.UTC).Unix()
+	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
 	postList, err := a.Srv().Store.Post().GetPostsByUserInChannelSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
@@ -51,7 +51,7 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, err
 	}
 
-	if a.checkIfRespondedToday(post.CreateAt, post.ChannelId, sender.Id) {
+	if a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId) {
 		return false, nil
 	}
 
