@@ -4065,7 +4065,7 @@ func TestMoveChannel(t *testing.T) {
 	}, "Should be able to (force) move private channel by a member that is not member of target team")
 }
 
-func TestRootMentionsMigrations(t *testing.T) {
+func TestRootMentionsCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
