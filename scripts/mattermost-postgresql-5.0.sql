@@ -289,13 +289,13 @@ ALTER TABLE public.licenses OWNER TO mmuser;
 --
 
 CREATE TABLE public.oauthaccessdata (
-    clientid character varying(26),
-    userid character varying(26),
     token character varying(26) NOT NULL,
     refreshtoken character varying(26),
     redirecturi character varying(256),
-    expiresat bigint,
-    scope character varying(128)
+    clientid character varying(26) DEFAULT ''::character varying,
+    userid character varying(26) DEFAULT ''::character varying,
+    expiresat bigint DEFAULT 0,
+    scope character varying(128) DEFAULT 'user'::character varying
 );
 
 

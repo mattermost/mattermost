@@ -452,13 +452,13 @@ DROP TABLE IF EXISTS `OAuthAccessData`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthAccessData` (
-  `ClientId` varchar(26) DEFAULT NULL,
-  `UserId` varchar(26) DEFAULT NULL,
   `Token` varchar(26) NOT NULL,
   `RefreshToken` varchar(26) DEFAULT NULL,
   `RedirectUri` text,
-  `ExpiresAt` bigint(20) DEFAULT NULL,
-  `Scope` varchar(128) DEFAULT NULL,
+  `ClientId` varchar(26) DEFAULT NULL,
+  `UserId` varchar(26) DEFAULT NULL,
+  `ExpiresAt` bigint(20) DEFAULT '0',
+  `Scope` varchar(128) DEFAULT 'user',
   PRIMARY KEY (`Token`),
   UNIQUE KEY `ClientId` (`ClientId`,`UserId`),
   KEY `idx_oauthaccessdata_client_id` (`ClientId`),
