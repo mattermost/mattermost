@@ -193,7 +193,8 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	var statuses []*model.Status
 	for rows.Next() {
 		var status model.Status
-		if err = rows.Scan(&status.UserId, &status.Status); err != nil {
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt,
+			&status.DNDEndTimeUnix, &status.PrevStatus); err != nil {
 			return nil, errors.Wrap(err, "unable to scan from rows")
 		}
 		statuses = append(statuses, &status)
