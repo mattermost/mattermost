@@ -437,11 +437,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, _ := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
-				message.Add("thread", userThread.ToJson())
-				a.Publish(message)
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				if err != nil {
+					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
+				}
+				if userThread != nil {
+					a.sanitizeProfiles(userThread.Participants, false)
+					userThread.Post.SanitizeProps()
+					message.Add("thread", userThread.ToJson())
+					a.Publish(message)
+				}
 			}
 		}
 

@@ -2672,7 +2672,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+    "translation": "Alternatively, you can disable users in the System Console to open up spots for users and stay below the free user limit."
   },
   {
     "id": "api.templates.at_limit_subject",
