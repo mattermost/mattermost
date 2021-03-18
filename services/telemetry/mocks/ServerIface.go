@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	httpservice "github.com/mattermost/mattermost-server/v5/services/httpservice"
 	mock "github.com/stretchr/testify/mock"
 
@@ -50,13 +52,13 @@ func (_m *ServerIface) GetPluginsEnvironment() *plugin.Environment {
 	return r0
 }
 
-// GetRoleByName provides a mock function with given fields: _a0
-func (_m *ServerIface) GetRoleByName(_a0 string) (*model.Role, *model.AppError) {
-	ret := _m.Called(_a0)
+// GetRoleByName provides a mock function with given fields: _a0, _a1
+func (_m *ServerIface) GetRoleByName(_a0 context.Context, _a1 string) (*model.Role, *model.AppError) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 *model.Role
-	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Role); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
@@ -64,8 +66,8 @@ func (_m *ServerIface) GetRoleByName(_a0 string) (*model.Role, *model.AppError) 
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(context.Context, string) *model.AppError); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -432,7 +433,7 @@ func (th *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 
 	var roles []*model.Role
 	for _, roleName := range roleNames {
-		role, err := th.App.GetRoleByName(roleName)
+		role, err := th.App.GetRoleByName(context.Background(), roleName)
 		if err != nil {
 			panic(err)
 		}
@@ -623,7 +624,7 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
@@ -655,7 +656,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
