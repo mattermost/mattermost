@@ -626,7 +626,7 @@ CREATE TABLE `Posts` (
   `Props` text,
   `Hashtags` text,
   `Filenames` text,
-  `FileIds` varchar(150) DEFAULT '[]',
+  `FileIds` text,
   `HasReactions` tinyint(1) DEFAULT '0',
   `EditAt` bigint(20) DEFAULT '0',
   `IsPinned` tinyint(1) DEFAULT '0',

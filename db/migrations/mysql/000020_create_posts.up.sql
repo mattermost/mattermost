@@ -24,7 +24,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'FileIds'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Posts ADD FileIds varchar(150) DEFAULT \'[]\';'
+    'ALTER TABLE Posts ADD FileIds text;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;

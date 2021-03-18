@@ -398,7 +398,7 @@ CREATE TABLE public.posts (
     props character varying(8000),
     hashtags character varying(1000),
     filenames character varying(4000),
-    fileids character varying(150) DEFAULT '[]'::character varying,
+    fileids character varying(300) DEFAULT '[]'::character varying,
     hasreactions boolean DEFAULT false,
     editat bigint DEFAULT 0,
     ispinned boolean DEFAULT false
