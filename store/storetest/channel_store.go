@@ -360,7 +360,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.Equal(t, c2.Id, ch2.ChannelId, "Wrong channel id")
 	require.Equal(t, teamId2, ch2.TeamId, "Wrong team id")
 	require.EqualValues(t, 5, ch2.MentionCount, "wrong MentionCount for channel 2")
-	require.EqualValues(t, model.NewInt64(1), ch2.MentionCountRoot, "wrong MentionCountRoot for channel 2")
+	require.EqualValues(t, 1, ch2.MentionCountRoot, "wrong MentionCountRoot for channel 2")
 	require.EqualValues(t, 10, ch2.MsgCount, "wrong MsgCount for channel 2")
 }
 
