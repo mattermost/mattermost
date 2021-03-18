@@ -69,7 +69,7 @@ func testNewChannelMemberFromModel(t *testing.T) {
 	assert.Equal(t, m.LastViewedAt, db.LastViewedAt)
 	assert.Equal(t, m.MsgCount, db.MsgCount)
 	assert.Equal(t, m.MentionCount, db.MentionCount)
-	assert.Nil(t, m.MentionCountRoot)
+	assert.Equal(t, int64(0), m.MentionCountRoot)
 	assert.Equal(t, m.NotifyProps, db.NotifyProps)
 	assert.Equal(t, m.LastUpdateAt, db.LastUpdateAt)
 	assert.Equal(t, true, db.SchemeGuest.Valid)

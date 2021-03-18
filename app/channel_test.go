@@ -1347,7 +1347,6 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 			UserId:    u2.Id,
 			ChannelId: c2.Id,
 			RootId:    p4.Id,
-			CreateAt:  model.GetMillis() + 2000,
 			Message:   "@" + u1.Username,
 		}, c2, false, true)
 
