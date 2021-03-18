@@ -72,7 +72,7 @@ func TestInviteProvider(t *testing.T) {
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
 	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
-	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, "", "")
+	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, "", "", true)
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
 	groupChannel, _ = th.App.UpdateChannel(groupChannel)

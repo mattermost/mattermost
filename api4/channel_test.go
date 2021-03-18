@@ -1496,8 +1496,8 @@ func TestDeleteChannel(t *testing.T) {
 
 		// successful delete of channel with multiple members
 		publicChannel3 := th.CreatePublicChannel()
-		th.App.AddUserToChannel(user, publicChannel3)
-		th.App.AddUserToChannel(user2, publicChannel3)
+		th.App.AddUserToChannel(user, publicChannel3, true)
+		th.App.AddUserToChannel(user2, publicChannel3, true)
 		_, resp = client.DeleteChannel(publicChannel3.Id)
 		CheckNoError(t, resp)
 
@@ -1573,9 +1573,9 @@ func TestDeleteChannel2(t *testing.T) {
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	th.App.AddUserToChannel(user, publicChannel6)
-	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user, privateChannel7)
+	th.App.AddUserToChannel(user, publicChannel6, true)
+	th.App.AddUserToChannel(user, privateChannel7, true)
+	th.App.AddUserToChannel(user, privateChannel7, true)
 
 	// successful delete by user
 	_, resp := Client.DeleteChannel(publicChannel6.Id)
@@ -1593,9 +1593,9 @@ func TestDeleteChannel2(t *testing.T) {
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	th.App.AddUserToChannel(user, publicChannel6)
-	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user, privateChannel7)
+	th.App.AddUserToChannel(user, publicChannel6, true)
+	th.App.AddUserToChannel(user, privateChannel7, true)
+	th.App.AddUserToChannel(user, privateChannel7, true)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -2293,7 +2293,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	channel := th.CreatePublicChannel()
 
 	// Adds User 2 to the channel, making them a channel member by default.
-	th.App.AddUserToChannel(th.BasicUser2, channel)
+	th.App.AddUserToChannel(th.BasicUser2, channel, true)
 
 	// User 1 promotes User 2
 	pass, resp := Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, ChannelAdmin)
@@ -2801,9 +2801,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Setup the system administrator to listen for websocket events from the channels.
 		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, true)
 		require.Nil(t, err)
-		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
+		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2, true)
 		require.Nil(t, err)
 		props := map[string]string{}
 		props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
@@ -2845,7 +2845,7 @@ func TestRemoveChannelMember(t *testing.T) {
 			}
 		}
 
-		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, true)
 		_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
 		CheckNoError(t, resp)
 
@@ -2876,8 +2876,8 @@ func TestRemoveChannelMember(t *testing.T) {
 	// Leave deleted channel
 	th.LoginBasic()
 	deletedChannel := th.CreatePublicChannel()
-	th.App.AddUserToChannel(th.BasicUser, deletedChannel)
-	th.App.AddUserToChannel(th.BasicUser2, deletedChannel)
+	th.App.AddUserToChannel(th.BasicUser, deletedChannel, true)
+	th.App.AddUserToChannel(th.BasicUser2, deletedChannel, true)
 
 	deletedChannel.DeleteAt = 1
 	th.App.UpdateChannel(deletedChannel)
@@ -2887,7 +2887,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.LoginBasic()
 	private := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser2, private)
+	th.App.AddUserToChannel(th.BasicUser2, private, true)
 
 	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
@@ -2897,7 +2897,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		th.App.AddUserToChannel(th.BasicUser, private)
+		th.App.AddUserToChannel(th.BasicUser, private, true)
 		_, resp = client.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 		CheckNoError(t, resp)
 	})
@@ -3434,9 +3434,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 
 	channel := th.CreatePrivateChannel()
 
-	_, err := th.App.AddChannelMember(user1.Id, channel, "", "")
+	_, err := th.App.AddChannelMember(user1.Id, channel, "", "", true)
 	require.Nil(t, err)
-	_, err = th.App.AddChannelMember(user2.Id, channel, "", "")
+	_, err = th.App.AddChannelMember(user2.Id, channel, "", "", true)
 	require.Nil(t, err)
 
 	channel.GroupConstrained = model.NewBool(true)

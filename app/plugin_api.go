@@ -486,7 +486,7 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId, true)
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
@@ -497,7 +497,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*mod
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, asUserId, postRootId)
+	return api.app.AddChannelMember(userID, channel, asUserId, postRootId, true)
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {

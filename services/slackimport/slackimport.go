@@ -83,7 +83,7 @@ type slackComment struct {
 // Actions provides the actions that needs to be used for import slack data
 type Actions struct {
 	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
-	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel       func(*model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
 	CreateDirectChannel    func(string, string) (*model.Channel, *model.AppError)
 	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
@@ -535,7 +535,7 @@ func (si *SlackImporter) addSlackUsersToChannel(members []string, users map[stri
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
 			continue
 		}
-		if _, err := si.actions.AddUserToChannel(user, channel); err != nil {
+		if _, err := si.actions.AddUserToChannel(user, channel, true); err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
 		}
 	}

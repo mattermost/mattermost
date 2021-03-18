@@ -539,7 +539,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel)
+	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, true)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
 	_, resp := Client.CreatePost(post1)
@@ -1996,7 +1996,7 @@ func TestDeletePost(t *testing.T) {
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, true)
 
 	defer th.TearDown()
 
@@ -2311,8 +2311,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
-	th.App.AddUserToChannel(user, th.BasicChannel)
-	th.App.AddUserToChannel(user, th.BasicChannel2)
+	th.App.AddUserToChannel(user, th.BasicChannel, true)
+	th.App.AddUserToChannel(user, th.BasicChannel2, true)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)

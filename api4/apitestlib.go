@@ -380,14 +380,14 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel2)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel2)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicPrivateChannel)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicDeletedChannel)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicDeletedChannel)
+	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel, true)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, true)
+	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel2, true)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel2, true)
+	th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel, true)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicPrivateChannel, true)
+	th.App.AddUserToChannel(th.BasicUser, th.BasicDeletedChannel, true)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicDeletedChannel, true)
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
 	th.LoginBasic()
@@ -726,7 +726,7 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, true)
 	if err != nil {
 		panic(err)
 	}
