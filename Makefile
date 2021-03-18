@@ -139,8 +139,6 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
-TEMP_DOCKER_SERVICES ?=
-
 start-docker-check:
 ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
 	TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
