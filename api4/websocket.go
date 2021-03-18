@@ -5,7 +5,6 @@ package api4
 
 import (
 	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/gobwas/ws"
@@ -49,7 +48,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HubRegister(wc)
 	}
 
-	if runtime.GOOS == "windows" {
+	if !wc.Epoll() {
 		wc.BlockingPump()
 	} else {
 		go wc.Pump()
