@@ -234,7 +234,7 @@ type API interface {
 	//
 	// @tag User
 	// Minimum server version: 5.2
-	UpdateUserStatusWithDNDTimeout(userId, status, endtime string) (*model.Status, *model.AppError)
+	UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError)
 
 	// UpdateUserActive deactivates or reactivates an user.
 	//

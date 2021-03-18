@@ -290,7 +290,7 @@ type AppIface interface {
 	SetSessionExpireInDays(session *model.Session, days int)
 	// SetStatusDoNotDisturbTimed takes endtime in RFC3339 string format in UTC
 	// and sets status of given userId to dnd which will be restored back after endtime
-	SetStatusDoNotDisturbTimed(userId string, endtime string)
+	SetStatusDoNotDisturbTimed(userId string, endtime int64)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected

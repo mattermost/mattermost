@@ -3288,11 +3288,11 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *m
 }
 
 // UpdateUserStatusWithDNDTimeout provides a mock function with given fields: userId, status, endtime
-func (_m *API) UpdateUserStatusWithDNDTimeout(userId string, status string, endtime string) (*model.Status, *model.AppError) {
+func (_m *API) UpdateUserStatusWithDNDTimeout(userId string, status string, endtime int64) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, status, endtime)
 
 	var r0 *model.Status
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.Status); ok {
+	if rf, ok := ret.Get(0).(func(string, string, int64) *model.Status); ok {
 		r0 = rf(userId, status, endtime)
 	} else {
 		if ret.Get(0) != nil {
@@ -3301,7 +3301,7 @@ func (_m *API) UpdateUserStatusWithDNDTimeout(userId string, status string, endt
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
 		r1 = rf(userId, status, endtime)
 	} else {
 		if ret.Get(1) != nil {

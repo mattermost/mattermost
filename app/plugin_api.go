@@ -311,7 +311,7 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	return api.app.GetStatus(userID)
 }
 
-func (api *PluginAPI) UpdateUserStatusWithDNDTimeout(userID, status, endTime string) (*model.Status, *model.AppError) {
+func (api *PluginAPI) UpdateUserStatusWithDNDTimeout(userID, status string, endTime int64) (*model.Status, *model.AppError) {
 	if status == model.STATUS_DND {
 		api.app.SetStatusDoNotDisturbTimed(userID, endTime)
 		return api.app.GetStatus(userID)

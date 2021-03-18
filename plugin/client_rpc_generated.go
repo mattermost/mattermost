@@ -1478,7 +1478,7 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 type Z_UpdateUserStatusWithDNDTimeoutArgs struct {
 	A string
 	B string
-	C string
+	C int64
 }
 
 type Z_UpdateUserStatusWithDNDTimeoutReturns struct {
@@ -1486,7 +1486,7 @@ type Z_UpdateUserStatusWithDNDTimeoutReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserStatusWithDNDTimeout(userId, status, endtime string) (*model.Status, *model.AppError) {
+func (g *apiRPCClient) UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError) {
 	_args := &Z_UpdateUserStatusWithDNDTimeoutArgs{userId, status, endtime}
 	_returns := &Z_UpdateUserStatusWithDNDTimeoutReturns{}
 	if err := g.client.Call("Plugin.UpdateUserStatusWithDNDTimeout", _args, _returns); err != nil {
@@ -1497,7 +1497,7 @@ func (g *apiRPCClient) UpdateUserStatusWithDNDTimeout(userId, status, endtime st
 
 func (s *apiRPCServer) UpdateUserStatusWithDNDTimeout(args *Z_UpdateUserStatusWithDNDTimeoutArgs, returns *Z_UpdateUserStatusWithDNDTimeoutReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserStatusWithDNDTimeout(userId, status, endtime string) (*model.Status, *model.AppError)
+		UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateUserStatusWithDNDTimeout(args.A, args.B, args.C)
 	} else {

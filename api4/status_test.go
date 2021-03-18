@@ -45,7 +45,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed", func(t *testing.T) {
-		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Format(time.RFC3339))
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", userStatus.Status)
@@ -57,7 +57,7 @@ func TestGetUserStatus(t *testing.T) {
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "online", userStatus.Status)
-		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Format(time.RFC3339))
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Unix())
 		userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", userStatus.Status)
@@ -157,8 +157,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	})
 
 	t.Run("dnd status", func(t *testing.T) {
-		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Format(time.RFC3339))
-		th.App.SetStatusDoNotDisturbTimed(th.BasicUser2.Id, time.Now().Add(15*time.Minute).Format(time.RFC3339))
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser2.Id, time.Now().Add(15*time.Minute).Unix())
 		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
 		CheckNoError(t, resp)
 		for _, userStatus := range usersStatuses {
@@ -194,7 +194,7 @@ func TestUpdateUserStatus(t *testing.T) {
 	})
 
 	t.Run("set dnd status timed", func(t *testing.T) {
-		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id, DNDEndTime: time.Now().Add(10 * time.Minute).Format(time.RFC3339)}
+		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id, DNDEndTimeUnix: time.Now().Add(10 * time.Minute).Unix()}
 		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", updateUserStatus.Status)

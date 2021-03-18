@@ -285,16 +285,8 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 
 // SetStatusDoNotDisturbTimed takes endtime in RFC3339 string format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
+func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return
-	}
-
-	// take a string in RFC3339 format and return time
-	utc, cErr := time.Parse(time.RFC3339, endtime)
-
-	if cErr != nil {
-		mlog.Error("Failed to parse endtime", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
 		return
 	}
 
@@ -308,7 +300,7 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
-	status.DNDEndTimeUnix = utc.Unix()
+	status.DNDEndTimeUnix = time.Unix(endtime, 0).UTC().Unix()
 
 	a.SaveAndBroadcastStatus(status)
 }
