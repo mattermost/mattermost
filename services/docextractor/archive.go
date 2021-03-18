@@ -49,9 +49,9 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 			filename = strings.ReplaceAll(filename, "-", " ")
 			filename = strings.ReplaceAll(filename, ".", " ")
 			filename = strings.ReplaceAll(filename, ",", " ")
-			data, err := ioutil.ReadAll(file)
-			if err != nil {
-				return err
+			data, err2 := ioutil.ReadAll(file)
+			if err2 != nil {
+				return err2
 			}
 			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data))
 			if extractErr == nil {
