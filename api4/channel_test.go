@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -4107,6 +4108,9 @@ func TestRootMentionsCount(t *testing.T) {
 
 // see https://docs.google.com/spreadsheets/d/1Rp2UN-TDW75zccfFWrco2Pqog2ktoa784GSvAVGTfgA/edit#gid=1722303699 for reference
 func TestMentionBehaviourCollapsed(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	type client int
 	const (
 		CLIENT_NA client = iota
@@ -4114,28 +4118,91 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		CLIENT_WEB
 	)
 
-	new_root_post := func(th *TestHelper) *model.AppError {
-		_, err := th.App.CreatePost(&model.Post{
-			UserId:    th.BasicUser2.Id,
-			CreateAt:  model.GetMillis() - 10000,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "hi",
-		}, th.BasicChannel, false, false)
-		return err
+	new_root_post := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		post, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		if err == nil {
+			return post.Id, nil
+		}
+		return "", err
 	}
-	new_root_post_with_mention := func(th *TestHelper) *model.AppError {
-		_, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser2.Id, ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
-		return err
+	new_root_post_with_mention := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		post, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis() - 10000, ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
+		if err == nil {
+			return post.Id, nil
+		}
+		return "", err
 	}
-	// new_reply_post_to_unfollowed_thread := func(th *TestHelper) *model.AppError { return nil }
-	// new_reply_post_to_followed_thread := func(th *TestHelper) *model.AppError { return nil }
-	// new_reply_post_with_mention := func(th *TestHelper) *model.AppError { return nil }
-	// open_an_unread_channel := func(th *TestHelper) *model.AppError { return nil }
-	// open_an_unread_channel_with_mentions := func(th *TestHelper) *model.AppError { return nil }
+	create_unfollowed_thread := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		rootId, err := new_root_post(th, "")
+		if err != nil {
+			return "", err
+		}
+		_, err = th.App.CreatePost(&model.Post{RootId: rootId, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis() - 10000, ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+
+		return rootId, err
+	}
+
+	open_an_unread_channel := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		s2, _ := th.App.GetSession(th.Client.AuthToken)
+
+		_, err := th.App.ViewChannel(&model.ChannelView{ChannelId: th.BasicChannel.Id, PrevChannelId: th.BasicChannel2.Id}, th.BasicUser.Id, s2.Id)
+		return "", err
+	}
+	mark_all_threads_as_read := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		err := th.App.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
+		return rootId, err
+	}
+
+	create_followed_thread := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		rootId, err := new_root_post(th, "")
+		if err != nil {
+			return "", err
+		}
+		// mention will cause a follow
+		_, err = th.App.CreatePost(&model.Post{RootId: rootId, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
+		if err != nil {
+			return "", err
+		}
+		// mark all as read
+		_, err = open_an_unread_channel(th, "")
+		if err != nil {
+			return "", err
+		}
+		return mark_all_threads_as_read(th, rootId)
+	}
+
+	new_reply_post_to_thread := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		post, err := th.App.CreatePost(&model.Post{RootId: rootId, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		if err == nil {
+			return post.Id, nil
+		}
+		return "", err
+	}
+
+	new_reply_post_with_mention := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		rootId, err := new_root_post(th, "")
+		if err != nil {
+			return "", err
+		}
+		// mention will cause a follow
+		_, err = th.App.CreatePost(&model.Post{RootId: rootId, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis() - 10000, ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
+
+		if err == nil {
+			return rootId, nil
+		}
+		return "", err
+	}
+	open_thread_in_channel := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		_, err := open_an_unread_channel(th, rootId)
+		if err != nil {
+			return "", err
+		}
+		_, err = th.App.GetPostThread(rootId, false, true, true)
+		return "", err
+	}
 	// open_an_unfollowed_thread := func(th *TestHelper) *model.AppError { return nil }
 	// open_a_followed_thread := func(th *TestHelper) *model.AppError { return nil }
 	// open_a_followed_thread_with_mention := func(th *TestHelper) *model.AppError { return nil }
-	// mark_all_threads_as_read_from_threads_inbox_view := func(th *TestHelper) *model.AppError { return nil }
 	// mark_root_post_as_unread_from_threads_inbox_view_or_rhs := func(th *TestHelper) *model.AppError { return nil }
 	// mark_root_post_with_mention_as_unread_from_threads_inbox_view_or_rhs := func(th *TestHelper) *model.AppError { return nil }
 	// mark_thread_as_unread_from_menu_in_rhs_or_thread_viewer := func(th *TestHelper) *model.AppError { return nil }
@@ -4147,8 +4214,9 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 	// mark_root_post_with_mention_as_unread := func(th *TestHelper) *model.AppError { return nil }
 
 	type testCase struct {
-		clientType client
-		action     func(th *TestHelper) *model.AppError
+		clientType  client
+		preparation func(th *TestHelper, rootId string) (string, *model.AppError)
+		action      func(th *TestHelper, rootId string) (string, *model.AppError)
 		// each of the following flags indicate if there was a change
 		channelBoldMobile  bool
 		channelBadgeMobile bool
@@ -4158,34 +4226,42 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		threadsBadge       bool
 		threadDot          bool
 	}
+	_ = create_followed_thread
+	_ = new_root_post
+	_ = new_root_post_with_mention
+	_ = create_unfollowed_thread
+	_ = new_reply_post_to_thread
+	_ = new_reply_post_with_mention
+	_ = open_thread_in_channel
 	testCases := []testCase{
-		{CLIENT_NA, new_root_post, true, false, true, false, false, false, false},
-		{CLIENT_NA, new_root_post_with_mention, true, true, true, true, false, false, false},
-		// {CLIENT_NA, new_reply_post_to_unfollowed_thread, true, false, false, false, false, false, false},
-		// {CLIENT_NA, new_reply_post_to_followed_thread, true, false, false, false, true, false, true},
-		// {CLIENT_NA, new_reply_post_with_mention, true, true, false, false, true, true, true},
+		{CLIENT_NA, nil, new_root_post, true, false, true, false, false, false, false},
+		{CLIENT_NA, nil, new_root_post_with_mention, true, true, true, true, false, false, false},
+		{CLIENT_NA, create_unfollowed_thread, new_reply_post_to_thread, true, false, false, false, false, false, false},
+		{CLIENT_NA, create_followed_thread, new_reply_post_to_thread, true, false, false, false, true, false, true},
+		{CLIENT_NA, nil, new_reply_post_with_mention, true, true, false, false, true, true, true},
 
-		// {CLIENT_WEB, open_an_unread_channel, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, open_an_unread_channel_with_mentions, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, open_an_unfollowed_thread, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, open_a_followed_thread, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, open_a_followed_thread_with_mention, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, open_an_unread_channel, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, open_an_unread_channel_with_mentions, true, false, true, false, false, false, false},
+		{CLIENT_WEB, new_root_post, open_an_unread_channel, true, false, true, false, false, false, false},
+		{CLIENT_WEB, new_root_post_with_mention, open_an_unread_channel, true, true, true, true, false, false, false},
+		{CLIENT_WEB, create_unfollowed_thread, open_thread_in_channel, false, false, false, false, false, false, false},
+		// {CLIENT_WEB, nil, open_a_followed_thread, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, nil, open_a_followed_thread_with_mention, true, false, true, false, false, false, false},
+		// {CLIENT_MOBILE, new_root_post, open_an_unread_channel, true, false, true, false, false, false, false},
+		// {CLIENT_MOBILE, new_root_post_with_mention, open_an_unread_channel, true, false, true, false, false, false, false},
 
-		// {CLIENT_WEB, mark_all_threads_as_read_from_threads_inbox_view, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_with_mention_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_thread_as_unread_from_menu_in_rhs_or_thread_viewer, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_as_unread_from_in_channel, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_with_mention_as_unread_from_in_channel, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_reply_message_as_unread, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_reply_with_mention_as_unread, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, create_followed_thread, mark_all_threads_as_read, true, false, true, false, false, false, false},
 
-		// {CLIENT_MOBILE, mark_root_post_as_unread, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_root_post_with_mention_as_unread, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_reply_message_as_unread, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_reply_with_mention_as_unread, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, nil, mark_root_post_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, nil, mark_root_post_with_mention_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, mark_thread_as_unread_from_menu_in_rhs_or_thread_viewer,nil,  true, false, true, false, false, false, false},
+		// {CLIENT_WEB, mark_root_post_as_unread_from_in_channel, nil, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, mark_root_post_with_mention_as_unread_from_in_channel,nil,  true, false, true, false, false, false, false},
+		// {CLIENT_WEB, mark_reply_message_as_unread, nil, true, false, true, false, false, false, false},
+		// {CLIENT_WEB, mark_reply_with_mention_as_unread, nil, true, false, true, false, false, false, false},
+
+		// {CLIENT_MOBILE, mark_root_post_as_unread, nil, true, false, true, false, false, false, false},
+		// {CLIENT_MOBILE, mark_root_post_with_mention_as_unread, nil, true, false, true, false, false, false, false},
+		// {CLIENT_MOBILE, mark_reply_message_as_unread, nil, true, false, true, false, false, false, false},
+		// {CLIENT_MOBILE, mark_reply_with_mention_as_unread, nil, true, false, true, false, false, false, false},
 	}
 	type state struct {
 		msgCount             int64
@@ -4215,28 +4291,52 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		t.Run(fmt.Sprintf("Table test %d", i), func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ThreadAutoFollow = true
+				*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+			})
+			rid := ""
+			if testCase.preparation != nil {
+				var err error
+				rid, err = testCase.preparation(th, "")
+				require.Nil(t, err)
+			}
 			state, err := captureState(th)
 			require.Nil(t, err)
-			require.Nil(t, testCase.action(th))
+			// time.Sleep(time.Second * 10)
+			_, err = testCase.action(th, rid)
+			require.Nil(t, err)
 			stateAfter, err := captureState(th)
 			require.Nil(t, err)
 			if testCase.channelBoldMobile {
-				require.NotEqual(t, state.msgCount, stateAfter.msgCount)
+				require.NotEqual(t, state.msgCount, stateAfter.msgCount, "msgCount didn't change")
+			} else {
+				require.Equal(t, state.msgCount, stateAfter.msgCount, "msgCount changed")
 			}
 			if testCase.channelBadgeMobile {
-				require.NotEqual(t, state.mentionCount, stateAfter.mentionCount)
+				require.NotEqual(t, state.mentionCount, stateAfter.mentionCount, "mentionCount didn't change")
+			} else {
+				require.Equal(t, state.mentionCount, stateAfter.mentionCount, "mentionCount changed")
 			}
 			if testCase.channelBoldWeb {
-				require.NotEqual(t, state.msgCountRoot, stateAfter.msgCountRoot)
+				require.NotEqual(t, state.msgCountRoot, stateAfter.msgCountRoot, "msgCountRoot didn't change")
+			} else {
+				require.Equal(t, state.msgCountRoot, stateAfter.msgCountRoot, "msgCountRoot changed")
 			}
 			if testCase.channelBadgeWeb {
-				require.NotEqual(t, state.mentionCountRoot, stateAfter.mentionCountRoot)
+				require.NotEqual(t, state.mentionCountRoot, stateAfter.mentionCountRoot, "mentionCountRoot didn't change")
+			} else {
+				require.Equal(t, state.mentionCountRoot, stateAfter.mentionCountRoot, "mentionCountRoot changed")
 			}
 			if testCase.threadsBold {
-				require.NotEqual(t, state.unreadThreads, stateAfter.unreadThreads)
+				require.NotEqual(t, state.unreadThreads, stateAfter.unreadThreads, "unreadThreads didn't change")
+			} else {
+				require.Equal(t, state.unreadThreads, stateAfter.unreadThreads, "unreadThreads changed")
 			}
 			if testCase.threadsBadge {
-				require.NotEqual(t, state.unreadThreadMentions, stateAfter.unreadThreadMentions)
+				require.NotEqual(t, state.unreadThreadMentions, stateAfter.unreadThreadMentions, "unreadThreadMentions didn't change")
+			} else {
+				require.Equal(t, state.unreadThreadMentions, stateAfter.unreadThreadMentions, "unreadThreadMentions changed")
 			}
 			// if testCase.threadDot {
 			// 	require.NotEqual(t, state.threadDot, stateAfter.threadDot)
