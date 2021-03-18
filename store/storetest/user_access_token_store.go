@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -56,7 +57,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().Delete(uat.Id)
 	require.Nil(t, nErr)
 
-	_, err = ss.Session().Get(s1.Token)
+	_, err = ss.Session().Get(context.Background(), s1.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s1.Token)
@@ -75,7 +76,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().DeleteAllForUser(uat.UserId)
 	require.Nil(t, nErr)
 
-	_, err = ss.Session().Get(s2.Token)
+	_, err = ss.Session().Get(context.Background(), s2.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s2.Token)
@@ -102,7 +103,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().UpdateTokenDisable(uat.Id)
 	require.Nil(t, nErr)
 
-	_, err = ss.Session().Get(s1.Token)
+	_, err = ss.Session().Get(context.Background(), s1.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
 
 	s2 := &model.Session{}

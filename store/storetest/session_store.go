@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -65,7 +66,7 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	s3, err = ss.Session().Save(s3)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
@@ -110,14 +111,14 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Id)
 	require.Nil(t, removeErr)
 
-	_, err = ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(context.Background(), s1.Id)
 	require.NotNil(t, err, "should have been removed")
 }
 
@@ -128,14 +129,14 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().RemoveAllSessions()
 	require.Nil(t, removeErr)
 
-	_, err = ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(context.Background(), s1.Id)
 	require.NotNil(t, err, "should have been removed")
 }
 
@@ -146,14 +147,14 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
 	require.Nil(t, deleteErr)
 
-	_, err = ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(context.Background(), s1.Id)
 	require.NotNil(t, err, "should have been removed")
 }
 
@@ -164,14 +165,14 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Token)
 	require.Nil(t, removeErr)
 
-	_, err = ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(context.Background(), s1.Id)
 	require.NotNil(t, err, "should have been removed")
 
 	data, err := ss.Session().GetSessions(s1.UserId)
@@ -229,7 +230,7 @@ func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
 	err = ss.Session().UpdateExpiresAt(s1.Id, 1234567890)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.EqualValues(t, session.ExpiresAt, 1234567890, "ExpiresAt not updated correctly")
 }
@@ -244,7 +245,7 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.EqualValues(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
 }
@@ -295,16 +296,16 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	ss.Session().Cleanup(now, 1)
 
-	_, err = ss.Session().Get(s1.Id)
+	_, err = ss.Session().Get(context.Background(), s1.Id)
 	assert.Nil(t, err)
 
-	_, err = ss.Session().Get(s2.Id)
+	_, err = ss.Session().Get(context.Background(), s2.Id)
 	assert.Nil(t, err)
 
-	_, err = ss.Session().Get(s3.Id)
+	_, err = ss.Session().Get(context.Background(), s3.Id)
 	assert.NotNil(t, err)
 
-	_, err = ss.Session().Get(s4.Id)
+	_, err = ss.Session().Get(context.Background(), s4.Id)
 	assert.NotNil(t, err)
 
 	removeErr := ss.Session().Remove(s1.Id)
@@ -377,19 +378,19 @@ func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	session, err := ss.Session().Get(s1.Id)
+	session, err := ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.False(t, session.ExpiredNotify)
 
 	err = ss.Session().UpdateExpiredNotify(session.Id, true)
 	require.Nil(t, err)
-	session, err = ss.Session().Get(s1.Id)
+	session, err = ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.True(t, session.ExpiredNotify)
 
 	err = ss.Session().UpdateExpiredNotify(session.Id, false)
 	require.Nil(t, err)
-	session, err = ss.Session().Get(s1.Id)
+	session, err = ss.Session().Get(context.Background(), s1.Id)
 	require.Nil(t, err)
 	require.False(t, session.ExpiredNotify)
 }

@@ -20,7 +20,7 @@ const (
 	useMaster contextValue = "useMaster"
 )
 
-// withMaster adds the context value that master DB should be selected for this request.
+// WithMaster adds the context value that master DB should be selected for this request.
 func WithMaster(ctx context.Context) context.Context {
 	return context.WithValue(ctx, storeContextKey(useMaster), true)
 }
