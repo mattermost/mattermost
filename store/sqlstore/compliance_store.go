@@ -81,8 +81,8 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	return obj.(*model.Compliance), nil
 }
 
-func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, error) {
-	props := map[string]interface{}{"StartTime": job.StartAt, "EndTime": job.EndAt}
+func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, offset, limit int) ([]*model.CompliancePost, error) {
+	props := map[string]interface{}{"StartTime": job.StartAt, "EndTime": job.EndAt, "Offset": offset, "Limit": limit}
 
 	keywordQuery := ""
 	keywords := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Keywords, ",", " ", -1))))
@@ -197,7 +197,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 				` + emailQuery + `
 				` + keywordQuery + `)
 		ORDER BY PostCreateAt
-		LIMIT 30000`
+		LIMIT :Limit
+		OFFSET :Offset`
 
 	var cposts []*model.CompliancePost
 

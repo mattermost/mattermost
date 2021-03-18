@@ -2864,11 +2864,11 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) error {
 
 }
 
-func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
+func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance, offset int, limit int) ([]*model.CompliancePost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.ComplianceExport(compliance)
+		result, err := s.ComplianceStore.ComplianceExport(compliance, offset, limit)
 		if err == nil {
 			return result, nil
 		}
