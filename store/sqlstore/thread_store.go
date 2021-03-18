@@ -301,7 +301,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := &model.Threads{
 		Total:               totalCount,
-		Threads:             nil,
+		Threads:             []*model.ThreadResponse{},
 		TotalUnreadMentions: totalUnreadMentions,
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
@@ -501,13 +501,21 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
+	// if memebership exists, update it if:
+	// a. user started/stopped following a thread
+	// b. mention count changed
+	// c. user viewed a thread
 	if err == nil {
-		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions {
-			if updateFollowing {
+		followingNeedsUpdate := (updateFollowing && !membership.Following || membership.Following != following)
+		if followingNeedsUpdate || incrementMentions || updateViewedTimestamp {
+			if followingNeedsUpdate {
 				membership.Following = following
+			}
+			if updateViewedTimestamp {
+				membership.LastViewed = now
 			}
 			membership.LastUpdated = now
 			if incrementMentions {

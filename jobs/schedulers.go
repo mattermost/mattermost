@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type Schedulers struct {
@@ -80,6 +80,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 
 	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, importDeleteInterface.MakeScheduler())
+	}
+
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, exportDeleteInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))

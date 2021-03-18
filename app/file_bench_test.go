@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var randomJPEG []byte
@@ -62,7 +62,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	// disable logging in the benchmark, as best we can
 	th.App.Log().SetConsoleLevel(mlog.LevelError)
 	teamID := model.NewId()
-	channelId := model.NewId()
+	channelID := model.NewId()
 	userID := model.NewId()
 
 	mb := func(i int) int {
@@ -86,7 +86,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw-ish DoUploadFile",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info1, err := th.App.DoUploadFile(time.Now(), teamID, channelId,
+				info1, err := th.App.DoUploadFile(time.Now(), teamID, channelID,
 					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data)
 				if err != nil {
 					b.Fatal(err)
@@ -99,7 +99,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw UploadFileX Content-Length",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
 					UploadFileSetTeamId(teamID),
@@ -117,7 +117,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "raw UploadFileX chunked",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
 					UploadFileSetTeamId(teamID),
@@ -135,7 +135,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "image UploadFiles",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				resp, err := th.App.UploadFiles(teamID, channelId, userID,
+				resp, err := th.App.UploadFiles(teamID, channelID, userID,
 					[]io.ReadCloser{ioutil.NopCloser(bytes.NewReader(data))},
 					[]string{fmt.Sprintf("BenchmarkDoUploadFiles-%d%s", n, ext)},
 					[]string{},
@@ -150,7 +150,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "image UploadFileX Content-Length",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
 					UploadFileSetTeamId(teamID),
@@ -167,7 +167,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{
 			title: "image UploadFileX chunked",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.UploadFileX(channelId,
+				info, aerr := th.App.UploadFileX(channelID,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
 					bytes.NewReader(data),
 					UploadFileSetTeamId(teamID),

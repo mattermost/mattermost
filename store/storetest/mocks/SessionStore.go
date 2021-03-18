@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,13 +42,13 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	_m.Called(expiryTime, batchSize)
 }
 
-// Get provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
-	ret := _m.Called(sessionIdOrToken)
+// Get provides a mock function with given fields: ctx, sessionIDOrToken
+func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
+	ret := _m.Called(ctx, sessionIDOrToken)
 
 	var r0 *model.Session
-	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
-		r0 = rf(sessionIdOrToken)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Session); ok {
+		r0 = rf(ctx, sessionIDOrToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
@@ -54,8 +56,8 @@ func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(sessionIdOrToken)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, sessionIDOrToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -132,13 +134,13 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.
 	return r0, r1
 }
 
-// PermanentDeleteSessionsByUser provides a mock function with given fields: teamId
-func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) error {
-	ret := _m.Called(teamId)
+// PermanentDeleteSessionsByUser provides a mock function with given fields: teamID
+func (_m *SessionStore) PermanentDeleteSessionsByUser(teamID string) error {
+	ret := _m.Called(teamID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -146,13 +148,13 @@ func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 	return r0
 }
 
-// Remove provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Remove(sessionIdOrToken string) error {
-	ret := _m.Called(sessionIdOrToken)
+// Remove provides a mock function with given fields: sessionIDOrToken
+func (_m *SessionStore) Remove(sessionIDOrToken string) error {
+	ret := _m.Called(sessionIDOrToken)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(sessionIdOrToken)
+		r0 = rf(sessionIDOrToken)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -197,20 +199,20 @@ func (_m *SessionStore) Save(session *model.Session) (*model.Session, error) {
 	return r0, r1
 }
 
-// UpdateDeviceId provides a mock function with given fields: id, deviceId, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
-	ret := _m.Called(id, deviceId, expiresAt)
+// UpdateDeviceId provides a mock function with given fields: id, deviceID, expiresAt
+func (_m *SessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+	ret := _m.Called(id, deviceID, expiresAt)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, string, int64) string); ok {
-		r0 = rf(id, deviceId, expiresAt)
+		r0 = rf(id, deviceID, expiresAt)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(id, deviceId, expiresAt)
+		r1 = rf(id, deviceID, expiresAt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -232,13 +234,13 @@ func (_m *SessionStore) UpdateExpiredNotify(sessionid string, notified bool) err
 	return r0
 }
 
-// UpdateExpiresAt provides a mock function with given fields: sessionId, time
-func (_m *SessionStore) UpdateExpiresAt(sessionId string, time int64) error {
-	ret := _m.Called(sessionId, time)
+// UpdateExpiresAt provides a mock function with given fields: sessionID, time
+func (_m *SessionStore) UpdateExpiresAt(sessionID string, time int64) error {
+	ret := _m.Called(sessionID, time)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(sessionId, time)
+		r0 = rf(sessionID, time)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -246,13 +248,13 @@ func (_m *SessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 	return r0
 }
 
-// UpdateLastActivityAt provides a mock function with given fields: sessionId, time
-func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
-	ret := _m.Called(sessionId, time)
+// UpdateLastActivityAt provides a mock function with given fields: sessionID, time
+func (_m *SessionStore) UpdateLastActivityAt(sessionID string, time int64) error {
+	ret := _m.Called(sessionID, time)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(sessionId, time)
+		r0 = rf(sessionID, time)
 	} else {
 		r0 = ret.Error(0)
 	}

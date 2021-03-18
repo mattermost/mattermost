@@ -78,19 +78,19 @@ func TestPreparePostForClient(t *testing.T) {
 			</html>`))
 		case "/test-image1.png":
 			file, err := testutils.ReadTestFile("test.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
 		case "/test-image2.png":
 			file, err := testutils.ReadTestFile("test-data-graph.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
 		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
@@ -621,7 +621,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 			</html>`))
 		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
@@ -675,7 +675,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			</html>`))
 		} else if r.URL.Path == "/image.png" {
 			file, err := testutils.ReadTestFile("test.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
@@ -719,7 +719,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			assert.Equal(t, &model.PostEmbed{
 				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
 			}, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
@@ -729,7 +729,7 @@ func TestGetEmbedForPost(t *testing.T) {
 				Type: model.POST_EMBED_IMAGE,
 				URL:  imageURL,
 			}, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
@@ -742,7 +742,7 @@ func TestGetEmbedForPost(t *testing.T) {
 					Title: "Title",
 				},
 			}, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should return a link embed", func(t *testing.T) {
@@ -752,7 +752,7 @@ func TestGetEmbedForPost(t *testing.T) {
 				Type: model.POST_EMBED_LINK,
 				URL:  otherURL,
 			}, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	})
 
@@ -779,28 +779,28 @@ func TestGetEmbedForPost(t *testing.T) {
 			assert.Equal(t, &model.PostEmbed{
 				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
 			}, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should not return an opengraph embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
 
 			assert.Nil(t, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should not return an image embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
 
 			assert.Nil(t, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should not return a link embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, otherURL, false)
 
 			assert.Nil(t, embed)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	})
 }
@@ -816,7 +816,7 @@ func TestGetImagesForPost(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			file, err := testutils.ReadTestFile("test.png")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
@@ -1248,6 +1248,9 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for name, testCase := range map[string]struct {
 		Input             string
 		ExpectedFirstLink string
@@ -1304,7 +1307,77 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := getFirstLinkAndImages(testCase.Input)
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
+
+			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
+			assert.Equal(t, images, testCase.ExpectedImages)
+		})
+	}
+
+	for name, testCase := range map[string]struct {
+		Input             string
+		ExpectedFirstLink string
+		ExpectedImages    []string
+	}{
+		"http link domain is restricted": {
+			Input:             "this is a http://example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"http link domain is not restricted": {
+			Input:             "this is a http://example1.com",
+			ExpectedFirstLink: "http://example1.com",
+			ExpectedImages:    []string{},
+		},
+		"www link domain is restricted": {
+			Input:             "this is a www.example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo"},
+		},
+		"multiple images is domain restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo](http://example.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"multiple images domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo) and ![their logo](http://example1.com/logo2) and ![my logo](http://example1.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo", "http://example1.com/logo2", "http://example1.com/logo3"},
+		},
+		"multiple images with duplicate domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"reference image domain is restricted": {
+			Input: `this is a ![our logo][logo]
+
+[logo]: http://example.com/logo`,
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image and link domain is restricted": {
+			Input:             "this is a https://example.com and ![our logo](https://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+	} {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"
+		})
+
+		t.Run(name, func(t *testing.T) {
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
 
 			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
 			assert.Equal(t, images, testCase.ExpectedImages)
@@ -1313,6 +1386,9 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for _, test := range []struct {
 		Name     string
 		Post     *model.Post
@@ -1517,7 +1593,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			images := getImagesInMessageAttachments(test.Post)
+			images := th.App.getImagesInMessageAttachments(test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
 		})
@@ -1617,7 +1693,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			require.NotNil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, title, og.Title)
 		})
 
@@ -1632,7 +1708,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			require.NotNil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, title, og.Title)
 		})
 
@@ -1649,7 +1725,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			assert.Nil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should not use cache if timestamp is different", func(t *testing.T) {
@@ -1665,7 +1741,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			assert.Nil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	})
 
@@ -1692,7 +1768,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			require.NotNil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, title, og.Title)
 		})
 
@@ -1709,7 +1785,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			require.NotNil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, title, og.Title)
 		})
 
@@ -1728,7 +1804,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			assert.Nil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
@@ -1746,7 +1822,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			assert.Nil(t, og)
 			assert.Nil(t, img)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	})
 
@@ -1767,7 +1843,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should cache OpenGraph results", func(t *testing.T) {
@@ -1787,7 +1863,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		fromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
@@ -1815,7 +1891,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		assert.Nil(t, og)
 		assert.NotNil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		_, fromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
@@ -1843,7 +1919,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
@@ -1907,7 +1983,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.True(t, os.IsTimeout(err))
 
 		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
@@ -1935,7 +2011,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		require.False(t, ok, "data should not exist in database")
 
 		_, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
@@ -1959,7 +2035,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should check in-memory cache for new post", func(t *testing.T) {
@@ -1974,7 +2050,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should skip database cache for new post", func(t *testing.T) {
@@ -1989,7 +2065,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should resolve relative URL", func(t *testing.T) {
@@ -2012,7 +2088,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
 		assert.Nil(t, og)
 		assert.NotNil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("should error on local addresses other than the image proxy", func(t *testing.T) {
@@ -2040,7 +2116,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.IsType(t, &url.Error{}, err)
 		assert.Equal(t, httpservice.AddressForbidden, err.(*url.Error).Err)
 
@@ -2050,7 +2126,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err = th.App.getLinkMetadata(requestURL, timestamp, false)
 		assert.Nil(t, og)
 		assert.Nil(t, img)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.IsType(t, imageproxy.Error{}, err)
 	})
 
@@ -2064,7 +2140,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
 		assert.Nil(t, og)
 		assert.NotNil(t, img)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 }
 
@@ -2115,7 +2191,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	imageURL := "http://example.com/test.png"
 	file, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	ogURL := "https://example.com/hello"
 	html := `
@@ -2137,7 +2213,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("image", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.Nil(t, og)
 		assert.Equal(t, &model.PostImage{
@@ -2149,7 +2225,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("malformed image", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 
 		assert.Nil(t, og)
 		assert.Nil(t, dimensions)
@@ -2157,7 +2233,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("opengraph", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.NotNil(t, og)
 		assert.Equal(t, og.Title, "Hello, World!")
@@ -2168,7 +2244,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("malformed opengraph", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.Nil(t, og)
 		assert.Nil(t, dimensions)
@@ -2176,7 +2252,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("neither", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.Nil(t, og)
 		assert.Nil(t, dimensions)
@@ -2184,7 +2260,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("svg", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.Nil(t, og)
 		assert.Equal(t, &model.PostImage{
@@ -2227,13 +2303,13 @@ func TestParseImages(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			result, err := parseImages(bytes.NewReader(file))
 			if testCase.ExpectError {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				assert.Equal(t, testCase.Expected, result)
 			}
 		})

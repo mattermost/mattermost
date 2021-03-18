@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func init() {
-	hookNameToId["OnDeactivate"] = OnDeactivateId
+	hookNameToId["OnDeactivate"] = OnDeactivateID
 }
 
 type Z_OnDeactivateArgs struct {
@@ -28,7 +28,7 @@ type Z_OnDeactivateReturns struct {
 func (g *hooksRPCClient) OnDeactivate() error {
 	_args := &Z_OnDeactivateArgs{}
 	_returns := &Z_OnDeactivateReturns{}
-	if g.implemented[OnDeactivateId] {
+	if g.implemented[OnDeactivateID] {
 		if err := g.client.Call("Plugin.OnDeactivate", _args, _returns); err != nil {
 			g.log.Error("RPC call OnDeactivate to plugin failed.", mlog.Err(err))
 		}
@@ -49,7 +49,7 @@ func (s *hooksRPCServer) OnDeactivate(args *Z_OnDeactivateArgs, returns *Z_OnDea
 }
 
 func init() {
-	hookNameToId["OnConfigurationChange"] = OnConfigurationChangeId
+	hookNameToId["OnConfigurationChange"] = OnConfigurationChangeID
 }
 
 type Z_OnConfigurationChangeArgs struct {
@@ -62,7 +62,7 @@ type Z_OnConfigurationChangeReturns struct {
 func (g *hooksRPCClient) OnConfigurationChange() error {
 	_args := &Z_OnConfigurationChangeArgs{}
 	_returns := &Z_OnConfigurationChangeReturns{}
-	if g.implemented[OnConfigurationChangeId] {
+	if g.implemented[OnConfigurationChangeID] {
 		if err := g.client.Call("Plugin.OnConfigurationChange", _args, _returns); err != nil {
 			g.log.Error("RPC call OnConfigurationChange to plugin failed.", mlog.Err(err))
 		}
@@ -83,7 +83,7 @@ func (s *hooksRPCServer) OnConfigurationChange(args *Z_OnConfigurationChangeArgs
 }
 
 func init() {
-	hookNameToId["ExecuteCommand"] = ExecuteCommandId
+	hookNameToId["ExecuteCommand"] = ExecuteCommandID
 }
 
 type Z_ExecuteCommandArgs struct {
@@ -99,7 +99,7 @@ type Z_ExecuteCommandReturns struct {
 func (g *hooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	_args := &Z_ExecuteCommandArgs{c, args}
 	_returns := &Z_ExecuteCommandReturns{}
-	if g.implemented[ExecuteCommandId] {
+	if g.implemented[ExecuteCommandID] {
 		if err := g.client.Call("Plugin.ExecuteCommand", _args, _returns); err != nil {
 			g.log.Error("RPC call ExecuteCommand to plugin failed.", mlog.Err(err))
 		}
@@ -119,7 +119,7 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 }
 
 func init() {
-	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedId
+	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedID
 }
 
 type Z_UserHasBeenCreatedArgs struct {
@@ -133,7 +133,7 @@ type Z_UserHasBeenCreatedReturns struct {
 func (g *hooksRPCClient) UserHasBeenCreated(c *Context, user *model.User) {
 	_args := &Z_UserHasBeenCreatedArgs{c, user}
 	_returns := &Z_UserHasBeenCreatedReturns{}
-	if g.implemented[UserHasBeenCreatedId] {
+	if g.implemented[UserHasBeenCreatedID] {
 		if err := g.client.Call("Plugin.UserHasBeenCreated", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
@@ -153,7 +153,7 @@ func (s *hooksRPCServer) UserHasBeenCreated(args *Z_UserHasBeenCreatedArgs, retu
 }
 
 func init() {
-	hookNameToId["UserWillLogIn"] = UserWillLogInId
+	hookNameToId["UserWillLogIn"] = UserWillLogInID
 }
 
 type Z_UserWillLogInArgs struct {
@@ -168,7 +168,7 @@ type Z_UserWillLogInReturns struct {
 func (g *hooksRPCClient) UserWillLogIn(c *Context, user *model.User) string {
 	_args := &Z_UserWillLogInArgs{c, user}
 	_returns := &Z_UserWillLogInReturns{}
-	if g.implemented[UserWillLogInId] {
+	if g.implemented[UserWillLogInID] {
 		if err := g.client.Call("Plugin.UserWillLogIn", _args, _returns); err != nil {
 			g.log.Error("RPC call UserWillLogIn to plugin failed.", mlog.Err(err))
 		}
@@ -188,7 +188,7 @@ func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_Use
 }
 
 func init() {
-	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInId
+	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInID
 }
 
 type Z_UserHasLoggedInArgs struct {
@@ -202,7 +202,7 @@ type Z_UserHasLoggedInReturns struct {
 func (g *hooksRPCClient) UserHasLoggedIn(c *Context, user *model.User) {
 	_args := &Z_UserHasLoggedInArgs{c, user}
 	_returns := &Z_UserHasLoggedInReturns{}
-	if g.implemented[UserHasLoggedInId] {
+	if g.implemented[UserHasLoggedInID] {
 		if err := g.client.Call("Plugin.UserHasLoggedIn", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(err))
 		}
@@ -222,7 +222,7 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z
 }
 
 func init() {
-	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedId
+	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedID
 }
 
 type Z_MessageHasBeenPostedArgs struct {
@@ -236,7 +236,7 @@ type Z_MessageHasBeenPostedReturns struct {
 func (g *hooksRPCClient) MessageHasBeenPosted(c *Context, post *model.Post) {
 	_args := &Z_MessageHasBeenPostedArgs{c, post}
 	_returns := &Z_MessageHasBeenPostedReturns{}
-	if g.implemented[MessageHasBeenPostedId] {
+	if g.implemented[MessageHasBeenPostedID] {
 		if err := g.client.Call("Plugin.MessageHasBeenPosted", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageHasBeenPosted to plugin failed.", mlog.Err(err))
 		}
@@ -256,7 +256,7 @@ func (s *hooksRPCServer) MessageHasBeenPosted(args *Z_MessageHasBeenPostedArgs, 
 }
 
 func init() {
-	hookNameToId["MessageHasBeenUpdated"] = MessageHasBeenUpdatedId
+	hookNameToId["MessageHasBeenUpdated"] = MessageHasBeenUpdatedID
 }
 
 type Z_MessageHasBeenUpdatedArgs struct {
@@ -271,7 +271,7 @@ type Z_MessageHasBeenUpdatedReturns struct {
 func (g *hooksRPCClient) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
 	_args := &Z_MessageHasBeenUpdatedArgs{c, newPost, oldPost}
 	_returns := &Z_MessageHasBeenUpdatedReturns{}
-	if g.implemented[MessageHasBeenUpdatedId] {
+	if g.implemented[MessageHasBeenUpdatedID] {
 		if err := g.client.Call("Plugin.MessageHasBeenUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageHasBeenUpdated to plugin failed.", mlog.Err(err))
 		}
@@ -291,7 +291,7 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 }
 
 func init() {
-	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedId
+	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
 type Z_ChannelHasBeenCreatedArgs struct {
@@ -305,7 +305,7 @@ type Z_ChannelHasBeenCreatedReturns struct {
 func (g *hooksRPCClient) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	_args := &Z_ChannelHasBeenCreatedArgs{c, channel}
 	_returns := &Z_ChannelHasBeenCreatedReturns{}
-	if g.implemented[ChannelHasBeenCreatedId] {
+	if g.implemented[ChannelHasBeenCreatedID] {
 		if err := g.client.Call("Plugin.ChannelHasBeenCreated", _args, _returns); err != nil {
 			g.log.Error("RPC call ChannelHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
@@ -325,7 +325,7 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 }
 
 func init() {
-	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelId
+	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelID
 }
 
 type Z_UserHasJoinedChannelArgs struct {
@@ -340,7 +340,7 @@ type Z_UserHasJoinedChannelReturns struct {
 func (g *hooksRPCClient) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	_args := &Z_UserHasJoinedChannelArgs{c, channelMember, actor}
 	_returns := &Z_UserHasJoinedChannelReturns{}
-	if g.implemented[UserHasJoinedChannelId] {
+	if g.implemented[UserHasJoinedChannelID] {
 		if err := g.client.Call("Plugin.UserHasJoinedChannel", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasJoinedChannel to plugin failed.", mlog.Err(err))
 		}
@@ -360,7 +360,7 @@ func (s *hooksRPCServer) UserHasJoinedChannel(args *Z_UserHasJoinedChannelArgs, 
 }
 
 func init() {
-	hookNameToId["UserHasLeftChannel"] = UserHasLeftChannelId
+	hookNameToId["UserHasLeftChannel"] = UserHasLeftChannelID
 }
 
 type Z_UserHasLeftChannelArgs struct {
@@ -375,7 +375,7 @@ type Z_UserHasLeftChannelReturns struct {
 func (g *hooksRPCClient) UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	_args := &Z_UserHasLeftChannelArgs{c, channelMember, actor}
 	_returns := &Z_UserHasLeftChannelReturns{}
-	if g.implemented[UserHasLeftChannelId] {
+	if g.implemented[UserHasLeftChannelID] {
 		if err := g.client.Call("Plugin.UserHasLeftChannel", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLeftChannel to plugin failed.", mlog.Err(err))
 		}
@@ -395,7 +395,7 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, retu
 }
 
 func init() {
-	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamId
+	hookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamID
 }
 
 type Z_UserHasJoinedTeamArgs struct {
@@ -410,7 +410,7 @@ type Z_UserHasJoinedTeamReturns struct {
 func (g *hooksRPCClient) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	_args := &Z_UserHasJoinedTeamArgs{c, teamMember, actor}
 	_returns := &Z_UserHasJoinedTeamReturns{}
-	if g.implemented[UserHasJoinedTeamId] {
+	if g.implemented[UserHasJoinedTeamID] {
 		if err := g.client.Call("Plugin.UserHasJoinedTeam", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasJoinedTeam to plugin failed.", mlog.Err(err))
 		}
@@ -430,7 +430,7 @@ func (s *hooksRPCServer) UserHasJoinedTeam(args *Z_UserHasJoinedTeamArgs, return
 }
 
 func init() {
-	hookNameToId["UserHasLeftTeam"] = UserHasLeftTeamId
+	hookNameToId["UserHasLeftTeam"] = UserHasLeftTeamID
 }
 
 type Z_UserHasLeftTeamArgs struct {
@@ -445,7 +445,7 @@ type Z_UserHasLeftTeamReturns struct {
 func (g *hooksRPCClient) UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
 	_args := &Z_UserHasLeftTeamArgs{c, teamMember, actor}
 	_returns := &Z_UserHasLeftTeamReturns{}
-	if g.implemented[UserHasLeftTeamId] {
+	if g.implemented[UserHasLeftTeamID] {
 		if err := g.client.Call("Plugin.UserHasLeftTeam", _args, _returns); err != nil {
 			g.log.Error("RPC call UserHasLeftTeam to plugin failed.", mlog.Err(err))
 		}
@@ -465,7 +465,7 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 }
 
 func init() {
-	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedId
+	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedID
 }
 
 type Z_ReactionHasBeenAddedArgs struct {
@@ -479,7 +479,7 @@ type Z_ReactionHasBeenAddedReturns struct {
 func (g *hooksRPCClient) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
 	_args := &Z_ReactionHasBeenAddedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenAddedReturns{}
-	if g.implemented[ReactionHasBeenAddedId] {
+	if g.implemented[ReactionHasBeenAddedID] {
 		if err := g.client.Call("Plugin.ReactionHasBeenAdded", _args, _returns); err != nil {
 			g.log.Error("RPC call ReactionHasBeenAdded to plugin failed.", mlog.Err(err))
 		}
@@ -499,7 +499,7 @@ func (s *hooksRPCServer) ReactionHasBeenAdded(args *Z_ReactionHasBeenAddedArgs, 
 }
 
 func init() {
-	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedId
+	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedID
 }
 
 type Z_ReactionHasBeenRemovedArgs struct {
@@ -513,7 +513,7 @@ type Z_ReactionHasBeenRemovedReturns struct {
 func (g *hooksRPCClient) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
 	_args := &Z_ReactionHasBeenRemovedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenRemovedReturns{}
-	if g.implemented[ReactionHasBeenRemovedId] {
+	if g.implemented[ReactionHasBeenRemovedID] {
 		if err := g.client.Call("Plugin.ReactionHasBeenRemoved", _args, _returns); err != nil {
 			g.log.Error("RPC call ReactionHasBeenRemoved to plugin failed.", mlog.Err(err))
 		}

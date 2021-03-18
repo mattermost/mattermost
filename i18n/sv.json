@@ -144,46 +144,6 @@
     "translation": "Kan inte hitta kommandot."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fel när \"To Address\" skulle sättas."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Misslyckades att tillföra meddelandedatat till mejlet."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Misslyckades skriva mejl-meddelandet."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fel då \"From Address\" skulle anges"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Misslyckades avsluta kommunikationen med SMTP-servern."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Misslyckades att bifoga fil till e-postmeddelandet"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Misslyckad autentisering på SMTP-servern."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Misslyckades att starta TLS-kommunikationen."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Misslyckades att starta kommunikationen."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Misslyckades sätta HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -416,11 +376,11 @@
     "translation": "Ogiltigt värde angavs för TLS \"overwrite cipher\". Kontrollera dokumentationen för giltiga värden."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Ogiltigt värde för TLS key file. Använd antingen LetsEncrypt eller ange en sökväg till en existerande nyckelfil."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Ogiltigt värde för TLS-certifikat-fil - använd antingen LetsEncrypt eller ange en sökväg till en existerande certifikatsfil."
   },
   {
@@ -693,7 +653,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout måste vara 1 sek eller mer."
+    "translation": "Elasticsearch Request Timeout måste vara minst 1 sekund."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -1080,32 +1040,12 @@
     "translation": "Flerfaktorauthentisering har avaktiverats på den här servern."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Ett fel inträffade när MFA-hemliga skulle sparas."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Kunde inte skapa QR-kod."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Ett fel inträffade vid radering av MFA-hemligheten."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "MFA-status kan inte uppdateras för användaren."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Ogiltigt MFA-token."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Fel vid försök att autentisera MFA-token."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -1825,7 +1765,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 10 filer. För att ladda upp fler filer, posta fler meddelanden."
+    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 5 filer. För att ladda upp fler filer, posta fler meddelanden."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -2201,7 +2141,7 @@
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
-    "translation": "Kunde inte ta fram aktiva användare under angiven tidsperiod."
+    "translation": "Kunde inte ta fram aktiva användare under den efterfrågade tidsperiod."
   },
   {
     "id": "app.upload.upload_data.update.app_error",
@@ -3580,18 +3520,6 @@
     "translation": "Kluster-API endpoint hittades inte."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fel vid bearbetning av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internt fel vid rangering av begäran till CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Kunde inte autentisera mot CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " bifogade en fil."
   },
@@ -4857,7 +4785,7 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Tom 'image'-tabell i begäran."
+    "translation": "Tom 'image'-tabell i förfrågan."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -5392,24 +5320,12 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} har bjudit in dig till {{ .TeamDisplayName }} som gäst"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]] som gäst."
-  },
-  {
     "id": "api.templates.invite_body.title",
-    "translation": "Du är inbjuden"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]] har bjudit in dig att ansluta till [[{{.TeamDisplayName}}]]."
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter. Efter att du gått med i [[{{.TeamDisplayName}}]] kan du logga in och använda funktionerna när som helst via webb-adressen:"
+    "translation": "{{ .SenderName }} bjöd in dig till teamet {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Gå med i grupp"
+    "translation": "Gå med nu"
   },
   {
     "id": "api.templates.email_warning",
@@ -5545,7 +5461,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Ett fel uppkom under kontroll av JSON-data vid export."
+    "translation": "Ett fel uppkom vid rangering av JSON-data vid export."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -5645,7 +5561,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Tom 'bild'-tabell i begäran."
+    "translation": "Tom 'bild'-tabell i förfrågan."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
@@ -5729,7 +5645,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Fel vid ogiltig e-post-inbjudan."
+    "translation": "Fel vid ogiltiggörande av e-postinbjudan."
   },
   {
     "id": "api.team.import_team.unknown_import_from.app_error",
@@ -5737,7 +5653,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Felaktigt formaterat anrop: fältet filesize saknas."
+    "translation": "Felaktigt formaterad förfrågan: fältet filesize saknas."
   },
   {
     "id": "api.team.import_team.parse.app_error",
@@ -5749,7 +5665,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Felaktigt formaterat anrop. Fältet importFrom saknas."
+    "translation": "Felaktigt formaterad förfrågan. Fältet importFrom saknas."
   },
   {
     "id": "api.team.import_team.no_file.app_error",
@@ -5801,7 +5717,7 @@
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": "Misslyckades att analysera den valda filen."
+    "translation": "Misslyckades att tolka förfrågan."
   },
   {
     "id": "api.team.add_members.user_denied",
@@ -6333,7 +6249,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": "Antalet användare är inte korrekt."
+    "translation": "Antalet efterfrågade användare är inte korrekt."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -6361,7 +6277,7 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Ingen fil under 'licens' i request."
+    "translation": "Ingen fil under 'licens' i förfrågan."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
@@ -6577,19 +6493,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Du anslöt till {{.ServerURL}}"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Med Mattermost kan du dela meddelanden och filer från din dator eller mobil med fulla sök- och arkiveringsmöjligheter."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Du kan logga in på:"
+    "translation": "Välkommen till teamet"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verifiera din e-postadress genom att följa länken nedan."
+    "translation": "Din mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -6597,7 +6505,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "För en bättre upplevelse kan du ladda ner program och app för PC, Mac, iOS och Android från:"
+    "translation": "För en bättre upplevelse kan du ladda ner app för PC, Mac, iOS och Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -6633,11 +6541,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Du har anslutit till {{.ServerURL}}"
+    "translation": "Verifiera din mejladress"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verifiera din e-postadress med att följa länken nedan."
+    "translation": "Denna mejladress användes för att skapa ett konto hos Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -6693,15 +6601,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Du önskar återställa ditt lösenord"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Om du inte vill byta lösenord, vänligen ignorera detta mail så ändras inte ditt lösenord. Länken för byte av lösenord gäller i 24 timmar."
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "För att ändra ditt lösenord, tryck \"Återställ lösenord\" nedan."
+    "translation": "Återställ ditt lösenord"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -7386,7 +7286,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "För många echo-begäran, kan inte behandla begäran."
+    "translation": "För många echo-begäran, kan inte behandla förfrågan."
   },
   {
     "id": "api.command_echo.desc",
@@ -7602,7 +7502,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Kontakta oss-begäran"
+    "translation": "Mattermost Kontakta oss-förfrågan"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
@@ -8200,11 +8100,11 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.no_file.app_error",
-    "translation": "Inga filer under 'image' i begäran."
+    "translation": "Inga filer under 'image' i förfrågan."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Tom matris för 'bild' i begäran."
+    "translation": "Tom matris för 'bild' i förfrågan."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
@@ -8240,7 +8140,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Tom matris för 'bild' i begäran."
+    "translation": "Tom matris för 'bild' i förfrågan."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -8340,11 +8240,11 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Ingen fil under förfrågan om 'certifikat'."
+    "translation": "Ingen fil under 'certifikat' i förfrågan."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ingen fil under förfrågan om 'certifikat'."
+    "translation": "Ingen fil under 'certifikat' i förfrågan."
   },
   {
     "id": "September",
@@ -8504,7 +8404,7 @@
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
-    "translation": "Anropet saknar antingen parametern AuthData eller AuthService."
+    "translation": "Förfrågan saknar antingen parametern AuthData eller AuthService."
   },
   {
     "id": "api.file.file_mod_time.app_error",
@@ -8523,10 +8423,6 @@
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Fel vid nedladdning av supportinformationsfilen."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Fel när filen lästes från servern"
   },
@@ -8537,5 +8433,233 @@
   {
     "id": "api.no_license",
     "translation": "För att använda denna endpoint behövs en E10 eller E20-licens."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Misslyckades kopiera fil vid export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Kunde inte rangera svaret."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Ogiltigt värde för RetentionDays. Värdet ska vara större än 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Värdet för Directory ska inte vara tomt."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Det gick inte att ansluta till SMTP-servern"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Misslyckades att läsa bifogade filer vid export."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Misslyckades att skapa zip-arkivet vid export."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Misslyckades att lägga till filen i zip-arkivet vid export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Misslyckades skapa katalogen vid export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Misslyckades skapa filen vid export."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Det gick inte hitta export-filen."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Ogiltig Origin header vid websocket-uppgraderingen."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Din status är satt till “{{.EmojiName}} {{.StatusMessage}}”. Du kan ändra din status med status-popup i överst i kanal-sidomenyn."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] eller rensa"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Sätt eller nollställ status"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Din status nollställdes."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fel när status skulle nollställas."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fel då status skulle sättas."
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Inbjudningar kan inte skickas eftersom ditt workspace har nått användargränsen för den kostnadsfria av Mattermost Cloud. Uppgradera nu för att tillåta fler användare att ansluta till ditt workspace."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativt kan du spärra användare i administratörskonsolen för att öppna upp plats för användare och hålla dig under gränsen för den kostnadsfria versionen."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Kunde inte uppdatera aktiv MFA-status för användaren."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Inga mejl blev skickade"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Det gick inte att skicka mejl till administratören om uppnådd användarnivå"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} vill bjuda in användare till ditt workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Begäran om uppgradering av workspace från Mattermost-användare"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Misslyckades att ta bort senaste status. Försök sätta status först eller kontakta systemadministratören för detaljer."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Anpassad statusvisning har avaktiverats. Kontakta din systemadministratör för mer information."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Misslyckades att rensa filindex."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Det gick inte att hämta batchen av filer att indexera."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Kunde inte få tag i filerna i batchen att indexera."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Nya användare kan inte gå med i er arbetsyta"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Någon försökte nyligen gå med i er arbetsyta men kunde inte fullfölja pga att arbetsytan har nått gränsen för den kostnadsfria versionen av Mattermost cloud. Uppgradera nu för att tillåta fler användare att gå med i er arbetsyta."
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Sökning av filer är inaktiverad på denna server. Kontakta din systemadministratör."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klicka nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Ladda ner desktop och mobilapp"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Ladda ner"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Tryck nedan för att verifiera din mejladress."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Tack för att du gick med "
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Om det inte var du kan du utan problem ignorera detta mejl."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Frågor?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Mejla oss närsomhelst på "
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Funktionen är under utveckling och är endast tillgänglig med en funktionsflagga."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Kunde inte bearbeta förfrågan."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fel när cloud-prenumerationen skulle hämtas."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fel när systemadministratörens mejl skulle hämtas."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Ogiltig eller saknad text i förfrågan."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Lägg till appar till din arbetsyta"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-händelsen hanterades inte. Antingen saknas den eller så var den inte giltig."
   }
 ]

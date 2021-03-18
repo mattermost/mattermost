@@ -6,9 +6,9 @@ package jobs
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type Workers struct {
@@ -30,6 +30,7 @@ type Workers struct {
 	ImportProcess            model.Worker
 	ImportDelete             model.Worker
 	ExportProcess            model.Worker
+	ExportDelete             model.Worker
 	Cloud                    model.Worker
 
 	listenerId string
@@ -97,6 +98,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.ExportProcess = exportProcessInterface.MakeWorker()
 	}
 
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		workers.ExportDelete = exportDeleteInterface.MakeWorker()
+	}
+
 	if cloudInterface := srv.Cloud; cloudInterface != nil {
 		workers.Cloud = cloudInterface.MakeWorker()
 	}
@@ -162,6 +167,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ExportProcess != nil {
 			go workers.ExportProcess.Run()
+		}
+
+		if workers.ExportDelete != nil {
+			go workers.ExportDelete.Run()
 		}
 
 		if workers.Cloud != nil {
@@ -287,6 +296,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.ExportProcess != nil {
 		workers.ExportProcess.Stop()
+	}
+
+	if workers.ExportDelete != nil {
+		workers.ExportDelete.Stop()
 	}
 
 	if workers.Cloud != nil {

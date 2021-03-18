@@ -144,46 +144,6 @@
     "translation": "Не можах да намеря командата."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Грешка при настройка „До адрес“."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Неуспешно добавяне на данни за съобщения по ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Неуспешно писане на съобщение за ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Грешка при настройка „От адрес“"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Неуспешна връзка с SMTP сървъра."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Неуспешен запис на прикачен файл към ел.поща"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Неуспешно удостоверяване на SMTP сървър."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Връзката с TLS не бе успешна."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Неуспешно отваряне на връзката."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Неуспешно задаване на HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -632,11 +592,11 @@
     "translation": "Невалидна стойност, предадена за шифър за презапис на TLS - Моля, вижте документацията за валидни стойности."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Невалидна стойност за ключов файл на TLS - Използвайте LetsEncrypt или задайте път към съществуващ файл на ключа."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Невалидна стойност за файл със сертификат TLS - Използвайте LetsEncrypt или задайте път към съществуващ файл на сертификата."
   },
   {
@@ -1296,10 +1256,6 @@
     "translation": "Многофакторното удостоверяване е забранено на този сървър."
   },
   {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Грешка при запазване на МФУ тайната."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Грешка при генериране на QR код."
   },
@@ -1637,7 +1593,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 10 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
+    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 5 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -2300,18 +2256,6 @@
     "translation": "Крайната точка на клъстер API не е намерена."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Грешка при обработка на заявката до CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Вътрешна грешка при построяване на заявка до CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Неуспешно удостоверяване в CWS"
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикачи файл."
   },
@@ -2672,24 +2616,8 @@
     "translation": "Предоставената схема е невалидна."
   },
   {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Грешка при изчистване на МФУ тайната."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Не може да се актуализира статуса на активност за МФУ потребител."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Невалиден маркер на МФУ."
-  },
-  {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Грешка при опит за удостоверяване на МФУ маркера."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4093,19 +4021,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Можете да влезете от:"
+    "translation": "Добре дошли в екипа"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Моля, потвърдете своя адрес за ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -4113,7 +4033,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android от:"
+    "translation": "За най-добро изживяване изтеглете приложенията за PC, Mac, iOS и Android."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
@@ -4149,11 +4069,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Присъединихте се към {{.ServerURL}}"
+    "translation": "Проверка на Вашия адрес за ел.поща"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Моля, потвърдете своя адрес на ел.поща, като натиснете по-долу."
+    "translation": "Този адрес на ел.поща е използван за създаване на профил в Mattermost."
   },
   {
     "id": "api.templates.verify_body.button",
@@ -4209,15 +4129,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Вие поискахте нулиране на паролата"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Ако не искате да нулирате паролата си, моля, игнорирайте тази ел.поща и вашата парола ще остане същата. Връзката за нулиране на паролата изтича след 24 часа."
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "За да промените паролата си, натиснете върху „Нулиране на паролата“ по-долу."
+    "translation": "Нулиране на паролата"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -4436,24 +4348,12 @@
     "translation": "[{{.SiteName}}] {{.SenderName}} ви покани да се присъедините към екипа {{.TeamDisplayName}} като гост"
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към екипа [[{{.TeamDisplayName}}]] като гост."
-  },
-  {
     "id": "api.templates.invite_body.title",
-    "translation": "Поканени сте"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към [[{{.TeamDisplayName}}]]."
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost ви позволява да споделяте съобщения и файлове от вашия компютър или телефон, с незабавно търсене и архивиране. След като се присъедините към [[{{.TeamDisplayName}}]], можете да влезете в новия си екип и да получите достъп до тези функции по всяко време от уеб адреса:"
+    "translation": "{{.SenderName}} ви покани да се присъедините към екипа {{.TeamDisplayName}}."
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Присъедини се към екипа"
+    "translation": "Присъедини се"
   },
   {
     "id": "api.templates.email_warning",
@@ -8523,10 +8423,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Грешка при изтеглянето на пакетен файл за поддръжка."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Грешка при четене на файл от сървъра"
   },
@@ -8537,5 +8433,329 @@
   {
     "id": "api.no_license",
     "translation": "Нужен е E10 или E20 лиценз за използване на тази крайна точка."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Невалидна стойност за RetentionDays. Трябва да е по-голяма от 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Стойността за Директория не може да е празна."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Неуспешно свързване с smtp сървър"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Неуспешно четене на прикачения файл при вноса."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Неуспешно добавяне на файл в zip архива при износа."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Неуспешно построяване на заявката."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Неуспешно създаване на zip заглавка при износа."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Неуспешно създаване на директория при износа."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Неуспешно създаване на файла при износа."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Неуспешно копиране на файла при износа."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Неуспешно търсене на износния файл."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Невалидна Origin заглавка при обновяване на websocket."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Няма успешно изпратена ел.поща"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за ограничението на потребители до администратора"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost потребителска заявка за надстройка на работното пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Тъй като работното ви пространство е достигнало потребителското ограничение за безплатната версия на Mattermost cloud, покани не могат да бъдат изпращани. Надстройте сега, за да позволите на повече потребители да се присъединят към вашето работно пространство."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Като алтернатива можете да деактивирате потребителите в Admin Console, за да отворите места за потребители и да останете под безплатния потребителски лимит."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Неуспешно изтриване на скорошното състояние. Моля, опитайте първо да добавите състояние или се свържете със системния администратор за подробности."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Функцията за персонализирано състояние е забранена. Моля, свържете се със системния администратор за подробности."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Вашето състояние зададено на “{{.EmojiName}} {{.StatusMessage}}”. Можете да промените състоянието си от индикатора на състоянието в заглавката на страничната лента на канала."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "състояние"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] или изчисти"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Задайте или изчистете състоянието си"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Състоянието Ви бе изчистено."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Грешка при изчистване на състоянието."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Грешка при задаване на състоянието."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Неуспешно изчистване на файлови индекси."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Не можа да се получи пакета с файлове за индексиране."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Нови потребители не могат да се присъединяват към вашето работно пространство"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Някой наскоро се опита да се присъедини към Вашето работно пространство, но не успя, тъй като е достигнато ограничението за потребители в безплатната версия на Mattermost cloud. Надстройте сега, за да позволите на повече потребители да се присъединят към Вашето работно пространство."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Въпроси?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Пишете ни по всяко време на "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Тази функция е в процес на разработка и е достъпна само с помощта на флаг за функция."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Не можа да се анализира тялото на заявката."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Грешка при получаване на абонамента за облак."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Грешка при вземане на администраторската ел.поща."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Търсенето на файлове е деактивирано на този сървър. Моля, свържете се със системния си администратор."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Свали настолно и мобилно приложение"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Свали"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Натиснете по-долу, за да потвърдите адреса си за ел.поща."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Благодаря, че се присъединихте "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Ако не сте Вие, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Невалидно или липсващо тяло на заявката."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Неуспешно изпращане на ел.поща за добре дошли в облака"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Щракнете върху бутона по-долу, за да нулирате паролата си. Ако не сте го заявили, можете спокойно да игнорирате това писмо."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Връзката за нулиране на паролата изтича след 24 часа."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Поканени сте като гост да си сътрудничите с екипа"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Какво е Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Виж още"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost е гъвкава платформа за съобщения с отворен код, която позволява сигурна работа в екип."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Започнете да сътрудничите с екипа си в Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Поздравления - вашето работно пространство {{.WorkSpace}} е готово за работа!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Предприемете следните стъпки, за да изградите екипите си и да извлечете максимума от работното си пространство."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Настройте работното си пространство"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Поздравления!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Имате въпроси относно стартирането? Изпратете ни ел.поща на"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "за най-доброто изживяване на PC, Mac, iOS и Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Влезте в работното си пространство на нашия"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "мобилно и настолно приложения"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Споделете тази връзка, за да поканите членовете си да се присъединят към {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Поканете хора във вашето работно пространство"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Не забравяйте да запазите връзката си за бъдеща употреба."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Благодаря за създаването "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Изтеглете приложението Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Отворете Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "пазар на приложения."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Рационализирайте работата си с инструменти като Github, Google Calendar и Chrome. Разгледайте всички интеграции, които имаме в нашия"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Добавете приложения към работното си пространство"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook събитието не беше обработено. Липсва или не е валидно."
   }
 ]

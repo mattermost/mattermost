@@ -23,9 +23,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -1006,7 +1006,7 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := th.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
@@ -1023,7 +1023,7 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := th.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()

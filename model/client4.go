@@ -3044,6 +3044,25 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchFiles returns any posts with matching terms string.
+func (c *Client4) SearchFiles(teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response) {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchFilesWithParams(teamId, &params)
+}
+
+// SearchFilesWithParams returns any posts with matching terms string.
+func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) (*FileInfoList, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/files/search", params.SearchParameterToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoListFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
 	params := SearchParameter{
@@ -5947,14 +5966,16 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response) {
 	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
 	if appErr != nil {
-		return BuildErrorResponse(r, appErr)
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
 
-	return BuildResponse(r)
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
@@ -5965,6 +5986,26 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	} else {
 		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, teamId, threadId) + "/following")
 	}
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) SendAdminUpgradeRequestEmail() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}

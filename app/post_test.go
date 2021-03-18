@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -13,11 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
@@ -137,14 +138,14 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			var err error
-			post, err = th.App.CreatePostAsUser(&model.Post{
+			var appErr *model.AppError
+			post, appErr = th.App.CreatePostAsUser(&model.Post{
 				UserId:        th.BasicUser.Id,
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
 				PendingPostId: pendingPostId,
 			}, "", true)
-			require.Nil(t, err)
+			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
 		}()
 
@@ -200,22 +201,22 @@ func TestAttachFilesToPost(t *testing.T) {
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.Nil(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.Nil(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
 
@@ -228,27 +229,27 @@ func TestAttachFilesToPost(t *testing.T) {
 			Path:      "path.txt",
 			PostId:    model.NewId(),
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.Nil(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.Nil(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, err := th.App.GetSinglePost(post.Id)
-		require.Nil(t, err)
+		updated, appErr := th.App.GetSinglePost(post.Id)
+		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
 	})
@@ -625,12 +626,12 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 
 	// Create a post with a file attachment.
 	teamID := th.BasicTeam.Id
-	channelId := th.BasicChannel.Id
+	channelID := th.BasicChannel.Id
 	userID := th.BasicUser.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -639,7 +640,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 
 	post := &model.Post{
 		Message:       "asd",
-		ChannelId:     channelId,
+		ChannelId:     channelID,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        userID,
 		CreateAt:      0,
@@ -854,15 +855,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -878,15 +879,15 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp("from_webhook", "true")
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -910,14 +911,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 
 		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -1893,11 +1894,11 @@ func TestThreadMembership(t *testing.T) {
 
 		// first user should now be part of the thread since they replied to a post
 		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 		// second user should also be part of a thread since they were mentioned
 		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 
 		post2, err := th.App.CreatePost(&model.Post{
@@ -1917,7 +1918,7 @@ func TestThreadMembership(t *testing.T) {
 
 		// first user should now be part of two threads
 		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 2)
 	})
 }
@@ -1925,6 +1926,7 @@ func TestThreadMembership(t *testing.T) {
 func TestCollapsedThreadFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -1952,7 +1954,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 2)
 		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
@@ -1968,5 +1970,84 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+	})
+
+	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.CollapsedThreads = true
+		})
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+		defer th.App.DeleteChannel(channel, user1.Id)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// we introduce a race to trigger an unexpected error from the db side.
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			th.Server.Store.Post().PermanentDeleteByUser(user1.Id)
+		}()
+
+		require.NotPanics(t, func() {
+			_, err = th.App.CreatePost(&model.Post{
+				UserId:    user1.Id,
+				ChannelId: channel.Id,
+				RootId:    postRoot.Id,
+				Message:   fmt.Sprintf("@%s", user2.Username),
+			}, channel, false, true)
+			require.Nil(t, err)
+		})
+
+		wg.Wait()
+	})
+}
+
+func TestReplyToPostWithLag(t *testing.T) {
+	if !replicaFlag {
+		t.Skipf("requires test flag -mysql-replica")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+		t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+	}
+
+	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+	t.Run("replication lag time great than reply time", func(t *testing.T) {
+		err := mainHelper.SetReplicationLagForTesting(5)
+		require.Nil(t, err)
+		defer mainHelper.SetReplicationLagForTesting(0)
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
+
+		root, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    root.Id,
+			ParentId:  root.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		require.NotNil(t, reply)
 	})
 }

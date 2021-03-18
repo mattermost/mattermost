@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -87,7 +87,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(150)
+		table.ColMap("FileIds").SetMaxSize(300)
 	}
 
 	return s
@@ -455,7 +455,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
 	if collapsedThreads {
 		return s.getPostWithCollapsedThreads(id, collapsedThreadsExtended)
 	}
@@ -467,7 +467,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := s.DBFromContext(ctx).SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -1056,15 +1056,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1083,14 +1083,18 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 
+	conditions := sq.And{
+		direction,
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("Id").
 		From(table).
-		Where(sq.And{
-			direction,
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
@@ -1112,7 +1116,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -1120,15 +1124,18 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
-
+	conditions := sq.And{
+		sq.Gt{"CreateAt": time},
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("*").
 		From(table).
-		Where(sq.And{
-			sq.Gt{"CreateAt": time},
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
@@ -1517,16 +1524,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := ""
-		if strings.Contains(terms, "_") {
-			//Strip quotes off terms with it
-			if strings.Contains(terms, "\"") {
-				queryParams["Terms"] = strings.ReplaceAll(queryParams["Terms"].(string), "\"", "")
-			}
-			searchClause = fmt.Sprintf("AND lower(%s)::tsvector @@ lower(:Terms)::tsquery", searchType)
-		} else {
-			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		}
+		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if searchType == "Message" {

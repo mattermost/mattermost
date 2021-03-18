@@ -17,8 +17,8 @@ import (
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // MaxWriteLength defines the maximum length accepted for write to the Configurations or

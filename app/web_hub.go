@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -114,6 +114,9 @@ func (a *App) InvalidateWebConnSessionCacheForUser(userID string) {
 func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
+	// Wait until all messages have finished reading.
+	s.webConnSemaWg.Wait()
+	// Now stop the hub.
 	for _, hub := range s.hubs {
 		hub.Stop()
 	}
@@ -231,27 +234,27 @@ func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 	}
 }
 
-func (a *App) invalidateCacheForChannelMembers(channelId string) {
-	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelId)
-	a.Srv().Store.Channel().InvalidateMemberCount(channelId)
-	a.Srv().Store.Channel().InvalidateGuestCount(channelId)
+func (a *App) invalidateCacheForChannelMembers(channelID string) {
+	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelID)
+	a.Srv().Store.Channel().InvalidateMemberCount(channelID)
+	a.Srv().Store.Channel().InvalidateGuestCount(channelID)
 }
 
-func (a *App) invalidateCacheForChannelMembersNotifyProps(channelId string) {
-	a.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
+func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
+	a.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID)
 
 	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelId,
+			Data:     channelID,
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
-func (a *App) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
-	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
+func (a *App) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
+	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
 }
 
 func (a *App) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
@@ -262,9 +265,9 @@ func (a *App) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string
 	a.Srv().Store.Channel().InvalidateChannelByName(teamID, name)
 }
 
-func (a *App) invalidateCacheForChannelPosts(channelId string) {
-	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelId)
-	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+func (a *App) invalidateCacheForChannelPosts(channelID string) {
+	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelID)
+	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelID)
 }
 
 func (a *App) InvalidateCacheForUser(userID string) {

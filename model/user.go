@@ -98,6 +98,7 @@ type User struct {
 	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool      `db:"-" json:"disable_welcome_email"`
 }
 
 //msgp UserMap
@@ -594,6 +595,16 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.MakeNonNil()
 
 	u.NotifyProps[key] = value
+}
+
+func (u *User) SetCustomStatus(cs *CustomStatus) {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+}
+
+func (u *User) ClearCustomStatus() {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = ""
 }
 
 func (u *User) GetFullName() string {
