@@ -1029,10 +1029,13 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
-	a.ForEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
+	cErr := a.ForEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
 		return nil
 	})
+	if cErr != nil {
+		return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations.cache_invalidation.error", nil, cErr.Error(), http.StatusInternalServerError)
+	}
 
 	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
