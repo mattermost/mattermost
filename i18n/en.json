@@ -2391,10 +2391,6 @@
     "translation": "Invalid id."
   },
   {
-    "id": "api.remote_cluster.invalid_token.app_error",
-    "translation": "Invalid token."
-  },
-  {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
   },
