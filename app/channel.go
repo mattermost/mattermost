@@ -1029,7 +1029,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
-	a.ForEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
+	a.forEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
 		return nil
 	})
@@ -2986,7 +2986,7 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	return nil
 }
 
-func (a *App) ForEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
+func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
 	perPage := 100
 	page := 0
 
@@ -3022,7 +3022,7 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 		a.Publish(message)
 		return nil
 	}
-	a.ForEachChannelMember(channelID, clearSessionCache)
+	a.forEachChannelMember(channelID, clearSessionCache)
 }
 
 func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
