@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -384,7 +385,7 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	err = ss.OAuth().DeleteApp(a1.Id)
 	require.NoError(t, err)
 
-	_, nErr = ss.Session().Get(s1.Token)
+	_, nErr = ss.Session().Get(context.Background(), s1.Token)
 	require.Error(t, nErr, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
