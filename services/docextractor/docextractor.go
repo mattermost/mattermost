@@ -25,8 +25,8 @@ func ExtractWithExtraExtractors(filename string, r io.Reader, settings ExtractSe
 	for _, extraExtractor := range extraExtractors {
 		enabledExtractors.Add(extraExtractor)
 	}
-	enabledExtractors.Add(&pdfExtractor{})
 	enabledExtractors.Add(&documentExtractor{})
+	enabledExtractors.Add(&pdfExtractor{})
 
 	if settings.ArchiveRecursion {
 		enabledExtractors.Add(&archiveExtractor{SubExtractor: enabledExtractors})

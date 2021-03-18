@@ -4,7 +4,9 @@
 package docextractor
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
 
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -27,9 +29,14 @@ func (ce *combineExtractor) Match(filename string) bool {
 }
 
 func (ce *combineExtractor) Extract(filename string, r io.Reader) (string, error) {
+	data, err := ioutil.ReadAll(r)
 	for _, extractor := range ce.SubExtractors {
 		if extractor.Match(filename) {
-			text, err := extractor.Extract(filename, r)
+			if err != nil {
+				mlog.Warn("unable to extract file content", mlog.Err(err))
+				continue
+			}
+			text, err := extractor.Extract(filename, bytes.NewBuffer(data))
 			if err != nil {
 				mlog.Warn("unable to extract file content", mlog.Err(err))
 				continue

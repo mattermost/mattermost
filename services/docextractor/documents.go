@@ -25,6 +25,7 @@ var doconvConverterByExtensions = map[string]func(io.Reader) (string, map[string
 	"html":  func(r io.Reader) (string, map[string]string, error) { return docconv.ConvertHTML(r, true) },
 	"pages": docconv.ConvertPages,
 	"rtf":   docconv.ConvertRTF,
+	"pdf":   docconv.ConvertPDF,
 }
 
 func (de *documentExtractor) Match(filename string) bool {

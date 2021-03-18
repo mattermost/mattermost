@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var ExtractContentCmd = &cobra.Command{
@@ -33,7 +34,6 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	// TODO: Add the check if we are skipping the database
 	if !*a.Config().FileSettings.ExtractContent || !*&a.Config().FeatureFlags.FilesSearch {
 		return errors.New("ERROR: Document extraction is not enabled")
 	}
@@ -68,7 +68,13 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 		if len(fileInfos) == 0 {
 			break
 		}
-		a.Srv().SyncExtractFilesContent(fileInfos)
+		for _, fileInfo := range fileInfos {
+			fmt.Println("extracting file", fileInfo.Name, fileInfo.Path)
+			err = a.ExtractContentFromFileInfo(fileInfo)
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", fileInfo.Id))
+			}
+		}
 		lastFileInfo := fileInfos[len(fileInfos)-1]
 		if lastFileInfo.CreateAt > endTime {
 			break

@@ -9,7 +9,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -30,6 +29,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	_ "github.com/oov/psd"
+	"github.com/pkg/errors"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
@@ -75,6 +75,7 @@ const (
 	ImageThumbnailPixelWidth  = 120
 	ImageThumbnailPixelHeight = 100
 	ImagePreviewPixelWidth    = 1920
+	MaxContentExtractionSize  = 1024 * 1024 // 1Mb
 )
 
 func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
@@ -773,22 +774,8 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(t.fileinfo.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
-			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
-			}
+			err := a.ExtractContentFromFileInfo(&infoCopy)
+			mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 		})
 	}
 
@@ -1043,22 +1030,8 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(infoCopy.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
-			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
-			}
+			err := a.ExtractContentFromFileInfo(&infoCopy)
+			mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 		})
 	}
 
@@ -1395,4 +1368,27 @@ func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId strin
 	}
 
 	return fileInfoSearchResults, nil
+}
+
+func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	file, aerr := a.FileReader(fileInfo.Path)
+	if aerr != nil {
+		return errors.Wrap(aerr, "failed to open file for extract file content")
+	}
+	defer file.Close()
+	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to extract file content")
+	}
+	if text != "" {
+		if len(text) > MaxContentExtractionSize {
+			text = text[0:MaxContentExtractionSize]
+		}
+		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+			return errors.Wrap(storeErr, "failed to save the extracted file content")
+		}
+	}
+	return nil
 }
