@@ -4,6 +4,7 @@
 package searchlayer
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -105,7 +106,7 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
-		postList, err2 := s.PostStore.Get(postId, true)
+		postList, err2 := s.PostStore.Get(context.Background(), postId, true)
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])

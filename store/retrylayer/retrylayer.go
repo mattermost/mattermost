@@ -5262,11 +5262,11 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 
 }
 
-func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(id, skipFetchThreads)
+		result, err := s.PostStore.Get(ctx, id, skipFetchThreads)
 		if err == nil {
 			return result, nil
 		}
@@ -6646,11 +6646,11 @@ func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 
 }
 
-func (s *RetryLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
+func (s *RetryLayerSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.Get(sessionIdOrToken)
+		result, err := s.SessionStore.Get(ctx, sessionIdOrToken)
 		if err == nil {
 			return result, nil
 		}
@@ -7612,11 +7612,11 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 
 }
 
-func (s *RetryLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetMember(teamId, userId)
+		result, err := s.TeamStore.GetMember(ctx, teamId, userId)
 		if err == nil {
 			return result, nil
 		}

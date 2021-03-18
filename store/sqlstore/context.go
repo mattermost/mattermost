@@ -3,7 +3,11 @@
 
 package sqlstore
 
-import "context"
+import (
+	"context"
+
+	"github.com/mattermost/gorp"
+)
 
 // storeContextKey is the base type for all context keys for the store.
 type storeContextKey string
@@ -17,7 +21,7 @@ const (
 )
 
 // withMaster adds the context value that master DB should be selected for this request.
-func withMaster(ctx context.Context) context.Context {
+func WithMaster(ctx context.Context) context.Context {
 	return context.WithValue(ctx, storeContextKey(useMaster), true)
 }
 
@@ -29,4 +33,12 @@ func hasMaster(ctx context.Context) bool {
 		}
 	}
 	return false
+}
+
+// DBFromContext is a helper utility that returns the DB handle from a given context.
+func (ss *SqlSupplier) DBFromContext(ctx context.Context) *gorp.DbMap {
+	if hasMaster(ctx) {
+		return ss.GetMaster()
+	}
+	return ss.GetReplica()
 }

@@ -97,7 +97,7 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(teamId string, userId string) (*model.TeamMember, error)
+	GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error)
 	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
@@ -272,7 +272,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	Get(ctx context.Context, id string, skipFetchThreads bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
@@ -390,7 +390,7 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(sessionIdOrToken string) (*model.Session, error)
+	Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error)
 	Save(session *model.Session) (*model.Session, error)
 	GetSessions(userId string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error)
