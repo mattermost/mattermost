@@ -1001,6 +1001,9 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MentionCountRoot", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MsgCountRoot", "bigint", "bigint")
+
 	updateMentionCountRootQuery := `
 	UPDATE ChannelMembers INNER JOIN (
 		SELECT Threads.ChannelId,COALESCE(threadmemberships.UserId,'') AS UserId, COALESCE(SUM(UnreadMentions),0) AS UnreadMentions FROM Channels
@@ -1009,6 +1012,10 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 		Group BY Threads.ChannelId,ThreadMemberships.UserId
 	) AS q ON q.ChannelId = ChannelMembers.ChannelId AND (q.UserId=ChannelMembers.UserId OR q.UserId='')
 	SET MentionCountRoot = GREATEST(ChannelMembers.MentionCount - q.UnreadMentions, 0)`
+
+	updateChannelsQuery := "UPDATE Channels INNER JOIN (SELECT Channels.id channelid, COALESCE(COUNT(CASE WHEN Posts.rootid = '' THEN 1 END),0) newcount FROM Channels LEFT JOIN Posts ON Channels.id = Posts.channelid GROUP BY Channels.id) AS q ON q.channelid=Channels.id SET totalmsgcountroot = q.newcount"
+	updateChannelMembersQuery := "UPDATE ChannelMembers INNER JOIN (SELECT ChannelMembers.channelid, COALESCE(COUNT(CASE WHEN Posts.rootid = '' AND Posts.updateat < ChannelMembers.lastviewedat THEN 1 END),0) newcount FROM ChannelMembers LEFT JOIN Posts ON ChannelMembers.channelid = Posts.channelid GROUP BY ChannelMembers.channelid) AS q ON q.channelid=ChannelMembers.channelid SET msgcountroot = q.newcount"
+
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		updateMentionCountRootQuery = `
 		WITH q AS
@@ -1020,10 +1027,21 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 		)
 		UPDATE ChannelMembers SET MentionCountRoot = GREATEST(ChannelMembers.MentionCount - q.UnreadMentions, 0)
 		FROM q WHERE q.ChannelId = ChannelMembers.ChannelId AND (q.UserId=channelmembers.UserId OR q.UserId='')`
+
+		updateChannelsQuery = "WITH q AS (select channels.id channelid, COALESCE(count(case when posts.rootid = '' then 1 end),0) totalmsgcountroot from channels left join posts on channels.id = posts.channelid group by channels.id) UPDATE channels SET totalmsgcountroot  = q.totalmsgcountroot FROM q where q.channelid=channels.id"
+		updateChannelMembersQuery = "WITH q AS (SELECT channelmembers.channelid, COALESCE(COUNT(CASE WHEN posts.rootid = '' AND posts.updateat < channelmembers.lastviewedat THEN 1 END),0) newcount FROM channelmembers LEFT JOIN posts ON channelmembers.channelid = posts.channelid GROUP BY channelmembers.channelid) UPDATE channelmembers SET msgcountroot = q.newcount FROM q WHERE q.channelid=channelmembers.channelid ;"
+
 	}
 	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelsQuery); err != nil {
+		mlog.Error("Error updating TotalMsgCountRoot in Channels table", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelMembersQuery); err != nil {
+		mlog.Error("Error updating MsgCountRoot in ChannelMembers table", mlog.Err(err))
+	}
+
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }

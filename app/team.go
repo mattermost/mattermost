@@ -1133,12 +1133,14 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userID string) (*model.TeamMembe
 
 func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
+
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var teamUnread = &model.TeamUnread{
 		MsgCount:         0,
+		MsgCountRoot:     0,
 		MentionCount:     0,
 		MentionCountRoot: 0,
 		TeamId:           teamID,
@@ -1149,6 +1151,7 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			teamUnread.MsgCount += cu.MsgCount
+			teamUnread.MsgCountRoot += cu.MsgCountRoot
 		}
 	}
 
@@ -1679,6 +1682,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			tu.MsgCount += cu.MsgCount
+			tu.MsgCountRoot += cu.MsgCountRoot
 		}
 
 		return tu
@@ -1691,6 +1695,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 		} else {
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
 				MsgCount:         0,
+				MsgCountRoot:     0,
 				MentionCount:     0,
 				MentionCountRoot: 0,
 				TeamId:           id,

@@ -1899,6 +1899,7 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
 		channelUnread.MsgCount = 0
+		channelUnread.MsgCountRoot = 0
 	}
 	return channelUnread, nil
 }

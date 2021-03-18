@@ -49,6 +49,7 @@ type channelMember struct {
 	SchemeUser       sql.NullBool
 	SchemeAdmin      sql.NullBool
 	SchemeGuest      sql.NullBool
+	MsgCountRoot     int64
 	MentionCountRoot sql.NullInt64
 }
 
@@ -61,6 +62,7 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 		MsgCount:         cm.MsgCount,
 		MentionCount:     cm.MentionCount,
 		MentionCountRoot: sql.NullInt64{Valid: true, Int64: cm.MentionCountRoot},
+		MsgCountRoot:     cm.MsgCountRoot,
 		NotifyProps:      cm.NotifyProps,
 		LastUpdateAt:     cm.LastUpdateAt,
 		SchemeGuest:      sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
@@ -88,10 +90,11 @@ type channelMemberWithSchemeRoles struct {
 	ChannelSchemeDefaultGuestRole sql.NullString
 	ChannelSchemeDefaultUserRole  sql.NullString
 	ChannelSchemeDefaultAdminRole sql.NullString
+	MsgCountRoot                  int64
 }
 
 func channelMemberSliceColumns() []string {
-	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MentionCount", "MentionCountRoot", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
+	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
 }
 
 func channelMemberToSlice(member *model.ChannelMember) []interface{} {
@@ -101,6 +104,7 @@ func channelMemberToSlice(member *model.ChannelMember) []interface{} {
 	resultSlice = append(resultSlice, member.ExplicitRoles)
 	resultSlice = append(resultSlice, member.LastViewedAt)
 	resultSlice = append(resultSlice, member.MsgCount)
+	resultSlice = append(resultSlice, member.MsgCountRoot)
 	resultSlice = append(resultSlice, member.MentionCount)
 	resultSlice = append(resultSlice, member.MentionCountRoot)
 	resultSlice = append(resultSlice, model.MapToJson(member.NotifyProps))
@@ -245,6 +249,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		SchemeUser:       rolesResult.schemeUser,
 		SchemeGuest:      rolesResult.schemeGuest,
 		ExplicitRoles:    strings.Join(rolesResult.explicitRoles, " "),
+		MsgCountRoot:     db.MsgCountRoot,
 	}
 }
 
@@ -720,7 +725,10 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 	var unreadChannel model.ChannelUnread
 	err := s.GetReplica().SelectOne(&unreadChannel,
 		`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, ChannelMembers.NotifyProps NotifyProps
+				Channels.TeamId TeamId, Channels.Id ChannelId,
+				(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount,
+				(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot,
+				ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, ChannelMembers.NotifyProps NotifyProps
 			FROM
 				Channels, ChannelMembers
 			WHERE
@@ -1189,23 +1197,25 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 }
 
 type channelIdWithCountAndUpdateAt struct {
-	Id            string
-	TotalMsgCount int64
-	UpdateAt      int64
+	Id                string
+	TotalMsgCount     int64
+	TotalMsgCountRoot int64
+	UpdateAt          int64
 }
 
 func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error) {
 	var data []channelIdWithCountAndUpdateAt
-	_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount, UpdateAt FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND (TeamId = :TeamId OR TeamId = '') AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+	_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount, TotalMsgCountRoot, UpdateAt FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND (TeamId = :TeamId OR TeamId = '') AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get channels count with teamId=%s and userId=%s", teamId, userId)
 	}
 
-	counts := &model.ChannelCounts{Counts: make(map[string]int64), UpdateTimes: make(map[string]int64)}
+	counts := &model.ChannelCounts{Counts: make(map[string]int64), CountsRoot: make(map[string]int64), UpdateTimes: make(map[string]int64)}
 	for i := range data {
 		v := data[i]
 		counts.Counts[v.Id] = v.TotalMsgCount
+		counts.CountsRoot[v.Id] = v.TotalMsgCountRoot
 		counts.UpdateTimes[v.Id] = v.UpdateAt
 	}
 
@@ -2069,12 +2079,13 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	props["UserId"] = userId
 
 	var lastPostAtTimes []struct {
-		Id            string
-		LastPostAt    int64
-		TotalMsgCount int64
+		Id                string
+		LastPostAt        int64
+		TotalMsgCount     int64
+		TotalMsgCountRoot int64
 	}
 
-	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
+	query := `SELECT Id, LastPostAt, TotalMsgCount, TotalMsgCountRoot FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = `WITH c AS ( ` + query + `),
@@ -2085,6 +2096,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		MentionCount = 0,
 		MentionCountRoot = 0,
 		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+		MsgCountRoot = greatest(cm.MsgCountRoot, c.TotalMsgCountRoot),
 		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
 		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
 	FROM c
@@ -2115,6 +2127,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	msgCountQuery := ""
+	msgCountQueryRoot := ""
 	lastViewedQuery := ""
 
 	for index, t := range lastPostAtTimes {
@@ -2122,6 +2135,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 
 		props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
 		msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+
+		props["msgCountRoot"+strconv.Itoa(index)] = t.TotalMsgCountRoot
+		msgCountQueryRoot += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCountRoot, :msgCountRoot%d) ", index, index)
 
 		props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
 		lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
@@ -2135,6 +2151,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 			MentionCount = 0,
 			MentionCountRoot = 0,
 			MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
+			MsgCountRoot = CASE ChannelId ` + msgCountQueryRoot + ` END,
 			LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
 			LastUpdateAt = LastViewedAt
 		WHERE
@@ -2200,19 +2217,20 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		}
 	}
 
-	unread, _, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
+	unread, unreadRoot, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
 		return nil, err
 	}
 
 	params := map[string]interface{}{
-		"mentions":     mentionCount,
-		"mentionsRoot": mentionCountRoot,
-		"unreadCount":  unread,
-		"lastViewedAt": unreadDate,
-		"userId":       userID,
-		"channelId":    unreadPost.ChannelId,
-		"updatedAt":    model.GetMillis(),
+		"mentions":        mentionCount,
+		"mentionsRoot":    mentionCountRoot,
+		"unreadCount":     unread,
+		"unreadCountRoot": unreadRoot,
+		"lastViewedAt":    unreadDate,
+		"userId":          userID,
+		"channelId":       unreadPost.ChannelId,
+		"updatedAt":       model.GetMillis(),
 	}
 
 	// msg count uses the value from channels to prevent counting on older channels where no. of messages can be high.
@@ -2224,6 +2242,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		MentionCount = :mentions,
 		MentionCountRoot = :mentionsRoot,
 		MsgCount = (SELECT TotalMsgCount FROM Channels WHERE ID = :channelId) - :unreadCount,
+		MsgCountRoot = (SELECT TotalMsgCountRoot FROM Channels WHERE ID = :channelId) - :unreadCountRoot,
 		LastViewedAt = :lastViewedAt,
 		LastUpdateAt = :updatedAt
 	WHERE
@@ -2241,6 +2260,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		cm.UserId UserId,
 		cm.ChannelId ChannelId,
 		cm.MsgCount MsgCount,
+		cm.MsgCountRoot MsgCountRoot,
 		cm.MentionCount MentionCount,
 		cm.MentionCountRoot MentionCountRoot,
 		cm.LastViewedAt LastViewedAt,
