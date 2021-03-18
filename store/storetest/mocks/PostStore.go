@@ -492,6 +492,29 @@ func (_m *PostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	return r0, r1
 }
 
+// GetPostsByUserInChannelSince provides a mock function with given fields: options, userId
+func (_m *PostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) ([]*model.Post, error) {
+	ret := _m.Called(options, userId)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, string) []*model.Post); ok {
+		r0 = rf(options, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, string) error); ok {
+		r1 = rf(options, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostsCreatedAt provides a mock function with given fields: channelID, time
 func (_m *PostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error) {
 	ret := _m.Called(channelID, time)

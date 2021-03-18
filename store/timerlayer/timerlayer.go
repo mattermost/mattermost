@@ -4764,6 +4764,22 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) ([]*model.Post, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.GetPostsByUserInChannelSince(options, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByUserInChannelSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, time int64) ([]*model.Post, error) {
 	start := timemodule.Now()
 
