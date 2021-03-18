@@ -36,6 +36,8 @@ const (
 	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
 )
 
+var errNonEpollConnClose = errors.New("connection closed")
+
 // WebConn represents a single websocket connection to a user.
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
@@ -248,7 +250,7 @@ func (wc *WebConn) ReadMsg() error {
 		// Return if closed.
 		// We need to return an error for non-epoll systems to let the reader exit.
 		if !wc.hasEpoll {
-			return errors.New("connection closed")
+			return errNonEpollConnClose
 		}
 		return nil
 	case ws.OpPong:
@@ -278,7 +280,9 @@ func (wc *WebConn) readPump() {
 
 	for {
 		if err := wc.ReadMsg(); err != nil {
-			wc.logSocketErr("websocket.read", err)
+			if err != errNonEpollConnClose {
+				wc.logSocketErr("websocket.read", err)
+			}
 			return
 		}
 	}
