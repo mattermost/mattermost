@@ -2993,8 +2993,7 @@ func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember)
 	for {
 		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
-			a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
-			break
+			return err
 		}
 
 		for _, channelMember := range *channelMembers {
