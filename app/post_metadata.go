@@ -419,15 +419,12 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	} else {
 		request.Header.Add("Accept", "image/*")
 		request.Header.Add("Accept", "text/html;q=0.8")
+		request.Header.Add("User-Agent", "Mattermost-Bot/1.1")
 
 		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
 		mmTransport := a.HTTPService().MakeTransport(false)
 		client.Transport = mmTransport.Transport
-
-		if strings.HasPrefix(requestURL, "https://twitter.com/") || strings.HasPrefix(requestURL, "https://mobile.twitter.com/") {
-			request.Header.Add("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
-		}
 
 		var res *http.Response
 		res, err = client.Do(request)
