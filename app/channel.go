@@ -909,14 +909,15 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		return nil, err
 	}
 
-	higherScopedMemberRole, err := a.GetRoleByName(context.Background(), higherScopedMemberRoleName)
+	ctx := sqlstore.WithMaster(context.Background())
+	higherScopedMemberRole, err := a.GetRoleByName(ctx, higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var higherScopedGuestRole *model.Role
 	if higherScopedGuestRoleName != "" {
-		higherScopedGuestRole, err = a.GetRoleByName(context.Background(), higherScopedGuestRoleName)
+		higherScopedGuestRole, err = a.GetRoleByName(ctx, higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -948,7 +949,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 		// Send a websocket event about this new role. The other new roles—member and guest—get emitted when they're updated.
 		var adminRole *model.Role
-		adminRole, err = a.GetRoleByName(sqlstore.WithMaster(context.Background()), scheme.DefaultChannelAdminRole)
+		adminRole, err = a.GetRoleByName(ctx, scheme.DefaultChannelAdminRole)
 		if err != nil {
 			return nil, err
 		}
@@ -966,14 +967,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	guestRoleName := scheme.DefaultChannelGuestRole
 	memberRoleName := scheme.DefaultChannelUserRole
-	memberRole, err := a.GetRoleByName(sqlstore.WithMaster(context.Background()), memberRoleName)
+	memberRole, err := a.GetRoleByName(ctx, memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var guestRole *model.Role
 	if guestRoleName != "" {
-		guestRole, err = a.GetRoleByName(sqlstore.WithMaster(context.Background()), guestRoleName)
+		guestRole, err = a.GetRoleByName(ctx, guestRoleName)
 		if err != nil {
 			return nil, err
 		}
