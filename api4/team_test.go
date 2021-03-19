@@ -1008,10 +1008,11 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("exclude policy constrained", func(t *testing.T) {
-		_, resp := Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		_, resp = Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
 		CheckForbiddenStatus(t, resp)
 		// Before adding the team to a policy
-		teams, resp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		var teams []*model.Team
+		teams, resp = th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
 		CheckOKStatus(t, resp)
 		found := false
 		for _, team := range teams {
