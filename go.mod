@@ -76,7 +76,6 @@ require (
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr v1.0.13
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mholt/archiver/v3 v3.5.0
 	github.com/miekg/dns v1.1.39 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
@@ -95,7 +94,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
-	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.17.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1
