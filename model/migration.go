@@ -32,4 +32,5 @@ const (
 	MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS      = "environment_subsection_permissions"
 	MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS        = "reporting_subsection_permissions"
 	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
+	MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS     = "integrations_subsection_permissions"
 )
