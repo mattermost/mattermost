@@ -703,11 +703,17 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(permissions...)
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained parameter
+	if c.Params.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
-		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
-		IncludeDeleted:         c.Params.IncludeDeleted,
+		NotAssociatedToGroup:     c.Params.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   c.Params.ExcludeDefaultChannels,
+		IncludeDeleted:           c.Params.IncludeDeleted,
+		ExcludePolicyConstrained: c.Params.ExcludePolicyConstrained,
 	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)

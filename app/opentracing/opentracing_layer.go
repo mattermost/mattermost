@@ -4372,7 +4372,7 @@ func (a *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPage")
 
@@ -4384,7 +4384,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.T
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllTeamsPage(offset, limit)
+	resultVar0, resultVar1 := a.app.GetAllTeamsPage(offset, limit, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4394,7 +4394,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.T
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPageWithCount")
 
@@ -4406,7 +4406,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllTeamsPageWithCount(offset, limit)
+	resultVar0, resultVar1 := a.app.GetAllTeamsPageWithCount(offset, limit, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

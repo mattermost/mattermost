@@ -7842,11 +7842,11 @@ func (s *RetryLayerTeamStore) GetAllForExportAfter(limit int, afterID string) ([
 
 }
 
-func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetAllPage(offset, limit)
+		result, err := s.TeamStore.GetAllPage(offset, limit, opts)
 		if err == nil {
 			return result, nil
 		}

@@ -1042,6 +1042,12 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
+	if opts.ExcludePolicyConstrained {
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+	}
+
 	return query
 }
 

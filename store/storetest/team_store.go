@@ -39,6 +39,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetByInviteId", func(t *testing.T) { testTeamStoreGetByInviteId(t, ss) })
 	t.Run("ByUserId", func(t *testing.T) { testTeamStoreByUserId(t, ss) })
 	t.Run("GetAllTeamListing", func(t *testing.T) { testGetAllTeamListing(t, ss) })
+	t.Run("GetAllTeamPage", func(t *testing.T) { testTeamStoreGetAllPage(t, ss) })
 	t.Run("GetAllTeamPageListing", func(t *testing.T) { testGetAllTeamPageListing(t, ss) })
 	t.Run("GetAllPrivateTeamListing", func(t *testing.T) { testGetAllPrivateTeamListing(t, ss) })
 	t.Run("GetAllPrivateTeamPageListing", func(t *testing.T) { testGetAllPrivateTeamPageListing(t, ss) })
@@ -656,6 +657,50 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Len(t, teams, 1, "Should return a team")
 	require.Equal(t, teams[0].Id, o1.Id, "should be a member")
+}
+
+func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
+	o := model.Team{}
+	o.DisplayName = "ADisplayName" + model.NewId()
+	o.Name = "zz" + model.NewId() + "a"
+	o.Email = MakeEmail()
+	o.Type = model.TEAM_OPEN
+	o.AllowOpenInvite = true
+	_, err := ss.Team().Save(&o)
+	require.NoError(t, err)
+
+	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 30,
+		},
+		TeamIDs: []string{o.Id},
+	})
+	require.Nil(t, err)
+
+	// Without ExcludePolicyConstrained
+	teams, err := ss.Team().GetAllPage(0, 100, nil)
+	require.Nil(t, err)
+	found := false
+	for _, team := range teams {
+		if team.Id == o.Id {
+			found = true
+			break
+		}
+	}
+	require.True(t, found)
+
+	// With ExcludePolicyConstrained
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewBool(true)})
+	require.Nil(t, err)
+	found = false
+	for _, team := range teams {
+		if team.Id == o.Id {
+			found = true
+			break
+		}
+	}
+	require.False(t, found)
 }
 
 func testGetAllTeamListing(t *testing.T, ss store.Store) {

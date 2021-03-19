@@ -3371,6 +3371,20 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, nErr)
 	assert.Len(t, *list, 1)
 
+	// Exclude policy constrained
+	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 30,
+		},
+		ChannelIDs: []string{c1.Id},
+	})
+	require.NoError(t, nErr)
+	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludePolicyConstrained: true})
+	require.NoError(t, nErr)
+	assert.Len(t, *list, 1)
+	assert.Equal(t, c3.Id, (*list)[0].Id)
+
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
 }

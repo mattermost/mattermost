@@ -568,13 +568,23 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 }
 
 // GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	var teams []*model.Team
 
-	query, args, err := s.teamsQuery.
+	builder := s.teamsQuery.
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
+		Offset(uint64(offset))
+
+	if opts != nil {
+		if opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained {
+			builder = builder.
+				LeftJoin("RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId").
+				Where("RetentionPoliciesTeams.TeamId IS NULL")
+		}
+	}
+
+	query, args, err := builder.ToSql()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")

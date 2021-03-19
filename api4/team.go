@@ -955,25 +955,37 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
+	opts := &model.TeamSearch{}
+	// Only system admins may use the ExcludePolicyConstrained parameter
+	if c.Params.ExcludePolicyConstrained {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
+		opts.ExcludePolicyConstrained = model.NewBool(true)
+	}
+
 	listPrivate := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PRIVATE_TEAMS)
 	listPublic := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS)
+	limit := c.Params.PerPage
+	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
 		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(offset, limit, opts)
 		} else {
-			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teams, err = c.App.GetAllTeamsPage(offset, limit, opts)
 		}
 	} else if listPrivate {
 		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(offset, limit)
 		} else {
-			teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teams, err = c.App.GetAllPrivateTeamsPage(offset, limit)
 		}
 	} else if listPublic {
 		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(offset, limit)
 		} else {
-			teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+			teams, err = c.App.GetAllPublicTeamsPage(offset, limit)
 		}
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.

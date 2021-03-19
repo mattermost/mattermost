@@ -6531,10 +6531,10 @@ func (s *TimerLayerTeamStore) GetAllForExportAfter(limit int, afterID string) ([
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetAllPage(offset, limit)
+	result, err := s.TeamStore.GetAllPage(offset, limit, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

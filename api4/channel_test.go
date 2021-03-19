@@ -1023,6 +1023,31 @@ func TestGetAllChannels(t *testing.T) {
 
 	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("exclude policy constrained", func(t *testing.T) {
+		_, resp := th.SystemManagerClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
+		CheckForbiddenStatus(t, resp)
+
+		basicChannel := th.BasicChannel
+		_, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "Policy 1",
+				PostDuration: 30,
+			},
+			ChannelIDs: []string{basicChannel.Id},
+		})
+		require.Nil(t, err)
+		channels, resp := th.SystemAdminClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == basicChannel.Id {
+				found = true
+				break
+			}
+		}
+		require.False(t, found)
+	})
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {

@@ -7231,7 +7231,7 @@ func (s *OpenTracingLayerTeamStore) GetAllForExportAfter(limit int, afterID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPage")
 	s.Root.Store.SetContext(newCtx)
@@ -7240,7 +7240,7 @@ func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetAllPage(offset, limit)
+	result, err := s.TeamStore.GetAllPage(offset, limit, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -529,8 +529,8 @@ type AppIface interface {
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
-	GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
-	GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
+	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
+	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError)
 	GetAudits(userID string, limit int) (model.Audits, *model.AppError)
 	GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError)

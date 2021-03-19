@@ -1007,6 +1007,41 @@ func TestGetAllTeams(t *testing.T) {
 		require.Len(t, teams, 5)
 	})
 
+	t.Run("exclude policy constrained", func(t *testing.T) {
+		_, resp := Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckForbiddenStatus(t, resp)
+		// Before adding the team to a policy
+		teams, resp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, resp)
+		found := false
+		for _, team := range teams {
+			if team.Id == team1.Id {
+				found = true
+				break
+			}
+		}
+		require.True(t, found)
+		// After adding the team to a policy
+		_, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "Policy 1",
+				PostDuration: 30,
+			},
+			TeamIDs: []string{team1.Id},
+		})
+		require.Nil(t, err)
+		teams, resp = th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, resp)
+		found = false
+		for _, team := range teams {
+			if team.Id == team1.Id {
+				found = true
+				break
+			}
+		}
+		require.False(t, found)
+	})
+
 	t.Run("Unauthorized", func(t *testing.T) {
 		Client.Logout()
 		_, resp = Client.GetAllTeams("", 1, 10)

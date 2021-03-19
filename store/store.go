@@ -103,7 +103,7 @@ type TeamStore interface {
 	SearchOpen(term string) ([]*model.Team, error)
 	SearchPrivate(term string) ([]*model.Team, error)
 	GetAll() ([]*model.Team, error)
-	GetAllPage(offset int, limit int) ([]*model.Team, error)
+	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error)

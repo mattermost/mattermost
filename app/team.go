@@ -873,8 +873,8 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit)
+func (a *App) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPage", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -882,12 +882,12 @@ func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppE
 	return teams, nil
 }
 
-func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+func (a *App) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError) {
 	totalCount, err := a.Srv().Store.Team().AnalyticsTeamCount(true)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPageWithCount", "app.team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit)
+	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPageWithCount", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

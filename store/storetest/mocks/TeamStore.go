@@ -209,13 +209,13 @@ func (_m *TeamStore) GetAllForExportAfter(limit int, afterID string) ([]*model.T
 	return r0, r1
 }
 
-// GetAllPage provides a mock function with given fields: offset, limit
-func (_m *TeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
-	ret := _m.Called(offset, limit)
+// GetAllPage provides a mock function with given fields: offset, limit, opts
+func (_m *TeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit, opts)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
-		r0 = rf(offset, limit)
+	if rf, ok := ret.Get(0).(func(int, int, *model.TeamSearch) []*model.Team); ok {
+		r0 = rf(offset, limit, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -223,8 +223,8 @@ func (_m *TeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(offset, limit)
+	if rf, ok := ret.Get(1).(func(int, int, *model.TeamSearch) error); ok {
+		r1 = rf(offset, limit, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

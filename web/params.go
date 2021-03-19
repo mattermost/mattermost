@@ -85,6 +85,7 @@ type Params struct {
 	CategoryId                string
 	WarnMetricId              string
 	ExportName                string
+	ExcludePolicyConstrained  bool
 
 	// Cloud
 	InvoiceId string
@@ -354,6 +355,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["export_name"]; ok {
 		params.ExportName = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("exclude_policy_constrained")); err == nil {
+		params.ExcludePolicyConstrained = val
 	}
 
 	return params
