@@ -45,6 +45,7 @@ type FileInfo struct {
 	Id              string  `json:"id"`
 	CreatorId       string  `json:"user_id"`
 	PostId          string  `json:"post_id,omitempty"`
+	ChannelId       string  `db:"-" json:"channel_id"`
 	CreateAt        int64   `json:"create_at"`
 	UpdateAt        int64   `json:"update_at"`
 	DeleteAt        int64   `json:"delete_at"`
