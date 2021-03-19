@@ -179,7 +179,7 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MIGRATIONS, 0, 60)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING, 0, 60)
 	require.Nil(t, resp.Error)
 }
 
