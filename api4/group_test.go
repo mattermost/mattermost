@@ -997,29 +997,29 @@ func TestGetGroupsByUserID(t *testing.T) {
 	assert.Nil(t, err)
 
 	th.App.Srv().SetLicense(nil)
-	_, response := th.SystemAdminClient.GetGroupsByUserID(user1.Id)
+	_, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
 	CheckNotImplementedStatus(t, response)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-	_, response = th.SystemAdminClient.GetGroupsByUserID("")
+	_, response = th.SystemAdminClient.GetGroupsByUserId("")
 	CheckBadRequestStatus(t, response)
 
-	_, response = th.SystemAdminClient.GetGroupsByUserID("notvaliduserid")
+	_, response = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
 	CheckBadRequestStatus(t, response)
 
-	groups, response := th.SystemAdminClient.GetGroupsByUserID(user1.Id)
+	groups, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
 	require.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
 	// test permissions
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	_, response = th.Client.GetGroupsByUserID(user1.Id)
+	_, response = th.Client.GetGroupsByUserId(user1.Id)
 	CheckForbiddenStatus(t, response)
 
 	th.Client.Logout()
 	th.Client.Login(user1.Email, user1.Password)
-	groups, response = th.Client.GetGroupsByUserID(user1.Id)
+	groups, response = th.Client.GetGroupsByUserId(user1.Id)
 	require.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
