@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package mailservice
+package mail
 
 import (
 	"context"
@@ -249,7 +249,7 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		embeddedFiles: embeddedFiles,
 	}
 
-	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
+	return sendMailUsingConfigAdvanced(mail, config)
 }
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
@@ -257,7 +257,7 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enabl
 }
 
 // allows for sending an email with differing MIME/SMTP recipients
-func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig, enableComplianceFeatures bool) error {
+func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	if config.Server == "" {
 		return nil
 	}

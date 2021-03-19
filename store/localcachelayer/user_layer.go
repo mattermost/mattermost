@@ -15,11 +15,9 @@ import (
 
 type LocalCacheUserStore struct {
 	store.UserStore
-	rootStore                      *LocalCacheStore
-	userProfileByIdsMut            sync.Mutex
-	userProfileByIdsInvalidations  map[string]bool
-	profilesInChannelMut           sync.Mutex
-	profilesInChannelInvalidations map[string]bool
+	rootStore                     *LocalCacheStore
+	userProfileByIdsMut           sync.Mutex
+	userProfileByIdsInvalidations map[string]bool
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
@@ -37,9 +35,6 @@ func (s *LocalCacheUserStore) handleClusterInvalidateProfilesInChannel(msg *mode
 	if msg.Data == ClearCacheMessageData {
 		s.rootStore.profilesInChannelCache.Purge()
 	} else {
-		s.profilesInChannelMut.Lock()
-		s.profilesInChannelInvalidations[msg.Data] = true
-		s.profilesInChannelMut.Unlock()
 		s.rootStore.profilesInChannelCache.Remove(msg.Data)
 	}
 }
@@ -72,9 +67,6 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			var userMap map[string]*model.User
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
-					s.profilesInChannelMut.Lock()
-					s.profilesInChannelInvalidations[key] = true
-					s.profilesInChannelMut.Unlock()
 					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key)
 					if s.rootStore.metrics != nil {
 						s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
@@ -86,9 +78,6 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
-	s.profilesInChannelMut.Lock()
-	s.profilesInChannelInvalidations[channelID] = true
-	s.profilesInChannelMut.Unlock()
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
@@ -102,15 +91,6 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 			return cachedMap, nil
 		}
 	}
-
-	// If it was invalidated, then we need to query master.
-	s.profilesInChannelMut.Lock()
-	if s.profilesInChannelInvalidations[channelId] {
-		ctx = sqlstore.WithMaster(ctx)
-		// And then remove the key from the map.
-		delete(s.profilesInChannelInvalidations, channelId)
-	}
-	s.profilesInChannelMut.Unlock()
 
 	userMap, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
 	if err != nil {
