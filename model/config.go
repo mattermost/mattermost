@@ -271,7 +271,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment_web_server,authentication,write_restrictable"`
+	SiteURL                                           *string  `access:"environment_web_server,authentication_saml,write_restrictable"`
 	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress                                     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
