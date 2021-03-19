@@ -97,7 +97,7 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(teamID string, userId string) (*model.TeamMember, error)
+	GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
@@ -215,7 +215,7 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
 	MigratePublicChannels() error
-	CreateInitialSidebarCategories(userId, teamID string) error
+	CreateInitialSidebarCategories(userId, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userId, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userId, teamID string) ([]string, error)
@@ -265,7 +265,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	CreateMembershipIfNeeded(userId, postID string, following, incrementMentions, updateFollowing bool) error
+	MaintainMembership(userId, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
@@ -274,7 +274,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
+	Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
@@ -287,9 +287,9 @@ type PostStore interface {
 	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error)
 	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error)
 	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error)
-	GetPostAfterTime(channelID string, time int64) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, time int64) (string, error)
-	GetPostIdBeforeTime(channelID string, time int64) (string, error)
+	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, error)
+	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, error)
+	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string
 	Search(teamID string, userId string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -393,7 +393,7 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(sessionIDOrToken string) (*model.Session, error)
+	Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error)
 	Save(session *model.Session) (*model.Session, error)
 	GetSessions(userId string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error)
@@ -546,8 +546,8 @@ type TokenStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(name string, allowFromCache bool) (*model.Emoji, error)
+	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
 	GetMultipleByName(names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, time int64) error

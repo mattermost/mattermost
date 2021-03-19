@@ -1871,14 +1871,6 @@
     "translation": "Unirme al Equipo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo búsquedas instantáneas. Una vez que te hayas unido a [[{{.TeamDisplayName}}]], Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Has sido invitado por {{.SenderStatus}} [[{{.SenderName}}]] a unirte al equipo [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Haz sido invitado"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Restablecer Contraseña"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Para cambiar tu contraseña, haz clic en \"Reiniciar Contraseña\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Si no quisiste realizar un cambio de contraseña, por favor ignora este correo y tu contraseña permanecerá igual. Este enlace para reiniciar la contraseña expirará en 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2009,14 +1993,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Por favor verifica tu correo electrónico haciendo clic en el botón de abajo."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Puedes acceder desde:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3611,32 +3587,12 @@
     "translation": "Boletín de Seguridad Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error intentando autenticar el token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA inválido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "No se pudo actualizar el estado activo de MFA para el usuario."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "No se pudo actualizar el estado activo de MFA para el usuario."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error al limpiar el secreto MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Error generando el código QR."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error guardando el secreto MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4223,11 +4179,11 @@
     "translation": "El tiempo transcurrido para actualizar que el usuario está escribiendo no debe ser menor a 1000 milisegundos."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valor no válido para el archivo del certificado TLS - utiliza LetsEncrypt o especifica la ruta del archivo de certificado existente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valor no válido para el archivo de la llave TLS - utiliza LetsEncrypt o especifica la ruta del archivo llave existente."
   },
   {
@@ -5773,10 +5729,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ha invitado a unirte al equipo [[{{.TeamDisplayName}}]] como huésped."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -7417,18 +7369,6 @@
   {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Petición de tramitación del error a CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Error interno marshaling petición a CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Incapaz de autenticar a CWS"
   },
   {
     "id": "api.cloud.request_error",

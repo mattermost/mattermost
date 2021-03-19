@@ -36,7 +36,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver),
+		SqlSettings: storetest.MakeSqlSettings(driver, false),
 	}
 }
 
@@ -405,6 +405,25 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
+func TestUpAndDownMigrations(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should be reversible for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			store := New(*settings, nil)
+			defer store.Close()
+
+			err := store.migrate(migrationsDirectionDown)
+			assert.NoError(t, err, "downing migrations should not error")
+		})
+	}
+}
+
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -541,9 +560,9 @@ func TestVersionString(t *testing.T) {
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:
-		return storetest.MakeSqlSettings(driver)
+		return storetest.MakeSqlSettings(driver, false)
 	case model.DATABASE_DRIVER_MYSQL:
-		return storetest.MakeSqlSettings(driver)
+		return storetest.MakeSqlSettings(driver, false)
 	}
 
 	return nil

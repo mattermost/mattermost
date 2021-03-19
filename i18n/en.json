@@ -480,6 +480,18 @@
     "translation": "Internal error during cloud api request."
   },
   {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook event was not handled. Either it is missing or it is not valid."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error getting system admins email."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error getting cloud subscription."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
@@ -1871,6 +1883,14 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "This feature is in development, and is only available using a feature flag."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2427,6 +2447,10 @@
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },
@@ -2497,6 +2521,10 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Invalid or missing request body."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2644,7 +2672,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+    "translation": "Alternatively, you can disable users in the System Console to open up spots for users and stay below the free user limit."
   },
   {
     "id": "api.templates.at_limit_subject",
@@ -2653,6 +2681,74 @@
   {
     "id": "api.templates.at_limit_title",
     "translation": "You’ve reached the user limit for the free tier "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Add apps to your workspace"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Streamline your work with tools like Github, Google Calendar and Chrome. Explore all of the integrations we have on our"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "app marketplace."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Open Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Download the Mattermost App"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Thanks for creating "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Make sure to save or bookmark your link for future use."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Invite people to your workspace"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Share this link to invite your members to join {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "mobile and desktop apps"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Sign into your workspace on our"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "for the best experience on PC, Mac, iOS and Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Having questions about getting started? Email us at"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Congratulations!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Set up your workspace"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Take the following steps to build out your teams and get the most out of your workspace."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Congratulations - your {{.WorkSpace}} workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
@@ -2707,6 +2803,10 @@
     "translation": "To change your notification preferences, log in to your team site and go to Account Settings > Notifications."
   },
   {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
     "id": "api.templates.email_info1",
     "translation": "Any questions at all, mail us any time: "
   },
@@ -2732,23 +2832,31 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Join Team"
+    "translation": "Join now"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Start collaborating with your team on Mattermost"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "You've been invited"
+    "translation": "{{ .SenderName }} invited you to join the {{ .TeamDisplayName }} team."
   },
   {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Learn more"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "What is Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "You were invited as a guest to collaborate with the team"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -2951,6 +3059,14 @@
     "translation": "Go To Post"
   },
   {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Email us any time at "
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Questions?"
+  },
+  {
     "id": "api.templates.remove_expired_license.body.renew_button",
     "translation": "Renew License Now"
   },
@@ -2967,16 +3083,16 @@
     "translation": "Reset Password"
   },
   {
-    "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "id": "api.templates.reset_body.info",
+    "translation": "The password reset link expires in 24 hours."
   },
   {
-    "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Click the button below to reset your password. If you didn’t request this, you can safely ignore this email."
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "You requested a password reset"
+    "translation": "Reset Your Password"
   },
   {
     "id": "api.templates.reset_subject",
@@ -3007,12 +3123,20 @@
     "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
   },
   {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
+  },
+  {
     "id": "api.templates.upgrade_request_subject",
     "translation": "Mattermost user request upgrade of workspace"
   },
   {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "New users are unable to join your workspace"
   },
   {
     "id": "api.templates.user_access_token_body.info",
@@ -3044,11 +3168,27 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Verify your email address"
   },
   {
     "id": "api.templates.verify_subject",
@@ -3083,8 +3223,16 @@
     "translation": "Mattermost Contact Us request"
   },
   {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Download"
+  },
+  {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Download the desktop and mobile apps"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -3092,19 +3240,27 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Please verify your email address by clicking below."
+    "translation": "This email address was used to create an account with Mattermost."
   },
   {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
+    "id": "api.templates.welcome_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
   },
   {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Thanks for joining "
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Click below to verify your email address."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "You've joined {{ .ServerURL }}"
+    "translation": "Welcome to the team"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -3461,6 +3617,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Failed to send cloud welcome email"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -6187,16 +6347,8 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
+    "id": "ent.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7631,11 +7783,11 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
   },
   {
@@ -8437,6 +8589,10 @@
   {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "Command does not exist."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Searching files has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.disabled",

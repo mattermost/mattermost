@@ -1,59 +1,515 @@
 {{define "invite_body"}}
 
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px; line-height: 1.7; color: #555;">
-    <tr>
-        <td>
-            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 660px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; background: #FFF;">
-                <tr>
-                    <td style="border: 1px solid #ddd;">
-                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 20px 20px 10px; text-align:left;">
-                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" width="130px" style="opacity: 0.5" alt="">
+<!-- FILE: invite_body.mjml -->
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+  <title>
+  </title>
+  <!--[if !mso]><!-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!--<![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style type="text/css">
+    #outlook a {
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+
+    table,
+    td {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+
+    p {
+      display: block;
+      margin: 13px 0;
+    }
+  </style>
+  <!--[if mso]>
+        <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml>
+        <![endif]-->
+  <!--[if lte mso 11]>
+        <style type="text/css">
+          .mj-outlook-group-fix { width:100% !important; }
+        </style>
+        <![endif]-->
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700" rel="stylesheet" type="text/css">
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700);
+  </style>
+  <!--<![endif]-->
+  <style type="text/css">
+    @media only screen and (min-width:480px) {
+      .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%;
+      }
+
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
+
+      .mj-column-per-90 {
+        width: 90% !important;
+        max-width: 90%;
+      }
+    }
+  </style>
+  <style type="text/css">
+    @media only screen and (max-width:480px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
+  </style>
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
+
+    .emailBody {
+      background: #F3F3F3 !important;
+    }
+
+    .emailBody a {
+      text-decoration: none !important;
+      color: #166DE0 !important;
+    }
+
+    .title div {
+      font-weight: 600 !important;
+      font-size: 28px !important;
+      line-height: 36px !important;
+      letter-spacing: -0.02em !important;
+      color: #3D3C40 !important;
+    }
+
+    .subTitle div {
+      font-size: 16px !important;
+      line-height: 24px !important;
+      color: rgba(61, 60, 64, 0.64) !important;
+    }
+
+    .button a {
+      background-color: #166DE0 !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 18px !important;
+      color: #FFFFFF !important;
+      padding: 15px 24px !important;
+    }
+
+    .info div {
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 40px 0px !important;
+    }
+
+    .footerTitle div {
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 24px !important;
+      color: #3D3C40 !important;
+      padding: 0px 0px 4px 0px !important;
+    }
+
+    .footerInfo div {
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 0px 48px 0px 48px !important;
+    }
+
+    .footerInfo a {
+      color: #166DE0 !important;
+    }
+
+    .appDownloadButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #166DE0 !important;
+      box-sizing: border-box !important;
+      color: #166DE0 !important;
+      padding: 13px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
+    }
+
+    .emailFooter div {
+      font-size: 12px !important;
+      line-height: 16px !important;
+      color: rgba(61, 60, 64, 0.56) !important;
+      padding: 8px 24px 8px 24px !important;
+    }
+
+    .postCard {
+      padding: 0px 24px 40px 24px !important;
+    }
+
+    .messageCard {
+      background: #FFFFFF !important;
+      border: 1px solid rgba(61, 60, 64, 0.08) !important;
+      box-sizing: border-box !important;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12) !important;
+      border-radius: 4px !important;
+      padding: 32px !important;
+    }
+
+    .messageAvatar img {
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0px !important;
+      border-radius: 32px !important;
+    }
+
+    .messageAvatarCol {
+      width: 32px !important;
+    }
+
+    .senderName div {
+      text-align: left !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 0px 0px 4px 0px !important;
+    }
+
+    .senderMessage div {
+      text-align: left !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      color: #3D3C40 !important;
+      padding: 0px !important;
+    }
+
+    .senderInfoCol {
+      width: 394px !important;
+      padding: 0px 0px 0px 12px !important;
+    }
+
+    @media all and (min-width: 541px) {
+      .emailBody {
+        padding: 32px !important;
+      }
+    }
+
+    @media all and (max-width: 540px) and (min-width: 401px) {
+      .emailBody {
+        padding: 16px !important;
+      }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
+      }
+    }
+
+    @media all and (max-width: 400px) {
+      .emailBody {
+        padding: 0px !important;
+      }
+
+      .footerInfo div {
+        padding: 0px !important;
+      }
+
+      .messageCard {
+        padding: 16px !important;
+      }
+
+      .postCard {
+        padding: 0px 0px 40px 0px !important;
+      }
+
+      .senderInfoCol {
+        width: 80% !important;
+        padding: 0px 0px 0px 12px !important;
+      }
+    }
+  </style>
+</head>
+
+<body style="word-spacing:normal;">
+  <div class="emailBody" style="">
+    <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;border-radius:8px;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;border-radius:8px;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:24px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:0px 0px 40px 0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                    <tbody>
+                                      <tr>
+                                        <td style="width:132px;">
+                                          <img alt="" height="21" src="{{.Props.SiteURL}}/static/images/logo_email_blue.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132" />
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
-                                        <tr>
-                                            <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">{{.Props.Title}}</h2>
-                                                <p>{{.Html.Info}}</p>
-                                                <p style="margin: 30px 0 15px">
-                                                    <a href="{{.Props.Link}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">{{.Props.Button}}</a>
-                                                </p>
-                                                {{if .Props.Message}}
-                                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px; margin: 35px auto 0 auto; border-radius: 5px; background: #f2f2f2; min-width: 550px">
-                                                        <tr>
-                                                            <td style="border: 0; padding: 0; width: 36px; vertical-align: top">
-                                                                <img width="36" height="36" style="border-radius: 18px;" src="cid:user-avatar.png">
-                                                            </td>
-                                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                                                <p style="font-weight: bold; margin-top: 0;">{{.Props.SenderName}}</p>
-                                                                <p style="white-space: break-spaces">{{.Props.Message}}</p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                {{end}}
-                                                <br/>
-                                                <p>{{.Html.ExtraInfo}}<br/><br/><a href='{{.Props.TeamURL}}'>{{.Props.TeamURL}}</a></p>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:552px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="direction:ltr;font-size:0px;padding:0px 24px 40px 24px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:504px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                            <tbody>
+                              <tr>
+                                <td align="center" class="title" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.Title}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 16px 24px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SubTitle}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" vertical-align="middle" class="button" style="font-size:0px;padding:0px;word-break:break-word;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                    <tr>
+                                      <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
+                                        <a href="{{.Props.ButtonURL}}" style="display:inline-block;background:#FFFFFF;color:#ffffff;font-family:Open Sans, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
+                                          {{.Props.Button}}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{if .Props.Message}}
+              <div class="postCard">
+                <!--[if mso | IE]><tr><td class="messageCard-outlook" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="messageCard-outlook" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div class="messageCard" style="margin:0px auto;max-width:552px;">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                    <tbody>
+                      <tr>
+                        <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="width:552px;" ><![endif]-->
+                          <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0;line-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;">
+                            <!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation" ><tr><td style="vertical-align:top;width:276px;" ><![endif]-->
+                            <div class="mj-column-per-50 mj-outlook-group-fix messageAvatarCol" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:50%;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
+                                  <tr>
+                                    <td align="center" class="messageAvatar" style="font-size:0px;padding:0px;word-break:break-word;">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                        <tbody>
+                                          <tr>
+                                            <td style="width:276px;">
+                                              <img alt="" height="auto" src="cid:user-avatar.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" />
                                             </td>
-                                        </tr>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td><td style="vertical-align:top;width:496px;" ><![endif]-->
+                            <div class="mj-column-per-90 mj-outlook-group-fix senderInfoCol" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:90%;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                <tbody>
+                                  <tr>
+                                    <td align="center" class="senderName" style="font-size:0px;padding:0px;word-break:break-word;">
+                                      <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.SenderName}}</div>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td align="center" class="senderMessage" style="font-size:0px;padding:0px;word-break:break-word;">
+                                      <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.Message}}</div>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <!--[if mso | IE]></td></tr></table><![endif]-->
+                          </div>
+                          <!--[if mso | IE]></td></tr></table><![endif]-->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              </div>
+              {{else}}
+                <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div style="margin:0px auto;max-width:552px;">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                    <tbody>
+                      <tr>
+                        <td style="direction:ltr;font-size:0px;padding:0px 0px 40px 0px;text-align:center;">
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                          <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                              <tbody>
+                                <tr>
+                                  <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
+                                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                      <tbody>
                                         <tr>
-                                            {{template "email_info" . }}
+                                          <td style="width:320px;">
+                                            <img alt="" height="auto" src="{{.Props.SiteURL}}/static/images/invite_illustration.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320" />
+                                          </td>
                                         </tr>
+                                      </tbody>
                                     </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                {{template "email_footer" . }}
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <!--[if mso | IE]></td></tr></table><![endif]-->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+                {{end}}
+                <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div style="margin:0px auto;max-width:552px;">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                    <tbody>
+                      <tr>
+                        <td style="direction:ltr;font-size:0px;padding:16px 0px 40px 0px;text-align:center;">
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                          <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                              <tbody>
+                                <tr>
+                                  <td align="center" class="footerTitle" style="font-size:0px;padding:0px;word-break:break-word;">
+                                    <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.InviteFooterTitle}}</div>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
+                                    <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.InviteFooterInfo}}</div>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td align="center" class="footerInfo" style="font-size:0px;padding:4px 0px 0px 0px;word-break:break-word;">
+                                    <div style="font-family:Open Sans, sans-serif;font-size:13px;font-weight:600;line-height:1;text-align:center;color:#000000;"><a href="mattermost.com" color="#166DE0">
+                                        {{.Props.InviteFooterLearnMore}}</a></div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <!--[if mso | IE]></td></tr></table><![endif]-->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+                <div style="margin:0px auto;max-width:552px;">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                    <tbody>
+                      <tr>
+                        <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                          <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:552px;" ><![endif]-->
+                          <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                              <tbody>
+                                <tr>
+                                  <td align="center" class="emailFooter" style="font-size:0px;padding:0px;word-break:break-word;">
+                                    <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.Organization}}
+                                      {{.Props.FooterV2}}
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <!--[if mso | IE]></td></tr></table><![endif]-->
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><![endif]-->
+  </div>
+</body>
+
+</html>
 
 {{end}}

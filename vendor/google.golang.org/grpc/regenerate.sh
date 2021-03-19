@@ -40,6 +40,9 @@ echo "go install cmd/protoc-gen-go-grpc"
 echo "git clone https://github.com/grpc/grpc-proto"
 git clone --quiet https://github.com/grpc/grpc-proto ${WORKDIR}/grpc-proto
 
+echo "git clone https://github.com/protocolbuffers/protobuf"
+git clone --quiet https://github.com/protocolbuffers/protobuf ${WORKDIR}/protobuf
+
 # Pull in code.proto as a proto dependency
 mkdir -p ${WORKDIR}/googleapis/google/rpc
 echo "curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/code.proto"
@@ -87,6 +90,7 @@ for src in ${SOURCES[@]}; do
     -I"." \
     -I${WORKDIR}/grpc-proto \
     -I${WORKDIR}/googleapis \
+    -I${WORKDIR}/protobuf/src \
     -I${WORKDIR}/istio \
     ${src}
 done
@@ -97,6 +101,7 @@ for src in ${LEGACY_SOURCES[@]}; do
     -I"." \
     -I${WORKDIR}/grpc-proto \
     -I${WORKDIR}/googleapis \
+    -I${WORKDIR}/protobuf/src \
     -I${WORKDIR}/istio \
     ${src}
 done

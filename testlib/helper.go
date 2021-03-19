@@ -14,9 +14,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
@@ -33,11 +33,13 @@ type MainHelper struct {
 
 	status           int
 	testResourcePath string
+	replicas         []string
 }
 
 type HelperOptions struct {
 	EnableStore     bool
 	EnableResources bool
+	WithReadReplica bool
 }
 
 func NewMainHelper() *MainHelper {
@@ -65,7 +67,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 
 	if options != nil {
 		if options.EnableStore && !testing.Short() {
-			mainHelper.setupStore()
+			mainHelper.setupStore(options.WithReadReplica)
 		}
 
 		if options.EnableResources {
@@ -99,13 +101,14 @@ func (h *MainHelper) Main(m *testing.M) {
 	h.status = m.Run()
 }
 
-func (h *MainHelper) setupStore() {
+func (h *MainHelper) setupStore(withReadReplica bool) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 
-	h.Settings = storetest.MakeSqlSettings(driverName)
+	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
+	h.replicas = h.Settings.DataSourceReplicas
 
 	config := &model.Config{}
 	config.SetDefaults()
@@ -116,6 +119,26 @@ func (h *MainHelper) setupStore() {
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
+}
+
+func (h *MainHelper) ToggleReplicasOff() {
+	if h.SQLStore.GetLicense() == nil {
+		panic("expecting a license to use this")
+	}
+	h.Settings.DataSourceReplicas = []string{}
+	lic := h.SQLStore.GetLicense()
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
+	h.SQLStore.UpdateLicense(lic)
+}
+
+func (h *MainHelper) ToggleReplicasOn() {
+	if h.SQLStore.GetLicense() == nil {
+		panic("expecting a license to use this")
+	}
+	h.Settings.DataSourceReplicas = h.replicas
+	lic := h.SQLStore.GetLicense()
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
+	h.SQLStore.UpdateLicense(lic)
 }
 
 func (h *MainHelper) setupResources() {
@@ -233,4 +256,37 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 	}
 
 	return h.SearchEngine
+}
+
+func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
+	if dn := h.SQLStore.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
+		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
+	}
+
+	err := h.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	err = h.execOnEachReplica(fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
+	if err != nil {
+		return err
+	}
+
+	err = h.execOnEachReplica("START SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *MainHelper) execOnEachReplica(query string, args ...interface{}) error {
+	for _, replica := range h.SQLStore.Replicas {
+		_, err := replica.Exec(query, args...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -21,9 +21,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -108,7 +109,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.InitServer()
 
-	t, _ := utils.GetTranslationsAndLocale(r)
+	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
 	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
@@ -176,7 +177,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Add unsafe-eval to the content security policy for faster source maps in development mode
 		devCSP := ""
 		if model.BuildNumber == "dev" {
-			devCSP = " 'unsafe-eval'"
+			devCSP += " 'unsafe-eval'"
+		}
+
+		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+		// see https://github.com/reduxjs/redux-devtools/issues/380
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-inline'"
 		}
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.

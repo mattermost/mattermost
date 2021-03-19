@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Afbeelding links klappen nu standaard in"
+    "translation": "Afbeeldinglinks klappen nu standaard in"
   },
   {
     "id": "api.command_dnd.desc",
@@ -581,7 +581,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Afbeelding links klappen nu standaard uit"
+    "translation": "Afbeeldinglinks klappen nu standaard uit"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -1868,19 +1868,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Lid worden van team"
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Met Mattermost kun je berichten en bestanden delen via PC of mobiel. Je kunt ze onmiddellijk doorzoeken en in het archief bekijken. Nadat je lid bent geworden van [[{{.TeamDisplayName}}]], kun je inloggen bij het team en deze functies ieder moment gebruiken via dit webadres:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "Word nu lid"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Je bent uitgenodigd"
+    "translation": "{{ .SenderName }} heeft je uitgenodigd om lid te worden van het team {{ .TeamDisplayName }} ."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1927,16 +1919,8 @@
     "translation": "Wachtwoord opnieuw instellen"
   },
   {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Om je wachtwoord te wijzigen, klik \"Reset Wachtwoord\" hieronder."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Als je je wachtwoord niet wenste te wijzigen, negeer dan deze e-mail en je wachtwoord blijft ongewijzigd. De wachtwoord reset link vervalt na 24 uren."
-  },
-  {
     "id": "api.templates.reset_body.title",
-    "translation": "U heeft een wachtwoord reset aangevraagd"
+    "translation": "Jouw wachtwoord opnieuw instellen"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1988,11 +1972,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verifieer uw e-mail adres door de link hieronder te klikken."
+    "translation": "Dit e-mailadres werd gebruikt om een account aan te maken bij Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Je hebt je aangesloten bij {{ .ServerURL }}"
+    "translation": "Verifieer jouw e-mailadres"
   },
   {
     "id": "api.templates.verify_subject",
@@ -2000,7 +1984,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Voor de beste ervaring, download de apps voor PC, Mac, iOS en Android van:"
+    "translation": "Voor de beste ervaring, download de apps voor PC, Mac, iOS en Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2008,19 +1992,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verifieer aub uw e-mail door de link hieronder aan te klikken."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "U kunt inloggen vanuit:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Met Mattermost kunnen berichten en bestande uitgewisseld worden via PC of Telefoon, met instant zoek en archiveer functies."
+    "translation": "Dit e-mailadres werd gebruikt om een account aan te maken bij Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Je hebt je aangesloten bij {{ .ServerURL }}"
+    "translation": "Welkom bij het team"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2164,11 +2140,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
+    "translation": "Er is geprobeerd aan te melden met de experimentele functie ClientSideCert zonder een geldig certificaat te verstrekken."
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+    "translation": "Er is geprobeerd om de experimentele functie te gebruiken ClientSideCert zonder een geldig Enterprise-licentie."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2176,27 +2152,27 @@
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": "Inloggen is niet gelukt, omdat het e-mail adres nog niet geverifieerd is"
+    "translation": "Inloggen is niet gelukt, omdat het e-mail adres nog niet geverifieerd is."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
-    "translation": "Log a.u.b. in via {{.AuthService}}"
+    "translation": "Meldt je aan met {{.AuthService}}."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Inloggen met een bot is verboden."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Kan data niet verwerken voor authenticatie via {{.Service}}"
+    "translation": "Kon geen auth data ontleden van {{.Service}} gebruikersobject."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "AD/LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2204,19 +2180,19 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "Authenticatieoverdracht is niet geconfigureerd of beschikbaar op deze server."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": "De wachtwoord reset link is niet geldig"
+    "translation": "Het reset-wachtwoord-token lijkt niet geldig te zijn."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "De wachtwoord reset link is niet geldig"
+    "translation": "De link om het wachtwoord te resetten lijkt niet geldig te zijn."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "De wachtwoord reset link is niet meer geldig"
+    "translation": "De wachtwoord-reset-link is niet meer geldig."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2224,7 +2200,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Kan het wachtwoord niet resetten voor SSO accounts"
+    "translation": "Kan het wachtwoord niet resetten voor SSO accounts."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2232,7 +2208,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
+    "translation": "De e-mail met het deactiveren van de account kon niet met succes worden verzonden"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2244,11 +2220,11 @@
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "De verificatie-e-mail voor het aanpassen van het e-mailadres kon niet verstuurd worden."
+    "translation": "De verificatie-e-mail voor het aanpassen van het e-mailadres kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
+    "translation": "Kon geen e-mailmelding versturen voor wijzigen MFA."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2256,11 +2232,11 @@
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Wachtwoord reset e-mail versturen is niet gelukt"
+    "translation": "Wachtwoord reset e-mail versturen is niet gelukt."
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Kan het wachtwoord niet resetten voor SSO accounts"
+    "translation": "Kan het wachtwoord niet resetten voor SSO accounts."
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2268,7 +2244,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send \"Personal access token added\" email successfully"
+    "translation": "Fout bij het verzenden van e-mail \"Persoonlijke toegangstoken toegevoegd\""
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2280,23 +2256,23 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "Je kan jezelf niet deactiveren omdat dit uitgeschakeld is. Contacteer je systeembeheerder."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "U beschikt niet over de juiste rechten"
+    "translation": "U beschikt niet over de juiste rechten."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
+    "translation": "Kon de gebruiker niet uit het {{.Service}} gebruikersobject halen."
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Wachtwoord bijwerken is niet gelukt, want de context user_id kom niet overeen met de opgegeven user_id"
+    "translation": "Wachtwoord bijwerken is niet gelukt, want de context user_id kom niet overeen met de opgegeven user_id."
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "Wachtwoord bijwerken is mislukt"
+    "translation": "Wachtwoord bijwerken is mislukt."
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
@@ -2308,39 +2284,39 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "Wachtwoord bijwerken is mislukt, omdat de gebruiker is ingelogt via een OAuth service"
+    "translation": "Wachtwoord bijwerken is mislukt, omdat de gebruiker is ingelogt via een OAuth service."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Wachtwoord bijwerken is mislukt, want er is geen geldig account gevonden"
+    "translation": "Wachtwoord bijwerken is mislukt, want er is geen geldig account gevonden."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Lege data bij 'licentie' in aanvraag"
+    "translation": "Lege data bij 'afbeelding in aanvraag."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Kan het profiel figuur niet decoderen"
+    "translation": "Kan het profielafbeelding niet decoderen."
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "translation": "Kan profielafbeelding niet opslaan. Bestand lijkt geen geldige afbeelding te zijn."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "Kan het profiel figuur niet coderen"
+    "translation": "Kan het profielafbeelding niet encoderen."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "Geen bestand bij 'licentie' in aanvraag"
+    "translation": "Geen bestand bij 'image' in aanvraag."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": "Kan licentie bestand niet openen"
+    "translation": "Kan afbeeldingsbestand niet openen."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Kan het 'multipart form' niet verwerken"
+    "translation": "Kan het 'multipart form' niet verwerken."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -2352,7 +2328,7 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "Kan de profiel figuur niet uploaden"
+    "translation": "Kan de profielafbeelding niet uploaden."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -2360,7 +2336,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Bad verify email token type."
+    "translation": "Foutief verificatie e-mail token type."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
@@ -2368,27 +2344,27 @@
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Fout bij het verwerken van tokengegegevens van e-mailverificatie"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Upgraden naar websocket verbinding is mislukt"
+    "translation": "Upgraden naar websocket verbinding is mislukt."
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Unknown WebSocket action."
+    "translation": "Onbekende WebSocket actie."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Invalid sequence for WebSocket message."
+    "translation": "Ongeldige volgorde voor WebSocket bericht."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "No websocket action."
+    "translation": "Geen websocket actie."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "WebSocket connection is not authenticated. Please log in and try again."
+    "translation": "WebSocket verbinding is niet geverifieerd. Log in en probeer opnieuw."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2404,15 +2380,15 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
+    "translation": "Ofwel trigger_words of channel_id moet ingesteld zijn."
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
+    "translation": "Kan multipart payload van inkomende webhook niet decoderen."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
+    "translation": "Kan webhook niet bijwerken tussen teams."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2420,19 +2396,19 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Ongeldige {{.Name}} parameter"
+    "translation": "Ongeldige {{.Name}} parameter."
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "Verbinding mislukt: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Must specify the team ID to create a channel"
+    "translation": "Je moet een Team ID vermelden als je een kanaal aanmaakt."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Unable to move a channel unless all its members are already members of the destination team."
+    "translation": "Kan een kanaal niet verplaatsen tenzij alle leden al lid zijn van het bestemmingsteam."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2456,19 +2432,19 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "Er trad een fout op bij het schrijven van de exportgegevens."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occurred marshalling the JSON data for export."
+    "translation": "Er is een fout opgetreden bij het opstellen van de JSON-gegevens voor export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
+    "translation": "Fout bij het lezen van het bestand : \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
+    "translation": "Fout bij het opladen van het bestand: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2476,35 +2452,35 @@
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
-    "translation": "JSON decode of line failed."
+    "translation": "JSON decoderen van regel mislukt."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
+    "translation": "Foute of ontbrekende versie van het gegevensimportbestand.Controleer of versie is het eerste object in je importbestand en probeer opnieuw."
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+    "translation": "Fout bij het lezen van het emoticon import bestand. Emoticon met naam: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Unable to set a channel to use a deleted scheme."
+    "translation": "Kan een kanaal niet instellen om een verwijderd schema te gebruiken."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Channel must be assigned to a Channel-scoped scheme."
+    "translation": "Kanaal moet toegewezen zijn aan een kanaalgebonden schema."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
+    "translation": "Fout bij importeren kanaal. Team met naam \"{{.TeamName}}\" kon niet worden gevonden."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to create direct channel"
+    "translation": "Fout bij het aanmaken van een direct kanaal"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to create group channel"
+    "translation": "Fout bij het aanmaken van een groepskanaal"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -2512,11 +2488,11 @@
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "Fout bij het aanmaken van een direct kanaal"
   },
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "Fout bij het ophalen van directberichtenkanaal"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -2552,83 +2528,83 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Import data line has unknown type \"{{.Type}}\"."
+    "translation": "Geïmporteerde lijn heeft onbekend type \"\"{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
+    "translation": "Fout bij het importeren van post. Kanaal met naam \"{{.ChannelName}}\" kon niet gevonden worden."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Error importing post. Failed to save preferences."
+    "translation": "Fout bij het importeren van bericht. Fout bij het bewaren van voorkeuren."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
+    "translation": "Fout bij importeren bericht. Gebruiker met gebruikersnaam \"{{.Username}}\" kon niet worden gevonden."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": "The bulk importer cannot change the scope of an already-existing scheme."
+    "translation": "De bulkimporteerder kan de scope van een bestaand schema niet wijzigen."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Unable to set a team to use a deleted scheme."
+    "translation": "Kan een team niet instellen om een verwijderd schema te gebruiken."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Team must be assigned to a Team-scoped scheme."
+    "translation": "Team moet worden toegewezen aan een Team-scoped-schema."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": "Error importing user preferences. Failed to save preferences."
+    "translation": "Fout bij importeren gebruikersvoorkeuren. Het opslaan van de voorkeuren is mislukt."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Error importing user channel memberships. Failed to save preferences."
+    "translation": "Fout bij het importeren van gebruikersvoorkeuren. Kon voorkeuren niet bewaren."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Unable to read the version of the data import file."
+    "translation": "Kan de versie van het gegevensimportbestand niet lezen."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": "Channel display_name is not within permitted length constraints."
+    "translation": "De display_name van het kanaal valt niet binnen de toegestane lengtebeperkingen."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekende vereiste kanaaleigenschap: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
-    "translation": "Channel header is too long."
+    "translation": "Kanaalhoofding is te lang."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": "Channel name contains invalid characters."
+    "translation": "Kanaalnaam bevat ongeldige karakters."
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
-    "translation": "Channel name is too long."
+    "translation": "Kanaalnaam is te lang."
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Mist vereiste kanaalkenmerk: naam"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": "Channel purpose is too long."
+    "translation": "Doel van kanaal is te lang."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for channel."
+    "translation": "Ongeldig schema voor kanaal."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekend vereist kanaalkenmerk: team"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Channel type is invalid."
+    "translation": "Kanaaltype is ongeldig."
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -2636,71 +2612,71 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Directe kanaalhoofding is te lang"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Mist vereiste kanaalkenmerk: leden"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "De ledenlijst van het directe kanaal bevat te weinig items"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "De ledenlijst van het directe kanaal bevat te veel items"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+    "translation": "Direct kanaal kan enkel door leden aangeduid worden als favoriet. \"{{.Username}}\" is geen lid."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekende vereiste direct post eigenschap: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "De ledenlijst van het directe kanaal bevat te weinig items"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "De ledenlijst van het directe kanaal bevat te veel items"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekende vereiste directe post eigenschap: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "CreateAt must be greater than 0"
+    "translation": "CreateAt moet groter zijn dan 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "Bericht is te lang"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekende vereiste directe post eigenschap: bericht"
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
+    "translation": "Directe berichten kunnen alleen gemarkeerd worden door leden van het kanaal waar ze in staan. \"{{.Username}}\" is geen lid."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Mist vereiste team kenmerk: naam."
+    "translation": "Ontbrekende vereiste directe bericht eigenschap: gebruiker"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Import emoji data empty."
+    "translation": "Importeer emoticon gegevens leeg."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Import emoji image field missing or blank."
+    "translation": "Import emoticon image veld ontbreekt of is leeg."
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Import emoji name field missing or blank."
+    "translation": "Import emoticon naam veld ontbreekt of is leeg."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -2712,11 +2688,11 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero."
+    "translation": "Bericht CreateAt eigenschap mag niet nul zijn."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": "Post Message property is longer than the maximum permitted length."
+    "translation": "De eigenschap Post Message is langer dan de maximaal toegestane lengte."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
@@ -2732,7 +2708,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt"
+    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
@@ -2740,11 +2716,11 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Reaction CreateAt property must not be zero."
+    "translation": "Reaction CreateAt eigenschap mag niet nul zijn."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaction EmojiName property is longer than the maximum permitted length."
+    "translation": "Reaction EmojiName eigenschap is langer dan de maximaal toegestane lengte."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
@@ -2756,7 +2732,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt"
+    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -2764,11 +2740,11 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Reply CreateAt property must not be zero."
+    "translation": "Reply CreateAt eigenschap mag niet nul zijn."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Reply Message property is longer than the maximum permitted length."
+    "translation": "Reply Message eigenschap is langer dan de maximaal toegestane lengte."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
@@ -2780,51 +2756,51 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige rolbeschrijving."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Ongeldige weergave naam"
+    "translation": "Ongeldige rolnaam."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Invalid permission on role."
+    "translation": "Ongeldige machtiging voor rol."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige rolnaam."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige schemabeschrijving."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "Ongeldige weergave naam"
+    "translation": "Ongeldige schemaweergavenaam."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige schemanaam."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Scheme scope is required."
+    "translation": "Schema scope is vereist."
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Unknown scheme scope."
+    "translation": "Onbekend schema scope."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "The wrong roles were provided for a scheme with this scope."
+    "translation": "De verkeerde rollen waren voorzien voor een schema met deze scope."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
-    "translation": "Team description is too long."
+    "translation": "Teamomschrijving is te lang."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_length.error",
-    "translation": "Team display_name is not within permitted length constraints."
+    "translation": "Team display_name valt niet binnen de toegestane lengtebeperkingen."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
@@ -2832,11 +2808,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Team name contains invalid characters."
+    "translation": "Teamnaam bevat ongeldige karakters."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": "Team name is too long."
+    "translation": "Teamnaam is te lang."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
@@ -2844,15 +2820,15 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Team name contains reserved words."
+    "translation": "Teamnaam bevat gereserveerde woorden."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for team."
+    "translation": "Ongeldige schemanaam voor het kanaal."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": "Team type is not valid."
+    "translation": "Teamtype is ongeldig."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
@@ -2860,35 +2836,35 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Channel name missing from User's Channel Membership."
+    "translation": "Teamnaam ontbreekt in het teamlidmaatschap van de gebruiker."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+    "translation": "Ongeldige desktop NotifyProps in het lidmaatschap van de kanaalgebruiker."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+    "translation": "Ongeldige MarkUnread NotifyProps in het lidmaatschap van de kanaalgebruiker."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
-    "translation": "Invalid Mobile NotifyProps for User's Channel Membership."
+    "translation": "Ongeldige Mobile NotifyProps in het lidmaatschap van de kanaalgebruiker."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Channel Membership."
+    "translation": "Ongeldige rollen in het lidmaatschap van de kanaalgebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "User AuthData en Password sluiten elkaar uit."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": "User AuthData is too long."
+    "translation": "User AuthData is te lang."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": "User email has an invalid length."
+    "translation": "E-mail van gebruiker heeft een ongeldige lengte."
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
@@ -2896,63 +2872,63 @@
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
-    "translation": "User First Name is too long."
+    "translation": "Voornaam van de gebruiker is te lang."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
-    "translation": "User Last Name is too long."
+    "translation": "Achternaam gebruiker is te lang."
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
-    "translation": "User nickname is too long."
+    "translation": "Nickname van de gebruiker is te lang."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Invalid Channel Trigger Notify Prop for user."
+    "translation": "Ongeldige Channel Trigger Notify Prop voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Invalid Comments Prop value for user."
+    "translation": "Ongeldige Comments Prop waarde voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Invalid Desktop Notify Prop value for user."
+    "translation": "Ongeldige Desktop Notify Prop waarde voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Invalid Desktop Sound Notify Prop value for user."
+    "translation": "Ongeldige Desktop Sound Notify Prop waarde voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Invalid Email Notify Prop value for user."
+    "translation": "Ongeldige Desktop Notify Prop waarde voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Invalid Mobile Notify Prop value for user."
+    "translation": "Ongeldige Mobile Notify Prop waarde voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Invalid Mobile Push Status Notify Prop for user."
+    "translation": "Ongeldige Mobile Push Status Notify Prop voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": "User Password has invalid length."
+    "translation": "Gebruikerswachtwoord heeft ongeldige lengte."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
-    "translation": "User Position is too long."
+    "translation": "Gebruikerspositie is te lang."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
+    "translation": "Ongeldige profielafbeelding."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "User roles are not valid."
+    "translation": "Gebruikersrollen zijn niet geldig."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": "Username is not valid."
+    "translation": "Gebruikersnaam is ongeldig."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
@@ -2960,11 +2936,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Team Membership."
+    "translation": "Ongeldige rollen voor het teamlidmaatschap van de gebruiker."
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Team name missing from User's Team Membership."
+    "translation": "Teamnaam ontbreekt in het Teamlidmaatschap van de gebruiker."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -2984,7 +2960,7 @@
   },
   {
     "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "translation": "Je hebt een nieuwe melding."
   },
   {
     "id": "app.notification.body.intro.notification.generic",
@@ -3000,7 +2976,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Kanaal: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.group_message.full2",
@@ -3012,7 +2988,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Kanaal: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.notification.full2",
@@ -3040,95 +3016,95 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "De plugin configuratie in het 'config.json' bestand moet handmatig aangepast worden als je 'ReadOnlyConfig' met clustering ingeschakeld hebt."
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Error saving plugin state in config"
+    "translation": "Fout bij het opslaan van de plugin status in configuratie."
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan plugin niet deactiveren."
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled. Please check your logs for details."
+    "translation": "Plugins zijn uitgeschakeld. Controleer je logs voor meer informatie."
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "Er is een fout opgetreden bij het uitpakken van de pluginbundel."
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encountered filesystem error"
+    "translation": "Fout in bestandssysteem tegengekomen."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Unable to get plugin statuses from the cluster."
+    "translation": "Fout bij het ophalen van de statussen van plugins van de cluster."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Actieve plugins kunnen niet worden opgehaald."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Unable to get plugin statuses"
+    "translation": "Kon statussen van plugins niet ophalen."
   },
   {
     "id": "app.plugin.install.app_error",
-    "translation": "Unable to install plugin."
+    "translation": "Kan de plugin niet installeren."
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+    "translation": "Plugin kan niet worden geïnstalleerd. Er is al een plugin met hetzelfde ID geïnstalleerd."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "Plugin kan niet geïnstalleerd worden. Er is al een plugin met hetzelfde ID geïnstalleerd en kon deze niet verwijderen."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
+    "translation": "Plugin ID moet minimaal {{.Min}}, en maximaal {{.Max}} lang zijn en moet overeenkomen met {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "Kan het manifest niet vinden voor de uitgepakte plugin."
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
+    "translation": "Plugin kon niet worden verplaatst van tijdelijke directory naar eindbestemming. Een andere plugin gebruikt mogelijks dezelfde directorynaam."
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Plugin is not installed"
+    "translation": "Plugin is niet geïnstalleerd."
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Plugin kan niet worden gewist."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Plugins and/or plugin uploads have been disabled."
+    "translation": "Plugins en/of uploads van plugins is uitgeschakeld."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "The provided role does not exist"
+    "translation": "De opgegeven rol bestaat niet"
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Fout bij het opslaan van de configuratie."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+    "translation": "Dit API-endpoint is niet toegankelijk omdat de vereiste migraties nog niet zijn voltooid."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
+    "translation": "Fout opgetreden bij het coderen van JSON voor de interactieve dialoog."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Failed to parse installation date"
+    "translation": "Ontleden van installatiedatum is mislukt."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3136,103 +3112,103 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
+    "translation": "Persoonlijke toegangstokens zijn uitgeschakeld op deze server. Neem voor meer informatie contact op met de systeembeheerder."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Invalid or missing token"
+    "translation": "Ongeldig of ontbrekend token."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "translation": "Kan afbeeldingsdata niet decoderen."
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "translation": "Kan metadata van afbeelding niet krijgen."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format. Please try again."
+    "translation": "De afbeeldingsgegevens kunnen niet naar PNG-indeling worden geconverteerd. Probeer het opnieuw."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
+    "translation": "De aangepaste merkafbeelding kan niet worden geüpload. Controleer of de afbeeldingsgrootte kleiner is dan 2 MB en probeer het opnieuw."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+    "translation": "Het afbeeldingsbestand kan niet naar jouw bestandsopslag worden geschreven. Controleer jouw verbinding en probeer het opnieuw."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
+    "translation": "Het afbeeldingsbestand kan niet worden gelezen. Controleer of de afbeeldingsgrootte kleiner is dan 2 MB en probeer het opnieuw."
   },
   {
     "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
+    "translation": "Functie vereist een upgrade naar Enterprise Edition en een ingesloten licentiesleutel. Neem contact op met de systeembeheerder."
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Gebruikers kunnen niet worden opgehaald."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "SAML-gebruikers kunnen niet worden opgehaald."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "Clusterconfiguratie is gewijzigd voor id= {{.id}}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet u onmiddellijk een rollende herstart uitvoeren."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "Systeem Console is ingesteld op alleen-lezen wanneer Hoge Beschikbaarheid is ingeschakeld, tenzij ReadOnlyConfig is uitgeschakeld in het configuratiebestand."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
+    "translation": "Onbekende uitvoerindeling {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
+    "translation": "De bijlage kan niet worden gekopieerd naar het zip-bestand."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
+    "translation": "Bijlage kan niet worden toegevoegd aan CSV-export."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
+    "translation": "Kan tijdelijk CSV-exportbestand niet maken."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
+    "translation": "Er kon geen koptekst aan de CSV-export worden toegevoegd."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
+    "translation": "Kon metagegevensbestand niet toevoegen aan het ZIP-bestand."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
+    "translation": "Kan metadata niet omzetten naar json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
+    "translation": "Kan een bericht niet exporteren."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
+    "translation": "Fout bij het aanmaken van het zip-bestand."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
+    "translation": "Het geüploade bestand is verwijderd uit de Global Relay-export omdat het te groot was om te verzenden."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
+    "translation": "Kan het tijdelijke exportbestand niet openen."
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "Kan het tijdelijke exportbestand van Global Relay niet opnieuw lezen."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3240,7 +3216,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
+    "translation": "Exportsjablonen kunnen niet worden geladen. Probeer het opnieuw."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3248,27 +3224,27 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "Jouw licentie ondersteund geen SAML authenticatie"
+    "translation": "Jouw licentie ondersteunt geen gegevenretentie."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "Elasticsearch-aggregator kon geen indexeertaak aanmaken"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "Elasticsearch-aggregator kon de indexen niet wissen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "Elasticsearch-aggregator kon de indexen niet ophalen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "Elasticsearch-aggregator werker mislukte omwille van een gefaalde indexeertaak"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Het opzetten van Elasticsearch Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3284,7 +3260,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "Elasticsearch-zoeken is niet ingeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3292,51 +3268,51 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Elasticsearch indexing worker is er niet in geslaagd de eindtijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Elasticsearch indexing worker is er niet in geslaagd de starttijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "Elasticsearch is niet gestart"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Fout bij het verwijderen van de Elastisearch index"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
+    "translation": "Kan zoekresultaten van zoekresultaten niet verwerken"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started"
+    "translation": "Elasticsearch is reeds gestart."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Starten van Elasticsearch-bulkprocessor is mislukt."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
+    "translation": "Elasticsearch is reeds gestopt."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3344,23 +3320,23 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch is uitgeschakeld."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "Jouw licentie biedt geen ondersteuning voor Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "De Elasticsearch Server URL of gebruikersnaam is gewijzigd. Voer het Elasticsearch-wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "ldap interface was nihil."
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Unable to create LDAP user."
+    "translation": "LDAP-gebruiker kon niet worden aangemaakt."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -3372,7 +3348,7 @@
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Ongeldig wachtwoord"
+    "translation": "Ongeldig wachtwoord."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -3380,15 +3356,15 @@
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Gebruikersnaam is in gebruik door meerdere gebruikers"
+    "translation": "Gebruikersnaam is in gebruik door meerdere gebruikers."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Kan niet zoeken op de AD/LDAP server"
+    "translation": "Kan niet zoeken op de AD/LDAP server."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Kan niet verbinden met de AD/LDAP server"
+    "translation": "Kan niet verbinden met de AD/LDAP server."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -3396,99 +3372,99 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Gebruiker is niet bekend op de AD/LDAP server"
+    "translation": "Gebruiker is niet bekend op de AD/LDAP server."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Niet mogelijk alle gebruikers te krijgen via AD/LDAP"
+    "translation": "Niet mogelijk alle gebruikers op te halen met AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "fout bij ophalen van groepen."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "fout bij het vullen van syncables"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "Fout bij het zoeken naar gebruikers in AD/LDAP. Test of de Mattermost-server verbinding kan maken met jouw AD/LDAP-server en probeer het opnieuw."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Ongeldig AD/LDAP filter"
+    "translation": "Ongeldig AD/LDAP filter."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "fout bij ophalen van ldap-groep"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "fout bij het ophalen van ldap-groepen"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "fout bij ophalen van leden van groep"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "geen groepen gevonden met overeenkomend uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "fout bij ophalen van groepen voor gebruiker"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "translation": "Bijlage kan niet worden toegevoegd aan de Global Relay-export."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
+    "translation": "Het zip-bestand kon niet worden gesloten."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
+    "translation": "Kan het eml-bestand niet aanmaken."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "Kan geen eml-bestand genereren."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
+    "translation": "Kan de e-mail niet afleveren bij Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "Kan het From e-mailadres niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "Kan het e-mailbericht niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "Kan het e-mailbericht niet schrijven."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
+    "translation": "De e-mailgegevens kunnen niet worden gelezen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "Kan het To e-mailadres niet instellen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
+    "translation": "Kan de informatie van het tijdelijke export bestand niet krijgen."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
+    "translation": "Er kan geen e-mail worden opgehaald uit het tijdelijke bestand."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
+    "translation": "Kan het tijdelijke exportbestand niet openen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3500,15 +3476,15 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Email already used by another SAML user."
+    "translation": "E-mail is al gebruikt door een andere SAML-gebruiker."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "User not found in the users file."
+    "translation": "Gebruiker niet gevonden in het gebruikersbestand."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Username already used by another Mattermost user."
+    "translation": "Gebruikersnaam al gebruikt door een andere Mattermost gebruiker."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3556,7 +3532,7 @@
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "Jouw licentie ondersteund geen SAML authenticatie"
+    "translation": "Jouw licentie ondersteund geen SAML authenticatie."
   },
   {
     "id": "ent.saml.metadata.app_error",
@@ -3568,95 +3544,75 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Fout bij decoderen van base64 voor trigger-ID voor interactief dialoogvenster."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger-ID voor interactief dialoogvenster is vervallen. Trigger-ID's hebben een levensduur van maximum {{.Seconds}} seconden."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "Trigger-ID mist vereiste gegevens voor interactief dialoogvenster."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Decoderen van base64-handtekening van trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Verificatie van handtekening voor trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Fout bij ondertekenen van gegenereerde trigger-ID voor interactief dialoogvenster."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Could not request cancellation for job that is not in a cancelable state."
+    "translation": "Kan geen annulering aanvragen voor een taak die niet kan worden geannuleerd."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": "Failed to set job status to error"
+    "translation": "Kan taakstatus niet instellen op fout"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Kan URL niet vewerken"
+    "translation": "Kan URL niet verwerken."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost beveiligings bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Probleem bij het authenticeren met een MFA token"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Ongeldige 'MFA' token"
-  },
-  {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Fout bij het verwijderen van het MFA sleutel"
+    "translation": "Ongeldige 'MFA' token."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "Fout bij het genereren van een QR code"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fout bij het opslaan van de MFA sleutel"
+    "translation": "Fout bij het genereren van een QR code."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Multi-factor authentication has been disabled on this server."
+    "translation": "Multi-factor authenticatie is uitgeschakeld op deze server."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
+    "translation": "Ongeldige 'MFA' token."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
+    "translation": "Migratie is mislukt vanwege ongeldige voortgangsgegevens."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Unable to run migration job due to unknown migration key."
+    "translation": "De migratietaak kan niet worden uitgevoerd vanwege een onbekende migratiesleutel."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
@@ -3664,183 +3620,183 @@
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Ongeldige doorverwijzings uri"
+    "translation": "Ongeldige doorverwijzingsuri."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Ongeldig verversings token"
+    "translation": "Ongeldig verversingstoken."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikers-id."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Ongeldige authorizatie code"
+    "translation": "Ongeldige autorisatiecode."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Ongeldig client id"
+    "translation": "Ongeldig clientid."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Verloopt moet ingesteld zijn"
+    "translation": "Expires moet ingesteld zijn."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": "Ongeldige doorverwijzing uri"
+    "translation": "Ongeldige doorverwijzingsuri."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "Ongeldig antwoordtype."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Ongeldige omgeving"
+    "translation": "Ongeldig bereik."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": "Ongeldige status"
+    "translation": "Ongeldige status."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikersid."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig create at."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig creator id."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige description."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Ongeldige update at."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige user id."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige username."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Naam oet 2 of meer kleine letters bevatten"
+    "translation": "Naam moet 2 of meer kleine letters bevatten."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldige creator id."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Ongeldige weergave naam"
+    "translation": "Ongeldig display name."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "Ongeldige header"
+    "translation": "Ongeldige header."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "Ongeldig doel"
+    "translation": "Ongeldig doel."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldig type."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'update at moet een geldige tijd zijn."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldig channel id."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
+    "translation": "Ongeldige waarde voor e-mailmelding."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Ongeldige negeren kanaalvermeldingen status."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": "Ongeldig waarschuwings nivo"
+    "translation": "Ongeldig waarschuwingsniveau."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Invalid push notification level"
+    "translation": "Ongeldig pushmeldingsniveau."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "Ongeldige markering ongelezen nivo"
+    "translation": "Ongeldig markeer ongelezen niveau."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikersid."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt must be set"
+    "translation": "CreateAt moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Hostname must be set"
+    "translation": "Hostnaam moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt must be set"
+    "translation": "LastPingAt moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName must be set"
+    "translation": "ClusterName moet worden ingesteld."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Type must be set"
+    "translation": "Type moet worden ingesteld."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.command.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige description."
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel."
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.command.is_valid.method.app_error",
-    "translation": "Ongeldige methode"
+    "translation": "Ongeldige methode."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
@@ -4223,11 +4179,11 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
   },
   {
@@ -4988,7 +4944,7 @@
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
@@ -5224,7 +5180,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Decoderen van base64-handtekening van trigger-ID voor interactief dialoogvenster is mislukt."
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -5264,23 +5220,23 @@
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Zoekopdracht niet voltooid"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -5316,11 +5272,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden."
+    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "Fout bij het aanmaken van het waarschuwingsbestand"
+    "translation": "Fout bij het aanmaken van het waarschuwingsbestand."
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
@@ -5608,7 +5564,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
-    "translation": "Post Props are longer than the maximum permitted length."
+    "translation": "Post Props zijn langer dan de maximaal toegestane lengte."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -5680,7 +5636,7 @@
   },
   {
     "id": "app.channel.get_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
@@ -5688,19 +5644,19 @@
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het bestaande kanaal kon niet worden gevonden."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Fout bij het ophalen van alle kanalen."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal"
+    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het bestaande kanaal kon niet gevonden worden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -5800,7 +5756,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "Je licentie ondersteunt geen gastgebruikers."
+    "translation": "Je licentie ondersteunt geen gastgebruikers"
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -5841,10 +5797,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om deel te nemen aan het {{ .TeamDisplayName }} Team als gast"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] heeft je uitgenodigd om deel te nemen aan het {{ .TeamDisplayName }} Team als gast."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -6160,19 +6112,19 @@
   },
   {
     "id": "app.audit.save.saving.app_error",
-    "translation": "Fout bij het opslaan van de audit data"
+    "translation": "Fout bij het bewaren van de audit data."
   },
   {
     "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Fout opgestreden bij het verwijderen van de audit data"
+    "translation": "Fout opgestreden bij het verwijderen van de audit data."
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": "Grens bereikt voor opdelen in pagina's"
+    "translation": "Grens bereikt voor opdelen in pagina's."
   },
   {
     "id": "app.audit.get.finding.app_error",
-    "translation": "Er is een fout gevonden bij het zoeken naar de audit data"
+    "translation": "Er is een fout gevonden bij het zoeken naar de audit data."
   },
   {
     "id": "bleveengine.delete_channel_posts.error",
@@ -6484,7 +6436,7 @@
   },
   {
     "id": "app.user_access_token.delete.app_error",
-    "translation": "Het persoonlijk access token kan niet verwijderd worden"
+    "translation": "Het persoonlijk access token kan niet verwijderd worden."
   },
   {
     "id": "api.email.send_warn_metric_ack.missing_server.app_error",
@@ -6644,15 +6596,15 @@
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": "Failed to select message export data"
+    "translation": "Fout bij selecteren van berichtexportgegevens."
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": "Er is een probleem opgetreden bij het opslaan van het 'compliance' rapport"
+    "translation": "Er is een probleem opgetreden bij het opslaan van het 'compliance' rapport."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van het 'compliance' rapport"
+    "translation": "Er is een fout opgetreden bij het ophalen van de 'compliance'-rapporten."
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",
@@ -6816,31 +6768,31 @@
   },
   {
     "id": "app.post.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet bijwerken."
   },
   {
     "id": "app.post.save.existing.app_error",
-    "translation": "Een bestaand bericht kan niet bijwerkt worden"
+    "translation": "Een bestaand bericht kan niet bijwerkt worden."
   },
   {
     "id": "app.post.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet opslaan."
   },
   {
     "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
+    "translation": "Kan de te verwijderen berichten van de gebruiker niet selecteren."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de berichten niet per kanaal verwijderen."
   },
   {
     "id": "app.post.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Bericht kan niet opgehaald worden."
   },
   {
     "id": "app.post.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet verwijderen."
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
@@ -6856,11 +6808,11 @@
   },
   {
     "id": "app.status.get.missing.app_error",
-    "translation": "Er is niks ingevoerd voor deze status"
+    "translation": "Er bestaat geen invoer voor deze status."
   },
   {
     "id": "app.status.get.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het ophalen van de status"
+    "translation": "Er is een probleem opgetreden tijdens het ophalen van de status."
   },
   {
     "id": "app.plugin_store.save.app_error",
@@ -6924,7 +6876,7 @@
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
+    "translation": "SAML-aanmelding kan niet worden voltooid met een leeg e-mailadres."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
@@ -6944,23 +6896,23 @@
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP synchronization job timeout."
+    "translation": "Time-out voor synchronisatie van AD/LDAP werd bereikt."
   },
   {
     "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
+    "translation": "Fout bij het verwerken van bericht export taak ExportFromTimeStamp."
   },
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
+    "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
   },
   {
     "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
+    "translation": "Er is een probleem opgetreden tijdens het verbinden met de server."
   },
   {
     "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
+    "translation": "Cluster API endpoint niet gevonden."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -7008,7 +6960,7 @@
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": "Bestandsinformatie met opties kan niet worden opgehaald."
+    "translation": "Bestandsinformatie met opties kan niet worden opgehaald"
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -7156,7 +7108,7 @@
   },
   {
     "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is verboden"
+    "translation": "CWS login is verboden."
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
@@ -7823,18 +7775,6 @@
     "translation": "We hebben een ongeldige handtekening ontvangen in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "Fout bij het verwerken van het verzoek naar CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Interne fout bij het opmaken van het verzoek naar CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Authenticatie tegenover CWS mislukt"
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Fout bij het verwerken van het verzoek naar CWS."
   },
@@ -7876,7 +7816,7 @@
   },
   {
     "id": "app.user.verify_email.app_error",
-    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
+    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden."
   },
   {
     "id": "app.user.update_update.app_error",
@@ -7900,11 +7840,11 @@
   },
   {
     "id": "app.user.update.finding.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+    "translation": "Er is een fout opgetreden bij het opzoeken van het account."
   },
   {
     "id": "app.user.update.find.app_error",
-    "translation": "We kunnen geen account vinden om bij te werken"
+    "translation": "We kunnen geen account vinden om bij te werken."
   },
   {
     "id": "app.user.search.app_error",
@@ -7916,7 +7856,7 @@
   },
   {
     "id": "app.user.save.existing.app_error",
-    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
+    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers."
   },
   {
     "id": "app.user.save.email_exists.app_error",
@@ -7944,11 +7884,11 @@
   },
   {
     "id": "app.user.get_unread_count.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet worden geteld."
   },
   {
     "id": "app.user.get_total_users_count.app_error",
-    "translation": "Het aantal gebruikers kan niet geteld worden"
+    "translation": "We konden de gebruikers niet tellen."
   },
   {
     "id": "app.user.get_recently_active_users.app_error",
@@ -7984,7 +7924,7 @@
   },
   {
     "id": "app.user.get.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+    "translation": "Er is een fout opgestreden bij het opzoeken van het account."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
@@ -8384,7 +8324,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
-    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht"
   },
   {
     "id": "ent.elasticsearch.delete_file.error",
@@ -8541,5 +8481,281 @@
   {
     "id": "api.web_socket.connect.check_origin.app_error",
     "translation": "Ongeldige Origin header was ingesteld tijdens websocket upgrade."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "Geen enkele e-mail werd succesvol verzonden"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Mislukt om e-mail naar gebruiker te sturen limietmelding aan admin"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} wil leden uitnodigen voor jouw werkruimte"
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost gebruiker verzoekt upgrade van jouw werkruimte"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Omdat jouw werkruimte de gebruikerslimiet heeft bereikt voor de gratis versie van Mattermost cloud, kunnen er geen uitnodigingen worden verstuurd. Upgrade nu om meer gebruikers toe te laten tot jouw werkruimte."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Fout bij het opschonen van kanaalindexen."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Het is niet gelukt om de recente status te verwijderen. Probeer de status eerst toe te voegen of neem contact op met jouw systeembeheerder voor meer informatie."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "De aangepaste statusfunctie is uitgeschakeld. Neem contact op met jouw systeembeheerder voor meer informatie."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Jouw status is ingesteld op \"{{.EmojiName}} {{.StatusMessage}}\". Je kan je status wijzigen via de status popover in de kanaalzijbalk header."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] of wissen"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Jouw status instellen of wissen"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Jouw status is gewist."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Fout bij het wissen van de status."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Fout bij het instellen van de status."
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "Nieuwe gebruikers kunnen geen lid worden van jouw werkruimte"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "Iemand heeft onlangs geprobeerd om deel te nemen aan jouw werkruimte, maar kon dit niet omdat jouw werkruimte de gebruikerslimiet heeft bereikt voor de gratis versie van Mattermost cloud. Upgrade nu om meer gebruikers toe te laten tot jouw werkruimte."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Fout bij het ophalen van de bestandenbatch voor indexering."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Klik hieronder om jouw e-mailadres te verifiëren."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Zoeken is uitgeschakeld op deze server. Neem contact op met je systeembeheerder."
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "Bedankt om lid te worden "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Als het niet jij niet was, mag je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Download de desktop- of mobiele apps"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Downloaden"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Klik hieronder om jouw e-mailadres te verifiëren."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Bedankt om lid te worden "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Als het niet jij niet was, mag je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Vragen?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Stuur ons een e-mail op "
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Deze functie is in ontwikkeling, en is alleen beschikbaar met een feature flag."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Fout bij het verwerken van request body."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Fout bij het ophalen van cloud abonnement."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Fout bij het ophalen van de e-mail van de systeembeheerder."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Klik op de knop hieronder om jouw wachtwoord te resetten. Als u dit niet heeft aangevraagd, kan je deze e-mail gerust negeren."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "De link om het wachtwoord te resetten vervalt over 24 uur."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Je bent uitgenodigd als gast om samen te werken met het team"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Wat is Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Meer info"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost is een flexibel, open source messaging platform dat veilige teamsamenwerking mogelijk maakt."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Begin samen te werken met jouw team op Mattermost"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Ongeldige of ontbrekende request body."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Kan geen welkomstmail naar de cloud sturen"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Gefeliciteerd - jouw {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Neem de volgende stappen om jouw teams samen te stellen en het meeste uit jouw werkruimte te halen."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Richt jouw werkruimte in"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Gefeliciteerd!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Vragen over hoe te beginnen? E-mail ons op"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "voor de beste ervaring op PC, Mac, iOS en Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Meld je aan op jouw werkruimte op onze"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "Mobiele en desktop apps"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Deel deze link om jouw leden uit te nodigen om lid te worden van {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Nodig mensen uit op je werkplek"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Zorg ervoor dat je jouw link opslaat of bewaard als bladwijzer voor toekomstig gebruik."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Bedankt voor het maken van "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Download de Mattermost-app"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Mattermost openen"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "app marktplaats."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Stroomlijn jE werk met tools als Github, Google Agenda en Chrome. Ontdek alle integraties die we hebben op onze"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Apps toevoegen aan jouw werkruimte"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook gebeurtenis werd niet behandeld. Ofwel ontbreekt het, ofwel is het niet geldig."
   }
 ]

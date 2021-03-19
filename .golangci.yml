@@ -58,9 +58,4 @@ issues:
 
     - linters:
       - misspell
-      path: "utils/markdown/html_entities.go"
-
-    - linters:
-      - unparam
-      path: "app/plugin_api_tests"
-      text: "is always nil"
+      path: "shared/markdown/html_entities.go"
