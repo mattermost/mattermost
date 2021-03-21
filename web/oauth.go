@@ -137,6 +137,10 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Session().UserId == "" {
 		requestURI := r.RequestURI
 		subpath, err := utils.GetSubpathFromConfig(c.App.Config())
+		// We will just log the error as warning and proceed to the login
+		if err != nil {
+			mlog.Warn(err.Error())
+		}
 		// If subpath exists then remove it from the requestURI
 		if err == nil && subpath != "" && subpath != "/" && strings.Index(requestURI, subpath) == 0 {
 			requestURI = requestURI[len(subpath):]
