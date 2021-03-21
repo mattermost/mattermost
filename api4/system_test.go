@@ -509,9 +509,10 @@ func TestS3TestConnection(t *testing.T) {
 		CheckInternalErrorStatus(t, resp)
 		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 
-		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
-		CheckOKStatus(t, resp)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
