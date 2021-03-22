@@ -431,7 +431,7 @@ type ComplianceStore interface {
 	Update(compliance *model.Compliance) (*model.Compliance, error)
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
-	ComplianceExport(compliance *model.Compliance, offset, limit int) ([]*model.CompliancePost, error)
+	ComplianceExport(compliance *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error)
 	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
 }
 

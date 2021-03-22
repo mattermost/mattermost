@@ -14,13 +14,13 @@ type ComplianceStore struct {
 	mock.Mock
 }
 
-// ComplianceExport provides a mock function with given fields: compliance, offset, limit
-func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance, offset int, limit int) ([]*model.CompliancePost, error) {
-	ret := _m.Called(compliance, offset, limit)
+// ComplianceExport provides a mock function with given fields: compliance, cursor, limit
+func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error) {
+	ret := _m.Called(compliance, cursor, limit)
 
 	var r0 []*model.CompliancePost
-	if rf, ok := ret.Get(0).(func(*model.Compliance, int, int) []*model.CompliancePost); ok {
-		r0 = rf(compliance, offset, limit)
+	if rf, ok := ret.Get(0).(func(*model.Compliance, *model.ComplianceExportCursor, int) []*model.CompliancePost); ok {
+		r0 = rf(compliance, cursor, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.CompliancePost)
@@ -28,8 +28,8 @@ func (_m *ComplianceStore) ComplianceExport(compliance *model.Compliance, offset
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Compliance, int, int) error); ok {
-		r1 = rf(compliance, offset, limit)
+	if rf, ok := ret.Get(1).(func(*model.Compliance, *model.ComplianceExportCursor, int) error); ok {
+		r1 = rf(compliance, cursor, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

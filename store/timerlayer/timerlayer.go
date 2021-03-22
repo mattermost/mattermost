@@ -2463,10 +2463,10 @@ func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	return err
 }
 
-func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance, offset int, limit int) ([]*model.CompliancePost, error) {
+func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error) {
 	start := timemodule.Now()
 
-	result, err := s.ComplianceStore.ComplianceExport(compliance, offset, limit)
+	result, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

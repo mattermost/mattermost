@@ -37,6 +37,13 @@ type Compliance struct {
 
 type Compliances []Compliance
 
+type ComplianceExportCursor struct {
+	LastChannelsQueryPostCreateAt       int64
+	ChannelsQueryCompleted              bool
+	LastDirectMessagesQueryPostCreateAt int64
+	DirectMessagesQueryCompleted        bool
+}
+
 func (c *Compliance) ToJson() string {
 	b, _ := json.Marshal(c)
 	return string(b)
