@@ -781,10 +781,6 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	if err := mfa.New(a.Srv().Store.User()).Deactivate(userID); err != nil {
 		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
