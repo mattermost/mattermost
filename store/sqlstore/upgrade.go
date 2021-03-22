@@ -959,9 +959,8 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
-<<<<<<< HEAD
 const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
-=======
+
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
 	if err != nil {
@@ -981,7 +980,6 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 
 	return false
 }
->>>>>>> upstream/master
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES && hasMissingMigrationsVersion532(sqlStore) {
