@@ -7420,11 +7420,11 @@
   },
   {
     "id": "api.cloud.get_subscription.error",
-    "translation": "Erreur lors de l'obtention de l'abonnement au cloud."
+    "translation": "Erreur lors de la récupération des informations de l'abonnement au cloud."
   },
   {
     "id": "api.cloud.get_admins_emails.error",
-    "translation": "Erreur lors de la réception de l'email de l'administrateur système."
+    "translation": "Erreur lors de la récupération de l'e-mail de l'administrateur système."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -7441,5 +7441,9 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Erreur dans l'analyse des requêtes multiformes"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Les paramètres Before et After de la fonction getThreadsForUser sont mutuellement exclusifs"
   }
 ]
