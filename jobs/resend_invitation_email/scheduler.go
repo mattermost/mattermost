@@ -28,8 +28,7 @@ func (s *ResendInvitationEmailScheduler) JobType() string {
 }
 
 func (s *ResendInvitationEmailScheduler) Enabled(cfg *model.Config) bool {
-	// Must be a cloud installation
-	return s.App.Srv().License() != nil && *s.App.Srv().License().Features.Cloud
+	return *cfg.ServiceSettings.EnableEmailInvitations
 }
 
 func (s *ResendInvitationEmailScheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
