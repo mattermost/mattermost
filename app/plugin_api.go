@@ -537,7 +537,7 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
-	return api.app.GetGroupsByUserId(userID)
+	return api.app.GetGroupsByUserID(userID)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
