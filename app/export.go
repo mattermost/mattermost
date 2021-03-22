@@ -166,9 +166,9 @@ func (a *App) exportVersion(writer io.Writer) *model.AppError {
 }
 
 func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 	for {
-		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
+		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterID)
 		if err != nil {
 			return model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -178,7 +178,7 @@ func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
 		}
 
 		for _, team := range teams {
-			afterId = team.Id
+			afterID = team.Id
 
 			// Skip deleted.
 			if team.DeleteAt != 0 {
@@ -196,9 +196,9 @@ func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
 }
 
 func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 	for {
-		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterID)
 
 		if err != nil {
 			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -209,7 +209,7 @@ func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
 		}
 
 		for _, channel := range channels {
-			afterId = channel.Id
+			afterID = channel.Id
 
 			// Skip deleted.
 			if channel.DeleteAt != 0 {
@@ -227,9 +227,9 @@ func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
 }
 
 func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 	for {
-		users, err := a.Srv().Store.User().GetAllAfter(1000, afterId)
+		users, err := a.Srv().Store.User().GetAllAfter(1000, afterID)
 
 		if err != nil {
 			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -240,7 +240,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 		}
 
 		for _, user := range users {
-			afterId = user.Id
+			afterID = user.Id
 
 			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
@@ -381,10 +381,10 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 
 func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
 	var attachments []AttachmentImportData
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 
 	for {
-		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
+		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterID)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -394,7 +394,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 		}
 
 		for _, post := range posts {
-			afterId = post.Id
+			afterID = post.Id
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
@@ -562,14 +562,14 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exp
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
+func (a *App) copyEmojiImages(emojiID string, emojiImagePath string, pathToDir string) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
 	}
 	defer fromPath.Close()
 
-	emojiDir := pathToDir + "/" + emojiId
+	emojiDir := pathToDir + "/" + emojiID
 
 	if _, err = os.Stat(emojiDir); err != nil {
 		if !os.IsNotExist(err) {
@@ -596,9 +596,9 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 }
 
 func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 	for {
-		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterID)
 		if err != nil {
 			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -608,7 +608,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 		}
 
 		for _, channel := range channels {
-			afterId = channel.Id
+			afterID = channel.Id
 
 			// Skip deleted.
 			if channel.DeleteAt != 0 {
@@ -627,9 +627,9 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 
 func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
 	var attachments []AttachmentImportData
-	afterId := strings.Repeat("0", 26)
+	afterID := strings.Repeat("0", 26)
 	for {
-		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterID)
 		if err != nil {
 			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -639,7 +639,7 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 		}
 
 		for _, post := range posts {
-			afterId = post.Id
+			afterID = post.Id
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {

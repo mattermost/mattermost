@@ -1114,6 +1114,23 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, pass
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckProviderAttributes")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckProviderAttributes(user, patch)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CheckRolesExist(roleNames []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckRolesExist")
@@ -2608,7 +2625,7 @@ func (a *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginID string) *model.App
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteBotIconImage(botUserId string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteBotIconImage(botUserID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBotIconImage")
 
@@ -2620,7 +2637,7 @@ func (a *OpenTracingAppLayer) DeleteBotIconImage(botUserId string) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteBotIconImage(botUserId)
+	resultVar0 := a.app.DeleteBotIconImage(botUserID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3476,7 +3493,7 @@ func (a *OpenTracingAppLayer) DoUploadFile(now time.Time, rawTeamId string, rawC
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *OpenTracingAppLayer) DoUploadFileExpectModification(now time.Time, rawTeamID string, rawChannelID string, rawUserID string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFileExpectModification")
 
@@ -3488,7 +3505,7 @@ func (a *OpenTracingAppLayer) DoUploadFileExpectModification(now time.Time, rawT
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	resultVar0, resultVar1, resultVar2 := a.app.DoUploadFileExpectModification(now, rawTeamID, rawChannelID, rawUserID, rawFilename, data)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -4438,7 +4455,7 @@ func (a *OpenTracingAppLayer) GetAuthorizedAppsForUser(userID string, page int, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBot(botUserID string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBot")
 
@@ -4450,7 +4467,7 @@ func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBot(botUserId, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetBot(botUserID, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4460,7 +4477,7 @@ func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBotIconImage(botUserID string) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBotIconImage")
 
@@ -4472,7 +4489,7 @@ func (a *OpenTracingAppLayer) GetBotIconImage(botUserId string) ([]byte, *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBotIconImage(botUserId)
+	resultVar0, resultVar1 := a.app.GetBotIconImage(botUserID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5958,9 +5975,9 @@ func (a *OpenTracingAppLayer) GetGroupsByTeam(teamID string, opts model.GroupSea
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupsByUserID(userID string) ([]*model.Group, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByUserId")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByUserID")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -5970,7 +5987,7 @@ func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupsByUserId(userID)
+	resultVar0, resultVar1 := a.app.GetGroupsByUserID(userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10989,7 +11006,7 @@ func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
 	a.app.OverrideIconURLIfEmoji(post)
 }
 
-func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchBot(botUserID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchBot")
 
@@ -11001,7 +11018,7 @@ func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatc
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchBot(botUserId, botPatch)
+	resultVar0, resultVar1 := a.app.PatchBot(botUserID, botPatch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11187,7 +11204,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteAllUsers() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteBot")
 
@@ -11199,7 +11216,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteBot(botUserId)
+	resultVar0 := a.app.PermanentDeleteBot(botUserID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13767,7 +13784,7 @@ func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotify
 	a.app.SetAutoResponderStatus(user, oldNotifyProps)
 }
 
-func (a *OpenTracingAppLayer) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
+func (a *OpenTracingAppLayer) SetBotIconImage(botUserID string, file io.ReadSeeker) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetBotIconImage")
 
@@ -13779,7 +13796,7 @@ func (a *OpenTracingAppLayer) SetBotIconImage(botUserId string, file io.ReadSeek
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetBotIconImage(botUserId, file)
+	resultVar0 := a.app.SetBotIconImage(botUserID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13789,7 +13806,7 @@ func (a *OpenTracingAppLayer) SetBotIconImage(botUserId string, file io.ReadSeek
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserID string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetBotIconImageFromMultiPartFile")
 
@@ -13801,7 +13818,7 @@ func (a *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserId string,
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetBotIconImageFromMultiPartFile(botUserId, imageData)
+	resultVar0 := a.app.SetBotIconImageFromMultiPartFile(botUserID, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14796,7 +14813,7 @@ func (a *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateBotActive(botUserID string, active bool) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotActive")
 
@@ -14808,7 +14825,7 @@ func (a *OpenTracingAppLayer) UpdateBotActive(botUserId string, active bool) (*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateBotActive(botUserId, active)
+	resultVar0, resultVar1 := a.app.UpdateBotActive(botUserID, active)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14818,7 +14835,7 @@ func (a *OpenTracingAppLayer) UpdateBotActive(botUserId string, active bool) (*m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateBotOwner(botUserID string, newOwnerID string) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotOwner")
 
@@ -14830,7 +14847,7 @@ func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateBotOwner(botUserId, newOwnerId)
+	resultVar0, resultVar1 := a.app.UpdateBotOwner(botUserID, newOwnerID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
