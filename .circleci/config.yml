@@ -151,7 +151,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20200731_golang-1.15.5
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
