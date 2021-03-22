@@ -84,6 +84,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB), model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB
 	case model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
 		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB), model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB
+	case model.JOB_TYPE_LDAP_SYNC:
+		return a.SessionHasPermissionTo(session, model.PERMISSION_CREATE_LDAP_SYNC_JOB), model.PERMISSION_CREATE_LDAP_SYNC_JOB
 	case
 		model.JOB_TYPE_MIGRATIONS,
 		model.JOB_TYPE_PLUGINS,
@@ -111,6 +113,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB), model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB
 	case model.JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
 		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB), model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB
+	case model.JOB_TYPE_LDAP_SYNC:
+		return a.SessionHasPermissionTo(session, model.PERMISSION_READ_LDAP_SYNC_JOB), model.PERMISSION_READ_LDAP_SYNC_JOB
 	case
 		model.JOB_TYPE_BLEVE_POST_INDEXING,
 		model.JOB_TYPE_MIGRATIONS,

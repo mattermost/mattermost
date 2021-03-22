@@ -121,6 +121,22 @@ var PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB *Permission
 var PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
+var PERMISSION_CREATE_LDAP_SYNC_JOB *Permission
+var PERMISSION_READ_LDAP_SYNC_JOB *Permission
+var PERMISSION_TEST_LDAP *Permission
+var PERMISSION_INVALIDATE_EMAIL_INVITE *Permission
+var PERMISSION_GET_SAML_METADATA_FROM_IDP *Permission
+var PERMISSION_ADD_SAML_PUBLIC_CERT *Permission
+var PERMISSION_ADD_SAML_PRIVATE_CERT *Permission
+var PERMISSION_ADD_SAML_IDP_CERT *Permission
+var PERMISSION_REMOVE_SAML_PUBLIC_CERT *Permission
+var PERMISSION_REMOVE_SAML_PRIVATE_CERT *Permission
+var PERMISSION_REMOVE_SAML_IDP_CERT *Permission
+var PERMISSION_GET_SAML_CERT_STATUS *Permission
+var PERMISSION_ADD_LDAP_PUBLIC_CERT *Permission
+var PERMISSION_ADD_LDAP_PRIVATE_CERT *Permission
+var PERMISSION_REMOVE_LDAP_PUBLIC_CERT *Permission
+var PERMISSION_REMOVE_LDAP_PRIVATE_CERT *Permission
 var PERMISSION_GET_LOGS *Permission
 var PERMISSION_GET_ANALYTICS *Permission
 var PERMISSION_READ_LICENSE_INFORMATION *Permission
@@ -245,6 +261,30 @@ var PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES *Permission
 
 var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION *Permission
 var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID *Permission
+
+var PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_PLUGINS *Permission
 var PERMISSION_SYSCONSOLE_WRITE_PLUGINS *Permission
@@ -720,6 +760,115 @@ func initializePermissions() {
 
 	PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB = &Permission{
 		"create_post_bleve_indexes_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_CREATE_LDAP_SYNC_JOB = &Permission{
+		"create_ldap_sync_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_READ_LDAP_SYNC_JOB = &Permission{
+		"read_ldap_sync_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_TEST_LDAP = &Permission{
+		"test_ldap",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_INVALIDATE_EMAIL_INVITE = &Permission{
+		"invalidate_email_invite",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_GET_SAML_METADATA_FROM_IDP = &Permission{
+		"get_saml_metadata_from_idp",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_ADD_SAML_PUBLIC_CERT = &Permission{
+		"add_saml_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_SAML_PRIVATE_CERT = &Permission{
+		"add_saml_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_SAML_IDP_CERT = &Permission{
+		"add_saml_idp_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_PUBLIC_CERT = &Permission{
+		"remove_saml_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_PRIVATE_CERT = &Permission{
+		"remove_saml_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_SAML_IDP_CERT = &Permission{
+		"remove_saml_idp_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_GET_SAML_CERT_STATUS = &Permission{
+		"get_saml_cert_status",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_LDAP_PUBLIC_CERT = &Permission{
+		"add_ldap_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_ADD_LDAP_PRIVATE_CERT = &Permission{
+		"add_ldap_private_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_LDAP_PUBLIC_CERT = &Permission{
+		"remove_ldap_public_cert",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_REMOVE_LDAP_PRIVATE_CERT = &Permission{
+		"remove_ldap_private_cert",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1327,6 +1476,7 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+
 	PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION = &Permission{
 		"sysconsole_read_site_customization",
 		"",
@@ -1447,16 +1597,115 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+
+	// Deprecated
 	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION = &Permission{
 		"sysconsole_read_authentication",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// Deprecated
 	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION = &Permission{
 		"sysconsole_write_authentication",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP = &Permission{
+		"sysconsole_read_authentication_signup",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP = &Permission{
+		"sysconsole_write_authentication_signup",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL = &Permission{
+		"sysconsole_read_authentication_email",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL = &Permission{
+		"sysconsole_write_authentication_email",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD = &Permission{
+		"sysconsole_read_authentication_password",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD = &Permission{
+		"sysconsole_write_authentication_password",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA = &Permission{
+		"sysconsole_read_authentication_mfa",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA = &Permission{
+		"sysconsole_write_authentication_mfa",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP = &Permission{
+		"sysconsole_read_authentication_ldap",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP = &Permission{
+		"sysconsole_write_authentication_ldap",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML = &Permission{
+		"sysconsole_read_authentication_saml",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML = &Permission{
+		"sysconsole_write_authentication_saml",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID = &Permission{
+		"sysconsole_read_authentication_openid",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID = &Permission{
+		"sysconsole_write_authentication_openid",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS = &Permission{
+		"sysconsole_read_authentication_guest_access",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS = &Permission{
+		"sysconsole_write_authentication_guest_access",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_PLUGINS = &Permission{
@@ -1681,7 +1930,14 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS,
 		PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS,
 		PERMISSION_SYSCONSOLE_READ_SITE_NOTICES,
-		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_BOT_ACCOUNTS,
@@ -1731,7 +1987,14 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS,
 		PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS,
 		PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES,
-		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS,
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_INTEGRATION_MANAGEMENT,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_BOT_ACCOUNTS,
@@ -1799,6 +2062,22 @@ func initializePermissions() {
 		PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB,
 		PERMISSION_PURGE_BLEVE_INDEXES,
 		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
+		PERMISSION_CREATE_LDAP_SYNC_JOB,
+		PERMISSION_READ_LDAP_SYNC_JOB,
+		PERMISSION_TEST_LDAP,
+		PERMISSION_INVALIDATE_EMAIL_INVITE,
+		PERMISSION_GET_SAML_METADATA_FROM_IDP,
+		PERMISSION_ADD_SAML_PUBLIC_CERT,
+		PERMISSION_ADD_SAML_PRIVATE_CERT,
+		PERMISSION_ADD_SAML_IDP_CERT,
+		PERMISSION_REMOVE_SAML_PUBLIC_CERT,
+		PERMISSION_REMOVE_SAML_PRIVATE_CERT,
+		PERMISSION_REMOVE_SAML_IDP_CERT,
+		PERMISSION_GET_SAML_CERT_STATUS,
+		PERMISSION_ADD_LDAP_PUBLIC_CERT,
+		PERMISSION_ADD_LDAP_PRIVATE_CERT,
+		PERMISSION_REMOVE_LDAP_PUBLIC_CERT,
+		PERMISSION_REMOVE_LDAP_PRIVATE_CERT,
 		PERMISSION_GET_ANALYTICS,
 		PERMISSION_GET_LOGS,
 		PERMISSION_READ_LICENSE_INFORMATION,
@@ -1866,6 +2145,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
+		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
 		PERMISSION_SYSCONSOLE_READ_SITE,
 		PERMISSION_SYSCONSOLE_WRITE_SITE,
 		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
