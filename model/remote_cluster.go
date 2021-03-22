@@ -21,6 +21,7 @@ const (
 type RemoteCluster struct {
 	RemoteId     string `json:"remote_id"`
 	RemoteTeamId string `json:"remote_team_id"`
+	Name         string `json:"name"`
 	DisplayName  string `json:"display_name"`
 	SiteURL      string `json:"site_url"`
 	CreateAt     int64  `json:"create_at"`
@@ -35,6 +36,14 @@ func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
 		rc.RemoteId = NewId()
 	}
+
+	if rc.DisplayName == "" {
+		rc.DisplayName = rc.Name
+	}
+
+	rc.Name = SanitizeUnicode(rc.Name)
+	rc.DisplayName = SanitizeUnicode(rc.DisplayName)
+	rc.Name = NormalizeRemoteName(rc.Name)
 
 	if rc.Token == "" {
 		rc.Token = NewId()
@@ -51,8 +60,8 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.RemoteId, http.StatusBadRequest)
 	}
 
-	if rc.DisplayName == "" {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "display_name empty", http.StatusBadRequest)
+	if rc.Name == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "name empty", http.StatusBadRequest)
 	}
 
 	if rc.CreateAt == 0 {
@@ -66,6 +75,13 @@ func (rc *RemoteCluster) IsValid() *AppError {
 }
 
 func (rc *RemoteCluster) PreUpdate() {
+	if rc.DisplayName == "" {
+		rc.DisplayName = rc.Name
+	}
+
+	rc.Name = SanitizeUnicode(rc.Name)
+	rc.DisplayName = SanitizeUnicode(rc.DisplayName)
+	rc.Name = NormalizeRemoteName(rc.Name)
 	rc.fixTopics()
 }
 
@@ -105,10 +121,15 @@ func (rc *RemoteCluster) ToJSON() (string, error) {
 
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
+		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
 		LastPingAt:  rc.LastPingAt,
 	}
+}
+
+func NormalizeRemoteName(name string) string {
+	return strings.ToLower(name)
 }
 
 func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
@@ -122,6 +143,7 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
 type RemoteClusterInfo struct {
+	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`

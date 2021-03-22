@@ -59,7 +59,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test"}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -119,7 +119,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test"}
+		remoteCluster := &model.RemoteCluster{Name: "test2"}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -161,7 +161,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{DisplayName: "test", CreatorId: model.NewId()}
+		remoteCluster := &model.RemoteCluster{Name: "test3", CreatorId: model.NewId()}
 		invitation := channelInviteMsg{
 			ChannelId:            model.NewId(),
 			TeamId:               model.NewId(),

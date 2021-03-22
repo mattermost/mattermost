@@ -674,9 +674,9 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 	channel, _, err := createSharedTestChannel(ss, "share_test_channel", true)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 1"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 2"},
-		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, DisplayName: "Test Remote 3"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test Remote 1"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test Remote 2"},
+		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test Remote 3"},
 	}
 	var channelRemotes []*model.SharedChannelRemote
 	for _, rc := range remotes {
