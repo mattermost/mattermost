@@ -21,7 +21,7 @@ type ResendInvitationEmailWorker struct {
 
 func (rse *ResendInvitationEmailJobInterfaceImpl) MakeWorker() model.Worker {
 	worker := ResendInvitationEmailWorker{
-		name:    RESEND_INVITATION_EMAIL_JOB,
+		name:    ResendInvitationEmailJob,
 		stop:    make(chan bool, 1),
 		stopped: make(chan bool, 1),
 		jobs:    make(chan model.Job),
@@ -96,12 +96,11 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 	scheduledAt, _ := strconv.ParseInt(job.Data["scheduledAt"], 10, 64)
 	now := model.GetMillis()
 
-	var twentyFourHoursInMillis int64
-	twentyFourHoursInMillis = 86400000
+	twentyFourHoursInMillis := 86400000
 
 	elapsedTimeSinceSchedule := now - scheduledAt
 
-	if elapsedTimeSinceSchedule > twentyFourHoursInMillis {
+	if elapsedTimeSinceSchedule > int64(twentyFourHoursInMillis) {
 		teamID := job.Data["teamID"]
 		emailListData := job.Data["emailList"]
 

@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const RESEND_INVITATION_EMAIL_JOB = "ResendInvitationEmailJob"
+const ResendInvitationEmailJob = "ResendInvitationEmailJob"
 
 type ResendInvitationEmailScheduler struct {
 	App *app.App
@@ -20,7 +20,7 @@ func (rse *ResendInvitationEmailJobInterfaceImpl) MakeScheduler() model.Schedule
 }
 
 func (s *ResendInvitationEmailScheduler) Name() string {
-	return RESEND_INVITATION_EMAIL_JOB + "Scheduler"
+	return ResendInvitationEmailJob + "Scheduler"
 }
 
 func (s *ResendInvitationEmailScheduler) JobType() string {
