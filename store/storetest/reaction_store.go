@@ -327,9 +327,10 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 			err = forceUpdateAt(reaction, update, s)
 			require.Nil(t, err)
 		}
-		err = forceNULL(reaction, s) // test COALESCE
-		require.Nil(t, err)
 	}
+
+	err := forceNULL(s) // test COALESCE
+	require.Nil(t, err)
 
 	t.Run("reactions since", func(t *testing.T) {
 		// should return 2 reactions that are not deleted for post
@@ -416,7 +417,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	return nil
 }
 
-func forceNULL(reaction *model.Reaction, s SqlStore) error {
+func forceNULL(s SqlStore) error {
 	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
@@ -481,7 +482,9 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 
 		// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
 		if reaction.EmojiName == emojiToDelete {
-			err = forceNULL(reaction, s)
+			err = forceUpdateAt(reaction, 0, s)
+			require.Nil(t, err)
+			err = forceNULL(s)
 			require.Nil(t, err)
 		}
 	}
