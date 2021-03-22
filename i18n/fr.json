@@ -7445,5 +7445,9 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Les paramètres Before et After de la fonction getThreadsForUser sont mutuellement exclusifs"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Le type de travail que vous essayez de télécharger n'est pas pris en charge pour le moment"
   }
 ]
