@@ -22,9 +22,11 @@ var permissionMap map[string]*model.Permission
 
 type filterType string
 
-const filterTypeWrite filterType = "write"
-const filterTypeRead filterType = "read"
-const featureFlagsElementName string = "FeatureFlags"
+const (
+	FilterTypeWrite filterType = "write"
+	FilterTypeRead filterType = "read"
+	FeatureFlagsElementName string = "FeatureFlags"
+)
 
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
@@ -37,8 +39,8 @@ func (api *API) InitConfig() {
 }
 
 func init() {
-	writeFilter = makeFilterConfigByPermission(filterTypeWrite)
-	readFilter = makeFilterConfigByPermission(filterTypeRead)
+	writeFilter = makeFilterConfigByPermission(FilterTypeWrite)
+	readFilter = makeFilterConfigByPermission(FilterTypeRead)
 	permissionMap = map[string]*model.Permission{}
 	for _, p := range model.AllPermissions {
 		permissionMap[p.Id] = p
@@ -280,7 +282,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
 	return func(c *Context, structField reflect.StructField) bool {
-		if structField.Type.Kind() == reflect.Struct || structField.Name == featureFlagsElementName {
+		if structField.Type.Kind() == reflect.Struct || structField.Name == FeatureFlagsElementName {
 			return true
 		}
 
@@ -302,7 +304,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			}
 			// ConfigAccessTagWriteRestrictable trumps all other permissions
 			if tagValue == model.ConfigAccessTagWriteRestrictable || tagValue == model.ConfigAccessTagCloudRestrictable {
-				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
+				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == FilterTypeWrite {
 					return false
 				}
 				continue
