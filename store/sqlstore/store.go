@@ -351,6 +351,9 @@ func (ss *SqlStore) initConnection() {
 	if len(ss.settings.ReplicaLagSettings) > 0 {
 		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
 		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
 			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 			ss.replicaLagHandles[i] = gorpConn.Db
 		}
@@ -430,38 +433,40 @@ func (ss *SqlStore) TotalMasterDbConnections() int {
 
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
 // and updates the Prometheus metric with it.
-func (ss *SqlStore) ReplicaLagAbs() {
+func (ss *SqlStore) ReplicaLagAbs() error {
 	for i, item := range ss.settings.ReplicaLagSettings {
-		if *item.QueryAbsoluteLag == "" {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
 			continue
 		}
-		var binDiff int
+		var binDiff float64
 		var node string
 		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
 		if err != nil {
-			mlog.Warn("ReplicaLagAbs Query returned an error", mlog.Err(err))
-			return
+			return err
 		}
-		ss.metrics.SetReplicaLagAbsolute(node, float64(binDiff))
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
 	}
+	return nil
 }
 
 // ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
 // and updates the Prometheus metric with it.
-func (ss *SqlStore) ReplicaLagTime() {
+func (ss *SqlStore) ReplicaLagTime() error {
 	for i, item := range ss.settings.ReplicaLagSettings {
-		if *item.QueryTimeLag == "" {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
 			continue
 		}
-		var timeDiff int
+		var timeDiff float64
 		var node string
 		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
 		if err != nil {
-			mlog.Warn("ReplicaLagTime Query returned an error", mlog.Err(err))
-			return
+			return err
 		}
-		ss.metrics.SetReplicaLagTime(node, float64(timeDiff))
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
 	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {

@@ -603,8 +603,10 @@ func TestReplicaLagQuery(t *testing.T) {
 
 		defer store.Close()
 
-		store.ReplicaLagAbs()
-		store.ReplicaLagTime()
+		err = store.ReplicaLagAbs()
+		require.NoError(t, err)
+		err = store.ReplicaLagTime()
+		require.NoError(t, err)
 	}
 }
 
