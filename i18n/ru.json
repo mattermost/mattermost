@@ -8325,7 +8325,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{{.CardBrand}}. ****{{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
+    "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
   },
   {
     "id": "api.templates.over_limit_title",
