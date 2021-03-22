@@ -89,8 +89,8 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 		return nil, err
 	}
 	for _, hookName := range impl {
-		if hookId, ok := hookNameToId[hookName]; ok {
-			sup.implemented[hookId] = true
+		if hookID, ok := hookNameToId[hookName]; ok {
+			sup.implemented[hookID] = true
 		}
 	}
 
@@ -141,8 +141,8 @@ func (sup *supervisor) Ping() error {
 	return client.Ping()
 }
 
-func (sup *supervisor) Implements(hookId int) bool {
+func (sup *supervisor) Implements(hookID int) bool {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
-	return sup.implemented[hookId]
+	return sup.implemented[hookID]
 }
