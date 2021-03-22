@@ -8527,7 +8527,7 @@
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": "あなたのステータスは “{{.EmojiName}} {{.StatusMessage}}” に設定されました。スチャンネルサイドバーのステータスポップオーバーからステータスの変更を行うことができます。"
+    "translation": "あなたのステータスは “{{.EmojiName}} {{.StatusMessage}}” に設定されました。チャンネルサイドバーのステータスポップオーバーからステータスの変更を行うことができます。"
   },
   {
     "id": "api.command_custom_status.name",
@@ -8535,7 +8535,7 @@
   },
   {
     "id": "api.command_custom_status.hint",
-    "translation": "[:emoji_name:] [status_message] または クリア"
+    "translation": "[:emoji_name:] [status_message] または clear"
   },
   {
     "id": "api.command_custom_status.desc",
