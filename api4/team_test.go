@@ -1013,10 +1013,10 @@ func TestGetAllTeams(t *testing.T) {
 	policyTeam := sysManagerTeams[0]
 	// If no policies exist, GetAllTeamsExcludePolicyConstrained should return everything
 	t.Run("exclude policy constrained, without policy", func(t *testing.T) {
-		_, resp = Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
-		CheckForbiddenStatus(t, resp)
-		teams, resp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
-		CheckOKStatus(t, resp)
+		_, excludeConstrainedResp := Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckForbiddenStatus(t, excludeConstrainedResp)
+		teams, excludeConstrainedResp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, excludeConstrainedResp)
 		found := false
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
@@ -1037,8 +1037,8 @@ func TestGetAllTeams(t *testing.T) {
 	require.Nil(t, savePolicyErr)
 	// This time, the team shouldn't be returned
 	t.Run("exclude policy constrained, with policy", func(t *testing.T) {
-		teams, resp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
-		CheckOKStatus(t, resp)
+		teams, excludeConstrainedResp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, excludeConstrainedResp)
 		found := false
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
@@ -1050,8 +1050,8 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("does not return policy ID", func(t *testing.T) {
-		teams, resp := th.SystemManagerClient.GetAllTeams("", 0, 100)
-		CheckOKStatus(t, resp)
+		teams, sysManagerResp := th.SystemManagerClient.GetAllTeams("", 0, 100)
+		CheckOKStatus(t, sysManagerResp)
 		found := false
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
@@ -1064,8 +1064,8 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("returns policy ID", func(t *testing.T) {
-		teams, resp := th.SystemAdminClient.GetAllTeams("", 0, 100)
-		CheckOKStatus(t, resp)
+		teams, sysAdminResp := th.SystemAdminClient.GetAllTeams("", 0, 100)
+		CheckOKStatus(t, sysAdminResp)
 		found := false
 		for _, team := range teams {
 			if team.Id == policyTeam.Id {
