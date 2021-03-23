@@ -4,7 +4,7 @@ package resend_invitation_email
 
 import (
 	"encoding/json"
-	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -63,15 +63,15 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 	return rseworker.jobs
 }
 
-func (rseworker *ResendInvitationEmailWorker) cleanEmailData(emailStringData string) []string {
+func (rseworker *ResendInvitationEmailWorker) cleanEmailData(emailStringData string) ([]string, error) {
 	// emailStringData looks like this ["user1@gmail.com","user2@gmail.com"]
 	emails := []string{}
 	err := json.Unmarshal([]byte(emailStringData), &emails)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return emails
+	return emails, nil
 }
 
 func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string, emailList []string) []string {
@@ -104,7 +104,13 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 		teamID := job.Data["teamID"]
 		emailListData := job.Data["emailList"]
 
-		emailList := rseworker.cleanEmailData(emailListData)
+		emailList, err := rseworker.cleanEmailData(emailListData)
+		if err != nil {
+			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, err.Error(), http.StatusInternalServerError)
+			mlog.Error("Worker: Failed to clean emails string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+			rseworker.setJobError(job, appErr)
+		}
+
 		emailList = rseworker.removeAlreadyJoined(teamID, emailList)
 
 		_, appErr := rseworker.App.InviteNewUsersToTeamGracefully(emailList, teamID, job.Data["senderID"])
