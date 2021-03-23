@@ -552,11 +552,6 @@ func upgradeDatabaseToVersion53(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion54(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version530, Version540) {
-		if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
-			mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitGenericFailure)
-		}
 		saveSchemaVersion(sqlStore, Version540)
 	}
 }
