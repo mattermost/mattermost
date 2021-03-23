@@ -636,7 +636,7 @@ func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
 	transformations = append(transformations, permissionTransformation{
-		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
 		Add: []string{model.PERMISSION_EDIT_BRAND.Id},
 	})
 
