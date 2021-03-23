@@ -8512,7 +8512,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Alternatif olarak, Yönetici Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
+    "translation": "Alternatif olarak, Sistem Panosundan bazı kullanıcıları devre dışı bırakarak yeni kullanıcılara yer açabilir ve ücretsiz sürümün sınırlarına uyabilirsiniz."
   },
   {
     "id": "mfa.deactivate.app_error",
