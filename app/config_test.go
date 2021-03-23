@@ -31,8 +31,8 @@ func TestConfigListener(t *testing.T) {
 
 		listenerCalled = true
 	}
-	listenerID := th.App.AddConfigListener(listener)
-	defer th.App.RemoveConfigListener(listenerID)
+	listenerId := th.App.AddConfigListener(listener)
+	defer th.App.RemoveConfigListener(listenerId)
 
 	listener2Called := false
 	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {

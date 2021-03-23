@@ -470,7 +470,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 			return FieldListToRecordSuccess(structPrefix, fields)
 		},
 		"obscure": func(name string) string {
-			return "Z" + name
+			return "Z_" + name
 		},
 	}
 

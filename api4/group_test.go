@@ -963,7 +963,7 @@ func TestGetGroups(t *testing.T) {
 	assert.Equal(t, groups[0].Id, th.Group.Id)
 }
 
-func TestGetGroupsByUserID(t *testing.T) {
+func TestGetGroupsByUserId(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
