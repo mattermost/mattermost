@@ -1360,7 +1360,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post3.CreateAt}, false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, []string{
 			post6.Id,
@@ -1418,7 +1418,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 
 		// And then ensure that it doesn't cause future requests to also return no results
 		postList, err = ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post1.CreateAt - 1}, true)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, []string{post1.Id}, postList.Order)
 
@@ -1524,7 +1524,7 @@ func testPostStoreGetPosts(t *testing.T, ss store.Store) {
 
 	t.Run("should return the last posts created in a channel without the threads and the reply count must be correct", func(t *testing.T) {
 		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 2, SkipFetchThreads: true}, false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, []string{
 			post6.Id,

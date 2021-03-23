@@ -55,6 +55,10 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a channel if the
 	// channel were group-constrained with the given groups.
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// CheckProviderAttributes returns the empty string if the patch can be applied without
+	// overriding attributes set by the user's login provider; otherwise, the name of the offending
+	// field is returned.
+	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	ClientConfigWithComputed() map[string]string
 	// ConvertBotToUser converts a bot to user.
@@ -89,7 +93,7 @@ type AppIface interface {
 	//
 	DefaultChannelNames() []string
 	// DeleteBotIconImage deletes LHS icon for a bot.
-	DeleteBotIconImage(botUserId string) *model.AppError
+	DeleteBotIconImage(botUserID string) *model.AppError
 	// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 	DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
@@ -133,9 +137,9 @@ type AppIface interface {
 	// filter.
 	GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
 	// GetBot returns the given bot.
-	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
+	GetBot(botUserID string, includeDeleted bool) (*model.Bot, *model.AppError)
 	// GetBotIconImage retrieves LHS icon for a bot.
-	GetBotIconImage(botUserId string) ([]byte, *model.AppError)
+	GetBotIconImage(botUserID string) ([]byte, *model.AppError)
 	// GetBots returns the requested page of bots.
 	GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError)
 	// GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
@@ -239,7 +243,7 @@ type AppIface interface {
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
 	// PatchBot applies the given patch to the bot and corresponding user.
-	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	PatchBot(botUserID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	// Perform an HTTP POST request to an integration's action endpoint.
@@ -247,7 +251,7 @@ type AppIface interface {
 	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
 	DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError)
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
-	PermanentDeleteBot(botUserId string) *model.AppError
+	PermanentDeleteBot(botUserID string) *model.AppError
 	// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(user *model.User, requestorId string) *model.AppError
@@ -281,9 +285,9 @@ type AppIface interface {
 	// SessionIsRegistered determines if a specific session has been registered
 	SessionIsRegistered(session model.Session) bool
 	// SetBotIconImage sets LHS icon for a bot.
-	SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError
+	SetBotIconImage(botUserID string, file io.ReadSeeker) *model.AppError
 	// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
-	SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError
+	SetBotIconImageFromMultiPartFile(botUserID string, imageData *multipart.FileHeader) *model.AppError
 	// SetSessionExpireInDays sets the session's expiry the specified number of days
 	// relative to either the session creation date or the current time, depending
 	// on the `ExtendSessionOnActivity` config setting.
@@ -316,9 +320,9 @@ type AppIface interface {
 	// This to be used for places we check the users password when they are already logged in
 	DoubleCheckPassword(user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-	UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
+	UpdateBotActive(botUserID string, active bool) (*model.Bot, *model.AppError)
 	// UpdateBotOwner changes a bot's owner to the given value.
-	UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError)
+	UpdateBotOwner(botUserID, newOwnerID string) (*model.Bot, *model.AppError)
 	// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
@@ -496,7 +500,7 @@ type AppIface interface {
 	DoPostActionWithCookie(postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration()
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
-	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
+	DoUploadFileExpectModification(now time.Time, rawTeamID string, rawChannelID string, rawUserID string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
@@ -591,7 +595,7 @@ type AppIface interface {
 	GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError)
+	GetGroupsByUserID(userID string) ([]*model.Group, *model.AppError)
 	GetHubForUserId(userID string) *Hub
 	GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
