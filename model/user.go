@@ -716,7 +716,10 @@ func (u *User) IsSSOUser() bool {
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_GITLAB
+	return u.AuthService == SERVICE_GITLAB ||
+		u.AuthService == SERVICE_GOOGLE ||
+		u.AuthService == SERVICE_OFFICE365 ||
+		u.AuthService == SERVICE_OPENID
 }
 
 func (u *User) IsLDAPUser() bool {
@@ -734,6 +737,33 @@ func (u *User) GetPreferredTimezone() string {
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
 	return u.RemoteId != nil && *u.RemoteId != ""
+}
+
+func (u *User) ToPatch() *UserPatch {
+	return &UserPatch{
+		Username: &u.Username, Password: &u.Password,
+		Nickname: &u.Nickname, FirstName: &u.FirstName, LastName: &u.LastName,
+		Position: &u.Position, Email: &u.Email,
+		Props: u.Props, NotifyProps: u.NotifyProps,
+		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
+func (u *UserPatch) SetField(fieldName string, fieldValue string) {
+	switch fieldName {
+	case "FirstName":
+		u.FirstName = &fieldValue
+	case "LastName":
+		u.LastName = &fieldValue
+	case "Nickname":
+		u.Nickname = &fieldValue
+	case "Email":
+		u.Email = &fieldValue
+	case "Position":
+		u.Position = &fieldValue
+	case "Username":
+		u.Username = &fieldValue
+	}
 }
 
 // UserFromJson will decode the input and return a User

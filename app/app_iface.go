@@ -56,6 +56,10 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a channel if the
 	// channel were group-constrained with the given groups.
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// CheckProviderAttributes returns the empty string if the patch can be applied without
+	// overriding attributes set by the user's login provider; otherwise, the name of the offending
+	// field is returned.
+	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	ClientConfigWithComputed() map[string]string
 	// ConvertBotToUser converts a bot to user.
@@ -648,7 +652,7 @@ type AppIface interface {
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
-	GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
+	GetPostThread(postID string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)

@@ -102,6 +102,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
+	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
@@ -230,6 +231,7 @@ func (o *Post) ToUnsanitizedJson() string {
 }
 
 type GetPostsSinceOptions struct {
+	UserId                   string
 	ChannelId                string
 	Time                     int64
 	SkipFetchThreads         bool
@@ -250,6 +252,7 @@ type GetPostsSinceForSyncOptions struct {
 }
 
 type GetPostsOptions struct {
+	UserId                   string
 	ChannelId                string
 	PostId                   string
 	Page                     int
