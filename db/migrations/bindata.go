@@ -50,6 +50,8 @@
 // mysql/000024_create_audits.up.sql
 // mysql/000025_create_oauth_access_data.down.sql
 // mysql/000025_create_oauth_access_data.up.sql
+// mysql/000026_create_oauth_apps.down.sql
+// mysql/000026_create_oauth_apps.up.sql
 // postgres/000001_create_teams.down.sql
 // postgres/000001_create_teams.up.sql
 // postgres/000002_create_team_members.down.sql
@@ -100,6 +102,8 @@
 // postgres/000024_create_audits.up.sql
 // postgres/000025_create_oauth_access_data.down.sql
 // postgres/000025_create_oauth_access_data.up.sql
+// postgres/000026_create_oauth_apps.down.sql
+// postgres/000026_create_oauth_apps.up.sql
 package migrations
 
 import (
@@ -1176,6 +1180,46 @@ func mysql000025_create_oauth_access_dataUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _mysql000026_create_oauth_appsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xf0\x77\x2c\x2d\xc9\x70\x2c\x28\x28\xb6\xe6\x02\x04\x00\x00\xff\xff\x24\x01\xff\xbb\x20\x00\x00\x00")
+
+func mysql000026_create_oauth_appsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000026_create_oauth_appsDownSql,
+		"mysql/000026_create_oauth_apps.down.sql",
+	)
+}
+
+func mysql000026_create_oauth_appsDownSql() (*asset, error) {
+	bytes, err := mysql000026_create_oauth_appsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000026_create_oauth_apps.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _mysql000026_create_oauth_appsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xdc\x93\x4f\x8b\xdb\x30\x10\xc5\xef\xfe\x14\xc3\x5e\x62\x97\xa5\x6c\xc2\x76\x59\x08\x29\x55\xec\x49\x23\xea\xc8\x41\x96\xe9\xee\x29\x28\xb6\x76\x63\xea\x7f\xc8\x93\x92\x7e\xfb\xe2\x24\x28\x74\x43\xe9\xa1\x87\x42\x7d\x30\xf2\xf8\xa7\x27\xf1\xde\x4c\x28\x91\x29\x04\xc5\xe6\x31\x02\x5f\x80\x48\x14\xe0\x13\x4f\x55\x0a\x09\xdb\xd3\x8e\x75\x5d\x0f\xbe\x07\xc0\x0b\xf8\xae\x6d\xbe\xd3\xd6\x9f\x3c\x04\x47\x4e\x64\x71\x7c\xeb\x01\x84\xd6\x68\x6a\xed\x1b\x22\xc2\x05\xcb\xe2\x37\x94\x61\x04\xdb\xf2\xb5\x6c\xc8\x9f\xdc\x5d\x33\x59\x57\xfc\x91\x09\xab\xd2\x34\x94\x9a\xdc\x1a\x72\x07\x8e\x27\x8f\xd7\xa4\xd0\xb5\x71\xc4\xc3\xfd\x35\x10\x99\x3e\xb7\x65\x47\x65\xdb\x00\x99\x03\x1d\xe5\x75\x55\x6d\x75\xfe\x2d\xb3\x55\xef\x8a\xcb\xb6\x36\x9d\x7e\x35\xae\xb0\x96\x7c\xc5\xe4\x33\x7c\xc1\x67\xf0\x79\x11\x0c\xb5\x61\x5d\x16\x87\x4d\xab\xf7\xb4\xd3\x5d\xd7\x6f\xf2\x93\x31\x9b\xb2\x00\xdf\x99\x14\x78\x01\xa0\xf8\xcc\x05\xce\x78\xd3\xb4\xd1\xdc\x5d\x2b\x5c\x32\x99\xa2\x9a\xed\xe9\xe5\xb1\xde\xde\x4f\x3d\x2f\x45\x05\x9f\x3a\x6b\x3a\x6d\x4d\x91\x92\x26\x53\x9b\x86\x60\x06\x7e\x8a\x31\x86\x0a\xf8\x62\xc8\x06\xe0\xf4\x1e\x9e\xf3\x8f\x30\xc9\x84\xf2\xdf\x05\xb0\x90\xc9\x0a\xb8\x58\x24\x72\xc5\x14\x4f\xc4\x26\x0d\x97\xb8\x62\xef\xc3\x24\xce\x56\x22\x75\xfb\xbe\x2e\x51\x22\x90\xde\x56\x66\xd3\x0c\xc6\xcd\x60\xe4\x3a\x60\xe4\x30\x26\xa2\x33\xd4\xe7\x3b\x53\x6b\x98\x41\xc4\x14\x9b\xb3\x14\xfd\xe0\x17\x2a\x6f\xab\x7d\xdd\x38\x2d\xde\x2b\xbb\xef\xc9\x14\x27\xad\x00\x3e\xc2\xdd\xed\x71\x39\x3a\x5f\x79\x3c\x3a\x7f\xb3\x58\xa1\x3c\xb7\xe4\xa5\x09\x59\x14\x81\x13\x01\x2a\x9b\x1f\x43\x87\x8c\x2f\xa9\xde\x4d\x47\x5e\x10\x4c\x3d\x6f\x2d\x71\xcd\x24\x82\xae\xc8\x58\xfe\x22\x5a\xc2\x43\xd9\x53\x7f\xf2\xe2\xda\xcf\xa9\x87\x4f\x18\x66\xea\x7a\xc7\xd4\x8b\x90\xc5\x71\x12\x0e\x33\xf2\x3b\xd9\xff\x2c\xa7\xbc\x6d\x32\x19\xff\x55\x4a\x27\x09\x37\x7a\x1f\xc6\x93\x4b\x4a\x37\x37\xff\x2c\xa6\x9f\x01\x00\x00\xff\xff\x17\xb5\xc7\x18\xec\x04\x00\x00")
+
+func mysql000026_create_oauth_appsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_mysql000026_create_oauth_appsUpSql,
+		"mysql/000026_create_oauth_apps.up.sql",
+	)
+}
+
+func mysql000026_create_oauth_appsUpSql() (*asset, error) {
+	bytes, err := mysql000026_create_oauth_appsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "mysql/000026_create_oauth_apps.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _postgres000001_create_teamsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\xd0\xb1\x0e\xc2\x20\x10\x06\xe0\x9d\xa7\xe0\x3d\x98\xaa\xc5\xa4\x49\x6d\x4d\x5b\x93\x6e\x84\xc0\x45\x2f\xa1\x40\x80\xaa\x8f\x6f\x2c\x83\x6e\xc5\xf9\xbe\xff\x72\xff\x55\xed\xc4\x07\x3a\x55\x87\x96\xd3\x04\x72\x89\xb4\x1e\xfa\x0b\x3d\xf6\xed\xf5\xdc\xd1\xe6\x44\xf9\xdc\x8c\xd3\x48\xa5\x31\xee\xe9\x3c\x58\xb4\x0f\x4c\xc0\x48\x69\xd0\xc8\x98\x3e\x73\x54\xce\xae\x5e\xcb\x7f\xb2\x1a\xa2\x0a\xe8\x13\x3a\x5b\x1e\xba\x05\xb7\x7a\xe5\x6c\x4c\x41\xa2\x05\xcd\x08\xd9\x60\xd3\xd5\x7c\xfe\x71\xa8\x5f\x62\xdb\x23\xac\x5c\x80\xed\xa1\xdc\x5b\xa0\xde\x95\xb9\xa5\x90\x69\x57\xaa\x00\x85\x52\x83\x81\x32\x19\xd5\x1d\x96\x7c\x67\xa6\xf9\x63\x5f\xba\x31\x46\xde\x01\x00\x00\xff\xff\x5c\x01\x7e\x15\xf9\x01\x00\x00")
 
 func postgres000001_create_teamsDownSqlBytes() ([]byte, error) {
@@ -2176,6 +2220,46 @@ func postgres000025_create_oauth_access_dataUpSql() (*asset, error) {
 	return a, nil
 }
 
+var _postgres000026_create_oauth_appsDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\xc8\x4f\x2c\x2d\xc9\x48\x2c\x28\x28\xb6\xe6\x02\x04\x00\x00\xff\xff\x15\x88\x92\x75\x20\x00\x00\x00")
+
+func postgres000026_create_oauth_appsDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000026_create_oauth_appsDownSql,
+		"postgres/000026_create_oauth_apps.down.sql",
+	)
+}
+
+func postgres000026_create_oauth_appsDownSql() (*asset, error) {
+	bytes, err := postgres000026_create_oauth_appsDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000026_create_oauth_apps.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _postgres000026_create_oauth_appsUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x90\x41\x4f\xc2\x30\x18\x86\xef\xfb\x15\xdf\x0d\x48\x3c\xc8\x22\xc4\x84\x53\x65\x25\x2e\x8e\xcd\x94\x62\xe0\xb4\x74\x6d\x85\xc6\xd2\x2e\x6d\x97\xf8\xf3\x8d\x3a\x3a\xc0\x93\xd7\xf7\xfd\xfa\xbc\xe9\xb3\x24\x18\x51\x0c\x14\x3d\x15\x18\xf2\x15\x94\x15\x05\xbc\xcb\x37\x74\x03\x96\x75\xe1\xc8\xda\xd6\xc3\x38\x01\x00\x50\x02\xde\x10\x59\x3e\x23\x32\x4e\xe7\x13\x78\x25\xf9\x1a\x91\x3d\xbc\xe0\xfd\xdd\x4f\xcf\x9d\x64\xc1\xba\xeb\xb3\x8b\x4a\xb2\x00\x8d\x3a\x28\x13\x7e\xc3\xae\x15\x7f\x43\xae\x95\x34\xc1\x4b\xee\x64\x88\x9c\x69\xfa\xd8\x83\x0c\x3b\xc9\x18\xcf\x1f\xfa\x54\x48\xcf\x9d\x6a\x83\xb2\x26\x96\xb3\x69\x7a\x1e\x67\x5a\x37\x8c\x7f\x74\x4e\xfb\x01\x79\x9f\x9e\x5f\x1f\xed\x49\xb6\xec\x30\x70\xd3\xd9\x7c\x92\x4c\x16\x49\xd2\xcb\xc9\xcb\x0c\xef\x6e\xe4\x28\xf1\x59\x47\x41\x75\xff\xf5\x5a\x09\xa8\xca\x4b\x71\xd1\xc9\x37\x0e\x15\x14\x93\x5e\xf5\x70\x83\xb2\x0c\x96\x55\xb1\x5d\x97\xb7\x13\x3e\xb8\xce\x07\x29\xa0\xb1\x56\x4b\x66\x20\xc3\x2b\xb4\x2d\x28\xbc\x33\xed\xe5\xe2\xdf\x3c\x6e\x4d\xe7\xf4\x95\xa1\x88\x1c\x8d\x16\xc9\x57\x00\x00\x00\xff\xff\xfc\xa6\xbb\x41\x0c\x02\x00\x00")
+
+func postgres000026_create_oauth_appsUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		_postgres000026_create_oauth_appsUpSql,
+		"postgres/000026_create_oauth_apps.up.sql",
+	)
+}
+
+func postgres000026_create_oauth_appsUpSql() (*asset, error) {
+	bytes, err := postgres000026_create_oauth_appsUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "postgres/000026_create_oauth_apps.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2278,6 +2362,8 @@ var _bindata = map[string]func() (*asset, error){
 	"mysql/000024_create_audits.up.sql":                         mysql000024_create_auditsUpSql,
 	"mysql/000025_create_oauth_access_data.down.sql":            mysql000025_create_oauth_access_dataDownSql,
 	"mysql/000025_create_oauth_access_data.up.sql":              mysql000025_create_oauth_access_dataUpSql,
+	"mysql/000026_create_oauth_apps.down.sql":                   mysql000026_create_oauth_appsDownSql,
+	"mysql/000026_create_oauth_apps.up.sql":                     mysql000026_create_oauth_appsUpSql,
 	"postgres/000001_create_teams.down.sql":                     postgres000001_create_teamsDownSql,
 	"postgres/000001_create_teams.up.sql":                       postgres000001_create_teamsUpSql,
 	"postgres/000002_create_team_members.down.sql":              postgres000002_create_team_membersDownSql,
@@ -2328,6 +2414,8 @@ var _bindata = map[string]func() (*asset, error){
 	"postgres/000024_create_audits.up.sql":                      postgres000024_create_auditsUpSql,
 	"postgres/000025_create_oauth_access_data.down.sql":         postgres000025_create_oauth_access_dataDownSql,
 	"postgres/000025_create_oauth_access_data.up.sql":           postgres000025_create_oauth_access_dataUpSql,
+	"postgres/000026_create_oauth_apps.down.sql":                postgres000026_create_oauth_appsDownSql,
+	"postgres/000026_create_oauth_apps.up.sql":                  postgres000026_create_oauth_appsUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -2422,6 +2510,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000024_create_audits.up.sql":                      &bintree{mysql000024_create_auditsUpSql, map[string]*bintree{}},
 		"000025_create_oauth_access_data.down.sql":         &bintree{mysql000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
 		"000025_create_oauth_access_data.up.sql":           &bintree{mysql000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
+		"000026_create_oauth_apps.down.sql":                &bintree{mysql000026_create_oauth_appsDownSql, map[string]*bintree{}},
+		"000026_create_oauth_apps.up.sql":                  &bintree{mysql000026_create_oauth_appsUpSql, map[string]*bintree{}},
 	}},
 	"postgres": &bintree{nil, map[string]*bintree{
 		"000001_create_teams.down.sql":                     &bintree{postgres000001_create_teamsDownSql, map[string]*bintree{}},
@@ -2474,6 +2564,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"000024_create_audits.up.sql":                      &bintree{postgres000024_create_auditsUpSql, map[string]*bintree{}},
 		"000025_create_oauth_access_data.down.sql":         &bintree{postgres000025_create_oauth_access_dataDownSql, map[string]*bintree{}},
 		"000025_create_oauth_access_data.up.sql":           &bintree{postgres000025_create_oauth_access_dataUpSql, map[string]*bintree{}},
+		"000026_create_oauth_apps.down.sql":                &bintree{postgres000026_create_oauth_appsDownSql, map[string]*bintree{}},
+		"000026_create_oauth_apps.up.sql":                  &bintree{postgres000026_create_oauth_appsUpSql, map[string]*bintree{}},
 	}},
 }}
 

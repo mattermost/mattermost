@@ -309,9 +309,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			}
 		}
 
-		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
-		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
-
 		sqlStore.RemoveColumnIfExists("Users", "LastActivityAt")
 		sqlStore.RemoveColumnIfExists("Users", "LastPingAt")
 

@@ -54,7 +54,6 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 }
 
 func (as SqlOAuthStore) createIndexesIfNotExists() {
-	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
 	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
