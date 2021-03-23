@@ -227,11 +227,6 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
-	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -374,11 +369,6 @@ func TestCreatePluginsFile(t *testing.T) {
 }
 
 func TestGenerateSupportPacketYaml(t *testing.T) {
-	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
-
 	th := Setup(t)
 	defer th.TearDown()
 
