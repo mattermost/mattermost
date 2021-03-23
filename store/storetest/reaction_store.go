@@ -53,7 +53,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(context.Background(), reaction1.PostId, false, false, false)
+	postList, err := ss.Post().Get(context.Background(), reaction1.PostId, false, false, false, "")
 	require.NoError(t, err)
 
 	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
@@ -77,7 +77,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction2)
 	require.NoError(t, nErr)
 
-	postList, err = ss.Post().Get(context.Background(), reaction2.PostId, false, false, false)
+	postList, err = ss.Post().Get(context.Background(), reaction2.PostId, false, false, false, "")
 	require.NoError(t, err)
 
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
@@ -127,7 +127,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		_, nErr := ss.Reaction().Save(reaction)
 		require.NoError(t, nErr)
 
-		result, err := ss.Post().Get(context.Background(), reaction.PostId, false, false, false)
+		result, err := ss.Post().Get(context.Background(), reaction.PostId, false, false, false, "")
 		require.NoError(t, err)
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
@@ -140,7 +140,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
-		postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false)
+		postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false, "")
 		require.NoError(t, err)
 
 		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
@@ -326,11 +326,11 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 
 	// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
 	sqlResult, err := s.GetMaster().Exec(`
-		UPDATE 
-				Reactions 
-			SET 
-				UpdateAt=NULL, DeleteAt=NULL 
-			WHERE 
+		UPDATE
+				Reactions
+			SET
+				UpdateAt=NULL, DeleteAt=NULL
+			WHERE
 				UserId = :UserId AND PostId = :PostId AND EmojiName = :EmojiName`,
 		map[string]interface{}{
 			"UserId":    userId,
@@ -363,15 +363,15 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false)
+	postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false, "")
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post2.Id, false, false, false)
+	postList, err = ss.Post().Get(context.Background(), post2.Id, false, false, false, "")
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post3.Id, false, false, false)
+	postList, err = ss.Post().Get(context.Background(), post3.Id, false, false, false, "")
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
