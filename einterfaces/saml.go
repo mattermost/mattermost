@@ -13,4 +13,5 @@ type SamlInterface interface {
 	DoLogin(encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
 	GetMetadata() (string, *model.AppError)
 	ResetAuthDataToEmail(includeDeleted bool, dryRun bool, specifiedUserIDs []string) (numAffected int64, err error)
+	CheckProviderAttributes(SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
 }

@@ -196,7 +196,7 @@ func TestSearchFileInfoStore(t *testing.T, s store.Store, testEngine *SearchTest
 }
 
 func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct-"+th.Team.Id, "direct-"+th.Team.Id, []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -207,7 +207,7 @@ func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper)
 	post2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "dm test", "", model.POST_DEFAULT, 0, false)
 	require.NoError(t, err)
 
-	p1, err := th.createFileInfo(th.User.Id, post.Id, "dm test filename", "dm contenttest filename", "jpg", "image/jpeg", 0, 0)
+	p1, err := th.createFileInfo(th.User.Id, post.Id, "dm test filename", "dm contenttest filename", "jpg", "image/jpeg", 0, 1)
 	require.NoError(t, err)
 	_, err = th.createFileInfo(th.User.Id, post.Id, "dm other filename", "dm other filename", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)

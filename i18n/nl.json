@@ -3800,87 +3800,87 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team id."
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": "Ongeldig token"
+    "translation": "Ongeldig token."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Ongeldig trigger-woord"
+    "translation": "Ongeldig trigger-woord."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'update at' moet een geldige tijd zijn."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Invalid URL"
+    "translation": "Ongeldige URL."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://"
+    "translation": "Ongeldige URL. Een geldige URl begint met http:// of https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Ongeldig gebruikers id"
+    "translation": "Ongeldige user id."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldig channel id."
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
+    "translation": "Ongeldig command id."
   },
   {
     "id": "model.command_hook.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at op moet een geldige tijd zijn."
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
+    "translation": "Ongeldig command hook id."
   },
   {
     "id": "model.command_hook.parent_id.app_error",
-    "translation": "Ongeldig ouder id"
+    "translation": "Ongeldig parent id."
   },
   {
     "id": "model.command_hook.root_id.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig root id."
   },
   {
     "id": "model.command_hook.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig user id."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Create at moet een geldige tijd zijn."
   },
   {
     "id": "model.compliance.is_valid.desc.app_error",
-    "translation": "Ongeldige omschrijving"
+    "translation": "Ongeldige description."
   },
   {
     "id": "model.compliance.is_valid.end_at.app_error",
-    "translation": "Tot en met moet een geldige tijd zijn"
+    "translation": "To moet een geldige tijd zijn."
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
-    "translation": "Vanaf moet een geldige tijd zijn"
+    "translation": "From moet een geldige tijd zijn."
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "Tot en met, moet later zijn dan Vanaf"
+    "translation": "To moet later zijn dan From."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+    "translation": "Voor het toestaan van cookies voor subdomeinen moet de SiteURL ingesteld zijn."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -4179,11 +4179,11 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
   },
   {
@@ -8504,7 +8504,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Systeem Console en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
   },
   {
     "id": "mfa.deactivate.app_error",
