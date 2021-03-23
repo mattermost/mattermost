@@ -96,12 +96,10 @@ func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface
 	jobsActiveUsersInterface = f
 }
 
-type resendInvitationEmailInterfaceMaker func(*App) ejobs.ResendInvitationEmailJobInterface
-
-var jobsResendInvitationEmailInterface resendInvitationEmailInterfaceMaker
+var jobsResendInvitationEmailInterface func(*App) ejobs.ResendInvitationEmailJobInterface
 
 // RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
-func RegisterJobsResendInvitationEmailInterface(f resendInvitationEmailInterfaceMaker) {
+func RegisterJobsResendInvitationEmailInterface(f func(*App) ejobs.ResendInvitationEmailJobInterface) {
 	jobsResendInvitationEmailInterface = f
 }
 

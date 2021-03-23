@@ -3,13 +3,16 @@
 package resend_invitation_email
 
 import (
+	"encoding/json"
+	"log"
 	"strconv"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
+
+const TwentyFourHoursInMillis int64 = 86400000
 
 type ResendInvitationEmailWorker struct {
 	name    string
@@ -62,13 +65,13 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 
 func (rseworker *ResendInvitationEmailWorker) cleanEmailData(emailStringData string) []string {
 	// emailStringData looks like this ["user1@gmail.com","user2@gmail.com"]
-	t := strings.Trim(strings.Trim(emailStringData, "["), "]")
-	u := strings.Split(t, ",")
-	var cleaned []string
-	for _, ss := range u {
-		cleaned = append(cleaned, ss[1:len(ss)-1])
+	emails := []string{}
+	err := json.Unmarshal([]byte(emailStringData), &emails)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return cleaned
+
+	return emails
 }
 
 func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string, emailList []string) []string {
@@ -76,7 +79,7 @@ func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string,
 	for _, email := range emailList {
 		// check if the user with this email is on the system already
 		user, appErr := rseworker.App.GetUserByEmail(email)
-		if user == nil && appErr != nil {
+		if appErr != nil {
 			notJoinedYet = append(notJoinedYet, email)
 			continue
 		}
@@ -85,7 +88,6 @@ func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string,
 		members, appErr := rseworker.App.GetTeamMembersByIds(teamID, userID, nil)
 		if len(members) == 0 || appErr != nil {
 			notJoinedYet = append(notJoinedYet, email)
-			continue
 		}
 	}
 
@@ -96,11 +98,9 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 	scheduledAt, _ := strconv.ParseInt(job.Data["scheduledAt"], 10, 64)
 	now := model.GetMillis()
 
-	twentyFourHoursInMillis := 86400000
-
 	elapsedTimeSinceSchedule := now - scheduledAt
 
-	if elapsedTimeSinceSchedule > int64(twentyFourHoursInMillis) {
+	if elapsedTimeSinceSchedule > TwentyFourHoursInMillis {
 		teamID := job.Data["teamID"]
 		emailListData := job.Data["emailList"]
 
