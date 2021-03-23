@@ -1208,8 +1208,8 @@
     "translation": "Bleve:s indexeringsjobb kunde inte tolka sluttiden."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Det äldsta meddelandet kunde inte hämtas från databasen."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Det äldsta objektet (användare, kanal eller meddelande) kunde inte hämtas från databasen."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

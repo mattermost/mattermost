@@ -2364,8 +2364,8 @@
     "translation": "Работника по индексиране на Bleve не успя да анализира крайния час."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Най-старата публикация не може да бъде извлечена от базата данни."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Най-стария обект (потребител, канал или публикация) не може да бъде извлечен от базата данни."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

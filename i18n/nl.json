@@ -5343,8 +5343,8 @@
     "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "De oudste post kan niet worden opgehaald uit de database."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "De oudste entititeit (gebruiker,kanaal of bericht) kon niet worden opgehaald vanuit de databank."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

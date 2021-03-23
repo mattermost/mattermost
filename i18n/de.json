@@ -5375,10 +5375,6 @@
     "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },

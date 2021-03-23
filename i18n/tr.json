@@ -5119,8 +5119,8 @@
     "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Veritabanından en eski ileti alınamadı."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Veritabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",

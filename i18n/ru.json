@@ -5224,10 +5224,6 @@
     "translation": "Не удалось проиндексировать пакет пользователей."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Более старые сообщения не могут быть извлечены из базы данных."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
   },

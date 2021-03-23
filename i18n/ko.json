@@ -5314,10 +5314,6 @@
     "translation": "Bleve 색인 프로세스가 종료 시간을 구문 분석하지 못했습니다."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "데이터베이스에서 가장 오래된 게시물을 조회 할 수 없습니다"
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },

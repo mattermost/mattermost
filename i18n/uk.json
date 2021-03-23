@@ -5324,10 +5324,6 @@
     "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Найстаріший запис не може бути завантажений з бази даних."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },

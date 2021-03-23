@@ -5126,8 +5126,8 @@
     "translation": "批量索引用户失败。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "无法从数据库获取最旧的消息。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",

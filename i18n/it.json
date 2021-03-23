@@ -5087,10 +5087,6 @@
     "translation": "Impossibile indicizzare gli utenti in batch."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
   },

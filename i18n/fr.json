@@ -5319,10 +5319,6 @@
     "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de fin"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Impossible de récupérer le message le plus ancien de la base de données."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },

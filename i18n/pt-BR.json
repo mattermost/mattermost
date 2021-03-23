@@ -5319,8 +5319,8 @@
     "translation": "Agregador do Bleve falhou em transformar a data de término."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "A publicação mais antiga não pode ser obtida do banco de dados."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "A entidade mais antiga (usuário, canal ou publicação) não pôde ser recuperada do banco de dados."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

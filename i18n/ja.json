@@ -5314,8 +5314,8 @@
     "translation": "Bleveインデックス付与ワーカーが終了時刻を解析できませんでした。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "最も古い投稿をデータベースから取り出せませんでした。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "最も古いエンティティ(ユーザー、チャンネル、投稿)をデータベースから取得できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

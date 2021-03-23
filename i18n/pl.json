@@ -5324,10 +5324,6 @@
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },

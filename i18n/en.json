@@ -6235,8 +6235,8 @@
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "The oldest entity (user, channel or post) could not be retrieved from the database."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",

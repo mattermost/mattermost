@@ -5275,8 +5275,8 @@
     "translation": "El trabajo de Bleve falló al analizar la hora de finalización."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "El mensaje más antiguo no pudo ser recuperado de la base de datos."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "La entidad más vieja (usuario, canal o poste), no podría ser recuperado de la base de datos."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",

@@ -5324,8 +5324,8 @@
     "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
