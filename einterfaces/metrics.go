@@ -71,6 +71,7 @@ type MetricsInterface interface {
 	IncrementRemoteClusterMsgErrorsCounter(remoteID string, timeout bool)
 	ObserveRemoteClusterPingDuration(remoteID string, elapsed float64)
 	ObserveRemoteClusterClockSkew(remoteID string, skew float64)
+	IncrementRemoteClusterConnStateChangeCounter(remoteID string, online bool)
 
 	IncrementJobActive(jobType string)
 	DecrementJobActive(jobType string)
