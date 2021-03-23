@@ -21,14 +21,24 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
+//var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
+//MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAszVAB/0WgtXml1iUYhUu
+//YFKS8qyJVgic2gMz9PSvXV3pK5/dGecKvnZtojKciHLAHLMkTI/21DviJ54gmXco
+//PcHm5LysaxUSsqphdN2+1+PY/+MCP33W4RX0lY+r3jxWdMhES3du8hz6vsQhJfb9
+//ofOvU3ca/keAMHbSLKOQjNE8GFiP3tj30dm+FgYJaLUHw7O7NlwlEmCWq3UyR6zO
+//y3R8MXmX8mfaCYzQg/APRIg1dBAhSjGM7pUrTUPXg3jnVVnBWdSqMtn/BxNEeGMi
+//i1bETEpLHvINLFmnIt77OsADEGvd9fuzdjBU+UvMEB0uWoWZQ5iYw2Td0LKwJqbI
+//OwIDAQAB
+//-----END PUBLIC KEY-----`)
+
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAszVAB/0WgtXml1iUYhUu
-YFKS8qyJVgic2gMz9PSvXV3pK5/dGecKvnZtojKciHLAHLMkTI/21DviJ54gmXco
-PcHm5LysaxUSsqphdN2+1+PY/+MCP33W4RX0lY+r3jxWdMhES3du8hz6vsQhJfb9
-ofOvU3ca/keAMHbSLKOQjNE8GFiP3tj30dm+FgYJaLUHw7O7NlwlEmCWq3UyR6zO
-y3R8MXmX8mfaCYzQg/APRIg1dBAhSjGM7pUrTUPXg3jnVVnBWdSqMtn/BxNEeGMi
-i1bETEpLHvINLFmnIt77OsADEGvd9fuzdjBU+UvMEB0uWoWZQ5iYw2Td0LKwJqbI
-OwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwVMaUtQMFtQsRoa2FQd+
+17+acMRMqzPsFTJEix7n+tA8ieCAX0lvNBOjVh8lrt/AUe7B3ZJ0HE6v8xuKj9YA
+zUqV8R27UmnIxf5TCXFWrt+fnzX31yLjqK4Fd6JmiDheUatd1hG+gkScMAPuj+Xw
+4O+V5sMwaVusytVgmehqcVKYrKpDyhBDUEbDRbKKbP4YAHbmNs3AzlGBbQtvc1fi
+0ww7oNKs9cZVcCIeNdwbkXmf8pK5zSXqVsmyPyH3Ue8M6JMNGuPGh1fyHRhFdIiD
+lxd7LBKSh7BTjbRtG9DEt1dyMnYQDgRVAdpururuK/otowCowr6X/Etnk2NNeXcZ
+4QIDAQAB
 -----END PUBLIC KEY-----`)
 
 func ValidateLicense(signed []byte) (bool, string) {
