@@ -79,7 +79,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{fmt.Sprintf("zero-%dMb", mb(len(zero10M))), ".zero", zero10M},
 	}
 
-	fileBenchmarks := []struct {
+	file_benchmarks := []struct {
 		title string
 		f     func(b *testing.B, n int, data []byte, ext string)
 	}{
@@ -184,7 +184,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	}
 
 	for _, file := range files {
-		for _, fb := range fileBenchmarks {
+		for _, fb := range file_benchmarks {
 			b.Run(file.title+"-"+fb.title, func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					fb.f(b, i, file.data, file.ext)

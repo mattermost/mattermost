@@ -191,14 +191,14 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 
 // GetManifest returns a manifest for a given pluginId.
 // Returns ErrNotFound if plugin is not found.
-func (env *Environment) GetManifest(pluginID string) (*model.Manifest, error) {
+func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	plugins, err := env.Available()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get plugin statuses")
 	}
 
 	for _, plugin := range plugins {
-		if plugin.Manifest != nil && plugin.Manifest.Id == pluginID {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
 			return plugin.Manifest, nil
 		}
 	}
@@ -447,13 +447,13 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookID int) {
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
 
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(registeredPlugin)
 
-		if rp.supervisor == nil || !rp.supervisor.Implements(hookID) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
 			return true
 		}
 

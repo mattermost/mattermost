@@ -21,7 +21,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 	cases := []struct {
 		roles        []string
-		permissionID string
+		permissionId string
 		shouldGrant  bool
 	}{
 		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
@@ -35,7 +35,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for _, testcase := range cases {
-		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionID), testcase.shouldGrant)
+		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
 
 }
