@@ -215,8 +215,8 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		for i, notification := range notifications {
-			sender, err := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
-			if err != nil {
+			sender, errSender := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
+			if errSender != nil {
 				mlog.Warn("Unable to find sender of post for batched email notification")
 			}
 

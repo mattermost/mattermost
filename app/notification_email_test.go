@@ -91,7 +91,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got %s", body))
 	require.Contains(t, body, "Channel: "+channel.DisplayName, "Expected email text 'Channel: %s'. Got %s", channel.DisplayName, body)
@@ -124,7 +124,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new Group Message.", fmt.Sprintf("Expected email text 'You have a new Group Message. Got "+body))
 	require.Contains(t, body, "Channel: ChannelName", fmt.Sprintf("Expected email text 'Channel: ChannelName'. Got %s", body))
@@ -157,7 +157,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got "+body))
 	require.Contains(t, body, "Channel: "+channel.DisplayName, fmt.Sprintf("Expected email text 'Channel: "+channel.DisplayName+"'. Got "+body))
@@ -190,7 +190,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new Direct Message.", fmt.Sprintf("Expected email text 'You have a new Direct Message. Got "+body))
 	require.Contains(t, body, senderName+" - ", fmt.Sprintf("Expected email text '%s - '. Got %s", senderName, body))
@@ -226,7 +226,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	r, _ := regexp.Compile("E([S|D]+)T")
 	zone := r.FindString(body)
@@ -279,7 +279,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	err = tmp.Execute(&text, fmt.Sprintf("sender - %s:%s %s, %s %s", formattedTime.Hour, formattedTime.Minute, formattedTime.TimeZone, formattedTime.Month, formattedTime.Day))
 	require.NoError(t, err)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	postTimeLine := text.String()
 	require.Contains(t, body, postTimeLine, fmt.Sprintf("Expected email text '%s'. Got %s", postTimeLine, body))
@@ -313,7 +313,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sender - 2:30 PM", fmt.Sprintf("Expected email text 'sender - 2:30 PM'. Got %s", body))
 	require.Contains(t, body, "April 25", fmt.Sprintf("Expected email text 'April 25'. Got %s", body))
@@ -347,7 +347,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sender - 14:30", fmt.Sprintf("Expected email text 'sender - 14:30'. Got %s", body))
 	require.Contains(t, body, "April 25", fmt.Sprintf("Expected email text 'April 25'. Got %s", body))
@@ -378,7 +378,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
 	require.False(t, strings.Contains(body, "Channel: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
@@ -410,7 +410,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new Group Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Group Message from %s'. Got %s", senderName, body))
 	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
@@ -442,7 +442,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
 	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
@@ -474,7 +474,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "You have a new Direct Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Direct Message from "+senderName+"'. Got "+body))
 	require.False(t, strings.Contains(body, "CHANNEL: "+channel.DisplayName), fmt.Sprintf("Did not expect email text 'CHANNEL: %s'. Got %s", channel.DisplayName, body))
@@ -510,7 +510,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 
 	body, err := th.App.getNotificationEmailBody(recipient, post, ch,
 		channelName, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc)
+		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 
 	assert.NotContains(t, body, message)
@@ -554,7 +554,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 
 	body, err := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc)
+		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -620,7 +620,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	body, err := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc)
+		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	channelURL2 := teamURL + "/channels/" + ch2.Name
@@ -669,7 +669,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 
 	body, err := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc)
+		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -813,7 +813,7 @@ func TestLandingLink(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
@@ -843,7 +843,7 @@ func TestLandingLinkPermalink(t *testing.T) {
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	body, err := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, teamURL+"/pl/"+post.Id, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
