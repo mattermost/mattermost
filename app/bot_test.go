@@ -273,13 +273,13 @@ func TestGetBots(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	OwnerId1 := model.NewId()
-	OwnerId2 := model.NewId()
+	OwnerID1 := model.NewId()
+	OwnerID2 := model.NewId()
 
 	bot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username",
 		Description: "a bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot1.UserId)
@@ -287,7 +287,7 @@ func TestGetBots(t *testing.T) {
 	deletedBot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username4",
 		Description: "a deleted bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	require.Nil(t, err)
 	deletedBot1, err = th.App.UpdateBotActive(deletedBot1.UserId, false)
@@ -297,7 +297,7 @@ func TestGetBots(t *testing.T) {
 	bot2, err := th.App.CreateBot(&model.Bot{
 		Username:    "username2",
 		Description: "a second bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot2.UserId)
@@ -305,7 +305,7 @@ func TestGetBots(t *testing.T) {
 	bot3, err := th.App.CreateBot(&model.Bot{
 		Username:    "username3",
 		Description: "a third bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot3.UserId)
@@ -313,7 +313,7 @@ func TestGetBots(t *testing.T) {
 	bot4, err := th.App.CreateBot(&model.Bot{
 		Username:    "username5",
 		Description: "a fourth bot",
-		OwnerId:     OwnerId2,
+		OwnerId:     OwnerID2,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot4.UserId)
@@ -321,7 +321,7 @@ func TestGetBots(t *testing.T) {
 	deletedBot2, err := th.App.CreateBot(&model.Bot{
 		Username:    "username6",
 		Description: "a deleted bot",
-		OwnerId:     OwnerId2,
+		OwnerId:     OwnerID2,
 	})
 	require.Nil(t, err)
 	deletedBot2, err = th.App.UpdateBotActive(deletedBot2.UserId, false)
@@ -420,7 +420,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			OwnerId:        OwnerId1,
+			OwnerId:        OwnerID1,
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -431,7 +431,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			OwnerId:        OwnerId2,
+			OwnerId:        OwnerID2,
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -442,7 +442,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			OwnerId:        OwnerId1,
+			OwnerId:        OwnerID1,
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -453,7 +453,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			OwnerId:        OwnerId2,
+			OwnerId:        OwnerID2,
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -525,8 +525,8 @@ func TestDisableUserBots(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	ownerId1 := model.NewId()
-	ownerId2 := model.NewId()
+	OwnerID1 := model.NewId()
+	OwnerID2 := model.NewId()
 
 	bots := []*model.Bot{}
 	defer func() {
@@ -539,7 +539,7 @@ func TestDisableUserBots(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
-			OwnerId:     ownerId1,
+			OwnerId:     OwnerID1,
 		})
 		require.Nil(t, err)
 		bots = append(bots, bot)
@@ -549,12 +549,12 @@ func TestDisableUserBots(t *testing.T) {
 	u2bot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username_nodisable",
 		Description: "a bot",
-		OwnerId:     ownerId2,
+		OwnerId:     OwnerID2,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(u2bot1.UserId)
 
-	err = th.App.disableUserBots(ownerId1)
+	err = th.App.disableUserBots(OwnerID1)
 	require.Nil(t, err)
 
 	// Check all bots and corrensponding users are disabled for creator 1

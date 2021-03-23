@@ -21,7 +21,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -453,10 +453,10 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	}
 }
 
-func (s *Server) MailServiceConfig() *mailservice.SMTPConfig {
+func (s *Server) MailServiceConfig() *mail.SMTPConfig {
 	emailSettings := s.Config().EmailSettings
 	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
-	cfg := mailservice.SMTPConfig{
+	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
 		SkipServerCertificateVerification: *emailSettings.SkipServerCertificateVerification,

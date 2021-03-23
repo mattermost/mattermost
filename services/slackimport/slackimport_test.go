@@ -38,8 +38,8 @@ func TestSlackConvertChannelName(t *testing.T) {
 
 func TestSlackConvertUserMentions(t *testing.T) {
 	users := []slackUser{
-		{Id: "U00000A0A", Username: "firstuser"},
-		{Id: "U00000B1B", Username: "seconduser"},
+		{ID: "U00000A0A", Username: "firstuser"},
+		{ID: "U00000B1B", Username: "seconduser"},
 	}
 
 	posts := map[string][]slackPost{
@@ -81,8 +81,8 @@ func TestSlackConvertUserMentions(t *testing.T) {
 
 func TestSlackConvertChannelMentions(t *testing.T) {
 	channels := []slackChannel{
-		{Id: "C000AA00A", Name: "one"},
-		{Id: "C000BB11B", Name: "two"},
+		{ID: "C000AA00A", Name: "one"},
+		{ID: "C000BB11B", Name: "two"},
 	}
 
 	posts := map[string][]slackPost{
@@ -336,7 +336,7 @@ func TestOldImportChannel(t *testing.T) {
 			u2.Id: u2,
 		}
 		sCh := slackChannel{
-			Id:      "someid",
+			ID:      "someid",
 			Members: []string{u1.Id, "randomID"},
 			Creator: "randomID2",
 		}
@@ -356,7 +356,7 @@ func TestOldImportChannel(t *testing.T) {
 			u1.Id: u1,
 		}
 		sCh := slackChannel{
-			Id:      "someid",
+			ID:      "someid",
 			Members: []string{u1.Id},
 			Creator: "randomID2",
 		}
@@ -376,7 +376,7 @@ func TestOldImportChannel(t *testing.T) {
 			u1.Id: u1,
 		}
 		sCh := slackChannel{
-			Id:      "someid",
+			ID:      "someid",
 			Members: []string{u1.Id},
 			Creator: "randomID2",
 		}

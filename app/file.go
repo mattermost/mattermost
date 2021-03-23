@@ -253,9 +253,9 @@ func (a *App) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
+func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldID, filename string) *model.FileInfo {
 	name, _ := url.QueryUnescape(filename)
-	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelID, userID, oldId)
+	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelID, userID, oldID)
 	path := pathPrefix + name
 
 	// Open the file and populate the fields of the FileInfo
@@ -710,12 +710,10 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, t.newAppError("api.file.upload_file.storage.app_error",
-			"", http.StatusNotImplemented)
+		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.init(a)
@@ -737,8 +735,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
 			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.fileinfo.Size = written
@@ -827,8 +824,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// in 64 bits systems because images can't have more than 32 bits height or
 	// width)
 	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
-			"", http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
@@ -942,7 +938,7 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,
@@ -960,14 +956,14 @@ func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus i
 		params[fmt.Sprintf("%v", extra[i])] = extra[i+1]
 	}
 
-	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
+	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamID string, rawChannelID string, rawUserID string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
-	teamID := filepath.Base(rawTeamId)
-	channelID := filepath.Base(rawChannelId)
-	userID := filepath.Base(rawUserId)
+	teamID := filepath.Base(rawTeamID)
+	channelID := filepath.Base(rawChannelID)
+	userID := filepath.Base(rawUserID)
 
 	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
