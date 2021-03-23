@@ -4,13 +4,19 @@
 package api4
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -23,6 +29,111 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
 	require.NoError(t, err)
+}
+
+func TestWebSocketPing(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
+	conn, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
+	require.NoError(t, err)
+
+	doneChan := make(chan struct{})
+	var wg sync.WaitGroup
+
+	conn.SetPongHandler(func(str string) error {
+		assert.Equal(t, str, "hello")
+		close(doneChan)
+		return nil
+	})
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-doneChan:
+				return
+			default:
+				_, _, err := conn.ReadMessage()
+				require.NoError(t, err)
+			}
+		}
+	}()
+
+	req := &model.WebSocketRequest{
+		Seq:    1,
+		Action: model.WEBSOCKET_AUTHENTICATION_CHALLENGE,
+		Data:   map[string]interface{}{"token": th.Client.AuthToken},
+	}
+
+	err = conn.WriteJSON(req)
+	require.NoError(t, err)
+
+	err = conn.WriteMessage(websocket.PingMessage, []byte("hello"))
+	require.NoError(t, err)
+
+	select {
+	case <-doneChan:
+		wg.Wait()
+		break
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "timed out waiting for a pong response")
+	}
+}
+
+func TestWebSocketFragmented(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
+
+	conn, _, hs, err := ws.DefaultDialer.Dial(context.Background(), url+model.API_URL_SUFFIX+"/websocket/")
+	require.NoError(t, err)
+
+	doneChan := make(chan struct{})
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-doneChan:
+				return
+			default:
+				_, err := wsutil.ReadServerText(conn)
+				require.NoError(t, err)
+			}
+		}
+	}()
+
+	w := wsutil.NewWriter(conn, ws.StateClientSide, ws.OpText)
+
+	req := &model.WebSocketRequest{
+		Seq:    1,
+		Action: model.WEBSOCKET_AUTHENTICATION_CHALLENGE,
+		Data:   map[string]interface{}{"token": th.Client.AuthToken},
+	}
+	err = json.NewEncoder(w).Encode(req)
+	require.NoError(t, err)
+	err = w.Flush()
+	require.NoError(t, err)
+
+	_, err = w.Write([]byte(`{"Seq": 2,`))
+	require.NoError(t, err)
+	err = w.FlushFragment()
+	require.NoError(t, err)
+	_, err = w.Write([]byte(`"Action": "get_statuses",`))
+	err = w.FlushFragment()
+	require.NoError(t, err)
+	_, err = w.Write([]byte(`"Data": null}`))
+	err = w.Flush()
+	require.NoError(t, err)
+
+	close(doneChan)
+	wg.Wait()
 }
 
 func TestWebSocketEvent(t *testing.T) {

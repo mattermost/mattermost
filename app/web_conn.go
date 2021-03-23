@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"runtime"
@@ -58,6 +60,7 @@ type WebConn struct {
 	sessionToken              atomic.Value
 	session                   atomic.Value
 	hasEpoll                  bool
+	pingChan                  chan []byte
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 	closeOnce                 sync.Once
@@ -81,6 +84,7 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 		T:                  t,
 		Locale:             locale,
 		hasEpoll:           *a.Config().ServiceSettings.ConnectionSecurity == "" && runtime.GOOS != "windows",
+		pingChan:           make(chan []byte, sendQueueSize/10), // just a rough estimate of ping capacity.
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 	}
@@ -233,7 +237,6 @@ func (s *Server) ReleaseWebConnToken() {
 func (wc *WebConn) ReadMsg() error {
 	r := wsutil.NewReader(wc.WebSocket, ws.StateServerSide)
 	r.MaxFrameSize = model.SOCKET_MAX_MESSAGE_SIZE_KB
-	decoder := json.NewDecoder(r)
 
 	// The reader's methods are not goroutine safe.
 	// We restrict only one reader goroutine per-connection.
@@ -245,6 +248,9 @@ func (wc *WebConn) ReadMsg() error {
 	if err != nil {
 		return errors.Wrap(err, "error while getting the next websocket frame")
 	}
+
+	// Control frames aren't fragmented, so we can handle them individually.
+	// For text, binary, continuation frames, we let the underlying reader read it completely.
 	switch hdr.OpCode {
 	case ws.OpClose:
 		// Return if closed.
@@ -255,17 +261,39 @@ func (wc *WebConn) ReadMsg() error {
 		return nil
 	case ws.OpPong:
 		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		// We drain any message sent as part of pong.
+		r.Discard()
 		// Handle pongs
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
 			})
 		}
-	default:
-		// Default case of data message.
-		if err := decoder.Decode(&req); err != nil {
+	case ws.OpPing:
+		// Ping frame cannot be fragmented, so we can read exactly the frame length.
+		buf := make([]byte, hdr.Length)
+		_, err = io.ReadFull(r, buf)
+		if err != nil {
 			// We discard any remaining data left in the socket.
 			r.Discard()
+			mlog.Debug("Error during reading ping message from websocket", mlog.Err(err))
+		} else {
+			// We make it a non-blocking write,
+			// to let it move on, if we return from the writer.
+			select {
+			case wc.pingChan <- buf:
+			default:
+			}
+		}
+	default:
+		// Limiting the total amount of a fragmented message size too.
+		// We do not really support streaming parsing in our application.
+		buf, err := ioutil.ReadAll(io.LimitReader(r, model.SOCKET_MAX_MESSAGE_SIZE_KB))
+		if err != nil {
+			r.Discard()
+			return errors.Wrap(err, "error during reading from a non-control frame")
+		}
+		if err := json.Unmarshal(buf, &req); err != nil {
 			return errors.Wrap(err, "error during decoding websocket message")
 		}
 
@@ -307,8 +335,7 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-				wsutil.WriteServerMessage(wc.WebSocket, ws.OpClose, []byte{})
+				wc.writeMessage(ws.OpClose, []byte{})
 				return
 			}
 
@@ -362,8 +389,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpText, buf.Bytes()); err != nil {
+			if err := wc.writeMessage(ws.OpText, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
@@ -372,9 +398,13 @@ func (wc *WebConn) writePump() {
 				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpPing, []byte{}); err != nil {
+			if err := wc.writeMessage(ws.OpPing, []byte{}); err != nil {
 				wc.logSocketErr("websocket.ticker", err)
+				return
+			}
+		case msg := <-wc.pingChan:
+			if err := wc.writeMessage(ws.OpPong, msg); err != nil {
+				wc.logSocketErr("websocket.pong", err)
 				return
 			}
 
@@ -389,6 +419,13 @@ func (wc *WebConn) writePump() {
 			authTicker.Stop()
 		}
 	}
+}
+
+// writeMessage is a small helper which adds the write deadline and
+// writes a given message with an opcode.
+func (wc *WebConn) writeMessage(code ws.OpCode, msg []byte) error {
+	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+	return wsutil.WriteServerMessage(wc.WebSocket, code, msg)
 }
 
 // InvalidateCache resets all internal data of the WebConn.
