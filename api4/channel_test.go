@@ -1024,29 +1024,60 @@ func TestGetAllChannels(t *testing.T) {
 	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
 
+	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+	CheckOKStatus(t, resp)
+	policyChannel := (*sysManagerChannels)[0]
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 30,
+		},
+		ChannelIDs: []string{policyChannel.Id},
+	})
+	require.Nil(t, savePolicyErr)
+
 	t.Run("exclude policy constrained", func(t *testing.T) {
 		_, resp := th.SystemManagerClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
 		CheckForbiddenStatus(t, resp)
 
-		basicChannel := th.BasicChannel
-		_, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
-			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "Policy 1",
-				PostDuration: 30,
-			},
-			ChannelIDs: []string{basicChannel.Id},
-		})
-		require.Nil(t, err)
 		channels, resp := th.SystemAdminClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
 		CheckOKStatus(t, resp)
 		found := false
 		for _, channel := range *channels {
-			if channel.Id == basicChannel.Id {
+			if channel.Id == policyChannel.Id {
 				found = true
 				break
 			}
 		}
 		require.False(t, found)
+	})
+
+	t.Run("does not return policy ID", func(t *testing.T) {
+		channels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Nil(t, channel.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+
+	t.Run("returns policy ID", func(t *testing.T) {
+		channels, resp := th.SystemAdminClient.GetAllChannels(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Equal(t, *channel.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
 	})
 }
 

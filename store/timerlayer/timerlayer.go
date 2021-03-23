@@ -6388,42 +6388,10 @@ func (s *TimerLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeID string) (i
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) AnalyticsPrivateTeamCount() (int64, error) {
+func (s *TimerLayerTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.AnalyticsPrivateTeamCount()
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.AnalyticsPrivateTeamCount", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.TeamStore.AnalyticsPublicTeamCount()
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.AnalyticsPublicTeamCount", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.TeamStore.AnalyticsTeamCount(includeDeleted)
+	result, err := s.TeamStore.AnalyticsTeamCount(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6531,7 +6499,7 @@ func (s *TimerLayerTeamStore) GetAllForExportAfter(limit int, afterID string) ([
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPage(offset, limit, opts)
@@ -6563,38 +6531,6 @@ func (s *TimerLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) 
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	start := timemodule.Now()
-
-	result, err := s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllPrivateTeamPageListing", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	start := timemodule.Now()
-
-	result, err := s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllPublicTeamPageListing", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	start := timemodule.Now()
 
@@ -6607,22 +6543,6 @@ func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllTeamListing", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	start := timemodule.Now()
-
-	result, err := s.TeamStore.GetAllTeamPageListing(offset, limit)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllTeamPageListing", success, elapsed)
 	}
 	return result, err
 }

@@ -59,6 +59,8 @@ type ChannelWithTeamData struct {
 	TeamDisplayName string `json:"team_display_name"`
 	TeamName        string `json:"team_name"`
 	TeamUpdateAt    int64  `json:"team_update_at"`
+	// This isn't really team data, but renaming the struct would be a lot of work...
+	PolicyID *string `db:"PolicyId" json:"policy_id,omitempty"`
 }
 
 type ChannelsWithCount struct {
@@ -131,6 +133,7 @@ type ChannelSearchOpts struct {
 	ExcludeGroupConstrained  bool
 	PolicyID                 string
 	ExcludePolicyConstrained bool
+	IncludePolicyID          bool
 	Public                   bool
 	Private                  bool
 	Page                     *int

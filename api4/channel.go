@@ -715,6 +715,9 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeDeleted:           c.Params.IncludeDeleted,
 		ExcludePolicyConstrained: c.Params.ExcludePolicyConstrained,
 	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		opts.IncludePolicyID = true
+	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {

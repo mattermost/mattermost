@@ -669,7 +669,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o)
 	require.NoError(t, err)
 
-	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
 			PostDuration: 30,
@@ -685,6 +685,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 	for _, team := range teams {
 		if team.Id == o.Id {
 			found = true
+			require.Nil(t, team.PolicyID)
 			break
 		}
 	}
@@ -701,6 +702,19 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 		}
 	}
 	require.False(t, found)
+
+	// With policy ID
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewBool(true)})
+	require.Nil(t, err)
+	found = false
+	for _, team := range teams {
+		if team.Id == o.Id {
+			found = true
+			require.Equal(t, *team.PolicyID, policy.ID)
+			break
+		}
+	}
+	require.True(t, found)
 }
 
 func testGetAllTeamListing(t *testing.T, ss store.Store) {
@@ -784,7 +798,9 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	teams, err := ss.Team().GetAllTeamPageListing(0, 10)
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+
+	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, err)
 
 	for _, team := range teams {
@@ -802,7 +818,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.NoError(t, err)
 
-	teams, err = ss.Team().GetAllTeamPageListing(0, 4)
+	teams, err = ss.Team().GetAllPage(0, 4, opts)
 	require.NoError(t, err)
 
 	for _, team := range teams {
@@ -811,7 +827,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 
 	require.LessOrEqual(t, len(teams), 4, "should have returned max of 4 teams")
 
-	teams, err = ss.Team().GetAllTeamPageListing(1, 1)
+	teams, err = ss.Team().GetAllPage(1, 1, opts)
 	require.NoError(t, err)
 
 	for _, team := range teams {
@@ -902,7 +918,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 10)
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(false)}
+
+	teams, listErr := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
@@ -919,7 +937,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.NoError(t, err)
 
-	teams, listErr = ss.Team().GetAllPrivateTeamPageListing(0, 4)
+	teams, listErr = ss.Team().GetAllPage(0, 4, opts)
 	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
@@ -927,7 +945,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 
 	require.LessOrEqual(t, len(teams), 4, "should have returned max of 4 teams")
 
-	teams, listErr = ss.Team().GetAllPrivateTeamPageListing(1, 1)
+	teams, listErr = ss.Team().GetAllPage(1, 1, opts)
 	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
@@ -975,9 +993,14 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	teams, err := ss.Team().GetAllPublicTeamPageListing(0, 10)
+	t1p := &model.TeamWithPolicyID{Team: *t1}
+	t3p := &model.TeamWithPolicyID{Team: *t3}
+
+	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
+
+	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	assert.NoError(t, err)
-	assert.Equal(t, []*model.Team{t1, t3}, teams)
+	assert.Equal(t, []*model.TeamWithPolicyID{t1p, t3p}, teams)
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName5"
@@ -988,11 +1011,13 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	t5, err := ss.Team().Save(&o5)
 	require.NoError(t, err)
 
-	teams, err = ss.Team().GetAllPublicTeamPageListing(0, 4)
-	assert.NoError(t, err)
-	assert.Equal(t, []*model.Team{t1, t3, t5}, teams)
+	t5p := &model.TeamWithPolicyID{Team: *t5}
 
-	_, err = ss.Team().GetAllPublicTeamPageListing(1, 1)
+	teams, err = ss.Team().GetAllPage(0, 4, opts)
+	assert.NoError(t, err)
+	assert.Equal(t, []*model.TeamWithPolicyID{t1p, t3p, t5p}, teams)
+
+	_, err = ss.Team().GetAllPage(1, 1, opts)
 	assert.NoError(t, err)
 }
 
@@ -1048,7 +1073,7 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsPublicTeamCount()
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(true)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1083,7 +1108,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsPrivateTeamCount()
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewBool(false)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1099,7 +1124,7 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// not including deleted teams
-	teamCount, err := ss.Team().AnalyticsTeamCount(false)
+	teamCount, err := ss.Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, int(teamCount), "should be at least 1 team")
 
@@ -1109,11 +1134,11 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// get the count of teams not including deleted
-	countNotIncludingDeleted, err := ss.Team().AnalyticsTeamCount(false)
+	countNotIncludingDeleted, err := ss.Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err)
 
 	// get the count of teams including deleted
-	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(true)
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewBool(true)})
 	require.NoError(t, err)
 
 	// count including deleted should be one greater than not including deleted

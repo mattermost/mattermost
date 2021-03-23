@@ -1693,6 +1693,7 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
 		IncludeDeleted:           opts.IncludeDeleted,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
+		IncludePolicyID:          opts.IncludePolicyID,
 	}
 	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {

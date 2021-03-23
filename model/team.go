@@ -58,13 +58,18 @@ type TeamForExport struct {
 	SchemeName *string
 }
 
+type TeamWithPolicyID struct {
+	Team
+	PolicyID *string `db:"PolicyId" json:"policy_id,omitempty"`
+}
+
 type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }
 
 type TeamsWithCount struct {
-	Teams      []*Team `json:"teams"`
-	TotalCount int64   `json:"total_count"`
+	Teams      []*TeamWithPolicyID `json:"teams"`
+	TotalCount int64               `json:"total_count"`
 }
 
 func InvitesFromJson(data io.Reader) *Invites {
@@ -124,8 +129,8 @@ func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
 	return twc
 }
 
-func TeamListFromJson(data io.Reader) []*Team {
-	var teams []*Team
+func TeamListFromJson(data io.Reader) []*TeamWithPolicyID {
+	var teams []*TeamWithPolicyID
 	json.NewDecoder(data).Decode(&teams)
 	return teams
 }

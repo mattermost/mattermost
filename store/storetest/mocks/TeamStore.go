@@ -37,62 +37,20 @@ func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeID string) (int64, err
 	return r0, r1
 }
 
-// AnalyticsPrivateTeamCount provides a mock function with given fields:
-func (_m *TeamStore) AnalyticsPrivateTeamCount() (int64, error) {
-	ret := _m.Called()
+// AnalyticsTeamCount provides a mock function with given fields: opts
+func (_m *TeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) {
+	ret := _m.Called(opts)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*model.TeamSearch) int64); ok {
+		r0 = rf(opts)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// AnalyticsPublicTeamCount provides a mock function with given fields:
-func (_m *TeamStore) AnalyticsPublicTeamCount() (int64, error) {
-	ret := _m.Called()
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// AnalyticsTeamCount provides a mock function with given fields: includeDeleted
-func (_m *TeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
-	ret := _m.Called(includeDeleted)
-
-	var r0 int64
-	if rf, ok := ret.Get(0).(func(bool) int64); ok {
-		r0 = rf(includeDeleted)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(bool) error); ok {
-		r1 = rf(includeDeleted)
+	if rf, ok := ret.Get(1).(func(*model.TeamSearch) error); ok {
+		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -210,15 +168,15 @@ func (_m *TeamStore) GetAllForExportAfter(limit int, afterID string) ([]*model.T
 }
 
 // GetAllPage provides a mock function with given fields: offset, limit, opts
-func (_m *TeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
+func (_m *TeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error) {
 	ret := _m.Called(offset, limit, opts)
 
-	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int, *model.TeamSearch) []*model.Team); ok {
+	var r0 []*model.TeamWithPolicyID
+	if rf, ok := ret.Get(0).(func(int, int, *model.TeamSearch) []*model.TeamWithPolicyID); ok {
 		r0 = rf(offset, limit, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Team)
+			r0 = ret.Get(0).([]*model.TeamWithPolicyID)
 		}
 	}
 
@@ -255,52 +213,6 @@ func (_m *TeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetAllPrivateTeamPageListing provides a mock function with given fields: offset, limit
-func (_m *TeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	ret := _m.Called(offset, limit)
-
-	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
-		r0 = rf(offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Team)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllPublicTeamPageListing provides a mock function with given fields: offset, limit
-func (_m *TeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	ret := _m.Called(offset, limit)
-
-	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
-		r0 = rf(offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Team)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAllTeamListing provides a mock function with given fields:
 func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	ret := _m.Called()
@@ -317,29 +229,6 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllTeamPageListing provides a mock function with given fields: offset, limit
-func (_m *TeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	ret := _m.Called(offset, limit)
-
-	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
-		r0 = rf(offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Team)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

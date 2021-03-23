@@ -1019,6 +1019,9 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		selectStr = "count(c.Id)"
 	} else {
 		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
+		if opts.IncludePolicyID {
+			selectStr += ", RetentionPoliciesChannels.PolicyId"
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -1042,10 +1045,11 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
+	if opts.ExcludePolicyConstrained || opts.IncludePolicyID {
+		query = query.LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
+	}
 	if opts.ExcludePolicyConstrained {
-		query = query.
-			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
-			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+		query = query.Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	}
 
 	return query

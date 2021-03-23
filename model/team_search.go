@@ -17,6 +17,8 @@ type TeamSearch struct {
 	IncludeGroupConstrained  *bool   `json:"include_group_constrained,omitempty"`
 	PolicyID                 *string `json:"policy_id,omitempty"`
 	ExcludePolicyConstrained *bool   `json:"exclude_policy_constrained,omitempty"`
+	IncludePolicyID          *bool   `json:"-"`
+	IncludeDeleted           *bool   `json:"-"`
 }
 
 func (t *TeamSearch) IsPaginated() bool {

@@ -1833,7 +1833,7 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 }
 
 // GetAllTeams returns all teams based on permissions.
-func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Response) {
+func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*TeamWithPolicyID, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
 	if err != nil {
@@ -1844,7 +1844,7 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 }
 
 // GetAllTeamsWithTotalCount returns all teams based on permissions.
-func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response) {
+func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*TeamWithPolicyID, int64, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
 	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
 	if err != nil {
@@ -1857,7 +1857,7 @@ func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) 
 
 // GetAllTeamsExcludePolicyConstrained returns all teams which are not part of a data retention policy.
 // Must be a system administrator.
-func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, perPage int) ([]*Team, *Response) {
+func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, perPage int) ([]*TeamWithPolicyID, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&exclude_policy_constrained=%v", page, perPage, true)
 	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
 	if err != nil {
@@ -1878,7 +1878,7 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 }
 
 // SearchTeams returns teams matching the provided search term.
-func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
+func (c *Client4) SearchTeams(search *TeamSearch) ([]*TeamWithPolicyID, *Response) {
 	r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -1888,7 +1888,7 @@ func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
 }
 
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
-func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*Team, int64, *Response) {
+func (c *Client4) SearchTeamsPaged(search *TeamSearch) ([]*TeamWithPolicyID, int64, *Response) {
 	if search.Page == nil {
 		search.Page = NewInt(0)
 	}
@@ -1916,7 +1916,7 @@ func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
 
 // GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
 // or be a system administrator.
-func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response) {
+func (c *Client4) GetTeamsForUser(userId, etag string) ([]*TeamWithPolicyID, *Response) {
 	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams", etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -5285,7 +5285,7 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 }
 
 // GetTeamsForScheme gets the teams using this scheme, sorted alphabetically by display name.
-func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*Team, *Response) {
+func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*TeamWithPolicyID, *Response) {
 	r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)

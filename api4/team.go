@@ -951,18 +951,20 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	teams := []*model.Team{}
+	teams := []*model.TeamWithPolicyID{}
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
 	opts := &model.TeamSearch{}
-	// Only system admins may use the ExcludePolicyConstrained parameter
 	if c.Params.ExcludePolicyConstrained {
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
 			return
 		}
 		opts.ExcludePolicyConstrained = model.NewBool(true)
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		opts.IncludePolicyID = model.NewBool(true)
 	}
 
 	listPrivate := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PRIVATE_TEAMS)
@@ -970,40 +972,36 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	limit := c.Params.PerPage
 	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(offset, limit, opts)
-		} else {
-			teams, err = c.App.GetAllTeamsPage(offset, limit, opts)
-		}
 	} else if listPrivate {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(offset, limit)
-		} else {
-			teams, err = c.App.GetAllPrivateTeamsPage(offset, limit)
-		}
+		opts.AllowOpenInvite = model.NewBool(false)
 	} else if listPublic {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(offset, limit)
-		} else {
-			teams, err = c.App.GetAllPublicTeamsPage(offset, limit)
-		}
+		opts.AllowOpenInvite = model.NewBool(true)
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
-		err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if c.Params.IncludeTotalCount {
+		teamsWithCount, err = c.App.GetAllTeamsPageWithCount(offset, limit, opts)
+	} else {
+		teams, err = c.App.GetAllTeamsPage(offset, limit, opts)
 	}
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	c.App.SanitizeTeams(*c.App.Session(), teams)
+	for _, team := range teams {
+		c.App.SanitizeTeam(*c.App.Session(), &team.Team)
+	}
 
 	var resBody []byte
 
 	if c.Params.IncludeTotalCount {
 		resBody = model.TeamsWithCountToJson(teamsWithCount)
 	} else {
-		resBody = []byte(model.TeamListToJson(teams))
+		resBody = model.ToJson(teams)
 	}
 
 	w.Write(resBody)
@@ -1054,8 +1052,8 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
-		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
-		payload = model.TeamsWithCountToJson(twc)
+		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
+		payload = model.ToJson(twc)
 	} else {
 		payload = []byte(model.TeamListToJson(teams))
 	}

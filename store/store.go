@@ -103,18 +103,13 @@ type TeamStore interface {
 	SearchOpen(term string) ([]*model.Team, error)
 	SearchPrivate(term string) ([]*model.Team, error)
 	GetAll() ([]*model.Team, error)
-	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
+	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
-	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error)
-	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
-	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	PermanentDelete(teamID string) error
-	AnalyticsTeamCount(includeDeleted bool) (int64, error)
-	AnalyticsPublicTeamCount() (int64, error)
-	AnalyticsPrivateTeamCount() (int64, error)
+	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
@@ -827,6 +822,7 @@ type ChannelSearchOpts struct {
 	ExcludeGroupConstrained  bool
 	PolicyID                 string
 	ExcludePolicyConstrained bool
+	IncludePolicyID          bool
 	Public                   bool
 	Private                  bool
 	Page                     *int
