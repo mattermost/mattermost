@@ -206,7 +206,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 
-	if sqlDrivernameEnvironment !== "" {
+	if sqlDrivernameEnvironment != "" {
 		defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
 	} else {
 		defer os.Unsetenv("MM_SQLSETTINGS_DRIVERNAME")
