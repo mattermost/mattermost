@@ -5509,7 +5509,7 @@ func (s *TimerLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, o
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
+func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.GetTeams(policyId, offset, limit)

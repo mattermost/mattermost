@@ -256,15 +256,15 @@ func (_m *RetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset int
 }
 
 // GetTeams provides a mock function with given fields: policyId, offset, limit
-func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
+func (_m *RetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
 	ret := _m.Called(policyId, offset, limit)
 
-	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
+	var r0 []*model.TeamWithPolicyID
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.TeamWithPolicyID); ok {
 		r0 = rf(policyId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Team)
+			r0 = ret.Get(0).([]*model.TeamWithPolicyID)
 		}
 	}
 

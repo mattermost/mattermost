@@ -6089,7 +6089,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID str
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetTeams")
 	s.Root.Store.SetContext(newCtx)

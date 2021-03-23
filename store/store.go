@@ -82,7 +82,7 @@ type RetentionPolicyStore interface {
 	GetChannelsCount(policyId string) (int64, error)
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error
-	GetTeams(policyId string, offset, limit int) ([]*model.Team, error)
+	GetTeams(policyId string, offset, limit int) ([]*model.TeamWithPolicyID, error)
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error

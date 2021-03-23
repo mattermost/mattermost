@@ -6590,7 +6590,7 @@ func (s *RetryLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, o
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
+func (s *RetryLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
 
 	tries := 0
 	for {
