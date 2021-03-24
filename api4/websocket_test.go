@@ -56,8 +56,8 @@ func TestWebSocketPing(t *testing.T) {
 			case <-doneChan:
 				return
 			default:
-				_, _, err := conn.ReadMessage()
-				require.NoError(t, err)
+				_, _, err2 := conn.ReadMessage()
+				require.NoError(t, err2)
 			}
 		}
 	}()
@@ -89,7 +89,7 @@ func TestWebSocketFragmented(t *testing.T) {
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
-	conn, _, hs, err := ws.DefaultDialer.Dial(context.Background(), url+model.API_URL_SUFFIX+"/websocket/")
+	conn, _, _, err := ws.DefaultDialer.Dial(context.Background(), url+model.API_URL_SUFFIX+"/websocket/")
 	require.NoError(t, err)
 
 	doneChan := make(chan struct{})
@@ -103,8 +103,8 @@ func TestWebSocketFragmented(t *testing.T) {
 			case <-doneChan:
 				return
 			default:
-				_, err := wsutil.ReadServerText(conn)
-				require.NoError(t, err)
+				_, err2 := wsutil.ReadServerText(conn)
+				require.NoError(t, err2)
 			}
 		}
 	}()
@@ -126,9 +126,11 @@ func TestWebSocketFragmented(t *testing.T) {
 	err = w.FlushFragment()
 	require.NoError(t, err)
 	_, err = w.Write([]byte(`"Action": "get_statuses",`))
+	require.NoError(t, err)
 	err = w.FlushFragment()
 	require.NoError(t, err)
 	_, err = w.Write([]byte(`"Data": null}`))
+	require.NoError(t, err)
 	err = w.Flush()
 	require.NoError(t, err)
 
