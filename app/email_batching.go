@@ -237,7 +237,7 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 
 			tm := time.Unix(notification.post.CreateAt/1000, 0)
 			timezone, _ := tm.Zone()
-			
+
 			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
 				"Hour":     tm.Hour(),
 				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
