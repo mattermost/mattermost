@@ -327,10 +327,9 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 			err = forceUpdateAt(reaction, update, s)
 			require.Nil(t, err)
 		}
+		err = forceNULL(reaction, s) // test COALESCE
+		require.Nil(t, err)
 	}
-
-	err := forceNULL(s) // test COALESCE
-	require.Nil(t, err)
 
 	t.Run("reactions since", func(t *testing.T) {
 		// should return 2 reactions that are not deleted for post
@@ -417,7 +416,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 	return nil
 }
 
-func forceNULL(s SqlStore) error {
+func forceNULL(reaction *model.Reaction, s SqlStore) error {
 	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
@@ -482,33 +481,13 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 
 		// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
 		if reaction.EmojiName == emojiToDelete {
-			err = forceUpdateAt(reaction, 0, s)
-			require.Nil(t, err)
-			err = forceNULL(s)
+			err = forceNULL(reaction, s)
 			require.Nil(t, err)
 		}
 	}
 
-	// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
-	sqlResult, err := s.GetMaster().Exec(`
-		UPDATE
-				Reactions
-			SET
-				UpdateAt=NULL, DeleteAt=NULL
-			WHERE
-				UserId = :UserId AND PostId = :PostId AND EmojiName = :EmojiName`,
-		map[string]interface{}{
-			"UserId":    userId,
-			"PostId":    post.Id,
-			"EmojiName": emojiToDelete,
-		})
-	require.NoError(t, err)
-	rowsAffected, err := sqlResult.RowsAffected()
-	require.NoError(t, err)
-	require.NotZero(t, rowsAffected)
-
-	err = ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
-	require.NoError(t, err)
+	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
+	require.Nil(t, err)
 
 	// check that the reactions were deleted
 	returned, err := ss.Reaction().GetForPost(post.Id, false)
