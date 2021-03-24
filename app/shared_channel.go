@@ -40,6 +40,22 @@ func (a *App) checkChannelIsShared(channelId string) error {
 	return nil
 }
 
+func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
+	sc, err := a.GetSharedChannel(channelId)
+	if err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return errors.New("channel is not shared.")
+		}
+		return fmt.Errorf("cannot find channel: %w", err)
+	}
+
+	if !sc.Home {
+		return errors.New("channel is homed on a remote cluster.")
+	}
+	return nil
+}
+
 // SharedChannels
 
 func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {

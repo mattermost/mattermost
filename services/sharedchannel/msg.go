@@ -94,7 +94,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 			postSync.Message = scs.processPermalinkToRemote(postSync)
 
 			// get any file attachments
-			attachments, err = scs.postToAttachments(postSync, rc, nextSyncAt)
+			attachments, err = scs.postToAttachments(postSync, rc)
 			if err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not fetch attachments for post",
 					mlog.String("post_id", postSync.Id),

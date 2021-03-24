@@ -12,12 +12,12 @@ import (
 	"crypto/ecdsa"
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -1076,6 +1076,28 @@ func (a *OpenTracingAppLayer) CheckAndSendUserLimitWarningEmails() *model.AppErr
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CheckCanInviteToSharedChannel(channelId string) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckCanInviteToSharedChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckCanInviteToSharedChannel(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckForClientSideCert")
@@ -1133,6 +1155,23 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, pass
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckProviderAttributes")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckProviderAttributes(user, patch)
 
 	return resultVar0
 }
@@ -7249,7 +7288,7 @@ func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelID string, time int64, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostThread(postID string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostThread(postID string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")
 
@@ -7261,7 +7300,7 @@ func (a *OpenTracingAppLayer) GetPostThread(postID string, skipFetchThreads bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostThread(postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	resultVar0, resultVar1 := a.app.GetPostThread(postID, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11254,7 +11293,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFunc, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
