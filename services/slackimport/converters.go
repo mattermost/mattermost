@@ -22,7 +22,7 @@ func slackConvertTimeStamp(ts string) int64 {
 	return timeStamp * 1000 // Convert to milliseconds
 }
 
-func slackConvertChannelName(channelName string, channelID string) string {
+func slackConvertChannelName(channelName string, channelId string) string {
 	newName := strings.Trim(channelName, "_-")
 	if len(newName) == 1 {
 		return "slack-channel-" + newName
@@ -31,15 +31,15 @@ func slackConvertChannelName(channelName string, channelID string) string {
 	if isValidChannelNameCharacters(newName) {
 		return newName
 	}
-	return strings.ToLower(channelID)
+	return strings.ToLower(channelId)
 }
 
 func slackConvertUserMentions(users []slackUser, posts map[string][]slackPost) map[string][]slackPost {
 	var regexes = make(map[string]*regexp.Regexp, len(users))
 	for _, user := range users {
-		r, err := regexp.Compile("<@" + user.ID + `(\|` + user.Username + ")?>")
+		r, err := regexp.Compile("<@" + user.Id + `(\|` + user.Username + ")?>")
 		if err != nil {
-			mlog.Warn("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user.", mlog.String("user_name", user.Username), mlog.String("user_id", user.ID))
+			mlog.Warn("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user.", mlog.String("user_name", user.Username), mlog.String("user_id", user.Id))
 			continue
 		}
 		regexes["@"+user.Username] = r
@@ -65,9 +65,9 @@ func slackConvertUserMentions(users []slackUser, posts map[string][]slackPost) m
 func slackConvertChannelMentions(channels []slackChannel, posts map[string][]slackPost) map[string][]slackPost {
 	var regexes = make(map[string]*regexp.Regexp, len(channels))
 	for _, channel := range channels {
-		r, err := regexp.Compile("<#" + channel.ID + `(\|` + channel.Name + ")?>")
+		r, err := regexp.Compile("<#" + channel.Id + `(\|` + channel.Name + ")?>")
 		if err != nil {
-			mlog.Warn("Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel.", mlog.String("channel_id", channel.ID), mlog.String("channel_name", channel.Name))
+			mlog.Warn("Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			continue
 		}
 		regexes["~"+channel.Name] = r
