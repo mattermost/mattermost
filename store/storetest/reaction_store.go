@@ -487,7 +487,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	}
 
 	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// check that the reactions were deleted
 	returned, err := ss.Reaction().GetForPost(post.Id, false)
