@@ -36,8 +36,6 @@ const (
 	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
 )
 
-var errNonEpollConnClose = errors.New("connection closed")
-
 // WebConn represents a single websocket connection to a user.
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
@@ -57,7 +55,7 @@ type WebConn struct {
 	send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
-	hasEpoll                  bool
+	isWindows                 bool
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 	closeOnce                 sync.Once
@@ -80,7 +78,7 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 		UserId:             session.UserId,
 		T:                  t,
 		Locale:             locale,
-		hasEpoll:           *a.Config().ServiceSettings.ConnectionSecurity == "" && runtime.GOOS != "windows",
+		isWindows:          runtime.GOOS == "windows",
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 	}
@@ -89,7 +87,8 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 	wc.SetSessionToken(session.Token)
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
-	if wc.hasEpoll {
+	// epoll/kqueue is not available on Windows.
+	if !wc.isWindows {
 		wc.startPoller()
 	}
 	return wc
@@ -102,7 +101,7 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t i18n.TranslateFun
 func (wc *WebConn) Close() {
 	wc.closeOnce.Do(func() {
 		wc.WebSocket.Close()
-		if wc.hasEpoll {
+		if !wc.isWindows {
 			// This triggers the pump exit.
 			// If the pump has already exited, this just becomes a noop.
 			close(wc.endWritePump)
@@ -146,11 +145,6 @@ func (wc *WebConn) SetSession(v *model.Session) {
 	wc.session.Store(v)
 }
 
-// Epoll returns whether the websocket is eligible to use epoll or not.
-func (wc *WebConn) Epoll() bool {
-	return wc.hasEpoll
-}
-
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send messages.
 // This is only used by *nix platforms.
@@ -162,7 +156,7 @@ func (wc *WebConn) Pump() {
 	close(wc.pumpFinished)
 }
 
-// BlockingPump is the non-epoll alternative of Pump.
+// BlockingPump is the Windows alternative of Pump.
 // It creates two goroutines - one for reading, another
 // for writing.
 func (wc *WebConn) BlockingPump() {
@@ -248,9 +242,9 @@ func (wc *WebConn) ReadMsg() error {
 	switch hdr.OpCode {
 	case ws.OpClose:
 		// Return if closed.
-		// We need to return an error for non-epoll systems to let the reader exit.
-		if !wc.hasEpoll {
-			return errNonEpollConnClose
+		// We need to return an error for Windows to let the reader exit.
+		if wc.isWindows {
+			return errors.New("connection closed")
 		}
 		return nil
 	case ws.OpPong:
@@ -280,9 +274,7 @@ func (wc *WebConn) readPump() {
 
 	for {
 		if err := wc.ReadMsg(); err != nil {
-			if err != errNonEpollConnClose {
-				wc.logSocketErr("websocket.read", err)
-			}
+			wc.logSocketErr("websocket.read", err)
 			return
 		}
 	}
