@@ -18,6 +18,7 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/gorilla/websocket"
+	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
