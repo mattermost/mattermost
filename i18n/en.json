@@ -3587,6 +3587,10 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Field '{{.Field}}' must be set through user's login provider."
+  },
+  {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
     "translation": "Unable to convert the guest to regular user because is not a guest."
   },
@@ -3727,6 +3731,10 @@
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Field '{{.Field}}' must be set through user's login provider."
+  },
+  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "Request is missing either AuthData or AuthService parameter."
   },
@@ -3749,6 +3757,10 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Could not encode profile image."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Profile picture must be set through user's login provider."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
@@ -3789,10 +3801,6 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
-  },
-  {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Invalid Origin header set during websocket upgrade."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -4409,6 +4417,10 @@
   {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Error generating password."
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",

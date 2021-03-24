@@ -9,13 +9,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -710,7 +707,10 @@ func (u *User) IsSSOUser() bool {
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_GITLAB
+	return u.AuthService == SERVICE_GITLAB ||
+		u.AuthService == SERVICE_GOOGLE ||
+		u.AuthService == SERVICE_OFFICE365 ||
+		u.AuthService == SERVICE_OPENID
 }
 
 func (u *User) IsLDAPUser() bool {
@@ -723,6 +723,33 @@ func (u *User) IsSAMLUser() bool {
 
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
+}
+
+func (u *User) ToPatch() *UserPatch {
+	return &UserPatch{
+		Username: &u.Username, Password: &u.Password,
+		Nickname: &u.Nickname, FirstName: &u.FirstName, LastName: &u.LastName,
+		Position: &u.Position, Email: &u.Email,
+		Props: u.Props, NotifyProps: u.NotifyProps,
+		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
+func (u *UserPatch) SetField(fieldName string, fieldValue string) {
+	switch fieldName {
+	case "FirstName":
+		u.FirstName = &fieldValue
+	case "LastName":
+		u.LastName = &fieldValue
+	case "Nickname":
+		u.Nickname = &fieldValue
+	case "Email":
+		u.Email = &fieldValue
+	case "Position":
+		u.Position = &fieldValue
+	case "Username":
+		u.Username = &fieldValue
+	}
 }
 
 // UserFromJson will decode the input and return a User
@@ -909,42 +936,4 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
-}
-
-//msgp:ignore lockedRand
-type lockedRand struct {
-	mu sync.Mutex
-	rn *rand.Rand
-}
-
-func (r *lockedRand) Intn(n int) int {
-	r.mu.Lock()
-	m := r.rn.Intn(n)
-	r.mu.Unlock()
-	return m
-}
-
-var passwordRandom = lockedRand{
-	rn: rand.New(rand.NewSource(time.Now().Unix())),
-}
-
-var passwordSpecialChars = "!$%^&*(),."
-var passwordNumbers = "0123456789"
-var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
-var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
-
-func GeneratePassword(minimumLength int) string {
-	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[passwordRandom.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[passwordRandom.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[passwordRandom.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[passwordRandom.Intn(len(passwordSpecialChars))])
-
-	for len(password) < minimumLength {
-		i := passwordRandom.Intn(len(passwordAllChars))
-		password = password + string([]rune(passwordAllChars)[i])
-	}
-
-	return password
 }
