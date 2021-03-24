@@ -1014,7 +1014,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().Exec(updateChannelsQuery); err != nil {
 		mlog.Error("Error updating TotalMsgCountRoot in Channels table", mlog.Err(err))
 	}
-	mlog.Info("Updated TotalMsgCountRoot in Channels", mlog.String("took", time.Now().Sub(t1).String()))
+	mlog.Info("Updated TotalMsgCountRoot in Channels", mlog.String("took", time.Since(t1).String()))
 
 	// loop over channels and update the memberships for each
 	var channels []struct {
@@ -1026,7 +1026,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().Select(&channels, "SELECT Id,TotalMsgCountRoot,LastPostAt FROM Channels"); err != nil {
 		mlog.Error("Error fetching Channels table", mlog.Err(err))
 	}
-	mlog.Info("Fetched Channels", mlog.String("took", time.Now().Sub(t1).String()))
+	mlog.Info("Fetched Channels", mlog.String("took", time.Since(t1).String()))
 	gt1 := time.Now()
 	for _, channel := range channels {
 		t1 := time.Now()
@@ -1040,7 +1040,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			UserId       string
 			LastViewedAt int64
 		}
-		if _, err := sqlStore.GetMaster().Select(&memberships, "SELECT UserId, LastViewedAt FROM ChannelMembers WHERE  ChannelId=:ChannelId ORDER BY LastViewedAt DESC", map[string]interface{}{"ChannelId": channel.Id}); err != nil {
+		if _, err := sqlStore.GetMaster().Select(&memberships, "SELECT UserId, LastViewedAt FROM ChannelMembers WHERE ChannelId=:ChannelId AND LastViewedAt >= :LastPostAt ORDER BY LastViewedAt DESC", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt}); err != nil {
 			mlog.Error("Error getting channelMemberships", mlog.Err(err))
 			break
 		}
@@ -1090,10 +1090,9 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			mlog.Error("Error committing transaction", mlog.Err(err))
 			break
 		}
-		t2 := time.Now()
-		mlog.Info("Processed channel", mlog.String("took", t2.Sub(t1).String()))
+		mlog.Info("Processed channel", mlog.String("took", time.Since(t1).String()))
 	}
-	mlog.Info("All membership updates done", mlog.String("took", time.Now().Sub(gt1).String()))
+	mlog.Info("All membership updates done", mlog.String("took", time.Since(gt1).String()))
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }
