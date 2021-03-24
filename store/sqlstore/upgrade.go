@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -1005,6 +1004,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MsgCountRoot", "bigint", "bigint")
 	// calculate totalmsgcountroot for Channels
+	t1 := time.Now()
 	channelCTE := "SELECT Channels.Id channelid, COALESCE(COUNT(CASE WHEN Posts.RootId = '' THEN 1 END),0) newcount FROM Channels LEFT JOIN Posts ON Channels.id = Posts.ChannelId GROUP BY Channels.Id"
 	updateChannelsQuery := "WITH q AS (" + channelCTE + ") UPDATE channels SET totalmsgcountroot  = q.newcount FROM q where q.channelid=channels.id"
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1014,6 +1014,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().Exec(updateChannelsQuery); err != nil {
 		mlog.Error("Error updating TotalMsgCountRoot in Channels table", mlog.Err(err))
 	}
+	mlog.Info("Updated TotalMsgCountRoot in Channels", mlog.String("took", time.Now().Sub(t1).String()))
 
 	// loop over channels and update the memberships for each
 	var channels []struct {
@@ -1021,10 +1022,12 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 		LastPostAt        int64
 		TotalMsgCountRoot int64
 	}
+	t1 = time.Now()
 	if _, err := sqlStore.GetMaster().Select(&channels, "SELECT Id,TotalMsgCountRoot,LastPostAt FROM Channels"); err != nil {
 		mlog.Error("Error fetching Channels table", mlog.Err(err))
 	}
-
+	mlog.Info("Fetched Channels", mlog.String("took", time.Now().Sub(t1).String()))
+	gt1 := time.Now()
 	for _, channel := range channels {
 		t1 := time.Now()
 		// update MsgCountRoot for up to date memberships
@@ -1088,9 +1091,9 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			break
 		}
 		t2 := time.Now()
-		mlog.Info(fmt.Sprintf("Processed channel in %s", t2.Sub(t1)))
+		mlog.Info("Processed channel", mlog.String("took", t2.Sub(t1).String()))
 	}
-
+	mlog.Info("All membership updates done", mlog.String("took", time.Now().Sub(gt1).String()))
 	// 	saveSchemaVersion(sqlStore, Version5340)
 	// }
 }
