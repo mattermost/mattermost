@@ -236,13 +236,15 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 			}
 
 			tm := time.Unix(notification.post.CreateAt/1000, 0)
-
+			timezone, _ := tm.Zone()
+			
 			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
-				"Hour":   tm.Hour(),
-				"Minute": fmt.Sprintf("%02d", tm.Minute()),
-				"Month":  translateFunc(tm.Month().String()),
-				"Day":    tm.Day(),
-				"Year":   tm.Year(),
+				"Hour":     tm.Hour(),
+				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
+				"Month":    translateFunc(tm.Month().String()),
+				"Day":      tm.Day(),
+				"Year":     tm.Year(),
+				"Timezone": timezone,
 			})
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id

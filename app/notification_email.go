@@ -195,11 +195,12 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
 	date := map[string]interface{}{
-		"Hour":   t.Hour,
-		"Minute": t.Minute,
-		"Month":  t.Month,
-		"Day":    t.Day,
-		"Year":   t.Year,
+		"Hour":     t.Hour,
+		"Minute":   t.Minute,
+		"TimeZone": t.TimeZone,
+		"Month":    t.Month,
+		"Day":      t.Day,
+		"Year":     t.Year,
 	}
 
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {

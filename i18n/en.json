@@ -1683,7 +1683,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": "{{.Hour}}:{{.Minute}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
@@ -5500,7 +5500,7 @@
   },
   {
     "id": "app.notification.body.dm.time",
-    "translation": "{{.Hour}}:{{.Minute}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "app.notification.body.dm.title",
