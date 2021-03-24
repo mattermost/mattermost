@@ -602,20 +602,19 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore, nil, false)
-			server.configStore = store
-			server.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.ListenAddress = ":0"
-				*cfg.LogSettings.EnableSentry = false
-				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-				*cfg.LogSettings.EnableDiagnostics = true
-			})
-			return nil
-		})
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		cfg := store.Get()
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.LogSettings.EnableSentry = false
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+		*cfg.LogSettings.EnableDiagnostics = true
+
+		store.Set(cfg)
+
+		s, err := NewServer(ConfigStore(store))
 		require.NoError(t, err)
 
 		// Route for just panicing
@@ -653,20 +652,19 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore, nil, false)
-			server.configStore = store
-			server.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.ListenAddress = ":0"
-				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-				*cfg.LogSettings.EnableSentry = true
-				*cfg.LogSettings.EnableDiagnostics = true
-			})
-			return nil
-		})
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		cfg := store.Get()
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+		*cfg.LogSettings.EnableSentry = true
+		*cfg.LogSettings.EnableDiagnostics = true
+
+		store.Set(cfg)
+
+		s, err := NewServer(ConfigStore(store))
 		require.NoError(t, err)
 
 		// Route for just panicing
