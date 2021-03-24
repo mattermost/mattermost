@@ -6,6 +6,8 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -1024,6 +1026,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	}
 
 	for _, channel := range channels {
+		t1 := time.Now()
 		// update MsgCountRoot for up to date memberships
 		if _, err := sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET MsgCountRoot = :TotalMsgCountRoot WHERE ChannelId=:ChannelId AND LastViewedAt >= :LastPostAt", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt, "TotalMsgCountRoot": channel.TotalMsgCountRoot}); err != nil {
 			mlog.Error("Error updating MsgCountRoot for up-to-date memberships", mlog.Err(err))
@@ -1038,15 +1041,19 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			mlog.Error("Error getting channelMemberships", mlog.Err(err))
 			break
 		}
+		// calculate oldest 'viewedAt' for memberships and use that value to filter out some of the posts
+		minLastViewedAt := int64(math.MaxInt64)
+		for _, m := range memberships {
+			if m.LastViewedAt < minLastViewedAt {
+				minLastViewedAt = m.LastViewedAt
+			}
+		}
 		var postTimestamps []int64
-		if _, err := sqlStore.GetMaster().Select(&postTimestamps, "SELECT UpdateAt FROM Posts WHERE ChannelId=:ChannelId AND DeleteAt=0 AND RootId='' ORDER BY CreateAt DESC", map[string]string{"ChannelId": channel.Id}); err != nil {
+		if _, err := sqlStore.GetMaster().Select(&postTimestamps, "SELECT UpdateAt FROM Posts WHERE ChannelId=:ChannelId AND DeleteAt=0 AND RootId='' AND CreateAt > :MinLastViewedAt ORDER BY CreateAt DESC", map[string]interface{}{"ChannelId": channel.Id, "MinLastViewedAt": minLastViewedAt}); err != nil {
 			mlog.Error("Error gettings posts", mlog.Err(err))
+			break
 		}
 		membershipIndex := 0
-		type memberUpdate struct {
-			UserId       string
-			MsgCountRoot int64
-		}
 		transaction, err := sqlStore.GetMaster().Begin()
 		if err != nil {
 			mlog.Error("Error starting transaction", mlog.Err(err))
@@ -1056,24 +1063,21 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 		for counter, postTimestamp := range postTimestamps {
 			for {
-				if counter == 0 {
+				if counter == 0 || len(memberships) <= membershipIndex {
 					break
 				}
-				if len(memberships) > membershipIndex && memberships[membershipIndex].LastViewedAt < postTimestamp && memberships[membershipIndex].LastViewedAt > postTimestamps[counter-1] {
-					if memberships[membershipIndex].LastViewedAt > postTimestamps[counter-1] {
-						if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId",
-							map[string]interface{}{
-								"ChannelId":    channel.Id,
-								"UserId":       memberships[membershipIndex].UserId,
-								"MsgCountRoot": channel.TotalMsgCountRoot - int64(counter),
-							},
-						); err != nil {
-							mlog.Error("Error updating ChannelMembers", mlog.Err(err))
-							break
-						}
-
-						membershipIndex++
+				membership := memberships[membershipIndex]
+				if membership.LastViewedAt < postTimestamp && membership.LastViewedAt > postTimestamps[counter-1] {
+					params := map[string]interface{}{
+						"ChannelId":    channel.Id,
+						"UserId":       membership.UserId,
+						"MsgCountRoot": channel.TotalMsgCountRoot - int64(counter),
 					}
+					if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId", params); err != nil {
+						mlog.Error("Error updating ChannelMembers", mlog.Err(err))
+						break
+					}
+					membershipIndex++
 				} else {
 					break
 				}
@@ -1083,7 +1087,8 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			mlog.Error("Error committing transaction", mlog.Err(err))
 			break
 		}
-
+		t2 := time.Now()
+		mlog.Info(fmt.Sprintf("Processed channel in %s", t2.Sub(t1)))
 	}
 
 	// 	saveSchemaVersion(sqlStore, Version5340)
