@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -419,7 +420,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	return pl, nil
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	if len(id) == 0 {
@@ -428,7 +429,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, e
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := s.DBFromContext(ctx).SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

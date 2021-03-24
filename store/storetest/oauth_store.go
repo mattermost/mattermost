@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -383,7 +384,7 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	err = ss.OAuth().DeleteApp(a1.Id)
 	require.Nil(t, err)
 
-	_, nErr = ss.Session().Get(s1.Token)
+	_, nErr = ss.Session().Get(context.Background(), s1.Token)
 	require.NotNil(t, nErr, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)

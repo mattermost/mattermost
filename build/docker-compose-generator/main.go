@@ -25,14 +25,15 @@ type Container struct {
 
 func main() {
 	validServices := map[string]int{
-		"mysql":         3306,
-		"postgres":      5432,
-		"minio":         9000,
-		"inbucket":      10080,
-		"openldap":      389,
-		"elasticsearch": 9200,
-		"dejavu":        1358,
-		"keycloak":      8080,
+		"mysql":              3306,
+		"postgres":           5432,
+		"minio":              9000,
+		"inbucket":           10080,
+		"openldap":           389,
+		"elasticsearch":      9200,
+		"dejavu":             1358,
+		"keycloak":           8080,
+		"mysql-read-replica": 3306,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {
