@@ -9,13 +9,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -939,42 +936,4 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
-}
-
-//msgp:ignore lockedRand
-type lockedRand struct {
-	mu sync.Mutex
-	rn *rand.Rand
-}
-
-func (r *lockedRand) Intn(n int) int {
-	r.mu.Lock()
-	m := r.rn.Intn(n)
-	r.mu.Unlock()
-	return m
-}
-
-var passwordRandom = lockedRand{
-	rn: rand.New(rand.NewSource(time.Now().Unix())),
-}
-
-var passwordSpecialChars = "!$%^&*(),."
-var passwordNumbers = "0123456789"
-var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
-var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
-
-func GeneratePassword(minimumLength int) string {
-	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[passwordRandom.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[passwordRandom.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[passwordRandom.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[passwordRandom.Intn(len(passwordSpecialChars))])
-
-	for len(password) < minimumLength {
-		i := passwordRandom.Intn(len(passwordAllChars))
-		password = password + string([]rune(passwordAllChars)[i])
-	}
-
-	return password
 }
