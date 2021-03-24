@@ -416,12 +416,24 @@ func TestCreateDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
+	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Normal client should not be allowed to create a direct channel if users are
+	// restricted to messaging members of their own team
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.RestrictDirectMessage = model.DIRECT_MESSAGE_TEAM
+	})
+	user4 := th.CreateUser()
+	_, resp = th.Client.CreateDirectChannel(user1.Id, user4.Id)
+	CheckForbiddenStatus(t, resp)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	_, resp = th.Client.CreateDirectChannel(user1.Id, user4.Id)
+	CheckNoError(t, resp)
+
 	Client.Logout()
 	_, resp = Client.CreateDirectChannel(model.NewId(), user2.Id)
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
-	CheckNoError(t, resp)
 }
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {

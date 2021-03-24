@@ -7692,6 +7692,26 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 
 }
 
+func (s *RetryLayerTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetCommonTeamIDsForUsers(userIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerTeamStore) GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error) {
 
 	tries := 0

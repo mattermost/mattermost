@@ -6409,6 +6409,22 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.TeamStore.GetCommonTeamIDsForUsers(userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetCommonTeamIDsForUsers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 

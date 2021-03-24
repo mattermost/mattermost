@@ -1049,6 +1049,14 @@ func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions 
 	return teamMembers, nil
 }
 
+func (a *App) GetCommonTeamIDsForUsers(userIDs []string) ([]string, *model.AppError) {
+	teamIDs, err := a.Srv().Store.Team().GetCommonTeamIDsForUsers(userIDs)
+	if err != nil {
+		return nil, model.NewAppError("GetCommonTeamIDsForUsers", "app.team.get_common_team_ids_for_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return teamIDs, nil
+}
+
 func (a *App) AddTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	if _, err := a.AddUserToTeam(teamID, userID, ""); err != nil {
 		return nil, err
