@@ -313,10 +313,10 @@ CREATE TABLE public.oauthapps (
     clientsecret character varying(128),
     name character varying(64),
     description character varying(512),
-    iconurl character varying(512),
     callbackurls character varying(1024),
     homepage character varying(256),
-    istrusted boolean
+    istrusted boolean DEFAULT false,
+    iconurl character varying(512) DEFAULT ''::character varying
 );
 
 
@@ -1816,4 +1816,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 --
 -- PostgreSQL database dump complete
 --
-
