@@ -12,12 +12,12 @@ import (
 	"crypto/ecdsa"
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -10858,7 +10858,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
