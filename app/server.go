@@ -33,7 +33,6 @@ import (
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/mailru/easygo/netpoll"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
@@ -113,11 +112,8 @@ type Server struct {
 
 	EmailService *EmailService
 
-	hubs          []*Hub
-	hashSeed      maphash.Seed
-	poller        netpoll.Poller
-	webConnSema   chan struct{}
-	webConnSemaWg sync.WaitGroup
+	hubs     []*Hub
+	hashSeed maphash.Seed
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -240,16 +236,6 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
-	// epoll/kqueue is not available on Windows.
-	if runtime.GOOS != "windows" {
-		poller, err := netpoll.New(nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create a netpoll instance")
-		}
-		s.poller = poller
-		s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
-	}
-
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
@@ -283,9 +269,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if *s.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err2 := tracing.New()
-		if err2 != nil {
-			return nil, err2
+		tracer, err := tracing.New()
+		if err != nil {
+			return nil, err
 		}
 		s.tracer = tracer
 	}
@@ -1284,7 +1270,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return utils.SameOriginChecker()
+	return nil
 }
 
 func (s *Server) checkPushNotificationServerUrl() {
@@ -1794,10 +1780,6 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
-}
-
-func (s *Server) Poller() netpoll.Poller {
-	return s.poller
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {
