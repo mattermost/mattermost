@@ -5342,11 +5342,11 @@ func (s *RetryLayerPostStore) Delete(postID string, time int64, deleteByID strin
 
 }
 
-func (s *RetryLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+		result, err := s.PostStore.Get(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
 		if err == nil {
 			return result, nil
 		}
