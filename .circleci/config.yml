@@ -337,55 +337,55 @@ jobs:
             diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
 
-  upload-s3-sha:
-    docker:
-      - image: 'circleci/python:2.7'
-    working_directory: ~/mattermost/enterprise
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd ~/mattermost/mattermost-server/dist/
-            rm -rf mattermost
-      - aws-s3/copy:
-          from: ~/mattermost/mattermost-server/dist/
-          to: "s3://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/"
-          arguments: --acl public-read --cache-control "no-cache" --recursive
+#  upload-s3-sha:
+#    docker:
+#      - image: 'circleci/python:2.7'
+#    working_directory: ~/mattermost/enterprise
+#    steps:
+#      - attach_workspace:
+#          at: ~/mattermost/
+#      - run:
+#          command: |
+#            cd ~/mattermost/mattermost-server/dist/
+#            rm -rf mattermost
+#      - aws-s3/copy:
+#          from: ~/mattermost/mattermost-server/dist/
+#          to: "s3://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/"
+#          arguments: --acl public-read --cache-control "no-cache" --recursive
 
-  upload-s3:
-    docker:
-      - image: 'circleci/python:2.7'
-    working_directory: ~/mattermost/enterprise
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd ~/mattermost/mattermost-server/dist/
-            rm -rf mattermost
-      - aws-s3/copy:
-          from: ~/mattermost/mattermost-server/dist/
-          to: s3://pr-builds.mattermost.com/mattermost-server/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
-          arguments: --acl public-read --cache-control "no-cache" --recursive
+#  upload-s3:
+#    docker:
+#      - image: 'circleci/python:2.7'
+#    working_directory: ~/mattermost/enterprise
+#    steps:
+#      - attach_workspace:
+#          at: ~/mattermost/
+#      - run:
+#          command: |
+#            cd ~/mattermost/mattermost-server/dist/
+#            rm -rf mattermost
+#      - aws-s3/copy:
+#          from: ~/mattermost/mattermost-server/dist/
+#          to: s3://pr-builds.mattermost.com/mattermost-server/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
+#          arguments: --acl public-read --cache-control "no-cache" --recursive
 
-  build-docker:
-    working_directory: ~/
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    resource_class: xlarge
-    steps:
-      - attach_workspace:
-          at: .
-      - setup_remote_docker
-      - run:
-          command: |
-            export TAG="${CIRCLE_SHA1:0:7}"
-            cd mattermost-server
-            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
-            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
-            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-            docker push mattermost/mattermost-team-edition:${TAG}
+#  build-docker:
+#    working_directory: ~/
+#    docker:
+#      - image: circleci/buildpack-deps:stretch
+#    resource_class: xlarge
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - setup_remote_docker
+#      - run:
+#          command: |
+#            export TAG="${CIRCLE_SHA1:0:7}"
+#            cd mattermost-server
+#            export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
+#            docker build --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mattermost-team-edition:${TAG} build
+#            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+#            docker push mattermost/mattermost-team-edition:${TAG}
 
 workflows:
   version: 2
@@ -419,18 +419,18 @@ workflows:
             - check-app-layers
             - check-store-layers
 #            - build-api-spec
-      - upload-s3-sha:
-          context: mattermost-ci-pr-builds-s3
-          requires:
-            - build
-      - upload-s3:
-          context: mattermost-ci-pr-builds-s3
-          requires:
-            - build
-      - build-docker:
-          context: matterbuild-docker
-          requires:
-            - upload-s3-sha
+#      - upload-s3-sha:
+#          context: mattermost-ci-pr-builds-s3
+#          requires:
+#            - build
+#      - upload-s3:
+#          context: mattermost-ci-pr-builds-s3
+#          requires:
+#            - build
+#      - build-docker:
+#          context: matterbuild-docker
+#          requires:
+#            - upload-s3-sha
       - test:
           name: test-mysql
           dbdriver: mysql
