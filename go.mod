@@ -34,7 +34,6 @@ require (
 	github.com/go-redis/redis/v8 v8.6.0 // indirect
 	github.com/go-resty/resty/v2 v2.5.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gobwas/ws v1.0.2 // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2 // indirect
@@ -93,7 +92,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
-	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.17.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1

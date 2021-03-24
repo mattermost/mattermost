@@ -227,8 +227,6 @@ github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
-# github.com/gobwas/ws v1.0.2
-## explicit
 # github.com/golang-migrate/migrate/v4 v4.14.1
 ## explicit
 github.com/golang-migrate/migrate/v4
