@@ -602,7 +602,7 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		configStore, _ := config.NewFileStore("config.json", true)
+		configStore, _ := config.NewFileStore("config.json", false)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		cfg := store.Get()
 		*cfg.ServiceSettings.ListenAddress = ":0"
@@ -652,7 +652,7 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		configStore, _ := config.NewFileStore("config.json", true)
+		configStore, _ := config.NewFileStore("config.json", false)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		cfg := store.Get()
 		*cfg.ServiceSettings.ListenAddress = ":0"
