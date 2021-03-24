@@ -5663,6 +5663,10 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Unable to get the common team IDs."
+  },
+  {
     "id": "app.team.get_member.app_error",
     "translation": "Unable to get the team member."
   },
@@ -5681,10 +5685,6 @@
   {
     "id": "app.team.get_members_by_ids.app_error",
     "translation": "Unable to get the team members."
-  },
-  {
-    "id": "app.team.get_common_team_ids_for_users.app_error",
-    "translation": "Unable to get the common team IDs."
   },
   {
     "id": "app.team.get_unread.app_error",
