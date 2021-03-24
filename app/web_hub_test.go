@@ -90,20 +90,6 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer wc3.Close()
 }
 
-func TestWebConnDoubleClose(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "userID")
-	wc1.Close()
-	require.NotPanics(t, func() {
-		wc1.Close()
-	})
-}
-
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
