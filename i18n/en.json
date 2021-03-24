@@ -8399,6 +8399,10 @@
     "translation": "Invalid locale."
   },
   {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Failed to encode field to JSON"
+  },
+  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Invalid nickname."
   },
