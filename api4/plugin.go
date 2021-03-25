@@ -399,13 +399,19 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if err := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
+	firstAdminVisitMarketplaceObj := model.System{
 		Name:  model.SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE,
 		Value: "true",
-	}); err != nil {
+	}
+
+	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminVisitMarketplaceObj); err != nil {
 		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, "", "", "", nil)
+	message.Add("firstAdminVisitMarketplaceStatus", firstAdminVisitMarketplaceObj.Value)
+	c.App.Publish(message)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
