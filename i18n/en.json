@@ -2752,7 +2752,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -2804,7 +2804,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_info1",
@@ -3803,10 +3803,6 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Invalid Origin header set during websocket upgrade."
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -4421,6 +4417,10 @@
   {
     "id": "app.import.emoji.bad_file.error",
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Error generating password."
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
@@ -8397,6 +8397,10 @@
   {
     "id": "model.user.is_valid.locale.app_error",
     "translation": "Invalid locale."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Failed to encode field to JSON"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
