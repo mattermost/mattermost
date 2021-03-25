@@ -34,7 +34,6 @@ require (
 	github.com/go-redis/redis/v8 v8.6.0 // indirect
 	github.com/go-resty/resty/v2 v2.5.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gobwas/ws v1.1.0-rc.2
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2 // indirect
@@ -68,7 +67,6 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
 	github.com/lib/pq v1.9.0
 	github.com/magefile/mage v1.11.0 // indirect
-	github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
