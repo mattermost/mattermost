@@ -25,7 +25,6 @@ type filterType string
 const (
 	FilterTypeWrite         filterType = "write"
 	FilterTypeRead          filterType = "read"
-	FeatureFlagsElementName string     = "FeatureFlags"
 	AnyTagValue             string     = "any"
 )
 
@@ -283,7 +282,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
 	return func(c *Context, structField reflect.StructField) bool {
-		if structField.Type.Kind() == reflect.Struct || structField.Name == FeatureFlagsElementName {
+		if structField.Type.Kind() == reflect.Struct {
 			return true
 		}
 

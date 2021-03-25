@@ -3098,7 +3098,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `json:",omitempty"` // telemetry: none
+	FeatureFlags              *FeatureFlags  `access:"any" json:",omitempty"` // telemetry: none
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
 }
