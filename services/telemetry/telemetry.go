@@ -440,6 +440,7 @@ func (ts *TelemetryService) trackConfig() {
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
 		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
+		"enable_reliable_websockets":                              *cfg.ServiceSettings.EnableReliableWebSockets,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 	})
 

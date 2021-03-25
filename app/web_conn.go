@@ -49,6 +49,7 @@ type WebConn struct {
 	send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
+	connectionID              atomic.Value
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
@@ -118,6 +119,11 @@ func (wc *WebConn) SetSessionToken(v string) {
 	wc.sessionToken.Store(v)
 }
 
+// SetConnectionID sets the connection id of the connection.
+func (wc *WebConn) SetConnectionID(id string) {
+	wc.connectionID.Store(id)
+}
+
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
 	return wc.session.Load().(*model.Session)
@@ -146,6 +152,12 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	// TODO:
+	// Check if the channel is closed or not,
+	// if closed, then remove the entry from conn manager
+	// else
+	// take both channels, and store them in connection manager.
 
 	defer ReturnSessionToPool(wc.GetSession())
 }
@@ -195,8 +207,7 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-				wc.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				wc.writeMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -250,18 +261,18 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
+			if err := wc.writeMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
+
+			// TODO: move to dead queue
 
 			if wc.App.Metrics() != nil {
 				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := wc.writeMessage(websocket.PingMessage, []byte{}); err != nil {
 				wc.logSocketErr("websocket.ticker", err)
 				return
 			}
@@ -277,6 +288,13 @@ func (wc *WebConn) writePump() {
 			authTicker.Stop()
 		}
 	}
+}
+
+// writeMessage is a helper utility that wraps the write to the socket
+// along with setting the write deadline.
+func (wc *WebConn) writeMessage(msgType int, data []byte) error {
+	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+	return wc.WebSocket.WriteMessage(msgType, data)
 }
 
 // InvalidateCache resets all internal data of the WebConn.
@@ -318,7 +336,11 @@ func (wc *WebConn) IsAuthenticated() bool {
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.Srv().License() != nil))
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
+		model.BuildNumber,
+		wc.App.ClientConfigHash(),
+		wc.App.Srv().License() != nil))
+	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
 

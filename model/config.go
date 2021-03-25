@@ -373,6 +373,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
+	EnableReliableWebSockets                          *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -817,6 +818,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLegacySidebar == nil {
 		s.EnableLegacySidebar = NewBool(false)
+	}
+
+	if s.EnableReliableWebSockets == nil {
+		s.EnableReliableWebSockets = NewBool(false)
 	}
 }
 
