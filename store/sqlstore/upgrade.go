@@ -205,6 +205,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion532(sqlStore)
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
+	upgradeDatabaseToVersion535(sqlStore)
 
 	return nil
 }
@@ -1006,8 +1007,8 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
 	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
-	// 	saveSchemaVersion(sqlStore, Version5340)
+	// 	saveSchemaVersion(sqlStore, Version5350)
 	// }
 }
