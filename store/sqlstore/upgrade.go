@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5330
+	CurrentSchemaVersion   = Version5340
+	Versuib5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
@@ -999,8 +1000,14 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
+}
+
+func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
 	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
-	//	saveSchemaVersion(sqlStore, Version5340)
-	//}
+	// 	saveSchemaVersion(sqlStore, Version5340)
+	// }
 }
