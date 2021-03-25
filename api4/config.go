@@ -23,9 +23,9 @@ var permissionMap map[string]*model.Permission
 type filterType string
 
 const (
-	FilterTypeWrite         filterType = "write"
-	FilterTypeRead          filterType = "read"
-	AnyTagValue             string     = "any"
+	FilterTypeWrite filterType = "write"
+	FilterTypeRead  filterType = "read"
+	AnyTagValue     string     = "any"
 )
 
 func (api *API) InitConfig() {
