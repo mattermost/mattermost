@@ -7,7 +7,7 @@ versions of the library.
 
 To install it in the GOPATH:
 ```
-go get https://github.com/rudderlabs/analytics-go
+go get github.com/rudderlabs/analytics-go
 ```
 
 
