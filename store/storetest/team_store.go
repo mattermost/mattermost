@@ -76,7 +76,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 func testTeamStoreSave(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 
@@ -94,7 +94,7 @@ func testTeamStoreSave(t *testing.T, ss store.Store) {
 func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&o1)
@@ -117,7 +117,7 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 func testTeamStoreGet(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&o1)
@@ -134,7 +134,7 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 
@@ -143,7 +143,7 @@ func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName2"
-	o2.Name = "z-z-z" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
@@ -187,7 +187,7 @@ func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
 func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 
@@ -215,7 +215,7 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	o := model.Team{}
 	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = "zzzzzz-" + NewTestId() + "a"
+	o.Name = NewTestId()
 	o.Email = MakeEmail()
 	o.Type = model.TEAM_OPEN
 	o.AllowOpenInvite = true
@@ -225,7 +225,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	p := model.Team{}
 	p.DisplayName = "BDisplayName" + NewTestId()
-	p.Name = "zzzzzz-" + NewTestId() + "a"
+	p.Name = NewTestId()
 	p.Email = MakeEmail()
 	p.Type = model.TEAM_OPEN
 	p.AllowOpenInvite = false
@@ -235,7 +235,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	g := model.Team{}
 	g.DisplayName = "CDisplayName" + NewTestId()
-	g.Name = "zzzzzz-" + NewTestId() + "a"
+	g.Name = NewTestId()
 	g.Email = MakeEmail()
 	g.Type = model.TEAM_OPEN
 	g.AllowOpenInvite = false
@@ -387,7 +387,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	o := model.Team{}
 	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = "zz" + NewTestId() + "a"
+	o.Name = NewTestId()
 	o.Email = MakeEmail()
 	o.Type = model.TEAM_OPEN
 	o.AllowOpenInvite = true
@@ -397,7 +397,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 
 	p := model.Team{}
 	p.DisplayName = "ADisplayName" + NewTestId()
-	p.Name = "zz" + NewTestId() + "a"
+	p.Name = NewTestId()
 	p.Email = MakeEmail()
 	p.Type = model.TEAM_OPEN
 	p.AllowOpenInvite = false
@@ -493,7 +493,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	o := model.Team{}
 	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = "zz" + NewTestId() + "a"
+	o.Name = NewTestId()
 	o.Email = MakeEmail()
 	o.Type = model.TEAM_OPEN
 	o.AllowOpenInvite = true
@@ -503,7 +503,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	p := model.Team{}
 	p.DisplayName = "ADisplayName" + NewTestId()
-	p.Name = "zz" + NewTestId() + "a"
+	p.Name = NewTestId()
 	p.Email = MakeEmail()
 	p.Type = model.TEAM_OPEN
 	p.AllowOpenInvite = false
@@ -599,7 +599,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
@@ -609,7 +609,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
@@ -624,7 +624,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	o1 := &model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
@@ -644,7 +644,7 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -653,7 +653,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
@@ -661,7 +661,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
@@ -670,7 +670,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = "zz" + NewTestId() + "b"
+	o4.Name = NewTestId()
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	_, err = ss.Team().Save(&o4)
@@ -688,7 +688,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -697,7 +697,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
@@ -706,7 +706,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
@@ -715,7 +715,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = "zz" + NewTestId() + "b"
+	o4.Name = NewTestId()
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	o4.AllowOpenInvite = false
@@ -733,7 +733,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
-	o5.Name = "z-z-z" + NewTestId() + "b"
+	o5.Name = NewTestId()
 	o5.Email = MakeEmail()
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
@@ -762,7 +762,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -771,7 +771,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
@@ -779,7 +779,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
@@ -788,7 +788,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = "zz" + NewTestId() + "b"
+	o4.Name = NewTestId()
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	_, err = ss.Team().Save(&o4)
@@ -806,7 +806,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -815,7 +815,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
@@ -824,7 +824,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
@@ -833,7 +833,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
-	o4.Name = "zz" + NewTestId() + "b"
+	o4.Name = NewTestId()
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	o4.AllowOpenInvite = false
@@ -850,7 +850,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName"
-	o5.Name = "z-z-z" + NewTestId() + "b"
+	o5.Name = NewTestId()
 	o5.Email = MakeEmail()
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
@@ -879,7 +879,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName1"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -888,7 +888,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName2"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
@@ -897,7 +897,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName3"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
@@ -906,7 +906,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName4"
-	o4.Name = "zz" + NewTestId() + "b"
+	o4.Name = NewTestId()
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	o4.AllowOpenInvite = false
@@ -919,7 +919,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName5"
-	o5.Name = "z-z-z" + NewTestId() + "b"
+	o5.Name = NewTestId()
 	o5.Email = MakeEmail()
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
@@ -937,7 +937,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 func testDelete(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -946,7 +946,7 @@ func testDelete(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "zz" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
@@ -961,7 +961,7 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -970,7 +970,7 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "z-z-z" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
@@ -979,7 +979,7 @@ func testPublicTeamCount(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_OPEN
 	o3.AllowOpenInvite = true
@@ -996,7 +996,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = false
@@ -1005,7 +1005,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "z-z-z" + NewTestId() + "b"
+	o2.Name = NewTestId()
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = true
@@ -1014,7 +1014,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
-	o3.Name = "z-z-z" + NewTestId() + "b"
+	o3.Name = NewTestId()
 	o3.Email = MakeEmail()
 	o3.Type = model.TEAM_OPEN
 	o3.AllowOpenInvite = false
@@ -1029,7 +1029,7 @@ func testPrivateTeamCount(t *testing.T, ss store.Store) {
 func testTeamCount(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
-	o1.Name = "z-z-z" + NewTestId() + "b"
+	o1.Name = NewTestId()
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
@@ -1296,7 +1296,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 		}
@@ -1446,7 +1446,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &ts.Id,
@@ -1652,7 +1652,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("insert members correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 		}
@@ -1814,7 +1814,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &ts.Id,
@@ -1981,7 +1981,7 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 		}
@@ -2131,7 +2131,7 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &ts.Id,
@@ -2290,7 +2290,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("update members correctly (in team without scheme)", func(t *testing.T) {
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 		}
@@ -2448,7 +2448,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "Name",
-			Name:        "zz" + NewTestId(),
+			Name:        NewTestId(),
 			Email:       MakeEmail(),
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &ts.Id,
@@ -2750,7 +2750,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 
 	team, errSave := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name:        "z-z-z" + NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.TEAM_OPEN,
 	})
 	require.NoError(t, errSave)
@@ -2881,7 +2881,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 
 	t2, nErr := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
-		Name:        "z-z-z" + NewTestId() + "b",
+		Name:        NewTestId(),
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s2.Id,
 	})
@@ -3119,7 +3119,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3127,7 +3127,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3135,7 +3135,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t3 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3170,7 +3170,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	s1 := model.NewId()
 	t1 := &model.Team{
 		DisplayName: "Name",
-		Name:        "z-z-z" + NewTestId() + "b",
+		Name:        NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 		InviteId:    model.NewId(),
@@ -3246,7 +3246,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t1 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3254,7 +3254,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3341,7 +3341,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3355,7 +3355,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3369,7 +3369,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3382,7 +3382,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        "zz" + NewTestId(),
+		Name:        NewTestId(),
 		DisplayName: NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -3400,7 +3400,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = "zz" + NewTestId()
+	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -3424,7 +3424,7 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
-	t1.Name = "zz" + NewTestId()
+	t1.Name = NewTestId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
@@ -3461,7 +3461,7 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(&model.Team{
 		DisplayName:      NewTestId(),
-		Name:             "zz" + NewTestId(),
+		Name:             NewTestId(),
 		Email:            MakeEmail(),
 		Type:             model.TEAM_INVITE,
 		GroupConstrained: model.NewBool(true),
