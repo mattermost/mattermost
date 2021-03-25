@@ -26,6 +26,7 @@ const (
 	FilterTypeWrite         filterType = "write"
 	FilterTypeRead          filterType = "read"
 	FeatureFlagsElementName string     = "FeatureFlags"
+	AnyTagValue             string     = "any"
 )
 
 func (api *API) InitConfig() {
@@ -323,6 +324,16 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			if tagValue == model.ConfigAccessTagCloudRestrictable {
 				continue
 			}
+			if tagValue == AnyTagValue {
+				checkPermissions := model.SysconsoleReadPermissions
+				if accessType == FilterTypeWrite{
+					checkPermissions = model.SysconsoleWritePermissions
+				}
+				if c.App.SessionHasPermissionToAny(*c.App.Session(), checkPermissions) {
+					return true
+				}
+			}
+
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
 				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
