@@ -118,7 +118,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 				sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
 			}
 
-			// add/update post (may be nil if only reactions changed)
+			// add/update post
 			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
 			if err != nil {
 				postErrors = append(postErrors, sm.Post.Id)
@@ -263,7 +263,6 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 }
 
 func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
-
 	var err error
 	var update *model.UserUpdate
 	var suffix string
