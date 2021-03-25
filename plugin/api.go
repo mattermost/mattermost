@@ -533,6 +533,18 @@ type API interface {
 	// Minimum server version: 5.18
 	GetGroupByName(name string) (*model.Group, *model.AppError)
 
+	// GetGroupMemberUsers gets a page of users belonging to the given group.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+
+	// GetGroupsBySource gets a list of all groups for the given source.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+
 	// GetGroupsForUser gets the groups a user is in.
 	//
 	// @tag Group
