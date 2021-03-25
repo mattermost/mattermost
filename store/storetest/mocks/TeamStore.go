@@ -462,8 +462,8 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userId string) ([]*
 	return r0, r1
 }
 
-// GetCommonTeamIDsForUsers provides a mock function with given fields: userIDs
-func (_m *TeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+// GetCommonTeamIDsForTwoUsers provides a mock function with given fields: userIDs
+func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error) {
 	ret := _m.Called(userIDs)
 
 	var r0 []string

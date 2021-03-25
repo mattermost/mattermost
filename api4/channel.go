@@ -468,7 +468,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *c.App.Config().TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM &&
 		!c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		commonTeamIDs, err := c.App.GetCommonTeamIDsForUsers(userIds)
+		commonTeamIDs, err := c.App.GetCommonTeamIDsForTwoUsers(userIds)
 		if err != nil {
 			c.Err = err
 			return

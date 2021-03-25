@@ -7095,16 +7095,16 @@ func (s *OpenTracingLayerTeamStore) GetChannelUnreadsForTeam(teamID string, user
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+func (s *OpenTracingLayerTeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetCommonTeamIDsForUsers")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetCommonTeamIDsForTwoUsers")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetCommonTeamIDsForUsers(userIDs)
+	result, err := s.TeamStore.GetCommonTeamIDsForTwoUsers(userIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

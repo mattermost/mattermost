@@ -1504,9 +1504,9 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	return teamIds, nil
 }
 
-// GetCommonTeamIDsForUsers returns the intersection of all the teams to which the specified
+// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 // users belong.
-func (s SqlTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error) {
 	if len(userIDs) != 2 {
 		return nil, errors.New("GetCommonTeamIDsForUsers can only be called with two users")
 	}

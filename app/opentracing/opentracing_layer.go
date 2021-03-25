@@ -5127,9 +5127,9 @@ func (a *OpenTracingAppLayer) GetCommand(commandID string) (*model.Command, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetCommonTeamIDsForUsers(userIDs []string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCommonTeamIDsForUsers")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCommonTeamIDsForTwoUsers")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -5139,7 +5139,7 @@ func (a *OpenTracingAppLayer) GetCommonTeamIDsForUsers(userIDs []string) ([]stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetCommonTeamIDsForUsers(userIDs)
+	resultVar0, resultVar1 := a.app.GetCommonTeamIDsForTwoUsers(userIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

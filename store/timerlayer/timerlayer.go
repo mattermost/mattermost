@@ -6409,10 +6409,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]string, error) {
+func (s *TimerLayerTeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetCommonTeamIDsForUsers(userIDs)
+	result, err := s.TeamStore.GetCommonTeamIDsForTwoUsers(userIDs)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6420,7 +6420,7 @@ func (s *TimerLayerTeamStore) GetCommonTeamIDsForUsers(userIDs []string) ([]stri
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetCommonTeamIDsForUsers", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetCommonTeamIDsForTwoUsers", success, elapsed)
 	}
 	return result, err
 }

@@ -561,7 +561,7 @@ type AppIface interface {
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
-	GetCommonTeamIDsForUsers(userIDs []string) ([]string, *model.AppError)
+	GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
