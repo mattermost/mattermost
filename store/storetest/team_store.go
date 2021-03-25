@@ -215,7 +215,7 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	o := model.Team{}
 	o.DisplayName = "ADisplayName" + NewTestId()
-	o.Name = NewTestId()
+	o.Name = "searchterm-" + NewTestId()
 	o.Email = MakeEmail()
 	o.Type = model.TEAM_OPEN
 	o.AllowOpenInvite = true
@@ -225,7 +225,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	p := model.Team{}
 	p.DisplayName = "BDisplayName" + NewTestId()
-	p.Name = NewTestId()
+	p.Name = "searchterm-" + NewTestId()
 	p.Email = MakeEmail()
 	p.Type = model.TEAM_OPEN
 	p.AllowOpenInvite = false
@@ -235,7 +235,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	g := model.Team{}
 	g.DisplayName = "CDisplayName" + NewTestId()
-	g.Name = NewTestId()
+	g.Name = "searchterm-" + NewTestId()
 	g.Email = MakeEmail()
 	g.Type = model.TEAM_OPEN
 	g.AllowOpenInvite = false
@@ -315,56 +315,56 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 			[]string{p.Id},
 		},
 		{
-			"Search for all 3 z teams",
-			&model.TeamSearch{Term: "zzzzzz"},
+			"Search for all 3 searchterm teams",
+			&model.TeamSearch{Term: "searchterm"},
 			3,
 			[]string{o.Id, p.Id, g.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite",
-			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true)},
 			1,
 			[]string{o.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite = false",
-			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(false)},
 			1,
 			[]string{p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained",
-			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true)},
 			1,
 			[]string{g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained = false",
-			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite and include group constrained",
-			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(true), GroupConstrained: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewBool(true), GroupConstrained: model.NewBool(true)},
 			2,
 			[]string{o.Id, g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained and not open invite",
-			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
 			2,
 			[]string{g.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite",
-			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(true)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite false",
-			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
 			2,
 			[]string{p.Id, o.Id},
 		},
