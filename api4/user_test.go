@@ -1693,6 +1693,16 @@ func TestPatchUser(t *testing.T) {
 	user := th.CreateUser()
 	th.Client.Login(user.Email, user.Password)
 
+	t.Run("Timezone limit error", func(t *testing.T) {
+		patch := &model.UserPatch{}
+		patch.Timezone = model.StringMap{}
+		patch.Timezone["manualTimezone"] = string(make([]byte, model.USER_TIMEZONE_MAX_RUNES))
+		ruser, resp := th.Client.PatchUser(user.Id, patch)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "model.user.is_valid.timezone_limit.app_error", resp.Error.Id)
+		require.Nil(t, ruser)
+	})
+
 	patch := &model.UserPatch{}
 	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")
