@@ -180,6 +180,11 @@ func (_m *MetricsInterface) IncrementPostsSearchCounter() {
 	_m.Called()
 }
 
+// IncrementRemoteClusterConnStateChangeCounter provides a mock function with given fields: remoteID, online
+func (_m *MetricsInterface) IncrementRemoteClusterConnStateChangeCounter(remoteID string, online bool) {
+	_m.Called(remoteID, online)
+}
+
 // IncrementRemoteClusterMsgErrorsCounter provides a mock function with given fields: remoteID, timeout
 func (_m *MetricsInterface) IncrementRemoteClusterMsgErrorsCounter(remoteID string, timeout bool) {
 	_m.Called(remoteID, timeout)

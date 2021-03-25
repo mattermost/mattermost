@@ -82,6 +82,9 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			}
 
 			if online != rc.IsOnline() {
+				if metrics := rcs.server.GetMetrics(); metrics != nil {
+					metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+				}
 				rcs.fireConnectionStateChgEvent(rc)
 			}
 		case <-done:
