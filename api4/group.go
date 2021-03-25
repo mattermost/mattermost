@@ -62,7 +62,7 @@ func (api *API) InitGroup() {
 
 	// GET /api/v4/users/:user_id/groups?page=0&per_page=100
 	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
-		api.ApiSessionRequired(getGroupsByUserID)).Methods("GET")
+		api.ApiSessionRequired(getGroupsByUserId)).Methods("GET")
 
 	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
@@ -569,7 +569,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func getGroupsByUserID(c *Context, w http.ResponseWriter, r *http.Request) {
+func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -585,7 +585,7 @@ func getGroupsByUserID(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, err := c.App.GetGroupsByUserID(c.Params.UserId)
+	groups, err := c.App.GetGroupsByUserId(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return

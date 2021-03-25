@@ -588,20 +588,20 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 			t,
 			map[string]*categoryChannelDiff{
 				"channel1": {
-					fromCategoryID: "category1",
-					toCategoryID:   "category3",
+					fromCategoryId: "category1",
+					toCategoryId:   "category3",
 				},
 				"channel2": {
-					fromCategoryID: "category1",
-					toCategoryID:   "category2",
+					fromCategoryId: "category1",
+					toCategoryId:   "category2",
 				},
 				"channel3": {
-					fromCategoryID: "category1",
-					toCategoryID:   "category3",
+					fromCategoryId: "category1",
+					toCategoryId:   "category3",
 				},
 				"channel4": {
-					fromCategoryID: "category2",
-					toCategoryID:   "category3",
+					fromCategoryId: "category2",
+					toCategoryId:   "category3",
 				},
 			},
 			channelsDiff,
@@ -649,8 +649,8 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 			t,
 			map[string]*categoryChannelDiff{
 				"channel3": {
-					fromCategoryID: "category2",
-					toCategoryID:   "category1",
+					fromCategoryId: "category2",
+					toCategoryId:   "category1",
 				},
 			},
 			channelsDiff,

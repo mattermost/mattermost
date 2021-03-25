@@ -149,15 +149,15 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
-func (a *App) PatchBot(botUserID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	bot, err := a.GetBot(botUserID, true)
+func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return nil, err
 	}
 
 	bot.Patch(botPatch)
 
-	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserID)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -209,8 +209,8 @@ func (a *App) PatchBot(botUserID string, botPatch *model.BotPatch) (*model.Bot, 
 }
 
 // GetBot returns the given bot.
-func (a *App) GetBot(botUserID string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	bot, err := a.Srv().Store.Bot().Get(botUserID, includeDeleted)
+func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	bot, err := a.Srv().Store.Bot().Get(botUserId, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -233,8 +233,8 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-func (a *App) UpdateBotActive(botUserID string, active bool) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserID)
+func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -249,7 +249,7 @@ func (a *App) UpdateBotActive(botUserID string, active bool) (*model.Bot, *model
 		return nil, err
 	}
 
-	bot, nErr := a.Srv().Store.Bot().Get(botUserID, true)
+	bot, nErr := a.Srv().Store.Bot().Get(botUserId, true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -289,8 +289,8 @@ func (a *App) UpdateBotActive(botUserID string, active bool) (*model.Bot, *model
 }
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
-func (a *App) PermanentDeleteBot(botUserID string) *model.AppError {
-	if err := a.Srv().Store.Bot().PermanentDelete(botUserID); err != nil {
+func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
+	if err := a.Srv().Store.Bot().PermanentDelete(botUserId); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
@@ -300,7 +300,7 @@ func (a *App) PermanentDeleteBot(botUserID string) *model.AppError {
 		}
 	}
 
-	if err := a.Srv().Store.User().PermanentDelete(botUserID); err != nil {
+	if err := a.Srv().Store.User().PermanentDelete(botUserId); err != nil {
 		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -308,8 +308,8 @@ func (a *App) PermanentDeleteBot(botUserID string) *model.AppError {
 }
 
 // UpdateBotOwner changes a bot's owner to the given value.
-func (a *App) UpdateBotOwner(botUserID, newOwnerID string) (*model.Bot, *model.AppError) {
-	bot, err := a.Srv().Store.Bot().Get(botUserID, true)
+func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
+	bot, err := a.Srv().Store.Bot().Get(botUserId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -320,7 +320,7 @@ func (a *App) UpdateBotOwner(botUserID, newOwnerID string) (*model.Bot, *model.A
 		}
 	}
 
-	bot.OwnerId = newOwnerID
+	bot.OwnerId = newOwnerId
 
 	bot, err = a.Srv().Store.Bot().Update(bot)
 	if err != nil {
@@ -500,7 +500,7 @@ func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 }
 
 // SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
-func (a *App) SetBotIconImageFromMultiPartFile(botUserID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -508,12 +508,12 @@ func (a *App) SetBotIconImageFromMultiPartFile(botUserID string, imageData *mult
 	defer file.Close()
 
 	file.Seek(0, 0)
-	return a.SetBotIconImage(botUserID, file)
+	return a.SetBotIconImage(botUserId, file)
 }
 
 // SetBotIconImage sets LHS icon for a bot.
-func (a *App) SetBotIconImage(botUserID string, file io.ReadSeeker) *model.AppError {
-	bot, err := a.GetBot(botUserID, true)
+func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
+	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err
 	}
@@ -524,7 +524,7 @@ func (a *App) SetBotIconImage(botUserID string, file io.ReadSeeker) *model.AppEr
 
 	// Set icon
 	file.Seek(0, 0)
-	if _, err = a.WriteFile(file, getBotIconPath(botUserID)); err != nil {
+	if _, err = a.WriteFile(file, getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -541,24 +541,24 @@ func (a *App) SetBotIconImage(botUserID string, file io.ReadSeeker) *model.AppEr
 			return model.NewAppError("SetBotIconImage", "app.bot.patchbot.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	a.invalidateUserCacheAndPublish(botUserID)
+	a.invalidateUserCacheAndPublish(botUserId)
 
 	return nil
 }
 
 // DeleteBotIconImage deletes LHS icon for a bot.
-func (a *App) DeleteBotIconImage(botUserID string) *model.AppError {
-	bot, err := a.GetBot(botUserID, true)
+func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
+	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err
 	}
 
 	// Delete icon
-	if err = a.RemoveFile(getBotIconPath(botUserID)); err != nil {
+	if err = a.RemoveFile(getBotIconPath(botUserId)); err != nil {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if nErr := a.Srv().Store.User().UpdateLastPictureUpdate(botUserID); nErr != nil {
+	if nErr := a.Srv().Store.User().UpdateLastPictureUpdate(botUserId); nErr != nil {
 		mlog.Warn(nErr.Error())
 	}
 
@@ -576,18 +576,18 @@ func (a *App) DeleteBotIconImage(botUserID string) *model.AppError {
 		}
 	}
 
-	a.invalidateUserCacheAndPublish(botUserID)
+	a.invalidateUserCacheAndPublish(botUserId)
 
 	return nil
 }
 
 // GetBotIconImage retrieves LHS icon for a bot.
-func (a *App) GetBotIconImage(botUserID string) ([]byte, *model.AppError) {
-	if _, err := a.GetBot(botUserID, true); err != nil {
+func (a *App) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	if _, err := a.GetBot(botUserId, true); err != nil {
 		return nil, err
 	}
 
-	data, err := a.ReadFile(getBotIconPath(botUserID))
+	data, err := a.ReadFile(getBotIconPath(botUserId))
 	if err != nil {
 		return nil, model.NewAppError("GetBotIconImage", "api.bot.get_bot_icon_image.read.app_error", nil, err.Error(), http.StatusNotFound)
 	}
@@ -595,6 +595,6 @@ func (a *App) GetBotIconImage(botUserID string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func getBotIconPath(botUserID string) string {
-	return fmt.Sprintf("bots/%v/icon.svg", botUserID)
+func getBotIconPath(botUserId string) string {
+	return fmt.Sprintf("bots/%v/icon.svg", botUserId)
 }
