@@ -356,7 +356,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		read, err := s.backend.ReadFile(path)
 		s.Nil(err)
 		s.EqualValues(len(b)+len(b2), len(read))
-		s.EqualValues(append(b, b2...), read)
+		s.True(bytes.Equal(append(b, b2...), read))
 
 		b3 := make([]byte, 1024)
 		for i := range b3 {
@@ -370,7 +370,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		read, err = s.backend.ReadFile(path)
 		s.Nil(err)
 		s.EqualValues(len(b)+len(b2)+len(b3), len(read))
-		s.EqualValues(append(append(b, b2...), b3...), read)
+		s.True(bytes.Equal(append(append(b, b2...), b3...), read))
 	})
 }
 
