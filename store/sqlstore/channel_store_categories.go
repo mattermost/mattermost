@@ -14,6 +14,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+// dbSelecter is an interface used to enable some internal store methods to
+// accept both transactions (*gorp.Transaction) and common db handlers (*gorp.DbMap).
+type dbSelecter interface {
+	Select(i interface{}, query string, args ...interface{}) ([]interface{}, error)
+}
+
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -366,7 +372,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannelsT(transaction *gorp.Transaction, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
 	}
@@ -411,7 +417,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(transaction *gorp.T
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	if _, err = transaction.Select(&channels, sql, args...); err != nil {
+	if _, err = db.Select(&channels, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>")
 	}
 
@@ -451,7 +457,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	return s.completePopulatingCategoryChannels(result)
 }
 
-func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	oc := model.OrderedSidebarCategories{
 		Categories: make(model.SidebarCategoriesWithChannels, 0),
 		Order:      make([]string, 0),
@@ -471,7 +477,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		return nil, errors.Wrap(err, "sidebar_categories_tosql")
 	}
 
-	if _, err = transaction.Select(&categories, query, args...); err != nil {
+	if _, err = db.Select(&categories, query, args...); err != nil {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 	for _, category := range categories {
@@ -495,7 +501,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		}
 	}
 	for _, category := range oc.Categories {
-		if _, err := s.completePopulatingCategoryChannelsT(transaction, category); err != nil {
+		if _, err := s.completePopulatingCategoryChannelsT(db, category); err != nil {
 			return nil, err
 		}
 	}
@@ -504,23 +510,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error) {
-	transaction, err := s.GetReplica().Begin()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-
-	defer finalizeTransaction(transaction)
-
-	oc, err := s.getSidebarCategoriesT(transaction, userId, teamId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return oc, nil
+	return s.getSidebarCategoriesT(s.GetReplica(), userId, teamId)
 }
 
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, error) {
@@ -649,6 +639,11 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 			updatedCategory.Muted = category.Muted
 		}
+
+		// The order in which the queries are executed in the transaction is important.
+		// SidebarCategories need to be update first, and then SidebarChannels should be deleted.
+		// The net effect remains the same, but it prevents deadlocks from other transactions
+		// operating on the tables in reverse order.
 
 		updateQuery, updateParams, _ := s.getQueryBuilder().
 			Update("SidebarCategories").
@@ -1012,28 +1007,31 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) error {
 		return store.NewErrInvalidInput("SidebarCategory", "id", categoryId)
 	}
 
-	// Delete the channels in the category
-	query, args, err := s.getQueryBuilder().
-		Delete("SidebarChannels").
-		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
-	if err != nil {
-		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
-	}
-
-	if _, err = transaction.Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete SidebarChannel")
-	}
+	// The order in which the queries are executed in the transaction is important.
+	// SidebarCategories need to be deleted first, and then SidebarChannels.
+	// The net effect remains the same, but it prevents deadlocks from other transactions
+	// operating on the tables in reverse order.
 
 	// Delete the category itself
-	query, args, err = s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Delete("SidebarCategories").
 		Where(sq.Eq{"Id": categoryId}).ToSql()
 	if err != nil {
 		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
 	}
-
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to delete SidebarCategory")
+	}
+
+	// Delete the channels in the category
+	query, args, err = s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "delete_sidebar_cateory_tosql")
+	}
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to delete SidebarChannel")
 	}
 
 	if err := transaction.Commit(); err != nil {

@@ -150,8 +150,8 @@ func NewRequest(r *http.Request) *Request {
 
 // Exception specifies an error that occurred.
 type Exception struct {
-	Type       string      `json:"type,omitempty"`
-	Value      string      `json:"value,omitempty"`
+	Type       string      `json:"type,omitempty"`  // used as the main issue title
+	Value      string      `json:"value,omitempty"` // used as the main issue subtitle
 	Module     string      `json:"module,omitempty"`
 	ThreadID   string      `json:"thread_id,omitempty"`
 	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`

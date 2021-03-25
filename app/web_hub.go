@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -114,9 +114,6 @@ func (a *App) InvalidateWebConnSessionCacheForUser(userID string) {
 func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
-	// Wait until all messages have finished reading.
-	s.webConnSemaWg.Wait()
-	// Now stop the hub.
 	for _, hub := range s.hubs {
 		hub.Stop()
 	}

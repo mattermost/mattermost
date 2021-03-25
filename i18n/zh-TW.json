@@ -1866,14 +1866,6 @@
     "translation": "加入團隊"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 [[{{.TeamDisplayName}}]] 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能："
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "團隊 {{.SenderStatus}} [[{{.SenderName}}]] 邀請您加入 [[{{.TeamDisplayName}}]]。"
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "您已經被邀請"
   },
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "重設密碼"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "要變更密碼，請按下面的\"重設密碼\"。"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "如果不需要重置密碼，請忽略本電子郵件，密碼將保持不變。密碼重置連結將在 24 小時後失效。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2004,14 +1988,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "請按下方連結來驗證電子郵件地址。"
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "現在可以登入："
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -4198,11 +4174,11 @@
     "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "TLS 憑證檔案的值無效：請用 LetsEncrypt 或是設定為現有憑證檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "TLS 金鑰檔案的值無效：請用 LetsEncrypt 或是設定為現有金鑰檔案的路徑"
   },
   {
@@ -5792,10 +5768,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] 邀請您以訪客身份加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",

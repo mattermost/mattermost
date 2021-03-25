@@ -28,7 +28,7 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
+          trap 'npm ci && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
           trap - ERR
@@ -220,6 +220,8 @@ jobs:
         type: string
       dbsource:
         type: string
+      racemode:
+        type: string
     steps:
       - attach_workspace:
           at: ~/mattermost
@@ -251,7 +253,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
-              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
+              bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
           no_output_timeout: 1h
       - run:
@@ -422,10 +424,12 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #     context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
@@ -468,6 +472,7 @@ workflows:
           name: test-mysql
           dbdriver: mysql
           dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers
@@ -477,6 +482,7 @@ workflows:
           name: test-postgres
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers
@@ -498,10 +504,12 @@ workflows:
                 - master
                 - /^release-.*/
                 - cloud
-      - check-deps:
-          context: sast-webhook
-          requires:
-            - setup
+      # Disabling check-deps since the new version is not on bintray and all builds will fail
+      # we've are on top of this, and it's going to be temporary.
+      #- check-deps:
+      #    context: sast-webhook
+      #    requires:
+      #      - setup
       # - check-i18n:
       #     requires:
       #       - setup
@@ -532,6 +540,7 @@ workflows:
           name: test-mysql
           dbdriver: mysql
           dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers
@@ -541,6 +550,7 @@ workflows:
           name: test-postgres
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers

@@ -5,7 +5,6 @@ package model
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 	"testing"
@@ -349,35 +348,5 @@ func TestUserSlice(t *testing.T) {
 
 		nonBotUsers := slice.FilterWithoutBots()
 		assert.Equal(t, 1, len(nonBotUsers))
-	})
-}
-
-func TestGeneratePassword(t *testing.T) {
-	passwordRandom = lockedRand{
-		rn: rand.New(rand.NewSource(12345)),
-	}
-
-	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
-		password1 := GeneratePassword(5)
-		assert.Len(t, password1, 5)
-		password2 := GeneratePassword(10)
-		assert.Len(t, password2, 10)
-		password3 := GeneratePassword(1)
-		assert.Len(t, password3, 4)
-	})
-
-	t.Run("Should contain at least one of symbols, upper case, lower case and numbers", func(t *testing.T) {
-		password := GeneratePassword(4)
-		require.Len(t, password, 4)
-		assert.Contains(t, []rune(passwordUpperCaseLetters), []rune(password)[0])
-		assert.Contains(t, []rune(passwordNumbers), []rune(password)[1])
-		assert.Contains(t, []rune(passwordLowerCaseLetters), []rune(password)[2])
-		assert.Contains(t, []rune(passwordSpecialChars), []rune(password)[3])
-	})
-
-	t.Run("Should not fail on concurrent calls", func(t *testing.T) {
-		for i := 0; i < 10; i++ {
-			go GeneratePassword(10)
-		}
 	})
 }

@@ -88,8 +88,8 @@ func (rr *OPT) len(off int, compression map[string]struct{}) int {
 	return l
 }
 
-func (rr *OPT) parse(c *zlexer, origin string) *ParseError {
-	panic("dns: internal error: parse should never be called on OPT")
+func (*OPT) parse(c *zlexer, origin string) *ParseError {
+	return &ParseError{err: "OPT records do not have a presentation format"}
 }
 
 func (r1 *OPT) isDuplicate(r2 RR) bool { return false }
@@ -525,7 +525,7 @@ func (e *EDNS0_N3U) String() string {
 }
 func (e *EDNS0_N3U) copy() EDNS0 { return &EDNS0_N3U{e.Code, e.AlgCode} }
 
-// EDNS0_EXPIRE implementes the EDNS0 option as described in RFC 7314.
+// EDNS0_EXPIRE implements the EDNS0 option as described in RFC 7314.
 type EDNS0_EXPIRE struct {
 	Code   uint16 // Always EDNS0EXPIRE
 	Expire uint32
