@@ -431,6 +431,8 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
+	t.Skip("Flaky test: MM-34086")
+
 	s, err := NewServer()
 	require.NoError(t, err)
 
