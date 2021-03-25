@@ -1029,7 +1029,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	mlog.Info("Fetched Channels", mlog.String("took", time.Since(t1).String()))
 	gt1 := time.Now()
 	for _, channel := range channels {
-		t1 := time.Now()
+		// t1 := time.Now()
 		// update MsgCountRoot for up to date memberships
 		if _, err := sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET MsgCountRoot = :TotalMsgCountRoot WHERE ChannelId=:ChannelId AND LastViewedAt >= :LastPostAt", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt, "TotalMsgCountRoot": channel.TotalMsgCountRoot}); err != nil {
 			mlog.Error("Error updating MsgCountRoot for up-to-date memberships", mlog.Err(err))
@@ -1040,7 +1040,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 			UserId       string
 			LastViewedAt int64
 		}
-		if _, err := sqlStore.GetMaster().Select(&memberships, "SELECT UserId, LastViewedAt FROM ChannelMembers WHERE ChannelId=:ChannelId AND LastViewedAt >= :LastPostAt ORDER BY LastViewedAt DESC", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt}); err != nil {
+		if _, err := sqlStore.GetMaster().Select(&memberships, "SELECT UserId, LastViewedAt FROM ChannelMembers WHERE ChannelId=:ChannelId AND LastViewedAt <= :LastPostAt ORDER BY LastViewedAt DESC", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt}); err != nil {
 			mlog.Error("Error getting channelMemberships", mlog.Err(err))
 			break
 		}
@@ -1064,33 +1064,47 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 		}
 		defer finalizeTransaction(transaction)
 
-		for counter, postTimestamp := range postTimestamps {
-			for {
-				if counter == 0 || len(memberships) <= membershipIndex {
-					break
-				}
-				membership := memberships[membershipIndex]
-				if membership.LastViewedAt < postTimestamp && membership.LastViewedAt > postTimestamps[counter-1] {
-					params := map[string]interface{}{
-						"ChannelId":    channel.Id,
-						"UserId":       membership.UserId,
-						"MsgCountRoot": channel.TotalMsgCountRoot - int64(counter),
-					}
-					if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId", params); err != nil {
-						mlog.Error("Error updating ChannelMembers", mlog.Err(err))
+		if len(postTimestamps) == 0 {
+			params := map[string]interface{}{
+				"ChannelId":    channel.Id,
+				"MsgCountRoot": 0,
+			}
+			if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId", params); err != nil {
+				mlog.Error("Error updating ChannelMembers", mlog.Err(err))
+				break
+			}
+		} else {
+
+			prevPostTimestamp := int64(0)
+			for counter, postTimestamp := range postTimestamps {
+				for {
+					if len(memberships) <= membershipIndex {
 						break
 					}
-					membershipIndex++
-				} else {
-					break
+					membership := memberships[membershipIndex]
+					if membership.LastViewedAt < postTimestamp && membership.LastViewedAt > prevPostTimestamp {
+						params := map[string]interface{}{
+							"ChannelId":    channel.Id,
+							"UserId":       membership.UserId,
+							"MsgCountRoot": channel.TotalMsgCountRoot - int64(counter),
+						}
+						if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId", params); err != nil {
+							mlog.Error("Error updating ChannelMembers", mlog.Err(err))
+							break
+						}
+						membershipIndex++
+					} else {
+						break
+					}
 				}
+				prevPostTimestamp = postTimestamp
 			}
 		}
 		if err := transaction.Commit(); err != nil {
 			mlog.Error("Error committing transaction", mlog.Err(err))
 			break
 		}
-		mlog.Info("Processed channel", mlog.String("took", time.Since(t1).String()))
+		// mlog.Info("Processed channel", mlog.String("took", time.Since(t1).String()))
 	}
 	mlog.Info("All membership updates done", mlog.String("took", time.Since(gt1).String()))
 	// 	saveSchemaVersion(sqlStore, Version5340)
