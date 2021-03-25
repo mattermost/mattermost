@@ -325,7 +325,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			}
 			if tagValue == AnyTagValue {
 				checkPermissions := model.SysconsoleReadPermissions
-				if accessType == FilterTypeWrite{
+				if accessType == FilterTypeWrite {
 					checkPermissions = model.SysconsoleWritePermissions
 				}
 				if c.App.SessionHasPermissionToAny(*c.App.Session(), checkPermissions) {
