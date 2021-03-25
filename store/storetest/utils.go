@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,8 +20,7 @@ func NewTestId() string {
 	newId := []byte(model.NewId())
 
 	for i := 1; i < len(newId); i = i + 2 {
-		s := strconv.Itoa(rand.Intn(10))
-		newId[i] = s[0]
+		newId[i] = 48 + newId[i-1]%10
 	}
 
 	return string(newId)

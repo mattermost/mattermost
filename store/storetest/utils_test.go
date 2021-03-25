@@ -15,7 +15,7 @@ func TestNewTestId(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 		id := NewTestId()
-		require.LessOrEqual(t, len(id), 26, "ids shouldn't be longer than 26 chars")
-		require.Regexp(t, rg, id)
+		require.LessOrEqual(t, len(id), 26, "test ids shouldn't be longer than 26 chars")
+		require.Regexp(t, rg, id, "test ids should have pattern e.g a1b2c3...")
 	}
 }
