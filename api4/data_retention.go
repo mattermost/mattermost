@@ -163,7 +163,7 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -241,7 +241,7 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -270,7 +270,7 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -349,7 +349,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,7 +378,7 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func getTeamPoliciesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
