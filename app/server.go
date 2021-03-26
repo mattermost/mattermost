@@ -496,10 +496,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.WebSocketRouter = &WebSocketRouter{
-		server:   s,
 		handlers: make(map[string]webSocketHandler),
+		app:      fakeApp,
 	}
-	s.WebSocketRouter.app = fakeApp
 
 	mailConfig := s.MailServiceConfig()
 
