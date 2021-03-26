@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -1051,4 +1052,8 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	}
 
 	return nil
+}
+
+func (api *PluginAPI) SendNotification(notification actionitem.ExternalNotification) error {
+	return api.app.RecieveNotification(notification)
 }

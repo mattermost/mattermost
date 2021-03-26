@@ -9,6 +9,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -54,6 +55,7 @@ type Store interface {
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
+	ActionItem() ActionItemStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -784,6 +786,12 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error)
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
+}
+
+type ActionItemStore interface {
+	Save(item actionitem.ActionItem) error
+	GetForUser(userid string) ([]actionitem.ActionItem, error)
+	GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -1097,5 +1098,12 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteCommand(commandID)
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SendNotification(notification actionitem.ExternalNotification) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SendNotification(notification)
+	api.recordTime(startTime, "SendNotification", _returnsA == nil)
 	return _returnsA
 }

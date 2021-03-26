@@ -127,6 +127,8 @@ type Routes struct {
 	Imports *mux.Router // 'api/v4/imports'
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
+
+	ActionItems *mux.Router // 'api/v4/action_items'
 }
 
 type API struct {
@@ -243,6 +245,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
+	api.BaseRoutes.ActionItems = api.BaseRoutes.ApiRoot.PathPrefix("/action_items").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -281,6 +285,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitCloud()
 	api.InitImport()
 	api.InitExport()
+	api.InitActionItems()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

@@ -18,6 +18,7 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/gorilla/websocket"
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -4020,6 +4021,28 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket() []model.FileData {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) GetActionItemsForUser(userid string) ([]actionitem.ActionItem, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetActionItemsForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetActionItemsForUser(userid)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetActivePluginManifests")
@@ -5230,6 +5253,28 @@ func (a *OpenTracingAppLayer) GetCookieDomain() string {
 	resultVar0 := a.app.GetCookieDomain()
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCountsForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetCountsForUser(userid)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
@@ -11710,6 +11755,28 @@ func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) RecieveNotification(notification actionitem.ExternalNotification) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RecieveNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RecieveNotification(notification)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {

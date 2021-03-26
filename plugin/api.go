@@ -9,6 +9,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -1038,6 +1039,8 @@ type API interface {
 	// @tag SlashCommand
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
+
+	SendNotification(notification actionitem.ExternalNotification) error
 }
 
 var handshake = plugin.HandshakeConfig{

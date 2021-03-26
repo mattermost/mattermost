@@ -9,6 +9,7 @@ package opentracinglayer
 import (
 	"context"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -18,6 +19,7 @@ import (
 
 type OpenTracingLayer struct {
 	store.Store
+	ActionItemStore           store.ActionItemStore
 	AuditStore                store.AuditStore
 	BotStore                  store.BotStore
 	ChannelStore              store.ChannelStore
@@ -52,6 +54,10 @@ type OpenTracingLayer struct {
 	UserAccessTokenStore      store.UserAccessTokenStore
 	UserTermsOfServiceStore   store.UserTermsOfServiceStore
 	WebhookStore              store.WebhookStore
+}
+
+func (s *OpenTracingLayer) ActionItem() store.ActionItemStore {
+	return s.ActionItemStore
 }
 
 func (s *OpenTracingLayer) Audit() store.AuditStore {
@@ -188,6 +194,11 @@ func (s *OpenTracingLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *OpenTracingLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+type OpenTracingLayerActionItemStore struct {
+	store.ActionItemStore
+	Root *OpenTracingLayer
 }
 
 type OpenTracingLayerAuditStore struct {
@@ -358,6 +369,24 @@ type OpenTracingLayerUserTermsOfServiceStore struct {
 type OpenTracingLayerWebhookStore struct {
 	store.WebhookStore
 	Root *OpenTracingLayer
+}
+
+func (s *OpenTracingLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ActionItemStore.GetForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ActionItemStore.GetForUser(userid)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
@@ -10199,6 +10228,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 		Store: childStore,
 	}
 
+	newStore.ActionItemStore = &OpenTracingLayerActionItemStore{ActionItemStore: childStore.ActionItem(), Root: &newStore}
 	newStore.AuditStore = &OpenTracingLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &OpenTracingLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &OpenTracingLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
@@ -20,6 +21,7 @@ const mySQLDeadlockCode = uint16(1213)
 
 type RetryLayer struct {
 	store.Store
+	ActionItemStore           store.ActionItemStore
 	AuditStore                store.AuditStore
 	BotStore                  store.BotStore
 	ChannelStore              store.ChannelStore
@@ -54,6 +56,10 @@ type RetryLayer struct {
 	UserAccessTokenStore      store.UserAccessTokenStore
 	UserTermsOfServiceStore   store.UserTermsOfServiceStore
 	WebhookStore              store.WebhookStore
+}
+
+func (s *RetryLayer) ActionItem() store.ActionItemStore {
+	return s.ActionItemStore
 }
 
 func (s *RetryLayer) Audit() store.AuditStore {
@@ -190,6 +196,11 @@ func (s *RetryLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *RetryLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+type RetryLayerActionItemStore struct {
+	store.ActionItemStore
+	Root *RetryLayer
 }
 
 type RetryLayerAuditStore struct {
@@ -376,6 +387,26 @@ func isRepeatableError(err error) bool {
 		}
 	}
 	return false
+}
+
+func (s *RetryLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
+
+	tries := 0
+	for {
+		result, err := s.ActionItemStore.GetForUser(userid)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
 }
 
 func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
@@ -11043,6 +11074,7 @@ func New(childStore store.Store) *RetryLayer {
 		Store: childStore,
 	}
 
+	newStore.ActionItemStore = &RetryLayerActionItemStore{ActionItemStore: childStore.ActionItem(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

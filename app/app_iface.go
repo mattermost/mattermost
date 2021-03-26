@@ -18,6 +18,7 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/gorilla/websocket"
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -517,6 +518,7 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData
+	GetActionItemsForUser(userid string) ([]actionitem.ActionItem, error)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
 	GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError)
@@ -565,6 +567,7 @@ type AppIface interface {
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
 	GetCookieDomain() string
+	GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error)
 	GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(teamID string, offset int, limit int, userID string) (*model.ChannelList, *model.AppError)
@@ -841,6 +844,7 @@ type AppIface interface {
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
+	RecieveNotification(notification actionitem.ExternalNotification) error
 	RecycleDatabaseConnection()
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)

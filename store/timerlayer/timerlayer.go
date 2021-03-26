@@ -10,6 +10,7 @@ import (
 	"context"
 	timemodule "time"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -18,6 +19,7 @@ import (
 type TimerLayer struct {
 	store.Store
 	Metrics                   einterfaces.MetricsInterface
+	ActionItemStore           store.ActionItemStore
 	AuditStore                store.AuditStore
 	BotStore                  store.BotStore
 	ChannelStore              store.ChannelStore
@@ -52,6 +54,10 @@ type TimerLayer struct {
 	UserAccessTokenStore      store.UserAccessTokenStore
 	UserTermsOfServiceStore   store.UserTermsOfServiceStore
 	WebhookStore              store.WebhookStore
+}
+
+func (s *TimerLayer) ActionItem() store.ActionItemStore {
+	return s.ActionItemStore
 }
 
 func (s *TimerLayer) Audit() store.AuditStore {
@@ -188,6 +194,11 @@ func (s *TimerLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *TimerLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+type TimerLayerActionItemStore struct {
+	store.ActionItemStore
+	Root *TimerLayer
 }
 
 type TimerLayerAuditStore struct {
@@ -358,6 +369,22 @@ type TimerLayerUserTermsOfServiceStore struct {
 type TimerLayerWebhookStore struct {
 	store.WebhookStore
 	Root *TimerLayer
+}
+
+func (s *TimerLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
+	start := timemodule.Now()
+
+	result, err := s.ActionItemStore.GetForUser(userid)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ActionItemStore.GetForUser", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
@@ -9215,6 +9242,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 		Metrics: metrics,
 	}
 
+	newStore.ActionItemStore = &TimerLayerActionItemStore{ActionItemStore: childStore.ActionItem(), Root: &newStore}
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

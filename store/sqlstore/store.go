@@ -125,6 +125,7 @@ type SqlStoreStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	actionItem           store.ActionItemStore
 }
 
 type SqlStore struct {
@@ -208,6 +209,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.actionItem = newSqlActionItemStore(store)
 	err = store.GetMaster().CreateTablesIfNotExists()
 
 	if err != nil {
@@ -255,6 +257,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
 	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
+	store.stores.actionItem.(*SqlActionItemStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -1248,6 +1251,10 @@ func (ss *SqlStore) Group() store.GroupStore {
 
 func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
+}
+
+func (ss *SqlStore) ActionItem() store.ActionItemStore {
+	return ss.stores.actionItem
 }
 
 func (ss *SqlStore) DropAllTables() {

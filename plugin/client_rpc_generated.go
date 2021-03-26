@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mattermost/mattermost-server/v5/actionitem"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -4843,6 +4844,35 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendNotificationArgs struct {
+	A actionitem.ExternalNotification
+}
+
+type Z_SendNotificationReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) SendNotification(notification actionitem.ExternalNotification) error {
+	_args := &Z_SendNotificationArgs{notification}
+	_returns := &Z_SendNotificationReturns{}
+	if err := g.client.Call("Plugin.SendNotification", _args, _returns); err != nil {
+		log.Printf("RPC call to SendNotification API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendNotification(args *Z_SendNotificationArgs, returns *Z_SendNotificationReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendNotification(notification actionitem.ExternalNotification) error
+	}); ok {
+		returns.A = hook.SendNotification(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API SendNotification called but not implemented."))
 	}
 	return nil
 }

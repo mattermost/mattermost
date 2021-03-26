@@ -20,6 +20,22 @@ type Store struct {
 	mock.Mock
 }
 
+// ActionItem provides a mock function with given fields:
+func (_m *Store) ActionItem() store.ActionItemStore {
+	ret := _m.Called()
+
+	var r0 store.ActionItemStore
+	if rf, ok := ret.Get(0).(func() store.ActionItemStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ActionItemStore)
+		}
+	}
+
+	return r0
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()
