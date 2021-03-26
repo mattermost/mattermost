@@ -64,8 +64,8 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
-func RunJobs(s *Server) error {
-	s.runjobs = true
+func RunEssentialJobs(s *Server) error {
+	s.runEssentialJobs = true
 
 	return nil
 }
