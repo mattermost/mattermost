@@ -517,6 +517,72 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	return ruser
 }
 
+func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
+	id := model.NewId()
+	user := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      "un_" + id,
+		Nickname:      "nn_" + id,
+		EmailVerified: true,
+		AuthService:   authService,
+	}
+	user, err := th.App.CreateUser(user)
+	if err != nil {
+		panic(err)
+	}
+	return user
+}
+
+func (th *TestHelper) SetupLdapConfig() {
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.LdapSettings.Enable = true
+		*cfg.LdapSettings.EnableSync = true
+		*cfg.LdapSettings.LdapServer = "dockerhost"
+		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
+		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
+		*cfg.LdapSettings.BindPassword = "mostest"
+		*cfg.LdapSettings.FirstNameAttribute = "cn"
+		*cfg.LdapSettings.LastNameAttribute = "sn"
+		*cfg.LdapSettings.NicknameAttribute = "cn"
+		*cfg.LdapSettings.EmailAttribute = "mail"
+		*cfg.LdapSettings.UsernameAttribute = "uid"
+		*cfg.LdapSettings.IdAttribute = "cn"
+		*cfg.LdapSettings.LoginIdAttribute = "uid"
+		*cfg.LdapSettings.SkipCertificateVerification = true
+		*cfg.LdapSettings.GroupFilter = ""
+		*cfg.LdapSettings.GroupDisplayNameAttribute = "cN"
+		*cfg.LdapSettings.GroupIdAttribute = "entRyUuId"
+		*cfg.LdapSettings.MaxPageSize = 0
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+}
+
+func (th *TestHelper) SetupSamlConfig() {
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.Enable = true
+		*cfg.SamlSettings.Verify = false
+		*cfg.SamlSettings.Encrypt = false
+		*cfg.SamlSettings.IdpUrl = "https://does.notmatter.com"
+		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
+		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
+		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
+		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
+		*cfg.SamlSettings.PublicCertificateFile = app.SamlPublicCertificateName
+		*cfg.SamlSettings.EmailAttribute = "Email"
+		*cfg.SamlSettings.UsernameAttribute = "Username"
+		*cfg.SamlSettings.FirstNameAttribute = "FirstName"
+		*cfg.SamlSettings.LastNameAttribute = "LastName"
+		*cfg.SamlSettings.NicknameAttribute = ""
+		*cfg.SamlSettings.PositionAttribute = ""
+		*cfg.SamlSettings.LocaleAttribute = ""
+		*cfg.SamlSettings.SignatureAlgorithm = model.SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256
+		*cfg.SamlSettings.CanonicalAlgorithm = model.SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense("saml"))
+}
+
 func (th *TestHelper) CreatePublicChannel() *model.Channel {
 	return th.CreateChannelWithClient(th.Client, model.CHANNEL_OPEN)
 }

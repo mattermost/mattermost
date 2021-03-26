@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5330
+	CurrentSchemaVersion   = Version5340
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
@@ -959,7 +959,30 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES && hasMissingMigrationsVersion532(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	}
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
@@ -976,7 +999,7 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
-	// 	saveSchemaVersion(sqlStore, Version5340)
-	// }
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
 }
