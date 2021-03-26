@@ -3036,6 +3036,8 @@ const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
 // 'integrations', 'compliance', 'plugins', and 'experimental'. They grant read and/or write access to the config field
 // to roles without PERMISSION_MANAGE_SYSTEM.
 //
+// The 'access' tag 'any' checks for any SYSCONSOLE read permission and grants access if any read permission is allowed.
+//
 // By default config values can be written with PERMISSION_MANAGE_SYSTEM, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
 //
