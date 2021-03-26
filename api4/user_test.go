@@ -6090,7 +6090,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	doCleanup := func(t *testing.T, th *TestHelper, user *model.User) {
 		info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 		err = th.cleanupTestFile(info)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	t.Run("LDAP user", func(t *testing.T) {
