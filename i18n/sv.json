@@ -5401,7 +5401,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8568,7 +8568,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8753,5 +8753,29 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
     "translation": "Effektivisera ditt arbete med verktyg som Github, Google kalender chrome. Utforska alla integrationer vi har på vår"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Misslyckades att koda fältet till JSON"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Fel då lösenord skapades."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Profilbilden måste anges av användarens inloggningsförmedlare (IdP)."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Fältet '{{.Field}}' måste anges av användarens inloggningsförmedlare (IdP)."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Fältet '{{.Field}}' måste anges av användarens inloggningsförmedlare (IdP)."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fel vid upplösande av cache"
   }
 ]
