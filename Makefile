@@ -570,6 +570,9 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
+	# Tidy up
+	$(GO) mod tidy
+
 	# Copy everything to vendor directory
 	$(GO) mod vendor
 
