@@ -1508,20 +1508,25 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 // users belong.
 func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error) {
 	var teamIDs []string
-	const query = `
-	SELECT A.TeamId FROM (
-		SELECT TeamId FROM TeamMembers
-		WHERE UserId = :UserId0 AND DeleteAt = 0
-	) AS A INNER JOIN (
-		SELECT TeamId FROM TeamMembers
-		WHERE UserId = :UserId1 AND DeleteAt = 0
-	) AS B ON A.TeamId = B.TeamId
-	INNER JOIN Teams ON A.TeamId = Teams.Id
-	WHERE Teams.DeleteAt = 0`
-	props := map[string]interface{}{"UserId0": userID, "UserId1": otherUserID}
-	_, err := s.GetReplica().Select(&teamIDs, query, props)
+	query, args, err := s.getQueryBuilder().
+		Select("TM1.TeamId").
+		From("TeamMembers AS TM1").
+		InnerJoin("TeamMembers AS TM2 ON TM1.TeamId = TM2.TeamId").
+		InnerJoin("Teams ON TM1.TeamId = Teams.Id").
+		Where(sq.And{
+			sq.Eq{"TM1.UserId": userID},
+			sq.Eq{"TM1.DeleteAt": 0},
+			sq.Eq{"TM2.UserId": otherUserID},
+			sq.Eq{"TM2.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		}).
+		ToSql()
 	if err != nil {
-		return []string{}, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+	_, err = s.GetReplica().Select(&teamIDs, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
 	}
 
 	return teamIDs, nil
