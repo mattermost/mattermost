@@ -4856,10 +4856,6 @@
     "translation": "Failed to upgrade websocket connection."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Invalid Origin header set during websocket upgrade."
-  },
-  {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
   },

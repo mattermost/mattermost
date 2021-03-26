@@ -8479,10 +8479,6 @@
     "translation": "Dışa aktarma dosyası bulunamadı."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
-  },
-  {
     "id": "app.user.send_emails.app_error",
     "translation": "Hiç bir e-posta gönderilemedi"
   },

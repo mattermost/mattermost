@@ -8482,10 +8482,6 @@
     "translation": "导出期间复制文件失败。"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "无效的 websocket 升级 Origin 标头。"
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "请求缺少 AuthData 或 AuthService 参数。"
   },

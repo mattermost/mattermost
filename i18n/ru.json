@@ -8176,10 +8176,6 @@
     "translation": "Не удалось обновить членство в треде для указанного пользователя"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Во время обновления веб-сокета установлен неверный заголовок Origin."
-  },
-  {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Данные схемы пользовательских прав не поддерживаются текущей лицензией"
   },

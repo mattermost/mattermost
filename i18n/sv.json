@@ -8479,10 +8479,6 @@
     "translation": "Det gick inte hitta export-filen."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Ogiltig Origin header vid websocket-uppgraderingen."
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "Din status är satt till “{{.EmojiName}} {{.StatusMessage}}”. Du kan ändra din status med status-popup i överst i kanal-sidomenyn."
   },

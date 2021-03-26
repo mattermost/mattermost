@@ -8479,10 +8479,6 @@
     "translation": "Kan geen bestand aanmaken tijdens export."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Ongeldige Origin header was ingesteld tijdens websocket upgrade."
-  },
-  {
     "id": "app.user.send_emails.app_error",
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
