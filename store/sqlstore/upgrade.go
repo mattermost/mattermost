@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5330
+	CurrentSchemaVersion   = Version5340
+	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
@@ -204,6 +205,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion532(sqlStore)
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
+	upgradeDatabaseToVersion535(sqlStore)
 
 	return nil
 }
@@ -999,10 +1001,16 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
+}
+
+func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
-	// 	saveSchemaVersion(sqlStore, Version5340)
+	// 	saveSchemaVersion(sqlStore, Version5350)
 	// }
 }
