@@ -5597,7 +5597,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.email_footer",
@@ -5649,7 +5649,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8765,5 +8765,13 @@
   {
     "id": "April",
     "translation": "April"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Error generating password."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Failed to encode field to JSON"
   }
 ]
