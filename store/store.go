@@ -132,7 +132,7 @@ type TeamStore interface {
 
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
-	GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error)
+	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 }
 
 type ChannelStore interface {

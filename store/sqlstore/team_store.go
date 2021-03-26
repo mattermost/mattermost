@@ -1506,10 +1506,7 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 
 // GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 // users belong.
-func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, error) {
-	if len(userIDs) != 2 {
-		return nil, errors.New("GetCommonTeamIDsForUsers can only be called with two users")
-	}
+func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error) {
 	var teamIDs []string
 	const query = `
 	SELECT A.TeamId FROM (
@@ -1521,10 +1518,10 @@ func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userIDs []string) ([]string, e
 	) AS B ON A.TeamId = B.TeamId
 	INNER JOIN Teams ON A.TeamId = Teams.Id
 	WHERE Teams.DeleteAt = 0`
-	props := map[string]interface{}{"UserId0": userIDs[0], "UserId1": userIDs[1]}
+	props := map[string]interface{}{"UserId0": userID, "UserId1": otherUserID}
 	_, err := s.GetReplica().Select(&teamIDs, query, props)
 	if err != nil {
-		return []string{}, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s", userIDs)
+		return []string{}, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
 	}
 
 	return teamIDs, nil

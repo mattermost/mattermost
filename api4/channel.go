@@ -466,19 +466,6 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM &&
-		!c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		commonTeamIDs, err := c.App.GetCommonTeamIDsForTwoUsers(userIds)
-		if err != nil {
-			c.Err = err
-			return
-		}
-		if len(commonTeamIDs) == 0 {
-			c.Err = model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	otherUserId := userIds[0]
 	if c.App.Session().UserId == otherUserId {
 		otherUserId = userIds[1]
