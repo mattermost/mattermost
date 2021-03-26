@@ -1361,6 +1361,8 @@ func doSessionCleanup(s *Server) {
 }
 
 func doCheckWarnMetricStatus(a *App) {
+	licenseIndependentCheckMetricStatus(a)
+
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1499,6 +1501,16 @@ func doCheckWarnMetricStatus(a *App) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
 		} else {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
+		}
+	}
+}
+
+func licenseIndependentCheckMetricStatus(a *App) {
+	isE0Edition := model.BuildEnterpriseReady == "true"
+
+	if *a.Config().SupportSettings.SupportEmail == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+		if nerr := a.notifyAdminsOfWarnMetricStatus(model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); nerr != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 	}
 }

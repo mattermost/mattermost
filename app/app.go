@@ -322,6 +322,15 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_2M.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
+		case model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.support_email_not_configured.notification_title")
+			if isE0Edition {
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_success.message")
+			} else {
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.support_email_not_configured.contact_us.email_body")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.notification_body")
+			}
 		default:
 			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -371,6 +380,11 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
 	if err != nil {
 		return err
+	}
+
+	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
+	if !ok {
+		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	for _, sysAdmin := range sysAdmins {
@@ -437,8 +451,12 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 			AuthorName: "",
 			Title:      warnMetricDisplayTexts.BotTitle,
 			Text:       warnMetricDisplayTexts.BotMessageBody,
-			Actions:    actions,
 		}}
+
+		if !warnMetric.SkipAction {
+			attachments[0].Actions = actions
+		}
+
 		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))

@@ -2275,6 +2275,30 @@
     "translation": "Improving Performance"
   },
   {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Configuring Server"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas id orci vel nisi blandit efficitur a non metus. In ac risus vitae libero ullamcorper pulvinar eu in quam. Aenean venenatis nibh dolor. Fusce efficitur dolor vitae lectus finibus, ut iaculis orci vulputate. Proin aliquam blandit mi, quis rhoncus ipsum elementum non. Nunc ac magna vestibulum, convallis massa non, aliquet urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sapien diam, ullamcorper a rhoncus sit amet, aliquet at odio.\r\n\r\nTo configure the support email, go to **System Console > Site Configuration > Customization**"
+  },
+  {
+    "id": "pi.server.warn_metric.support_email_not_configured.start_trial.notification_success.message",
+    "translation": "TODO success message"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.contact_us.email_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.action_label",
+    "translation": "TODO"
+  },
+  {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
     "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
