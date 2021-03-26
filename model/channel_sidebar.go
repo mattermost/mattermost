@@ -47,6 +47,7 @@ type SidebarCategory struct {
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`
 	Muted       bool                   `json:"muted"`
+	Collapsed   bool                   `json:"collapsed"`
 }
 
 // SidebarCategoryWithChannels combines data from SidebarCategory table with the Channel IDs that belong to that category
