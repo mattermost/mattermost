@@ -10,7 +10,7 @@ import (
 	"github.com/go-redis/redis/v8/internal"
 	"github.com/go-redis/redis/v8/internal/pool"
 	"github.com/go-redis/redis/v8/internal/proto"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -296,7 +296,7 @@ func (c *baseClient) withConn(
 
 		if span.IsRecording() {
 			if remoteAddr := cn.RemoteAddr(); remoteAddr != nil {
-				span.SetAttributes(label.String("net.peer.ip", remoteAddr.String()))
+				span.SetAttributes(attribute.String("net.peer.ip", remoteAddr.String()))
 			}
 		}
 

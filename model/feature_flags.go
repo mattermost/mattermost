@@ -23,6 +23,8 @@ type FeatureFlags struct {
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	// Toggle on and off support for Files search
 	FilesSearch bool
+	// Feature flag to control setting the TCP_NO_DELAY setting for websockets.
+	WebSocketDelay bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -31,7 +33,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.FilesSearch = false
-	f.PluginIncidentManagement = "1.5.2"
+	f.PluginIncidentManagement = "1.6.0"
+	f.WebSocketDelay = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

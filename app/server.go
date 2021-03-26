@@ -9,9 +9,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/maphash"
+	"html/template"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"os"
 	"os/exec"
@@ -29,8 +31,8 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/mailru/easygo/netpoll"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
@@ -45,7 +47,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
@@ -54,7 +55,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
@@ -62,6 +65,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -93,6 +97,10 @@ type Server struct {
 
 	localModeServer *http.Server
 
+	metricsServer *http.Server
+	metricsRouter *mux.Router
+	metricsLock   sync.Mutex
+
 	didFinishListen chan struct{}
 
 	goroutineCount      int32
@@ -104,11 +112,8 @@ type Server struct {
 
 	EmailService *EmailService
 
-	hubs          []*Hub
-	hashSeed      maphash.Seed
-	poller        netpoll.Poller
-	webConnSema   chan struct{}
-	webConnSemaWg sync.WaitGroup
+	hubs     []*Hub
+	hashSeed maphash.Seed
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -126,7 +131,7 @@ type Server struct {
 
 	newStore func() (store.Store, error)
 
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	htmlTemplateWatcher     *templates.Container
 	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
@@ -231,16 +236,6 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
-	// epoll/kqueue is not available on Windows.
-	if runtime.GOOS != "windows" {
-		poller, err := netpoll.New(nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create a netpoll instance")
-		}
-		s.poller = poller
-		s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
-	}
-
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
@@ -274,9 +269,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if *s.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err2 := tracing.New()
-		if err2 != nil {
-			return nil, err2
+		tracer, err := tracing.New()
+		if err != nil {
+			return nil, err
 		}
 		s.tracer = tracer
 	}
@@ -384,9 +379,19 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if htmlTemplateWatcher, err2 := utils.NewHTMLTemplateWatcher("templates"); err2 != nil {
-		mlog.Error("Failed to parse server templates", mlog.Err(err2))
+	templatesDir, ok := fileutils.FindDir("templates")
+	if !ok {
+		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
+		htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+		if err2 != nil {
+			return nil, errors.Wrap(err2, "cannot initialize server templates")
+		}
+		s.Go(func() {
+			for err2 := range errorsChan {
+				mlog.Warn("Server templates error", mlog.Err(err2))
+			}
+		})
 		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
@@ -498,7 +503,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	mailConfig := s.MailServiceConfig()
 
-	if nErr := mailservice.TestConnection(mailConfig); nErr != nil {
+	if nErr := mail.TestConnection(mailConfig); nErr != nil {
 		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
@@ -510,8 +515,14 @@ func NewServer(options ...Option) (*Server, error) {
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	} else {
-		if nErr := backend.TestConnection(); nErr != nil {
-			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			if errors.Is(nErr, filestore.ErrNoS3Bucket) {
+				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
+			}
+			if nErr != nil {
+				mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+			}
 		}
 	}
 
@@ -592,9 +603,21 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	if s.startMetrics && s.Metrics != nil {
-		s.Metrics.StartServer()
+	if s.startMetrics {
+		s.SetupMetricsServer()
 	}
+
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
+			return
+		}
+
+		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+			return
+		}
+
+		s.SetupMetricsServer()
+	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
 	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
@@ -611,6 +634,24 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+func (s *Server) SetupMetricsServer() {
+	if !*s.Config().MetricsSettings.Enable {
+		return
+	}
+
+	s.StopMetricsServer()
+
+	if err := s.InitMetricsRouter(); err != nil {
+		mlog.Error("Error initiating metrics router.", mlog.Err(err))
+	}
+
+	if s.Metrics != nil {
+		s.Metrics.Register()
+	}
+
+	s.startMetricsServer()
 }
 
 func maxInt(a, b int) int {
@@ -830,12 +871,9 @@ func (s *Server) Shutdown() {
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
+	s.htmlTemplateWatcher.Close()
 
 	s.WaitForGoroutines()
-
-	if s.htmlTemplateWatcher != nil {
-		s.htmlTemplateWatcher.Close()
-	}
 
 	if s.advancedLogListenerCleanup != nil {
 		s.advancedLogListenerCleanup()
@@ -856,9 +894,7 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	if s.Metrics != nil {
-		s.Metrics.StopServer()
-	}
+	s.StopMetricsServer()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
@@ -1243,7 +1279,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return utils.SameOriginChecker()
+	return nil
 }
 
 func (s *Server) checkPushNotificationServerUrl() {
@@ -1476,6 +1512,98 @@ func doCheckWarnMetricStatus(a *App) {
 	}
 }
 
+func (s *Server) StopMetricsServer() {
+	s.metricsLock.Lock()
+	defer s.metricsLock.Unlock()
+
+	if s.metricsServer != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
+		defer cancel()
+
+		s.metricsServer.Shutdown(ctx)
+		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+		s.metricsServer = nil
+	}
+}
+
+func (s *Server) HandleMetrics(route string, h http.Handler) {
+	if s.metricsRouter != nil {
+		s.metricsRouter.Handle(route, h)
+	}
+}
+
+func (s *Server) InitMetricsRouter() error {
+	s.metricsRouter = mux.NewRouter()
+	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
+
+	metricsPage := `
+			<html>
+				<body>{{if .}}
+					<div><a href="/metrics">Metrics</a></div>{{end}}
+					<div><a href="/debug/pprof/">Profiling Root</a></div>
+					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+				</body>
+			</html>
+		`
+	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
+	if err != nil {
+		return errors.Wrap(err, "failed to create template")
+	}
+
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		metricsPageTmpl.Execute(w, s.Metrics != nil)
+	}
+
+	s.metricsRouter.HandleFunc("/", rootHandler)
+	s.metricsRouter.StrictSlash(true)
+
+	s.metricsRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	s.metricsRouter.HandleFunc("/debug/pprof/", pprof.Index)
+	s.metricsRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	s.metricsRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	s.metricsRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	s.metricsRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	s.metricsRouter.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
+
+	return nil
+}
+
+func (s *Server) startMetricsServer() {
+	s.metricsLock.Lock()
+	defer s.metricsLock.Unlock()
+
+	if s.metricsServer != nil {
+		return
+	}
+
+	s.metricsServer = &http.Server{
+		Addr:         *s.Config().MetricsSettings.ListenAddress,
+		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
+		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
+	}
+
+	go func() {
+		if err := s.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			mlog.Critical(err.Error())
+		}
+	}()
+
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+}
+
 func doLicenseExpirationCheck(a *App) {
 	a.Srv().LoadLicense()
 	license := a.Srv().License()
@@ -1661,10 +1789,6 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
-}
-
-func (s *Server) Poller() netpoll.Poller {
-	return s.poller
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {

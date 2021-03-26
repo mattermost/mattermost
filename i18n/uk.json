@@ -1876,14 +1876,6 @@
     "translation": "Приєднатися до команди"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost дозволяє обмінюватися повідомленнями та файлами з комп'ютера або телефона з можливістю моментального пошуку та архівування. Після того, як ви приєднаєтесь до команди {{.TeamDisplayName}}, ви зможете отримати доступ до цих функцій будь-коли через Веб-сайт:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Команда {{.SenderStatus}} [[{{.SenderName}}]] запрошує вас приєднатися до [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Вас запросили"
   },
@@ -1930,14 +1922,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Скинути мій пароль "
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Щоб змінити пароль, натисніть кнопку \"Скидання пароля\" нижче."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Якщо ви не хочете скинути пароль, проігноруйте цей електронний лист, і ваш пароль залишиться незмінним. Скидання пароля закінчується через 24 години."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -4200,11 +4184,11 @@
     "translation": "Оновлення статусу набору тексту користувачем не може бути частіше, ніж раз у 1000 мілісекунд."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Неправильне значення для файлу сертифіката TLS - використовуйте LetsEncrypt або встановіть шлях до існуючого файлу сертифіката"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Неправильне значення для файлу ключів TLS - будь-ласка, використовуйте LetsEncrypt або встановіть шлях до існуючого ключа"
   },
   {
@@ -5794,10 +5778,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
