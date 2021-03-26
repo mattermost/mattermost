@@ -1873,7 +1873,7 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Присоединиться к команде"
+    "translation": "Присоединиться прямо сейчас"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1997,7 +1997,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Этот адрес электронной почты был использован для создания учётной записи Mattermost."
+    "translation": "Этот email-адрес был использован для создания учётной записи Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -5497,7 +5497,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Продлить лицензию"
+    "translation": "Продлить лицензию прямо сейчас"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -7685,7 +7685,7 @@
   },
   {
     "id": "model.reaction.is_valid.update_at.app_error",
-    "translation": "\"Обновить в\" должно быть корректным временем"
+    "translation": "\"Обновить в\" должно быть корректным временем."
   },
   {
     "id": "model.plugin_command_error.error.app_error",
@@ -7725,7 +7725,7 @@
   },
   {
     "id": "mfa.activate.app_error",
-    "translation": "Невозможно обновить активный статус MFA для пользователя"
+    "translation": "Невозможно обновить активный статус MFA для пользователя."
   },
   {
     "id": "import_process.worker.do_job.unzip",
@@ -7761,7 +7761,7 @@
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Возникла ошибка по время проверки ответа от поставщика учетных записей. Пожалуйста, свяжитесь с системным администратором."
+    "translation": "Возникла ошибка по время проверки ответа от провайдера учётных записей. Пожалуйста, свяжитесь с системным администратором."
   },
   {
     "id": "ent.message_export.global_relay_export.get_attachment_error",
@@ -7917,7 +7917,7 @@
   },
   {
     "id": "app.user.update_auth_data.email_exists.app_error",
-    "translation": "Невозможно переключить учетную запись на {{.Service}}. Учетная запись, использующая электронную почту {{.Email}} уже существует."
+    "translation": "Невозможно переключить учётную запись на {{.Service}}. Учётная запись, использующая email-адрес {{.Email}} уже существует."
   },
   {
     "id": "app.user.update_auth_data.app_error",
@@ -7929,7 +7929,7 @@
   },
   {
     "id": "app.user.update.finding.app_error",
-    "translation": "Возникла ошибка с обнаружением учетной записи."
+    "translation": "Возникла ошибка поиска учётной записи."
   },
   {
     "id": "app.user.update.find.app_error",
@@ -7945,7 +7945,7 @@
   },
   {
     "id": "app.user.save.username_exists.app_error",
-    "translation": "Учетная запись с таким именем пользователя уже существует."
+    "translation": "Учётная запись с таким именем пользователя уже существует."
   },
   {
     "id": "app.user.save.existing.app_error",
@@ -8013,19 +8013,19 @@
   },
   {
     "id": "app.user.get_by_username.app_error",
-    "translation": "Не удалось найти действительную учетную запись с соответствующим именем пользователя для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
+    "translation": "Не удалось найти действительную учётную запись с соответствующим именем пользователя для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
-    "translation": "Возникла ошибка при попытке найти учетную запись по типу аутентификации."
+    "translation": "Возникла ошибка при попытке найти учётную запись по типу аутентификации."
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": "Не удалось найти действительную учетную запись с соответствующим типом аутентификации для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
+    "translation": "Не удалось найти действительную учётную запись с соответствующим типом аутентификации для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
     "id": "app.user.get.app_error",
-    "translation": "Возникла ошибка с обнаружением учетной записи."
+    "translation": "Возникла ошибка поиска учётной записи."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
@@ -8169,7 +8169,7 @@
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": "Участник канала с таким идентификатором уже существует"
+    "translation": "Участник канала с таким ID уже существует."
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8317,7 +8317,7 @@
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Чтобы обеспечить бесперебойную подписку на Mattermost Cloud, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платежную информацию. После обновления платежных данных Mattermost предпримет попытку погасить остаток задолженности."
+    "translation": "Чтобы обеспечить бесперебойную подписку на Mattermost Cloud, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8762,5 +8762,25 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Событие Webhook не было обработано. Либо оно отсутствует, либо некорректно."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Картинка профиля должна быть установлена через провайдера аутентификации пользователя."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Поле '{{.Field}}' должно быть установлено через провайдера аутентификации пользователя."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Поле '{{.Field}}' должно быть установлено через провайдера аутентификации пользователя."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Не удалось закодировать поле в JSON"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Ошибка при генерации пароля."
   }
 ]
