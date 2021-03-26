@@ -1048,6 +1048,9 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		Page:                     props.Page,
 		PerPage:                  props.PerPage,
 	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		opts.IncludePolicyID = true
+	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)
 	if appErr != nil {

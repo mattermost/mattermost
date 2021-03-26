@@ -60,7 +60,7 @@ type TeamForExport struct {
 
 type TeamWithPolicyID struct {
 	Team
-	PolicyID *string `db:"PolicyId" json:"policy_id,omitempty"`
+	PolicyID *string `db:"PolicyId" json:"policy_id"`
 }
 
 type Invites struct {

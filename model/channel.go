@@ -60,7 +60,7 @@ type ChannelWithTeamData struct {
 	TeamName        string `json:"team_name"`
 	TeamUpdateAt    int64  `json:"team_update_at"`
 	// This isn't really team data, but renaming the struct would be a lot of work...
-	PolicyID *string `db:"PolicyId" json:"policy_id,omitempty"`
+	PolicyID *string `db:"PolicyId" json:"policy_id"`
 }
 
 type ChannelsWithCount struct {
