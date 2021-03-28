@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
-	"math"
 	"os"
 	"strings"
 	"time"
@@ -1002,109 +1001,45 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "MsgCountRoot", "bigint", "bigint")
-	// calculate totalmsgcountroot for Channels
-	t1 := time.Now()
-	channelCTE := "SELECT Channels.Id channelid, COALESCE(COUNT(CASE WHEN Posts.RootId = '' THEN 1 END),0) newcount FROM Channels LEFT JOIN Posts ON Channels.id = Posts.ChannelId GROUP BY Channels.Id"
-	updateChannelsQuery := "WITH q AS (" + channelCTE + ") UPDATE channels SET totalmsgcountroot  = q.newcount FROM q where q.channelid=channels.id"
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		updateChannelsQuery = "UPDATE Channels INNER JOIN (" + channelCTE + ") AS q ON q.channelid=Channels.id SET totalmsgcountroot = q.newcount"
-	}
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+	ta := time.Now()
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
+	mlog.Info("CreateColumnIfNotExists MsgCountRoot", mlog.String("took", time.Since(ta).String()))
 
-	if _, err := sqlStore.GetMaster().Exec(updateChannelsQuery); err != nil {
-		mlog.Error("Error updating TotalMsgCountRoot in Channels table", mlog.Err(err))
-	}
-	mlog.Info("Updated TotalMsgCountRoot in Channels", mlog.String("took", time.Since(t1).String()))
-
-	// loop over channels and update the memberships for each
-	var channels []struct {
-		Id                string
-		LastPostAt        int64
-		TotalMsgCountRoot int64
-	}
-	t1 = time.Now()
-	if _, err := sqlStore.GetMaster().Select(&channels, "SELECT Id,TotalMsgCountRoot,LastPostAt FROM Channels"); err != nil {
-		mlog.Error("Error fetching Channels table", mlog.Err(err))
-	}
-	mlog.Info("Fetched Channels", mlog.String("took", time.Since(t1).String()))
 	gt1 := time.Now()
-	for _, channel := range channels {
-		// t1 := time.Now()
-		// update MsgCountRoot for up to date memberships
-		if _, err := sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET MsgCountRoot = :TotalMsgCountRoot WHERE ChannelId=:ChannelId AND LastViewedAt >= :LastPostAt", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt, "TotalMsgCountRoot": channel.TotalMsgCountRoot}); err != nil {
-			mlog.Error("Error updating MsgCountRoot for up-to-date memberships", mlog.Err(err))
-			break
-		}
-		// collect all memberships that need update
-		var memberships []struct {
-			UserId       string
-			LastViewedAt int64
-		}
-		if _, err := sqlStore.GetMaster().Select(&memberships, "SELECT UserId, LastViewedAt FROM ChannelMembers WHERE ChannelId=:ChannelId AND LastViewedAt <= :LastPostAt ORDER BY LastViewedAt DESC", map[string]interface{}{"ChannelId": channel.Id, "LastPostAt": channel.LastPostAt}); err != nil {
-			mlog.Error("Error getting channelMemberships", mlog.Err(err))
-			break
-		}
-		// calculate oldest 'viewedAt' for memberships and use that value to filter out some of the posts
-		minLastViewedAt := int64(math.MaxInt64)
-		for _, m := range memberships {
-			if m.LastViewedAt < minLastViewedAt {
-				minLastViewedAt = m.LastViewedAt
-			}
-		}
-		var postTimestamps []int64
-		if _, err := sqlStore.GetMaster().Select(&postTimestamps, "SELECT CreateAt FROM Posts WHERE ChannelId=:ChannelId AND DeleteAt=0 AND RootId='' AND CreateAt > :MinLastViewedAt ORDER BY CreateAt DESC", map[string]interface{}{"ChannelId": channel.Id, "MinLastViewedAt": minLastViewedAt}); err != nil {
-			mlog.Error("Error gettings posts", mlog.Err(err))
-			break
-		}
-		membershipIndex := 0
-		transaction, err := sqlStore.GetMaster().Begin()
-		if err != nil {
-			mlog.Error("Error starting transaction", mlog.Err(err))
-			break
-		}
-		defer finalizeTransaction(transaction)
+	c1 := `
+		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
+		FROM Channels
+		LEFT JOIN Posts ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+	c2 := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	uberQ := `
+		WITH q AS (` + c1 + `)
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		FROM q where q.channelid=Channels.Id;
 
-		prevPostTimestamp := int64(model.GetMillis())
-		for counter, postTimestamp := range postTimestamps {
-			for {
-				if len(memberships) <= membershipIndex {
-					break
-				}
-				membership := memberships[membershipIndex]
-				if membership.LastViewedAt >= postTimestamp && membership.LastViewedAt <= prevPostTimestamp {
-					params := map[string]interface{}{
-						"ChannelId":    channel.Id,
-						"UserId":       membership.UserId,
-						"MsgCountRoot": channel.TotalMsgCountRoot - int64(counter),
-					}
-					if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId", params); err != nil {
-						mlog.Error("Error updating ChannelMembers", mlog.Err(err))
-						break
-					}
-					membershipIndex++
-				} else {
-					break
-				}
-			}
-			prevPostTimestamp = postTimestamp
-		}
+		WITH q as (` + c2 + `)
+		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		uberQ = `
+			UPDATE Channels
+			INNER Join (` + c1 + `) as q
+			ON q.channelid=Channels.Id
+			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
 
-		for i := membershipIndex; i < len(memberships); i++ {
-			params := map[string]interface{}{
-				"UserId":       memberships[i].UserId,
-				"ChannelId":    channel.Id,
-				"MsgCountRoot": channel.TotalMsgCountRoot - int64(len(postTimestamps)),
-			}
-			if _, err = transaction.Exec("UPDATE ChannelMembers SET MsgCountRoot=:MsgCountRoot WHERE ChannelId=:ChannelId AND UserId=:UserId", params); err != nil {
-				mlog.Error("Error updating ChannelMembers", mlog.Err(err))
-				break
-			}
-		}
-		if err := transaction.Commit(); err != nil {
-			mlog.Error("Error committing transaction", mlog.Err(err))
-			break
-		}
-		// mlog.Info("Processed channel", mlog.String("took", time.Since(t1).String()))
+			UPDATE ChannelMembers CM
+			INNER JOIN (` + c2 + `) as q
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			SET MsgCountRoot=TotalMsgCountRoot
+			`
+	}
+	if _, err := sqlStore.GetMaster().Exec(uberQ); err != nil {
+		mlog.Error("Error fetching Channels table", mlog.Err(err))
 	}
 	mlog.Info("All membership updates done", mlog.String("took", time.Since(gt1).String()))
 	// 	saveSchemaVersion(sqlStore, Version5340)

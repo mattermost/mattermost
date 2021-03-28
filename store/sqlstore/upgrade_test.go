@@ -126,7 +126,7 @@ func createPostWithTimestamp(ss store.Store, channelId, userId, rootId, parentId
 	return p
 }
 
-func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastPostAt, msgCount, rootCount int64) *model.Channel {
+func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastPostAt, msgCount, rootCount int64) (*model.Channel, error) {
 	m := model.Channel{}
 	m.TeamId = teamId
 	m.TotalMsgCount = msgCount
@@ -136,8 +136,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	m.DisplayName = "Name"
 	m.Name = "zz" + model.NewId() + "b"
 	m.Type = model.CHANNEL_OPEN
-	c, _ := ss.Channel().Save(&m, -1)
-	return c
+	return ss.Channel().Save(&m, -1)
 }
 func TestMsgCountRootMigration(t *testing.T) {
 	type TestCaseChannel struct {
@@ -174,14 +173,14 @@ func TestMsgCountRootMigration(t *testing.T) {
 					PostTimes:                      []int64{1000, 2000, 3000, 4000},
 					ReplyTimes:                     []int64{1001, 0, 0, 0},
 					MembershipsLastViewAt:          []int64{2001},
-					ExpectedMembershipMsgCountRoot: []int64{2},
+					ExpectedMembershipMsgCountRoot: []int64{0},
 				},
 				{
 					Name:                           "two replies, 3 memberships",
 					PostTimes:                      []int64{1000, 2000, 3000},
 					ReplyTimes:                     []int64{1001, 2001, 0},
 					MembershipsLastViewAt:          []int64{2000, 5000, 0},
-					ExpectedMembershipMsgCountRoot: []int64{2, 3, 0},
+					ExpectedMembershipMsgCountRoot: []int64{0, 3, 0},
 				},
 			},
 		},
@@ -202,8 +201,8 @@ func TestMsgCountRootMigration(t *testing.T) {
 								lastPostAt = testChannel.ReplyTimes[i]
 							}
 						}
-						channel := createChannelWithLastPostAt(ss, team.Id, model.NewId(), lastPostAt, int64(len(testChannel.PostTimes)+len(testChannel.ReplyTimes)), int64(len(testChannel.PostTimes)))
-						require.NotNil(t, channel)
+						channel, err := createChannelWithLastPostAt(ss, team.Id, model.NewId(), lastPostAt, int64(len(testChannel.PostTimes)+len(testChannel.ReplyTimes)), int64(len(testChannel.PostTimes)))
+						require.NoError(t, err)
 						var userIds []string
 						for _, md := range testChannel.MembershipsLastViewAt {
 							user := createUser(ss)
