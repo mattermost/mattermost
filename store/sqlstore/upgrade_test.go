@@ -221,7 +221,7 @@ func TestMsgCountRootMigration(t *testing.T) {
 							}
 						}
 
-						upgradeDatabaseToVersion534(sqlStore)
+						upgradeDatabaseToVersion535(sqlStore)
 
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
 						require.NoError(t, err)
