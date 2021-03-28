@@ -225,7 +225,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		mimeHeaders:   headers,
 	}
 
-	err = sendMailUsingConfigAdvanced(mail, cfg, true)
+	err = sendMailUsingConfigAdvanced(mail, cfg)
 	require.NoError(t, err, "Should connect to the STMP Server: %v", err)
 
 	//Check if the email was send to the right email address

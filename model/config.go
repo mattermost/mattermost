@@ -235,8 +235,9 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
-	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
-	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
+	CLOUD_SETTINGS_DEFAULT_CWS_URL     = "https://customers.mattermost.com"
+	CLOUD_SETTINGS_DEFAULT_CWS_API_URL = "https://portal.internal.prod.cloud.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE      = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -2702,12 +2703,16 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSUrl *string `access:"environment,write_restrictable"`
+	CWSUrl    *string `access:"environment,write_restrictable"`
+	CWSAPIUrl *string `access:"environment,write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSUrl == nil {
 		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+	if s.CWSAPIUrl == nil {
+		s.CWSAPIUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_API_URL)
 	}
 }
 
@@ -3551,7 +3556,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.ConnectionSecurity == CONN_SECURITY_TLS && !*s.UseLetsEncrypt {
-		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
 			return appErr
@@ -3559,7 +3564,7 @@ func (s *ServiceSettings) isValid() *AppError {
 			return appErr
 		}
 
-		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSKeyFile == "" {
 			return appErr

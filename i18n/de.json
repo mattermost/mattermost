@@ -4179,11 +4179,11 @@
     "translation": "Zeit zwischen Benutzereingabenaktualisierung sollte nicht weniger als 1000 Millisekunden betragen."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Zertifikatsdatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Zertifikatsdatei verwenden."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Schlüsseldatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Schlüsseldatei verwenden."
   },
   {

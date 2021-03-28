@@ -43,6 +43,7 @@ type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
+	IndexTypeFullTextFunc  = "full_text_func"
 	IndexTypeDefault       = "default"
 	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
 	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
@@ -143,6 +144,12 @@ type SqlStore struct {
 }
 
 type TraceOnAdapter struct{}
+
+// ColumnInfo holds information about a column.
+type ColumnInfo struct {
+	DataType          string
+	CharMaximumLength int
+}
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	originalString := fmt.Sprintf(format, v...)
@@ -542,6 +549,52 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	}
 }
 
+// GetColumnInfo returns data type information about the given column.
+func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
+	var columnInfo ColumnInfo
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE lower(table_name) = lower($1)
+			 AND lower(column_name) = lower($2)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND lower(table_name) = lower(?)
+			 AND lower(column_name) = lower(?)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	}
+	return nil, errors.New("Driver not supported for this method")
+}
+
+// IsVarchar returns true if the column type matches one of the varchar types
+// either in MySQL or PostgreSQL.
+func (ss *SqlStore) IsVarchar(columnType string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+		return true
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+		return true
+	}
+
+	return false
+}
+
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(`
@@ -875,6 +928,10 @@ func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName s
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
+func (ss *SqlStore) CreateFullTextFuncIndexIfNotExists(indexName string, tableName string, function string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, []string{function}, IndexTypeFullTextFunc, false)
+}
+
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
@@ -898,6 +955,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		} else if indexType == IndexTypeFullTextFunc {
+			if len(columnNames) != 1 {
+				mlog.Critical("Unable to create multi column full text index")
+				os.Exit(ExitCreateIndexPostgres)
+			}
+			columnName := columnNames[0]
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
