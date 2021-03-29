@@ -28,9 +28,6 @@ services:
         service: openldap
   elasticsearch:
     container_name: mattermost-elasticsearch
-    image: "docker.elastic.co/elasticsearch/elasticsearch:7.10.2"
-    environment: 
-        discovery.type: "single-node"
     extends:
         file: ./docker-compose.makefile.yml
         service: elasticsearch
