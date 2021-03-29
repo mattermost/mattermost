@@ -4,17 +4,13 @@
 package app
 
 import (
-	"context"
-	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -26,35 +22,16 @@ import (
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		upgrader := ws.HTTPUpgrader{
-			Timeout: 5 * time.Second,
+		upgrader := &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
 		}
-
-		var hdr ws.Header
-		conn, _, _, err := upgrader.Upgrade(req, w)
-		rd := wsutil.Reader{
-			Source:          conn,
-			State:           ws.StateServerSide,
-			CheckUTF8:       true,
-			SkipHeaderCheck: true,
-		}
+		conn, err := upgrader.Upgrade(w, req, nil)
 		for err == nil {
-			hdr, err = rd.NextFrame()
-			if err != nil {
-				continue
-			}
-			if hdr.OpCode.IsControl() {
-				continue
-			}
-			if hdr.OpCode&(ws.OpText|ws.OpBinary) == 0 {
-				err = rd.Discard()
-				continue
-			}
-
-			_, err = ioutil.ReadAll(&rd)
+			_, _, err = conn.ReadMessage()
 		}
-		if err != io.EOF {
-			require.Fail(t, "unexpected error:", err)
+		if _, ok := err.(*websocket.CloseError); !ok {
+			require.NoError(t, err)
 		}
 	}
 }
@@ -65,7 +42,8 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	})
 	require.Nil(t, appErr)
 
-	c, _, _, err := ws.Dial(context.Background(), "ws://"+addr.String()+"/ws")
+	d := websocket.Dialer{}
+	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
 	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
@@ -90,20 +68,6 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer wc3.Close()
 }
 
-func TestWebConnDoubleClose(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "userID")
-	wc1.Close()
-	require.NotPanics(t, func() {
-		wc1.Close()
-	})
-}
-
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
@@ -114,7 +78,8 @@ func TestHubStopRaceCondition(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	th.App.HubStart()
-	registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	defer wc1.Close()
 
 	hub := th.App.Srv().hubs[0]
 	th.App.HubStop()
@@ -173,7 +138,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
 	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", "id1").Return(sess1, nil)
+	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}

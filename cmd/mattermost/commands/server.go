@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/manualtesting"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -69,7 +69,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 
 	options := []app.Option{
 		app.ConfigStore(configStore),
-		app.RunJobs,
+		app.RunEssentialJobs,
 		app.JoinCluster,
 		app.StartSearchEngine,
 		app.StartMetrics,

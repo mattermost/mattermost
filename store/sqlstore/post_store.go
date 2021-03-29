@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -33,6 +33,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
+	IsFollowing        bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -87,26 +88,10 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(150)
+		table.ColMap("FileIds").SetMaxSize(300)
 	}
 
 	return s
-}
-
-func (s *SqlPostStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
-	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
-	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
-	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
-	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
-
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at", "Posts", []string{"ChannelId", "UpdateAt"})
-	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt"})
-
-	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
-	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
 func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
@@ -425,7 +410,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 	return pl, nil
 }
-func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*model.PostList, error) {
+func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -434,13 +419,19 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var post postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Id": id}).ToSql()
 
@@ -455,9 +446,9 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id, collapsedThreadsExtended)
+		return s.getPostWithCollapsedThreads(id, userID, collapsedThreadsExtended)
 	}
 	pl := model.NewPostList()
 
@@ -467,7 +458,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := s.DBFromContext(ctx).SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -689,6 +680,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
+		p.Post.IsFollowing = p.IsFollowing
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {
@@ -728,7 +720,12 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
@@ -736,6 +733,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"RootId": ""}).
@@ -808,13 +806,19 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+	)
 	var posts []*postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"UpdateAt": options.Time}).
@@ -944,7 +948,12 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 	columns := []string{"p.*"}
 	if options.CollapsedThreads {
-		columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
+		columns = append(columns,
+			"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
+			"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
+			"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+			"COALESCE(ThreadMemberships.Following, false) as IsFollowing",
+		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
@@ -956,7 +965,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
-		query = query.LeftJoin("Threads ON Threads.PostId = p.Id")
+		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	}
@@ -1026,15 +1035,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true)
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false)
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1053,14 +1062,18 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
 
+	conditions := sq.And{
+		direction,
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("Id").
 		From(table).
-		Where(sq.And{
-			direction,
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
@@ -1082,7 +1095,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedThreads bool) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -1090,15 +1103,18 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
-
+	conditions := sq.And{
+		sq.Gt{"CreateAt": time},
+		sq.Eq{"ChannelId": channelId},
+		sq.Eq{"DeleteAt": int(0)},
+	}
+	if collapsedThreads {
+		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+	}
 	query := s.getQueryBuilder().
 		Select("*").
 		From(table).
-		Where(sq.And{
-			sq.Gt{"CreateAt": time},
-			sq.Eq{"ChannelId": channelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
+		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
@@ -1483,6 +1499,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		if params.OrTerms {
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
+			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}

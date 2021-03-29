@@ -243,10 +243,10 @@ CREATE TABLE public.incomingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     displayname character varying(64),
-    description character varying(128),
-    username text,
-    iconurl text,
-    channellocked boolean
+    description character varying(500),
+    username character varying(255),
+    iconurl character varying(1024),
+    channellocked boolean DEFAULT false
 );
 
 
@@ -289,13 +289,13 @@ ALTER TABLE public.licenses OWNER TO mmuser;
 --
 
 CREATE TABLE public.oauthaccessdata (
-    clientid character varying(26),
-    userid character varying(26),
     token character varying(26) NOT NULL,
     refreshtoken character varying(26),
     redirecturi character varying(256),
-    expiresat bigint,
-    scope character varying(128)
+    clientid character varying(26) DEFAULT ''::character varying,
+    userid character varying(26) DEFAULT ''::character varying,
+    expiresat bigint DEFAULT 0,
+    scope character varying(128) DEFAULT 'user'::character varying
 );
 
 
@@ -354,11 +354,13 @@ CREATE TABLE public.outgoingwebhooks (
     channelid character varying(26),
     teamid character varying(26),
     triggerwords character varying(1024),
-    triggerwhen integer,
     callbackurls character varying(1024),
     displayname character varying(64),
-    description character varying(128),
-    contenttype character varying(128)
+    contenttype character varying(128),
+    triggerwhen integer DEFAULT 0,
+    username character varying(64),
+    iconurl character varying(1024),
+    description character varying(500),
 );
 
 
@@ -385,9 +387,7 @@ CREATE TABLE public.posts (
     id character varying(26) NOT NULL,
     createat bigint,
     updateat bigint,
-    editat bigint,
     deleteat bigint,
-    ispinned boolean,
     userid character varying(26),
     channelid character varying(26),
     rootid character varying(26),
@@ -398,8 +398,10 @@ CREATE TABLE public.posts (
     props character varying(8000),
     hashtags character varying(1000),
     filenames character varying(4000),
-    fileids character varying(150),
-    hasreactions boolean
+    fileids character varying(300) DEFAULT '[]'::character varying,
+    hasreactions boolean DEFAULT false,
+    editat bigint DEFAULT 0,
+    ispinned boolean DEFAULT false
 );
 
 
@@ -447,7 +449,7 @@ CREATE TABLE public.roles (
     deleteat bigint,
     permissions character varying(4096),
     schememanaged boolean,
-    builtin boolean
+    builtin boolean DEFAULT false
 );
 
 

@@ -11,11 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -1028,6 +1029,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
+	cErr := a.forEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
+		a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
+		return nil
+	})
+	if cErr != nil {
+		return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations.cache_invalidation.error", nil, cErr.Error(), http.StatusInternalServerError)
+	}
+
 	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
@@ -1379,7 +1388,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	teamMember, nErr := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
+	teamMember, nErr := a.Srv().Store.Team().GetMember(sqlstore.WithMaster(context.Background()), channel.TeamId, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2371,9 +2380,14 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, post.RootId)
-		if threadMembership != nil {
+	if *a.Config().ServiceSettings.ThreadAutoFollow {
+		threadId := post.RootId
+		if post.RootId == "" {
+			threadId = post.Id
+		}
+
+		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		if threadMembership != nil && threadMembership.Following {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2385,6 +2399,20 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+			thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+			a.sanitizeProfiles(thread.Participants, false)
+			thread.Post.SanitizeProps()
+
+			payload := thread.ToJson()
+			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+			if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent = preference.Value == "on"
+			}
+			if sendEvent {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
 			}
 		}
 	}
@@ -2961,23 +2989,20 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	return nil
 }
 
-func (a *App) ClearChannelMembersCache(channelID string) {
+func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
 	perPage := 100
 	page := 0
 
 	for {
 		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
-			a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
-			break
+			return err
 		}
 
 		for _, channelMember := range *channelMembers {
-			a.ClearSessionCacheForUser(channelMember.UserId)
-
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
-			message.Add("channelMember", channelMember.ToJson())
-			a.Publish(message)
+			if err = f(channelMember); err != nil {
+				return err
+			}
 		}
 
 		length := len(*(channelMembers))
@@ -2986,6 +3011,21 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 		}
 
 		page++
+	}
+
+	return nil
+}
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	clearSessionCache := func(channelMember model.ChannelMember) error {
+		a.ClearSessionCacheForUser(channelMember.UserId)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+		message.Add("channelMember", channelMember.ToJson())
+		a.Publish(message)
+		return nil
+	}
+	if err := a.forEachChannelMember(channelID, clearSessionCache); err != nil {
+		a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
 	}
 }
 
