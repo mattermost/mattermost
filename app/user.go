@@ -781,10 +781,6 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	if err := mfa.New(a.Srv().Store.User()).Deactivate(userID); err != nil {
 		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1181,6 +1177,37 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 	}
 
 	return updatedUser, nil
+}
+
+// CheckProviderAttributes returns the empty string if the patch can be applied without
+// overriding attributes set by the user's login provider; otherwise, the name of the offending
+// field is returned.
+func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+	tryingToChange := func(userValue *string, patchValue *string) bool {
+		return patchValue != nil && *patchValue != *userValue
+	}
+
+	// If any login provider is used, then the username may not be changed
+	if user.AuthService != "" && tryingToChange(&user.Username, patch.Username) {
+		return "username"
+	}
+
+	LdapSettings := &a.Config().LdapSettings
+	SamlSettings := &a.Config().SamlSettings
+
+	conflictField := ""
+	if a.Ldap() != nil &&
+		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
+		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, user, patch)
+	} else if a.Saml() != nil && user.IsSAMLUser() {
+		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, user, patch)
+	} else if user.IsOAuthUser() {
+		if tryingToChange(&user.FirstName, patch.FirstName) || tryingToChange(&user.LastName, patch.LastName) {
+			conflictField = "full name"
+		}
+	}
+
+	return conflictField
 }
 
 func (a *App) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {

@@ -540,6 +540,9 @@ func (*LoadTestProvider) JsonCommand(a *app.App, args *model.CommandArgs, messag
 	}()
 
 	post := model.PostFromJson(r.Body)
+	if post == nil {
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("could not decode post from json")
+	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
 	if post.Message == "" {

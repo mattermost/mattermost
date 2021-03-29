@@ -1863,7 +1863,7 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "加入团队"
+    "translation": "立刻加入"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1915,7 +1915,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "您请求密码重设"
+    "translation": "重置您的密码"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1967,11 +1967,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "请通过以下链接来验证您的电子邮件地址。"
+    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "您已加入 {{ .ServerURL }}"
+    "translation": "验证您的电子邮箱地址"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1987,11 +1987,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "请通过以下链接来验证您的电子邮件地址。"
+    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "您已加入 {{ .ServerURL }}"
+    "translation": "欢迎加入团队"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -8482,10 +8482,6 @@
     "translation": "导出期间复制文件失败。"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "无效的 websocket 升级 Origin 标头。"
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "请求缺少 AuthData 或 AuthService 参数。"
   },
@@ -8511,7 +8507,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "或者，您可以在管理控制台中禁止以释放用户位数并保持在免费用户限制内。"
+    "translation": "或者，您可以在系统控制台中禁止以释放用户位数并保持在免费用户限制内。"
   },
   {
     "id": "api.export.export_not_found.app_error",
@@ -8580,5 +8576,133 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook 事件未处理。它丢失或无效。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "单击下面以验证您的电子邮件地址。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "感谢您的加入 "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}。"
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "下载桌面和移动应用"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "下载"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "单击下面以验证您的电子邮件地址。"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "感谢您的加入 "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}。"
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "新用户无法加入您的工作区"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "最近有人尝试加入您的工作空间，但由于您的工作空间已达到 Mattermost 云免费版本的用户限制，因此无法加入。立即升级，以允许更多用户加入您的工作区。"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "单击下面的按钮以重置密码。如果您未请求重置密码，则可忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "密码重置链接将在24小时后失效。"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "疑问？"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "您以访客身份被邀请与团队合作"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "什么是 Mattermost？"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "了解更多"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "开始在 Mattermost 与您的团队合作"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "恭喜，您的{{.WorkSpace}}工作区已准备就绪！"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "采取以下步骤建立团队，并充分利用您的工作空间。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "设置您的工作区"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "恭喜！"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "移动和桌面应用"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "邀请他人进入您的工作区"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "确保保存或添加书签以供将来使用。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "下载 Mattermost 应用"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "打开 Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "应用商城。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "使用 Github、谷歌日历和 Chrome 等工具简化您的工作。探索我们在我们上的所有集成"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "将应用程序添加到您的工作区"
   }
 ]

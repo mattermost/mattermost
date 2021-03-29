@@ -1531,6 +1531,9 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 	channel := th.BasicChannel
 
+	user := th.BasicUser
+	th.AddUserToChannel(user, channel)
+
 	createPosts := model.ChannelModeratedPermissions[0]
 	createReactions := model.ChannelModeratedPermissions[1]
 	manageMembers := model.ChannelModeratedPermissions[2]
@@ -1915,6 +1918,34 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		assert.Contains(t, higherScopedGuestRole.Permissions, createPosts)
 	})
 
+	t.Run("Updates the authorization to create post", func(t *testing.T) {
+		addCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(true),
+				},
+			},
+		}
+		removeCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(false),
+				},
+			},
+		}
+
+		mockSession := model.Session{UserId: user.Id}
+
+		_, err := th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), addCreatePosts)
+		require.Nil(t, err)
+		require.True(t, th.App.SessionHasPermissionToChannel(mockSession, channel.Id, model.PERMISSION_CREATE_POST))
+
+		_, err = th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), removeCreatePosts)
+		require.Nil(t, err)
+		require.False(t, th.App.SessionHasPermissionToChannel(mockSession, channel.Id, model.PERMISSION_CREATE_POST))
+	})
 }
 
 // TestMarkChannelsAsViewedPanic verifies that returning an error from a.GetUser
