@@ -299,9 +299,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version330, Version340) {
-		sqlStore.CreateColumnIfNotExists("Status", "Manual", "BOOLEAN", "BOOLEAN", "0")
-		sqlStore.CreateColumnIfNotExists("Status", "ActiveChannel", "varchar(26)", "varchar(26)", "")
-
 		saveSchemaVersion(sqlStore, Version340)
 	}
 }
@@ -330,9 +327,6 @@ func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
-
-		// Remove ActiveChannel column from Status
-		sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
 
 		saveSchemaVersion(sqlStore, Version360)
 	}
