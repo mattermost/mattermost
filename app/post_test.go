@@ -1964,6 +1964,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.EqualValues(t, []string{user1.Id, user2.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id, l.Posts[postRoot.Id].Participants[1].Id})
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
+		require.True(t, l.Posts[postRoot.Id].IsFollowing)
 
 		// try extended fetch
 		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)

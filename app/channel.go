@@ -1028,6 +1028,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
+	cErr := a.forEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
+		a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
+		return nil
+	})
+	if cErr != nil {
+		return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations.cache_invalidation.error", nil, cErr.Error(), http.StatusInternalServerError)
+	}
+
 	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
@@ -2990,23 +2998,20 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	return nil
 }
 
-func (a *App) ClearChannelMembersCache(channelID string) {
+func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
 	perPage := 100
 	page := 0
 
 	for {
 		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
-			a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
-			break
+			return err
 		}
 
 		for _, channelMember := range *channelMembers {
-			a.ClearSessionCacheForUser(channelMember.UserId)
-
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
-			message.Add("channelMember", channelMember.ToJson())
-			a.Publish(message)
+			if err = f(channelMember); err != nil {
+				return err
+			}
 		}
 
 		length := len(*(channelMembers))
@@ -3015,6 +3020,21 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 		}
 
 		page++
+	}
+
+	return nil
+}
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	clearSessionCache := func(channelMember model.ChannelMember) error {
+		a.ClearSessionCacheForUser(channelMember.UserId)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+		message.Add("channelMember", channelMember.ToJson())
+		a.Publish(message)
+		return nil
+	}
+	if err := a.forEachChannelMember(channelID, clearSessionCache); err != nil {
+		a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
 	}
 }
 

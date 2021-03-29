@@ -974,6 +974,7 @@ const (
 	HUGETLBFS_MAGIC                             = 0x958458f6
 	IBSHIFT                                     = 0x10
 	ICMPV6_FILTER                               = 0x1
+	ICMP_FILTER                                 = 0x1
 	ICRNL                                       = 0x100
 	IFA_F_DADFAILED                             = 0x8
 	IFA_F_DEPRECATED                            = 0x20

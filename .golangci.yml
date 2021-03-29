@@ -28,7 +28,6 @@ linters:
     - varcheck
     - misspell
     - goimports
-    - unparam
     # TODO: enable this later
     # - errcheck
 
@@ -60,8 +59,3 @@ issues:
     - linters:
       - misspell
       path: "shared/markdown/html_entities.go"
-
-    - linters:
-      - unparam
-      path: "app/plugin_api_tests"
-      text: "is always nil"
