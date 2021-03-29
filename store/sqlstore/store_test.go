@@ -247,7 +247,6 @@ func TestGetReplica(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description+" with license", func(t *testing.T) {
-			t.Parallel()
 
 			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
 			dataSourceReplicas := []string{}
@@ -318,7 +317,6 @@ func TestGetReplica(t *testing.T) {
 		})
 
 		t.Run(testCase.Description+" without license", func(t *testing.T) {
-			t.Parallel()
 
 			settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
 			dataSourceReplicas := []string{}
