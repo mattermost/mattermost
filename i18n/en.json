@@ -2280,11 +2280,11 @@
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Configuring Server"
+    "translation": "Customize Your Support Email Address"
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas id orci vel nisi blandit efficitur a non metus. In ac risus vitae libero ullamcorper pulvinar eu in quam. Aenean venenatis nibh dolor. Fusce efficitur dolor vitae lectus finibus, ut iaculis orci vulputate. Proin aliquam blandit mi, quis rhoncus ipsum elementum non. Nunc ac magna vestibulum, convallis massa non, aliquet urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sapien diam, ullamcorper a rhoncus sit amet, aliquet at odio.\r\n\r\nTo configure the support email, go to **System Console > Site Configuration > Customization**"
+    "translation": "Your Mattermost system is currently using feedback@mattermost.com as the address for end user feedback, email notifications, and support requests. Please go to **System Console > Site Configuration > Customization** to replace the default [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) address with your organization's internal IT Support Desk email address. This ensures   Mattermost account requests are sent to the correct team for resolution."
   },
   {
     "id": "pi.server.warn_metric.support_email_not_configured.start_trial.notification_success.message",
