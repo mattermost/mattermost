@@ -126,8 +126,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			return nil, idx, err
 		}
 
-		currentChannelCount, ok := channelNewPosts[post.ChannelId]
-		if !ok {
+		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
@@ -144,8 +143,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 
 		if post.RootId == "" {
-			currentChannelCount, ok2 := channelNewRootPosts[post.ChannelId]
-			if !ok2 {
+			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
 				if post.IsJoinLeaveMessage() {
 					channelNewRootPosts[post.ChannelId] = 0
 				} else {
@@ -159,8 +157,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			continue
 		}
 
-		currentRootCount, ok := rootIds[post.RootId]
-		if !ok {
+		if currentRootCount, ok := rootIds[post.RootId]; !ok {
 			rootIds[post.RootId] = 1
 			maxDateRootIds[post.RootId] = post.CreateAt
 		} else {
