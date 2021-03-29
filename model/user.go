@@ -270,8 +270,14 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("update_at", u.Id)
 	}
 
-	if !IsValidUsername(u.Username) {
-		return InvalidUserError("username", u.Id)
+	if u.IsRemote() {
+		if !IsValidUsernameAllowRemote(u.Username) {
+			return InvalidUserError("username", u.Id)
+		}
+	} else {
+		if !IsValidUsername(u.Username) {
+			return InvalidUserError("username", u.Id)
+		}
 	}
 
 	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
@@ -826,6 +832,7 @@ func ComparePassword(hash string, password string) bool {
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
 
 var restrictedUsernames = []string{
 	"all",
@@ -840,6 +847,24 @@ func IsValidUsername(s string) bool {
 	}
 
 	if !validUsernameChars.MatchString(s) {
+		return false
+	}
+
+	for _, restrictedUsername := range restrictedUsernames {
+		if s == restrictedUsername {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsValidUsernameAllowRemote(s string) bool {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+		return false
+	}
+
+	if !validUsernameCharsForRemote.MatchString(s) {
 		return false
 	}
 

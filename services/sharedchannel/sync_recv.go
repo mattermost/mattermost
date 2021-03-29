@@ -224,9 +224,13 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var userSaved *model.User
 	var suffix string
 
-	// save the originals in props
-	user.Props[KeyRemoteUsername] = user.Username
-	user.Props[KeyRemoteEmail] = user.Email
+	// save the originals in props (if not already done by another remote)
+	if _, ok := user.Props[KeyRemoteUsername]; !ok {
+		user.Props[KeyRemoteUsername] = user.Username
+	}
+	if _, ok := user.Props[KeyRemoteEmail]; !ok {
+		user.Props[KeyRemoteEmail] = user.Email
+	}
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique

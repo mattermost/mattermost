@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"fmt"
+	"strings"
 )
 
 // mungUsername creates a new username by combining username and remote cluster name, plus
@@ -13,6 +14,17 @@ import (
 func mungUsername(username string, remotename string, suffix string, maxLen int) string {
 	if suffix != "" {
 		suffix = "~" + suffix
+	}
+
+	// If the username already contains a colon then another server already munged it.
+	// In that case we can split on the colon and use the existing remote name.
+	// We still need to re-mung with suffix in case of collision.
+	if strings.Contains(username, ":") {
+		comps := strings.Split(username, ":")
+		if len(comps) >= 2 {
+			username = comps[0]
+			remotename = strings.Join(comps[1:], "")
+		}
 	}
 
 	var userEllipses string
