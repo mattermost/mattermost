@@ -12,6 +12,7 @@ SET @preparedStatement = (SELECT IF(
         WHERE table_name = 'Preferences'
         AND table_schema = DATABASE()
         AND column_name = 'Value'
+        AND data_type != 'text'
     ) > 0,
     'ALTER TABLE Preferences MODIFY Value text;',
     'SELECT 1'

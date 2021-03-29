@@ -10,7 +10,28 @@ CREATE INDEX IF NOT EXISTS idx_preferences_user_id ON preferences(userid);
 CREATE INDEX IF NOT EXISTS idx_preferences_category ON preferences(category);
 CREATE INDEX IF NOT EXISTS idx_preferences_name ON preferences(name);
 
-ALTER TABLE preferences ALTER COLUMN value TYPE varchar(2000);
+DO $$
+<<modify_column_type_if_type_is_different>>
+DECLARE
+    type_exists boolean := false;
+    col_exists boolean := false;
+BEGIN
+    SELECT count(*) != 0 INTO col_exists
+    FROM information_schema.columns
+    WHERE table_name = 'preferences'
+    AND column_name = 'value';
+
+    SELECT count(*) != 0 INTO type_exists
+    FROM information_schema.columns
+    WHERE table_name = 'preferences'
+    AND column_name = 'value'
+    AND data_type = 'character varying'
+    AND character_maximum_length = 2000;
+
+    IF col_exists AND NOT type_exists THEN
+        ALTER TABLE preferences ALTER COLUMN value TYPE varchar(2000);
+    END IF;
+END modify_column_type_if_type_is_different $$;
 
 DO $$
 <<rename_solarized_theme>>
