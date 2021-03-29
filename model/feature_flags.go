@@ -33,7 +33,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.FilesSearch = false
-	f.PluginIncidentManagement = "1.6.0"
+	f.PluginIncidentManagement = "1.7.0"
 	f.WebSocketDelay = false
 }
 
