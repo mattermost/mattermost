@@ -448,6 +448,34 @@ func (_m *Store) RemoteCluster() store.RemoteClusterStore {
 	return r0
 }
 
+// ReplicaLagAbs provides a mock function with given fields:
+func (_m *Store) ReplicaLagAbs() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ReplicaLagTime provides a mock function with given fields:
+func (_m *Store) ReplicaLagTime() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Role provides a mock function with given fields:
 func (_m *Store) Role() store.RoleStore {
 	ret := _m.Called()

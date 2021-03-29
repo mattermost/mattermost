@@ -1109,19 +1109,26 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	return &ssoSettings
 }
 
+type ReplicaLagSettings struct {
+	DataSource       *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryAbsoluteLag *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeLag     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+}
+
 type SqlSettings struct {
-	DriverName                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
+	DriverName                  *string               `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSource                  *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas          []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas    []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	Trace                       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1177,6 +1184,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.ReplicaLagSettings == nil {
+		s.ReplicaLagSettings = []*ReplicaLagSettings{}
 	}
 }
 
@@ -3359,6 +3370,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.MaxOpenConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
