@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -3434,9 +3435,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 
 	channel := th.CreatePrivateChannel()
 
-	_, err := th.App.AddChannelMember(user1.Id, channel, "", "", true)
+	_, err := th.App.AddChannelMember(user1.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
-	_, err = th.App.AddChannelMember(user2.Id, channel, "", "", true)
+	_, err = th.App.AddChannelMember(user2.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 
 	channel.GroupConstrained = model.NewBool(true)

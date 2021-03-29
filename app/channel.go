@@ -1390,8 +1390,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 // checkTeamMember is used to indicate whether it should be checked that a user has
 // already been removed from that team or not. This is useful to avoid in scenarios
 // when we just added the team member, and thereby know that there is no need to check this.
-func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, checkTeamMember bool) (*model.ChannelMember, *model.AppError) {
-	if checkTeamMember {
+func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, doNotCheckTeamMember bool) (*model.ChannelMember, *model.AppError) {
+	if !doNotCheckTeamMember {
 		teamMember, nErr := a.Srv().Store.Team().GetMember(context.Background(), channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
@@ -1421,11 +1421,17 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, checkTe
 	return newMember, nil
 }
 
+type ChannelMemberOpts struct {
+	UserRequestorID      string
+	PostRootID           string
+	DoNotCheckTeamMember bool
+}
+
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 // checkTeamMember is used to indicate whether it will check for the user was deleted from
 // the team or not. This is useful to avoid in scenarios when we just added the team member,
 // and thereby know that there is no need to check this.
-func (a *App) AddChannelMember(userID string, channel *model.Channel, userRequestorId string, postRootId string, checkTeamMember bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
@@ -1443,13 +1449,13 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, userReques
 	}
 
 	var userRequestor *model.User
-	if userRequestorId != "" {
-		if userRequestor, err = a.GetUser(userRequestorId); err != nil {
+	if opts.UserRequestorID != "" {
+		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, checkTeamMember)
+	cm, err := a.AddUserToChannel(user, channel, opts.DoNotCheckTeamMember)
 	if err != nil {
 		return nil, err
 	}
@@ -1464,11 +1470,11 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, userReques
 		})
 	}
 
-	if userRequestorId == "" || userID == userRequestorId {
+	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		a.postJoinChannelMessage(user, channel)
 	} else {
 		a.Srv().Go(func() {
-			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
+			a.PostAddToChannelMessage(userRequestor, user, channel, opts.PostRootID)
 		})
 	}
 

@@ -93,7 +93,7 @@ func (a *OpenTracingAppLayer) ActivateMfa(userID string, token string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddChannelMember(userID string, channel *model.Channel, userRequestorId string, postRootId string, checkTeamMember bool) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddChannelMember(userID string, channel *model.Channel, opts app.ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddChannelMember")
 
@@ -105,7 +105,7 @@ func (a *OpenTracingAppLayer) AddChannelMember(userID string, channel *model.Cha
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddChannelMember(userID, channel, userRequestorId, postRootId, checkTeamMember)
+	resultVar0, resultVar1 := a.app.AddChannelMember(userID, channel, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -434,7 +434,7 @@ func (a *OpenTracingAppLayer) AddTeamMembers(teamID string, userIDs []string, us
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel, checkTeamMember bool) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel, doNotCheckTeamMember bool) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToChannel")
 
@@ -446,7 +446,7 @@ func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddUserToChannel(user, channel, checkTeamMember)
+	resultVar0, resultVar1 := a.app.AddUserToChannel(user, channel, doNotCheckTeamMember)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

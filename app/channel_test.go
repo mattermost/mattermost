@@ -581,9 +581,8 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	groupUserIds = append(groupUserIds, user.Id)
 
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-	userRequestorId := ""
-	postRootId := ""
-	_, err = th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId, true)
+
+	_, err = th.App.AddChannelMember(user.Id, channel, ChannelMemberOpts{})
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
@@ -952,9 +951,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	userRequestorId := ""
-	postRootId := ""
-	_, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, userRequestorId, postRootId, true)
+	_, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, ChannelMemberOpts{})
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	user := th.BasicUser
