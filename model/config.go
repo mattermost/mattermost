@@ -2896,10 +2896,10 @@ func (s *DisplaySettings) SetDefaults() {
 }
 
 type GuestAccountsSettings struct {
-	Enable                           *bool   
-	AllowEmailAccounts               *bool   
-	EnforceMultifactorAuthentication *bool   
-	RestrictCreationToDomains        *string 
+	Enable                           *bool   `access:"authentication"`
+	AllowEmailAccounts               *bool   `access:"authentication"`
+	EnforceMultifactorAuthentication *bool   `access:"authentication"`
+	RestrictCreationToDomains        *string `access:"authentication"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {
@@ -3100,7 +3100,7 @@ type Config struct {
 	JobSettings               JobSettings // telemetry: none
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
-	GuestAccountsSettings     GuestAccountsSettings `access:"authentication"`
+	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings  // telemetry: none
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"` // telemetry: none
