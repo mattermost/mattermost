@@ -16,7 +16,6 @@ type webSocketHandler interface {
 }
 
 type WebSocketRouter struct {
-	server   *Server
 	app      *App
 	handlers map[string]webSocketHandler
 }

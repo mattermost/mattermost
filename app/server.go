@@ -120,8 +120,8 @@ type Server struct {
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
-	runjobs bool
-	Jobs    *jobs.JobServer
+	runEssentialJobs bool
+	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
 
@@ -452,8 +452,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
-		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		if s.Jobs != nil {
+			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
 		s.setupFeatureFlags()
 	})
@@ -501,10 +501,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.WebSocketRouter = &WebSocketRouter{
-		server:   s,
 		handlers: make(map[string]webSocketHandler),
+		app:      fakeApp,
 	}
-	s.WebSocketRouter.app = fakeApp
 
 	mailConfig := s.MailServiceConfig()
 
@@ -666,44 +665,46 @@ func maxInt(a, b int) int {
 	return b
 }
 
-func (s *Server) RunJobs() {
-	if s.runjobs {
-		s.Go(func() {
-			runSecurityJob(s)
-		})
-		s.Go(func() {
-			firstRun, err := s.getFirstServerRunTimestamp()
-			if err != nil {
-				mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-				s.ensureFirstServerRunTimestamp()
-				firstRun = utils.MillisFromTime(time.Now())
-			}
-			s.telemetryService.RunTelemetryJob(firstRun)
-		})
-		s.Go(func() {
-			runSessionCleanupJob(s)
-		})
-		s.Go(func() {
-			runTokenCleanupJob(s)
-		})
-		s.Go(func() {
-			runCommandWebhookCleanupJob(s)
-		})
+func (s *Server) runJobs() {
+	s.Go(func() {
+		runSecurityJob(s)
+	})
+	s.Go(func() {
+		firstRun, err := s.getFirstServerRunTimestamp()
+		if err != nil {
+			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+			s.ensureFirstServerRunTimestamp()
+			firstRun = utils.MillisFromTime(time.Now())
+		}
+		s.telemetryService.RunTelemetryJob(firstRun)
+	})
+	s.Go(func() {
+		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runTokenCleanupJob(s)
+	})
+	s.Go(func() {
+		runCommandWebhookCleanupJob(s)
+	})
 
-		if complianceI := s.Compliance; complianceI != nil {
-			complianceI.StartComplianceDailyJob()
-		}
+	if complianceI := s.Compliance; complianceI != nil {
+		complianceI.StartComplianceDailyJob()
+	}
 
-		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-			s.Jobs.StartWorkers()
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Failed to start job server workers", mlog.Err(err))
 		}
-		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-			s.Jobs.StartSchedulers()
+	}
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StartSchedulers(); err != nil {
+			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
 		}
+	}
 
-		if *s.Config().ServiceSettings.EnableAWSMetering {
-			runReportToAWSMeterJob(s)
-		}
+	if *s.Config().ServiceSettings.EnableAWSMetering {
+		runReportToAWSMeterJob(s)
 	}
 }
 
@@ -964,9 +965,16 @@ func (s *Server) Shutdown() {
 	s.StopMetricsServer()
 
 	// This must be done after the cluster is stopped.
-	if s.Jobs != nil && s.runjobs {
-		s.Jobs.StopWorkers()
-		s.Jobs.StopSchedulers()
+	if s.Jobs != nil {
+		// For simplicity we don't check if workers and schedulers are active
+		// before stopping them as both calls essentially become no-ops
+		// if nothing is running.
+		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+		}
+		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
+			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+		}
 	}
 
 	if s.Store != nil {
