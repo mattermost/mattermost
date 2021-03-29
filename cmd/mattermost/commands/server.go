@@ -69,7 +69,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 
 	options := []app.Option{
 		app.ConfigStore(configStore),
-		app.RunJobs,
+		app.RunEssentialJobs,
 		app.JoinCluster,
 		app.StartSearchEngine,
 		app.StartMetrics,
