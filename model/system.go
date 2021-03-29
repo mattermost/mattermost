@@ -171,19 +171,19 @@ var WarnMetricsTable = map[string]WarnMetric{
 		IsRunOnce: true,
 	},
 	SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED: {
-		Id: SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED,
-		Limit: -1,
-		IsBotOnly: true,
-		IsRunOnce: false,
+		Id:         SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED,
+		Limit:      -1,
+		IsBotOnly:  true,
+		IsRunOnce:  false,
 		SkipAction: true,
 	},
 }
 
 type WarnMetric struct {
-	Id        string
-	Limit     int64
-	IsBotOnly bool
-	IsRunOnce bool
+	Id         string
+	Limit      int64
+	IsBotOnly  bool
+	IsRunOnce  bool
 	SkipAction bool
 }
 
