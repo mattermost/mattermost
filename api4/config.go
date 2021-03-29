@@ -25,7 +25,6 @@ type filterType string
 const (
 	FilterTypeWrite filterType = "write"
 	FilterTypeRead  filterType = "read"
-	AnyTagValue     string     = "any"
 )
 
 func (api *API) InitConfig() {
@@ -323,8 +322,8 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			if tagValue == model.ConfigAccessTagCloudRestrictable {
 				continue
 			}
-			// The 'access' tag 'any' checks for any SYSCONSOLE read permission and grants access if any read permission is allowed.
-			if tagValue == AnyTagValue && c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions){
+			if tagValue == model.ConfigAccessTagAnySysConsoleRead && accessType == FilterTypeRead &&
+				c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
 				return true
 			}
 

@@ -96,6 +96,28 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	})
 }
 
+func TestGetConfigAnyFlagsAccess(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	cfg, resp := th.Client.GetConfig()
+
+	t.Run("Check permissions error with no sysconsole read permission", func(t *testing.T) {
+		CheckForbiddenStatus(t, resp)
+	})
+
+	// add read sysconsole environment config
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+
+	cfg, resp = th.Client.GetConfig()
+	CheckNoError(t, resp)
+	t.Run("Can read value with permission", func(t *testing.T) {
+		assert.NotNil(t, cfg.FeatureFlags)
+	})
+}
+
 func TestReloadConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
