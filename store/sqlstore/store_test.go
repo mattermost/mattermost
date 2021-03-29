@@ -13,7 +13,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +35,7 @@ var storeTypes []*storeType
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver),
+		SqlSettings: storetest.MakeSqlSettings(driver, false),
 	}
 }
 
@@ -560,9 +559,9 @@ func TestVersionString(t *testing.T) {
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:
-		return storetest.MakeSqlSettings(driver)
+		return storetest.MakeSqlSettings(driver, false)
 	case model.DATABASE_DRIVER_MYSQL:
-		return storetest.MakeSqlSettings(driver)
+		return storetest.MakeSqlSettings(driver, false)
 	}
 
 	return nil

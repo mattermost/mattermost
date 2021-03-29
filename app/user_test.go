@@ -1350,6 +1350,52 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.Nil(t, err)
 		assert.Len(t, *channelMembers, 3)
 	})
+
+	t.Run("Must be removed as team and channel admin", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+
+		team := th.CreateTeam()
+
+		th.LinkUserToTeam(user, team)
+		th.App.UpdateTeamMemberRoles(team.Id, user.Id, "team_user team_admin")
+
+		teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.True(t, teamMember.SchemeAdmin)
+		require.False(t, teamMember.SchemeGuest)
+
+		channel := th.CreateChannel(team)
+
+		th.AddUserToChannel(user, channel)
+		th.App.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, false, true, true)
+
+		channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
+		assert.Nil(t, err)
+		assert.True(t, channelMember.SchemeUser)
+		assert.True(t, channelMember.SchemeAdmin)
+		assert.False(t, channelMember.SchemeGuest)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+
+		teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.False(t, teamMember.SchemeAdmin)
+		assert.True(t, teamMember.SchemeGuest)
+
+		channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, channelMember.SchemeUser)
+		assert.False(t, channelMember.SchemeAdmin)
+		assert.True(t, channelMember.SchemeGuest)
+	})
 }
 
 func TestDeactivateGuests(t *testing.T) {
@@ -1394,4 +1440,19 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(user, "does not exist", false)
 	require.NotNil(t, err)
+}
+
+func TestDeactivateMfa(t *testing.T) {
+	t.Run("MFA is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = false
+		})
+
+		user := th.BasicUser
+		err := th.App.DeactivateMfa(user.Id)
+		require.Nil(t, err)
+	})
 }
