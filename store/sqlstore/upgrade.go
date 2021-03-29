@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/blang/semver"
@@ -19,7 +18,8 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5330
+	CurrentSchemaVersion   = Version5340
+	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
@@ -204,6 +204,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion532(sqlStore)
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
+	upgradeDatabaseToVersion535(sqlStore)
 
 	return nil
 }
@@ -260,19 +261,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			}
 			defer finalizeTransaction(transaction)
 
-			// increase size of Value column of Preferences table to match the size of the ThemeProps column
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
-					themeMigrationFailed(err)
-					return
-				}
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
-					themeMigrationFailed(err)
-					return
-				}
-			}
-
 			// copy data across
 			if _, err := transaction.Exec(
 				`INSERT INTO
@@ -297,28 +285,10 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 				themeMigrationFailed(err)
 				return
 			}
-
-			// rename solarized_* code themes to solarized-* to match client changes in 3.0
-			var data model.Preferences
-			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
-				for i := range data {
-					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
-				}
-
-				sqlStore.Preference().Save(&data)
-			}
 		}
 
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IsTrusted", "tinyint(1)", "boolean", "0")
 		sqlStore.CreateColumnIfNotExists("OAuthApps", "IconURL", "varchar(512)", "varchar(512)", "")
-		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "ClientId", "varchar(26)", "varchar(26)", "")
-		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "UserId", "varchar(26)", "varchar(26)", "")
-		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "ExpiresAt", "bigint", "bigint", "0")
-
-		if sqlStore.DoesColumnExist("OAuthAccessData", "AuthCode") {
-			sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_auth_code", "OAuthAccessData")
-			sqlStore.RemoveColumnIfExists("OAuthAccessData", "AuthCode")
-		}
 
 		sqlStore.RemoveColumnIfExists("Users", "LastActivityAt")
 		sqlStore.RemoveColumnIfExists("Users", "LastPingAt")
@@ -342,9 +312,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
 		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
-		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
-		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
-
 		// Increase maximum length of the Channel table Purpose column.
 		if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
 			sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
@@ -358,8 +325,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
-		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
 
@@ -369,25 +334,18 @@ func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion37(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version360, Version370) {
-		// Add EditAt column to Posts
-		sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
-
 		saveSchemaVersion(sqlStore, Version370)
 	}
 }
 
 func upgradeDatabaseToVersion38(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version370, Version380) {
-		// Add the IsPinned column to posts.
-		sqlStore.CreateColumnIfNotExists("Posts", "IsPinned", "boolean", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version380)
 	}
 }
 
 func upgradeDatabaseToVersion39(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version380, Version390) {
-		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DEFAULT_SCOPE)
 		sqlStore.RemoveTableIfExists("PasswordRecovery")
 
 		saveSchemaVersion(sqlStore, Version390)
@@ -511,8 +469,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version490, Version4100) {
-		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
-
 		saveSchemaVersion(sqlStore, Version4100)
 		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	}
@@ -662,8 +618,6 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
-		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
-		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
 
 		saveSchemaVersion(sqlStore, Version5120)
 	}
@@ -775,8 +729,6 @@ func upgradeDatabaseToVersion525(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion526(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5250, Version5260) {
-		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version5260)
 	}
 }
@@ -880,7 +832,30 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES && hasMissingMigrationsVersion532(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	}
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
@@ -895,7 +870,16 @@ func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
-	// 	saveSchemaVersion(sqlStore, Version5340)
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
+}
+
+func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+
+	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
+
+	// 	saveSchemaVersion(sqlStore, Version5350)
 	// }
 }
