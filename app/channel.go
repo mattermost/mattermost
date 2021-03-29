@@ -1387,11 +1387,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 }
 
 // AddUserToChannel adds a user to a given channel.
-// checkTeamMember is used to indicate whether it should be checked that a user has
-// already been removed from that team or not. This is useful to avoid in scenarios
-// when we just added the team member, and thereby know that there is no need to check this.
-func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, doNotCheckTeamMember bool) (*model.ChannelMember, *model.AppError) {
-	if !doNotCheckTeamMember {
+func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store.Team().GetMember(context.Background(), channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
@@ -1422,15 +1419,16 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, doNotCh
 }
 
 type ChannelMemberOpts struct {
-	UserRequestorID      string
-	PostRootID           string
-	DoNotCheckTeamMember bool
+	UserRequestorID string
+	PostRootID      string
+	// SkipTeamMemberIntegrityCheck is used to indicate whether it should be checked
+	// that a user has already been removed from that team or not.
+	// This is useful to avoid in scenarios when we just added the team member,
+	// and thereby know that there is no need to check this.
+	SkipTeamMemberIntegrityCheck bool
 }
 
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
-// checkTeamMember is used to indicate whether it will check for the user was deleted from
-// the team or not. This is useful to avoid in scenarios when we just added the team member,
-// and thereby know that there is no need to check this.
 func (a *App) AddChannelMember(userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
@@ -1455,7 +1453,7 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, opts Chann
 		}
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, opts.DoNotCheckTeamMember)
+	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck)
 	if err != nil {
 		return nil, err
 	}

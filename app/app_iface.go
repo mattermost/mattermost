@@ -42,9 +42,6 @@ type AppIface interface {
 	// @openTracingParams teamID, skipSlackParsing
 	CreateCommandPost(post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
 	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
-	// checkTeamMember is used to indicate whether it will check for the user was deleted from
-	// the team or not. This is useful to avoid in scenarios when we just added the team member,
-	// and thereby know that there is no need to check this.
 	AddChannelMember(userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError)
 	// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 	// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
@@ -53,10 +50,7 @@ type AppIface interface {
 	// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
-	// checkTeamMember is used to indicate whether it should be checked that a user has
-	// already been removed from that team or not. This is useful to avoid in scenarios
-	// when we just added the team member, and thereby know that there is no need to check this.
-	AddUserToChannel(user *model.User, channel *model.Channel, doNotCheckTeamMember bool) (*model.ChannelMember, *model.AppError)
+	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given

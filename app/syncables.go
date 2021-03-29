@@ -53,7 +53,7 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		}
 
 		_, err = a.AddChannelMember(userChannel.UserID, channel, ChannelMemberOpts{
-			DoNotCheckTeamMember: true,
+			SkipTeamMemberIntegrityCheck: true,
 		})
 		if err != nil {
 			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
