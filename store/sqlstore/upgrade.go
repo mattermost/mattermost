@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/blang/semver"
@@ -262,19 +261,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			}
 			defer finalizeTransaction(transaction)
 
-			// increase size of Value column of Preferences table to match the size of the ThemeProps column
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
-					themeMigrationFailed(err)
-					return
-				}
-			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
-					themeMigrationFailed(err)
-					return
-				}
-			}
-
 			// copy data across
 			if _, err := transaction.Exec(
 				`INSERT INTO
@@ -298,16 +284,6 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			if err := transaction.Commit(); err != nil {
 				themeMigrationFailed(err)
 				return
-			}
-
-			// rename solarized_* code themes to solarized-* to match client changes in 3.0
-			var data model.Preferences
-			if _, err := sqlStore.GetMaster().Select(&data, "SELECT * FROM Preferences WHERE Category = '"+model.PREFERENCE_CATEGORY_THEME+"' AND Value LIKE '%solarized_%'"); err == nil {
-				for i := range data {
-					data[i].Value = strings.Replace(data[i].Value, "solarized_", "solarized-", -1)
-				}
-
-				sqlStore.Preference().Save(&data)
 			}
 		}
 
