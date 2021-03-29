@@ -452,13 +452,13 @@ DROP TABLE IF EXISTS `OAuthAccessData`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `OAuthAccessData` (
-  `ClientId` varchar(26) DEFAULT NULL,
-  `UserId` varchar(26) DEFAULT NULL,
   `Token` varchar(26) NOT NULL,
   `RefreshToken` varchar(26) DEFAULT NULL,
   `RedirectUri` text,
-  `ExpiresAt` bigint(20) DEFAULT NULL,
-  `Scope` varchar(128) DEFAULT NULL,
+  `ClientId` varchar(26) DEFAULT NULL,
+  `UserId` varchar(26) DEFAULT NULL,
+  `ExpiresAt` bigint(20) DEFAULT '0',
+  `Scope` varchar(128) DEFAULT 'user',
   PRIMARY KEY (`Token`),
   UNIQUE KEY `ClientId` (`ClientId`,`UserId`),
   KEY `idx_oauthaccessdata_client_id` (`ClientId`),
@@ -626,7 +626,7 @@ CREATE TABLE `Posts` (
   `Props` text,
   `Hashtags` text,
   `Filenames` text,
-  `FileIds` varchar(150) DEFAULT '[]',
+  `FileIds` text,
   `HasReactions` tinyint(1) DEFAULT '0',
   `EditAt` bigint(20) DEFAULT '0',
   `IsPinned` tinyint(1) DEFAULT '0',
@@ -821,8 +821,8 @@ DROP TABLE IF EXISTS `Status`;
 CREATE TABLE `Status` (
   `UserId` varchar(26) NOT NULL,
   `Status` varchar(32) DEFAULT NULL,
-  `Manual` tinyint(1) DEFAULT NULL,
   `LastActivityAt` bigint(20) DEFAULT NULL,
+  `Manual` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`UserId`),
   KEY `idx_status_user_id` (`UserId`),
   KEY `idx_status_status` (`Status`)

@@ -289,13 +289,13 @@ ALTER TABLE public.licenses OWNER TO mmuser;
 --
 
 CREATE TABLE public.oauthaccessdata (
-    clientid character varying(26),
-    userid character varying(26),
     token character varying(26) NOT NULL,
     refreshtoken character varying(26),
     redirecturi character varying(256),
-    expiresat bigint,
-    scope character varying(128)
+    clientid character varying(26) DEFAULT ''::character varying,
+    userid character varying(26) DEFAULT ''::character varying,
+    expiresat bigint DEFAULT 0,
+    scope character varying(128) DEFAULT 'user'::character varying
 );
 
 
@@ -398,7 +398,7 @@ CREATE TABLE public.posts (
     props character varying(8000),
     hashtags character varying(1000),
     filenames character varying(4000),
-    fileids character varying(150) DEFAULT '[]'::character varying,
+    fileids character varying(300) DEFAULT '[]'::character varying,
     hasreactions boolean DEFAULT false,
     editat bigint DEFAULT 0,
     ispinned boolean DEFAULT false
@@ -505,8 +505,8 @@ ALTER TABLE public.sessions OWNER TO mmuser;
 CREATE TABLE public.status (
     userid character varying(26) NOT NULL,
     status character varying(32),
-    manual boolean,
-    lastactivityat bigint
+    lastactivityat bigint,
+    manual boolean DEFAULT false
 );
 
 

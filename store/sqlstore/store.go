@@ -145,6 +145,12 @@ type SqlStore struct {
 
 type TraceOnAdapter struct{}
 
+// ColumnInfo holds information about a column.
+type ColumnInfo struct {
+	DataType          string
+	CharMaximumLength int
+}
+
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	originalString := fmt.Sprintf(format, v...)
 	newString := strings.ReplaceAll(originalString, "\n", " ")
@@ -226,9 +232,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	store.stores.oauth.(*SqlOAuthStore).createIndexesIfNotExists()
 	store.stores.system.(*SqlSystemStore).createIndexesIfNotExists()
-	store.stores.preference.(*SqlPreferenceStore).createIndexesIfNotExists()
 	store.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
-	store.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
 	store.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
 	store.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
 	store.stores.job.(*SqlJobStore).createIndexesIfNotExists()
@@ -528,6 +532,52 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		os.Exit(ExitDoesColumnExistsMissing)
 		return false
 	}
+}
+
+// GetColumnInfo returns data type information about the given column.
+func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
+	var columnInfo ColumnInfo
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE lower(table_name) = lower($1)
+			 AND lower(column_name) = lower($2)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND lower(table_name) = lower(?)
+			 AND lower(column_name) = lower(?)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	}
+	return nil, errors.New("Driver not supported for this method")
+}
+
+// IsVarchar returns true if the column type matches one of the varchar types
+// either in MySQL or PostgreSQL.
+func (ss *SqlStore) IsVarchar(columnType string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+		return true
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+		return true
+	}
+
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
