@@ -7860,7 +7860,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8479,10 +8479,6 @@
     "translation": "Dışa aktarma dosyası bulunamadı."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Web soketi güncellenirken Origin üst bilgi kümesi geçersiz."
-  },
-  {
     "id": "app.user.send_emails.app_error",
     "translation": "Hiç bir e-posta gönderilemedi"
   },
@@ -8580,7 +8576,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.post.search_files.not_implemented.app_error",
@@ -8757,5 +8753,25 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Web bağlantısı işlemi yapılamadı. Eksik ya da geçersiz olabilir."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Parola üretilirken sorun çıktı."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Profil görseli kullanıcının oturum açma hizmeti sağlayıcısı tarafından ayarlanmalıdır."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "'{{.Field}}' alanı kullanıcının oturum açma hizmeti sağlayıcısı tarafından ayarlanmalıdır."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "'{{.Field}}' alanı kullanıcının oturum açma hizmeti sağlayıcısı tarafından ayarlanmalıdır."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Alan JSON olarak kodlanamadı"
   }
 ]

@@ -8543,10 +8543,6 @@
     "translation": "Falha ao copiar o arquivo durante a exportação."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Cabeçalho de origem inválido definido durante a atualização do websocket."
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "A solicitação está sem o parâmetro AuthData ou AuthService."
   },

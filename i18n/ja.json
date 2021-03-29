@@ -8482,10 +8482,6 @@
     "translation": "エクスポート中にファイルをコピーできませんでした。"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "WebSocketのアップグレード中、不正なOriginヘッダーが設定されました。"
-  },
-  {
     "id": "api.user.send_upgrade_request_email.error",
     "translation": "ユーザー制限通知の電子メールを管理者に送信できませんでした"
   },

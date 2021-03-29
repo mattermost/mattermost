@@ -3884,11 +3884,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Ongeldige RemoteImageProxyOptions voor atmos/camo. Moet ingesteld zijn op je gedeelde sleutel."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "Ongeldige RemoteImageProxyURL voor atmos/camo. Ongeldige. Moet ingesteld zijn op je gedeelde sleutel."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -3896,15 +3896,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
+    "translation": "De begintijd van de gegevensbewaartermijn moet een tijdsaanduiding van 24 uur zijn in de notatie UU:MM."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "Het bewaren van bestanden moet een dag of langer zijn."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Het bewaren van berichten moet een dag of langer zijn."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3912,7 +3912,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+    "translation": "De Elasticsearch AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
@@ -7796,7 +7796,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8479,10 +8479,6 @@
     "translation": "Kan geen bestand aanmaken tijdens export."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Ongeldige Origin header was ingesteld tijdens websocket upgrade."
-  },
-  {
     "id": "app.user.send_emails.app_error",
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
@@ -8624,7 +8620,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.post.search_files.not_implemented.app_error",
@@ -8757,5 +8753,25 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook gebeurtenis werd niet behandeld. Ofwel ontbreekt het, ofwel is het niet geldig."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "De profielfoto moet worden ingesteld via de aanmeldingsprovider van de gebruiker."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Het veld \"{{.Field}}\" moet worden ingesteld via de aanmeldingsprovider van de gebruiker."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Het veld \"{{.Field}}\" moet worden ingesteld via de aanmeldingsprovider van de gebruiker."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Mislukt om veld naar JSON te coderen"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Fout bij het genereren van het wachtwoord."
   }
 ]
