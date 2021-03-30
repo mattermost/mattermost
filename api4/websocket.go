@@ -45,6 +45,11 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 			// We just create a new ID.
 			connID = model.NewId()
 		} else {
+			if !model.IsValidId(connID) {
+				mlog.Error("Invalid connection ID", mlog.String("id", connID))
+				wc.WebSocket.Close()
+				return
+			}
 			// If present, we check if it's present in the connection manager.
 			// TODO: the connection manager internally should forward the request
 			// to the cluster if it does not have it.
@@ -62,7 +67,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			seq, err := strconv.Atoi(seqVal)
-			if err != nil {
+			if err != nil || seq < 0 {
 				mlog.Error("Invalid sequence number set in query param",
 					mlog.String("query", seqVal),
 					mlog.Err(err))
