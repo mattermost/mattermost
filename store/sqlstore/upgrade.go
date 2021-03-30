@@ -1010,7 +1010,11 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
+
+	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+
 	mentionCountRootCTE := `
 		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
 		FROM ThreadMemberships
