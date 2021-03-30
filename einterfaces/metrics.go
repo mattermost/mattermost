@@ -68,4 +68,7 @@ type MetricsInterface interface {
 
 	IncrementJobActive(jobType string)
 	DecrementJobActive(jobType string)
+
+	SetReplicaLagAbsolute(node string, value float64)
+	SetReplicaLagTime(node string, value float64)
 }
