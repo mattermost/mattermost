@@ -1285,7 +1285,7 @@ func TestSearchAllTeams(t *testing.T) {
 	th.LoginBasic()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
 		require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
@@ -1301,7 +1301,7 @@ func TestSearchAllTeams(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
 
