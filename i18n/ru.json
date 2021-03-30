@@ -4184,11 +4184,11 @@
     "translation": "Обновления статуса набора текста пользователем не могут быть чаще, чем раз в 1000 миллисекунд."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Неверное значение для файла сертификата TLS - либо используйте LetsEncrypt, либо укажите путь к существующему файлу сертификата."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Неверное значение для файла ключа TLS - либо используйте LetsEncrypt, либо укажите путь к существующему файлу ключа."
   },
   {
