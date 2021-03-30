@@ -324,13 +324,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 			}
 		case model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.support_email_not_configured.notification_title")
-			if isE0Edition {
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
-				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_success.message")
-			} else {
-				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.support_email_not_configured.contact_us.email_body")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.notification_body")
-			}
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
 		default:
 			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil

@@ -2280,27 +2280,11 @@
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Customize Your Support Email Address"
+    "translation": "Set Your Support Email Address"
   },
   {
     "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Your Mattermost system is currently using feedback@mattermost.com as the address for end user feedback, email notifications, and support requests. Please go to **System Console > Site Configuration > Customization** to replace the default [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) address with your organization's internal IT Support Desk email address. This ensures   Mattermost account requests are sent to the correct team for resolution."
-  },
-  {
-    "id": "pi.server.warn_metric.support_email_not_configured.start_trial.notification_success.message",
-    "translation": "TODO success message"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.contact_us.email_body",
-    "translation": "TODO"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_body",
-    "translation": "TODO"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.action_label",
-    "translation": "TODO"
+    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
