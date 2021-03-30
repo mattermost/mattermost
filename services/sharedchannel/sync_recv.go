@@ -170,7 +170,9 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 
 func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
-	user.RemoteId = model.NewString(rc.RemoteId)
+	if user.RemoteId == nil || *user.RemoteId == "" {
+		user.RemoteId = model.NewString(rc.RemoteId)
+	}
 
 	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)

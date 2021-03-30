@@ -56,6 +56,7 @@ type AppIface interface {
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
