@@ -1871,14 +1871,6 @@
     "translation": "Entra nel gruppo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost permette di condividere messaggi e file da PC o telefono, con ricerche e archiviazione. Dopo essere entrato in [[{{.TeamDisplayName}}]], potrai iscriverti al tuo nuovo team e accedere a queste funzioni dall'indirizzo web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Il gruppo {{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sei stato invitato"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Reimposta password"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Per modificare la password, cliccare \"Reset Password\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Se non intendi modificare la tua password ignora questa email e la password rimarrà invariata. Il link per il reset della password scade tra 24 ore."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2009,14 +1993,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Per favore verifica la tua email cliccando qui sotto."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Si può accedere da:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost ti permette di condividere messaggi e file dal PC o telefono, con ricerche istantanee e archiviazione."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3611,32 +3587,12 @@
     "translation": "Bollettino di Sicurezza di Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Errore cercando di autenticare il token MFA."
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Token MFA invalido."
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente."
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Errore nella pulizia del segreto MFA."
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Errore durante la generazione del QR code."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Errore nel salvataggio del segreto MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4223,11 +4179,11 @@
     "translation": "Il periodo di tempo tra gli aggiornamenti scrittura utente non dovrebbe essere settato a meno di 1000 millisecondi."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "File certificato TLS non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di certificato esistente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "File chiave TLV non valido - Utilizza LetsEncrypt oppure imposta un percorso di un file di chiave esistente."
   },
   {
@@ -5481,10 +5437,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "La paginazione non è implementata per la ricerca nelle sole squadre pubbliche."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ti ha invitato ad unirti alla squadra [[{{.TeamDisplayName}}]] come ospite."
   },
   {
     "id": "api.templates.invite_guest_subject",

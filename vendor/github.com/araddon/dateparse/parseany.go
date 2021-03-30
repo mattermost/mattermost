@@ -55,37 +55,41 @@ type timeState uint8
 const (
 	dateStart dateState = iota // 0
 	dateDigit
+	dateDigitSt
 	dateYearDash
 	dateYearDashAlphaDash
 	dateYearDashDash
 	dateYearDashDashWs // 5
 	dateYearDashDashT
+	dateYearDashDashOffset
 	dateDigitDash
 	dateDigitDashAlpha
-	dateDigitDashAlphaDash
-	dateDigitDot // 10
+	dateDigitDashAlphaDash // 10
+	dateDigitDot
 	dateDigitDotDot
 	dateDigitSlash
+	dateDigitYearSlash
+	dateDigitSlashAlpha // 15
 	dateDigitColon
 	dateDigitChineseYear
-	dateDigitChineseYearWs // 15
+	dateDigitChineseYearWs
 	dateDigitWs
-	dateDigitWsMoYear
+	dateDigitWsMoYear // 20
 	dateDigitWsMolong
 	dateAlpha
-	dateAlphaWs // 20
+	dateAlphaWs
 	dateAlphaWsDigit
-	dateAlphaWsDigitMore
+	dateAlphaWsDigitMore // 25
 	dateAlphaWsDigitMoreWs
 	dateAlphaWsDigitMoreWsYear
-	dateAlphaWsMonth // 25
+	dateAlphaWsMonth
 	dateAlphaWsDigitYearmaybe
 	dateAlphaWsMonthMore
 	dateAlphaWsMonthSuffix
 	dateAlphaWsMore
-	dateAlphaWsAtTime // 30
+	dateAlphaWsAtTime
 	dateAlphaWsAlpha
-	dateAlphaWsAlphaYearmaybe
+	dateAlphaWsAlphaYearmaybe // 35
 	dateAlphaPeriodWsDigit
 	dateWeekdayComma
 	dateWeekdayAbbrevComma
@@ -267,7 +271,7 @@ iterRunes:
 			i += (bytesConsumed - 1)
 		}
 
-		//gou.Debugf("i=%d r=%s state=%d   %s", i, string(r), p.stateDate, datestr)
+		// gou.Debugf("i=%d r=%s state=%d   %s", i, string(r), p.stateDate, datestr)
 		switch p.stateDate {
 		case dateStart:
 			if unicode.IsDigit(r) {
@@ -295,17 +299,37 @@ iterRunes:
 					p.stateDate = dateDigitDash
 				}
 			case '/':
+				// 08/May/2005
 				// 03/31/2005
 				// 2014/02/24
 				p.stateDate = dateDigitSlash
 				if i == 4 {
-					p.yearlen = i
+					// 2014/02/24  -  Year first /
+					p.yearlen = i // since it was start of datestr, i=len
 					p.moi = i + 1
 					p.setYear()
+					p.stateDate = dateDigitYearSlash
 				} else {
+					// Either Ambiguous dd/mm vs mm/dd  OR dd/month/yy
+					// 08/May/2005
+					// 03/31/2005
+					// 31/03/2005
+					if i+2 < len(p.datestr) && unicode.IsLetter(rune(datestr[i+1])) {
+						// 08/May/2005
+						p.stateDate = dateDigitSlashAlpha
+						p.moi = i + 1
+						p.daylen = 2
+						p.dayi = 0
+						p.setDay()
+						continue
+					}
+					// Ambiguous dd/mm vs mm/dd the bane of date-parsing
+					// 03/31/2005
+					// 31/03/2005
 					p.ambiguousMD = true
 					if p.preferMonthFirst {
 						if p.molen == 0 {
+							// 03/31/2005
 							p.molen = i
 							p.setMonth()
 							p.dayi = i + 1
@@ -317,6 +341,7 @@ iterRunes:
 							p.moi = i + 1
 						}
 					}
+
 				}
 
 			case ':':
@@ -363,9 +388,13 @@ iterRunes:
 				// 02 Jan 2018 23:59:34
 				// 12 Feb 2006, 19:17
 				// 12 Feb 2006, 19:17:22
-				p.stateDate = dateDigitWs
-				p.dayi = 0
-				p.daylen = i
+				if i == 6 {
+					p.stateDate = dateDigitSt
+				} else {
+					p.stateDate = dateDigitWs
+					p.dayi = 0
+					p.daylen = i
+				}
 			case '年':
 				// Chinese Year
 				p.stateDate = dateDigitChineseYear
@@ -376,9 +405,15 @@ iterRunes:
 			}
 			p.part1Len = i
 
+		case dateDigitSt:
+			p.set(0, "060102")
+			i = i - 1
+			p.stateTime = timeStart
+			break iterRunes
 		case dateYearDash:
 			// dateYearDashDashT
 			//  2006-01-02T15:04:05Z07:00
+			//  2020-08-17T17:00:00:000+0100
 			// dateYearDashDashWs
 			//  2013-04-01 22:43:22
 			// dateYearDashAlphaDash
@@ -400,7 +435,14 @@ iterRunes:
 			//  2006-01-02T15:04:05Z07:00
 			// dateYearDashDashWs
 			//  2013-04-01 22:43:22
+			// dateYearDashDashOffset
+			//  2020-07-20+00:00
 			switch r {
+			case '+', '-':
+				p.offseti = i
+				p.daylen = i - p.dayi
+				p.stateDate = dateYearDashDashOffset
+				p.setDay()
 			case ' ':
 				p.daylen = i - p.dayi
 				p.stateDate = dateYearDashDashWs
@@ -414,6 +456,21 @@ iterRunes:
 				p.setDay()
 				break iterRunes
 			}
+
+		case dateYearDashDashT:
+			// dateYearDashDashT
+			//  2006-01-02T15:04:05Z07:00
+			//  2020-08-17T17:00:00:000+0100
+
+		case dateYearDashDashOffset:
+			//  2020-07-20+00:00
+			switch r {
+			case ':':
+				p.set(p.offseti, "-07:00")
+				// case ' ':
+				// 	return nil, unknownErr(datestr)
+			}
+
 		case dateYearDashAlphaDash:
 			// 2013-Feb-03
 			switch r {
@@ -446,7 +503,7 @@ iterRunes:
 		case dateDigitDashAlphaDash:
 			// 13-Feb-03   ambiguous
 			// 28-Feb-03   ambiguous
-			// 29-Jun-2016
+			// 29-Jun-2016  dd-month(alpha)-yyyy
 			switch r {
 			case ' ':
 				// we need to find if this was 4 digits, aka year
@@ -476,8 +533,49 @@ iterRunes:
 				break iterRunes
 			}
 
-		case dateDigitSlash:
+		case dateDigitYearSlash:
 			// 2014/07/10 06:55:38.156283
+			// I honestly don't know if this format ever shows up as yyyy/
+
+			switch r {
+			case ' ', ':':
+				p.stateTime = timeStart
+				if p.daylen == 0 {
+					p.daylen = i - p.dayi
+					p.setDay()
+				}
+				break iterRunes
+			case '/':
+				if p.molen == 0 {
+					p.molen = i - p.moi
+					p.setMonth()
+					p.dayi = i + 1
+				}
+			}
+
+		case dateDigitSlashAlpha:
+			// 06/May/2008
+
+			switch r {
+			case '/':
+				//       |
+				// 06/May/2008
+				if p.molen == 0 {
+					p.set(p.moi, "Jan")
+					p.yeari = i + 1
+				}
+				// We aren't breaking because we are going to re-use this case
+				// to find where the date starts, and possible time begins
+			case ' ', ':':
+				p.stateTime = timeStart
+				if p.yearlen == 0 {
+					p.yearlen = i - p.yeari
+					p.setYear()
+				}
+				break iterRunes
+			}
+
+		case dateDigitSlash:
 			// 03/19/2012 10:11:59
 			// 04/2/2014 03:00:37
 			// 3/1/2012 10:11:59
@@ -488,25 +586,9 @@ iterRunes:
 			// 1/2/06
 
 			switch r {
-			case ' ':
-				p.stateTime = timeStart
-				if p.yearlen == 0 {
-					p.yearlen = i - p.yeari
-					p.setYear()
-				} else if p.daylen == 0 {
-					p.daylen = i - p.dayi
-					p.setDay()
-				}
-				break iterRunes
 			case '/':
-				if p.yearlen > 0 {
-					// 2014/07/10 06:55:38.156283
-					if p.molen == 0 {
-						p.molen = i - p.moi
-						p.setMonth()
-						p.dayi = i + 1
-					}
-				} else if p.preferMonthFirst {
+				// This is the 2nd / so now we should know start pts of all of the dd, mm, yy
+				if p.preferMonthFirst {
 					if p.daylen == 0 {
 						p.daylen = i - p.dayi
 						p.setDay()
@@ -519,6 +601,15 @@ iterRunes:
 						p.yeari = i + 1
 					}
 				}
+				// Note no break, we are going to pass by and re-enter this dateDigitSlash
+				// and look for ending (space) or not (just date)
+			case ' ':
+				p.stateTime = timeStart
+				if p.yearlen == 0 {
+					p.yearlen = i - p.yeari
+					p.setYear()
+				}
+				break iterRunes
 			}
 
 		case dateDigitColon:
@@ -718,8 +809,7 @@ iterRunes:
 
 			case r == ',':
 				// Mon, 02 Jan 2006
-				// p.moi = 0
-				// p.molen = i
+
 				if i == 3 {
 					p.stateDate = dateWeekdayAbbrevComma
 					p.set(0, "Mon")
@@ -1039,7 +1129,7 @@ iterRunes:
 		for ; i < len(datestr); i++ {
 			r := rune(datestr[i])
 
-			//gou.Debugf("%d %s %d iterTimeRunes  %s %s", i, string(r), p.stateTime, p.ds(), p.ts())
+			// gou.Debugf("i=%d r=%s state=%d iterTimeRunes  %s %s", i, string(r), p.stateTime, p.ds(), p.ts())
 
 			switch p.stateTime {
 			case timeStart:
@@ -1096,7 +1186,12 @@ iterRunes:
 						// 22:18+0530
 						p.minlen = i - p.mini
 					} else {
-						p.seclen = i - p.seci
+						if p.seclen == 0 {
+							p.seclen = i - p.seci
+						}
+						if p.msi > 0 && p.mslen == 0 {
+							p.mslen = i - p.msi
+						}
 					}
 					p.offseti = i
 				case '.':
@@ -1154,6 +1249,19 @@ iterRunes:
 					} else if p.seci == 0 {
 						p.seci = i + 1
 						p.minlen = i - p.mini
+					} else if p.seci > 0 {
+						// 18:31:59:257    ms uses colon, wtf
+						p.seclen = i - p.seci
+						p.set(p.seci, "05")
+						p.msi = i + 1
+
+						// gross, gross, gross.   manipulating the datestr is horrible.
+						// https://github.com/araddon/dateparse/issues/117
+						// Could not get the parsing to work using golang time.Parse() without
+						// replacing that colon with period.
+						p.set(i, ".")
+						datestr = datestr[0:i] + "." + datestr[i+1:]
+						p.datestr = datestr
 					}
 				}
 			case timeOffset:
@@ -1201,7 +1309,6 @@ iterRunes:
 						// 17:57:51 MST 2009
 						p.tzi = i
 						p.stateTime = timeWsAlpha
-						//break iterTimeRunes
 					} else if unicode.IsDigit(r) {
 						// 00:12:00 2008
 						p.stateTime = timeWsYear
@@ -1231,6 +1338,7 @@ iterRunes:
 					p.offseti = i
 				case ' ':
 					// 17:57:51 MST 2009
+					// 17:57:51 MST
 					p.tzlen = i - p.tzi
 					if p.tzlen == 4 {
 						p.set(p.tzi, " MST")
@@ -1333,7 +1441,7 @@ iterRunes:
 						p.trimExtra()
 						break
 					}
-				case '+', '-':
+				case '+', '-', '(':
 					// This really doesn't seem valid, but for some reason when round-tripping a go date
 					// their is an extra +03 printed out.  seems like go bug to me, but, parsing anyway.
 					// 00:00:00 +0300 +03
@@ -1350,6 +1458,7 @@ iterRunes:
 							p.setYear()
 						}
 					case unicode.IsLetter(r):
+						// 15:04:05 -0700 MST
 						if p.tzi == 0 {
 							p.tzi = i
 						}
@@ -1535,6 +1644,17 @@ iterRunes:
 		}
 
 		switch p.stateTime {
+		case timeWsAlpha:
+			switch len(p.datestr) - p.tzi {
+			case 3:
+				// 13:31:51.999 +01:00 CET
+				p.set(p.tzi, "MST")
+			case 4:
+				p.set(p.tzi, "MST")
+				p.extra = len(p.datestr) - 1
+				p.trimExtra()
+			}
+
 		case timeWsAlphaWs:
 			p.yearlen = i - p.yeari
 			p.setYear()
@@ -1554,13 +1674,34 @@ iterRunes:
 		case timePeriod:
 			p.mslen = i - p.msi
 		case timeOffset:
-			// 19:55:00+0100
-			p.set(p.offseti, "-0700")
+
+			switch len(p.datestr) - p.offseti {
+			case 0, 1, 2, 4:
+				return p, fmt.Errorf("TZ offset not recognized %q near %q (must be 2 or 4 digits optional colon)", datestr, string(datestr[p.offseti:]))
+			case 3:
+				// 19:55:00+01
+				p.set(p.offseti, "-07")
+			case 5:
+				// 19:55:00+0100
+				p.set(p.offseti, "-0700")
+			}
+
 		case timeWsOffset:
 			p.set(p.offseti, "-0700")
 		case timeWsOffsetWs:
 			// 17:57:51 -0700 2009
 			// 00:12:00 +0000 UTC
+			if p.tzi > 0 {
+				switch len(p.datestr) - p.tzi {
+				case 3:
+					// 13:31:51.999 +01:00 CET
+					p.set(p.tzi, "MST")
+				case 4:
+					// 13:31:51.999 +01:00 CEST
+					p.set(p.tzi, "MST ")
+				}
+
+			}
 		case timeWsOffsetColon:
 			// 17:57:51 -07:00
 			p.set(p.offseti, "-07:00")
@@ -1638,6 +1779,9 @@ iterRunes:
 			p.t = &t
 			return p, nil
 		}
+	case dateDigitSt:
+		// 171113 14:14:20
+		return p, nil
 
 	case dateYearDash:
 		// 2006-01
@@ -1648,6 +1792,16 @@ iterRunes:
 		// 2006-1-02
 		// 2006-1-2
 		// 2006-01-2
+		return p, nil
+
+	case dateYearDashDashOffset:
+		///  2020-07-20+00:00
+		switch len(p.datestr) - p.offseti {
+		case 5:
+			p.set(p.offseti, "-0700")
+		case 6:
+			p.set(p.offseti, "-07:00")
+		}
 		return p, nil
 
 	case dateYearDashAlphaDash:
@@ -1757,6 +1911,13 @@ iterRunes:
 		// 3/1/2014
 		// 10/13/2014
 		// 01/02/2006
+		return p, nil
+
+	case dateDigitSlashAlpha:
+		// 03/Jun/2014
+		return p, nil
+
+	case dateDigitYearSlash:
 		// 2014/10/13
 		return p, nil
 
@@ -2002,10 +2163,12 @@ func (p *parser) parse() (time.Time, error) {
 		p.format = p.format[p.skip:]
 		p.datestr = p.datestr[p.skip:]
 	}
-	//gou.Debugf("parse %q   AS   %q", p.datestr, string(p.format))
+
 	if p.loc == nil {
+		// gou.Debugf("parse layout=%q input=%q   \ntx, err := time.Parse(%q, %q)", string(p.format), p.datestr, string(p.format), p.datestr)
 		return time.Parse(string(p.format), p.datestr)
 	}
+	//gou.Debugf("parse layout=%q input=%q   \ntx, err := time.ParseInLocation(%q, %q, %v)", string(p.format), p.datestr, string(p.format), p.datestr, p.loc)
 	return time.ParseInLocation(string(p.format), p.datestr, p.loc)
 }
 func isDay(alpha string) bool {

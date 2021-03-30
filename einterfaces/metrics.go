@@ -8,8 +8,7 @@ import (
 )
 
 type MetricsInterface interface {
-	StartServer()
-	StopServer()
+	Register()
 
 	IncrementPostCreate()
 	IncrementWebhookPost()
@@ -69,4 +68,7 @@ type MetricsInterface interface {
 
 	IncrementJobActive(jobType string)
 	DecrementJobActive(jobType string)
+
+	SetReplicaLagAbsolute(node string, value float64)
+	SetReplicaLagTime(node string, value float64)
 }

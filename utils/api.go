@@ -13,9 +13,9 @@ import (
 	"net/url"
 	"path"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -28,55 +28,16 @@ func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 		return true
 	}
 	for _, allowed := range strings.Split(allowedOrigins, " ") {
-		if equalASCIIFold(allowed, origin) {
+		if allowed == origin {
 			return true
 		}
 	}
 	return false
 }
 
-// equalASCIIFold returns true if s is equal to t with ASCII case folding as
-// defined in RFC 4790.
-// Copied from gorilla/websocket/util.go
-func equalASCIIFold(s, t string) bool {
-	for s != "" && t != "" {
-		sr, size := utf8.DecodeRuneInString(s)
-		s = s[size:]
-		tr, size := utf8.DecodeRuneInString(t)
-		t = t[size:]
-		if sr == tr {
-			continue
-		}
-		if 'A' <= sr && sr <= 'Z' {
-			sr = sr + 'a' - 'A'
-		}
-		if 'A' <= tr && tr <= 'Z' {
-			tr = tr + 'a' - 'A'
-		}
-		if sr != tr {
-			return false
-		}
-	}
-	return s == t
-}
-
 func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		return CheckOrigin(r, allowedOrigins)
-	}
-}
-
-func SameOriginChecker() func(*http.Request) bool {
-	return func(r *http.Request) bool {
-		origURL, err := url.Parse(r.Header.Get("Origin"))
-		if err != nil {
-			return false
-		}
-		u := url.URL{
-			Host:   r.Host,
-			Scheme: origURL.Scheme,
-		}
-		return CheckOrigin(r, u.String())
 	}
 }
 
@@ -121,9 +82,9 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 		<div class="icon text-success" style="font-size: 4em">
 			<i class="fa fa-check-circle" title="Success Icon"></i>
 		</div>
-		<h2> `+T("api.oauth.auth_complete")+` </h2>
-		<p id="redirecting-message"> `+T("api.oauth.redirecting_back")+` </p>
-		<p id="close-tab-message" style="display: none"> `+T("api.oauth.close_browser")+` </p>
+		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
+		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
+		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
 		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectURL)+`"></noscript>
 		<script>
 			window.onload = function() {
@@ -142,10 +103,10 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
-		<h2> `+T("error")+` </h2>
+		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
 		<a href="`+redirectURL+`">
-			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
 }

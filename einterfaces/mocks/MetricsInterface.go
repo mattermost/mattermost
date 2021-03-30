@@ -260,12 +260,17 @@ func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success st
 	_m.Called(method, success, elapsed)
 }
 
-// StartServer provides a mock function with given fields:
-func (_m *MetricsInterface) StartServer() {
+// Register provides a mock function with given fields:
+func (_m *MetricsInterface) Register() {
 	_m.Called()
 }
 
-// StopServer provides a mock function with given fields:
-func (_m *MetricsInterface) StopServer() {
-	_m.Called()
+// SetReplicaLagAbsolute provides a mock function with given fields: node, value
+func (_m *MetricsInterface) SetReplicaLagAbsolute(node string, value float64) {
+	_m.Called(node, value)
+}
+
+// SetReplicaLagTime provides a mock function with given fields: node, value
+func (_m *MetricsInterface) SetReplicaLagTime(node string, value float64) {
+	_m.Called(node, value)
 }

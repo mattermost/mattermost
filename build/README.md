@@ -1,6 +1,6 @@
 ## About this folder
 
-This folder contains some files that we use to build the `mattermost-server` using `Jenkins` and other files like privacy policy and licenses.
+This folder contains some files that we use to build the `mattermost-server` and other files like privacy policy and licenses.
 
 The `Dockerfile` in this folder (`Dockerfile.buildenv`) is the build environment for our current builds you can find the docker image to download [here](https://hub.docker.com/r/mattermost/mattermost-build-server/tags/) or build your own.
 

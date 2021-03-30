@@ -15,8 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -466,8 +466,19 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("filename", imageArray[0].Filename)
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.SetInvalidUrlParam("user_id")
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	if (user.IsLDAPUser() || (user.IsSAMLUser() && *c.App.Config().SamlSettings.EnableSyncWithLdap)) &&
+		*c.App.Config().LdapSettings.PictureAttribute != "" {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+			nil, "", http.StatusConflict)
+		return
 	}
 
 	imageData := imageArray[0]
@@ -1109,6 +1120,15 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check that the fields being updated are not set by the login provider
+	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.App.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(ouser, user.Password)
@@ -1170,6 +1190,14 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err.DetailedError += ", attempted email update by oauth app"
 			return
 		}
+	}
+
+	conflictField := c.App.CheckProviderAttributes(ouser, patch)
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
 	}
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
@@ -2945,13 +2973,13 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	w.Write([]byte(thread.ToJson()))
 
 	auditRec.Success()
 }
@@ -2973,7 +3001,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.ThreadId, false)
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -3001,7 +3029,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.ThreadId, true)
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
 	if err != nil {
 		c.Err = err
 		return

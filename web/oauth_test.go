@@ -18,8 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -98,7 +99,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	ru, _ = url.Parse(ruri)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
@@ -350,7 +351,7 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
 	_, nErr := th.App.Srv().Store.OAuth().SaveAuthData(authData)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -488,7 +489,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -534,7 +535,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 		},
 	}
 
-	translationFunc := utils.GetUserTranslations("en")
+	translationFunc := i18n.GetUserTranslations("en")
 	c.App.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)
@@ -618,38 +619,34 @@ func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
+	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, true)
 
-	if expectError {
-		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-	} else {
-		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-	}
+	require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
 
 	require.Equal(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden, true)
+	checkHTTPStatus(t, resp, http.StatusForbidden)
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
+	checkHTTPStatus(t, resp, http.StatusUnauthorized)
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound, true)
+	checkHTTPStatus(t, resp, http.StatusNotFound)
 }
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
+	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
 func (th *TestHelper) Login(client *model.Client4, user *model.User) {

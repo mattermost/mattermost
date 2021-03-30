@@ -19,9 +19,8 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -35,6 +34,8 @@ const (
 
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
+
+	SEARCHENGINE_ELASTICSEARCH = "elasticsearch"
 
 	MINIO_ACCESS_KEY = "minioaccesskey"
 	MINIO_SECRET_KEY = "miniosecretkey"
@@ -234,8 +235,9 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
-	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
-	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
+	CLOUD_SETTINGS_DEFAULT_CWS_URL     = "https://customers.mattermost.com"
+	CLOUD_SETTINGS_DEFAULT_CWS_API_URL = "https://portal.internal.prod.cloud.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE      = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -299,6 +301,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
+	RestrictLinkPreviews                              *string  `access:"site"`
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -333,6 +336,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
+	EnableFileSearch                                  *bool    `access:"write_restrictable"`
 	MinimumHashtagLength                              *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool    `access:"experimental,write_restrictable,cloud_restrictable"`
@@ -403,6 +407,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.RestrictLinkPreviews == nil {
+		s.RestrictLinkPreviews = NewString("")
 	}
 
 	if s.EnableTesting == nil {
@@ -533,6 +541,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.EnableFileSearch == nil {
+		s.EnableFileSearch = NewBool(true)
 	}
 
 	if s.MinimumHashtagLength == nil {
@@ -1092,19 +1104,26 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	return &ssoSettings
 }
 
+type ReplicaLagSettings struct {
+	DataSource       *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryAbsoluteLag *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeLag     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+}
+
 type SqlSettings struct {
-	DriverName                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
+	DriverName                  *string               `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSource                  *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas          []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas    []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	Trace                       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1160,6 +1179,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.ReplicaLagSettings == nil {
+		s.ReplicaLagSettings = []*ReplicaLagSettings{}
 	}
 }
 
@@ -1351,6 +1374,8 @@ type FileSettings struct {
 	DriverName              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site,cloud_restrictable"`
+	ExtractContent          *bool   `access:"environment,write_restrictable"`
+	ArchiveRecursion        *bool   `access:"environment,write_restrictable"`
 	PublicLinkSalt          *string `access:"site,cloud_restrictable"`                           // telemetry: none
 	InitialFont             *string `access:"environment,cloud_restrictable"`                    // telemetry: none
 	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1392,6 +1417,14 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnablePublicLink == nil {
 		s.EnablePublicLink = NewBool(false)
+	}
+
+	if s.ExtractContent == nil {
+		s.ExtractContent = NewBool(false)
+	}
+
+	if s.ArchiveRecursion == nil {
+		s.ArchiveRecursion = NewBool(false)
 	}
 
 	if isUpdate {
@@ -1452,14 +1485,14 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filestore.FileBackendSettings {
 	if *s.DriverName == IMAGE_DRIVER_LOCAL {
-		return filesstore.FileBackendSettings{
+		return filestore.FileBackendSettings{
 			DriverName: *s.DriverName,
 			Directory:  *s.Directory,
 		}
 	}
-	return filesstore.FileBackendSettings{
+	return filestore.FileBackendSettings{
 		DriverName:              *s.DriverName,
 		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
 		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
@@ -2681,12 +2714,16 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSUrl *string `access:"environment,write_restrictable"`
+	CWSUrl    *string `access:"environment,write_restrictable"`
+	CWSAPIUrl *string `access:"environment,write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSUrl == nil {
 		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+	if s.CWSAPIUrl == nil {
+		s.CWSAPIUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_API_URL)
 	}
 }
 
@@ -3330,6 +3367,10 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -3530,7 +3571,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.ConnectionSecurity == CONN_SECURITY_TLS && !*s.UseLetsEncrypt {
-		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSCertFile == "" {
 			return appErr
@@ -3538,7 +3579,7 @@ func (s *ServiceSettings) isValid() *AppError {
 			return appErr
 		}
 
-		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
 
 		if *s.TLSKeyFile == "" {
 			return appErr

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/shared/markdown"
 )
 
 const (
@@ -45,7 +45,7 @@ const (
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
-	POST_FILEIDS_MAX_RUNES      = 150
+	POST_FILEIDS_MAX_RUNES      = 300
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
 	POST_MESSAGE_MAX_RUNES_V1   = 4000
@@ -101,6 +101,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
+	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
@@ -228,6 +229,7 @@ func (o *Post) ToUnsanitizedJson() string {
 }
 
 type GetPostsSinceOptions struct {
+	UserId                   string
 	ChannelId                string
 	Time                     int64
 	SkipFetchThreads         bool
@@ -236,6 +238,7 @@ type GetPostsSinceOptions struct {
 }
 
 type GetPostsOptions struct {
+	UserId                   string
 	ChannelId                string
 	PostId                   string
 	Page                     int

@@ -1876,14 +1876,6 @@
     "translation": "Dołącz zespół"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z natychmiastową wyszukiwarką i archiwizacją. Po dołączeniu do [[{{.TeamDisplayName}}]], możesz zalogować się do swojego nowego zespołu i uzyskać dostęp do tych funkcji w dowolnym momencie za pomocą adresu internetowego:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "{{.SenderStatus}} zespołu [[{{.SenderName}}]], zaprosił Cię do dołączenia do [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Jesteś już zaproszony"
   },
@@ -1930,14 +1922,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Zresetuj hasło"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Aby zmienić hasło, kliknij \"Zresetuj hasło\" poniżej."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Jeśli nie chcesz resetować hasła, zignoruj tę wiadomość, a Twoje hasło pozostanie niezmienione. Link do resetowania hasła wygasa za 24 godziny."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2014,14 +1998,6 @@
   {
     "id": "api.templates.welcome_body.info",
     "translation": "Zweryfikuj swój adres email klikając poniżej."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "Możesz się zalogować z:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost pozwala na wymianę wiadomości i plików z komputera lub telefonu wraz z błyskawicznym wyszukiwaniem i archiwizacją."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3616,32 +3592,12 @@
     "translation": "Serwis wiadomości o bezpieczeństwie Mattermost"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Błąd podczas próby uwierzytelnienia tokenu MFA"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "Nieprawidłowy token MFA"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Nie udało się zaktualizować stanu aktywności MFA dla użytkownika"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Błąd przy czyszczeniu sekretu MFA"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "Błąd podczas generowania kodu QR"
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Błąd podczas zapisywania sekretu MFA"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4228,11 +4184,11 @@
     "translation": "Czas pomiędzy aktualizacjami podczas wprowadzania tekstu przez użytkownika nie może być mniejszy niż 1000 milisekund."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Nieprawidłowa wartość dla pliku certyfikatu TLS - użyj LetsEncrypt lub ustaw ścieżkę do istniejącego pliku certyfikatu"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Nieprawidłowa wartość dla pliku klucza TLS - użyj LetsEncrypt lub ustaw ścieżkę do istniejącego pliku klucza"
   },
   {
@@ -5822,10 +5778,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], zaprasza Cię do dołączenia do zespołu [[{{.TeamDisplayName}}]] jako gość."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
