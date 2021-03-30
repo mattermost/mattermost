@@ -43,6 +43,7 @@ type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
+	IndexTypeFullTextFunc  = "full_text_func"
 	IndexTypeDefault       = "default"
 	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
 	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
@@ -57,6 +58,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -129,21 +132,24 @@ type SqlStoreStores struct {
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
 
+// ColumnInfo holds information about a column.
 type ColumnInfo struct {
 	DataType          string
 	CharMaximumLength int
@@ -162,6 +168,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -285,8 +292,20 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
@@ -333,6 +352,17 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -406,6 +436,44 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
+	}
+	return nil
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
+	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {
@@ -547,6 +615,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	}
 }
 
+// GetColumnInfo returns data type information about the given column.
 func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
 	var columnInfo ColumnInfo
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -579,7 +648,7 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 }
 
 // IsVarchar returns true if the column type matches one of the varchar types
-// either in Mysql or Postgres
+// either in MySQL or PostgreSQL.
 func (ss *SqlStore) IsVarchar(columnType string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
 		return true
@@ -925,6 +994,10 @@ func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName s
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
+func (ss *SqlStore) CreateFullTextFuncIndexIfNotExists(indexName string, tableName string, function string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, []string{function}, IndexTypeFullTextFunc, false)
+}
+
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
@@ -948,6 +1021,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		} else if indexType == IndexTypeFullTextFunc {
+			if len(columnNames) != 1 {
+				mlog.Critical("Unable to create multi column full text index")
+				os.Exit(ExitCreateIndexPostgres)
+			}
+			columnName := columnNames[0]
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
