@@ -58,6 +58,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -130,20 +132,28 @@ type SqlStoreStores struct {
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
+
+// ColumnInfo holds information about a column.
+type ColumnInfo struct {
+	DataType          string
+	CharMaximumLength int
+}
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	originalString := fmt.Sprintf(format, v...)
@@ -158,6 +168,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -281,8 +292,20 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
@@ -329,6 +352,17 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -402,6 +436,44 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
+	}
+	return nil
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
+	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {
@@ -541,6 +613,52 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		os.Exit(ExitDoesColumnExistsMissing)
 		return false
 	}
+}
+
+// GetColumnInfo returns data type information about the given column.
+func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
+	var columnInfo ColumnInfo
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE lower(table_name) = lower($1)
+			 AND lower(column_name) = lower($2)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND lower(table_name) = lower(?)
+			 AND lower(column_name) = lower(?)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	}
+	return nil, errors.New("Driver not supported for this method")
+}
+
+// IsVarchar returns true if the column type matches one of the varchar types
+// either in MySQL or PostgreSQL.
+func (ss *SqlStore) IsVarchar(columnType string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+		return true
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+		return true
+	}
+
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {

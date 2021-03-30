@@ -46,6 +46,20 @@ func (_m *LdapInterface) CheckPasswordAuthData(authData string, password string)
 	return r0
 }
 
+// CheckProviderAttributes provides a mock function with given fields: LS, ouser, patch
+func (_m *LdapInterface) CheckProviderAttributes(LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+	ret := _m.Called(LS, ouser, patch)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.LdapSettings, *model.User, *model.UserPatch) string); ok {
+		r0 = rf(LS, ouser, patch)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // DoLogin provides a mock function with given fields: id, password
 func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, *model.AppError) {
 	ret := _m.Called(id, password)

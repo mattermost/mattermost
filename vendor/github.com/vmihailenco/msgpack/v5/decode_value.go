@@ -59,43 +59,43 @@ func _getDecoder(typ reflect.Type) decoderFunc {
 
 	if kind == reflect.Ptr {
 		if _, ok := typeDecMap.Load(typ.Elem()); ok {
-			return ptrDecoderFunc(typ)
+			return ptrValueDecoder(typ)
 		}
 	}
 
 	if typ.Implements(customDecoderType) {
-		return decodeCustomValue
+		return nilAwareDecoder(typ, decodeCustomValue)
 	}
 	if typ.Implements(unmarshalerType) {
-		return unmarshalValue
+		return nilAwareDecoder(typ, unmarshalValue)
 	}
 	if typ.Implements(binaryUnmarshalerType) {
-		return unmarshalBinaryValue
+		return nilAwareDecoder(typ, unmarshalBinaryValue)
 	}
 	if typ.Implements(textUnmarshalerType) {
-		return unmarshalTextValue
+		return nilAwareDecoder(typ, unmarshalTextValue)
 	}
 
 	// Addressable struct field value.
 	if kind != reflect.Ptr {
 		ptr := reflect.PtrTo(typ)
 		if ptr.Implements(customDecoderType) {
-			return decodeCustomValueAddr
+			return addrDecoder(nilAwareDecoder(typ, decodeCustomValue))
 		}
 		if ptr.Implements(unmarshalerType) {
-			return unmarshalValueAddr
+			return addrDecoder(nilAwareDecoder(typ, unmarshalValue))
 		}
 		if ptr.Implements(binaryUnmarshalerType) {
-			return unmarshalBinaryValueAddr
+			return addrDecoder(nilAwareDecoder(typ, unmarshalBinaryValue))
 		}
 		if ptr.Implements(textUnmarshalerType) {
-			return unmarshalTextValueAddr
+			return addrDecoder(nilAwareDecoder(typ, unmarshalTextValue))
 		}
 	}
 
 	switch kind {
 	case reflect.Ptr:
-		return ptrDecoderFunc(typ)
+		return ptrValueDecoder(typ)
 	case reflect.Slice:
 		elem := typ.Elem()
 		if elem.Kind() == reflect.Uint8 {
@@ -122,7 +122,7 @@ func _getDecoder(typ reflect.Type) decoderFunc {
 	return valueDecoders[kind]
 }
 
-func ptrDecoderFunc(typ reflect.Type) decoderFunc {
+func ptrValueDecoder(typ reflect.Type) decoderFunc {
 	decoder := getDecoder(typ.Elem())
 	return func(d *Decoder, v reflect.Value) error {
 		if d.hasNilCode() {
@@ -138,53 +138,34 @@ func ptrDecoderFunc(typ reflect.Type) decoderFunc {
 	}
 }
 
-func decodeCustomValueAddr(d *Decoder, v reflect.Value) error {
-	if !v.CanAddr() {
-		return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
+func addrDecoder(fn decoderFunc) decoderFunc {
+	return func(d *Decoder, v reflect.Value) error {
+		if !v.CanAddr() {
+			return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
+		}
+		return fn(d, v.Addr())
 	}
-	return decodeCustomValue(d, v.Addr())
 }
 
-func decodeCustomValue(d *Decoder, v reflect.Value) error {
-	if d.hasNilCode() {
-		return d.decodeNilValue(v)
+func nilAwareDecoder(typ reflect.Type, fn decoderFunc) decoderFunc {
+	if nilable(typ.Kind()) {
+		return func(d *Decoder, v reflect.Value) error {
+			if d.hasNilCode() {
+				return d.decodeNilValue(v)
+			}
+			if v.IsNil() {
+				v.Set(reflect.New(v.Type().Elem()))
+			}
+			return fn(d, v)
+		}
 	}
 
-	if v.IsNil() {
-		v.Set(reflect.New(v.Type().Elem()))
+	return func(d *Decoder, v reflect.Value) error {
+		if d.hasNilCode() {
+			return d.decodeNilValue(v)
+		}
+		return fn(d, v)
 	}
-
-	decoder := v.Interface().(CustomDecoder)
-	return decoder.DecodeMsgpack(d)
-}
-
-func unmarshalValueAddr(d *Decoder, v reflect.Value) error {
-	if !v.CanAddr() {
-		return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
-	}
-	return unmarshalValue(d, v.Addr())
-}
-
-func unmarshalValue(d *Decoder, v reflect.Value) error {
-	if d.hasNilCode() {
-		return d.decodeNilValue(v)
-	}
-
-	if v.IsNil() {
-		v.Set(reflect.New(v.Type().Elem()))
-	}
-
-	var b []byte
-
-	d.rec = make([]byte, 0, 64)
-	if err := d.Skip(); err != nil {
-		return err
-	}
-	b = d.rec
-	d.rec = nil
-
-	unmarshaler := v.Interface().(Unmarshaler)
-	return unmarshaler.UnmarshalMsgpack(b)
 }
 
 func decodeBoolValue(d *Decoder, v reflect.Value) error {
@@ -229,22 +210,26 @@ func decodeUnsupportedValue(d *Decoder, v reflect.Value) error {
 
 //------------------------------------------------------------------------------
 
-func unmarshalBinaryValueAddr(d *Decoder, v reflect.Value) error {
-	if !v.CanAddr() {
-		return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
+func decodeCustomValue(d *Decoder, v reflect.Value) error {
+	decoder := v.Interface().(CustomDecoder)
+	return decoder.DecodeMsgpack(d)
+}
+
+func unmarshalValue(d *Decoder, v reflect.Value) error {
+	var b []byte
+
+	d.rec = make([]byte, 0, 64)
+	if err := d.Skip(); err != nil {
+		return err
 	}
-	return unmarshalBinaryValue(d, v.Addr())
+	b = d.rec
+	d.rec = nil
+
+	unmarshaler := v.Interface().(Unmarshaler)
+	return unmarshaler.UnmarshalMsgpack(b)
 }
 
 func unmarshalBinaryValue(d *Decoder, v reflect.Value) error {
-	if d.hasNilCode() {
-		return d.decodeNilValue(v)
-	}
-
-	if v.IsNil() {
-		v.Set(reflect.New(v.Type().Elem()))
-	}
-
 	data, err := d.DecodeBytes()
 	if err != nil {
 		return err
@@ -254,24 +239,7 @@ func unmarshalBinaryValue(d *Decoder, v reflect.Value) error {
 	return unmarshaler.UnmarshalBinary(data)
 }
 
-//------------------------------------------------------------------------------
-
-func unmarshalTextValueAddr(d *Decoder, v reflect.Value) error {
-	if !v.CanAddr() {
-		return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
-	}
-	return unmarshalTextValue(d, v.Addr())
-}
-
 func unmarshalTextValue(d *Decoder, v reflect.Value) error {
-	if d.hasNilCode() {
-		return d.decodeNilValue(v)
-	}
-
-	if v.IsNil() {
-		v.Set(reflect.New(v.Type().Elem()))
-	}
-
 	data, err := d.DecodeBytes()
 	if err != nil {
 		return err
