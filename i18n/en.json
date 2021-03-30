@@ -1377,6 +1377,14 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Error trying to save the first admin visit marketplace status in the store."
+  },
+  {
     "id": "api.export.export_not_found.app_error",
     "translation": "Unable to find export file."
   },
@@ -7693,6 +7701,10 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Number of replica lag queries is more than the number of replicas configured. Must be less than or equal to the number of replicas."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",

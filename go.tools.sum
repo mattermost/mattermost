@@ -342,6 +342,8 @@ github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210205183519-d9e542
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210205183519-d9e542a75ab2/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210218104610-40d7640e8538 h1:7G1fAVBGjrQaKqXnxRjVYMJfuiE6iVMdt9YhBwe2enM=
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210218104610-40d7640e8538/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210309083648-c1e5575135f9 h1:EdA8k1LBxdk1SslBITXYiGVIptfPWFt7fRwxiy2BsTk=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210309083648-c1e5575135f9/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1 h1:G1f5SKeVxmagw/IyvzvtZE4Gybcc4Tr1tf7I8z0XgOg=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
