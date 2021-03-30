@@ -172,7 +172,6 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	user.AuthService = ""
 	user.Roles = "system_user"
 	user.AllowMarketing = false
-	user.Props = model.StringMap{}
 	user.NotifyProps = model.StringMap{}
 	user.LastPasswordUpdate = 0
 	user.LastPictureUpdate = 0

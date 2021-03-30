@@ -742,6 +742,23 @@ func (u *User) IsRemote() bool {
 	return u.RemoteId != nil && *u.RemoteId != ""
 }
 
+// GetProp fetches a prop value by name.
+func (u *User) GetProp(name string) (string, bool) {
+	val, ok := u.Props[name]
+	return val, ok
+}
+
+// SetProp sets a prop value by name, creating the map if nil.
+// Not thread safe.
+func (u *User) SetProp(name string, value string) string {
+	if u.Props == nil {
+		u.Props = make(map[string]string)
+	}
+	old := u.Props[name]
+	u.Props[name] = value
+	return old
+}
+
 func (u *User) ToPatch() *UserPatch {
 	return &UserPatch{
 		Username: &u.Username, Password: &u.Password,

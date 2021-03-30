@@ -225,11 +225,11 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var suffix string
 
 	// save the originals in props (if not already done by another remote)
-	if _, ok := user.Props[KeyRemoteUsername]; !ok {
-		user.Props[KeyRemoteUsername] = user.Username
+	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
+		user.SetProp(KeyRemoteUsername, user.Username)
 	}
-	if _, ok := user.Props[KeyRemoteEmail]; !ok {
-		user.Props[KeyRemoteEmail] = user.Email
+	if _, ok := user.GetProp(KeyRemoteEmail); !ok {
+		user.SetProp(KeyRemoteEmail, user.Email)
 	}
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
@@ -272,10 +272,10 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	var suffix string
 
 	if patch.Username != nil {
-		user.Props[KeyRemoteUsername] = *patch.Username
+		user.SetProp(KeyRemoteUsername, *patch.Username)
 	}
 	if patch.Email != nil {
-		user.Props[KeyRemoteEmail] = *patch.Email
+		user.SetProp(KeyRemoteEmail, *patch.Email)
 	}
 
 	user.Patch(patch)
