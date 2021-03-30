@@ -5,6 +5,7 @@ package resend_invitation_email
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -100,7 +101,21 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 	elapsedTimeSinceSchedule := now - scheduledAt
 
-	if elapsedTimeSinceSchedule > TwentyFourHoursInMillis {
+	var DurationInMillis int64
+
+	duration := os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION")
+	if duration == "" {
+		// default to 24 hours
+		DurationInMillis = TwentyFourHoursInMillis
+	}
+
+	DurationInMillis, parseError := strconv.ParseInt(duration, 10, 64)
+	if parseError != nil {
+		// default to 24 hours
+		DurationInMillis = TwentyFourHoursInMillis
+	}
+
+	if elapsedTimeSinceSchedule > DurationInMillis {
 		teamID := job.Data["teamID"]
 		emailListData := job.Data["emailList"]
 
