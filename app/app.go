@@ -91,13 +91,13 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		if a.Srv().runjobs {
+		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
 				runCheckWarnMetricStatusJob(a)
 			})
+			a.srv.runJobs()
 		}
-		a.srv.RunJobs()
 	})
 }
 
@@ -144,8 +144,8 @@ func (a *App) initJobs() {
 		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
 	}
 
-	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
+	a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {
