@@ -1085,5 +1085,5 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 }
 
 func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
-	return !sqlStore.DoesColumnExist("SidebarCategories", "Collapsed") {
+	return !sqlStore.DoesColumnExist("SidebarCategories", "Collapsed")
 }
