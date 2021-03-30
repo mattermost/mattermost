@@ -16,9 +16,9 @@
 // R11 &dst
 // R12 short output end
 // R13 short input end
+
 // func decodeBlock(dst, src []byte) int
-// using 50 bytes of stack currently
-TEXT ·decodeBlock(SB), NOSPLIT, $64-56
+TEXT ·decodeBlock(SB), NOSPLIT, $48-56
 	MOVQ dst_base+0(FP), DI
 	MOVQ DI, R11
 	MOVQ dst_len+8(FP), R8
@@ -174,6 +174,9 @@ copy_literal:
 	MOVOU (SI), X0
 	MOVOU X0, (DI)
 
+	ADDQ CX, SI
+	ADDQ CX, DI
+
 	JMP finish_lit_copy
 
 memmove_lit:
@@ -181,18 +184,20 @@ memmove_lit:
 	MOVQ DI, 0(SP)
 	MOVQ SI, 8(SP)
 	MOVQ CX, 16(SP)
-	// spill
+
+	// Spill registers. Increment SI, DI now so we don't need to save CX.
+	ADDQ CX, DI
+	ADDQ CX, SI
 	MOVQ DI, 24(SP)
 	MOVQ SI, 32(SP)
-	MOVQ CX, 40(SP) // need len to inc SI, DI after
-	MOVB DX, 48(SP)
+	MOVL DX, 40(SP)
+
 	CALL runtime·memmove(SB)
 
 	// restore registers
 	MOVQ 24(SP), DI
 	MOVQ 32(SP), SI
-	MOVQ 40(SP), CX
-	MOVB 48(SP), DX
+	MOVL 40(SP), DX
 
 	// recalc initial values
 	MOVQ dst_base+0(FP), R8
@@ -206,9 +211,6 @@ memmove_lit:
 	SUBQ $16, R13
 
 finish_lit_copy:
-	ADDQ CX, SI
-	ADDQ CX, DI
-
 	CMPQ SI, R9
 	JGE end
 
@@ -330,16 +332,17 @@ memmove_match:
 	MOVQ DI, 0(SP)
 	MOVQ BX, 8(SP)
 	MOVQ CX, 16(SP)
-	// spill
+
+	// Spill registers. Increment DI now so we don't need to save CX.
+	ADDQ CX, DI
 	MOVQ DI, 24(SP)
 	MOVQ SI, 32(SP)
-	MOVQ CX, 40(SP) // need len to inc SI, DI after
+
 	CALL runtime·memmove(SB)
 
 	// restore registers
 	MOVQ 24(SP), DI
 	MOVQ 32(SP), SI
-	MOVQ 40(SP), CX
 
 	// recalc initial values
 	MOVQ dst_base+0(FP), R8
@@ -352,7 +355,6 @@ memmove_match:
 	MOVQ R9, R13
 	SUBQ $16, R13
 
-	ADDQ CX, DI
 	JMP loop
 
 err_corrupt:

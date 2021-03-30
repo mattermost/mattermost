@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -59,6 +60,17 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
+	}
+
+	if a.srv.Config().FeatureFlags.WebSocketDelay {
+		// Disable TCP_NO_DELAY for higher throughput
+		tcpConn, ok := ws.UnderlyingConn().(*net.TCPConn)
+		if ok {
+			err := tcpConn.SetNoDelay(false)
+			if err != nil {
+				mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
+			}
+		}
 	}
 
 	wc := &WebConn{
