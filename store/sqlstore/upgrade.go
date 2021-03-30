@@ -1019,38 +1019,43 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
 
-	c1 := `
+	totalMsgCountRootCTE := `
 		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
 		FROM Channels
 		LEFT JOIN Posts ON Channels.Id = Posts.ChannelId
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
-	c2 := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
-	uberQ := `
-		WITH q AS (` + c1 + `)
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	updateChannels := `
+		WITH q AS (` + totalMsgCountRootCTE + `)
 		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
 		FROM q where q.channelid=Channels.Id;
-
-		WITH q as (` + c2 + `)
+	`
+	updateChannelMembers := `
+		WITH q as (` + channelsCTE + `)
 		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
 		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
 	`
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		uberQ = `
+		updateChannels = `
 			UPDATE Channels
-			INNER Join (` + c1 + `) as q
+			INNER Join (` + totalMsgCountRootCTE + `) as q
 			ON q.channelid=Channels.Id
 			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
-
+		`
+		updateChannelMembers = `
 			UPDATE ChannelMembers CM
-			INNER JOIN (` + c2 + `) as q
+			INNER JOIN (` + channelsCTE + `) as q
 			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
-	if _, err := sqlStore.GetMaster().Exec(uberQ); err != nil {
-		mlog.Error("Error fetching Channels table", mlog.Err(err))
+	if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
+		mlog.Error("Error updating Channels table", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
+		mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
 	}
 
 	// 	saveSchemaVersion(sqlStore, Version5350)
