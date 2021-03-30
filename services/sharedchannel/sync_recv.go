@@ -242,7 +242,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 		}
 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
-		user.Email = model.NewId()
+		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
 
 		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
 			e, ok := err.(errInvalidInput)
@@ -286,7 +286,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 			suffix = strconv.FormatInt(int64(i), 10)
 		}
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
-		user.Email = model.NewId()
+		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
 
 		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
 			e, ok := err.(errInvalidInput)

@@ -6,6 +6,8 @@ package sharedchannel
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // mungUsername creates a new username by combining username and remote cluster name, plus
@@ -54,4 +56,10 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 	}
 
 	return fmt.Sprintf("%s%s%s:%s%s", username, suffix, userEllipses, remotename, remoteEllipses)
+}
+
+// mungEmail creates a unique email address using a UID and remote name.
+func mungEmail(remotename string, maxLen int) string {
+	s := fmt.Sprintf("%s@%s", model.NewId(), remotename)
+	return s[:maxLen]
 }
