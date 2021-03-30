@@ -1014,11 +1014,11 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
-	ta := time.Now()
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
-	mlog.Info("CreateColumnIfNotExists MsgCountRoot", mlog.String("took", time.Since(ta).String()))
 
-	gt1 := time.Now()
+	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
+
 	c1 := `
 		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
 		FROM Channels
@@ -1052,7 +1052,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().Exec(uberQ); err != nil {
 		mlog.Error("Error fetching Channels table", mlog.Err(err))
 	}
-	mlog.Info("All membership updates done", mlog.String("took", time.Since(gt1).String()))
 
 	// 	saveSchemaVersion(sqlStore, Version5350)
 	// }
