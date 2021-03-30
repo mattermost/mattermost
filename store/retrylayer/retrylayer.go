@@ -6590,7 +6590,7 @@ func (s *RetryLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, o
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
+func (s *RetryLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
 
 	tries := 0
 	for {
@@ -7802,7 +7802,7 @@ func (s *RetryLayerTeamStore) GetAllForExportAfter(limit int, afterID string) ([
 
 }
 
-func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error) {
+func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 
 	tries := 0
 	for {
@@ -8388,11 +8388,11 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 
 }
 
-func (s *RetryLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
+func (s *RetryLayerTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.SearchAll(term, opts)
+		result, err := s.TeamStore.SearchAll(opts)
 		if err == nil {
 			return result, nil
 		}
@@ -8408,11 +8408,11 @@ func (s *RetryLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]
 
 }
 
-func (s *RetryLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
+func (s *RetryLayerTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.TeamStore.SearchAllPaged(term, opts)
+		result, resultVar1, err := s.TeamStore.SearchAllPaged(opts)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -8428,11 +8428,11 @@ func (s *RetryLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch
 
 }
 
-func (s *RetryLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
+func (s *RetryLayerTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.SearchOpen(term)
+		result, err := s.TeamStore.SearchOpen(opts)
 		if err == nil {
 			return result, nil
 		}
@@ -8448,11 +8448,11 @@ func (s *RetryLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
+func (s *RetryLayerTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.SearchPrivate(term)
+		result, err := s.TeamStore.SearchPrivate(opts)
 		if err == nil {
 			return result, nil
 		}

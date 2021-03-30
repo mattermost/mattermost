@@ -6089,7 +6089,7 @@ func (s *OpenTracingLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID str
 	return result, err
 }
 
-func (s *OpenTracingLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
+func (s *OpenTracingLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.GetTeams")
 	s.Root.Store.SetContext(newCtx)
@@ -7195,7 +7195,7 @@ func (s *OpenTracingLayerTeamStore) GetAllForExportAfter(limit int, afterID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error) {
+func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPage")
 	s.Root.Store.SetContext(newCtx)
@@ -7730,7 +7730,7 @@ func (s *OpenTracingLayerTeamStore) SaveMultipleMembers(members []*model.TeamMem
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAll")
 	s.Root.Store.SetContext(newCtx)
@@ -7739,7 +7739,7 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearc
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.SearchAll(term, opts)
+	result, err := s.TeamStore.SearchAll(opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7748,7 +7748,7 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearc
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
+func (s *OpenTracingLayerTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAllPaged")
 	s.Root.Store.SetContext(newCtx)
@@ -7757,7 +7757,7 @@ func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.Team
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.TeamStore.SearchAllPaged(term, opts)
+	result, resultVar1, err := s.TeamStore.SearchAllPaged(opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7766,7 +7766,7 @@ func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.Team
 	return result, resultVar1, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchOpen")
 	s.Root.Store.SetContext(newCtx)
@@ -7775,7 +7775,7 @@ func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, erro
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.SearchOpen(term)
+	result, err := s.TeamStore.SearchOpen(opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7784,7 +7784,7 @@ func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, erro
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchPrivate")
 	s.Root.Store.SetContext(newCtx)
@@ -7793,7 +7793,7 @@ func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, e
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.SearchPrivate(term)
+	result, err := s.TeamStore.SearchPrivate(opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

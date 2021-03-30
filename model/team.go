@@ -42,6 +42,7 @@ type Team struct {
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 	GroupConstrained   *bool   `json:"group_constrained"`
+	PolicyID           *string `json:"policy_id" db:"-"`
 }
 
 type TeamPatch struct {
@@ -58,18 +59,13 @@ type TeamForExport struct {
 	SchemeName *string
 }
 
-type TeamWithPolicyID struct {
-	Team
-	PolicyID *string `db:"PolicyId" json:"policy_id"`
-}
-
 type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }
 
 type TeamsWithCount struct {
-	Teams      []*TeamWithPolicyID `json:"teams"`
-	TotalCount int64               `json:"total_count"`
+	Teams      []*Team `json:"teams"`
+	TotalCount int64   `json:"total_count"`
 }
 
 func InvitesFromJson(data io.Reader) *Invites {
@@ -129,8 +125,8 @@ func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
 	return twc
 }
 
-func TeamListFromJson(data io.Reader) []*TeamWithPolicyID {
-	var teams []*TeamWithPolicyID
+func TeamListFromJson(data io.Reader) []*Team {
+	var teams []*Team
 	json.NewDecoder(data).Decode(&teams)
 	return teams
 }

@@ -951,7 +951,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
-	teams := []*model.TeamWithPolicyID{}
+	teams := []*model.Team{}
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
@@ -992,9 +992,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, team := range teams {
-		c.App.SanitizeTeam(*c.App.Session(), &team.Team)
-	}
+	c.App.SanitizeTeams(*c.App.Session(), teams)
 
 	var resBody []byte
 
@@ -1020,6 +1018,9 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	// policy ID may only be used through the /data_retention/policies endpoint
 	props.PolicyID = nil
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		props.IncludePolicyID = model.NewBool(true)
+	}
 
 	var teams []*model.Team
 	var totalCount int64
@@ -1032,13 +1033,13 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPrivateTeams(props.Term)
+		teams, err = c.App.SearchPrivateTeams(props)
 	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPublicTeams(props.Term)
+		teams, err = c.App.SearchPublicTeams(props)
 	} else {
 		teams = []*model.Team{}
 	}

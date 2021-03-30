@@ -485,7 +485,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (teams []*model.TeamWithPolicyID, err error) {
+func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (teams []*model.Team, err error) {
 	const query = `
 	SELECT Teams.* FROM RetentionPoliciesTeams
 	INNER JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
@@ -496,7 +496,7 @@ func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (
 	props := map[string]interface{}{"PolicyId": policyId, "Limit": limit, "Offset": offset}
 	_, err = s.GetReplica().Select(&teams, query, props)
 	for _, team := range teams {
-		team.PolicyID = model.NewString(policyId)
+		team.PolicyID = &policyId
 	}
 	return
 }

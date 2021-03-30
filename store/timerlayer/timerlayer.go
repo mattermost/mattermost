@@ -5509,7 +5509,7 @@ func (s *TimerLayerRetentionPolicyStore) GetTeamPoliciesForUser(userID string, o
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.TeamWithPolicyID, error) {
+func (s *TimerLayerRetentionPolicyStore) GetTeams(policyId string, offset int, limit int) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.GetTeams(policyId, offset, limit)
@@ -6499,7 +6499,7 @@ func (s *TimerLayerTeamStore) GetAllForExportAfter(limit int, afterID string) ([
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error) {
+func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPage(offset, limit, opts)
@@ -6978,10 +6978,10 @@ func (s *TimerLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.SearchAll(term, opts)
+	result, err := s.TeamStore.SearchAll(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6994,10 +6994,10 @@ func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
+func (s *TimerLayerTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
 	start := timemodule.Now()
 
-	result, resultVar1, err := s.TeamStore.SearchAllPaged(term, opts)
+	result, resultVar1, err := s.TeamStore.SearchAllPaged(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7010,10 +7010,10 @@ func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.SearchOpen(term)
+	result, err := s.TeamStore.SearchOpen(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7026,10 +7026,10 @@ func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.SearchPrivate(term)
+	result, err := s.TeamStore.SearchPrivate(opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

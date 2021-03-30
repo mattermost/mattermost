@@ -52,6 +52,7 @@ type Channel struct {
 	Props            map[string]interface{} `json:"props" db:"-"`
 	GroupConstrained *bool                  `json:"group_constrained"`
 	Shared           *bool                  `json:"shared"`
+	PolicyID         *string                `json:"policy_id" db:"-"`
 }
 
 type ChannelWithTeamData struct {
@@ -59,8 +60,6 @@ type ChannelWithTeamData struct {
 	TeamDisplayName string `json:"team_display_name"`
 	TeamName        string `json:"team_name"`
 	TeamUpdateAt    int64  `json:"team_update_at"`
-	// This isn't really team data, but renaming the struct would be a lot of work...
-	PolicyID *string `db:"PolicyId" json:"policy_id"`
 }
 
 type ChannelsWithCount struct {

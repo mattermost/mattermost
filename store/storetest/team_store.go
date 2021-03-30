@@ -390,7 +390,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			response, err := ss.Team().SearchAll(tc.Opts.Term, tc.Opts)
+			response, err := ss.Team().SearchAll(tc.Opts)
 			require.NoError(t, err)
 			require.Equal(t, tc.ExpectedLenth, len(response))
 			responseTeamIds := []string{}
@@ -497,7 +497,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1, err := ss.Team().SearchOpen(tc.Term)
+			r1, err := ss.Team().SearchOpen(&model.TeamSearch{Term: tc.Term})
 			require.NoError(t, err)
 			results := r1
 			require.Equal(t, tc.ExpectedLength, len(results))
@@ -603,7 +603,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1, err := ss.Team().SearchPrivate(tc.Term)
+			r1, err := ss.Team().SearchPrivate(&model.TeamSearch{Term: tc.Term})
 			require.NoError(t, err)
 			results := r1
 			require.Equal(t, tc.ExpectedLength, len(results))
@@ -993,14 +993,11 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	t1p := &model.TeamWithPolicyID{Team: *t1}
-	t3p := &model.TeamWithPolicyID{Team: *t3}
-
 	opts := &model.TeamSearch{AllowOpenInvite: model.NewBool(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	assert.NoError(t, err)
-	assert.Equal(t, []*model.TeamWithPolicyID{t1p, t3p}, teams)
+	assert.Equal(t, []*model.Team{t1, t3}, teams)
 
 	o5 := model.Team{}
 	o5.DisplayName = "DisplayName5"
@@ -1011,11 +1008,9 @@ func testGetAllPublicTeamPageListing(t *testing.T, ss store.Store) {
 	t5, err := ss.Team().Save(&o5)
 	require.NoError(t, err)
 
-	t5p := &model.TeamWithPolicyID{Team: *t5}
-
 	teams, err = ss.Team().GetAllPage(0, 4, opts)
 	assert.NoError(t, err)
-	assert.Equal(t, []*model.TeamWithPolicyID{t1p, t3p, t5p}, teams)
+	assert.Equal(t, []*model.Team{t1, t3, t5}, teams)
 
 	_, err = ss.Team().GetAllPage(1, 1, opts)
 	assert.NoError(t, err)

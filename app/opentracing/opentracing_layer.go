@@ -4284,7 +4284,7 @@ func (a *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPage")
 
@@ -13263,7 +13263,7 @@ func (a *OpenTracingAppLayer) SearchPostsInTeamForUser(terms string, userID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPrivateTeams")
 
@@ -13275,7 +13275,7 @@ func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchPrivateTeams(term)
+	resultVar0, resultVar1 := a.app.SearchPrivateTeams(searchOpts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13285,7 +13285,7 @@ func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPublicTeams")
 
@@ -13297,7 +13297,7 @@ func (a *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchPublicTeams(term)
+	resultVar0, resultVar1 := a.app.SearchPublicTeams(searchOpts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -873,7 +873,7 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, *model.AppError) {
+func (a *App) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPage", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -915,22 +915,22 @@ func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
 // SearchAllTeams returns a team list and the total count of the results
 func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	if searchOpts.IsPaginated() {
-		teams, count, err := a.Srv().Store.Team().SearchAllPaged(searchOpts.Term, searchOpts)
+		teams, count, err := a.Srv().Store.Team().SearchAllPaged(searchOpts)
 		if err != nil {
 			return nil, 0, model.NewAppError("SearchAllTeams", "app.team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		return teams, count, nil
 	}
-	results, err := a.Srv().Store.Team().SearchAll(searchOpts.Term, searchOpts)
+	results, err := a.Srv().Store.Team().SearchAll(searchOpts)
 	if err != nil {
 		return nil, 0, model.NewAppError("SearchAllTeams", "app.team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return results, int64(len(results)), nil
 }
 
-func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().SearchOpen(term)
+func (a *App) SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().SearchOpen(searchOpts)
 	if err != nil {
 		return nil, model.NewAppError("SearchPublicTeams", "app.team.search_open_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -938,8 +938,8 @@ func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().SearchPrivate(term)
+func (a *App) SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().SearchPrivate(searchOpts)
 	if err != nil {
 		return nil, model.NewAppError("SearchPrivateTeams", "app.team.search_private_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

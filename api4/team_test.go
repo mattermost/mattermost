@@ -980,7 +980,7 @@ func TestGetAllTeams(t *testing.T) {
 				th.AddPermissionToRole(permission, model.SYSTEM_USER_ROLE_ID)
 			}
 
-			var teams []*model.TeamWithPolicyID
+			var teams []*model.Team
 			var count int64
 			if tc.WithCount {
 				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
@@ -1308,6 +1308,46 @@ func TestSearchAllTeams(t *testing.T) {
 		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
+	})
+
+	// Choose a team which the system manager can access
+	sysManagerTeams, resp := th.SystemManagerClient.GetAllTeams("", 0, 10000)
+	CheckOKStatus(t, resp)
+	policyTeam := sysManagerTeams[0]
+	// Now actually create the policy and assign the team to it
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 30,
+		},
+		TeamIDs: []string{policyTeam.Id},
+	})
+	require.Nil(t, savePolicyErr)
+	t.Run("does not return policy ID", func(t *testing.T) {
+		teams, sysManagerResp := th.SystemManagerClient.SearchTeams(&model.TeamSearch{Term: policyTeam.Name})
+		CheckOKStatus(t, sysManagerResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Nil(t, team.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+	t.Run("returns policy ID", func(t *testing.T) {
+		teams, sysAdminResp := th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: policyTeam.Name})
+		CheckOKStatus(t, sysAdminResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Equal(t, *team.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
 	})
 }
 

@@ -2638,7 +2638,7 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 	})
 }
 
-func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearchOpts, countQuery bool) sq.SelectBuilder {
+func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.SelectBuilder {
 	var limit int
 	if opts.PerPage != nil {
 		limit = *opts.PerPage
@@ -2647,10 +2647,16 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	var selectStr string
-	if countQuery {
+	if opts.CountOnly {
 		selectStr = "count(*)"
 	} else {
-		selectStr = "c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
+		selectStr = "c.*"
+		if opts.IncludeTeamInfo {
+			selectStr += ", t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
+		}
+		if opts.IncludePolicyID {
+			selectStr += ", RetentionPoliciesChannels.PolicyId"
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -2659,7 +2665,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		Join("Teams AS t ON t.Id = c.TeamId")
 
 	// don't bother ordering or limiting if we're just getting the count
-	if !countQuery {
+	if !opts.CountOnly {
 		query = query.
 			OrderBy("c.DisplayName, t.DisplayName").
 			Limit(uint64(limit))
@@ -2670,7 +2676,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
-	if opts.IsPaginated() && !countQuery {
+	if opts.IsPaginated() && !opts.CountOnly {
 		query = query.Offset(uint64(*opts.Page * *opts.PerPage))
 	}
 
@@ -2682,12 +2688,15 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
 			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+	} else if opts.IncludePolicyID {
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 	if likeTerm != "" {
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
 		query = query.Where(sq.Or{
 			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
@@ -2718,7 +2727,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	if opts.Public && !opts.Private {
-		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
+		query = query.InnerJoin("PublicChannels ON c.Id = PublicChannels.Id")
 	} else if opts.Private && !opts.Public {
 		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
 	} else {
@@ -2732,7 +2741,9 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 }
 
 func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
-	queryString, args, err := s.channelSearchQuery(term, opts, false).ToSql()
+	opts.Term = term
+	opts.IncludeTeamInfo = true
+	queryString, args, err := s.channelSearchQuery(&opts).ToSql()
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "channel_tosql")
 	}
@@ -2745,7 +2756,8 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 
 	// only query a 2nd time for the count if the results are being requested paginated.
 	if opts.IsPaginated() {
-		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
+		opts.CountOnly = true
+		queryString, args, err = s.channelSearchQuery(&opts).ToSql()
 		if err != nil {
 			return nil, 0, errors.Wrap(err, "channel_tosql")
 		}

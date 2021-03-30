@@ -82,7 +82,7 @@ type RetentionPolicyStore interface {
 	GetChannelsCount(policyId string) (int64, error)
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error
-	GetTeams(policyId string, offset, limit int) ([]*model.TeamWithPolicyID, error)
+	GetTeams(policyId string, offset, limit int) ([]*model.Team, error)
 	GetTeamsCount(policyId string) (int64, error)
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
@@ -98,12 +98,12 @@ type TeamStore interface {
 	Get(id string) (*model.Team, error)
 	GetByName(name string) (*model.Team, error)
 	GetByNames(name []string) ([]*model.Team, error)
-	SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error)
-	SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error)
-	SearchOpen(term string) ([]*model.Team, error)
-	SearchPrivate(term string) ([]*model.Team, error)
+	SearchAll(opts *model.TeamSearch) ([]*model.Team, error)
+	SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error)
+	SearchOpen(opts *model.TeamSearch) ([]*model.Team, error)
+	SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error)
 	GetAll() ([]*model.Team, error)
-	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.TeamWithPolicyID, error)
+	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
@@ -813,6 +813,7 @@ type LinkMetadataStore interface {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
+	Term                     string
 	NotAssociatedToGroup     string
 	IncludeDeleted           bool
 	Deleted                  bool
@@ -823,6 +824,8 @@ type ChannelSearchOpts struct {
 	PolicyID                 string
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
+	IncludeTeamInfo          bool
+	CountOnly                bool
 	Public                   bool
 	Private                  bool
 	Page                     *int

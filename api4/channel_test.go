@@ -1444,6 +1444,46 @@ func TestSearchAllChannels(t *testing.T) {
 
 	_, resp = Client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckForbiddenStatus(t, resp)
+
+	// Choose a policy which the system manager can read
+	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+	CheckOKStatus(t, resp)
+	policyChannel := (*sysManagerChannels)[0]
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: 30,
+		},
+		ChannelIDs: []string{policyChannel.Id},
+	})
+	require.Nil(t, savePolicyErr)
+
+	t.Run("does not return policy ID", func(t *testing.T) {
+		channels, resp := th.SystemManagerClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Nil(t, channel.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+	t.Run("returns policy ID", func(t *testing.T) {
+		channels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Equal(t, *channel.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
 }
 
 func TestSearchAllChannelsPaged(t *testing.T) {

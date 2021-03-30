@@ -193,17 +193,19 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+		return
+	}
+
 	props := model.TeamSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("team_search")
 		return
 	}
 	props.PolicyID = model.NewString(c.Params.PolicyId)
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
-		return
-	}
+	props.IncludePolicyID = model.NewBool(true)
 
 	teams, _, err := c.App.SearchAllTeams(props)
 	if err != nil {
@@ -311,7 +313,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	opts := model.ChannelSearchOpts{PolicyID: c.Params.PolicyId}
+	opts := model.ChannelSearchOpts{PolicyID: c.Params.PolicyId, IncludePolicyID: true}
 
 	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
 	if appErr != nil {
