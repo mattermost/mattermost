@@ -234,13 +234,3 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 
 	return nil
 }
-
-// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (a *App) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	a.Srv().Busy.ClusterEventChanged(sbs)
-	if sbs.Busy {
-		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
-	} else {
-		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
-	}
-}

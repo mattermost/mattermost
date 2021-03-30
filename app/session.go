@@ -251,7 +251,7 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
 		}
 	}
 
-	a.InvalidateWebConnSessionCacheForUser(userID)
+	a.Srv().invalidateWebConnSessionCacheForUser(userID)
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
