@@ -187,8 +187,9 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 			} else if sync {
 				users = append(users, sanitizeUserForSync(user))
 			}
-			// if this was a mention then put the real username in place of the username+remotename
-			if *user.RemoteId == rc.RemoteId {
+			// if this was a mention then put the real username in place of the username+remotename, but only
+			// when sending to the remote that the user belongs to.
+			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 				fixMention(post, mentionMap, user)
 			}
 		} else {
