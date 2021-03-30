@@ -61,5 +61,8 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 // mungEmail creates a unique email address using a UID and remote name.
 func mungEmail(remotename string, maxLen int) string {
 	s := fmt.Sprintf("%s@%s", model.NewId(), remotename)
-	return s[:maxLen]
+	if len(s) > maxLen {
+		s = s[:maxLen]
+	}
+	return s
 }
