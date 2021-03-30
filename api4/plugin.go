@@ -41,8 +41,8 @@ func (api *API) InitPlugin() {
 
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplacePlugins)).Methods("GET")
 
-	api.BaseRoutes.ApiRoot.Handle("/marketplace/first_admin_visit", api.ApiHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/marketplace/first_admin_visit", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiHandler(setFirstAdminVisitMarketplaceStatus)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.ApiSessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
