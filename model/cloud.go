@@ -95,6 +95,7 @@ type Subscription struct {
 	DNS         string   `json:"dns"`
 	IsPaidTier  string   `json:"is_paid_tier"`
 	LastInvoice *Invoice `json:"last_invoice"`
+	TrialEndAt  int64    `json:"trial_end_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
