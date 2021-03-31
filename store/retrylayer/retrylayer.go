@@ -684,21 +684,21 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamID s
 
 }
 
-func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, error) {
+func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
+		result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
@@ -1304,11 +1304,11 @@ func (s *RetryLayerChannelStore) GetGuestCount(channelID string, allowFromCache 
 
 }
 
-func (s *RetryLayerChannelStore) GetMember(channelID string, userId string) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMember(ctx context.Context, channelID string, userId string) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMember(channelID, userId)
+		result, err := s.ChannelStore.GetMember(ctx, channelID, userId)
 		if err == nil {
 			return result, nil
 		}
@@ -1350,11 +1350,11 @@ func (s *RetryLayerChannelStore) GetMemberCountFromCache(channelID string) int64
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s *RetryLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
+		result, err := s.ChannelStore.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 		if err == nil {
 			return result, nil
 		}

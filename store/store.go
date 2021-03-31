@@ -173,7 +173,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (*model.ChannelMembers, error)
-	GetMember(channelID string, userId string) (*model.ChannelMember, error)
+	GetMember(ctx context.Context, channelID string, userId string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	InvalidateAllChannelMembersForUser(userId string)
@@ -184,7 +184,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
 	GetMemberCount(channelID string, allowFromCache bool) (int64, error)
-	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
+	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelID string)
 	GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error)
 	InvalidateGuestCount(channelID string)
@@ -196,7 +196,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userId string) (int, error)
+	CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error)
 	IncrementMentionCount(channelID string, userId string, updateThreads bool) error
 	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
 	GetMembersForUser(teamID string, userId string) (*model.ChannelMembers, error)

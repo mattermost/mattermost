@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -113,7 +114,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	if err != nil {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
-	_, err = th.App.GetChannelMember(practiceChannel.Id, singer1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), practiceChannel.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("error retrieving channel member: %s", err.Error())
 	}
@@ -142,7 +143,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
 	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
@@ -184,7 +185,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
 
-	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
 	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
@@ -255,7 +256,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("expected team member to remain deleted")
 	}
 
-	_, err = th.App.GetChannelMember(practiceChannel.Id, singer1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), practiceChannel.Id, singer1.Id)
 	if err == nil {
 		t.Error("Expected channel member to remain deleted")
 	}
@@ -308,7 +309,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
-	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
 	if err == nil {
 		t.Error("Expected channel member to remain deleted")
 	}
@@ -325,7 +326,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Channel member is re-added.
-	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("expected channel member: %s", err.Error())
 	}
@@ -501,7 +502,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, tm.SchemeAdmin)
 
-		cm, err := th.App.GetChannelMember(channel.Id, user.Id)
+		cm, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, cm.SchemeAdmin)
 	}
