@@ -4697,7 +4697,7 @@ func (a *OpenTracingAppLayer) GetChannelGuestCount(channelID string) (int64, *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMember")
 
@@ -4709,7 +4709,7 @@ func (a *OpenTracingAppLayer) GetChannelMember(channelID string, userID string) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMember(channelID, userID)
+	resultVar0, resultVar1 := a.app.GetChannelMember(ctx, channelID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6366,7 +6366,7 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePlu
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+func (a *OpenTracingAppLayer) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMemberCountsByGroup")
 
@@ -6378,7 +6378,7 @@ func (a *OpenTracingAppLayer) GetMemberCountsByGroup(channelID string, includeTi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMemberCountsByGroup(channelID, includeTimezones)
+	resultVar0, resultVar1 := a.app.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16216,21 +16216,6 @@ func (a *OpenTracingAppLayer) ViewChannel(view *model.ChannelView, userID string
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) WaitForChannelMembership(channelID string, userID string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.WaitForChannelMembership")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.WaitForChannelMembership(channelID, userID)
 }
 
 func (a *OpenTracingAppLayer) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {

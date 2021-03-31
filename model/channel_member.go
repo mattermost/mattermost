@@ -29,6 +29,7 @@ type ChannelUnread struct {
 	MsgCount         int64     `json:"msg_count"`
 	MentionCount     int64     `json:"mention_count"`
 	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
 	NotifyProps      StringMap `json:"-"`
 }
 
@@ -39,6 +40,7 @@ type ChannelUnreadAt struct {
 	MsgCount         int64     `json:"msg_count"`
 	MentionCount     int64     `json:"mention_count"`
 	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
 	LastViewedAt     int64     `json:"last_viewed_at"`
 	NotifyProps      StringMap `json:"-"`
 }
@@ -51,6 +53,7 @@ type ChannelMember struct {
 	MsgCount         int64     `json:"msg_count"`
 	MentionCount     int64     `json:"mention_count"`
 	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
 	NotifyProps      StringMap `json:"notify_props"`
 	LastUpdateAt     int64     `json:"last_update_at"`
 	SchemeGuest      bool      `json:"scheme_guest"`
