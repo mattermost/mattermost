@@ -1116,18 +1116,18 @@ type ReplicaLagSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DriverName                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSource                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas          []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas    []string              `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Trace                       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch       *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
