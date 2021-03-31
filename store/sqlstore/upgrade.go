@@ -1019,10 +1019,15 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
 
+	forceIndex := ""
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		forceIndex = "FORCE INDEX(idx_posts_channel_id) ON Channels.Id = Posts.ChannelId"
+	}
 	totalMsgCountRootCTE := `
 		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
 		FROM Channels
 		LEFT JOIN Posts ON Channels.Id = Posts.ChannelId
+		` + forceIndex + `
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
