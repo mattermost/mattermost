@@ -213,21 +213,12 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 		return
 	}
 
-	var userID string
-	var mention string
-	for m, id := range mentionMap {
-		if id == user.Id {
-			userID = id
-			mention = m
-			break
+	// there may be more than one mention for each user so we have to walk the whole map.
+	for mention, id := range mentionMap {
+		if id == user.Id && strings.Contains(mention, ":") {
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 		}
 	}
-
-	if userID == "" || mention == "" {
-		return
-	}
-
-	post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
 }
 
 func sanitizeUserForSync(user *model.User) *model.User {
