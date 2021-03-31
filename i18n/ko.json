@@ -1979,7 +1979,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "최상의 경험을 위해 PC, Mac, iOS와 Android용 애플리케이션을 다운로드 받으세요."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -1987,11 +1987,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "전자우편 주소를 검증하려면 클릭하세요."
+    "translation": "이 이메일 주소는 Mattermost 계정을 생성하는 데 사용되었습니다."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }}에 가입했습니다"
+    "translation": "팀에 가입하신 걸 환영합니다"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -7396,5 +7396,81 @@
   {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "파일을 삭제하지 못했습니다"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "팀과 함께 Mattermost에서 협업을 시작하세요"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Mattermost는 무엇인가요?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "더 알아보기"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] 또는 초기화"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "상태 설정 및 초기화"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "상태가 초기화되었습니다."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "상태 초기화 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "상태"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "상태 설정 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}}(으)로 돌아가기"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "가입해주셔서 감사합니다 "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Desktop과 mobile 애플리케이션을 다운로드 받으세요"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "zip 파일을 생성하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "다운로드"
   }
 ]

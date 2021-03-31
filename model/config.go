@@ -373,6 +373,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental_features"`
+	EnableReliableWebSockets                          *bool   `access:"experimental_features"` // telemetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -818,6 +819,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableLegacySidebar == nil {
 		s.EnableLegacySidebar = NewBool(false)
 	}
+
+	if s.EnableReliableWebSockets == nil {
+		s.EnableReliableWebSockets = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -1104,6 +1109,12 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	return &ssoSettings
 }
 
+type ReplicaLagSettings struct {
+	DataSource       *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryAbsoluteLag *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeLag     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+}
+
 type SqlSettings struct {
 	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DataSource                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1117,6 +1128,7 @@ type SqlSettings struct {
 	AtRestEncryptKey            *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1172,6 +1184,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.ReplicaLagSettings == nil {
+		s.ReplicaLagSettings = []*ReplicaLagSettings{}
 	}
 }
 
@@ -3357,6 +3373,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.MaxOpenConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
