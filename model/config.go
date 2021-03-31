@@ -373,7 +373,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
-	EnableReliableWebSockets                          *bool   `access:"experimental"`
+	EnableReliableWebSockets                          *bool   `access:"experimental"` // telemetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
