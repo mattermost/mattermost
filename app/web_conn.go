@@ -32,6 +32,19 @@ const (
 	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
+type WebConnConfig struct {
+	WebSocket        *websocket.Conn
+	Session          model.Session
+	TFunc            i18n.TranslateFunc
+	Locale           string
+	ConnectionID     string
+	Sequence         int
+	ActiveQueue      chan model.WebSocketMessage
+	DeadQueue        []*model.WebSocketEvent
+	DeadQueuePointer int
+	Active           bool
+}
+
 // WebConn represents a single websocket connection to a user.
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
@@ -53,27 +66,42 @@ type WebConn struct {
 	// It basically acts as the user-space socket buffer, and is used
 	// to resuscitate any messages that might have got lost when the connection is broken.
 	// It is implemented by using a circular buffer to keep it fast.
-	deadQueue        []model.WebSocketMessage
-	deadQueuePointer int // Pointer which indicates the next slot to insert.
-	sessionToken     atomic.Value
-	session          atomic.Value
-	connectionID     atomic.Value
-	endWritePump     chan struct{}
-	pumpFinished     chan struct{}
+	deadQueue []*model.WebSocketEvent
+	// Pointer which indicates the next slot to insert.
+	// It is only to be incremented during writing or clearing the queue.
+	deadQueuePointer int
+	// active indicates whether there is an open websocket connection attached
+	// to this webConn or not.
+	active       bool
+	sessionToken atomic.Value
+	session      atomic.Value
+	connectionID atomic.Value
+	endWritePump chan struct{}
+	pumpFinished chan struct{}
+}
+
+// CheckConnResult indicates whether a connectionID was present in the hub or not.
+// And if so, contains the active and dead queue details.
+type CheckConnResult struct {
+	ConnectionID     string
+	UserID           string
+	ActiveQueue      chan model.WebSocketMessage
+	DeadQueue        []*model.WebSocketEvent
+	DeadQueuePointer int
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
-	if session.UserId != "" {
+func (a *App) NewWebConn(cfg WebConnConfig) *WebConn {
+	if cfg.Session.UserId != "" {
 		a.Srv().Go(func() {
-			a.SetStatusOnline(session.UserId, false)
-			a.UpdateLastActivityAtIfNeeded(session)
+			a.SetStatusOnline(cfg.Session.UserId, false)
+			a.UpdateLastActivityAtIfNeeded(cfg.Session)
 		})
 	}
 
 	if a.srv.Config().FeatureFlags.WebSocketDelay {
 		// Disable TCP_NO_DELAY for higher throughput
-		tcpConn, ok := ws.UnderlyingConn().(*net.TCPConn)
+		tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
 		if ok {
 			err := tcpConn.SetNoDelay(false)
 			if err != nil {
@@ -82,25 +110,35 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 		}
 	}
 
+	if cfg.ActiveQueue == nil {
+		cfg.ActiveQueue = make(chan model.WebSocketMessage, sendQueueSize)
+	}
+
+	if cfg.DeadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+		cfg.DeadQueue = make([]*model.WebSocketEvent, deadQueueSize)
+	}
+
 	wc := &WebConn{
 		App:                a,
-		send:               make(chan model.WebSocketMessage, sendQueueSize),
-		WebSocket:          ws,
+		send:               cfg.ActiveQueue,
+		deadQueue:          cfg.DeadQueue,
+		deadQueuePointer:   cfg.DeadQueuePointer,
+		Sequence:           int64(cfg.Sequence),
+		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
-		UserId:             session.UserId,
-		T:                  t,
-		Locale:             locale,
+		UserId:             cfg.Session.UserId,
+		T:                  cfg.TFunc,
+		Locale:             cfg.Locale,
+		active:             cfg.Active,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 	}
 
-	if *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
-		wc.deadQueue = make([]model.WebSocketMessage, deadQueueSize)
-	}
 
-	wc.SetSession(&session)
-	wc.SetSessionToken(session.Token)
-	wc.SetSessionExpiresAt(session.ExpiresAt)
+	wc.SetSession(&cfg.Session)
+	wc.SetSessionToken(cfg.Session.Token)
+	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
+	wc.SetConnectionID(cfg.ConnectionID)
 
 	return wc
 }
@@ -136,6 +174,22 @@ func (wc *WebConn) SetConnectionID(id string) {
 	wc.connectionID.Store(id)
 }
 
+// GetConnectionID returns the connection id of the connection.
+func (wc *WebConn) GetConnectionID() string {
+	return wc.connectionID.Load().(string)
+}
+
+// areAllInactive returns whether all of the connections
+// are inactive or not
+func areAllInactive(conns []*WebConn) bool {
+	for _, conn := range conns {
+		if conn.active {
+			return false
+		}
+	}
+	return true
+}
+
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
 	return wc.session.Load().(*model.Session)
@@ -153,6 +207,8 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
+	defer ReturnSessionToPool(wc.GetSession())
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -164,14 +220,6 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
-
-	// TODO:
-	// Check if the channel is closed or not,
-	// if closed, then remove the entry from conn manager
-	// else
-	// take both channels, and store them in connection manager.
-
-	defer ReturnSessionToPool(wc.GetSession())
 }
 
 func (wc *WebConn) readPump() {
@@ -210,6 +258,31 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
+	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+		if wc.isInDeadQueue() {
+			if err := wc.drainDeadQueue(); err != nil {
+				wc.logSocketErr("websocket.drainDeadQueue", err)
+				return
+			}
+		} else if wc.hasMsgLoss() {
+			// If the seq number is not in dead queue, but it was supposed to be,
+			// then generate a different connection ID,
+			// and set sequence to 0, and clear dead queue.
+			// TODO: Add metrics for this. (both true and false cases)
+			wc.clearDeadQueue()
+			wc.SetConnectionID(model.NewId())
+			wc.Sequence = 0
+
+			// Send hello message
+			msg := wc.createHelloMessage()
+			wc.addToDeadQueue(msg)
+			if err := wc.writeMessage(msg); err != nil {
+				wc.logSocketErr("websocket.sendHello", err)
+				return
+			}
+		}
+	}
+
 	var buf bytes.Buffer
 	// 2k is seen to be a good heuristic under which 98.5% of message sizes remain.
 	buf.Grow(1024 * 2)
@@ -219,7 +292,7 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.writeMessage(websocket.CloseMessage, []byte{})
+				wc.writeMessageBuf(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -249,8 +322,8 @@ func (wc *WebConn) writePump() {
 			buf.Reset()
 			var err error
 			if evtOk {
-				cpyEvt := evt.SetSequence(wc.Sequence)
-				err = cpyEvt.Encode(enc)
+				evt = evt.SetSequence(wc.Sequence)
+				err = evt.Encode(enc)
 				wc.Sequence++
 			} else {
 				err = enc.Encode(msg)
@@ -273,11 +346,12 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets {
-				wc.addToDeadQueue(msg)
+			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets &&
+				evtOk {
+				wc.addToDeadQueue(evt)
 			}
 
-			if err := wc.writeMessage(websocket.TextMessage, buf.Bytes()); err != nil {
+			if err := wc.writeMessageBuf(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
@@ -286,7 +360,7 @@ func (wc *WebConn) writePump() {
 				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
-			if err := wc.writeMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := wc.writeMessageBuf(websocket.PingMessage, []byte{}); err != nil {
 				wc.logSocketErr("websocket.ticker", err)
 				return
 			}
@@ -304,17 +378,121 @@ func (wc *WebConn) writePump() {
 	}
 }
 
-// writeMessage is a helper utility that wraps the write to the socket
+// writeMessageBuf is a helper utility that wraps the write to the socket
 // along with setting the write deadline.
-func (wc *WebConn) writeMessage(msgType int, data []byte) error {
+func (wc *WebConn) writeMessageBuf(msgType int, data []byte) error {
 	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
 	return wc.WebSocket.WriteMessage(msgType, data)
 }
 
+func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
+	// We don't use the encoder from the write pump because it's unwieldy to pass encoders
+	// around, and this is only called during initialization of the webConn.
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	err := msg.Encode(enc)
+	if err != nil {
+		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
+		return nil
+	}
+	wc.Sequence++
+
+	return wc.writeMessageBuf(websocket.TextMessage, buf.Bytes())
+}
+
 // addToDeadQueue appends a message to the dead queue.
-func (wc *WebConn) addToDeadQueue(msg model.WebSocketMessage) {
+func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 	wc.deadQueue[wc.deadQueuePointer] = msg
 	wc.deadQueuePointer = (wc.deadQueuePointer + 1) % deadQueueSize
+}
+
+// hasMsgLoss indicates whether the next wanted sequence is right after
+// the latest element in the dead queue, which would mean there is no message loss.
+func (wc *WebConn) hasMsgLoss() bool {
+	if wc.deadQueuePointer == 0 {
+		if wc.deadQueue[deadQueueSize-1] == nil {
+			return false // No msg written
+		}
+		if wc.deadQueue[deadQueueSize-1].GetSequence() == wc.Sequence-1 {
+			return false
+		}
+		return true
+	}
+	if wc.deadQueue[wc.deadQueuePointer-1].GetSequence() == wc.Sequence-1 {
+		return false
+	}
+	return true
+}
+
+func (wc *WebConn) isInDeadQueue() bool {
+	// Can be optimized to traverse backwards from deadQueuePointer
+	// Hopefully, traversing 128 elements is not too much overhead.
+	for i := 0; i < deadQueueSize; i++ {
+		elem := wc.deadQueue[i]
+		if elem == nil {
+			return false
+		}
+
+		if elem.GetSequence() == wc.Sequence {
+			return true
+		}
+	}
+	return false
+}
+
+func (wc *WebConn) clearDeadQueue() {
+	for i := 0; i < deadQueueSize; i++ {
+		if wc.deadQueue[i] == nil {
+			return
+		}
+		wc.deadQueue[i] = nil
+	}
+	wc.deadQueuePointer = 0
+}
+
+// drainDeadQueue will find until the last message which was sent,
+// and write the remaining messages to the socket.
+// It is called with the assumption that the item with wc.Sequence is present
+// in it, because otherwise it would have been cleared from WebConn.
+func (wc *WebConn) drainDeadQueue() error {
+	if wc.deadQueue[0] == nil {
+		// Empty queue
+		return nil
+	}
+
+	// This means pointer hasn't rolled over and
+	// we have to check from the front of the queue
+	if wc.deadQueue[wc.deadQueuePointer] == nil {
+		var i = 0
+		// Move i forward until the place we want.
+		for ; wc.deadQueue[i].GetSequence() < wc.Sequence; i++ {
+		}
+		// Now send all the messages
+		for ; i < wc.deadQueuePointer; i++ {
+			if err := wc.writeMessage(wc.deadQueue[i]); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// We go on until next sequence number is smaller than previous one.
+	// Which means it has rolled over.
+	currPtr := wc.deadQueuePointer
+	for ; wc.deadQueue[currPtr].GetSequence() < wc.Sequence; currPtr = (currPtr + 1) % deadQueueSize {
+	}
+	for {
+		if err := wc.writeMessage(wc.deadQueue[currPtr]); err != nil {
+			return err
+		}
+		oldSeq := wc.deadQueue[currPtr].GetSequence() // TODO: possibly move this
+		currPtr = (currPtr + 1) % deadQueueSize       // to for loop condition
+		newSeq := wc.deadQueue[currPtr].GetSequence()
+		if oldSeq > newSeq {
+			break
+		}
+	}
+	return nil
 }
 
 // InvalidateCache resets all internal data of the WebConn.

@@ -46,7 +46,13 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
+	cfg := WebConnConfig{
+		WebSocket: c,
+		Session:   *session,
+		TFunc:     i18n.IdentityTfunc(),
+		Locale:    "en",
+	}
+	wc := a.NewWebConn(cfg)
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -199,7 +205,7 @@ func TestHubConnIndex(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
@@ -270,6 +276,56 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexInactive(t *testing.T) {
+	connIndex := newHubConnectionIndex(2 * time.Second)
+
+	// User1
+	wc1 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc1.SetConnectionID("conn1")
+
+	// User2
+	wc2 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc2.SetConnectionID("conn2")
+	wc3 := &WebConn{
+		UserId: wc2.UserId,
+		active: false,
+	}
+	wc3.SetConnectionID("conn3")
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc1.UserId, "conn3"))
+
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc1.UserId, "conn3"))
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+
+	wc3.lastUserActivityAt = model.GetMillis()
+	connIndex.Add(wc3)
+	connIndex.RemoveInactiveConnections()
+	assert.True(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
+	assert.Len(t, connIndex.All(), 3)
+
+	wc3.lastUserActivityAt = model.GetMillis() - (time.Minute).Milliseconds()
+	connIndex.RemoveInactiveConnections()
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+	assert.Len(t, connIndex.All(), 2)
+}
+
 func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -303,7 +359,7 @@ func TestHubIsRegistered(t *testing.T) {
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
