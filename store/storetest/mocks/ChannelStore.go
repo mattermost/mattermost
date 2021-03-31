@@ -140,7 +140,7 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userId string, teamID string) er
 }
 
 // CountPostsAfter provides a mock function with given fields: channelID, timestamp, userId
-func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, error) {
+func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
 	ret := _m.Called(channelID, timestamp, userId)
 
 	var r0 int
@@ -150,14 +150,21 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 		r0 = ret.Get(0).(int)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64, string) error); ok {
+	var r1 int
+	if rf, ok := ret.Get(1).(func(string, int64, string) int); ok {
 		r1 = rf(channelID, timestamp, userId)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, int64, string) error); ok {
+		r2 = rf(channelID, timestamp, userId)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId

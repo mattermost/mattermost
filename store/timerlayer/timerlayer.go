@@ -599,10 +599,10 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamID s
 	return err
 }
 
-func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, error) {
+func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
+	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -612,7 +612,7 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountPostsAfter", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {

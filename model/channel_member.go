@@ -27,6 +27,7 @@ type ChannelUnread struct {
 	TeamId       string    `json:"team_id"`
 	ChannelId    string    `json:"channel_id"`
 	MsgCount     int64     `json:"msg_count"`
+	MsgCountRoot int64     `json:"msg_count_root"`
 	MentionCount int64     `json:"mention_count"`
 	NotifyProps  StringMap `json:"-"`
 }
@@ -36,6 +37,7 @@ type ChannelUnreadAt struct {
 	UserId       string    `json:"user_id"`
 	ChannelId    string    `json:"channel_id"`
 	MsgCount     int64     `json:"msg_count"`
+	MsgCountRoot int64     `json:"msg_count_root"`
 	MentionCount int64     `json:"mention_count"`
 	LastViewedAt int64     `json:"last_viewed_at"`
 	NotifyProps  StringMap `json:"-"`
@@ -54,6 +56,7 @@ type ChannelMember struct {
 	SchemeUser    bool      `json:"scheme_user"`
 	SchemeAdmin   bool      `json:"scheme_admin"`
 	ExplicitRoles string    `json:"explicit_roles"`
+	MsgCountRoot  int64     `json:"msg_count_root"`
 }
 
 type ChannelMembers []ChannelMember
