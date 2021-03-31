@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 )
 
 func TestGetSamlMetadata(t *testing.T) {
@@ -56,14 +55,14 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 func TestSamlResetId(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
-	saml2 := &mocks.SamlInterface{}
-	saml2.Mock.On(
-		"ResetAuthDataToEmail",
-		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("bool"),
-		mock.AnythingOfType("[]string"),
-	).Return(int64(1), nil)
-	th.App.Srv().Saml = saml2
+	th.App.Srv().Saml = &mocks.SamlInterface{}
+
+	user := th.BasicUser
+	_, appErr := th.App.UpdateUserAuth(user.Id, &model.UserAuth{
+		AuthData:    model.NewString(model.NewId()),
+		AuthService: model.USER_AUTH_SERVICE_SAML,
+	})
+	require.Nil(t, appErr)
 
 	_, resp := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
 	CheckForbiddenStatus(t, resp)

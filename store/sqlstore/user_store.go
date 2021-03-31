@@ -307,6 +307,52 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 	return userId, nil
 }
 
+// ResetAuthDataToEmailForUsers resets the AuthData of users whose AuthService
+// is |service| to their Email. If userIDs is non-empty, only the users whose
+// IDs are in userIDs will be affected. If dryRun is true, only the number
+// of users who *would* be affected is returned; otherwise, the number of
+// users who actually were affected is returned.
+func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	if dryRun {
+		builder := us.getQueryBuilder().
+			Select("COUNT(*)").
+			From("Users").
+			Where(sq.Eq{"AuthService": service})
+		if len(userIDs) > 0 {
+			builder = builder.Where(sq.Eq{"Id": userIDs})
+		}
+		if !includeDeleted {
+			builder = builder.Where(sq.Eq{"DeleteAt": 0})
+		}
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "select_count_users_tosql")
+		}
+		numAffected, err := us.GetReplica().SelectInt(query, args...)
+		return int(numAffected), err
+	}
+	builder := us.getQueryBuilder().
+		Update("Users").
+		Set("AuthData", sq.Expr("Email")).
+		Where(sq.Eq{"AuthService": service})
+	if len(userIDs) > 0 {
+		builder = builder.Where(sq.Eq{"Id": userIDs})
+	}
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "update_users_tosql")
+	}
+	result, err := us.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to update users' AuthData")
+	}
+	numAffected, err := result.RowsAffected()
+	return int(numAffected), err
+}
+
 func (us SqlUserStore) UpdateMfaSecret(userId, secret string) error {
 	updateAt := model.GetMillis()
 
