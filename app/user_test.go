@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"image"
@@ -1145,7 +1146,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1177,7 +1178,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1308,7 +1309,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1340,7 +1341,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1370,7 +1371,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		th.AddUserToChannel(user, channel)
 		th.App.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, false, true, true)
 
-		channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
+		channelMember, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.True(t, channelMember.SchemeUser)
 		assert.True(t, channelMember.SchemeAdmin)
@@ -1389,7 +1390,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, teamMember.SchemeAdmin)
 		assert.True(t, teamMember.SchemeGuest)
 
-		channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, channelMember.SchemeUser)
 		assert.False(t, channelMember.SchemeAdmin)
