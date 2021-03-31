@@ -1021,13 +1021,12 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 
 	forceIndex := ""
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		forceIndex = "FORCE INDEX(idx_posts_channel_id) ON Channels.Id = Posts.ChannelId"
+		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
 	}
 	totalMsgCountRootCTE := `
 		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
 		FROM Channels
-		LEFT JOIN Posts ON Channels.Id = Posts.ChannelId
-		` + forceIndex + `
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
 		WHERE Posts.RootId = ''
 		GROUP BY Channels.Id
 	`
