@@ -1095,10 +1095,10 @@ func (s *TimerLayerChannelStore) GetGuestCount(channelID string, allowFromCache 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMember(channelID string, userId string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMember(ctx context.Context, channelID string, userId string) (*model.ChannelMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetMember(channelID, userId)
+	result, err := s.ChannelStore.GetMember(ctx, channelID, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1143,10 +1143,10 @@ func (s *TimerLayerChannelStore) GetMemberCountFromCache(channelID string) int64
 	return result
 }
 
-func (s *TimerLayerChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s *TimerLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
+	result, err := s.ChannelStore.GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
