@@ -111,6 +111,9 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		return serverErr
 	}
 
+	fakeApp := app.New(app.ServerConnector(server))
+	fakeApp.InitServer()
+
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api)

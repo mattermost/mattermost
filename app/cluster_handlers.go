@@ -83,6 +83,29 @@ func (s *Server) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMes
 	s.invalidateWebConnSessionCacheForUser(msg.Data)
 }
 
+func (s *Server) clearSessionCacheForUserSkipClusterSend(userID string) {
+	if keys, err := s.sessionCache.Keys(); err == nil {
+		var session *model.Session
+		for _, key := range keys {
+			if err := s.sessionCache.Get(key, &session); err == nil {
+				if session.UserId == userID {
+					s.sessionCache.Remove(key)
+					if s.Metrics != nil {
+						s.Metrics.IncrementMemCacheInvalidationCounterSession()
+					}
+				}
+			}
+		}
+	}
+
+	s.invalidateWebConnSessionCacheForUser(userID)
+}
+
+func (s *Server) clearSessionCacheForAllUsersSkipClusterSend() {
+	mlog.Info("Purging sessions cache")
+	s.sessionCache.Purge()
+}
+
 func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	s.serverBusyStateChanged(model.ServerBusyStateFromJson(strings.NewReader(msg.Data)))
 }
