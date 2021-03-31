@@ -33,8 +33,8 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 	var remoteEllipses string
 
 	// The remotename is allowed to use up to half the maxLen, and the username gets the remaining space.
-	// Username might have a suffix to account for, and remotename always has a preceeding colon.
-	half := int(maxLen / 2)
+	// Username might have a suffix to account for, and remotename always has a preceding colon.
+	half := maxLen / 2
 
 	// If the remotename is less than half the maxLen, then the left over space can be given to
 	// the username.

@@ -474,6 +474,7 @@ func testRemoteClusterUpdateTopics(t *testing.T, ss store.Store) {
 	remoteId := model.NewId()
 	rc := &model.RemoteCluster{
 		DisplayName: "Blap Inc",
+		Name:        "blap",
 		SiteURL:     "blap.com",
 		RemoteId:    remoteId,
 		Topics:      "",
