@@ -58,10 +58,10 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	}
 	defer configStore.Close()
 
-	return runServer(configStore, usedPlatform, interruptChan, true)
+	return runServer(configStore, usedPlatform, interruptChan)
 }
 
-func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan os.Signal, initApp bool) error {
+func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan os.Signal) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
@@ -115,10 +115,8 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	// the server. In theory, we shouldn't depend on App to have a fully-featured
 	// server. This initialization is added so that cluster handlers are registered
 	// and job schedulers are initialized.
-	if initApp {
-		fakeApp := app.New(app.ServerConnector(server))
-		fakeApp.InitServer()
-	}
+	fakeApp := app.New(app.ServerConnector(server))
+	fakeApp.InitServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {
