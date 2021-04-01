@@ -8695,28 +8695,6 @@ func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userID string, teamID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadMentionsForUserPerChannel")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadMentionsForUserPerChannel(userId, teamId)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetThreadsForUser(userID string, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadsForUser")
@@ -10055,21 +10033,6 @@ func (a *OpenTracingAppLayer) InvalidateCacheForUser(userID string) {
 
 	defer span.Finish()
 	a.app.InvalidateCacheForUser(userID)
-}
-
-func (a *OpenTracingAppLayer) InvalidateWebConnSessionCacheForUser(userID string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateWebConnSessionCacheForUser")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.InvalidateWebConnSessionCacheForUser(userID)
 }
 
 func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
@@ -11652,21 +11615,6 @@ func (a *OpenTracingAppLayer) Publish(message *model.WebSocketEvent) {
 
 	defer span.Finish()
 	a.app.Publish(message)
-}
-
-func (a *OpenTracingAppLayer) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PublishSkipClusterSend")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.PublishSkipClusterSend(message)
 }
 
 func (a *OpenTracingAppLayer) PublishUserTyping(userID string, channelID string, parentId string) *model.AppError {
@@ -13583,21 +13531,6 @@ func (a *OpenTracingAppLayer) ServePluginRequest(w http.ResponseWriter, r *http.
 
 	defer span.Finish()
 	a.app.ServePluginRequest(w, r)
-}
-
-func (a *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServerBusyStateChanged")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ServerBusyStateChanged(sbs)
 }
 
 func (a *OpenTracingAppLayer) SessionCacheLength() int {
