@@ -180,17 +180,20 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 	a.Srv().Publish(message)
 }
 
-func (s *Server) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.GetBroadcast().UserId != "" {
-		hub := s.GetHubForUserId(message.GetBroadcast().UserId)
+func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
+	if event.GetBroadcast().UserId != "" {
+		hub := s.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {
-			hub.Broadcast(message)
+			hub.Broadcast(event)
 		}
 	} else {
 		for _, hub := range s.hubs {
-			hub.Broadcast(message)
+			hub.Broadcast(event)
 		}
 	}
+
+	// Notify shared channel sync service
+	s.SharedChannelSyncHandler(event)
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {

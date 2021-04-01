@@ -432,6 +432,22 @@ func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
 }
 
+// RemoteCluster provides a mock function with given fields:
+func (_m *Store) RemoteCluster() store.RemoteClusterStore {
+	ret := _m.Called()
+
+	var r0 store.RemoteClusterStore
+	if rf, ok := ret.Get(0).(func() store.RemoteClusterStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RemoteClusterStore)
+		}
+	}
+
+	return r0
+}
+
 // ReplicaLagAbs provides a mock function with given fields:
 func (_m *Store) ReplicaLagAbs() error {
 	ret := _m.Called()
@@ -511,6 +527,22 @@ func (_m *Store) Session() store.SessionStore {
 // SetContext provides a mock function with given fields: _a0
 func (_m *Store) SetContext(_a0 context.Context) {
 	_m.Called(_a0)
+}
+
+// SharedChannel provides a mock function with given fields:
+func (_m *Store) SharedChannel() store.SharedChannelStore {
+	ret := _m.Called()
+
+	var r0 store.SharedChannelStore
+	if rf, ok := ret.Get(0).(func() store.SharedChannelStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SharedChannelStore)
+		}
+	}
+
+	return r0
 }
 
 // Status provides a mock function with given fields:
