@@ -224,26 +224,11 @@ func (a *App) ClearSessionCacheForAllUsers() {
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
-	if keys, err := a.Srv().sessionCache.Keys(); err == nil {
-		var session *model.Session
-		for _, key := range keys {
-			if err := a.Srv().sessionCache.Get(key, &session); err == nil {
-				if session.UserId == userId {
-					a.Srv().sessionCache.Remove(key)
-					if a.Metrics() != nil {
-						a.Metrics().IncrementMemCacheInvalidationCounterSession()
-					}
-				}
-			}
-		}
-	}
-
-	a.InvalidateWebConnSessionCacheForUser(userId)
+	a.Srv().clearSessionCacheForUserSkipClusterSend(userId)
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
-	mlog.Info("Purging sessions cache")
-	a.Srv().sessionCache.Purge()
+	a.Srv().clearSessionCacheForAllUsersSkipClusterSend()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {

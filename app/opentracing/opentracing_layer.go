@@ -9803,21 +9803,6 @@ func (a *OpenTracingAppLayer) InvalidateCacheForUser(userId string) {
 	a.app.InvalidateCacheForUser(userId)
 }
 
-func (a *OpenTracingAppLayer) InvalidateWebConnSessionCacheForUser(userId string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateWebConnSessionCacheForUser")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.InvalidateWebConnSessionCacheForUser(userId)
-}
-
 func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteGuestsToChannels")
@@ -11354,21 +11339,6 @@ func (a *OpenTracingAppLayer) Publish(message *model.WebSocketEvent) {
 
 	defer span.Finish()
 	a.app.Publish(message)
-}
-
-func (a *OpenTracingAppLayer) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PublishSkipClusterSend")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.PublishSkipClusterSend(message)
 }
 
 func (a *OpenTracingAppLayer) PublishUserTyping(userId string, channelId string, parentId string) *model.AppError {
@@ -13175,21 +13145,6 @@ func (a *OpenTracingAppLayer) ServePluginRequest(w http.ResponseWriter, r *http.
 
 	defer span.Finish()
 	a.app.ServePluginRequest(w, r)
-}
-
-func (a *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServerBusyStateChanged")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ServerBusyStateChanged(sbs)
 }
 
 func (a *OpenTracingAppLayer) SessionCacheLength() int {
