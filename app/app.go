@@ -77,7 +77,7 @@ func (a *App) InitServer() {
 		a.initJobs()
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
+			a.registerAppClusterMessageHandlers()
 		}
 
 		a.DoAppMigrations()
