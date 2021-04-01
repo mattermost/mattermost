@@ -276,8 +276,6 @@ type AppIface interface {
 	// ServePluginPublicRequest serves public plugin files
 	// at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
 	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
-	// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-	ServerBusyStateChanged(sbs *model.ServerBusyState)
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
@@ -768,7 +766,6 @@ type AppIface interface {
 	InstallPluginFromData(data model.PluginEventData)
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateCacheForUser(userID string)
-	InvalidateWebConnSessionCacheForUser(userID string)
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
@@ -836,7 +833,6 @@ type AppIface interface {
 	PreparePostListForClient(originalList *model.PostList) *model.PostList
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
-	PublishSkipClusterSend(message *model.WebSocketEvent)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
