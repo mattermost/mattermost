@@ -1043,7 +1043,7 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 
