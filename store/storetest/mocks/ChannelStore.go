@@ -167,13 +167,20 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 	return r0, r1, r2
 }
 
-// CreateDirectChannel provides a mock function with given fields: userId, otherUserId
-func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
-	ret := _m.Called(userId, otherUserId)
+// CreateDirectChannel provides a mock function with given fields: userId, otherUserId, channelOptions
+func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	_va := make([]interface{}, len(channelOptions))
+	for _i := range channelOptions {
+		_va[_i] = channelOptions[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userId, otherUserId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User) *model.Channel); ok {
-		r0 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -181,8 +188,8 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User) error); ok {
-		r1 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(1).(func(*model.User, *model.User, ...model.ChannelOption) error); ok {
+		r1 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1273,6 +1280,29 @@ func (_m *ChannelStore) GetTeamChannels(teamID string) (*model.ChannelList, erro
 	return r0, r1
 }
 
+// GetTeamForChannel provides a mock function with given fields: channelID
+func (_m *ChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	ret := _m.Called(channelID)
+
+	var r0 *model.Team
+	if rf, ok := ret.Get(0).(func(string) *model.Team); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with given fields:
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()
@@ -1764,6 +1794,20 @@ func (_m *ChannelStore) SetDeleteAt(channelID string, deleteAt int64, updateAt i
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64, int64) error); ok {
 		r0 = rf(channelID, deleteAt, updateAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetShared provides a mock function with given fields: channelId, shared
+func (_m *ChannelStore) SetShared(channelId string, shared bool) error {
+	ret := _m.Called(channelId, shared)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
+		r0 = rf(channelId, shared)
 	} else {
 		r0 = ret.Error(0)
 	}

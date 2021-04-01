@@ -610,6 +610,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
+	if post.IsRemote() {
+		oldPost.RemoteId = model.NewString(*post.RemoteId)
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()
@@ -728,7 +732,7 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 }
 
 func (a *App) GetSinglePost(postID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store.Post().GetSingle(postID)
+	post, err := a.Srv().Store.Post().GetSingle(postID, false)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1012,7 +1016,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limit
 }
 
 func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppError) {
-	post, nErr := a.Srv().Store.Post().GetSingle(postID)
+	post, nErr := a.Srv().Store.Post().GetSingle(postID, false)
 	if nErr != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
@@ -1237,7 +1241,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postID)
+		post, err := a.Srv().Store.Post().GetSingle(postID, false)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
