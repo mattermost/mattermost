@@ -1635,6 +1635,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 				cm.LastViewedAt,
 				cm.MsgCount,
 				cm.MentionCount,
+				cm.MentionCountRoot,
 				cm.NotifyProps,
 				cm.LastUpdateAt,
 				cm.SchemeUser,

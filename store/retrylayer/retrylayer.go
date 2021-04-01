@@ -1730,11 +1730,11 @@ func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 
 }
 
-func (s *RetryLayerChannelStore) IncrementMentionCount(channelID string, userId string, updateThreads bool) error {
+func (s *RetryLayerChannelStore) IncrementMentionCount(channelID string, userId string, updateThreads bool, isRoot bool) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.IncrementMentionCount(channelID, userId, updateThreads)
+		err := s.ChannelStore.IncrementMentionCount(channelID, userId, updateThreads, isRoot)
 		if err == nil {
 			return nil
 		}
@@ -2298,11 +2298,11 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId 
 
 }
 
-func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, updateThreads)
+		result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads)
 		if err == nil {
 			return result, nil
 		}
@@ -9243,26 +9243,6 @@ func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, t
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.GetThreadMentionsForUserPerChannel(userId, teamId)
 		if err == nil {
 			return result, nil
 		}

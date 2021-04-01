@@ -1894,7 +1894,6 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 		channelUnread.MsgCount = 0
 		channelUnread.MsgCountRoot = 0
 	}
-
 	return channelUnread, nil
 }
 
@@ -2361,7 +2360,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	unreadMentions, err := a.countMentionsFromPost(user, post)
+	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
 	if err != nil {
 		return nil, err
 	}
@@ -2403,7 +2402,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -2411,6 +2410,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
 	message.Add("msg_count", channelUnread.MsgCount)
 	message.Add("mention_count", channelUnread.MentionCount)
+	message.Add("mention_count_root", channelUnread.MentionCountRoot)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)

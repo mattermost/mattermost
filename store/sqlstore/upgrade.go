@@ -1031,6 +1031,40 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+
+  // note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+
+	mentionCountRootCTE := `
+		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
+		FROM ThreadMemberships
+		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		GROUP BY Threads.ChannelId, ThreadMemberships.UserId
+	`
+	updateMentionCountRootQuery := `
+		UPDATE ChannelMembers INNER JOIN (` + mentionCountRootCTE + `) AS q ON
+			q.ChannelId = ChannelMembers.ChannelId AND
+			q.UserId=ChannelMembers.UserId AND
+			ChannelMembers.MentionCount > 0
+		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateMentionCountRootQuery = `
+			WITH q AS (` + mentionCountRootCTE + `)
+			UPDATE channelmembers
+			SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+			FROM q
+			WHERE
+				q.ChannelId = ChannelMembers.ChannelId AND
+				q.UserId = ChannelMembers.UserId AND
+				ChannelMembers.MentionCount > 0
+		`
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 

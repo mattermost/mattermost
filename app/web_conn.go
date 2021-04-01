@@ -29,10 +29,11 @@ const (
 	pingInterval           = (pongWaitTime * 6) / 10
 	authCheckInterval      = 5 * time.Second
 	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
+	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
 // WebConn represents a single websocket connection to a user.
-// It contains all the necesarry state to manage sending/receiving data to/from
+// It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
@@ -47,11 +48,18 @@ type WebConn struct {
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
-	sessionToken              atomic.Value
-	session                   atomic.Value
-	connectionID              atomic.Value
-	endWritePump              chan struct{}
-	pumpFinished              chan struct{}
+	// deadQueue behaves like a queue of a finite size
+	// which is used to store all messages that are sent via the websocket.
+	// It basically acts as the user-space socket buffer, and is used
+	// to resuscitate any messages that might have got lost when the connection is broken.
+	// It is implemented by using a circular buffer to keep it fast.
+	deadQueue        []model.WebSocketMessage
+	deadQueuePointer int // Pointer which indicates the next slot to insert.
+	sessionToken     atomic.Value
+	session          atomic.Value
+	connectionID     atomic.Value
+	endWritePump     chan struct{}
+	pumpFinished     chan struct{}
 }
 
 // NewWebConn returns a new WebConn instance.
@@ -84,6 +92,10 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 		Locale:             locale,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
+	}
+
+	if *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+		wc.deadQueue = make([]model.WebSocketMessage, deadQueueSize)
 	}
 
 	wc.SetSession(&session)
@@ -261,12 +273,14 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
+			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets {
+				wc.addToDeadQueue(msg)
+			}
+
 			if err := wc.writeMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
-
-			// TODO: move to dead queue
 
 			if wc.App.Metrics() != nil {
 				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
@@ -295,6 +309,12 @@ func (wc *WebConn) writePump() {
 func (wc *WebConn) writeMessage(msgType int, data []byte) error {
 	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
 	return wc.WebSocket.WriteMessage(msgType, data)
+}
+
+// addToDeadQueue appends a message to the dead queue.
+func (wc *WebConn) addToDeadQueue(msg model.WebSocketMessage) {
+	wc.deadQueue[wc.deadQueuePointer] = msg
+	wc.deadQueuePointer = (wc.deadQueuePointer + 1) % deadQueueSize
 }
 
 // InvalidateCache resets all internal data of the WebConn.

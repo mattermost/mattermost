@@ -1324,13 +1324,13 @@ func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return r0, r1
 }
 
-// IncrementMentionCount provides a mock function with given fields: channelID, userId, updateThreads
-func (_m *ChannelStore) IncrementMentionCount(channelID string, userId string, updateThreads bool) error {
-	ret := _m.Called(channelID, userId, updateThreads)
+// IncrementMentionCount provides a mock function with given fields: channelID, userId, updateThreads, isRoot
+func (_m *ChannelStore) IncrementMentionCount(channelID string, userId string, updateThreads bool, isRoot bool) error {
+	ret := _m.Called(channelID, userId, updateThreads, isRoot)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
-		r0 = rf(channelID, userId, updateThreads)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool) error); ok {
+		r0 = rf(channelID, userId, updateThreads, isRoot)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1861,13 +1861,13 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string, u
 	return r0, r1
 }
 
-// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, updateThreads
-func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error) {
-	ret := _m.Called(unreadPost, userID, mentionCount, updateThreads)
+// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, mentionCountRoot, updateThreads
+func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+	ret := _m.Called(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads)
 
 	var r0 *model.ChannelUnreadAt
-	if rf, ok := ret.Get(0).(func(*model.Post, string, int, bool) *model.ChannelUnreadAt); ok {
-		r0 = rf(unreadPost, userID, mentionCount, updateThreads)
+	if rf, ok := ret.Get(0).(func(*model.Post, string, int, int, bool) *model.ChannelUnreadAt); ok {
+		r0 = rf(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelUnreadAt)
@@ -1875,8 +1875,8 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Post, string, int, bool) error); ok {
-		r1 = rf(unreadPost, userID, mentionCount, updateThreads)
+	if rf, ok := ret.Get(1).(func(*model.Post, string, int, int, bool) error); ok {
+		r1 = rf(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
