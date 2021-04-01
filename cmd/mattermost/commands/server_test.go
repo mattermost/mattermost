@@ -55,6 +55,7 @@ func (th *ServerTestHelper) TearDownServerTest() {
 }
 
 func TestRunServerSuccess(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
@@ -68,6 +69,7 @@ func TestRunServerSuccess(t *testing.T) {
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
@@ -123,6 +125,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 }
 
 func TestRunServerNoSystemd(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
