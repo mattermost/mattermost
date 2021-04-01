@@ -41,7 +41,7 @@ type Customer struct {
 	Company string `json:"company"`
 }
 
-type TrialLicenseRequest struct {
+type LicenseRequest struct {
 	ServerID              string `json:"server_id"`
 	Email                 string `json:"email"`
 	Name                  string `json:"name"`
@@ -50,13 +50,11 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
+	IsTrial               bool   `json:"is_trial"`
 }
 
-func (tlr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(struct {
-		*TrialLicenseRequest
-		IsTrial bool `json:"is_trial"`
-	}{tlr, true})
+func (lr *LicenseRequest) ToJson() string {
+	b, _ := json.Marshal(lr)
 	return string(b)
 }
 
