@@ -104,6 +104,8 @@ func TestWebConnDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableReliableWebSockets = true })
+
 	session := model.Session{
 		Id: model.NewId(),
 	}
