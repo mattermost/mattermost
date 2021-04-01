@@ -28,6 +28,7 @@ type Store interface {
 	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
+	RemoteCluster() RemoteClusterStore
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
@@ -54,6 +55,7 @@ type Store interface {
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
+	SharedChannel() SharedChannelStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -135,7 +137,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
-	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
@@ -240,6 +242,10 @@ type ChannelStore interface {
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
+
+	SetShared(channelId string, shared bool) error
+	// GetTeamForChannel returns the team for a given channelID.
+	GetTeamForChannel(channelID string) (*model.Team, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -276,7 +282,7 @@ type PostStore interface {
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error)
-	GetSingle(id string) (*model.Post, error)
+	GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
 	PermanentDeleteByChannel(channelID string) error
@@ -311,6 +317,7 @@ type PostStore interface {
 	GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error)
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
+	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error)
 }
 
 type UserStore interface {
@@ -425,6 +432,16 @@ type ClusterDiscoveryStore interface {
 	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, error)
 	SetLastPingAt(discovery *model.ClusterDiscovery) error
 	Cleanup() error
+}
+
+type RemoteClusterStore interface {
+	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	Delete(remoteClusterId string) (bool, error)
+	Get(remoteClusterId string) (*model.RemoteCluster, error)
+	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
+	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
+	SetLastPingAt(remoteClusterId string) error
 }
 
 type ComplianceStore interface {
@@ -598,6 +615,7 @@ type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
+	GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
@@ -786,6 +804,36 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error)
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
+}
+
+type SharedChannelStore interface {
+	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
+	Get(channelId string) (*model.SharedChannel, error)
+	HasChannel(channelID string) (bool, error)
+	GetAll(offset, limit int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetAllCount(opts model.SharedChannelFilterOpts) (int64, error)
+	Update(sc *model.SharedChannel) (*model.SharedChannel, error)
+	Delete(channelId string) (bool, error)
+
+	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	GetRemote(id string) (*model.SharedChannelRemote, error)
+	HasRemote(channelID string, remoteId string) (bool, error)
+	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
+	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
+	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
+	UpdateRemoteNextSyncAt(id string, syncTime int64) error
+	DeleteRemote(remoteId string) (bool, error)
+	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
+
+	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
+	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
+	UpdateUserLastSyncAt(id string, syncTime int64) error
+
+	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
+	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
+	GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error)
+	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

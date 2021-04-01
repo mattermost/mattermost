@@ -195,6 +195,11 @@ func GetMillisForTime(thisTime time.Time) int64 {
 	return thisTime.UnixNano() / int64(time.Millisecond)
 }
 
+// GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
+func GetTimeForMillis(millis int64) time.Time {
+	return time.Unix(0, millis*int64(time.Millisecond))
+}
+
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
 func PadDateStringZeros(dateString string) string {
 	parts := strings.Split(dateString, "-")
