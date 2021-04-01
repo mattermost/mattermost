@@ -22,7 +22,7 @@ make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(localhost:3306)
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot"; do
+for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known MySQL mismatch: ${a[0]}.${a[1]}"
     docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"

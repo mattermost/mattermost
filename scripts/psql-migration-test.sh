@@ -22,7 +22,7 @@ make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhos
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-for i in "ChannelMembers MsgCountRoot"; do
+for i in "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
     a=( $i );
     echo "Ignoring known Postgres mismatch: ${a[0]}.${a[1]}"
     docker exec mattermost-postgres psql -U mmuser -d migrated -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
