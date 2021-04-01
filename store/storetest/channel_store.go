@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"sort"
 	"strconv"
@@ -887,7 +888,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1t3, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t3.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	member, _ := ss.Channel().GetMember(o1.ChannelId, o1.UserId)
+	member, _ := ss.Channel().GetMember(context.Background(), o1.ChannelId, o1.UserId)
 	require.Equal(t, o1.ChannelId, member.ChannelId, "should have go member")
 
 	_, nErr = ss.Channel().SaveMember(&o1)
@@ -4166,13 +4167,13 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "failed to update ", err)
 	require.Equal(t, o2.LastPostAt, times[o2.Id], "last viewed at time incorrect")
 
-	rm1, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
+	rm1, err := ss.Channel().GetMember(context.Background(), m1.ChannelId, m1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o1.LastPostAt, rm1.LastViewedAt)
 	assert.Equal(t, o1.LastPostAt, rm1.LastUpdateAt)
 	assert.Equal(t, o1.TotalMsgCount, rm1.MsgCount)
 
-	rm2, err := ss.Channel().GetMember(m2.ChannelId, m2.UserId)
+	rm2, err := ss.Channel().GetMember(context.Background(), m2.ChannelId, m2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o2.LastPostAt, rm2.LastViewedAt)
 	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
@@ -4278,18 +4279,18 @@ func testGetMember(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(m2)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().GetMember(model.NewId(), userId)
+	_, err = ss.Channel().GetMember(context.Background(), model.NewId(), userId)
 	require.Error(t, err, "should've failed to get member for non-existent channel")
 
-	_, err = ss.Channel().GetMember(c1.Id, model.NewId())
+	_, err = ss.Channel().GetMember(context.Background(), c1.Id, model.NewId())
 	require.Error(t, err, "should've failed to get member for non-existent user")
 
-	member, err := ss.Channel().GetMember(c1.Id, userId)
+	member, err := ss.Channel().GetMember(context.Background(), c1.Id, userId)
 	require.NoError(t, err, "shouldn't have errored when getting member", err)
 	require.Equal(t, c1.Id, member.ChannelId, "should've gotten member of channel 1")
 	require.Equal(t, userId, member.UserId, "should've have gotten member for user")
 
-	member, err = ss.Channel().GetMember(c2.Id, userId)
+	member, err = ss.Channel().GetMember(context.Background(), c2.Id, userId)
 	require.NoError(t, err, "should'nt have errored when getting member", err)
 	require.Equal(t, c2.Id, member.ChannelId, "should've gotten member of channel 2")
 	require.Equal(t, userId, member.UserId, "should've gotten member for user")
@@ -4486,7 +4487,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("empty slice for channel with no groups", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{}
 		require.NoError(t, nErr)
 		require.Equal(t, expectedMemberCounts, memberCounts)
@@ -4496,7 +4497,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("returns memberCountsByGroup without timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4509,7 +4510,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4612,7 +4613,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users without timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4635,7 +4636,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users with timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -6117,21 +6118,21 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 
 	ss.Channel().ClearCaches()
 
-	cm1b, err := ss.Channel().GetMember(cm1.ChannelId, cm1.UserId)
+	cm1b, err := ss.Channel().GetMember(context.Background(), cm1.ChannelId, cm1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", cm1b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm1b.SchemeUser)
 	assert.True(t, cm1b.SchemeAdmin)
 
-	cm2b, err := ss.Channel().GetMember(cm2.ChannelId, cm2.UserId)
+	cm2b, err := ss.Channel().GetMember(context.Background(), cm2.ChannelId, cm2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", cm2b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm2b.SchemeUser)
 	assert.False(t, cm2b.SchemeAdmin)
 
-	cm3b, err := ss.Channel().GetMember(cm3.ChannelId, cm3.UserId)
+	cm3b, err := ss.Channel().GetMember(context.Background(), cm3.ChannelId, cm3.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "something_else", cm3b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
@@ -6227,19 +6228,19 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 
 	require.NoError(t, ss.Channel().ClearAllCustomRoleAssignments())
 
-	member, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
+	member, err := ss.Channel().GetMember(context.Background(), m1.ChannelId, m1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m1.ExplicitRoles, member.Roles)
 
-	member, err = ss.Channel().GetMember(m2.ChannelId, m2.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m2.ChannelId, m2.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "channel_user channel_admin", member.Roles)
 
-	member, err = ss.Channel().GetMember(m3.ChannelId, m3.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m3.ChannelId, m3.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m3.ExplicitRoles, member.Roles)
 
-	member, err = ss.Channel().GetMember(m4.ChannelId, m4.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m4.ChannelId, m4.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "", member.Roles)
 }

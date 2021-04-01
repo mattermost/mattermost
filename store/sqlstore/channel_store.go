@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -1641,10 +1642,10 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetMember(channelId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMember(ctx context.Context, channelId string, userId string) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 
-	if err := s.GetReplica().SelectOne(&dbMember, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbMember, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelId, userId))
 		}
@@ -1876,7 +1877,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 
 // GetMemberCountsByGroup returns a slice of ChannelMemberCountByGroup for a given channel
 // which contains the number of channel members for each group and optionally the number of unique timezones present for each group in the channel
-func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
@@ -1937,7 +1938,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 	var data []*model.ChannelMemberCountByGroup
-	if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
+	if _, err = s.DBFromContext(ctx).Select(&data, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelID)
 	}
 

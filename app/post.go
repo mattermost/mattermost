@@ -974,7 +974,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 func (a *App) GetPostsForChannelAroundLastUnread(channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.GetChannelMember(channelID, userID); err != nil {
+	if member, err = a.GetChannelMember(context.Background(), channelID, userID); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
 		return model.NewPostList(), nil
@@ -1419,7 +1419,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 		return count, nil
 	}
 
-	channelMember, err := a.GetChannelMember(channel.Id, user.Id)
+	channelMember, err := a.GetChannelMember(context.Background(), channel.Id, user.Id)
 	if err != nil {
 		return 0, err
 	}
