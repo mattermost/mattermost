@@ -961,6 +961,8 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
+
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
 	if err != nil {
@@ -987,6 +989,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	}
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
@@ -1011,7 +1014,57 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
+	// Shared channels support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
+	if _, err := sqlStore.GetMaster().Exec("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
+		mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
+	}
+	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
+	}
+	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+
+	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+
+	mentionCountRootCTE := `
+		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
+		FROM ThreadMemberships
+		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		GROUP BY Threads.ChannelId, ThreadMemberships.UserId
+	`
+	updateMentionCountRootQuery := `
+		UPDATE ChannelMembers INNER JOIN (` + mentionCountRootCTE + `) AS q ON
+			q.ChannelId = ChannelMembers.ChannelId AND
+			q.UserId=ChannelMembers.UserId AND
+			ChannelMembers.MentionCount > 0
+		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateMentionCountRootQuery = `
+			WITH q AS (` + mentionCountRootCTE + `)
+			UPDATE channelmembers
+			SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+			FROM q
+			WHERE
+				q.ChannelId = ChannelMembers.ChannelId AND
+				q.UserId = ChannelMembers.UserId AND
+				ChannelMembers.MentionCount > 0
+		`
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 

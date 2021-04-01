@@ -125,7 +125,6 @@ func (a *App) JoinDefaultChannels(teamID string, user *model.User, shouldBeAdmin
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
-
 	}
 
 	if nErr != nil {
@@ -322,7 +321,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	return sc, nil
 }
 
-func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+func (a *App) GetOrCreateDirectChannel(userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	channel, nErr := a.getDirectChannel(userID, otherUserID)
 	if nErr != nil {
 		return nil, nErr
@@ -332,7 +331,7 @@ func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Chann
 		return channel, nil
 	}
 
-	channel, err := a.createDirectChannel(userID, otherUserID)
+	channel, err := a.createDirectChannel(userID, otherUserID, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -381,11 +380,12 @@ func (a *App) handleCreationEvent(userID, otherUserID string, channel *model.Cha
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
+	message.Add("creator_id", userID)
 	message.Add("teammate_id", otherUserID)
 	a.Publish(message)
 }
 
-func (a *App) createDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+func (a *App) createDirectChannel(userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	users, err := a.Srv().Store.User().GetMany(context.Background(), []string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -415,11 +415,11 @@ func (a *App) createDirectChannel(userID, otherUserID string) (*model.Channel, *
 		user = users[1]
 		otherUser = users[0]
 	}
-	return a.createDirectChannelWithUser(user, otherUser)
+	return a.createDirectChannelWithUser(user, otherUser, channelOptions...)
 }
 
-func (a *App) createDirectChannelWithUser(user, otherUser *model.User) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
+func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -457,6 +457,27 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User) (*model.C
 	if user.Id != otherUser.Id {
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUser.Id, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	// When the newly created channel is shared and the creator is local
+	// create a local shared channel record
+	if channel.IsShared() && !user.IsRemote() {
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        user.Id,
+			Type:             channel.Type,
+		}
+
+		if _, err := a.SaveSharedChannel(sc); err != nil {
+			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1873,7 +1894,6 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 		channelUnread.MsgCount = 0
 		channelUnread.MsgCountRoot = 0
 	}
-
 	return channelUnread, nil
 }
 
@@ -2340,7 +2360,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	unreadMentions, err := a.countMentionsFromPost(user, post)
+	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
 	if err != nil {
 		return nil, err
 	}
@@ -2382,7 +2402,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -2390,6 +2410,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
 	message.Add("msg_count", channelUnread.MsgCount)
 	message.Add("mention_count", channelUnread.MentionCount)
+	message.Add("mention_count_root", channelUnread.MentionCountRoot)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)

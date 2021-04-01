@@ -1139,14 +1139,15 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 	}
 
 	var teamUnread = &model.TeamUnread{
-		MsgCount:     0,
-		MsgCountRoot: 0,
-		MentionCount: 0,
-		TeamId:       teamID,
+		MsgCount:         0,
+		MentionCount:     0,
+		MentionCountRoot: 0,
+		MsgCountRoot:     0,
+		TeamId:           teamID,
 	}
-
 	for _, cu := range channelUnreads {
 		teamUnread.MentionCount += cu.MentionCount
+		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			teamUnread.MsgCount += cu.MsgCount
@@ -1677,6 +1678,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
 		tu.MentionCount += cu.MentionCount
+		tu.MentionCountRoot += cu.MentionCountRoot
 
 		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			tu.MsgCount += cu.MsgCount
@@ -1692,10 +1694,11 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 			membersMap[id] = unreads(data[i], mu)
 		} else {
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
-				MsgCount:     0,
-				MsgCountRoot: 0,
-				MentionCount: 0,
-				TeamId:       id,
+				MsgCount:         0,
+				MentionCount:     0,
+				MentionCountRoot: 0,
+				MsgCountRoot:     0,
+				TeamId:           id,
 			})
 		}
 	}

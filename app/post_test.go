@@ -1231,7 +1231,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1270,7 +1270,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1309,7 +1309,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1346,7 +1346,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1388,7 +1388,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1442,7 +1442,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1496,7 +1496,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post5 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1545,7 +1545,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// should be mentioned by post2 and post3
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1575,12 +1575,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = th.App.countMentionsFromPost(user1, post1)
+		count, _, err = th.App.countMentionsFromPost(user1, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1617,7 +1617,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user, but we only count post3
 
-		count, err := th.App.countMentionsFromPost(user2, post2)
+		count, _, err := th.App.countMentionsFromPost(user2, post2)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1648,7 +1648,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1695,7 +1695,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post4 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post3)
+		count, _, err := th.App.countMentionsFromPost(user2, post3)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1735,7 +1735,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1771,7 +1771,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// Every post should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, numPosts, count)
@@ -2051,5 +2051,89 @@ func TestReplyToPostWithLag(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 		require.NotNil(t, reply)
+	})
+}
+
+func TestSharedChannelSyncForPostActions(t *testing.T) {
+	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		_, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 1)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+	})
+
+	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.UpdatePost(post, true)
+		require.Nil(t, err, "Updating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 2)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+	})
+
+	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.DeletePost(post.Id, user.Id)
+		require.Nil(t, err, "Deleting a post should not error")
+
+		// one creation and two deletes
+		assert.Len(t, remoteClusterService.notifications, 3)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[2])
 	})
 }

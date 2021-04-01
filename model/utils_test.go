@@ -40,6 +40,14 @@ func TestGetMillisForTime(t *testing.T) {
 	require.Equalf(t, thisTimeMillis, result, "millis are not the same: %d and %d", thisTimeMillis, result)
 }
 
+func TestGetTimeForMillis(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetTimeForMillis(thisTimeMillis)
+	require.True(t, thisTime.Equal(result))
+}
+
 func TestPadDateStringZeros(t *testing.T) {
 	for _, testCase := range []struct {
 		Name     string
