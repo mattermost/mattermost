@@ -65,6 +65,8 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	ReplicaLagTime() error
+	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
@@ -169,7 +171,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (*model.ChannelMembers, error)
-	GetMember(channelID string, userId string) (*model.ChannelMember, error)
+	GetMember(ctx context.Context, channelID string, userId string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	InvalidateAllChannelMembersForUser(userId string)
@@ -180,7 +182,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
 	GetMemberCount(channelID string, allowFromCache bool) (int64, error)
-	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
+	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelID string)
 	GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error)
 	InvalidateGuestCount(channelID string)
@@ -191,9 +193,9 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userId string) error
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userId string) (int, error)
-	IncrementMentionCount(channelID string, userId string, updateThreads bool) error
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error)
+	CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error)
+	IncrementMentionCount(channelID string, userId string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
 	GetMembersForUser(teamID string, userId string) (*model.ChannelMembers, error)
 	GetMembersForUserWithPagination(teamID, userId string, page, perPage int) (*model.ChannelMembers, error)
@@ -255,7 +257,6 @@ type ThreadStore interface {
 	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
-	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamID string) error
 	MarkAsRead(userId, threadID string, timestamp int64) error
