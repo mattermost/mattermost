@@ -19,12 +19,14 @@ const (
 	UnitTestListeningPort = ":0"
 )
 
+//nolint:golint,unused
 type ServerTestHelper struct {
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
+//nolint:golint,unused
 func SetupServerTest(t testing.TB) *ServerTestHelper {
 	if testing.Short() {
 		t.SkipNow()
@@ -49,11 +51,13 @@ func SetupServerTest(t testing.TB) *ServerTestHelper {
 	return th
 }
 
+//nolint:golint,unused
 func (th *ServerTestHelper) TearDownServerTest() {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = th.originalInterval
 }
 
 func TestRunServerSuccess(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
@@ -67,6 +71,7 @@ func TestRunServerSuccess(t *testing.T) {
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
@@ -122,6 +127,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 }
 
 func TestRunServerNoSystemd(t *testing.T) {
+	t.Skip("MM-34557")
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
