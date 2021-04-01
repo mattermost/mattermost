@@ -85,7 +85,6 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 	wc := &WebConn{
 		App:                a,
 		send:               make(chan model.WebSocketMessage, sendQueueSize),
-		deadQueue:          make([]model.WebSocketMessage, deadQueueSize),
 		WebSocket:          ws,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
@@ -93,6 +92,10 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 		Locale:             locale,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
+	}
+
+	if *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+		wc.deadQueue = make([]model.WebSocketMessage, deadQueueSize)
 	}
 
 	wc.SetSession(&session)
@@ -270,7 +273,9 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			wc.addToDeadQueue(msg)
+			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets {
+				wc.addToDeadQueue(msg)
+			}
 
 			if err := wc.writeMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
