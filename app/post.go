@@ -1403,25 +1403,25 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
-func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
+func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, int, *model.AppError) {
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		// In a DM channel, every post made by the other user is a mention
-		count, _, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		count, countRoot, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
-			return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
-		return count, nil
+		return count, countRoot, nil
 	}
 
 	channelMember, err := a.GetChannelMember(context.Background(), channel.Id, user.Id)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	keywords := addMentionKeywordsForUser(
@@ -1439,13 +1439,16 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 
 	thread, err := a.GetPostThread(post.Id, false, false, false, user.Id)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	count := 0
-
+	countRoot := 0
 	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions) {
 		count += 1
+		if post.RootId == "" {
+			countRoot += 1
+		}
 	}
 
 	page := 0
@@ -1458,12 +1461,15 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 			PerPage:   perPage,
 		})
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 
 		for _, postID := range postList.Order {
 			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
 				count += 1
+				if postList.Posts[postID].RootId == "" {
+					countRoot += 1
+				}
 			}
 		}
 
@@ -1474,7 +1480,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 		page += 1
 	}
 
-	return count, nil
+	return count, countRoot, nil
 }
 
 func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]*model.Post, mentionedByThread map[string]bool) bool {
