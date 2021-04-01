@@ -422,7 +422,6 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
-		client.Transport = a.HTTPService().MakeTransport(false)
 
 		var res *http.Response
 		res, err = client.Do(request)
