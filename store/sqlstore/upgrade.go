@@ -1011,7 +1011,7 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 
