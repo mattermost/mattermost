@@ -67,6 +67,21 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
+func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
+	rc, appErr := a.GetRemoteCluster(remoteId)
+	if appErr == nil && rc.Token == token {
+		// Need a bare-bones session object for later checks
+		session := &model.Session{
+			Token:   token,
+			IsOAuth: false,
+		}
+
+		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_REMOTECLUSTER_TOKEN)
+		return session, nil
+	}
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+}
+
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 

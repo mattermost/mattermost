@@ -567,14 +567,20 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, err
 }
 
-func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	channel := new(model.Channel)
+
+	for _, option := range channelOptions {
+		option(channel)
+	}
 
 	channel.DisplayName = ""
 	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
+	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
+	channel.CreatorId = user.Id
 
 	cm1 := &model.ChannelMember{
 		UserId:      user.Id,
@@ -592,13 +598,13 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
-	if directchannel.DeleteAt != 0 {
-		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directchannel.DeleteAt)
+func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	if directChannel.DeleteAt != 0 {
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
 
-	if directchannel.Type != model.CHANNEL_DIRECT {
-		return nil, store.NewErrInvalidInput("Channel", "Type", directchannel.Type)
+	if directChannel.Type != model.CHANNEL_DIRECT {
+		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -607,8 +613,8 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	}
 	defer finalizeTransaction(transaction)
 
-	directchannel.TeamId = ""
-	newChannel, err := s.saveChannelT(transaction, directchannel, 0)
+	directChannel.TeamId = ""
+	newChannel, err := s.saveChannelT(transaction, directChannel, 0)
 	if err != nil {
 		return newChannel, err
 	}
@@ -635,7 +641,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	if channel.Id != "" {
+	if channel.Id != "" && !channel.IsShared() {
 		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
 
@@ -3362,4 +3368,54 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 	}
 
 	return count, nil
+}
+
+// SetShared sets the Shared flag true/false
+func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("Channels").
+		Set("Shared", shared).
+		Where(sq.Eq{"Id": channelId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "channel_set_shared_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update `Shared` for Channels")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", channelId)
+	}
+	return nil
+}
+
+// GetTeamForChannel returns the team for a given channelID.
+func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	nestedQ, nestedArgs, err := s.getQueryBuilder().Select("TeamId").From("Channels").Where(sq.Eq{"Id": channelID}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
+	}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_tosql")
+	}
+
+	team := model.Team{}
+	err = s.GetReplica().SelectOne(&team, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", fmt.Sprintf("channel_id=%s", channelID))
+		}
+		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
+	}
+	return &team, nil
 }
