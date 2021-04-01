@@ -34,24 +34,25 @@ const (
 )
 
 type Channel struct {
-	Id               string                 `json:"id"`
-	CreateAt         int64                  `json:"create_at"`
-	UpdateAt         int64                  `json:"update_at"`
-	DeleteAt         int64                  `json:"delete_at"`
-	TeamId           string                 `json:"team_id"`
-	Type             string                 `json:"type"`
-	DisplayName      string                 `json:"display_name"`
-	Name             string                 `json:"name"`
-	Header           string                 `json:"header"`
-	Purpose          string                 `json:"purpose"`
-	LastPostAt       int64                  `json:"last_post_at"`
-	TotalMsgCount    int64                  `json:"total_msg_count"`
-	ExtraUpdateAt    int64                  `json:"extra_update_at"`
-	CreatorId        string                 `json:"creator_id"`
-	SchemeId         *string                `json:"scheme_id"`
-	Props            map[string]interface{} `json:"props" db:"-"`
-	GroupConstrained *bool                  `json:"group_constrained"`
-	Shared           *bool                  `json:"shared"`
+	Id                string                 `json:"id"`
+	CreateAt          int64                  `json:"create_at"`
+	UpdateAt          int64                  `json:"update_at"`
+	DeleteAt          int64                  `json:"delete_at"`
+	TeamId            string                 `json:"team_id"`
+	Type              string                 `json:"type"`
+	DisplayName       string                 `json:"display_name"`
+	Name              string                 `json:"name"`
+	Header            string                 `json:"header"`
+	Purpose           string                 `json:"purpose"`
+	LastPostAt        int64                  `json:"last_post_at"`
+	TotalMsgCount     int64                  `json:"total_msg_count"`
+	ExtraUpdateAt     int64                  `json:"extra_update_at"`
+	CreatorId         string                 `json:"creator_id"`
+	SchemeId          *string                `json:"scheme_id"`
+	Props             map[string]interface{} `json:"props" db:"-"`
+	GroupConstrained  *bool                  `json:"group_constrained"`
+	Shared            *bool                  `json:"shared"`
+	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
 }
 
 type ChannelWithTeamData struct {
@@ -139,6 +140,14 @@ type ChannelMemberCountByGroup struct {
 	GroupId                     string `db:"-" json:"group_id"`
 	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
 	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
+}
+
+type ChannelOption func(channel *Channel)
+
+func WithID(ID string) ChannelOption {
+	return func(channel *Channel) {
+		channel.Id = ID
+	}
 }
 
 func (o *Channel) DeepCopy() *Channel {

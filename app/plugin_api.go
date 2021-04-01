@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -501,7 +502,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*mod
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(channelID, userID)
+	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
 func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
@@ -574,7 +575,7 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postID, false, false, false)
+	return api.app.GetPostThread(postID, false, false, false, "")
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
