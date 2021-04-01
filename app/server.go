@@ -1521,8 +1521,7 @@ func (s *Server) StopMetricsServer() {
 		defer cancel()
 
 		s.metricsServer.Shutdown(ctx)
-		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
-		s.metricsServer = nil
+		s.Log.Info("Metrics and profiling server is stopping")
 	}
 }
 
@@ -1581,27 +1580,36 @@ func (s *Server) InitMetricsRouter() error {
 }
 
 func (s *Server) startMetricsServer() {
+	var notify chan struct{}
 	s.metricsLock.Lock()
-	defer s.metricsLock.Unlock()
+	defer func() {
+		if notify != nil {
+			<-notify
+		}
+		s.metricsLock.Unlock()
+	}()
 
-	if s.metricsServer != nil {
+	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
+	if err != nil {
+		mlog.Error(err.Error())
 		return
 	}
 
+	notify = make(chan struct{})
 	s.metricsServer = &http.Server{
-		Addr:         *s.Config().MetricsSettings.ListenAddress,
 		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
 	}
 
 	go func() {
-		if err := s.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		close(notify)
+		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
 			mlog.Critical(err.Error())
 		}
 	}()
 
-	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
 func doLicenseExpirationCheck(a *App) {
