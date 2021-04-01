@@ -1084,7 +1084,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Check channel member properties.
-	channelMember, appErr := th.App.GetChannelMember(channel.Id, user.Id)
+	channelMember, appErr := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member from database.")
 	assert.Equal(t, "channel_user", channelMember.Roles)
 	assert.Equal(t, "default", channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
@@ -1119,7 +1119,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
-	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
 	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
 	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
@@ -1435,7 +1435,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.True(t, channelMember.SchemeAdmin)
@@ -1477,7 +1477,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1519,7 +1519,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
