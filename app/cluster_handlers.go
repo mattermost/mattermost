@@ -133,13 +133,3 @@ func (s *Server) invalidateWebConnSessionCacheForUser(userID string) {
 		hub.InvalidateUser(userID)
 	}
 }
-
-// serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
-	s.Busy.ClusterEventChanged(sbs)
-	if sbs.Busy {
-		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
-	} else {
-		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
-	}
-}

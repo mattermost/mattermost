@@ -111,6 +111,10 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		return serverErr
 	}
 
+	// TODO: remove this and handle all required initialization while creating
+	// the server. In theory, we shouldn't depend on App to have a fully-featured
+	// server. This initialization is added so that cluster handlers are registered
+	// and job schedulers are initialized.
 	fakeApp := app.New(app.ServerConnector(server))
 	fakeApp.InitServer()
 
