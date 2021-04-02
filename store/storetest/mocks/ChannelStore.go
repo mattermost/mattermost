@@ -139,7 +139,7 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 	return r0
 }
 
-// CountPostsAfter provides a mock function with given fields: channelID, timestamp, userId
+// CountPostsAfter provides a mock function with given fields: channelID, timestamp, userID
 func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 	ret := _m.Called(channelID, timestamp, userID)
 
@@ -159,7 +159,7 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 
 	var r2 error
 	if rf, ok := ret.Get(2).(func(string, int64, string) error); ok {
-		r2 = rf(channelID, timestamp, userId)
+		r2 = rf(channelID, timestamp, userID)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -167,7 +167,7 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 	return r0, r1, r2
 }
 
-// CreateDirectChannel provides a mock function with given fields: userId, otherUserId, channelOptions
+// CreateDirectChannel provides a mock function with given fields: userID, otherUserID, channelOptions
 func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
@@ -833,7 +833,7 @@ func (_m *ChannelStore) GetGuestCount(channelID string, allowFromCache bool) (in
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: ctx, channelID, userId
+// GetMember provides a mock function with given fields: ctx, channelID, userID
 func (_m *ChannelStore) GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
 	ret := _m.Called(ctx, channelID, userID)
 
@@ -1324,7 +1324,7 @@ func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return r0, r1
 }
 
-// IncrementMentionCount provides a mock function with given fields: channelID, userId, updateThreads, isRoot
+// IncrementMentionCount provides a mock function with given fields: channelID, userID, updateThreads, isRoot
 func (_m *ChannelStore) IncrementMentionCount(channelID string, userID string, updateThreads bool, isRoot bool) error {
 	ret := _m.Called(channelID, userID, updateThreads, isRoot)
 

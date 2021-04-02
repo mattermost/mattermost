@@ -6046,10 +6046,10 @@ func (s *TimerLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) Delete(channelID string) (bool, error) {
+func (s *TimerLayerSharedChannelStore) Delete(channelId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.Delete(channelID)
+	result, err := s.SharedChannelStore.Delete(channelId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6062,10 +6062,10 @@ func (s *TimerLayerSharedChannelStore) Delete(channelID string) (bool, error) {
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) DeleteRemote(remoteID string) (bool, error) {
+func (s *TimerLayerSharedChannelStore) DeleteRemote(remoteId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.DeleteRemote(remoteID)
+	result, err := s.SharedChannelStore.DeleteRemote(remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6078,10 +6078,10 @@ func (s *TimerLayerSharedChannelStore) DeleteRemote(remoteID string) (bool, erro
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) Get(channelID string) (*model.SharedChannel, error) {
+func (s *TimerLayerSharedChannelStore) Get(channelId string) (*model.SharedChannel, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.Get(channelID)
+	result, err := s.SharedChannelStore.Get(channelId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6126,10 +6126,10 @@ func (s *TimerLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFilte
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetAttachment(fileID string, remoteID string) (*model.SharedChannelAttachment, error) {
+func (s *TimerLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetAttachment(fileID, remoteID)
+	result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6158,10 +6158,10 @@ func (s *TimerLayerSharedChannelStore) GetRemote(id string) (*model.SharedChanne
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error) {
+func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetRemoteByIds(channelID, remoteID)
+	result, err := s.SharedChannelStore.GetRemoteByIds(channelId, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6174,10 +6174,10 @@ func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
+func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID)
+	result, err := s.SharedChannelStore.GetRemoteForUser(remoteId, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6206,10 +6206,10 @@ func (s *TimerLayerSharedChannelStore) GetRemotes(opts model.SharedChannelRemote
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error) {
+func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetRemotesStatus(channelID)
+	result, err := s.SharedChannelStore.GetRemotesStatus(channelId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6222,10 +6222,10 @@ func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelID string) ([]*mo
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetUser(userID string, remoteID string) (*model.SharedChannelUser, error) {
+func (s *TimerLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetUser(userID, remoteID)
+	result, err := s.SharedChannelStore.GetUser(userId, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6254,10 +6254,10 @@ func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) HasRemote(channelID string, remoteID string) (bool, error) {
+func (s *TimerLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.HasRemote(channelID, remoteID)
+	result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7676,10 +7676,10 @@ func (s *TimerLayerThreadStore) GetThreadForUser(userID string, teamID string, t
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetThreadsForUser(userID, teamID, opts)
+	result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

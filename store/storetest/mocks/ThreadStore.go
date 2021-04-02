@@ -180,13 +180,13 @@ func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId s
 	return r0, r1
 }
 
-// GetThreadsForUser provides a mock function with given fields: userId, teamId, opts
-func (_m *ThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
-	ret := _m.Called(userID, teamID, opts)
+// GetThreadsForUser provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	ret := _m.Called(userId, teamID, opts)
 
 	var r0 *model.Threads
 	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) *model.Threads); ok {
-		r0 = rf(userID, teamID, opts)
+		r0 = rf(userId, teamID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Threads)
@@ -195,7 +195,7 @@ func (_m *ThreadStore) GetThreadsForUser(userID string, teamID string, opts mode
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
-		r1 = rf(userID, teamID, opts)
+		r1 = rf(userId, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

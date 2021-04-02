@@ -684,7 +684,7 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 
 }
 
-func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userId string) (int, int, error) {
+func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 
 	tries := 0
 	for {
@@ -7346,11 +7346,11 @@ func (s *RetryLayerSharedChannelStore) GetAllCount(opts model.SharedChannelFilte
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetAttachment(fileID string, remoteID string) (*model.SharedChannelAttachment, error) {
+func (s *RetryLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetAttachment(fileID, remoteID)
+		result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
 		if err == nil {
 			return result, nil
 		}
@@ -7726,11 +7726,11 @@ func (s *RetryLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChan
 
 }
 
-func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, error) {
+func (s *RetryLayerStatusStore) Get(userID string) (*model.Status, error) {
 
 	tries := 0
 	for {
-		result, err := s.StatusStore.Get(userId)
+		result, err := s.StatusStore.Get(userID)
 		if err == nil {
 			return result, nil
 		}
@@ -7826,11 +7826,11 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 
 }
 
-func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
+func (s *RetryLayerStatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
 
 	tries := 0
 	for {
-		err := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+		err := s.StatusStore.UpdateLastActivityAt(userID, lastActivityAt)
 		if err == nil {
 			return nil
 		}
@@ -9258,11 +9258,11 @@ func (s *RetryLayerThreadStore) GetThreadForUser(userID string, teamID string, t
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userID, teamID, opts)
+		result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
 		if err == nil {
 			return result, nil
 		}
