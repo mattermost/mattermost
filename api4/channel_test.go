@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sort"
@@ -2152,6 +2153,7 @@ func TestViewChannel(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Equal(t, channel.TotalMsgCount, member.MsgCount, "should match message counts")
 	require.Equal(t, int64(0), member.MentionCount, "should have no mentions")
+	require.Equal(t, int64(0), member.MentionCountRoot, "should have no mentions")
 
 	_, resp = Client.ViewChannel("junk", view)
 	CheckBadRequestStatus(t, resp)
@@ -2492,7 +2494,7 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, pass, "should have passed")
 
-	member, err := th.App.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id)
+	member, err := th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.Equal(t, model.CHANNEL_NOTIFY_MENTION, member.NotifyProps[model.DESKTOP_NOTIFY_PROP], "bad update")
 	require.Equal(t, model.CHANNEL_MARK_UNREAD_MENTION, member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP], "bad update")
@@ -4063,4 +4065,44 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, resp.Error)
 		require.Equal(t, team2.Id, newChannel.TeamId)
 	}, "Should be able to (force) move private channel by a member that is not member of target team")
+}
+
+func TestRootMentionsCount(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	// initially, MentionCountRoot is 0 in the database
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), channelMember.MentionCountRoot)
+	require.Equal(t, int64(0), channelMember.MentionCount)
+
+	// mention the user in a root post
+	post1, resp := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: channel.Id, Message: "hey @" + user.Username})
+	CheckNoError(t, resp)
+	// mention the user in a reply post
+	post2 := &model.Post{ChannelId: channel.Id, Message: "reply at @" + user.Username, RootId: post1.Id}
+	_, resp = th.SystemAdminClient.CreatePost(post2)
+	CheckNoError(t, resp)
+
+	// this should perform lazy migration and populate the field
+	channelUnread, resp := Client.GetChannelUnread(channel.Id, user.Id)
+	CheckNoError(t, resp)
+	// reply post is not counted, so we should have one root mention
+	require.EqualValues(t, int64(1), channelUnread.MentionCountRoot)
+	// regular count stays the same
+	require.Equal(t, int64(2), channelUnread.MentionCount)
+	// validate that DB is updated
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
+	require.NoError(t, err)
+	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
+
+	// validate that Team level counts are calculated
+	counts, appErr := th.App.GetTeamUnread(channel.TeamId, user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, int64(1), counts.MentionCountRoot)
+	require.Equal(t, int64(2), counts.MentionCount)
 }
