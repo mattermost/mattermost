@@ -222,7 +222,7 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 	}
 
 	// add user to channel
-	if _, err := scs.app.AddUserToChannel(userSaved, channel); err != nil {
+	if _, err := scs.app.AddUserToChannel(userSaved, channel, false); err != nil {
 		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 	}
 	return userSaved, nil
