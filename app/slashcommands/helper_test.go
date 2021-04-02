@@ -226,15 +226,23 @@ func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
 	return user
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN, options...)
 }
 
 func (th *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -245,10 +253,31 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
+	for _, option := range options {
+		option(channel)
+	}
+
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(channel, true); err != nil {
 		panic(err)
+	}
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return channel

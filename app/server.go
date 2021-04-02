@@ -47,8 +47,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -118,8 +120,8 @@ type Server struct {
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
-	runjobs bool
-	Jobs    *jobs.JobServer
+	runEssentialJobs bool
+	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
 
@@ -156,6 +158,9 @@ type Server struct {
 	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
+
+	remoteClusterService remotecluster.RemoteClusterServiceIFace
+	sharedChannelService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
 
@@ -447,13 +452,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
-		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		if s.Jobs != nil {
+			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
 		s.setupFeatureFlags()
 	})
 
 	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
@@ -496,10 +502,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.WebSocketRouter = &WebSocketRouter{
-		server:   s,
 		handlers: make(map[string]webSocketHandler),
+		app:      fakeApp,
 	}
-	s.WebSocketRouter.app = fakeApp
 
 	mailConfig := s.MailServiceConfig()
 
@@ -661,44 +666,46 @@ func maxInt(a, b int) int {
 	return b
 }
 
-func (s *Server) RunJobs() {
-	if s.runjobs {
-		s.Go(func() {
-			runSecurityJob(s)
-		})
-		s.Go(func() {
-			firstRun, err := s.getFirstServerRunTimestamp()
-			if err != nil {
-				mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-				s.ensureFirstServerRunTimestamp()
-				firstRun = utils.MillisFromTime(time.Now())
-			}
-			s.telemetryService.RunTelemetryJob(firstRun)
-		})
-		s.Go(func() {
-			runSessionCleanupJob(s)
-		})
-		s.Go(func() {
-			runTokenCleanupJob(s)
-		})
-		s.Go(func() {
-			runCommandWebhookCleanupJob(s)
-		})
+func (s *Server) runJobs() {
+	s.Go(func() {
+		runSecurityJob(s)
+	})
+	s.Go(func() {
+		firstRun, err := s.getFirstServerRunTimestamp()
+		if err != nil {
+			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+			s.ensureFirstServerRunTimestamp()
+			firstRun = utils.MillisFromTime(time.Now())
+		}
+		s.telemetryService.RunTelemetryJob(firstRun)
+	})
+	s.Go(func() {
+		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runTokenCleanupJob(s)
+	})
+	s.Go(func() {
+		runCommandWebhookCleanupJob(s)
+	})
 
-		if complianceI := s.Compliance; complianceI != nil {
-			complianceI.StartComplianceDailyJob()
-		}
+	if complianceI := s.Compliance; complianceI != nil {
+		complianceI.StartComplianceDailyJob()
+	}
 
-		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-			s.Jobs.StartWorkers()
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Failed to start job server workers", mlog.Err(err))
 		}
-		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-			s.Jobs.StartSchedulers()
+	}
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StartSchedulers(); err != nil {
+			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
 		}
+	}
 
-		if *s.Config().ServiceSettings.EnableAWSMetering {
-			runReportToAWSMeterJob(s)
-		}
+	if *s.Config().ServiceSettings.EnableAWSMetering {
+		runReportToAWSMeterJob(s)
 	}
 }
 
@@ -806,6 +813,64 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+	if license == nil {
+		mlog.Debug("No license provided; Remote Cluster services disabled")
+		return nil
+	}
+
+	// Remote Cluster service
+
+	// License check
+	if !*license.Features.RemoteClusterService {
+		mlog.Debug("License does not have Remote Cluster services enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return nil
+	}
+
+	var err error
+
+	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	if err != nil {
+		return err
+	}
+
+	if err = s.remoteClusterService.Start(); err != nil {
+		s.remoteClusterService = nil
+		return err
+	}
+
+	// Shared Channels service
+
+	// License check
+	if !*license.Features.SharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Shared Channels Service disabled via config")
+		return nil
+	}
+
+	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	if err != nil {
+		return err
+	}
+
+	if err = s.sharedChannelService.Start(); err != nil {
+		s.remoteClusterService = nil
+		return err
+	}
+	return nil
+}
+
 func (s *Server) enableLoggingMetrics() {
 	if s.Metrics == nil {
 		return
@@ -864,6 +929,12 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
+	if s.remoteClusterService != nil {
+		if err = s.remoteClusterService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+		}
+	}
+
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
@@ -895,9 +966,16 @@ func (s *Server) Shutdown() {
 	s.StopMetricsServer()
 
 	// This must be done after the cluster is stopped.
-	if s.Jobs != nil && s.runjobs {
-		s.Jobs.StopWorkers()
-		s.Jobs.StopSchedulers()
+	if s.Jobs != nil {
+		// For simplicity we don't check if workers and schedulers are active
+		// before stopping them as both calls essentially become no-ops
+		// if nothing is running.
+		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+		}
+		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
+			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+		}
 	}
 
 	if s.Store != nil {
@@ -1222,6 +1300,10 @@ func (s *Server) Start() error {
 		}
 	}
 
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
 	return nil
 }
 
@@ -1512,8 +1594,7 @@ func (s *Server) StopMetricsServer() {
 		defer cancel()
 
 		s.metricsServer.Shutdown(ctx)
-		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
-		s.metricsServer = nil
+		s.Log.Info("Metrics and profiling server is stopping")
 	}
 }
 
@@ -1572,27 +1653,36 @@ func (s *Server) InitMetricsRouter() error {
 }
 
 func (s *Server) startMetricsServer() {
+	var notify chan struct{}
 	s.metricsLock.Lock()
-	defer s.metricsLock.Unlock()
+	defer func() {
+		if notify != nil {
+			<-notify
+		}
+		s.metricsLock.Unlock()
+	}()
 
-	if s.metricsServer != nil {
+	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
+	if err != nil {
+		mlog.Error(err.Error())
 		return
 	}
 
+	notify = make(chan struct{})
 	s.metricsServer = &http.Server{
-		Addr:         *s.Config().MetricsSettings.ListenAddress,
 		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
 	}
 
 	go func() {
-		if err := s.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		close(notify)
+		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
 			mlog.Critical(err.Error())
 		}
 	}()
 
-	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
 func doLicenseExpirationCheck(a *App) {
@@ -1780,6 +1870,46 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (s *Server) GetLogger() mlog.LoggerIFace {
+	return s.Log
+}
+
+// GetStore returns the server's Store. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetStore() store.Store {
+	return s.Store
+}
+
+// GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	return s.remoteClusterService
+}
+
+// GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	return s.sharedChannelService
+}
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
+}
+
+// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
+// For testing only.
+func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.remoteClusterService = remoteClusterService
+}
+
+// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// For testing only.
+func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.sharedChannelService = sharedChannelService
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {

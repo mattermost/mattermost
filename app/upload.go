@@ -253,6 +253,10 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	info.CreatorId = us.UserId
 	info.Path = us.Path
+	info.RemoteId = model.NewString(us.RemoteId)
+	if us.ReqFileId != "" {
+		info.Id = us.ReqFileId
+	}
 
 	// run plugins upload hook
 	if err := a.runPluginsHook(info, file); err != nil {
