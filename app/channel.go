@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -1372,24 +1371,23 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	// We have to query master here because this is called during LDAP sync from:
-	// a.createDefaultChannelMemberships -> a.AddTeamMember -> a.AddChannelMember
-	// So we get a teamMember right after adding a team member which leads to a failure.
-	// TODO: pass the team member to this method.
-	teamMember, nErr := a.Srv().Store.Team().GetMember(sqlstore.WithMaster(context.Background()), channel.TeamId, user.Id)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+// AddUserToChannel adds a user to a given channel.
+func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	if !skipTeamMemberIntegrityCheck {
+		teamMember, nErr := a.Srv().Store.Team().GetMember(context.Background(), channel.TeamId, user.Id)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
-	}
 
-	if teamMember.DeleteAt > 0 {
-		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
+		if teamMember.DeleteAt > 0 {
+			return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	newMember, err := a.addUserToChannel(user, channel)
@@ -1405,7 +1403,18 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userID string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
+type ChannelMemberOpts struct {
+	UserRequestorID string
+	PostRootID      string
+	// SkipTeamMemberIntegrityCheck is used to indicate whether it should be checked
+	// that a user has already been removed from that team or not.
+	// This is useful to avoid in scenarios when we just added the team member,
+	// and thereby know that there is no need to check this.
+	SkipTeamMemberIntegrityCheck bool
+}
+
+// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
+func (a *App) AddChannelMember(userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(context.Background(), channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
@@ -1423,13 +1432,13 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, userReques
 	}
 
 	var userRequestor *model.User
-	if userRequestorId != "" {
-		if userRequestor, err = a.GetUser(userRequestorId); err != nil {
+	if opts.UserRequestorID != "" {
+		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
 
-	cm, err := a.AddUserToChannel(user, channel)
+	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck)
 	if err != nil {
 		return nil, err
 	}
@@ -1444,11 +1453,11 @@ func (a *App) AddChannelMember(userID string, channel *model.Channel, userReques
 		})
 	}
 
-	if userRequestorId == "" || userID == userRequestorId {
+	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		a.postJoinChannelMessage(user, channel)
 	} else {
 		a.Srv().Go(func() {
-			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
+			a.PostAddToChannelMessage(userRequestor, user, channel, opts.PostRootID)
 		})
 	}
 
@@ -1938,7 +1947,7 @@ func (a *App) JoinChannel(channel *model.Channel, userID string) *model.AppError
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cm, err := a.AddUserToChannel(user, channel)
+	cm, err := a.AddUserToChannel(user, channel, false)
 	if err != nil {
 		return err
 	}

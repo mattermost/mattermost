@@ -1540,7 +1540,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session().UserId, postRootId)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, app.ChannelMemberOpts{
+		UserRequestorID: c.App.Session().UserId,
+		PostRootID:      postRootId,
+	})
 	if err != nil {
 		c.Err = err
 		return

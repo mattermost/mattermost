@@ -217,7 +217,7 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
