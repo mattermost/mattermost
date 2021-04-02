@@ -42,12 +42,16 @@ type AppIface interface {
 	ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	// @openTracingParams teamID, skipSlackParsing
 	CreateCommandPost(post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
+	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
+	AddChannelMember(userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError)
 	// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 	// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 	// and only query to database whenever necessary.
 	AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool)
 	// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 	AddPublicKey(name string, key io.Reader) *model.AppError
+	// AddUserToChannel adds a user to a given channel.
+	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -359,7 +363,6 @@ type AppIface interface {
 	AcceptLanguage() string
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
-	AddChannelMember(userID string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamID string, user *model.User) *model.AppError
 	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -375,7 +378,6 @@ type AppIface interface {
 	AddTeamMemberByInviteId(inviteId, userID string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByToken(userID, tokenID string) (*model.TeamMember, *model.AppError)
 	AddTeamMembers(teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError)
-	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
 	AddUserToTeam(teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByInviteId(inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(teamID string, user *model.User) *model.AppError

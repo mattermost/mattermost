@@ -993,9 +993,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
 	require.Nil(t, err)
 
-	th.App.AddUserToChannel(user1, team1channel1)
-	th.App.AddUserToChannel(user1, team1channel2)
-	th.App.AddUserToChannel(user1, team2channel1)
+	th.App.AddUserToChannel(user1, team1channel1, false)
+	th.App.AddUserToChannel(user1, team1channel2, false)
+	th.App.AddUserToChannel(user1, team2channel1, false)
 
 	addPermission := func(role *model.Role, permission string) *model.AppError {
 		newPermissions := append(role.Permissions, permission)
