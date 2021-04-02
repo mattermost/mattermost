@@ -81,11 +81,11 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 		th.App.PermanentDeleteTeam(team)
 	}()
 
-	_, err = th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
+	_, _, err = th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
 
 	deacivatedUser := th.CreateUser()
-	_, err = th.App.AddUserToTeam(team.Id, deacivatedUser.Id, "")
+	_, _, err = th.App.AddUserToTeam(team.Id, deacivatedUser.Id, "")
 	require.Nil(t, err)
 	_, err = th.App.AddUserToChannel(deacivatedUser, channel, false)
 	require.Nil(t, err)
@@ -118,13 +118,13 @@ func TestMoveChannel(t *testing.T) {
 			th.App.PermanentDeleteTeam(targetTeam)
 		}()
 
-		_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser.Id, "")
+		_, _, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser2.Id, "")
+		_, _, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser2.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser.Id, "")
+		_, _, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(th.BasicUser, channel1, false)
@@ -136,7 +136,7 @@ func TestMoveChannel(t *testing.T) {
 		err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
 		require.NotNil(t, err, "Should have failed due to mismatched members.")
 
-		_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
+		_, _, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
 		require.Nil(t, err)
 
 		err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
@@ -148,7 +148,7 @@ func TestMoveChannel(t *testing.T) {
 		channel2 := th.CreateChannel(sourceTeam)
 		defer th.App.PermanentDeleteChannel(channel2)
 
-		_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
+		_, _, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
 		require.Nil(t, err)
 		_, err = th.App.AddUserToChannel(th.BasicUser, channel2, false)
 		require.Nil(t, err)
@@ -234,11 +234,11 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 		th.App.PermanentDeleteTeam(team2)
 	}()
 
-	_, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
+	_, _, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(team2.Id, th.BasicUser.Id, "")
+	_, _, err = th.App.AddUserToTeam(team2.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(team.Id, th.BasicUser2.Id, "")
+	_, _, err = th.App.AddUserToTeam(team.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
 	_, err = th.App.AddUserToChannel(th.BasicUser, channel1, false)
@@ -1095,7 +1095,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateGuest(&user)
 
-		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)
@@ -1109,7 +1109,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(&user)
 
-		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)
@@ -1123,7 +1123,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(&user)
 
-		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)
@@ -1137,7 +1137,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateGuest(&user)
 
-		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)
@@ -1154,7 +1154,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateGuest(&user)
 
-		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel, false)

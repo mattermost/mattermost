@@ -42,7 +42,7 @@ func TestInviteProvider(t *testing.T) {
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
 	require.Nil(t, err)
 
 	bot3, err := th.App.CreateBot(&model.Bot{
@@ -51,7 +51,7 @@ func TestInviteProvider(t *testing.T) {
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
 	err = th.App.RemoveUserFromTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
