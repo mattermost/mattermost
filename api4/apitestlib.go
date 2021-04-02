@@ -781,7 +781,7 @@ func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		panic(err)
 	}

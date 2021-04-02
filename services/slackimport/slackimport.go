@@ -84,7 +84,7 @@ type slackComment struct {
 type Actions struct {
 	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
 	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
-	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
+	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
@@ -234,7 +234,7 @@ func (si *SlackImporter) slackAddUsers(teamId string, slackusers []slackUser, im
 		// Check for email conflict and use existing user if found
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
-			if err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
+			if _, err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -695,7 +695,7 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 		mlog.Warn("Failed to set email verified.", mlog.Err(err))
 	}
 
-	if err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
+	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
 		mlog.Warn("Failed to join team when importing.", mlog.Err(err))
 	}
 

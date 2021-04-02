@@ -378,7 +378,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		guest, err := th.App.CreateGuest(guest)
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(guest, th.BasicChannel)
