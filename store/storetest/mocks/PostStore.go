@@ -102,13 +102,13 @@ func (_m *PostStore) Delete(postID string, time int64, deleteByID string) error 
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended
-func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
-	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+// Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID
+func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
+	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool, bool) *model.PostList); ok {
-		r0 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool, bool, string) *model.PostList); ok {
+		r0 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -116,8 +116,8 @@ func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool, bool) error); ok {
-		r1 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool, bool, string) error); ok {
+		r1 = rf(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -538,6 +538,29 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 	return r0, r1
 }
 
+// GetPostsSinceForSync provides a mock function with given fields: options, allowFromCache
+func (_m *PostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+	ret := _m.Called(options, allowFromCache)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceForSyncOptions, bool) []*model.Post); ok {
+		r0 = rf(options, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceForSyncOptions, bool) error); ok {
+		r1 = rf(options, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRepliesForExport provides a mock function with given fields: parentID
 func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
 	ret := _m.Called(parentID)
@@ -561,13 +584,13 @@ func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExpo
 	return r0, r1
 }
 
-// GetSingle provides a mock function with given fields: id
-func (_m *PostStore) GetSingle(id string) (*model.Post, error) {
-	ret := _m.Called(id)
+// GetSingle provides a mock function with given fields: id, inclDeleted
+func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+	ret := _m.Called(id, inclDeleted)
 
 	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(string) *model.Post); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
+		r0 = rf(id, inclDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -575,8 +598,8 @@ func (_m *PostStore) GetSingle(id string) (*model.Post, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(id, inclDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

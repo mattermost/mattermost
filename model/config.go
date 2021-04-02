@@ -235,8 +235,9 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
-	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
-	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
+	CLOUD_SETTINGS_DEFAULT_CWS_URL     = "https://customers.mattermost.com"
+	CLOUD_SETTINGS_DEFAULT_CWS_API_URL = "https://portal.internal.prod.cloud.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE      = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -372,6 +373,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
+	EnableReliableWebSockets                          *bool   `access:"experimental"` // telemetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -817,6 +819,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableLegacySidebar == nil {
 		s.EnableLegacySidebar = NewBool(false)
 	}
+
+	if s.EnableReliableWebSockets == nil {
+		s.EnableReliableWebSockets = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -934,6 +940,7 @@ type ExperimentalSettings struct {
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
+	EnableRemoteClusterService      *bool   `access:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -972,6 +979,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableSharedChannels == nil {
 		s.EnableSharedChannels = NewBool(false)
+	}
+
+	if s.EnableRemoteClusterService == nil {
+		s.EnableRemoteClusterService = NewBool(false)
 	}
 }
 
@@ -1103,19 +1114,26 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	return &ssoSettings
 }
 
+type ReplicaLagSettings struct {
+	DataSource       *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryAbsoluteLag *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeLag     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+}
+
 type SqlSettings struct {
-	DriverName                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	DataSourceReplicas          []string `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
-	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
+	DriverName                  *string               `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSource                  *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas          []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas    []string              `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	Trace                       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string               `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	QueryTimeout                *int                  `access:"environment,write_restrictable,cloud_restrictable"`
+	DisableDatabaseSearch       *bool                 `access:"environment,write_restrictable,cloud_restrictable"`
+	ReplicaLagSettings          []*ReplicaLagSettings `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1171,6 +1189,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.ReplicaLagSettings == nil {
+		s.ReplicaLagSettings = []*ReplicaLagSettings{}
 	}
 }
 
@@ -2702,12 +2724,16 @@ func (s *JobSettings) SetDefaults() {
 }
 
 type CloudSettings struct {
-	CWSUrl *string `access:"environment,write_restrictable"`
+	CWSUrl    *string `access:"environment,write_restrictable"`
+	CWSAPIUrl *string `access:"environment,write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSUrl == nil {
 		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+	if s.CWSAPIUrl == nil {
+		s.CWSAPIUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_API_URL)
 	}
 }
 
@@ -3349,6 +3375,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.MaxOpenConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

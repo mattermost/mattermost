@@ -7,7 +7,7 @@
 
 #### Summary
 <!--
-A description of what this pull request does.
+A description of what this pull request does, as well as QA test steps (if applicable and if not already added to the Jira ticket).
 -->
 
 #### Ticket Link

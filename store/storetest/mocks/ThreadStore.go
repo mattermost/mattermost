@@ -180,30 +180,7 @@ func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId s
 	return r0, r1
 }
 
-// GetThreadMentionsForUserPerChannel provides a mock function with given fields: userID, teamID
-func (_m *ThreadStore) GetThreadMentionsForUserPerChannel(userID string, teamID string) (map[string]int64, error) {
-	ret := _m.Called(userID, teamID)
-
-	var r0 map[string]int64
-	if rf, ok := ret.Get(0).(func(string, string) map[string]int64); ok {
-		r0 = rf(userID, teamID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]int64)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetThreadsForUser provides a mock function with given fields: userID, teamID, opts
+// GetThreadsForUser provides a mock function with given fields: userId, teamId, opts
 func (_m *ThreadStore) GetThreadsForUser(userID string, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	ret := _m.Called(userID, teamID, opts)
 
