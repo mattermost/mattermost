@@ -16,13 +16,13 @@ type MockAppIface struct {
 	mock.Mock
 }
 
-// AddUserToChannel provides a mock function with given fields: user, channel
-func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	ret := _m.Called(user, channel)
+// AddUserToChannel provides a mock function with given fields: user, channel, skipTeamMemberIntegrityCheck
+func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(user, channel, skipTeamMemberIntegrityCheck)
 
 	var r0 *model.ChannelMember
-	if rf, ok := ret.Get(0).(func(*model.User, *model.Channel) *model.ChannelMember); ok {
-		r0 = rf(user, channel)
+	if rf, ok := ret.Get(0).(func(*model.User, *model.Channel, bool) *model.ChannelMember); ok {
+		r0 = rf(user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
@@ -30,8 +30,8 @@ func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channe
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User, *model.Channel) *model.AppError); ok {
-		r1 = rf(user, channel)
+	if rf, ok := ret.Get(1).(func(*model.User, *model.Channel, bool) *model.AppError); ok {
+		r1 = rf(user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

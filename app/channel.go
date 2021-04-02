@@ -1947,7 +1947,7 @@ func (a *App) JoinChannel(channel *model.Channel, userID string) *model.AppError
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, true)
+	cm, err := a.AddUserToChannel(user, channel, false)
 	if err != nil {
 		return err
 	}

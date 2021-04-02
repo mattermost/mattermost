@@ -535,7 +535,7 @@ func (si *SlackImporter) addSlackUsersToChannel(members []string, users map[stri
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
 			continue
 		}
-		if _, err := si.actions.AddUserToChannel(user, channel, true); err != nil {
+		if _, err := si.actions.AddUserToChannel(user, channel, false); err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
 		}
 	}

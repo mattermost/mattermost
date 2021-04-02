@@ -618,7 +618,7 @@ func (a *App) AddUserToTeamByToken(userID string, tokenID string) (*model.Team, 
 		}
 
 		for _, channel := range channels {
-			_, err := a.AddUserToChannel(user, channel, true)
+			_, err := a.AddUserToChannel(user, channel, false)
 			if err != nil {
 				mlog.Warn("Error adding user to channel", mlog.Err(err))
 			}
