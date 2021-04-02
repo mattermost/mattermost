@@ -1373,6 +1373,10 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	// We have to query master here because this is called during LDAP sync from:
+	// a.createDefaultChannelMemberships -> a.AddTeamMember -> a.AddChannelMember
+	// So we get a teamMember right after adding a team member which leads to a failure.
+	// TODO: pass the team member to this method.
 	teamMember, nErr := a.Srv().Store.Team().GetMember(sqlstore.WithMaster(context.Background()), channel.TeamId, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
