@@ -57,6 +57,17 @@ var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 
+type LoggerIFace interface {
+	IsLevelEnabled(LogLevel) bool
+	Debug(string, ...Field)
+	Info(string, ...Field)
+	Warn(string, ...Field)
+	Error(string, ...Field)
+	Critical(string, ...Field)
+	Log(LogLevel, string, ...Field)
+	LogM([]LogLevel, string, ...Field)
+}
+
 type TargetInfo logr.TargetInfo
 
 type LoggerConfiguration struct {
@@ -205,6 +216,10 @@ func (l *Logger) Sugar() *SugarLogger {
 		wrappedLogger: l,
 		zapSugar:      l.zap.Sugar(),
 	}
+}
+
+func (l *Logger) IsLevelEnabled(level LogLevel) bool {
+	return isLevelEnabled(l.getLogger(), logr.Level(level))
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {

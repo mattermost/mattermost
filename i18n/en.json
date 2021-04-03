@@ -1079,6 +1079,146 @@
     "translation": "open"
   },
   {
+    "id": "api.command_remote.accept.help",
+    "translation": "Accept an invitation from a remote cluster"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Invitation accepted and confirmed.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Could not accept invitation: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Could not add remote cluster: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Remote cluster {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Could not decode invitation: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Could not encrypt invitation: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Could not fetch remote clusters: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Invitation from remote cluster"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "The encrypted invitation from a remote cluster"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Invitation created."
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Invite a remote cluster"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Invitation password"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Password to be used to encrypt the invitation"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the remote site can access your cluster via** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Missing command. Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Missing or empty `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "remote"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Remote cluster name"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "A display name for the remote cluster"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "You require `{{.Permission}}` permission to manage remote clusters."
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Add/remove remote clusters. Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  |"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "No remote clusters found."
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Removes a remote cluster"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Could not remove remote cluster: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Id of remote cluster remove"
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Remote Cluster Service is disabled."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Remote Cluster service not enabled."
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURL not set. Please set this via the system console."
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Displays status for all remote clusters"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Unknown action `{{.Action}}`"
+  },
+  {
     "id": "api.command_remove.desc",
     "translation": "Remove a member from the channel"
   },
@@ -1141,6 +1281,214 @@
   {
     "id": "api.command_settings.unsupported.app_error",
     "translation": "The settings command is not supported on your device."
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Channel display name provided to remote instances"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - defaults to channel displayname"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Channel header provided to remote instances"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - defaults to channels header"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Cannot invite remote cluster to a shared channel originating somewhere else."
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Channel name provided to remote instances"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - defaults to channel name"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Channel purpose provided to remote instances"
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - defaults to channel purpose"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Shared channel remote id `{{.RemoteId}}` does not exist for this channel."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "This channel is now shared."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Displays status for this shared channel"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status for channel Id `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Error while checking if shared channel exists: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Could not uninvite `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Shares the current channel with a remote Mattermost instance."
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Description for invite"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - optional"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Error fetching remote clusters: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Could not fetch status for remotes: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Invalid value for '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Invites a remote instance to the current shared channel"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Missing action. Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Must specify a valid remote cluster id to invite."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "No remotes have been invited to this shared channel."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Cannot unshare a channel that is not shared."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "You require `{{.Permission}}` permission to manage shared channels."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "The remote cluster has already been invited."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id of an existing remote instance. See `remote` command to add a remote instance."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Remote cluster id is invalid: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Must specify a valid remote cluster to uninvite"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Last Sync |"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Remote `{{.RemoteId}}` uninvited."
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Shared Channels Service is disabled.."
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Cannot share this channel: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Share the current channel"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Channel will be shared in read-only mode"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'"
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "This channel is no longer shared."
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Cannot unshare this channel: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Uninvites a remote instance from this shared channel"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Id of remote instance to uninvite."
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Unknown action `{{.Action}}`. Available actions: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Unshares the current channel"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Are you sure? This channel will be unshared and all remote instances will be uninvited"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' or 'N'"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -1219,6 +1567,14 @@
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
   {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Invitation is expired."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Error encoding JSON."
+  },
+  {
     "id": "api.context.local_origin_required.app_error",
     "translation": "This endpoint requires a local request origin."
   },
@@ -1229,6 +1585,18 @@
   {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Unable to find remote cluster id {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Remote cluster id mismatch."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Remote cluster id missing."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -1375,6 +1743,14 @@
   {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Error trying to save the first admin visit marketplace status in the store."
   },
   {
     "id": "api.export.export_not_found.app_error",
@@ -2017,6 +2393,42 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "We encountered an error deleting the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "We encountered an error retrieving a remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "We encountered an error saving the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Remote cluster has already been added."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "The remote cluster service is not enabled."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "We encountered an error updating the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Remote cluster with the same url already exists."
   },
   {
     "id": "api.restricted_system_admin",
@@ -5551,6 +5963,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Encountered an error while creating a direct shared channel."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
@@ -7243,6 +7659,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Invalid description."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },
@@ -7693,6 +8113,10 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Number of replica lag queries is more than the number of replicas configured. Must be less than or equal to the number of replicas."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -8553,6 +8977,14 @@
   {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
     "id": "store.sql.convert_string_array",

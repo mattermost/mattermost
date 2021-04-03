@@ -89,6 +89,10 @@ func (srv *JobServer) InitSchedulers() error {
 		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
 	}
 
+	if resendInvitationEmailInterface := srv.ResendInvitationEmails; resendInvitationEmailInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, resendInvitationEmailInterface.MakeScheduler())
+	}
+
 	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, importDeleteInterface.MakeScheduler())
 	}

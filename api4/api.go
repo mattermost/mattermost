@@ -125,10 +125,13 @@ type Routes struct {
 	Cloud *mux.Router // 'api/v4/cloud'
 
 	Imports *mux.Router // 'api/v4/imports'
+
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 
 	ActionItems *mux.Router // 'api/v4/action_items'
+	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
+	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 }
 
 type API struct {
@@ -245,7 +248,12 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
+<<<<<<< HEAD
 	api.BaseRoutes.ActionItems = api.BaseRoutes.ApiRoot.PathPrefix("/action_items").Subrouter()
+=======
+	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
+>>>>>>> master
 
 	api.InitUser()
 	api.InitBot()
@@ -284,6 +292,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitAction()
 	api.InitCloud()
 	api.InitImport()
+	api.InitRemoteCluster()
+	api.InitSharedChannels()
 	api.InitExport()
 	api.InitActionItems()
 
