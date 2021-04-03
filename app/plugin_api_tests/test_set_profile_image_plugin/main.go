@@ -41,12 +41,12 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	dataBytes := buf.Bytes()
 
 	// Set the user profile image
-	if err := p.API.SetProfileImage(p.configuration.BasicUserId, dataBytes); err != nil {
+	if err := p.API.SetProfileImage(p.configuration.BasicUserID, dataBytes); err != nil {
 		return nil, err.Error()
 	}
 
 	// Get the user profile image to check
-	imageProfile, err := p.API.GetProfileImage(p.configuration.BasicUserId)
+	imageProfile, err := p.API.GetProfileImage(p.configuration.BasicUserID)
 	if err != nil {
 		return nil, err.Error()
 	}
