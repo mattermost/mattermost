@@ -129,7 +129,7 @@ type Routes struct {
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 
-	ActionItems *mux.Router // 'api/v4/action_items'
+	ActionItems    *mux.Router // 'api/v4/action_items'
 	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 }
@@ -248,12 +248,9 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
-<<<<<<< HEAD
 	api.BaseRoutes.ActionItems = api.BaseRoutes.ApiRoot.PathPrefix("/action_items").Subrouter()
-=======
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
->>>>>>> master
 
 	api.InitUser()
 	api.InitBot()
