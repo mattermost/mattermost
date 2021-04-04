@@ -18,13 +18,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry/mocks"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -285,7 +285,7 @@ func TestRudderTelemetry(t *testing.T) {
 			}
 		}
 		assert.Equal(t, "analytics-go", actual.Context.Library.Name)
-		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
+		assert.Equal(t, "3.3.0", actual.Context.Library.Version)
 	}
 
 	collectInfo := func(info *[]string) {

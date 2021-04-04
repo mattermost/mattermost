@@ -86,6 +86,14 @@
 
 ## Log
 
+### 2021-02-02
+
+Mituo Heijo has fuzzed xz and found a bug in the function readIndexBody. The
+function allocated a slice of records immediately after reading the value
+without further checks. Since the number has been too large the make function
+did panic. The fix is to check the number against the expected number of records
+before allocating the records.
+
 ### 2020-12-17
 
 Release v0.5.9 fixes warnings, a typo and adds SECURITY.md.

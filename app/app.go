@@ -6,21 +6,21 @@ package app
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -76,7 +76,7 @@ func (a *App) InitServer() {
 		a.initJobs()
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
+			a.registerAppClusterMessageHandlers()
 		}
 
 		a.DoAppMigrations()
@@ -91,14 +91,14 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		if a.Srv().runjobs {
+		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
 				runCheckWarnMetricStatusJob(a)
 				runDNDStatusExpireJob(a)
 			})
+			a.srv.runJobs()
 		}
-		a.srv.RunJobs()
 	})
 }
 
@@ -141,20 +141,20 @@ func (a *App) initJobs() {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
-	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
+	if jobsResendInvitationEmailInterface != nil {
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
+	}
+
+	a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {
 	return a.Srv().TelemetryId()
 }
 
-func (s *Server) HTMLTemplates() *template.Template {
-	if s.htmlTemplateWatcher != nil {
-		return s.htmlTemplateWatcher.Templates()
-	}
-
-	return nil
+func (s *Server) TemplatesContainer() *templates.Container {
+	return s.htmlTemplateWatcher
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
@@ -468,25 +468,25 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
 			T := i18n.GetUserTranslations(sender.Locale)
-			bodyPage := a.Srv().EmailService.newEmailTemplate("warn_metric_ack", sender.Locale)
-			bodyPage.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
-			bodyPage.Props["ContactNameValue"] = sender.GetFullName()
-			bodyPage.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
-			bodyPage.Props["ContactEmailValue"] = sender.Email
+			data := a.Srv().EmailService.newEmailTemplateData(sender.Locale)
+			data.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
+			data.Props["ContactNameValue"] = sender.GetFullName()
+			data.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
+			data.Props["ContactEmailValue"] = sender.Email
 
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
 			if cerr != nil {
 				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
-				bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
-				bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount
+				data.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
+				data.Props["RegisteredUsersValue"] = registeredUsersCount
 			}
-			bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
-			bodyPage.Props["SiteURL"] = a.GetSiteURL()
-			bodyPage.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
-			bodyPage.Props["TelemetryIdValue"] = a.TelemetryId()
-			bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
+			data.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
+			data.Props["SiteURL"] = a.GetSiteURL()
+			data.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+			data.Props["TelemetryIdValue"] = a.TelemetryId()
+			data.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
 			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 			if warnMetricStatus == nil {
@@ -494,10 +494,16 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 
 			subject := T("api.templates.warn_metric_ack.subject")
-			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
+			data.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
 			mailConfig := a.Srv().MailServiceConfig()
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), mailConfig, false, sender.Email); err != nil {
+
+			body, err := a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data)
+			if err != nil {
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+			}
+
+			if err := mail.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, body, mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}

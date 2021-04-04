@@ -15,9 +15,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -540,6 +540,9 @@ func (*LoadTestProvider) JsonCommand(a *app.App, args *model.CommandArgs, messag
 	}()
 
 	post := model.PostFromJson(r.Body)
+	if post == nil {
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("could not decode post from json")
+	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
 	if post.Message == "" {

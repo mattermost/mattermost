@@ -1206,15 +1206,38 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
 		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 {
-			subscription, subErr := c.App.Cloud().GetSubscription()
+			subscription, subErr := c.App.Cloud().GetSubscription(c.App.Session().UserId)
 			if subErr != nil {
-				c.Err = subErr
+				c.Err = model.NewAppError(
+					"Api4.inviteUsersToTeam",
+					"api.team.cloud.subscription.error",
+					nil,
+					subErr.Error(),
+					http.StatusInternalServerError)
 				return
 			}
 			if subscription == nil || subscription.IsPaidTier != "true" {
 				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
 			}
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+
+		scheduledAt := model.GetMillis()
+		jobData := map[string]string{
+			"emailList":   model.ArrayToJson(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.App.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		// we then manually schedule the job
+		_, e := c.App.Srv().Jobs.CreateJob(model.JOB_TYPE_RESEND_INVITATION_EMAIL, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			return
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
@@ -1278,6 +1301,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	if guestsInvite == nil {
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	for i, email := range guestsInvite.Emails {
 		guestsInvite.Emails[i] = strings.ToLower(email)
 	}
@@ -1294,9 +1322,14 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
 		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, subErr := c.App.Cloud().GetSubscription()
-			if subErr != nil {
-				c.Err = subErr
+			subscription, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
+			if err != nil {
+				c.Err = model.NewAppError(
+					"Api4.inviteGuestsToChannel",
+					"api.team.cloud.subscription.error",
+					nil,
+					err.Error(),
+					http.StatusInternalServerError)
 				return
 			}
 			if subscription == nil || subscription.IsPaidTier != "true" {

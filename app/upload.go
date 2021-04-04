@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/docextractor"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -253,6 +253,10 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	info.CreatorId = us.UserId
 	info.Path = us.Path
+	info.RemoteId = model.NewString(us.RemoteId)
+	if us.ReqFileId != "" {
+		info.Id = us.ReqFileId
+	}
 
 	// run plugins upload hook
 	if err := a.runPluginsHook(info, file); err != nil {

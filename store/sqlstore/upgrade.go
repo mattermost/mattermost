@@ -13,16 +13,20 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5340
+	Version5350            = "5.35.0"
+	Version5340            = "5.34.0"
+	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
+	Version5291            = "5.29.1"
 	Version5290            = "5.29.0"
 	Version5281            = "5.28.1"
 	Version5280            = "5.28.0"
@@ -195,9 +199,13 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion5291(sqlStore)
 	upgradeDatabaseToVersion530(sqlStore)
 	upgradeDatabaseToVersion531(sqlStore)
 	upgradeDatabaseToVersion532(sqlStore)
+	upgradeDatabaseToVersion533(sqlStore)
+	upgradeDatabaseToVersion534(sqlStore)
+	upgradeDatabaseToVersion535(sqlStore)
 
 	return nil
 }
@@ -932,8 +940,14 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5290, Version5291) {
+		saveSchemaVersion(sqlStore, Version5291)
+	}
+}
+
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
+	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
@@ -951,14 +965,160 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
-	// saveSchemaVersion(sqlStore, Version5320)
+func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES && hasMissingMigrationsVersion532(sqlStore) {
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	}
+	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
+		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		// Shared channels support
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+		saveSchemaVersion(sqlStore, Version5320)
+	}
+}
+
+func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5320, Version5330) {
+		saveSchemaVersion(sqlStore, Version5330)
+	}
+}
+
+func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
+}
+
+func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+
+	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
+
+	// Shared channels support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
+	if _, err := sqlStore.GetMaster().Exec("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
+		mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
+	}
+	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
+	}
+	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+
+	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+
+	mentionCountRootCTE := `
+		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
+		FROM ThreadMemberships
+		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		GROUP BY Threads.ChannelId, ThreadMemberships.UserId
+	`
+	updateMentionCountRootQuery := `
+		UPDATE ChannelMembers INNER JOIN (` + mentionCountRootCTE + `) AS q ON
+			q.ChannelId = ChannelMembers.ChannelId AND
+			q.UserId=ChannelMembers.UserId AND
+			ChannelMembers.MentionCount > 0
+		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateMentionCountRootQuery = `
+			WITH q AS (` + mentionCountRootCTE + `)
+			UPDATE channelmembers
+			SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+			FROM q
+			WHERE
+				q.ChannelId = ChannelMembers.ChannelId AND
+				q.UserId = ChannelMembers.UserId AND
+				ChannelMembers.MentionCount > 0
+		`
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateMentionCountRootQuery); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+
+	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
+
+	forceIndex := ""
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
+	}
+	totalMsgCountRootCTE := `
+		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	updateChannels := `
+		WITH q AS (` + totalMsgCountRootCTE + `)
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		FROM q where q.channelid=Channels.Id;
+	`
+	updateChannelMembers := `
+		WITH q as (` + channelsCTE + `)
+		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateChannels = `
+			UPDATE Channels
+			INNER Join (` + totalMsgCountRootCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
+		`
+		updateChannelMembers = `
+			UPDATE ChannelMembers CM
+			INNER JOIN (` + channelsCTE + `) as q
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			SET MsgCountRoot=TotalMsgCountRoot
+			`
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
+		mlog.Error("Error updating Channels table", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
+		mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+	}
+
+	// 	saveSchemaVersion(sqlStore, Version5350)
 	// }
 }

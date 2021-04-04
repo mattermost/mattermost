@@ -32,6 +32,11 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	store.DropAllTables()
 
 	memoryStore := config.NewTestMemoryStore()
+	newConfig := memoryStore.Get().Clone()
+	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
+	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
+	memoryStore.Set(newConfig)
+
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
@@ -201,7 +206,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		panic(err)
 	}
@@ -212,7 +217,7 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
