@@ -871,9 +871,11 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
+	s.dndnTaskMut.Lock()
 	if s.dndTask != nil {
 		s.dndTask.Cancel()
 	}
+	s.dndnTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -1835,7 +1837,7 @@ func runDNDStatusExpireJob(a *App) {
 		a.srv.dndnTaskMut.Unlock()
 	}
 	a.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset dnd status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
 			a.srv.dndnTaskMut.Lock()
 			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)

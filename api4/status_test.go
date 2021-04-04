@@ -52,7 +52,8 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
-		task := model.CreateRecurringTask("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, time.Duration(1)*time.Second)
+		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
+		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
@@ -65,7 +66,6 @@ func TestGetUserStatus(t *testing.T) {
 		userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "online", userStatus.Status)
-		task.Cancel()
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {

@@ -233,7 +233,7 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd with end time", or "offline".
 	//
 	// @tag User
-	// Minimum server version: 5.2
+	// Minimum server version: 5.34
 	UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError)
 
 	// UpdateUserActive deactivates or reactivates an user.

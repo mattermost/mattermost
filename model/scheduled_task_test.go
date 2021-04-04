@@ -73,3 +73,26 @@ func TestCancelTask(t *testing.T) {
 	time.Sleep(TASK_TIME + time.Second)
 	assert.EqualValues(t, 0, atomic.LoadInt32(executionCount))
 }
+
+func TestCreateRecurringTaskFromNextIntervalTime(t *testing.T) {
+	TASK_NAME := "Test Recurring Task starting from next interval time"
+	TASK_TIME := time.Second * 5
+
+	var executionTime time.Time
+	testFunc := func() {
+		executionTime = time.Now()
+	}
+
+	task := CreateRecurringTaskFromNextIntervalTime(TASK_NAME, testFunc, TASK_TIME)
+	time.Sleep(TASK_TIME)
+	assert.EqualValues(t, 0, executionTime.Second()%5)
+
+	time.Sleep(TASK_TIME)
+	assert.EqualValues(t, 0, executionTime.Second()%5)
+
+	assert.Equal(t, TASK_NAME, task.Name)
+	assert.Equal(t, TASK_TIME, task.Interval)
+	assert.True(t, task.Recurring)
+
+	task.Cancel()
+}

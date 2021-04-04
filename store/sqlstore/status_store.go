@@ -105,7 +105,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 // MySQL doesn't have support for RETURNING clause, so we use a transaction to get the updated rows.
 func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
 	currUnixTime := time.Now().UTC().Unix()
-	selectQuery, selectParams, _ := s.getQueryBuilder().
+	selectQuery, selectParams, err := s.getQueryBuilder().
 		Select("UserId").
 		From("Status").
 		Where(
@@ -115,12 +115,15 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
 			},
 		).ToSql()
-	var selectedUsers []string
-	_, err := t.Select(&selectedUsers, selectQuery, selectParams...)
 	if err != nil {
-		return nil, errors.Wrap(err, "getExpiredDNDStatusesT: failed to get expired dnd statuses")
+		return nil, errors.Wrap(err, "status_tosql")
 	}
-	updateQuery, args, _ := s.getQueryBuilder().
+	var selectedUsers []string
+	_, err = t.Select(&selectedUsers, selectQuery, selectParams...)
+	if err != nil {
+		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
+	}
+	updateQuery, args, err := s.getQueryBuilder().
 		Update("Status").
 		Where(
 			sq.And{
@@ -135,8 +138,12 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		Set("Manual", false).
 		ToSql()
 
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
 	if _, err := t.Exec(updateQuery, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update statuses")
+		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
 	}
 
 	var updatedStatuses []*model.Status
@@ -147,7 +154,7 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		ToSql()
 	_, err = t.Select(&updatedStatuses, selectQuery, selectParams...)
 	if err != nil {
-		return nil, errors.Wrap(err, "getExpiredDNDStatusesT: failed to get updated dnd statuses")
+		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get updated statuses")
 	}
 	return updatedStatuses, nil
 }
@@ -169,7 +176,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		return statuses, nil
 	}
 
-	queryString, args, _ := s.getQueryBuilder().
+	queryString, args, err := s.getQueryBuilder().
 		Update("Status").
 		Where(
 			sq.And{
@@ -184,6 +191,10 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		Set("Manual", false).
 		Suffix("RETURNING *").
 		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
 
 	rows, err := s.GetMaster().Query(queryString, args...)
 	if err != nil {

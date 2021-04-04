@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -283,7 +282,7 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-// SetStatusDoNotDisturbTimed takes endtime in RFC3339 string format in UTC
+// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
 func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
@@ -300,7 +299,7 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
-	status.DNDEndTimeUnix = time.Unix(endtime, 0).UTC().Unix()
+	status.DNDEndTimeUnix = endtime
 
 	a.SaveAndBroadcastStatus(status)
 }
@@ -394,6 +393,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
+		return
 	}
 	for i := range statuses {
 		a.AddStatusCache(statuses[i])
