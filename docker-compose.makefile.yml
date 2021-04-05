@@ -1,6 +1,7 @@
 version: '2.4'
 services:
   mysql:
+    platform: linux/x86_64
     restart: 'no'
     container_name: mattermost-mysql
     ports:
