@@ -14,11 +14,12 @@ import (
 
 type ChannelCounts struct {
 	Counts      map[string]int64 `json:"counts"`
+	CountsRoot  map[string]int64 `json:"counts_root"`
 	UpdateTimes map[string]int64 `json:"update_times"`
 }
 
 func (o *ChannelCounts) Etag() string {
-
+	// we don't include CountsRoot in ETag calculation, since it's a deriviative
 	ids := []string{}
 	for id := range o.Counts {
 		ids = append(ids, id)
