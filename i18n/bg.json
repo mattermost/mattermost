@@ -8479,10 +8479,6 @@
     "translation": "Неуспешно търсене на износния файл."
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "Невалидна Origin заглавка при обновяване на websocket."
-  },
-  {
     "id": "app.user.send_emails.app_error",
     "translation": "Няма успешно изпратена ел.поща"
   },
