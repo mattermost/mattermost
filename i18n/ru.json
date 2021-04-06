@@ -8981,7 +8981,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Не удалось получить удалённые кластеры: {{.Error}"
+    "translation": "Не удалось получить удалённые кластеры: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
