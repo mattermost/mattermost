@@ -303,7 +303,9 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
-			mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			}
 		})
 	}
 

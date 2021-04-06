@@ -775,7 +775,9 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
-			mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			}
 		})
 	}
 
@@ -1031,7 +1033,9 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
-			mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			}
 		})
 	}
 
