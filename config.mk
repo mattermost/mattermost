@@ -24,4 +24,4 @@ RUN_SERVER_IN_BACKGROUND ?= true
 LDAP_DATA ?= test
 
 # Mock the CWS.
-MM_ENABLE_CWS_MOCK = false
+MM_ENABLE_CWS_MOCK ?= false
