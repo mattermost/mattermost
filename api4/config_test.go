@@ -77,8 +77,8 @@ func TestGetConfigWithAccessTag(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole environment config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id, model.SYSTEM_USER_ROLE_ID)
 
 	cfg, resp := th.Client.GetConfig()
 	CheckNoError(t, resp)
@@ -268,8 +268,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 
 	// add read sysconsole integrations config
-	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
-	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.SYSTEM_USER_ROLE_ID)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -289,8 +289,8 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id, model.SYSTEM_USER_ROLE_ID)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -299,7 +299,7 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		CheckNoError(t, resp)
 
 		// ensure the config setting was not updated
-		cfg, resp = th.Client.GetConfig()
+		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
 	})
@@ -309,8 +309,10 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id, model.SYSTEM_USER_ROLE_ID)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -477,15 +479,17 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
 		th.LoginTeamAdminWithClient(TeamAdminClient)
 
-		_, resp := TeamAdminClient.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := TeamAdminClient.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as regular user", func(t *testing.T) {
 		Client := th.Client
 
-		_, resp := Client.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
+		envConfig, resp := Client.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+		require.Empty(t, envConfig)
 	})
 
 	t.Run("as not-regular user", func(t *testing.T) {
