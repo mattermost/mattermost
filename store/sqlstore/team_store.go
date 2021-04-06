@@ -410,7 +410,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 	if opts.PolicyID != nil && *opts.PolicyID != "" {
 		query = query.
 			InnerJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").
-			Where("RetentionPoliciesTeams.PolicyId = ?", *opts.PolicyID)
+			Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": *opts.PolicyID})
 	} else if opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained {
 		query = query.
 			LeftJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").

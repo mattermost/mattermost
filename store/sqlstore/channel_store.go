@@ -2683,7 +2683,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	if opts.PolicyID != "" {
 		query = query.
 			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
-			Where("RetentionPoliciesChannels.PolicyId = ?", opts.PolicyID)
+			Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": opts.PolicyID})
 	} else if opts.ExcludePolicyConstrained {
 		query = query.
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
