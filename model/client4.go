@@ -19,27 +19,29 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID         = "X-Request-ID"
-	HEADER_VERSION_ID         = "X-Version-ID"
-	HEADER_CLUSTER_ID         = "X-Cluster-ID"
-	HEADER_ETAG_SERVER        = "ETag"
-	HEADER_ETAG_CLIENT        = "If-None-Match"
-	HEADER_FORWARDED          = "X-Forwarded-For"
-	HEADER_REAL_IP            = "X-Real-IP"
-	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
-	HEADER_TOKEN              = "token"
-	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
-	HEADER_BEARER             = "BEARER"
-	HEADER_AUTH               = "Authorization"
-	HEADER_CLOUD_TOKEN        = "X-Cloud-Token"
-	HEADER_REQUESTED_WITH     = "X-Requested-With"
-	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
-	HEADER_RANGE              = "Range"
-	STATUS                    = "status"
-	STATUS_OK                 = "OK"
-	STATUS_FAIL               = "FAIL"
-	STATUS_UNHEALTHY          = "UNHEALTHY"
-	STATUS_REMOVE             = "REMOVE"
+	HEADER_REQUEST_ID          = "X-Request-ID"
+	HEADER_VERSION_ID          = "X-Version-ID"
+	HEADER_CLUSTER_ID          = "X-Cluster-ID"
+	HEADER_ETAG_SERVER         = "ETag"
+	HEADER_ETAG_CLIENT         = "If-None-Match"
+	HEADER_FORWARDED           = "X-Forwarded-For"
+	HEADER_REAL_IP             = "X-Real-IP"
+	HEADER_FORWARDED_PROTO     = "X-Forwarded-Proto"
+	HEADER_TOKEN               = "token"
+	HEADER_CSRF_TOKEN          = "X-CSRF-Token"
+	HEADER_BEARER              = "BEARER"
+	HEADER_AUTH                = "Authorization"
+	HEADER_CLOUD_TOKEN         = "X-Cloud-Token"
+	HEADER_REMOTECLUSTER_TOKEN = "X-RemoteCluster-Token"
+	HEADER_REMOTECLUSTER_ID    = "X-RemoteCluster-Id"
+	HEADER_REQUESTED_WITH      = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML  = "XMLHttpRequest"
+	HEADER_RANGE               = "Range"
+	STATUS                     = "status"
+	STATUS_OK                  = "OK"
+	STATUS_FAIL                = "FAIL"
+	STATUS_UNHEALTHY           = "UNHEALTHY"
+	STATUS_REMOVE              = "REMOVE"
 
 	CLIENT_DIR = "client"
 
@@ -557,6 +559,14 @@ func (c *Client4) GetExportsRoute() string {
 
 func (c *Client4) GetExportRoute(name string) string {
 	return fmt.Sprintf(c.GetExportsRoute()+"/%v", name)
+}
+
+func (c *Client4) GetRemoteClusterRoute() string {
+	return "/remotecluster"
+}
+
+func (c *Client4) GetSharedChannelsRoute() string {
+	return "/sharedchannels"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -5907,20 +5917,6 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 	return n, BuildResponse(r)
 }
 
-func (c *Client4) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *Response) {
-	url := c.GetUserThreadsRoute(userId, teamId)
-	r, appErr := c.DoApiGet(url+"/mention_counts", "")
-	if appErr != nil {
-		return nil, BuildErrorResponse(r, appErr)
-	}
-	defer closeBody(r)
-
-	var counts map[string]int64
-	json.NewDecoder(r.Body).Decode(&counts)
-
-	return counts, BuildResponse(r)
-}
-
 func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
 	v := url.Values{}
 	if options.Since != 0 {
@@ -6034,4 +6030,32 @@ func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
 	defer closeBody(r)
 
 	return BuildResponse(r)
+}
+
+func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response) {
+	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.GetSharedChannelsRoute(), teamID, page, perPage)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var channels []*SharedChannel
+	json.NewDecoder(r.Body).Decode(&channels)
+
+	return channels, BuildResponse(r)
+}
+
+func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Response) {
+	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteID)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var rci RemoteClusterInfo
+	json.NewDecoder(r.Body).Decode(&rci)
+
+	return rci, BuildResponse(r)
 }

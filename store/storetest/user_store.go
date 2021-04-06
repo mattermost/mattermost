@@ -2296,7 +2296,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false, false)
 	require.NoError(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2307,7 +2307,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false, false)
 	require.NoError(t, nErr)
 
 	p3 := model.Post{}
@@ -2317,7 +2317,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.NoError(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false, false)
 	require.NoError(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
@@ -4896,7 +4896,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
@@ -4941,7 +4941,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
@@ -5037,7 +5037,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
@@ -5082,7 +5082,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
@@ -5148,7 +5148,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user1.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user1.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
@@ -5162,7 +5162,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
 
-		notUpdatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user2.Id)
+		notUpdatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user2.Id)
 		require.NoError(t, nErr)
 		require.True(t, notUpdatedChannelMember.SchemeGuest)
 		require.False(t, notUpdatedChannelMember.SchemeUser)
@@ -5209,7 +5209,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, updatedUser.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5252,7 +5252,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5342,7 +5342,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5385,7 +5385,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5449,7 +5449,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user1.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user1.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5463,7 +5463,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)
 
-		notUpdatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user2.Id)
+		notUpdatedChannelMember, nErr := ss.Channel().GetMember(context.Background(), channel.Id, user2.Id)
 		require.NoError(t, nErr)
 		require.False(t, notUpdatedChannelMember.SchemeGuest)
 		require.True(t, notUpdatedChannelMember.SchemeUser)
