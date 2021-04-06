@@ -373,6 +373,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
+	EnableReliableWebSockets                          *bool   `access:"experimental"` // telemetry: none
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -818,6 +819,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableLegacySidebar == nil {
 		s.EnableLegacySidebar = NewBool(false)
 	}
+
+	if s.EnableReliableWebSockets == nil {
+		s.EnableReliableWebSockets = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -935,6 +940,7 @@ type ExperimentalSettings struct {
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
+	EnableRemoteClusterService      *bool   `access:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -973,6 +979,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableSharedChannels == nil {
 		s.EnableSharedChannels = NewBool(false)
+	}
+
+	if s.EnableRemoteClusterService == nil {
+		s.EnableRemoteClusterService = NewBool(false)
 	}
 }
 

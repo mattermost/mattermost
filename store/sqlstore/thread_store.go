@@ -109,35 +109,6 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
-func (s *SqlThreadStore) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error) {
-	type Count struct {
-		UnreadMentions int64
-		ChannelId      string
-	}
-	var counts []Count
-
-	sql, args, _ := s.getQueryBuilder().
-		Select("SUM(UnreadMentions) as UnreadMentions", "ChannelId").
-		From("ThreadMemberships").
-		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-		LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-		Where(sq.And{
-			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-			sq.Eq{"ThreadMemberships.UserId": userId},
-			sq.Eq{"ThreadMemberships.Following": true},
-		}).
-		GroupBy("Threads.ChannelId").ToSql()
-
-	if _, err := s.GetMaster().Select(&counts, sql, args...); err != nil {
-		return nil, err
-	}
-	result := map[string]int64{}
-	for _, count := range counts {
-		result[count.ChannelId] = count.UnreadMentions
-	}
-	return result, nil
-}
-
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	type JoinedThread struct {
 		PostId         string
