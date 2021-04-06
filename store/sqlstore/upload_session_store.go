@@ -29,6 +29,8 @@ func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("Filename").SetMaxSize(256)
 		table.ColMap("Path").SetMaxSize(512)
+		table.ColMap("RemoteId").SetMaxSize(26)
+		table.ColMap("ReqFileId").SetMaxSize(26)
 	}
 	return s
 }

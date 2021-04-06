@@ -42,13 +42,13 @@ func (_m *ProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNoti
 	return r0
 }
 
-// GetViews provides a mock function with given fields: userId
-func (_m *ProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeViewState, error) {
-	ret := _m.Called(userId)
+// GetViews provides a mock function with given fields: userID
+func (_m *ProductNoticesStore) GetViews(userID string) ([]model.ProductNoticeViewState, error) {
+	ret := _m.Called(userID)
 
 	var r0 []model.ProductNoticeViewState
 	if rf, ok := ret.Get(0).(func(string) []model.ProductNoticeViewState); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]model.ProductNoticeViewState)
@@ -57,7 +57,7 @@ func (_m *ProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeVie
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -65,13 +65,13 @@ func (_m *ProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeVie
 	return r0, r1
 }
 
-// View provides a mock function with given fields: userId, notices
-func (_m *ProductNoticesStore) View(userId string, notices []string) error {
-	ret := _m.Called(userId, notices)
+// View provides a mock function with given fields: userID, notices
+func (_m *ProductNoticesStore) View(userID string, notices []string) error {
+	ret := _m.Called(userID, notices)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(userId, notices)
+		r0 = rf(userID, notices)
 	} else {
 		r0 = ret.Error(0)
 	}

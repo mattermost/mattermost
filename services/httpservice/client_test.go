@@ -67,7 +67,7 @@ func TestHTTPClient(t *testing.T) {
 		testCases := []struct {
 			description     string
 			allowHost       func(string) bool
-			allowIp         func(net.IP) bool
+			allowIP         func(net.IP) bool
 			expectedAllowed bool
 		}{
 			{"allow with no checks", nil, nil, true},
@@ -84,7 +84,7 @@ func TestHTTPClient(t *testing.T) {
 		}
 		for _, testCase := range testCases {
 			t.Run(testCase.description, func(t *testing.T) {
-				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIp))
+				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIP))
 				if _, err := c.Get(mockHTTP.URL); testCase.expectedAllowed {
 					require.NoError(t, err)
 				} else {

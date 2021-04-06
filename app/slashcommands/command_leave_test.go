@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,11 +41,11 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	guest := th.createGuest()
 
 	th.App.AddUserToTeam(th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
-	th.App.AddUserToChannel(th.BasicUser, publicChannel)
-	th.App.AddUserToChannel(th.BasicUser, privateChannel)
+	th.App.AddUserToChannel(th.BasicUser, publicChannel, false)
+	th.App.AddUserToChannel(th.BasicUser, privateChannel, false)
 	th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, guest.Id)
-	th.App.AddUserToChannel(guest, publicChannel)
-	th.App.AddUserToChannel(guest, defaultChannel)
+	th.App.AddUserToChannel(guest, publicChannel, false)
+	th.App.AddUserToChannel(guest, defaultChannel, false)
 
 	t.Run("Should error when no Channel ID in args", func(t *testing.T) {
 		args := &model.CommandArgs{
@@ -80,7 +81,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+model.DEFAULT_CHANNEL, actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
-		_, err = th.App.GetChannelMember(publicChannel.Id, th.BasicUser.Id)
+		_, err = th.App.GetChannelMember(context.Background(), publicChannel.Id, th.BasicUser.Id)
 		assert.NotNil(t, err)
 		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
@@ -122,7 +123,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		assert.Equal(t, args.SiteURL+"/"+th.BasicTeam.Name+"/channels/"+publicChannel.Name, actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
-		_, err = th.App.GetChannelMember(defaultChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), defaultChannel.Id, guest.Id)
 		assert.NotNil(t, err)
 		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
@@ -140,7 +141,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		assert.Equal(t, args.SiteURL+"/", actual.GotoLocation)
 		assert.Equal(t, "", actual.ResponseType)
 
-		_, err = th.App.GetChannelMember(publicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(context.Background(), publicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
 		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
