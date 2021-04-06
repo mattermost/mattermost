@@ -3050,12 +3050,17 @@ const ConfigAccessTagType = "access"
 const ConfigAccessTagWriteRestrictable = "write_restrictable"
 const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
 
+// Allows read access if any PERMISSION_SYSCONSOLE_READ_* is allowed
+const ConfigAccessTagAnySysConsoleRead = "*_read"
+
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
 // PERMISSION_SYSCONSOLE_*_* permission Id: 'about', 'reporting', 'user_management_users',
 // 'user_management_groups', 'user_management_teams', 'user_management_channels',
 // 'user_management_permissions', 'environment', 'site', 'authentication', 'plugins',
 // 'integrations', 'compliance', 'plugins', and 'experimental'. They grant read and/or write access to the config field
 // to roles without PERMISSION_MANAGE_SYSTEM.
+//
+// The 'access' tag '*_read' checks for any SYSCONSOLE read permission and grants access if any read permission is allowed.
 //
 // By default config values can be written with PERMISSION_MANAGE_SYSTEM, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
@@ -3119,7 +3124,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `json:",omitempty"` // telemetry: none
+	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"` // telemetry: none
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
 }
