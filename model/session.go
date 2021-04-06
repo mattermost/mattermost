@@ -26,6 +26,7 @@ const (
 	SESSION_PROP_IS_BOT_VALUE         = "true"
 	SESSION_TYPE_USER_ACCESS_TOKEN    = "UserAccessToken"
 	SESSION_TYPE_CLOUD_KEY            = "CloudKey"
+	SESSION_TYPE_REMOTECLUSTER_TOKEN  = "RemoteClusterToken"
 	SESSION_PROP_IS_GUEST             = "is_guest"
 	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years

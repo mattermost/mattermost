@@ -177,8 +177,8 @@ func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 }
 
 // Append tokens to passed baseUrl as query params
-func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
-	u, err := url.Parse(baseUrl)
+func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
+	u, err := url.Parse(baseURL)
 	if err != nil {
 		return ""
 	}

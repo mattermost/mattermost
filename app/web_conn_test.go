@@ -6,6 +6,7 @@ package app
 import (
 	"testing"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -97,4 +98,37 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 
 	event3 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "wrongId", "", "", nil)
 	assert.False(t, basicUserWc.shouldSendEvent(event3))
+}
+
+func TestWebConnDeadQueue(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableReliableWebSockets = true })
+
+	session := model.Session{
+		Id: model.NewId(),
+	}
+
+	wc := th.App.NewWebConn(&websocket.Conn{}, session, nil, "")
+
+	for i := 0; i < 2; i++ {
+		msg := &model.WebSocketEvent{}
+		msg = msg.SetSequence(int64(i))
+		wc.addToDeadQueue(msg)
+	}
+
+	for i := 0; i < 2; i++ {
+		assert.Equal(t, int64(i), wc.deadQueue[i].(*model.WebSocketEvent).GetSequence())
+	}
+
+	// Should push out the first two elements
+	for i := 0; i < deadQueueSize; i++ {
+		msg := &model.WebSocketEvent{}
+		msg = msg.SetSequence(int64(i + 2))
+		wc.addToDeadQueue(msg)
+	}
+	for i := 0; i < deadQueueSize; i++ {
+		assert.Equal(t, int64(i+2), wc.deadQueue[(i+2)%deadQueueSize].(*model.WebSocketEvent).GetSequence())
+	}
 }

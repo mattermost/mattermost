@@ -378,10 +378,10 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		guest, err := th.App.CreateGuest(guest)
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToChannel(guest, th.BasicChannel)
+		_, err = th.App.AddUserToChannel(guest, th.BasicChannel, false)
 		require.Nil(t, err)
 
 		guestClient := th.CreateClient()
@@ -5151,11 +5151,11 @@ func TestGetKnownUsers(t *testing.T) {
 	th.LinkUserToTeam(u3, t2)
 	th.LinkUserToTeam(u4, t3)
 
-	th.App.AddUserToChannel(u1, c1)
-	th.App.AddUserToChannel(u1, c2)
-	th.App.AddUserToChannel(u2, c1)
-	th.App.AddUserToChannel(u3, c2)
-	th.App.AddUserToChannel(u4, c3)
+	th.App.AddUserToChannel(u1, c1, false)
+	th.App.AddUserToChannel(u1, c2, false)
+	th.App.AddUserToChannel(u2, c1, false)
+	th.App.AddUserToChannel(u3, c2, false)
+	th.App.AddUserToChannel(u4, c3, false)
 
 	t.Run("get know users sharing no channels", func(t *testing.T) {
 		_, _ = th.Client.Login(u4.Email, u4.Password)
@@ -5840,11 +5840,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
-	checkMentionCounts := func(client *model.Client4, userId string, expected map[string]int64) {
-		actual, resp2 := client.GetThreadMentionsForUserPerChannel(userId, th.BasicTeam.Id)
-		CheckNoError(t, resp2)
-		require.EqualValues(t, expected, actual)
-	}
 	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
 		uss, resp := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -5870,7 +5865,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	// create reply and mention the original poster and another user
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username, RootId: rpost.Id})
 
-	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1})
 	// basic user 1 was mentioned 1 time
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
 	// basic user 2 was mentioned 1 time
@@ -5899,7 +5893,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
 	// expect increment by two mentions
 	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
-	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1, dm.Id: 2})
 }
 
 func TestReadThreads(t *testing.T) {
