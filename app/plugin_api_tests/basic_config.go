@@ -6,17 +6,17 @@ package plugin_api_tests
 import "reflect"
 
 type BasicConfig struct {
-	BasicChannelId       string
+	BasicChannelID       string
 	BasicChannelName     string
-	BasicPostId          string
+	BasicPostID          string
 	BasicPostMessage     string
 	BasicTeamDisplayName string
-	BasicTeamId          string
+	BasicTeamID          string
 	BasicTeamName        string
 	BasicUser2Email      string
 	BasicUser2Id         string
 	BasicUserEmail       string
-	BasicUserId          string
+	BasicUserID          string
 }
 
 func IsEmpty(object interface{}) bool {
