@@ -8773,5 +8773,21 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Alan JSON olarak kodlanamadı"
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Kopya gecikme sorgularının sayısı, yapılandırılmış kopya sayısından fazla. Kopya sayısından küçük ya da eşit olmalıdır."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Mağazada ilk yönetici ziyareti durum bilgisi kaydedilirken sorun çıktı."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Mağazadan ilk yönetici ziyareti durum bilgisi alınırken sorun çıktı."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Ön bellek temizlenirken sorun çıktı"
   }
 ]
