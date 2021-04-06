@@ -40,18 +40,18 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 
 	startTime, err := command.Flags().GetInt64("from")
 	if err != nil {
-		return errors.New("from flag error")
+		return errors.New("\"from\" flag error")
 	}
 	if startTime < 0 {
-		return errors.New("from must be a positive integer")
+		return errors.New("\"from\" must be a positive integer")
 	}
 
 	endTime, err := command.Flags().GetInt64("to")
 	if err != nil {
-		return errors.New("to flag error")
+		return errors.New("\"to\" flag error")
 	}
 	if endTime < startTime {
-		return errors.New("to must be greater than from")
+		return errors.New("\"to\" must be greater than from")
 	}
 
 	since := startTime
