@@ -56,6 +56,7 @@ const (
 	USER_NAME_MIN_LENGTH      = 1
 	USER_PASSWORD_MAX_LENGTH  = 72
 	USER_LOCALE_MAX_LENGTH    = 5
+	USER_TIMEZONE_MAX_RUNES   = 256
 )
 
 //msgp:tuple User
@@ -318,6 +319,14 @@ func (u *User) IsValid() *AppError {
 
 	if !IsValidLocale(u.Locale) {
 		return InvalidUserError("locale", u.Id)
+	}
+
+	if len(u.Timezone) > 0 {
+		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if utf8.RuneCount(tzJSON) > USER_TIMEZONE_MAX_RUNES {
+			return InvalidUserError("timezone_limit", u.Id)
+		}
 	}
 
 	return nil

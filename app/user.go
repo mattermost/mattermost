@@ -96,7 +96,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	if token.Type == TokenTypeGuestInvitation {
 		for _, channel := range channels {
-			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
+			_, err := a.AddChannelMember(ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
 				mlog.Warn("Failed to add channel member", mlog.Err(err))
 			}
@@ -149,7 +149,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -2399,14 +2399,6 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 		thread.Post.SanitizeProps()
 	}
 	return threads, nil
-}
-
-func (a *App) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *model.AppError) {
-	res, err := a.Srv().Store.Thread().GetThreadMentionsForUserPerChannel(userId, teamId)
-	if err != nil {
-		return nil, model.NewAppError("GetThreadMentionsForUserPerChannel", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return res, nil
 }
 
 func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {

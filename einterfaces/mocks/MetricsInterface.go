@@ -180,6 +180,11 @@ func (_m *MetricsInterface) IncrementPostsSearchCounter() {
 	_m.Called()
 }
 
+// IncrementRemoteClusterConnStateChangeCounter provides a mock function with given fields: remoteID, online
+func (_m *MetricsInterface) IncrementRemoteClusterConnStateChangeCounter(remoteID string, online bool) {
+	_m.Called(remoteID, online)
+}
+
 // IncrementRemoteClusterMsgErrorsCounter provides a mock function with given fields: remoteID, timeout
 func (_m *MetricsInterface) IncrementRemoteClusterMsgErrorsCounter(remoteID string, timeout bool) {
 	_m.Called(remoteID, timeout)
@@ -288,4 +293,14 @@ func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success st
 // Register provides a mock function with given fields:
 func (_m *MetricsInterface) Register() {
 	_m.Called()
+}
+
+// SetReplicaLagAbsolute provides a mock function with given fields: node, value
+func (_m *MetricsInterface) SetReplicaLagAbsolute(node string, value float64) {
+	_m.Called(node, value)
+}
+
+// SetReplicaLagTime provides a mock function with given fields: node, value
+func (_m *MetricsInterface) SetReplicaLagTime(node string, value float64) {
+	_m.Called(node, value)
 }

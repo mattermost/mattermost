@@ -431,21 +431,29 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
-	s, err := NewServer()
+	configStore, _ := config.NewMemoryStore()
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+	cfg := store.Get()
+	testDir, _ := fileutils.FindDir("tests")
+
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+	cfg.ServiceSettings.TLSOverwriteCiphers = []string{
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+	}
+	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	store.Set(cfg)
+
+	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		cfg.ServiceSettings.TLSOverwriteCiphers = []string{
-			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-			"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-		}
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-	})
-	serverErr := s.Start()
+	err = s.Start()
+	require.NoError(t, err)
+
+	defer s.Shutdown()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -460,9 +468,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.Error(t, err, "Expected error due to Cipher mismatch")
-	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
-		t.Errorf("Expected protocol version error, got %s", err)
-	}
+	require.Contains(t, err.Error(), "remote error: tls: handshake failure", "Expected protocol version error")
 
 	client.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -476,18 +482,11 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	}
 
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
-
-	if err != nil {
-		t.Errorf("Expected nil, got %s", err)
-	}
-
-	s.Shutdown()
-	require.NoError(t, serverErr)
+	require.NoError(t, err)
 }
 
 func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 	res, err := client.Get(url)
-
 	if err != nil {
 		return err
 	}
@@ -607,20 +606,19 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore, nil, false)
-			server.configStore = store
-			server.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.ListenAddress = ":0"
-				*cfg.LogSettings.EnableSentry = false
-				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-				*cfg.LogSettings.EnableDiagnostics = true
-			})
-			return nil
-		})
+		configStore, _ := config.NewMemoryStore()
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		cfg := store.Get()
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.LogSettings.EnableSentry = false
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+		*cfg.LogSettings.EnableDiagnostics = true
+
+		store.Set(cfg)
+
+		s, err := NewServer(ConfigStore(store))
 		require.NoError(t, err)
 
 		// Route for just panicing
@@ -658,20 +656,19 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore, nil, false)
-			server.configStore = store
-			server.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.ListenAddress = ":0"
-				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-				*cfg.LogSettings.EnableSentry = true
-				*cfg.LogSettings.EnableDiagnostics = true
-			})
-			return nil
-		})
+		configStore, _ := config.NewMemoryStore()
+		store, _ := config.NewStoreFromBacking(configStore, nil, false)
+		cfg := store.Get()
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+		*cfg.LogSettings.EnableSentry = true
+		*cfg.LogSettings.EnableDiagnostics = true
+
+		store.Set(cfg)
+
+		s, err := NewServer(ConfigStore(store))
 		require.NoError(t, err)
 
 		// Route for just panicing
