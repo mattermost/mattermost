@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -477,31 +478,31 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	// For now, don't allow overriding these via the plugin API.
-	userRequestorId := ""
-	postRootId := ""
-
 	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+		// For now, don't allow overriding these via the plugin API.
+		UserRequestorID: "",
+		PostRootID:      "",
+	})
 }
 
-func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
-	postRootId := ""
-
+func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
 	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, asUserId, postRootId)
+	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+		UserRequestorID: asUserID,
+	})
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(channelID, userID)
+	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
 func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {

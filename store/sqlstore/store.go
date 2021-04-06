@@ -106,6 +106,7 @@ type SqlStoreStores struct {
 	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
+	remoteCluster        store.RemoteClusterStore
 	compliance           store.ComplianceStore
 	session              store.SessionStore
 	oauth                store.OAuthStore
@@ -132,6 +133,7 @@ type SqlStoreStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	sharedchannel        store.SharedChannelStore
 }
 
 type SqlStore struct {
@@ -192,6 +194,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
 	store.stores.cluster = newSqlClusterDiscoveryStore(store)
+	store.stores.remoteCluster = newSqlRemoteClusterStore(store)
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
@@ -214,6 +217,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.TermsOfService = newSqlTermsOfServiceStore(store, metrics)
 	store.stores.UserTermsOfService = newSqlUserTermsOfServiceStore(store)
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
+	store.stores.sharedchannel = newSqlSharedChannelStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
@@ -265,8 +269,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
+	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
 	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
+	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -1261,6 +1267,10 @@ func (ss *SqlStore) ClusterDiscovery() store.ClusterDiscoveryStore {
 	return ss.stores.cluster
 }
 
+func (ss *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	return ss.stores.remoteCluster
+}
+
 func (ss *SqlStore) Compliance() store.ComplianceStore {
 	return ss.stores.compliance
 }
@@ -1363,6 +1373,10 @@ func (ss *SqlStore) Group() store.GroupStore {
 
 func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
+}
+
+func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
+	return ss.stores.sharedchannel
 }
 
 func (ss *SqlStore) DropAllTables() {
