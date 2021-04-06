@@ -4211,7 +4211,24 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		_, err := th.App.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rootId, model.GetMillis())
 		return "", err
 	}
+	mark_thread_unread := func(th *TestHelper, rootId string) (string, *model.AppError) {
+		_, err := th.App.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rootId, 0)
+		return "", err
+	}
+	type testFunc func(th *TestHelper, rootId string) (string, *model.AppError)
+	combine := func(f1, f2 testFunc) testFunc {
+		return func(th *TestHelper, rootId string) (string, *model.AppError) {
+			rid, err := f1(th, "")
+			if err == nil {
+				_, e := f2(th, "")
+				return rid, e
+			}
+			return "", err
+		}
+	}
+
 	type testCase struct {
+		title       string
 		clientType  client
 		preparation func(th *TestHelper, rootId string) (string, *model.AppError)
 		action      func(th *TestHelper, rootId string) (string, *model.AppError)
@@ -4222,47 +4239,39 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		mentionCountRoot     int
 		unreadThreads        int
 		unreadThreadMentions int
-		somethingDot         int
 	}
-	_ = create_followed_thread
-	_ = new_root_post
-	_ = new_root_post_with_mention
-	_ = create_unfollowed_thread
-	_ = new_reply_post_to_thread
-	_ = new_reply_post_to_thread_with_mention
-	_ = open_thread
-	_ = open_followed_thread
-	_ = create_followed_thread_unread
+
 	testCases := []testCase{
-		// {CLIENT_NA, nil, new_root_post, 1, 0, 1, 0, 0, 0, 0},
-		// {CLIENT_NA, nil, new_root_post_with_mention, 1, 1, 1, 1, 0, 0, 0},
-		// {CLIENT_NA, create_unfollowed_thread, new_reply_post_to_thread, 1, 0, 0, 0, 0, 0, 0},
-		// {CLIENT_NA, create_followed_thread, new_reply_post_to_thread, 1, 0, 0, 0, 1, 0, 1},
-		// {CLIENT_NA, new_root_post, new_reply_post_to_thread_with_mention, 1, 1, 0, 0, 1, 1, 1},
+		{"New Root post", CLIENT_NA, nil, new_root_post, 1, 0, 1, 0, 0, 0},
+		{"New Root post with mention", CLIENT_NA, nil, new_root_post_with_mention, 1, 1, 1, 1, 0, 0},
+		{"New Reply post to unfollowed thread", CLIENT_NA, create_unfollowed_thread, new_reply_post_to_thread, 1, 0, 0, 0, 0, 0},
+		{"New Reply post to followed thread", CLIENT_NA, create_followed_thread, new_reply_post_to_thread, 1, 0, 0, 0, 1, 0},
+		{"New Reply post with mention", CLIENT_NA, new_root_post, new_reply_post_to_thread_with_mention, 1, 1, 0, 0, 1, 1},
 
-		// {CLIENT_WEB, new_root_post, open_an_unread_channel, -1, 0, -1, 0, 0, 0, 0},
-		// {CLIENT_WEB, new_root_post_with_mention, open_an_unread_channel, -1, -1, -1, -1, 0, 0, 0},
-		// {CLIENT_WEB, create_unfollowed_thread, open_thread, 0, 0, 0, 0, 0, 0, 0},
+		{"Open an unread channel", CLIENT_WEB, new_root_post, open_an_unread_channel, -1, 0, -1, 0, 0, 0},
+		{"Open an unread channel with mentions", CLIENT_WEB, new_root_post_with_mention, open_an_unread_channel, -1, -1, -1, -1, 0, 0},
+		{"Open an unfollowed thread", CLIENT_WEB, create_unfollowed_thread, open_thread, 0, 0, 0, 0, 0, 0},
 
-		// {CLIENT_WEB, create_followed_thread_unread, open_followed_thread, 0, 0, 0, 0, -1, -1, -1},
+		{"Open a followed thread", CLIENT_WEB, create_followed_thread_unread, open_followed_thread, 0, 0, 0, 0, -1, -1},
 		// TODO: the following two cases will fail since we don't have mobile requests yet
-		// {CLIENT_MOBILE, new_root_post, open_an_unread_channel, -1, 0, -1, 0, -1, 0, -1},
-		// {CLIENT_MOBILE, new_root_post_with_mention, open_an_unread_channel, -1, -1, -1, -1, -1, -1, -1},
+		// {"Open an unread channel", CLIENT_MOBILE, new_root_post, open_an_unread_channel, -1, 0, -1, 0, -1, 0, -1},
+		// {"Open an unread channel with mentions", CLIENT_MOBILE, new_root_post_with_mention, open_an_unread_channel, -1, -1, -1, -1, -1, -1, -1},
 
-		// {CLIENT_WEB, create_followed_thread_unread, mark_all_threads_as_read, 0, 0, 0, 0, -1, -1, -1},
+		{"Mark all threads as read from threads inbox view", CLIENT_WEB, create_followed_thread_unread, mark_all_threads_as_read, 0, 0, 0, 0, -1, -1},
 
-		{CLIENT_WEB, create_followed_thread, mark_post_unread, 1, 1, 0, 0, 1, 0, 1},
-		// {CLIENT_WEB, nil, mark_root_post_with_mention_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_thread_as_unread_from_menu_in_rhs_or_thread_viewer,nil,  true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_as_unread_from_in_channel, nil, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_root_post_with_mention_as_unread_from_in_channel,nil,  true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_reply_message_as_unread, nil, true, false, true, false, false, false, false},
-		// {CLIENT_WEB, mark_reply_with_mention_as_unread, nil, true, false, true, false, false, false, false},
+		// {"Mark root post as unread from threads inbox view or RHS", CLIENT_WEB, create_followed_thread, mark_post_unread, 1, 1, 0, 0, 1, 0, 1},
+		// {"Mark root post with mention as unread from threads inbox view or RHS", CLIENT_WEB, nil, mark_root_post_with_mention_as_unread_from_threads_inbox_view_or_rhs, true, false, true, false, false, false, false},
+		{"Mark thread as unread from ... menu in thread viewer", CLIENT_WEB, create_followed_thread, mark_thread_unread, 0, 0, 0, 0, 1, 1},
+		{"Mark root post as unread from in channel", CLIENT_WEB, combine(new_root_post, open_an_unread_channel), mark_post_unread, 1, 0, 1, 0, 0, 0},
+		{"Mark root post with mention as unread from in channel", CLIENT_WEB, combine(new_root_post_with_mention, open_an_unread_channel), mark_post_unread, 1, 1, 1, 1, 0, 0},
+		// TODO: enable this test once 'autofollow on mark-as-unread' is implemented
+		//{"Mark reply message as unread", CLIENT_WEB, combine(create_unfollowed_thread, open_an_unread_channel), mark_post_unread, 1, 0, 1, 0, 1, 1},
 
-		// {CLIENT_MOBILE, mark_root_post_as_unread, nil, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_root_post_with_mention_as_unread, nil, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_reply_message_as_unread, nil, true, false, true, false, false, false, false},
-		// {CLIENT_MOBILE, mark_reply_with_mention_as_unread, nil, true, false, true, false, false, false, false},
+		// TODO: the following two cases will fail since we don't have mobile requests yet
+		// {"Mark root post as unread", CLIENT_MOBILE, mark_root_post_as_unread, nil, true, false, true, false, false, false, false},
+		// {"Mark root post with mention as unread", CLIENT_MOBILE, mark_root_post_with_mention_as_unread, nil, true, false, true, false, false, false, false},
+		// {"Mark reply message as unread", CLIENT_MOBILE, mark_reply_message_as_unread, nil, true, false, true, false, false, false, false},
+		// {"Mark reply with mention as unread", CLIENT_MOBILE, mark_reply_with_mention_as_unread, nil, true, false, true, false, false, false, false},
 	}
 	type state struct {
 		msgCount             int64
@@ -4288,17 +4297,18 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 		}
 		return c, err
 	}
-	compareStates := func(t *testing.T, title string, direction int, before, after int64) {
-		if direction > 0 {
-			require.Lessf(t, before, after, "%s comparison failed. before %d after %d", title, before, after)
-		} else if direction < 0 {
-			require.Greaterf(t, before, after, "%s comparison failed. before %d after %d", title, before, after)
+	compareStates := func(t *testing.T, title string, change int, before, after int64) {
+		errStr := title + " comparison failed"
+		if change > 0 {
+			assert.Lessf(t, before, after, errStr)
+		} else if change < 0 {
+			assert.Greaterf(t, before, after, errStr)
 		} else {
-			require.Equalf(t, before, after, "%s comparison failed. before %d after %d", title, before, after)
+			assert.Equalf(t, before, after, errStr)
 		}
 	}
-	for i, testCase := range testCases {
-		t.Run(fmt.Sprintf("Table test %d", i), func(t *testing.T) {
+	for _, testCase := range testCases {
+		t.Run(testCase.title, func(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4324,9 +4334,6 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 			compareStates(t, "unreadThreads", testCase.unreadThreads, state.unreadThreads, stateAfter.unreadThreads)
 			compareStates(t, "unreadThreadMentions", testCase.unreadThreadMentions, state.unreadThreadMentions, stateAfter.unreadThreadMentions)
 
-			// if testCase.threadDot {
-			// 	require.NotEqual(t, state.threadDot, stateAfter.threadDot)
-			// }
 		})
 	}
 }
