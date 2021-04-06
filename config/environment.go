@@ -89,12 +89,12 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 
 // generateEnvironmentMap creates a map[string]interface{} containing true at the leaves mirroring the
 // configuration structure so the client can know which env variables are overridden
-func generateEnvironmentMap(env map[string]string) map[string]interface{} {
+func generateEnvironmentMap(env map[string]string, filter func(reflect.StructField) bool) map[string]interface{} {
 	rType := reflect.TypeOf(model.Config{})
-	return generateEnvironmentMapWithBaseKey(env, rType, "MM")
+	return generateEnvironmentMapWithBaseKey(env, rType, "MM", filter)
 }
 
-func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type, base string) map[string]interface{} {
+func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type, base string, filter func(reflect.StructField) bool) map[string]interface{} {
 	if rType.Kind() != reflect.Struct {
 		return nil
 	}
@@ -102,8 +102,11 @@ func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type
 	mapRepresentation := make(map[string]interface{})
 	for i := 0; i < rType.NumField(); i++ {
 		rField := rType.Field(i)
+		if filter != nil && !filter(rField) {
+			continue
+		}
 		if rField.Type.Kind() == reflect.Struct {
-			if val := generateEnvironmentMapWithBaseKey(env, rField.Type, base+"_"+rField.Name); val != nil {
+			if val := generateEnvironmentMapWithBaseKey(env, rField.Type, base+"_"+rField.Name, filter); val != nil {
 				mapRepresentation[rField.Name] = val
 			}
 		} else {

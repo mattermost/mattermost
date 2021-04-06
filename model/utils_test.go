@@ -40,6 +40,14 @@ func TestGetMillisForTime(t *testing.T) {
 	require.Equalf(t, thisTimeMillis, result, "millis are not the same: %d and %d", thisTimeMillis, result)
 }
 
+func TestGetTimeForMillis(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetTimeForMillis(thisTimeMillis)
+	require.True(t, thisTime.Equal(result))
+}
+
 func TestPadDateStringZeros(t *testing.T) {
 	for _, testCase := range []struct {
 		Name     string
@@ -856,5 +864,38 @@ func TestIsValidHttpUrl(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
 		})
+	}
+}
+
+func TestUniqueStrings(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Result []string
+	}{
+		{
+			Input:  []string{"1", "2", "3", "3", "3"},
+			Result: []string{"1", "2", "3"},
+		},
+		{
+			Input:  []string{"1", "2", "3", "4", "5"},
+			Result: []string{"1", "2", "3", "4", "5"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "3", "3"},
+			Result: []string{"1", "3"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "1", "1"},
+			Result: []string{"1"},
+		},
+		{
+			Input:  []string{},
+			Result: []string{},
+		},
+	}
+
+	for _, tc := range cases {
+		actual := UniqueStrings(tc.Input)
+		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
