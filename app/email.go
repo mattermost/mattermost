@@ -295,7 +295,7 @@ func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, w
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_welcome_email.subject")
 
-	workSpacePath := fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
+	workSpacePath := fmt.Sprintf("https://%s", dns)
 
 	data := es.newEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
