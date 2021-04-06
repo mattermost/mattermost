@@ -81,7 +81,7 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	return obj.(*model.Compliance), nil
 }
 
-func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error) {
+func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	props := map[string]interface{}{"EndTime": job.EndAt, "Limit": limit}
 
 	keywordQuery := ""
@@ -162,7 +162,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor *mode
 		ORDER BY PostCreateAt
 		LIMIT :Limit`
 		if _, err := s.GetReplica().Select(&channelPosts, channelsQuery, props); err != nil {
-			return nil, errors.Wrap(err, "unable to export compliance")
+			return nil, cursor, errors.Wrap(err, "unable to export compliance")
 		}
 		if len(channelPosts) < limit {
 			cursor.ChannelsQueryCompleted = true
@@ -220,7 +220,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor *mode
 		LIMIT :Limit`
 
 		if _, err := s.GetReplica().Select(&directMessagePosts, directMessagesQuery, props); err != nil {
-			return nil, errors.Wrap(err, "unable to export compliance")
+			return nil, cursor, errors.Wrap(err, "unable to export compliance")
 		}
 		if len(directMessagePosts) < limit {
 			cursor.DirectMessagesQueryCompleted = true
@@ -229,7 +229,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor *mode
 		}
 	}
 
-	return append(channelPosts, directMessagePosts...), nil
+	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {

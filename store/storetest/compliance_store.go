@@ -169,39 +169,39 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1}
-	cposts, nErr := ss.Compliance().ComplianceExport(cr1, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr := ss.Compliance().ComplianceExport(cr1, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email}
-	cposts, nErr = ss.Compliance().ComplianceExport(cr2, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr2, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 1)
 	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr3 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email}
-	cposts, nErr = ss.Compliance().ComplianceExport(cr3, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr3, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message}
-	cposts, nErr = ss.Compliance().ComplianceExport(cr4, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr4, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 1)
 	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message + " " + o1.Message}
-	cposts, nErr = ss.Compliance().ComplianceExport(cr5, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr5, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 2)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 
 	cr6 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email, Keywords: o2a.Message + " " + o1.Message}
-	cposts, nErr = ss.Compliance().ComplianceExport(cr6, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr6, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 2)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
@@ -209,13 +209,13 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 
 	t.Run("multiple batches", func(t *testing.T) {
 		cr7 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1}
-		cursor := &model.ComplianceExportCursor{}
-		cposts, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 2)
+		cursor := model.ComplianceExportCursor{}
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[1].PostId, o1a.Id)
-		cposts, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 3)
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 3)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o2.Id)
@@ -308,7 +308,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
-	cposts, nErr := ss.Compliance().ComplianceExport(cr1, &model.ComplianceExportCursor{}, limit)
+	cposts, _, nErr := ss.Compliance().ComplianceExport(cr1, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
@@ -316,32 +316,32 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 
 	t.Run("mix of channel and direct messages", func(t *testing.T) {
 		// This will "cross the boundary" between the two queries
-		cursor := &model.ComplianceExportCursor{}
+		cursor := model.ComplianceExportCursor{}
 		cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
 
-		cposts, nErr := ss.Compliance().ComplianceExport(cr2, cursor, 2)
+		cposts, cursor, nErr := ss.Compliance().ComplianceExport(cr2, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[len(cposts)-1].PostId, o1a.Id)
 
-		cposts, nErr = ss.Compliance().ComplianceExport(cr2, cursor, 2)
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr2, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o2.Id)
 		assert.Equal(t, cposts[len(cposts)-1].PostId, o3.Id)
 
 		// This will exhaust the first query before moving to the next one
-		cursor = &model.ComplianceExportCursor{}
+		cursor = model.ComplianceExportCursor{}
 		cr3 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
 
-		cposts, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 3)
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 3)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 3)
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[len(cposts)-1].PostId, o2.Id)
 
-		cposts, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 2)
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 1)
 		assert.Equal(t, cposts[0].PostId, o3.Id)

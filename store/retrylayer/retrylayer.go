@@ -2864,21 +2864,21 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) error {
 
 }
 
-func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error) {
+func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
+		result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 

@@ -2681,7 +2681,7 @@ func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) error
 	return err
 }
 
-func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor *model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, error) {
+func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.ComplianceExport")
 	s.Root.Store.SetContext(newCtx)
@@ -2690,13 +2690,13 @@ func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Com
 	}()
 
 	defer span.Finish()
-	result, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
+	result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, error) {
