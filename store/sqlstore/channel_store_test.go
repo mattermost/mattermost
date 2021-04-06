@@ -112,7 +112,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 		assert.Equal(t, db.LastViewedAt, m.LastViewedAt)
 		assert.Equal(t, db.MsgCount, m.MsgCount)
 		assert.Equal(t, db.MentionCount, m.MentionCount)
-		assert.False(t, db.MentionCountRoot.Valid)
+		assert.Equal(t, db.MentionCountRoot, m.MentionCountRoot)
 		assert.Equal(t, db.NotifyProps, m.NotifyProps)
 		assert.Equal(t, db.LastUpdateAt, m.LastUpdateAt)
 		assert.Equal(t, db.SchemeGuest.Bool, m.SchemeGuest)

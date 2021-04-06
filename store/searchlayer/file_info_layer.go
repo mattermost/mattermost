@@ -22,7 +22,7 @@ func (s SearchFileInfoStore) indexFile(file *model.FileInfo) {
 				if file.PostId == "" {
 					return
 				}
-				post, postErr := s.rootStore.Post().GetSingle(file.PostId)
+				post, postErr := s.rootStore.Post().GetSingle(file.PostId, false)
 				if postErr != nil {
 					mlog.Error("Couldn't get post for file for SearchEngine indexing.", mlog.String("post_id", file.PostId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id), mlog.Err(postErr))
 					return

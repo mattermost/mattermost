@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -49,8 +50,8 @@ type channelMember struct {
 	SchemeUser       sql.NullBool
 	SchemeAdmin      sql.NullBool
 	SchemeGuest      sql.NullBool
+	MentionCountRoot int64
 	MsgCountRoot     int64
-	MentionCountRoot sql.NullInt64
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
@@ -61,7 +62,7 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 		LastViewedAt:     cm.LastViewedAt,
 		MsgCount:         cm.MsgCount,
 		MentionCount:     cm.MentionCount,
-		MentionCountRoot: sql.NullInt64{Valid: true, Int64: cm.MentionCountRoot},
+		MentionCountRoot: cm.MentionCountRoot,
 		MsgCountRoot:     cm.MsgCountRoot,
 		NotifyProps:      cm.NotifyProps,
 		LastUpdateAt:     cm.LastUpdateAt,
@@ -78,7 +79,7 @@ type channelMemberWithSchemeRoles struct {
 	LastViewedAt                  int64
 	MsgCount                      int64
 	MentionCount                  int64
-	MentionCountRoot              sql.NullInt64
+	MentionCountRoot              int64
 	NotifyProps                   model.StringMap
 	LastUpdateAt                  int64
 	SchemeGuest                   sql.NullBool
@@ -231,25 +232,21 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
 		strings.Fields(db.Roles),
 	)
-	mentionCountRoot := int64(0)
-	if db.MentionCountRoot.Valid {
-		mentionCountRoot = db.MentionCountRoot.Int64
-	}
 	return &model.ChannelMember{
 		ChannelId:        db.ChannelId,
 		UserId:           db.UserId,
 		Roles:            strings.Join(rolesResult.roles, " "),
 		LastViewedAt:     db.LastViewedAt,
 		MsgCount:         db.MsgCount,
+		MsgCountRoot:     db.MsgCountRoot,
 		MentionCount:     db.MentionCount,
-		MentionCountRoot: mentionCountRoot,
+		MentionCountRoot: db.MentionCountRoot,
 		NotifyProps:      db.NotifyProps,
 		LastUpdateAt:     db.LastUpdateAt,
 		SchemeAdmin:      rolesResult.schemeAdmin,
 		SchemeUser:       rolesResult.schemeUser,
 		SchemeGuest:      rolesResult.schemeGuest,
 		ExplicitRoles:    strings.Join(rolesResult.explicitRoles, " "),
-		MsgCountRoot:     db.MsgCountRoot,
 	}
 }
 
@@ -570,14 +567,20 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, err
 }
 
-func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	channel := new(model.Channel)
+
+	for _, option := range channelOptions {
+		option(channel)
+	}
 
 	channel.DisplayName = ""
 	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
 
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
+	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
+	channel.CreatorId = user.Id
 
 	cm1 := &model.ChannelMember{
 		UserId:      user.Id,
@@ -595,13 +598,13 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
-	if directchannel.DeleteAt != 0 {
-		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directchannel.DeleteAt)
+func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	if directChannel.DeleteAt != 0 {
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
 
-	if directchannel.Type != model.CHANNEL_DIRECT {
-		return nil, store.NewErrInvalidInput("Channel", "Type", directchannel.Type)
+	if directChannel.Type != model.CHANNEL_DIRECT {
+		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -610,8 +613,8 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	}
 	defer finalizeTransaction(transaction)
 
-	directchannel.TeamId = ""
-	newChannel, err := s.saveChannelT(transaction, directchannel, 0)
+	directChannel.TeamId = ""
+	newChannel, err := s.saveChannelT(transaction, directChannel, 0)
 	if err != nil {
 		return newChannel, err
 	}
@@ -638,7 +641,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	if channel.Id != "" {
+	if channel.Id != "" && !channel.IsShared() {
 		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
 
@@ -1650,10 +1653,10 @@ func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.S
 	return dbMembersTimezone, nil
 }
 
-func (s SqlChannelStore) GetMember(channelId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMember(ctx context.Context, channelId string, userId string) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 
-	if err := s.GetReplica().SelectOne(&dbMember, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbMember, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelId, userId))
 		}
@@ -1885,7 +1888,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 
 // GetMemberCountsByGroup returns a slice of ChannelMemberCountByGroup for a given channel
 // which contains the number of channel members for each group and optionally the number of unique timezones present for each group in the channel
-func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
+func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error) {
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
@@ -1946,7 +1949,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 	var data []*model.ChannelMemberCountByGroup
-	if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
+	if _, err = s.DBFromContext(ctx).Select(&data, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelID)
 	}
 
@@ -3368,4 +3371,54 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 	}
 
 	return count, nil
+}
+
+// SetShared sets the Shared flag true/false
+func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("Channels").
+		Set("Shared", shared).
+		Where(sq.Eq{"Id": channelId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "channel_set_shared_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update `Shared` for Channels")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", channelId)
+	}
+	return nil
+}
+
+// GetTeamForChannel returns the team for a given channelID.
+func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	nestedQ, nestedArgs, err := s.getQueryBuilder().Select("TeamId").From("Channels").Where(sq.Eq{"Id": channelID}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
+	}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_tosql")
+	}
+
+	team := model.Team{}
+	err = s.GetReplica().SelectOne(&team, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", fmt.Sprintf("channel_id=%s", channelID))
+		}
+		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
+	}
+	return &team, nil
 }

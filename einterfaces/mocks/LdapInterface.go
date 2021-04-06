@@ -46,6 +46,20 @@ func (_m *LdapInterface) CheckPasswordAuthData(authData string, password string)
 	return r0
 }
 
+// CheckProviderAttributes provides a mock function with given fields: LS, ouser, patch
+func (_m *LdapInterface) CheckProviderAttributes(LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+	ret := _m.Called(LS, ouser, patch)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.LdapSettings, *model.User, *model.UserPatch) string); ok {
+		r0 = rf(LS, ouser, patch)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // DoLogin provides a mock function with given fields: id, password
 func (_m *LdapInterface) DoLogin(id string, password string) (*model.User, *model.AppError) {
 	ret := _m.Called(id, password)
@@ -309,13 +323,13 @@ func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Jo
 	return r0, r1
 }
 
-// SwitchToLdap provides a mock function with given fields: userId, ldapId, ldapPassword
-func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword string) *model.AppError {
-	ret := _m.Called(userId, ldapId, ldapPassword)
+// SwitchToLdap provides a mock function with given fields: userID, ldapID, ldapPassword
+func (_m *LdapInterface) SwitchToLdap(userID string, ldapID string, ldapPassword string) *model.AppError {
+	ret := _m.Called(userID, ldapID, ldapPassword)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
-		r0 = rf(userId, ldapId, ldapPassword)
+		r0 = rf(userID, ldapID, ldapPassword)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

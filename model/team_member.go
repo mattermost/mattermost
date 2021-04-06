@@ -33,9 +33,9 @@ type TeamMember struct {
 type TeamUnread struct {
 	TeamId           string `json:"team_id"`
 	MsgCount         int64  `json:"msg_count"`
-	MsgCountRoot     int64  `json:"msg_count_root"`
 	MentionCount     int64  `json:"mention_count"`
 	MentionCountRoot int64  `json:"mention_count_root"`
+	MsgCountRoot     int64  `json:"msg_count_root"`
 }
 
 //msgp:ignore TeamMemberForExport

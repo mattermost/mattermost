@@ -1,3 +1,12 @@
+# 1.8.1
+Code quality:
+  * move magefile in its own subdir/submodule to remove magefile dependency on logrus consumer
+  * improve timestamp format documentation
+
+Fixes:
+  * fix race condition on logger hooks
+
+
 # 1.8.0
 
 Correct versioning number replacing v1.7.1.

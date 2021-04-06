@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -1497,8 +1499,8 @@ func TestDeleteChannel(t *testing.T) {
 
 		// successful delete of channel with multiple members
 		publicChannel3 := th.CreatePublicChannel()
-		th.App.AddUserToChannel(user, publicChannel3)
-		th.App.AddUserToChannel(user2, publicChannel3)
+		th.App.AddUserToChannel(user, publicChannel3, false)
+		th.App.AddUserToChannel(user2, publicChannel3, false)
 		_, resp = client.DeleteChannel(publicChannel3.Id)
 		CheckNoError(t, resp)
 
@@ -1574,9 +1576,9 @@ func TestDeleteChannel2(t *testing.T) {
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	th.App.AddUserToChannel(user, publicChannel6)
-	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user, privateChannel7)
+	th.App.AddUserToChannel(user, publicChannel6, false)
+	th.App.AddUserToChannel(user, privateChannel7, false)
+	th.App.AddUserToChannel(user, privateChannel7, false)
 
 	// successful delete by user
 	_, resp := Client.DeleteChannel(publicChannel6.Id)
@@ -1594,9 +1596,9 @@ func TestDeleteChannel2(t *testing.T) {
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	th.App.AddUserToChannel(user, publicChannel6)
-	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user, privateChannel7)
+	th.App.AddUserToChannel(user, publicChannel6, false)
+	th.App.AddUserToChannel(user, privateChannel7, false)
+	th.App.AddUserToChannel(user, privateChannel7, false)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -2295,7 +2297,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	channel := th.CreatePublicChannel()
 
 	// Adds User 2 to the channel, making them a channel member by default.
-	th.App.AddUserToChannel(th.BasicUser2, channel)
+	th.App.AddUserToChannel(th.BasicUser2, channel, false)
 
 	// User 1 promotes User 2
 	pass, resp := Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, ChannelAdmin)
@@ -2493,7 +2495,7 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 	CheckNoError(t, resp)
 	require.True(t, pass, "should have passed")
 
-	member, err := th.App.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id)
+	member, err := th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.Equal(t, model.CHANNEL_NOTIFY_MENTION, member.NotifyProps[model.DESKTOP_NOTIFY_PROP], "bad update")
 	require.Equal(t, model.CHANNEL_MARK_UNREAD_MENTION, member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP], "bad update")
@@ -2803,9 +2805,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// Setup the system administrator to listen for websocket events from the channels.
 		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		_, err := th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 		require.Nil(t, err)
-		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
+		_, err = th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2, false)
 		require.Nil(t, err)
 		props := map[string]string{}
 		props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
@@ -2847,7 +2849,7 @@ func TestRemoveChannelMember(t *testing.T) {
 			}
 		}
 
-		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
 		_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
 		CheckNoError(t, resp)
 
@@ -2878,8 +2880,8 @@ func TestRemoveChannelMember(t *testing.T) {
 	// Leave deleted channel
 	th.LoginBasic()
 	deletedChannel := th.CreatePublicChannel()
-	th.App.AddUserToChannel(th.BasicUser, deletedChannel)
-	th.App.AddUserToChannel(th.BasicUser2, deletedChannel)
+	th.App.AddUserToChannel(th.BasicUser, deletedChannel, false)
+	th.App.AddUserToChannel(th.BasicUser2, deletedChannel, false)
 
 	deletedChannel.DeleteAt = 1
 	th.App.UpdateChannel(deletedChannel)
@@ -2889,7 +2891,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.LoginBasic()
 	private := th.CreatePrivateChannel()
-	th.App.AddUserToChannel(th.BasicUser2, private)
+	th.App.AddUserToChannel(th.BasicUser2, private, false)
 
 	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
@@ -2899,7 +2901,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		th.App.AddUserToChannel(th.BasicUser, private)
+		th.App.AddUserToChannel(th.BasicUser, private, false)
 		_, resp = client.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 		CheckNoError(t, resp)
 	})
@@ -3436,9 +3438,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 
 	channel := th.CreatePrivateChannel()
 
-	_, err := th.App.AddChannelMember(user1.Id, channel, "", "")
+	_, err := th.App.AddChannelMember(user1.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
-	_, err = th.App.AddChannelMember(user2.Id, channel, "", "")
+	_, err = th.App.AddChannelMember(user2.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 
 	channel.GroupConstrained = model.NewBool(true)
@@ -4074,7 +4076,7 @@ func TestRootMentionsCount(t *testing.T) {
 	channel := th.BasicChannel
 
 	// initially, MentionCountRoot is 0 in the database
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(channel.Id, user.Id)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), channelMember.MentionCountRoot)
 	require.Equal(t, int64(0), channelMember.MentionCount)
@@ -4095,7 +4097,7 @@ func TestRootMentionsCount(t *testing.T) {
 	// regular count stays the same
 	require.Equal(t, int64(2), channelUnread.MentionCount)
 	// validate that DB is updated
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channel.Id, user.Id)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 
@@ -4202,7 +4204,7 @@ func TestMentionBehaviourCollapsed(t *testing.T) {
 	}
 
 	open_thread := func(th *TestHelper, rootId string) (string, *model.AppError) {
-		_, err := th.App.GetPostThread(rootId, false, true, true)
+		_, err := th.App.GetPostThread(rootId, false, true, true, th.BasicUser.Id)
 		return "", err
 	}
 	open_followed_thread := func(th *TestHelper, rootId string) (string, *model.AppError) {
