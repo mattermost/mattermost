@@ -323,13 +323,13 @@ func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Jo
 	return r0, r1
 }
 
-// SwitchToLdap provides a mock function with given fields: userId, ldapId, ldapPassword
-func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword string) *model.AppError {
-	ret := _m.Called(userId, ldapId, ldapPassword)
+// SwitchToLdap provides a mock function with given fields: userID, ldapID, ldapPassword
+func (_m *LdapInterface) SwitchToLdap(userID string, ldapID string, ldapPassword string) *model.AppError {
+	ret := _m.Called(userID, ldapID, ldapPassword)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
-		r0 = rf(userId, ldapId, ldapPassword)
+		r0 = rf(userID, ldapID, ldapPassword)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

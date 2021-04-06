@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -175,7 +176,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(channelID, askingUserId)
+	channelMember, err := a.GetChannelMember(context.Background(), channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
 		if a.RolesGrantPermission(roles, permission.Id) {
