@@ -300,7 +300,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		return nil
 	}
 
-	syncMessages, err := scs.postsToSyncMessages(posts, rc, scr.NextSyncAt)
+	syncMessages, err := scs.postsToSyncMessages(posts, task.channelId, rc, scr.NextSyncAt)
 	if err != nil {
 		return err
 	}
