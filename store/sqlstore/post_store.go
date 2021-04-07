@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -905,34 +906,34 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) ([]*model.Post, error) {
+func (s *SqlPostStore) CheckIfAutoResponseByUserInChannelSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAT >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
 
-	var posts []*model.Post
-
-	query := `SELECT
-		*
-	FROM
-		Posts
-	WHERE
-		UpdateAT >= :Time
-		AND
-		ChannelId = :ChannelId
-		AND
-		UserId = :UserId
-	ORDER BY 
-		UpdateAt DESC
-	LIMIT
-		1000`
-
-	_, err := s.GetReplica().Select(&posts, query,
-		map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time, "UserId": userId})
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.POST_AUTO_RESPONDER,
+	})
 
 	if err != nil {
-		return nil, errors.Wrapf(err,
-			"failed to find Post with channelId=%s and userId=%s since %s", options.ChannelId, userId, options.Time)
+		return false, errors.Wrapf(err,
+			"failed to check if Auto Respose Posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
 	}
 
-	return posts, nil
+	return exist > 0, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {

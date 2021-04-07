@@ -197,6 +197,41 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, sent)
 	})
+
+	t.Run("should send auto response in dm channel if not already sent today", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		receiver := th.CreateUser()
+
+		patch := &model.UserPatch{
+			NotifyProps: map[string]string{
+				"auto_responder_active":  "true",
+				"auto_responder_message": "Hello, I'm unavailable today.",
+			},
+		}
+		receiver, err := th.App.PatchUser(receiver.Id, patch, true)
+		require.Nil(t, err)
+
+		channel := th.CreateDmChannel(receiver)
+
+		savedPost, _ := th.App.CreatePost(&model.Post{
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			UserId:    th.BasicUser.Id},
+			th.BasicChannel,
+			false, true)
+
+		sent, err := th.App.SendAutoResponseIfNecessary(channel, th.BasicUser, savedPost)
+
+		assert.Nil(t, err)
+		assert.True(t, sent)
+
+		sent, err = th.App.SendAutoResponseIfNecessary(channel, th.BasicUser, savedPost)
+
+		assert.Nil(t, err)
+		assert.False(t, sent)
+	})
 }
 
 func TestSendAutoResponseSuccess(t *testing.T) {

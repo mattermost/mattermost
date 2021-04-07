@@ -4445,6 +4445,22 @@ func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 	return result, err
 }
 
+func (s *TimerLayerPostStore) CheckIfAutoResponseByUserInChannelSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.CheckIfAutoResponseByUserInChannelSince(options, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.CheckIfAutoResponseByUserInChannelSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) ClearCaches() {
 	start := timemodule.Now()
 
@@ -4760,22 +4776,6 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByIds", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) ([]*model.Post, error) {
-	start := timemodule.Now()
-
-	result, err := s.PostStore.GetPostsByUserInChannelSince(options, userId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByUserInChannelSince", success, elapsed)
 	}
 	return result, err
 }
