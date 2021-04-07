@@ -1430,7 +1430,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExtractContent == nil {
-		s.ExtractContent = NewBool(false)
+		s.ExtractContent = NewBool(true)
 	}
 
 	if s.ArchiveRecursion == nil {
