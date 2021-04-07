@@ -1436,7 +1436,7 @@
   },
   {
     "id": "api.command_share.service_disabled",
-    "translation": "Shared Channels Service is disabled.."
+    "translation": "Shared Channels Service is disabled."
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -1907,6 +1907,14 @@
   {
     "id": "api.io_error",
     "translation": "input/output error"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "The job types of a job you are trying to retrieve does not contain permissions"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "The job type of the job you are trying to create is invalid"
   },
   {
     "id": "api.job.unable_to_download_job",
