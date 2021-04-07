@@ -224,12 +224,12 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		sent, err := th.App.SendAutoResponseIfNecessary(channel, th.BasicUser, savedPost)
 
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		assert.True(t, sent)
 
 		sent, err = th.App.SendAutoResponseIfNecessary(channel, th.BasicUser, savedPost)
 
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		assert.False(t, sent)
 	})
 }
