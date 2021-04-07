@@ -56,7 +56,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss, s) })
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
-
+	t.Run("CheckIfAutoResponseByUserInChannelSince", func(t *testing.T) { testCheckIfAutoResponseByUserInChannelSince(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -2969,4 +2969,47 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
+}
+
+func testCheckIfAutoResponseByUserInChannelSince(t *testing.T, ss store.Store) {
+	t.Run("should return posts created after the given time", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
+
+		_, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "auto response message",
+			Type:      model.POST_AUTO_RESPONDER,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		exists, err := ss.Post().CheckIfAutoResponseByUserInChannelSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post2.CreateAt}, userId)
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		err = ss.Post().Delete(post3.Id, time.Now().Unix(), userId)
+		require.NoError(t, err)
+
+		exists, err = ss.Post().CheckIfAutoResponseByUserInChannelSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post2.CreateAt}, userId)
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
 }
