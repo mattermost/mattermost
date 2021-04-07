@@ -117,6 +117,9 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
 	}
 	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
+	}
 
 	url := a.GetSiteURL()
 	if url == "" {
@@ -164,6 +167,9 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
 	}
 	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
+	}
 
 	blob := margs["invite"]
 	if blob == "" {

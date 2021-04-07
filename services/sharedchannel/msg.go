@@ -178,7 +178,7 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 	for _, id := range userIds {
 		user, err := scs.server.GetStore().User().Get(context.Background(), id)
 		if err == nil {
-			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {
+			if sync, err2 := scs.shouldUserSync(user, post.ChannelId, rc); err2 != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
 					mlog.String("user_id", id),
 					mlog.Err(err2),
@@ -238,15 +238,15 @@ func sanitizeUserForSync(user *model.User) *model.User {
 }
 
 // shouldUserSync determines if a user needs to be synchronized.
-// User should be synchronized if it has no entry in the SharedChannelUsers table,
+// User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
-func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (bool, error) {
+func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (bool, error) {
 	// don't sync users with the remote they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
 		return false, nil
 	}
 
-	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, rc.RemoteId)
+	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, channelID, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return false, err
@@ -254,13 +254,15 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 
 		// user not in the SharedChannelUsers table, so we must add them.
 		scu = &model.SharedChannelUser{
-			UserId:   user.Id,
-			RemoteId: rc.RemoteId,
+			UserId:    user.Id,
+			RemoteId:  rc.RemoteId,
+			ChannelId: channelID,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", user.Id),
 			)
 		}
 	} else if scu.LastSyncAt >= user.UpdateAt {

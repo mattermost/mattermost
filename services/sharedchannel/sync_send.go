@@ -365,7 +365,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		}
 
 		// update NextSyncAt for all the users that were synchronized
-		scs.updateSyncUsers(syncResp.UsersSyncd, rc, nextSince)
+		scs.updateSyncUsers(syncResp.UsersSyncd, task.channelId, rc, nextSince)
 	})
 
 	wg.Wait()
@@ -470,9 +470,9 @@ func (scs *Service) updateNextSyncForRemote(scrId string, rc *model.RemoteCluste
 	)
 }
 
-func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, lastSyncAt int64) {
+func (scs *Service) updateSyncUsers(userIds []string, channelID string, rc *model.RemoteCluster, lastSyncAt int64) {
 	for _, uid := range userIds {
-		scu, err := scs.server.GetStore().SharedChannel().GetUser(uid, rc.RemoteId)
+		scu, err := scs.server.GetStore().SharedChannel().GetUser(uid, channelID, rc.RemoteId)
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error getting user for lastSyncAt update",
 				mlog.String("remote", rc.DisplayName),
@@ -486,12 +486,14 @@ func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, l
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error updating lastSyncAt for user",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("user_id", uid),
+				mlog.String("channel_id", channelID),
 				mlog.Err(err),
 			)
 		} else {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for user",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("user_id", scu.UserId),
+				mlog.String("channel_id", channelID),
 				mlog.Int64("last_update_at", lastSyncAt),
 			)
 		}
