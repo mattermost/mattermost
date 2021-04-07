@@ -140,10 +140,4 @@ func TestRequestTrialLicense(t *testing.T) {
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
 		require.False(t, ok)
 	})
-
-	// t.Run("", func(t *testing.T) {
-	// 	ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
-	// 	CheckNoError(t, resp)
-	// 	require.True(t, ok)
-	// })
 }
