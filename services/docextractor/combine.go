@@ -26,9 +26,10 @@ func (ce *combineExtractor) Match(filename string) bool {
 	return false
 }
 
-func (ce *combineExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (ce *combineExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	for _, extractor := range ce.SubExtractors {
 		if extractor.Match(filename) {
+			r.Seek(0, io.SeekStart)
 			text, err := extractor.Extract(filename, r)
 			if err != nil {
 				mlog.Warn("unable to extract file content", mlog.Err(err))
