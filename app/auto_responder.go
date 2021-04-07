@@ -4,28 +4,20 @@
 package app
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) bool {
+func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
 	// get last post in a calender day sent by user and if it's auto responder post then don't send again
 	y, m, d := time.Unix(createdAt, 0).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
-	autoResponded, err := a.Srv().Store.Post().CheckIfAutoResponseByUserInChannelSince(
+	return a.Srv().Store.Post().CheckIfAutoResponseByUserInChannelSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
 	)
-
-	if err != nil {
-		mlog.Error("auto_responder.check_for_auto_respond_today_error", mlog.String("error", err.Error()))
-		return false
-	}
-
-	return autoResponded
-
 }
 
 func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
@@ -48,7 +40,10 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, err
 	}
 
-	if a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId) {
+	if autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId); autoResponded {
+		if err != nil {
+			return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_autoresponse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 		return false, nil
 	}
 
