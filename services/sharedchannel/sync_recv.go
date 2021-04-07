@@ -194,6 +194,7 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 			FirstName: &user.FirstName,
 			LastName:  &user.LastName,
 			Email:     &user.Email,
+			Props:     user.Props,
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
@@ -273,14 +274,19 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	var update *model.UserUpdate
 	var suffix string
 
+	realUsername, _ := user.GetProp(KeyRemoteUsername)
+	realEmail, _ := user.GetProp(KeyRemoteEmail)
+
 	if patch.Username != nil {
-		user.SetProp(KeyRemoteUsername, *patch.Username)
+		realUsername = *patch.Username
 	}
 	if patch.Email != nil {
-		user.SetProp(KeyRemoteEmail, *patch.Email)
+		realEmail = *patch.Email
 	}
 
 	user.Patch(patch)
+	user.SetProp(KeyRemoteUsername, realUsername)
+	user.SetProp(KeyRemoteEmail, realEmail)
 
 	// Apply a suffix to the username until it is unique.
 	for i := 1; i <= MaxUpsertRetries; i++ {
