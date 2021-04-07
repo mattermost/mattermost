@@ -35,15 +35,16 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		receiverId = sender.Id
 	}
 
-	receiver, err := a.GetUser(receiverId)
-	if err != nil {
-		return false, err
+	receiver, aErr := a.GetUser(receiverId)
+	if aErr != nil {
+		return false, aErr
 	}
 
-	if autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId); autoResponded {
-		if err != nil {
-			return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_autoresponse.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
+	if err != nil {
+		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_autoresponse.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if autoResponded {
 		return false, nil
 	}
 
