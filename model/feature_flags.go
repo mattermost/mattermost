@@ -36,6 +36,9 @@ type FeatureFlags struct {
 	FilesSearch bool
 	// Feature flag to control setting the TCP_NO_DELAY setting for websockets.
 	WebSocketDelay bool
+
+	// Control support for custom data retention policies
+	CustomDataRetentionEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -50,6 +53,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginIncidentManagement = "1.7.0"
 	f.PluginApps = ""
 	f.WebSocketDelay = false
+	f.CustomDataRetentionEnabled = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
