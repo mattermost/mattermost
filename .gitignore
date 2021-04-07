@@ -18,6 +18,7 @@ web/static/js/libs*.js
 
 config/active.dat
 config/config.json
+config/supervisor.json
 config/logging.json
 /plugins
 

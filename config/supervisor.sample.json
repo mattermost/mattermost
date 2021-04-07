@@ -1,0 +1,16 @@
+{
+    "ServiceSettings": {
+        "Host": "localhost:8065",
+        "TLSCertFile": "",
+        "TLSKeyFile": "",
+        "DefaultRoutePrefix": "chat"
+    },
+    "AppSettings": [
+        {
+            "BinaryPath": "./bin/mattermost",
+            "Args": ["--disableconfigwatch"],
+            "SocketPath": "/var/tmp/chat.socket",
+            "RoutePrefix": "chat"
+        }
+    ]
+}
