@@ -32,6 +32,10 @@ func (api *API) InitSaml() {
 	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.ApiSessionRequired(resetAuthDataToEmail)).Methods("POST")
 }
 
+func (api *API) InitSamlLocal() {
+	api.BaseRoutes.SAML.Handle("/reset_auth_data", api.ApiLocal(resetAuthDataToEmail)).Methods("POST")
+}
+
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	metadata, err := c.App.GetSamlMetadata()
 	if err != nil {
