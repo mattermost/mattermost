@@ -1107,6 +1107,14 @@
     "translation": "Invite remote Mattermost clusters for inter-cluster communication."
   },
   {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Remote cluster display name"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "A display name for the remote cluster"
+  },
+  {
     "id": "api.command_remote.encrypt_invitation.error",
     "translation": "Could not encrypt invitation: {{.Error}}"
   },
@@ -1161,14 +1169,6 @@
   {
     "id": "api.command_remote.name",
     "translation": "remote"
-  },
-  {
-    "id": "api.command_remote.displayname.help",
-    "translation": "Remote cluster display name"
-  },
-  {
-    "id": "api.command_remote.displayname.hint",
-    "translation": "A display name for the remote cluster"
   },
   {
     "id": "api.command_remote.name.help",
