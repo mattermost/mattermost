@@ -3,7 +3,10 @@
 
 package model
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 type FeatureFlags struct {
 	// Exists only for unit and manual testing.
@@ -74,4 +77,27 @@ func (f *FeatureFlags) Plugins() map[string]string {
 	}
 
 	return pluginVersions
+}
+
+// ToMap returns the feature flags as a map[string]string
+// Supports boolean and string feature flags.
+func (f *FeatureFlags) ToMap() map[string]string {
+	refStructVal := reflect.ValueOf(*f)
+	refStructType := reflect.TypeOf(*f)
+	ret := make(map[string]string)
+	for i := 0; i < refStructVal.NumField(); i++ {
+		refFieldVal := refStructVal.Field(i)
+		refFieldType := refStructType.Field(i)
+		if !refFieldVal.IsValid() {
+			continue
+		}
+		switch refFieldType.Type.Kind() {
+		case reflect.Bool:
+			ret[refFieldType.Name] = strconv.FormatBool(refFieldVal.Bool())
+		default:
+			ret[refFieldType.Name] = refFieldVal.String()
+		}
+	}
+
+	return ret
 }
