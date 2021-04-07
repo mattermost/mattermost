@@ -195,11 +195,6 @@ jobs:
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            curl -sL https://sentry.io/get-cli/ | bash
-            echo Sentry will use version `git rev-parse HEAD`
-            
-          
-
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -456,18 +451,18 @@ workflows:
             - check-mocks
             - check-migrations
             - build-api-spec
-      - upload-s3-sha:
-          context: mattermost-ci-pr-builds-s3
-          requires:
-            - build
-      - upload-s3:
-          context: mattermost-ci-pr-builds-s3
-          requires:
-            - build
-      - build-docker:
-          context: matterbuild-docker
-          requires:
-            - upload-s3-sha
+#      - upload-s3-sha:
+#          context: mattermost-ci-pr-builds-s3
+#          requires:
+#            - build
+#      - upload-s3:
+#          context: mattermost-ci-pr-builds-s3
+#          requires:
+#            - build
+#      - build-docker:
+#          context: matterbuild-docker
+#          requires:
+#            - upload-s3-sha
       - test:
           name: test-mysql
           dbdriver: mysql
