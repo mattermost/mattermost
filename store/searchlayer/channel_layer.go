@@ -8,9 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -114,8 +114,8 @@ func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) e
 	return nil
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
-	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser, channelOptions...)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
 		c.rootStore.indexUserFromID(otherUser.Id)

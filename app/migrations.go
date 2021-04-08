@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
+const ContentExtractionConfigMigrationKey = "ContentExtractionConfigMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {

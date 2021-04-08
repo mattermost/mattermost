@@ -4,13 +4,13 @@
 package slashcommands
 
 import (
+	"context"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type RemoveProvider struct {
@@ -37,7 +37,7 @@ func (*KickProvider) GetTrigger() string {
 	return CmdKick
 }
 
-func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*RemoveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdRemove,
 		AutoComplete:     true,
@@ -47,7 +47,7 @@ func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdKick,
 		AutoComplete:     true,
@@ -123,7 +123,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	_, err = a.GetChannelMember(args.ChannelId, userProfile.Id)
+	_, err = a.GetChannelMember(context.Background(), args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{

@@ -33,7 +33,7 @@ func TestSampledataBadParameters(t *testing.T) {
 
 	t.Run("should not fail with less than 6 users and no group channels", func(t *testing.T) {
 		f, err := ioutil.TempFile("", "*")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		f.Close()
 		defer os.Remove(f.Name())
 		require.NoError(t, th.RunCommand(t, "sampledata", "--group-channels", "0", "--users", "5", "--bulk", f.Name()))
@@ -41,7 +41,7 @@ func TestSampledataBadParameters(t *testing.T) {
 
 	t.Run("should not fail with less than 6 users and no group channels", func(t *testing.T) {
 		f, err := ioutil.TempFile("", "*")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		f.Close()
 		defer os.Remove(f.Name())
 		require.NoError(t, th.RunCommand(t, "sampledata", "--group-channels", "0", "--users", "5", "--bulk", f.Name()))

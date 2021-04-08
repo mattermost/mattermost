@@ -12,8 +12,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -587,12 +587,12 @@ func (a *App) GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelID string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelId, userID, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelID, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "app.webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

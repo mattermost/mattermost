@@ -1248,6 +1248,9 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for name, testCase := range map[string]struct {
 		Input             string
 		ExpectedFirstLink string
@@ -1304,7 +1307,77 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := getFirstLinkAndImages(testCase.Input)
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
+
+			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
+			assert.Equal(t, images, testCase.ExpectedImages)
+		})
+	}
+
+	for name, testCase := range map[string]struct {
+		Input             string
+		ExpectedFirstLink string
+		ExpectedImages    []string
+	}{
+		"http link domain is restricted": {
+			Input:             "this is a http://example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"http link domain is not restricted": {
+			Input:             "this is a http://example1.com",
+			ExpectedFirstLink: "http://example1.com",
+			ExpectedImages:    []string{},
+		},
+		"www link domain is restricted": {
+			Input:             "this is a www.example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo"},
+		},
+		"multiple images is domain restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo](http://example.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"multiple images domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo) and ![their logo](http://example1.com/logo2) and ![my logo](http://example1.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo", "http://example1.com/logo2", "http://example1.com/logo3"},
+		},
+		"multiple images with duplicate domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"reference image domain is restricted": {
+			Input: `this is a ![our logo][logo]
+
+[logo]: http://example.com/logo`,
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image and link domain is restricted": {
+			Input:             "this is a https://example.com and ![our logo](https://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+	} {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"
+		})
+
+		t.Run(name, func(t *testing.T) {
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
 
 			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
 			assert.Equal(t, images, testCase.ExpectedImages)
@@ -1313,6 +1386,9 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for _, test := range []struct {
 		Name     string
 		Post     *model.Post
@@ -1517,7 +1593,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			images := getImagesInMessageAttachments(test.Post)
+			images := th.App.getImagesInMessageAttachments(test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
 		})

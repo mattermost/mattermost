@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -52,7 +52,9 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 			)
 		}
 
-		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "")
+		_, err = a.AddChannelMember(userChannel.UserID, channel, ChannelMemberOpts{
+			SkipTeamMemberIntegrityCheck: true,
+		})
 		if err != nil {
 			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 				a.Log().Info("Not adding user to channel because they have already left the team",

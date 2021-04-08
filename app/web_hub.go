@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -94,29 +94,14 @@ func (a *App) HubStart() {
 	a.srv.hubs = hubs
 }
 
-func (a *App) invalidateCacheForUserSkipClusterSend(userID string) {
-	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	a.InvalidateWebConnSessionCacheForUser(userID)
-}
-
 func (a *App) invalidateCacheForWebhook(webhookID string) {
 	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookID)
-}
-
-func (a *App) InvalidateWebConnSessionCacheForUser(userID string) {
-	hub := a.GetHubForUserId(userID)
-	if hub != nil {
-		hub.InvalidateUser(userID)
-	}
 }
 
 // HubStop stops all the hubs.
 func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
-	// Wait until all messages have finished reading.
-	s.webConnSemaWg.Wait()
-	// Now stop the hub.
 	for _, hub := range s.hubs {
 		hub.Stop()
 	}
@@ -195,26 +180,25 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 	a.Srv().Publish(message)
 }
 
-func (s *Server) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.GetBroadcast().UserId != "" {
-		hub := s.GetHubForUserId(message.GetBroadcast().UserId)
+func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
+	if event.GetBroadcast().UserId != "" {
+		hub := s.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {
-			hub.Broadcast(message)
+			hub.Broadcast(event)
 		}
 	} else {
 		for _, hub := range s.hubs {
-			hub.Broadcast(message)
+			hub.Broadcast(event)
 		}
 	}
-}
 
-func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	a.Srv().PublishSkipClusterSend(message)
+	// Notify shared channel sync service
+	s.SharedChannelSyncHandler(event)
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 	a.Srv().Store.Channel().InvalidateChannel(channel.Id)
-	a.invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
+	a.Srv().invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if a.Cluster() != nil {
 		nameMsg := &model.ClusterMessage{
@@ -234,44 +218,32 @@ func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 	}
 }
 
-func (a *App) invalidateCacheForChannelMembers(channelId string) {
-	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelId)
-	a.Srv().Store.Channel().InvalidateMemberCount(channelId)
-	a.Srv().Store.Channel().InvalidateGuestCount(channelId)
+func (a *App) invalidateCacheForChannelMembers(channelID string) {
+	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelID)
+	a.Srv().Store.Channel().InvalidateMemberCount(channelID)
+	a.Srv().Store.Channel().InvalidateGuestCount(channelID)
 }
 
-func (a *App) invalidateCacheForChannelMembersNotifyProps(channelId string) {
-	a.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
+func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
+	a.Srv().invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID)
 
 	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelId,
+			Data:     channelID,
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
-func (a *App) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
-	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
-}
-
-func (a *App) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
-	if teamID == "" {
-		teamID = "dm"
-	}
-
-	a.Srv().Store.Channel().InvalidateChannelByName(teamID, name)
-}
-
-func (a *App) invalidateCacheForChannelPosts(channelId string) {
-	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelId)
-	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+func (a *App) invalidateCacheForChannelPosts(channelID string) {
+	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelID)
+	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelID)
 }
 
 func (a *App) InvalidateCacheForUser(userID string) {
-	a.invalidateCacheForUserSkipClusterSend(userID)
+	a.Srv().invalidateCacheForUserSkipClusterSend(userID)
 
 	a.Srv().Store.User().InvalidateProfilesInChannelCacheByUser(userID)
 	a.Srv().Store.User().InvalidateProfileCacheForUser(userID)
@@ -287,7 +259,7 @@ func (a *App) InvalidateCacheForUser(userID string) {
 }
 
 func (a *App) invalidateCacheForUserTeams(userID string) {
-	a.InvalidateWebConnSessionCacheForUser(userID)
+	a.Srv().invalidateWebConnSessionCacheForUser(userID)
 	a.Srv().Store.Team().InvalidateAllTeamIdsForUser(userID)
 
 	if a.Cluster() != nil {

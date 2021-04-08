@@ -22,9 +22,12 @@ make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(localhost:3306)
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
-echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
-docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
-docker exec mattermost-mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "ChannelMembers MentionCountRoot" "Channels TotalMsgCountRoot"; do
+    a=( $i );
+    echo "Ignoring known MySQL mismatch: ${a[0]}.${a[1]}"
+    docker exec mattermost-mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+    docker exec mattermost-mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+done
 
 echo "Generating dump"
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > $DUMPDIR/migrated.sql
@@ -34,7 +37,7 @@ echo "Removing databases created for db comparison"
 docker exec mattermost-mysql mysql -uroot -pmostest -e "DROP DATABASE migrated; DROP DATABASE latest"
 
 echo "Generating diff"
-diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
+git diff --word-diff=color $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
 if [ $diffErrorCode -eq 0 ]; then

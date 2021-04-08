@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func TestGetPing(t *testing.T) {
@@ -73,7 +73,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
@@ -86,7 +86,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
@@ -509,9 +509,10 @@ func TestS3TestConnection(t *testing.T) {
 		CheckInternalErrorStatus(t, resp)
 		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 
-		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
-		CheckOKStatus(t, resp)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {

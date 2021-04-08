@@ -215,7 +215,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
@@ -345,6 +345,11 @@ func testSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test 123", "", model.POST_DEFAULT, 0, false)
 	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel something test 1 2 3", "", model.POST_DEFAULT, 0, false)
+	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel 1 2 3", "", model.POST_DEFAULT, 0, false)
+	require.NoError(t, err)
+
 	defer th.deleteUserPosts(th.User.Id)
 
 	params := &model.SearchParams{Terms: "\"channel test 1 2 3\""}

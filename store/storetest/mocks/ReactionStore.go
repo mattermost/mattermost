@@ -74,13 +74,13 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return r0
 }
 
-// GetForPost provides a mock function with given fields: postId, allowFromCache
-func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
-	ret := _m.Called(postId, allowFromCache)
+// GetForPost provides a mock function with given fields: postID, allowFromCache
+func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
+	ret := _m.Called(postID, allowFromCache)
 
 	var r0 []*model.Reaction
 	if rf, ok := ret.Get(0).(func(string, bool) []*model.Reaction); ok {
-		r0 = rf(postId, allowFromCache)
+		r0 = rf(postID, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Reaction)
@@ -89,7 +89,30 @@ func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mode
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(postId, allowFromCache)
+		r1 = rf(postID, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForPostSince provides a mock function with given fields: postId, since, excludeRemoteId, inclDeleted
+func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+	ret := _m.Called(postId, since, excludeRemoteId, inclDeleted)
+
+	var r0 []*model.Reaction
+	if rf, ok := ret.Get(0).(func(string, int64, string, bool) []*model.Reaction); ok {
+		r0 = rf(postId, since, excludeRemoteId, inclDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Reaction)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
+		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

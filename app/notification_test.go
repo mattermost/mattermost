@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -18,7 +19,7 @@ func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
 
 	post1, appErr := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
@@ -125,7 +126,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
-		th.App.AddUserToChannel(user, th.BasicChannel)
+		th.App.AddUserToChannel(user, th.BasicChannel, false)
 		users = append(users, user)
 	}
 
@@ -216,9 +217,9 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.App.AddUserToChannel(guest, channel)
-	th.App.AddUserToChannel(user4, guestAndUser4Channel)
-	th.App.AddUserToChannel(guest, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, channel, false)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel, false)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel, false)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -1821,7 +1822,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		},
 		"system message": {
 			post:     &model.Post{Type: model.POST_SYSTEM_MESSAGE_PREFIX + "custom"},
-			expected: utils.T("system.message.name"),
+			expected: i18n.T("system.message.name"),
 		},
 		"overridden username": {
 			post:           overriddenPost,
@@ -2419,13 +2420,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
-	th.App.AddUserToChannel(groupChannelMember, channel)
+	th.App.AddUserToChannel(groupChannelMember, channel, false)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
-	th.App.AddUserToChannel(nonGroupChannelMember, channel)
+	th.App.AddUserToChannel(nonGroupChannelMember, channel, false)
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)

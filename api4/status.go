@@ -13,6 +13,9 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status/custom/recent", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,4 +109,90 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
+		c.Err = model.NewAppError("updateUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	customStatus := model.CustomStatusFromJson(r.Body)
+	if customStatus == nil || (customStatus.Text == "" && customStatus.Emoji == "") {
+		c.SetInvalidParam("custom_status")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	customStatus.TrimMessage()
+	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
+		c.Err = model.NewAppError("removeUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if err := c.App.RemoveCustomStatus(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
+		c.Err = model.NewAppError("removeUserRecentCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	recentCustomStatus := model.CustomStatusFromJson(r.Body)
+	if recentCustomStatus == nil {
+		c.SetInvalidParam("recent_custom_status")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

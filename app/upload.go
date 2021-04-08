@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -54,7 +54,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 				info = newInfo
 			}
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejErr != nil {
 			errChan <- rejErr
 		}
@@ -252,6 +252,10 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	info.CreatorId = us.UserId
 	info.Path = us.Path
+	info.RemoteId = model.NewString(us.RemoteId)
+	if us.ReqFileId != "" {
+		info.Id = us.ReqFileId
+	}
 
 	// run plugins upload hook
 	if err := a.runPluginsHook(info, file); err != nil {
@@ -293,6 +297,16 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		default:
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+		infoCopy := *info
+		a.Srv().Go(func() {
+			err := a.ExtractContentFromFileInfo(&infoCopy)
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			}
+		})
 	}
 
 	// delete upload session

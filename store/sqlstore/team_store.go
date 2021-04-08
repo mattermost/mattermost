@@ -233,20 +233,6 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	return s
 }
 
-func (s SqlTeamStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
-	s.RemoveIndexIfExists("idx_teams_description", "Teams")
-	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
-	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
-	s.CreateIndexIfNotExists("idx_teams_delete_at", "Teams", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
-
-	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
-	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
-	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
-}
-
 // Save adds the team to the database if a team with the same name does not already
 // exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
@@ -1002,7 +988,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 }
 
 // GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
-func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+func (s SqlTeamStore) GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userId})
@@ -1013,7 +999,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
+	err = s.DBFromContext(ctx).SelectOne(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
@@ -1191,7 +1177,7 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 // for all the channels in all the teams except the excluded ones.
 func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error) {
 	query, args, err := s.getQueryBuilder().
-		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
+		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.MentionCountRoot MentionCountRoot", "ChannelMembers.NotifyProps NotifyProps").
 		From("Channels").
 		Join("ChannelMembers ON Id = ChannelId").
 		Where(sq.Eq{"UserId": userId, "DeleteAt": 0}).
@@ -1213,7 +1199,7 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 // GetChannelUnreadsForTeam returns unreads msg count, mention counts and notifyProps for all the channels in a single team.
 func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error) {
 	query, args, err := s.getQueryBuilder().
-		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
+		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.MentionCountRoot MentionCountRoot", "ChannelMembers.NotifyProps NotifyProps").
 		From("Channels").
 		Join("ChannelMembers ON Id = ChannelId").
 		Where(sq.Eq{"UserId": userId, "TeamId": teamId, "DeleteAt": 0}).ToSql()
