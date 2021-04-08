@@ -80,7 +80,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) bool {
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
 		return true
 	}
-    return false
+	return false
 }
 
 func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *model.Config {
