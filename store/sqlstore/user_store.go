@@ -314,17 +314,19 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 // of users who *would* be affected is returned; otherwise, the number of
 // users who actually were affected is returned.
 func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	whereEquals := sq.Eq{"AuthService": service}
+	if len(userIDs) > 0 {
+		whereEquals["Id"] = userIDs
+	}
+	if !includeDeleted {
+		whereEquals["DeleteAt"] = 0
+	}
+
 	if dryRun {
 		builder := us.getQueryBuilder().
 			Select("COUNT(*)").
 			From("Users").
-			Where(sq.Eq{"AuthService": service})
-		if len(userIDs) > 0 {
-			builder = builder.Where(sq.Eq{"Id": userIDs})
-		}
-		if !includeDeleted {
-			builder = builder.Where(sq.Eq{"DeleteAt": 0})
-		}
+			Where(whereEquals)
 		query, args, err := builder.ToSql()
 		if err != nil {
 			return 0, errors.Wrap(err, "select_count_users_tosql")
@@ -335,13 +337,7 @@ func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []st
 	builder := us.getQueryBuilder().
 		Update("Users").
 		Set("AuthData", sq.Expr("Email")).
-		Where(sq.Eq{"AuthService": service})
-	if len(userIDs) > 0 {
-		builder = builder.Where(sq.Eq{"Id": userIDs})
-	}
-	if !includeDeleted {
-		builder = builder.Where(sq.Eq{"DeleteAt": 0})
-	}
+		Where(whereEquals)
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "update_users_tosql")
