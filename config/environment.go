@@ -57,24 +57,24 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		applyEnvKey(keyParts[1], value, rFieldValue)
 	case reflect.String:
 		rFieldValue.Set(reflect.ValueOf(value))
-		mlog.Debugf("Mattermost is loading %s value from environment variable.", keyParts[0])
+		mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
 	case reflect.Bool:
 		boolVal, err := strconv.ParseBool(value)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(boolVal))
-			mlog.Debugf("Mattermost is loading %s value from environment variable.", keyParts[0])
+			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
 		}
 	case reflect.Int:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(int(intVal)))
-			mlog.Debugf("Mattermost is loading %s value from environment variable.", keyParts[0])
+			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
 		}
 	case reflect.Int64:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(intVal))
-			mlog.Debugf("Mattermost is loading %s value from environment variable.", keyParts[0])
+			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
 		}
 	case reflect.SliceOf(reflect.TypeOf("")).Kind():
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
