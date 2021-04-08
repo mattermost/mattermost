@@ -246,6 +246,11 @@ func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) mod
 	return r0
 }
 
+// NotifySharedChannelUserUpdate provides a mock function with given fields: user
+func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
+	_m.Called(user)
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(channel, channelModerationsPatch)
