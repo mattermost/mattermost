@@ -17,7 +17,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		RemoteId:     invite.RemoteId,
 		RemoteTeamId: invite.RemoteTeamId,
 		Name:         name,
-		DisplayName:  displayname,
+		DisplayName:  displayName,
 		Token:        model.NewId(),
 		RemoteToken:  invite.Token,
 		SiteURL:      invite.SiteURL,
