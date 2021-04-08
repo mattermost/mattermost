@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -66,6 +67,23 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
 		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
+	} else {
+		spaceSeparatedMessage := strings.Split(message, " ")
+		emojiString := spaceSeparatedMessage[0]
+		var unicode []string
+		for utf8.RuneCountInString(emojiString) >= 1 {
+			codepoint, size := utf8.DecodeRuneInString(emojiString)
+			code := model.RuneToHexadecimalString(codepoint)
+			unicode = append(unicode, code)
+			emojiString = emojiString[size:]
+		}
+
+		emoji, found := model.GetEmojiNameFromUnicode(strings.Join(unicode, "-"))
+		if found {
+			customStatus.Emoji = emoji
+			textString := strings.Join(spaceSeparatedMessage[1:], " ")
+			customStatus.Text = strings.TrimSpace(textString)
+		}
 	}
 
 	customStatus.TrimMessage()

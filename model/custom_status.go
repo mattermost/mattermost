@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -37,6 +38,10 @@ func CustomStatusFromJson(data io.Reader) *CustomStatus {
 	var cs *CustomStatus
 	_ = json.NewDecoder(data).Decode(&cs)
 	return cs
+}
+
+func RuneToHexadecimalString(r rune) string {
+	return fmt.Sprintf("%04x", r)
 }
 
 type RecentCustomStatuses []CustomStatus

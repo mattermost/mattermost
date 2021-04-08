@@ -42,6 +42,16 @@ func GetSystemEmojiId(emojiName string) (string, bool) {
 	return id, found
 }
 
+func GetEmojiNameFromUnicode(unicode string) (string, bool) {
+	for key, value := range SystemEmojis {
+		if unicode == value {
+			return key, true
+		}
+	}
+
+	return "", false
+}
+
 func (emoji *Emoji) IsValid() *AppError {
 	if !IsValidId(emoji.Id) {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
