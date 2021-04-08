@@ -26,10 +26,10 @@ func GetEnvironment() map[string]string {
 	return mmenv
 }
 
-func applyEnvKey(key, value string, rValueSubject reflect.Value) {
+func applyEnvKey(key, value string, rValueSubject reflect.Value) bool {
 	keyParts := strings.SplitN(key, "_", 2)
 	if len(keyParts) < 1 {
-		return
+		return false
 	}
 	rFieldValue := rValueSubject.FieldByNameFunc(func(candidate string) bool {
 		candidateUpper := strings.ToUpper(candidate)
@@ -37,13 +37,13 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 	})
 
 	if !rFieldValue.IsValid() {
-		return
+		return false
 	}
 
 	if rFieldValue.Kind() == reflect.Ptr {
 		rFieldValue = rFieldValue.Elem()
 		if !rFieldValue.IsValid() {
-			return
+			return false
 		}
 	}
 
@@ -52,33 +52,35 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		// If we have only one part left, we can't deal with a struct
 		// the env var is incomplete so give up.
 		if len(keyParts) < 2 {
-			return
+			return false
 		}
-		applyEnvKey(keyParts[1], value, rFieldValue)
+		return applyEnvKey(keyParts[1], value, rFieldValue)
 	case reflect.String:
 		rFieldValue.Set(reflect.ValueOf(value))
-		mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
+		return true
 	case reflect.Bool:
 		boolVal, err := strconv.ParseBool(value)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(boolVal))
-			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
+			return true
 		}
 	case reflect.Int:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(int(intVal)))
-			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
+			return true
 		}
 	case reflect.Int64:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(intVal))
-			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envVar_name", keyParts[0]))
+			return true
 		}
 	case reflect.SliceOf(reflect.TypeOf("")).Kind():
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
+		return true
 	}
+    return false
 }
 
 func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *model.Config {
@@ -86,7 +88,10 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 
 	rvalConfig := reflect.ValueOf(appliedConfig).Elem()
 	for envKey, envValue := range env {
-		applyEnvKey(strings.TrimPrefix(envKey, "MM_"), envValue, rvalConfig)
+		applied := applyEnvKey(strings.TrimPrefix(envKey, "MM_"), envValue, rvalConfig)
+		if applied {
+			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envKey", envKey))
+		}
 	}
 
 	return appliedConfig
