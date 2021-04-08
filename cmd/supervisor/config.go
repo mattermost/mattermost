@@ -24,7 +24,7 @@ type ServiceSettings struct {
 }
 
 type AppSetting struct {
-	BinaryPath  string
+	Command     string
 	Args        []string
 	RoutePrefix string
 	SocketPath  string

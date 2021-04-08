@@ -63,7 +63,7 @@ func newSupervisor(cfg Config) *Supervisor {
 
 	// Initialize commands for all apps.
 	for _, app := range sup.cfg.AppSettings {
-		cmd := exec.CommandContext(context.Background(), app.BinaryPath, app.Args...)
+		cmd := exec.CommandContext(context.Background(), app.Command, app.Args...)
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		sup.cmds = append(sup.cmds, cmd)
