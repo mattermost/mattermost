@@ -215,7 +215,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[1].PostId, o1a.Id)
-		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 3)
+		cposts, _, nErr = ss.Compliance().ComplianceExport(cr7, cursor, 3)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o2.Id)
@@ -319,13 +319,13 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 		cursor := model.ComplianceExportCursor{}
 		cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
 
-		cposts, cursor, nErr := ss.Compliance().ComplianceExport(cr2, cursor, 2)
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr2, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[len(cposts)-1].PostId, o1a.Id)
 
-		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr2, cursor, 2)
+		cposts, _, nErr = ss.Compliance().ComplianceExport(cr2, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 		assert.Equal(t, cposts[0].PostId, o2.Id)
@@ -341,7 +341,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 		assert.Equal(t, cposts[0].PostId, o1.Id)
 		assert.Equal(t, cposts[len(cposts)-1].PostId, o2.Id)
 
-		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 2)
+		cposts, _, nErr = ss.Compliance().ComplianceExport(cr3, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 1)
 		assert.Equal(t, cposts[0].PostId, o3.Id)
@@ -376,7 +376,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 		assert.Len(t, cposts, 2)
 
 		cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 1}
-		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr5, cursor, 3)
+		cposts, _, nErr = ss.Compliance().ComplianceExport(cr5, cursor, 3)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 3)
 	})
