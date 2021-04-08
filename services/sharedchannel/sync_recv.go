@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
@@ -227,7 +228,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var userSaved *model.User
 	var suffix string
 
-	// save the originals in props (if not already done by another remote)
+	// save the original username and email in props (if not already done by another remote)
 	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
 		user.SetProp(KeyRemoteUsername, user.Username)
 	}
@@ -274,13 +275,16 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	var update *model.UserUpdate
 	var suffix string
 
+	// preserve existing real username/email since Patch will over-write them;
+	// the real username/email in props can be updated if they don't contain colons,
+	// meaning the update is coming from the user's origin server (not munged).
 	realUsername, _ := user.GetProp(KeyRemoteUsername)
 	realEmail, _ := user.GetProp(KeyRemoteEmail)
 
-	if patch.Username != nil {
+	if patch.Username != nil && !strings.Contains(*patch.Username, ":") {
 		realUsername = *patch.Username
 	}
-	if patch.Email != nil {
+	if patch.Email != nil && !strings.Contains(*patch.Email, ":") {
 		realEmail = *patch.Email
 	}
 
