@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -158,6 +159,7 @@ func TestLicenseToFromJson(t *testing.T) {
 			Company: NewId(),
 		},
 		Features: &f,
+		IsTrial:  true,
 	}
 
 	j := l.ToJson()
@@ -169,6 +171,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
 	CheckInt64(t, l1.StartsAt, l.StartsAt)
 	CheckInt64(t, l1.ExpiresAt, l.ExpiresAt)
+	CheckBool(t, l1.IsTrial, l.IsTrial)
 
 	CheckString(t, l1.Customer.Id, l.Customer.Id)
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
@@ -237,4 +240,16 @@ func TestLicenseRecordPreSave(t *testing.T) {
 	lr.PreSave()
 
 	assert.NotZero(t, lr.CreateAt)
+}
+
+func TestTrialLicenseRequestToFromJson(t *testing.T) {
+	t.Run("is_trial is hard-coded to true", func(t *testing.T) {
+		tlr := &TrialLicenseRequest{}
+		j := tlr.ToJson()
+		inline := &struct {
+			IsTrial bool `json:"is_trial"`
+		}{}
+		json.Unmarshal([]byte(j), inline)
+		CheckBool(t, inline.IsTrial, true)
+	})
 }

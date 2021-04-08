@@ -31,6 +31,7 @@ type License struct {
 	Features     *Features `json:"features"`
 	SkuName      string    `json:"sku_name"`
 	SkuShortName string    `json:"sku_short_name"`
+	IsTrial      bool      `json:"is_trial"`
 }
 
 type Customer struct {

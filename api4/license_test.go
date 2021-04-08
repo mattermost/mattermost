@@ -134,10 +134,22 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
+		require.False(t, ok)
+	})
+
+	t.Run("external service invoked", func(t *testing.T) {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(
+			"GET",
+			"https://example.com",
+			httpmock.NewStringResponder(200, "resp string"),
+		)
+		ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
+		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
 	})
 }
