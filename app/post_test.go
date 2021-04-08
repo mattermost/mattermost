@@ -338,7 +338,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	_, err := th.App.AddUserToChannel(userInChannel, channel)
+	_, err := th.App.AddUserToChannel(userInChannel, channel, false)
 	require.Nil(t, err)
 
 	err = th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel)
@@ -421,7 +421,7 @@ func TestPostChannelMentions(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelToMention)
 
-	_, err = th.App.AddUserToChannel(user, channel)
+	_, err = th.App.AddUserToChannel(user, channel, false)
 	require.Nil(t, err)
 
 	post := &model.Post{
@@ -2051,5 +2051,89 @@ func TestReplyToPostWithLag(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 		require.NotNil(t, reply)
+	})
+}
+
+func TestSharedChannelSyncForPostActions(t *testing.T) {
+	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		_, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 1)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+	})
+
+	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.UpdatePost(post, true)
+		require.Nil(t, err, "Updating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 2)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+	})
+
+	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.DeletePost(post.Id, user.Id)
+		require.Nil(t, err, "Deleting a post should not error")
+
+		// one creation and two deletes
+		assert.Len(t, remoteClusterService.notifications, 3)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[2])
 	})
 }
