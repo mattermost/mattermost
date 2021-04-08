@@ -5840,7 +5840,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleteing preferences."
+    "translation": "We encountered an error while deleting preferences."
   },
   {
     "id": "app.preference.save.updating.app_error",
