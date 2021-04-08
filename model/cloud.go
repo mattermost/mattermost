@@ -9,6 +9,7 @@ const (
 	EventTypeFailedPayment         = "failed-payment"
 	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
+	EventTypeTrialWillEnd          = "trial-will-end"
 	JoinLimitation                 = "join"
 	InviteLimitation               = "invite"
 )
@@ -129,9 +130,10 @@ type InvoiceLineItem struct {
 }
 
 type CWSWebhookPayload struct {
-	Event               string               `json:"event"`
-	FailedPayment       *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	Event                             string               `json:"event"`
+	FailedPayment                     *FailedPayment       `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
 type FailedPayment struct {
@@ -142,7 +144,8 @@ type FailedPayment struct {
 
 // CloudWorkspaceOwner is part of the CWS Webhook payload that contains information about the user that created the workspace from the CWS
 type CloudWorkspaceOwner struct {
-	UserName string `json:"username"`
+	UserName  string `json:"username"`
+	UserEmail string `json:"email"`
 }
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
