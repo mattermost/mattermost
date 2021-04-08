@@ -1444,7 +1444,7 @@
   },
   {
     "id": "api.command_share.service_disabled",
-    "translation": "Shared Channels Service is disabled.."
+    "translation": "Shared Channels Service is disabled."
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -5848,7 +5848,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleteing preferences."
+    "translation": "We encountered an error while deleting preferences."
   },
   {
     "id": "app.preference.save.updating.app_error",
