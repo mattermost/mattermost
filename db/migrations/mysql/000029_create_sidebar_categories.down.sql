@@ -34,6 +34,7 @@ SET @preparedStatement = (SELECT IF(
         WHERE table_name = 'SidebarCategories'
         AND table_schema = DATABASE()
         AND column_name = 'Id'
+        AND column_type != 'varchar(26)'
     ) > 0,
     'ALTER TABLE SidebarCategories MODIFY Id varchar(26);',
     'SELECT 1'
