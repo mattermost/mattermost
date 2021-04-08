@@ -121,6 +121,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			cursor.LastChannelsQueryPostCreateAt = job.StartAt
 		}
 		props["LastPostCreateAt"] = cursor.LastChannelsQueryPostCreateAt
+		props["LastPostId"] = cursor.LastChannelsQueryPostID
 		channelsQuery = `
 		SELECT
 			Teams.Name AS TeamName,
@@ -155,11 +156,14 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			Teams.Id = Channels.TeamId
 				AND Posts.ChannelId = Channels.Id
 				AND Posts.UserId = Users.Id
-				AND Posts.CreateAt > :LastPostCreateAt
+				AND (
+					Posts.CreateAt > :LastPostCreateAt
+					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
+				)
 				AND Posts.CreateAt <= :EndTime
 				` + emailQuery + `
 				` + keywordQuery + `
-		ORDER BY PostCreateAt
+		ORDER BY Posts.CreateAt, Posts.Id
 		LIMIT :Limit`
 		if _, err := s.GetReplica().Select(&channelPosts, channelsQuery, props); err != nil {
 			return nil, cursor, errors.Wrap(err, "unable to export compliance")
@@ -168,6 +172,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			cursor.ChannelsQueryCompleted = true
 		} else {
 			cursor.LastChannelsQueryPostCreateAt = channelPosts[len(channelPosts)-1].PostCreateAt
+			cursor.LastChannelsQueryPostID = channelPosts[len(channelPosts)-1].PostId
 		}
 	}
 
@@ -178,6 +183,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			cursor.LastDirectMessagesQueryPostCreateAt = job.StartAt
 		}
 		props["LastPostCreateAt"] = cursor.LastDirectMessagesQueryPostCreateAt
+		props["LastPostId"] = cursor.LastDirectMessagesQueryPostID
 		props["Limit"] = limit - len(channelPosts)
 		directMessagesQuery = `
 		SELECT
@@ -212,11 +218,14 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			Channels.TeamId = ''
 				AND Posts.ChannelId = Channels.Id
 				AND Posts.UserId = Users.Id
-				AND Posts.CreateAt > :LastPostCreateAt
+				AND (
+					Posts.CreateAt > :LastPostCreateAt
+					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
+				)
 				AND Posts.CreateAt <= :EndTime
 				` + emailQuery + `
 				` + keywordQuery + `
-		ORDER BY PostCreateAt
+		ORDER BY Posts.CreateAt, Posts.Id
 		LIMIT :Limit`
 
 		if _, err := s.GetReplica().Select(&directMessagePosts, directMessagesQuery, props); err != nil {
@@ -226,6 +235,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 			cursor.DirectMessagesQueryCompleted = true
 		} else {
 			cursor.LastDirectMessagesQueryPostCreateAt = directMessagePosts[len(directMessagePosts)-1].PostCreateAt
+			cursor.LastDirectMessagesQueryPostID = directMessagePosts[len(directMessagePosts)-1].PostId
 		}
 	}
 

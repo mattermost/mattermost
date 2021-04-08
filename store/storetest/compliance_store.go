@@ -346,6 +346,40 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 		assert.Len(t, cposts, 1)
 		assert.Equal(t, cposts[0].PostId, o3.Id)
 	})
+
+	t.Run("timestamp collision", func(t *testing.T) {
+		time.Sleep(100 * time.Millisecond)
+		nowMillis := model.GetMillis()
+
+		createPost := func(createAt int64) {
+			post := &model.Post{}
+			post.ChannelId = c1.Id
+			post.UserId = u1.Id
+			post.CreateAt = createAt
+			post.Message = "zz" + model.NewId() + "b"
+			post, nErr = ss.Post().Save(post)
+			require.NoError(t, nErr)
+		}
+
+		for i := 0; i < 3; i++ {
+			createPost(nowMillis)
+		}
+		for i := 0; i < 2; i++ {
+			createPost(nowMillis + 1)
+		}
+
+		cursor := model.ComplianceExportCursor{}
+
+		cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis}
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr4, cursor, 2)
+		require.NoError(t, nErr)
+		assert.Len(t, cposts, 2)
+
+		cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 1}
+		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr5, cursor, 3)
+		require.NoError(t, nErr)
+		assert.Len(t, cposts, 3)
+	})
 }
 
 func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
