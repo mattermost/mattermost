@@ -72,9 +72,5 @@ func Test_mungUsernameFuzz(t *testing.T) {
 
 // R returns a string with the specified string repeated `count` times.
 func R(count int, s string) string {
-	var sb strings.Builder
-	for i := 0; i < count; i++ {
-		sb.WriteString(s)
-	}
-	return sb.String()
+	return strings.Repeat(s, count)
 }
