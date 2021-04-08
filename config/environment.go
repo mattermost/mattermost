@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+        "github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func GetEnvironment() map[string]string {
@@ -56,20 +57,24 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		applyEnvKey(keyParts[1], value, rFieldValue)
 	case reflect.String:
 		rFieldValue.Set(reflect.ValueOf(value))
+        mlog.Debug("Mattermost is loading " + keyParts[0] " value from environment variable.")
 	case reflect.Bool:
 		boolVal, err := strconv.ParseBool(value)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(boolVal))
+			mlog.Debug("Mattermost is loading " + keyParts[0] " value from environment variable.")
 		}
 	case reflect.Int:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(int(intVal)))
+			mlog.Debug("Mattermost is loading " + keyParts[0] " value from environment variable.")
 		}
 	case reflect.Int64:
 		intVal, err := strconv.ParseInt(value, 10, 0)
 		if err == nil {
 			rFieldValue.Set(reflect.ValueOf(intVal))
+			mlog.Debug("Mattermost is loading " + keyParts[0] " value from environment variable.")
 		}
 	case reflect.SliceOf(reflect.TypeOf("")).Kind():
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
