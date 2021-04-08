@@ -181,7 +181,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trialLicenseRequest := &model.LicenseRequest{
+	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              c.App.TelemetryId(),
 		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
 		Email:                 currentUser.Email,
@@ -190,7 +190,6 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		Users:                 trialRequest.Users,
 		TermsAccepted:         trialRequest.TermsAccepted,
 		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
-		IsTrial:               true,
 	}
 
 	if trialLicenseRequest.SiteURL == "" {

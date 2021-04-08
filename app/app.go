@@ -564,7 +564,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	trialLicenseRequest := &model.LicenseRequest{
+	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              a.TelemetryId(),
 		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
 		Email:                 currentUser.Email,
@@ -573,7 +573,6 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 		Users:                 int(registeredUsersCount),
 		TermsAccepted:         true,
 		ReceiveEmailsAccepted: true,
-		IsTrial:               true,
 	}
 
 	if trialLicenseRequest.SiteURL == "" {

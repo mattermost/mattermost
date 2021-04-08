@@ -247,7 +247,7 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 }
 
 // RequestTrialLicense request a trial license from the mattermost official license server
-func (s *Server) RequestTrialLicense(trialRequest *model.LicenseRequest) *model.AppError {
+func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
 	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
