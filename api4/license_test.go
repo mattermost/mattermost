@@ -139,17 +139,4 @@ func TestRequestTrialLicense(t *testing.T) {
 		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
 		require.False(t, ok)
 	})
-
-	t.Run("external service invoked", func(t *testing.T) {
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder(
-			"GET",
-			"https://example.com",
-			httpmock.NewStringResponder(200, "resp string"),
-		)
-		ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
-		CheckForbiddenStatus(t, resp)
-		require.False(t, ok)
-	})
 }
