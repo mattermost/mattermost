@@ -25,7 +25,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 	return supportedExtensions[extension]
 }
 
-func (pe *pdfExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	f, err := ioutil.TempFile(os.TempDir(), "pdflib")
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
