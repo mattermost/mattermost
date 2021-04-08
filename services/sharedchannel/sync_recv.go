@@ -317,6 +317,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 				)
 			}
 		} else {
+			scs.server.GetStore().User().InvalidateProfileCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}

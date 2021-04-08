@@ -263,6 +263,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("user_id", user.Id),
 				mlog.String("channel_id", user.Id),
+				mlog.Err(err),
 			)
 		}
 	} else if scu.LastSyncAt >= user.UpdateAt {
