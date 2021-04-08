@@ -96,7 +96,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	if token.Type == TokenTypeGuestInvitation {
 		for _, channel := range channels {
-			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
+			_, err := a.AddChannelMember(ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
 				mlog.Warn("Failed to add channel member", mlog.Err(err))
 			}
@@ -149,7 +149,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -1003,7 +1003,6 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 }
 
 func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppError {
-
 	buf, err := a.AdjustImage(file)
 	if err != nil {
 		return err
@@ -1011,7 +1010,7 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 	path := "users/" + userID + "/profile.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().UpdateLastPictureUpdate(userID); err != nil {
@@ -1730,7 +1729,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().PermanentDelete(user.Id); err != nil {
