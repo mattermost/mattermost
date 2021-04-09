@@ -33,7 +33,7 @@ var LdapIdMigrate = &cobra.Command{
 }
 
 func init() {
-	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from an LDAP group")
+	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIdMigrate,
