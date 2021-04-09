@@ -113,7 +113,7 @@ PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 ifneq (Darwin,$(PLATFORM))
 	DOCKER_MAKEFILE := ./docker-compose.makefile.yml
 else ifeq (arm64, $(ARCH))
-    DOCKER_MAKEFILE := ./docker-compose.makefile.m1.yml
+	DOCKER_MAKEFILE := ./docker-compose.makefile.m1.yml
 else
 	DOCKER_MAKEFILE := ./docker-compose.makefile.yml
 endif
