@@ -1863,19 +1863,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "加入团队"
-  },
-  {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 允许您通过电脑、电话分享消息和文件，即时查找和归档。当你加入[[{{.TeamDisplayName}}]]后，你可以登录到你的新团队并在任何时候从网络地址访问这些功能："
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "团队 {{.SenderStatus}} [[{{.SenderName}}]] 邀请您加入 [[{{.TeamDisplayName}}]]。"
+    "translation": "立刻加入"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "您已经被邀请"
+    "translation": "{{ .SenderName }}邀请加入{{ .TeamDisplayName }}团队。"
   },
   {
     "id": "api.templates.invite_subject",
@@ -1922,16 +1914,8 @@
     "translation": "重设密码"
   },
   {
-    "id": "api.templates.reset_body.info1",
-    "translation": "如想更改您的密码，点击以下 \"重置密码\"。"
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "如果您不想重置密码，请无视此邮件并且您的密码会不会更改。重置密码链接将在 24 小时后失效。"
-  },
-  {
     "id": "api.templates.reset_body.title",
-    "translation": "您请求密码重设"
+    "translation": "重置您的密码"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1983,11 +1967,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "请通过以下链接来验证您的电子邮件地址。"
+    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "您已加入 {{ .ServerURL }}"
+    "translation": "验证您的电子邮箱地址"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1995,7 +1979,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用："
+    "translation": "为了更好的体验，请下载 PC、Mac、iOS、安卓平台应用。"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2003,11 +1987,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "请通过以下链接来验证您的电子邮件地址。"
+    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "您已加入 {{ .ServerURL }}"
+    "translation": "欢迎加入团队"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -2223,15 +2207,15 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "未能发送电子邮件通知电子邮件成功"
+    "translation": "无法发送电子邮件通知电子邮件"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "未能发送用户名更改通知邮件"
+    "translation": "无法发送用户名更改通知邮件"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "未能发送电子邮件更改验证电子邮件成功"
+    "translation": "无法发送电子邮件更改验证电子邮件"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -2239,11 +2223,11 @@
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功"
+    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "未能发送密码重置电子邮件成功。"
+    "translation": "无法发送密码重置电子邮件。"
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
@@ -2251,7 +2235,7 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功"
+    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_user_access_token.error",
@@ -2259,11 +2243,11 @@
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "未能发送验证电子邮件成功"
+    "translation": "无法发送验证电子邮件"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "未能成功发送欢迎电子邮件"
+    "translation": "无法成功发送欢迎电子邮件"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -4190,11 +4174,11 @@
     "translation": "用户键入更新间隔不应设置为小于1000毫秒。"
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "无效的 TLS 证书文件值 - 使用 LetsEncrypt 或设置为现有的证书文件路径。"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "无效的 TLS 证书钥匙值 - 使用 LetsEncrypt 或设置为现有的钥匙文件路径。"
   },
   {
@@ -5892,10 +5876,6 @@
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
     "translation": "访客帐号已停用"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]]，邀请您以访客加入团队 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -7630,10 +7610,6 @@
     "translation": "获取频道成员失败。"
   },
   {
-    "id": "ent.cloud.request_error",
-    "translation": "处理对 CWS 的请求时出错"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
     "translation": "Mattermost 与我们联系的请求。我有兴趣了解有关试用团队方案实现高级权限的更多信息。\n"
   },
@@ -7734,10 +7710,6 @@
     "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）"
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "无法与 CWS 进行身份验证"
-  },
-  {
     "id": "app.upload.upload_data.read_file.app_error",
     "translation": "读取文件失败。"
   },
@@ -7802,10 +7774,6 @@
     "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
   },
   {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "封送 CWS 的请求出现内部错误"
-  },
-  {
     "id": "app.channel.autofollow.app_error",
     "translation": "更新提及用户的串成员失败"
   },
@@ -7847,7 +7815,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8514,10 +8482,6 @@
     "translation": "导出期间复制文件失败。"
   },
   {
-    "id": "api.web_socket.connect.check_origin.app_error",
-    "translation": "无效的 websocket 升级 Origin 标头。"
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "请求缺少 AuthData 或 AuthService 参数。"
   },
@@ -8543,7 +8507,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "或者，您可以在管理控制台中禁止以释放用户位数并保持在免费用户限制内。"
+    "translation": "或者，您可以在系统控制台中禁止以释放用户位数并保持在免费用户限制内。"
   },
   {
     "id": "api.export.export_not_found.app_error",
@@ -8584,5 +8548,217 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "设定状态错误。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "无效或缺少请求正文。"
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "获取云订阅时出错"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "此功能正在开发中，仅可通过功能标志使用。"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "无法解析请求内容。"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "获取云订阅时出错。"
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "获取系统管理员电子邮件时出错。"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook 事件未处理。它丢失或无效。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "单击下面以验证您的电子邮件地址。"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "感谢您的加入 "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}。"
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "下载桌面和移动应用"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "下载"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "单击下面以验证您的电子邮件地址。"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "感谢您的加入 "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}。"
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.upgrade_request_title2",
+    "translation": "新用户无法加入您的工作区"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4_2",
+    "translation": "最近有人尝试加入您的工作空间，但由于您的工作空间已达到 Mattermost 云免费版本的用户限制，因此无法加入。立即升级，以允许更多用户加入您的工作区。"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "单击下面的按钮以重置密码。如果您未请求重置密码，则可忽略此电子邮件。"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "密码重置链接将在24小时后失效。"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "疑问？"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "您以访客身份被邀请与团队合作"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "什么是 Mattermost？"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "了解更多"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "开始在 Mattermost 与您的团队合作"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "恭喜，您的{{.WorkSpace}}工作区已准备就绪！"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "采取以下步骤建立团队，并充分利用您的工作空间。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "设置您的工作区"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "恭喜！"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "移动和桌面应用"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "邀请他人进入您的工作区"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "确保保存或添加书签以供将来使用。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "下载 Mattermost 应用"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "打开 Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "应用商城。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "使用 Github、谷歌日历和 Chrome 等工具简化您的工作。探索我们在我们上的所有集成"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "将应用程序添加到您的工作区"
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "搜索文件在此服务器上已被禁用。请与您的系统管理员联系。"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "无法将字段编码为 JSON"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "无法批量获取要建立索引的文件。"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "获取云订阅时出错"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "生成密码错误。"
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "个人资料图片必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "无法发送云欢迎电子邮件"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "随时通过电子邮件发送给我们 "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "对入门有疑问吗？给我们发电子邮件"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "分享此链接以邀请您的成员加入{{.WorkSpace}}："
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "感谢创建 "
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "尝试保存商店中检索第一个管理员访问市场状态时出错。"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "尝试从商店中检索第一个管理员访问市场状态时出错。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "清除缓存时出错"
   }
 ]

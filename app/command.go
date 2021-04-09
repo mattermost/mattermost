@@ -14,9 +14,9 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -83,7 +83,7 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 	seen := make(map[string]bool)
 
 	// Disable custom status slash command if the feature or the setting is off
-	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
+	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		seen[CmdCustomStatusTrigger] = true
 	}
 
@@ -571,7 +571,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.SetProps(response.Props)
 
 	if response.ChannelId != "" {
-		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
+		_, err := a.GetChannelMember(context.Background(), response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
 			return nil, err

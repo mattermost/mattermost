@@ -33,9 +33,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/db/migrations"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -43,6 +43,7 @@ type migrationDirection string
 
 const (
 	IndexTypeFullText      = "full_text"
+	IndexTypeFullTextFunc  = "full_text_func"
 	IndexTypeDefault       = "default"
 	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
 	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
@@ -57,6 +58,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -98,6 +101,7 @@ type SqlStoreStores struct {
 	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
+	remoteCluster        store.RemoteClusterStore
 	compliance           store.ComplianceStore
 	session              store.SessionStore
 	oauth                store.OAuthStore
@@ -124,25 +128,34 @@ type SqlStoreStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	sharedchannel        store.SharedChannelStore
 }
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
+
+// ColumnInfo holds information about a column.
+type ColumnInfo struct {
+	DataType          string
+	CharMaximumLength int
+}
 
 func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	originalString := fmt.Sprintf(format, v...)
@@ -157,6 +170,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -174,6 +188,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
 	store.stores.cluster = newSqlClusterDiscoveryStore(store)
+	store.stores.remoteCluster = newSqlRemoteClusterStore(store)
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
@@ -196,6 +211,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.TermsOfService = newSqlTermsOfServiceStore(store, metrics)
 	store.stores.UserTermsOfService = newSqlUserTermsOfServiceStore(store)
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
+	store.stores.sharedchannel = newSqlSharedChannelStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
@@ -246,8 +262,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
+	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
 	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
+	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -280,8 +298,20 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
@@ -318,9 +348,9 @@ func (ss *SqlStore) initConnection() {
 	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.Replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
@@ -328,6 +358,17 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -395,12 +436,50 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 		return ss.GetMaster()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
-	return ss.replicas[rrNum]
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
+	return ss.Replicas[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
+	}
+	return nil
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
+	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {
@@ -409,7 +488,7 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.replicas {
+	for _, db := range ss.Replicas {
 		count = count + db.Db.Stats().OpenConnections
 	}
 
@@ -540,6 +619,52 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		os.Exit(ExitDoesColumnExistsMissing)
 		return false
 	}
+}
+
+// GetColumnInfo returns data type information about the given column.
+func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
+	var columnInfo ColumnInfo
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE lower(table_name) = lower($1)
+			 AND lower(column_name) = lower($2)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		err := ss.GetMaster().SelectOne(&columnInfo,
+			`SELECT data_type as DataType,
+					COALESCE(character_maximum_length, 0) as CharMaximumLength
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND lower(table_name) = lower(?)
+			 AND lower(column_name) = lower(?)`,
+			tableName, columnName)
+		if err != nil {
+			return nil, err
+		}
+		return &columnInfo, nil
+	}
+	return nil, errors.New("Driver not supported for this method")
+}
+
+// IsVarchar returns true if the column type matches one of the varchar types
+// either in MySQL or PostgreSQL.
+func (ss *SqlStore) IsVarchar(columnType string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+		return true
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+		return true
+	}
+
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
@@ -875,6 +1000,10 @@ func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName s
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
+func (ss *SqlStore) CreateFullTextFuncIndexIfNotExists(indexName string, tableName string, function string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, []string{function}, IndexTypeFullTextFunc, false)
+}
+
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
@@ -898,6 +1027,13 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		} else if indexType == IndexTypeFullTextFunc {
+			if len(columnNames) != 1 {
+				mlog.Critical("Unable to create multi column full text index")
+				os.Exit(ExitCreateIndexPostgres)
+			}
+			columnName := columnNames[0]
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
 		} else {
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
@@ -1008,9 +1144,9 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.replicas)+1)
-	copy(all, ss.replicas)
-	all[len(ss.replicas)] = ss.master
+	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
+	copy(all, ss.Replicas)
+	all[len(ss.Replicas)] = ss.master
 	return all
 }
 
@@ -1033,7 +1169,7 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.master.Db.Close()
-	for _, replica := range ss.replicas {
+	for _, replica := range ss.Replicas {
 		replica.Db.Close()
 	}
 
@@ -1080,6 +1216,10 @@ func (ss *SqlStore) Audit() store.AuditStore {
 
 func (ss *SqlStore) ClusterDiscovery() store.ClusterDiscoveryStore {
 	return ss.stores.cluster
+}
+
+func (ss *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	return ss.stores.remoteCluster
 }
 
 func (ss *SqlStore) Compliance() store.ComplianceStore {
@@ -1186,6 +1326,10 @@ func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
 }
 
+func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
+	return ss.stores.sharedchannel
+}
+
 func (ss *SqlStore) DropAllTables() {
 	ss.master.TruncateTables()
 }
@@ -1208,6 +1352,10 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.licenseMutex.Lock()
 	defer ss.licenseMutex.Unlock()
 	ss.license = license
+}
+
+func (ss *SqlStore) GetLicense() *model.License {
+	return ss.license
 }
 
 func (ss *SqlStore) migrate(direction migrationDirection) error {

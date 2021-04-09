@@ -4,8 +4,10 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -13,11 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
@@ -336,7 +338,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	_, err := th.App.AddUserToChannel(userInChannel, channel)
+	_, err := th.App.AddUserToChannel(userInChannel, channel, false)
 	require.Nil(t, err)
 
 	err = th.App.RemoveUserFromChannel(userNotInChannel.Id, "", channel)
@@ -419,7 +421,7 @@ func TestPostChannelMentions(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelToMention)
 
-	_, err = th.App.AddUserToChannel(user, channel)
+	_, err = th.App.AddUserToChannel(user, channel, false)
 	require.Nil(t, err)
 
 	post := &model.Post{
@@ -854,14 +856,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -878,14 +880,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp("from_webhook", "true")
 
-		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -909,14 +911,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1229,7 +1231,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1268,7 +1270,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1307,7 +1309,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1344,7 +1346,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1386,7 +1388,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1440,7 +1442,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1494,7 +1496,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post5 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1543,7 +1545,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// should be mentioned by post2 and post3
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1573,12 +1575,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = th.App.countMentionsFromPost(user1, post1)
+		count, _, err = th.App.countMentionsFromPost(user1, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1615,7 +1617,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user, but we only count post3
 
-		count, err := th.App.countMentionsFromPost(user2, post2)
+		count, _, err := th.App.countMentionsFromPost(user2, post2)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1646,7 +1648,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1693,7 +1695,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post4 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post3)
+		count, _, err := th.App.countMentionsFromPost(user2, post3)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1733,7 +1735,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post3 should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1769,7 +1771,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// Every post should mention the user
 
-		count, err := th.App.countMentionsFromPost(user2, post1)
+		count, _, err := th.App.countMentionsFromPost(user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, numPosts, count)
@@ -1925,6 +1927,7 @@ func TestThreadMembership(t *testing.T) {
 func TestCollapsedThreadFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -1962,11 +1965,175 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.EqualValues(t, []string{user1.Id, user2.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id, l.Posts[postRoot.Id].Participants[1].Id})
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
+		require.True(t, l.Posts[postRoot.Id].IsFollowing)
 
 		// try extended fetch
 		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
+	})
+
+	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.CollapsedThreads = true
+		})
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+		defer th.App.DeleteChannel(channel, user1.Id)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// we introduce a race to trigger an unexpected error from the db side.
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			th.Server.Store.Post().PermanentDeleteByUser(user1.Id)
+		}()
+
+		require.NotPanics(t, func() {
+			_, err = th.App.CreatePost(&model.Post{
+				UserId:    user1.Id,
+				ChannelId: channel.Id,
+				RootId:    postRoot.Id,
+				Message:   fmt.Sprintf("@%s", user2.Username),
+			}, channel, false, true)
+			require.Nil(t, err)
+		})
+
+		wg.Wait()
+	})
+}
+
+func TestReplyToPostWithLag(t *testing.T) {
+	if !replicaFlag {
+		t.Skipf("requires test flag -mysql-replica")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+		t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+	}
+
+	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+	t.Run("replication lag time great than reply time", func(t *testing.T) {
+		err := mainHelper.SetReplicationLagForTesting(5)
+		require.Nil(t, err)
+		defer mainHelper.SetReplicationLagForTesting(0)
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
+
+		root, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    root.Id,
+			ParentId:  root.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		require.NotNil(t, reply)
+	})
+}
+
+func TestSharedChannelSyncForPostActions(t *testing.T) {
+	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		_, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 1)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+	})
+
+	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.UpdatePost(post, true)
+		require.Nil(t, err, "Updating a post should not error")
+
+		assert.Len(t, remoteClusterService.notifications, 2)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+	})
+
+	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		remoteClusterService := NewMockSharedChannelService(nil)
+		th.App.srv.sharedChannelService = remoteClusterService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		user := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Hello folks",
+		}, channel, false, true)
+		require.Nil(t, err, "Creating a post should not error")
+
+		_, err = th.App.DeletePost(post.Id, user.Id)
+		require.Nil(t, err, "Deleting a post should not error")
+
+		// one creation and two deletes
+		assert.Len(t, remoteClusterService.notifications, 3)
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Equal(t, channel.Id, remoteClusterService.notifications[2])
 	})
 }

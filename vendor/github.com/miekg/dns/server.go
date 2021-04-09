@@ -321,6 +321,7 @@ func (srv *Server) ListenAndServe() error {
 		}
 		u := l.(*net.UDPConn)
 		if e := setUDPSocketOptions(u); e != nil {
+			u.Close()
 			return e
 		}
 		srv.PacketConn = l
@@ -752,11 +753,10 @@ func (w *response) Write(m []byte) (int, error) {
 			return 0, &Error{err: "message too large"}
 		}
 
-		l := make([]byte, 2)
-		binary.BigEndian.PutUint16(l, uint16(len(m)))
-
-		n, err := (&net.Buffers{l, m}).WriteTo(w.tcp)
-		return int(n), err
+		msg := make([]byte, 2+len(m))
+		binary.BigEndian.PutUint16(msg, uint16(len(m)))
+		copy(msg[2:], m)
+		return w.tcp.Write(msg)
 	default:
 		panic("dns: internal error: udp and tcp both nil")
 	}

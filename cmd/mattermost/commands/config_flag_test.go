@@ -9,9 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestConfigFlag(t *testing.T) {
@@ -19,16 +16,14 @@ func TestConfigFlag(t *testing.T) {
 	defer th.TearDown()
 	dir := th.TemporaryDirectory()
 
-	i18n, ok := fileutils.FindDir("i18n")
-	require.True(t, ok)
-	require.NoError(t, utils.CopyDir(i18n, filepath.Join(dir, "i18n")))
-
 	prevDir, err := os.Getwd()
 	require.NoError(t, err)
 	defer os.Chdir(prevDir)
 	os.Chdir(dir)
 
 	t.Run("version without a config file should fail", func(t *testing.T) {
+		err := os.RemoveAll("config")
+		require.NoError(t, err)
 		th.SetAutoConfig(false)
 		defer th.SetAutoConfig(true)
 		require.Error(t, th.RunCommand(t, "version"))

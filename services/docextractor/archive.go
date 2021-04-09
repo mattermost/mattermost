@@ -4,6 +4,7 @@
 package docextractor
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,7 +24,7 @@ func (ae *archiveExtractor) Match(filename string) bool {
 	return err == nil
 }
 
-func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
+func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
 	dir, err := ioutil.TempDir(os.TempDir(), "archiver")
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
@@ -45,7 +46,14 @@ func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
 		text.WriteString(file.Name() + " ")
 		if ae.SubExtractor != nil {
 			filename := filepath.Base(file.Name())
-			subtext, extractErr := ae.SubExtractor.Extract(filename, file)
+			filename = strings.ReplaceAll(filename, "-", " ")
+			filename = strings.ReplaceAll(filename, ".", " ")
+			filename = strings.ReplaceAll(filename, ",", " ")
+			data, err2 := ioutil.ReadAll(file)
+			if err2 != nil {
+				return err2
+			}
+			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data))
 			if extractErr == nil {
 				text.WriteString(subtext + " ")
 			}

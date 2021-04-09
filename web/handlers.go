@@ -21,10 +21,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -70,16 +70,17 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
-	HandlerName         string
-	RequireSession      bool
-	RequireCloudKey     bool
-	TrustRequester      bool
-	RequireMfa          bool
-	IsStatic            bool
-	IsLocal             bool
-	DisableWhenBusy     bool
+	GetGlobalAppOptions       app.AppOptionCreator
+	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName               string
+	RequireSession            bool
+	RequireCloudKey           bool
+	RequireRemoteClusterToken bool
+	TrustRequester            bool
+	RequireMfa                bool
+	IsStatic                  bool
+	IsLocal                   bool
+	DisableWhenBusy           bool
 
 	cspShaDirective string
 }
@@ -177,7 +178,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Add unsafe-eval to the content security policy for faster source maps in development mode
 		devCSP := ""
 		if model.BuildNumber == "dev" {
-			devCSP = " 'unsafe-eval'"
+			devCSP += " 'unsafe-eval'"
+		}
+
+		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+		// see https://github.com/reduxjs/redux-devtools/issues/380
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-inline'"
 		}
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
@@ -198,7 +205,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
 		defer app.ReturnSessionToPool(session)
 
@@ -231,6 +238,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.App.SetSession(session)
 		}
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+		// Get the remote cluster
+		if remoteId := c.GetRemoteID(r); remoteId == "" {
+			c.Logger.Warn("Missing remote cluster id") //
+			c.Err = model.NewAppError("ServeHTTP", "api.context.remote_id_missing.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			// Check the token is correct for the remote cluster id.
+			session, err := c.App.GetRemoteClusterSession(token, remoteId)
+			if err != nil {
+				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Err = err
+			} else {
+				c.App.SetSession(session)
+			}
+		}
 	}
 
 	c.Logger = c.App.Log().With(
@@ -255,6 +277,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.RequireCloudKey {
 		c.CloudKeyRequired()
+	}
+
+	if c.Err == nil && h.RequireRemoteClusterToken {
+		c.RemoteClusterTokenRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {

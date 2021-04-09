@@ -20,11 +20,11 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -95,6 +95,13 @@ func (a *App) SyncPluginsActiveState() {
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginID]; ok {
 				pluginEnabled = state.Enable
+			}
+
+			// Tie Apps proxy disabled status to the feature flag.
+			if pluginID == "com.mattermost.apps" {
+				if !a.Config().FeatureFlags.AppsEnabled {
+					pluginEnabled = false
+				}
 			}
 
 			if pluginEnabled {
@@ -273,7 +280,7 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 			defer reader.Close()
 
-			var signature filesstore.ReadCloseSeeker
+			var signature filestore.ReadCloseSeeker
 			if *a.Config().PluginSettings.RequirePluginSignature {
 				signature, appErr = a.FileReader(plugin.signaturePath)
 				if appErr != nil {
@@ -598,13 +605,13 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		// If available in the markteplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
 		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {
