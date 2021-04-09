@@ -76,7 +76,7 @@ func (a *App) InitServer() {
 		a.initJobs()
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
+			a.registerAppClusterMessageHandlers()
 		}
 
 		a.DoAppMigrations()
@@ -138,6 +138,10 @@ func (a *App) initJobs() {
 
 	if jobsCloudInterface != nil {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
+	}
+
+	if jobsResendInvitationEmailInterface != nil {
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
 	}
 
 	a.srv.Jobs.InitWorkers()

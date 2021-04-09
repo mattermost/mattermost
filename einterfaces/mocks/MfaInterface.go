@@ -30,13 +30,13 @@ func (_m *MfaInterface) Activate(user *model.User, token string) *model.AppError
 	return r0
 }
 
-// Deactivate provides a mock function with given fields: userId
-func (_m *MfaInterface) Deactivate(userId string) *model.AppError {
-	ret := _m.Called(userId)
+// Deactivate provides a mock function with given fields: userID
+func (_m *MfaInterface) Deactivate(userID string) *model.AppError {
+	ret := _m.Called(userID)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
