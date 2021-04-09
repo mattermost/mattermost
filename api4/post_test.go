@@ -540,7 +540,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel)
+	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
 	_, resp := Client.CreatePost(post1)
@@ -618,7 +618,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 				}
 			case <-timeout:
 				// We just skip the test instead of failing because waiting for more than 5 seconds
-				// to get a response does not make sense, and it will unncessarily slow down
+				// to get a response does not make sense, and it will unnecessarily slow down
 				// the tests further in an already congested CI environment.
 				t.Skip("timed out waiting for event")
 			}
@@ -1997,7 +1997,7 @@ func TestDeletePost(t *testing.T) {
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 
 	defer th.TearDown()
 
@@ -2035,7 +2035,7 @@ func TestDeletePostMessage(t *testing.T) {
 					}
 				case <-timeout:
 					// We just skip the test instead of failing because waiting for more than 5 seconds
-					// to get a response does not make sense, and it will unncessarily slow down
+					// to get a response does not make sense, and it will unnecessarily slow down
 					// the tests further in an already congested CI environment.
 					t.Skip("timed out waiting for event")
 				}
@@ -2312,8 +2312,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
-	th.App.AddUserToChannel(user, th.BasicChannel)
-	th.App.AddUserToChannel(user, th.BasicChannel2)
+	th.App.AddUserToChannel(user, th.BasicChannel, false)
+	th.App.AddUserToChannel(user, th.BasicChannel2, false)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)

@@ -8773,5 +8773,37 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Fout bij het genereren van het wachtwoord."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Aantal replica lag queries is meer dan het aantal geconfigureerde replica's. Moet kleiner zijn dan of gelijk aan het aantal replica's."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Fout bij het opslaan van de eerste-admin-bezoek-marktplaats-status in de winkel."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Fout bij het ophalen van de eerste adminbezoek-marktplaats-status van de winkel."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fout bij het ongeldig maken van de cache"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Kon cluster op afstand niet toevoegen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Kon de uitnodiging niet accepteren: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Uitnodiging aanvaard en bevestigd.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Accepteer een uitnodiging van een remote cluster"
   }
 ]

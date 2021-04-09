@@ -106,6 +106,7 @@ services:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
     networks:
       - mm-test
     depends_on:
@@ -118,11 +119,18 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
       interval: 5s
-      timeout: 10s
+      timeout: 30s
       retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
     command: ['make', 'run-server']
     expose:
       - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
 
   follower:
     build:
@@ -133,6 +141,7 @@ services:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
     networks:
       - mm-test
     depends_on:
@@ -144,12 +153,54 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
       interval: 5s
-      timeout: 10s
+      timeout: 30s
       retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
     command: ['make', 'run-server']
     restart: on-failure
     expose:
       - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
+
+  follower2:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_CLUSTERSETTINGS_ENABLE=true"
+    networks:
+      - mm-test
+    depends_on:
+      - leader
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+      start_period: 5m
+    user: ${CURRENT_UID}
+    command: ['make', 'run-server']
+    restart: on-failure
+    expose:
+      - "8065"
+      - "8064/tcp"
+      - "8064/udp"
+      - "8074/tcp"
+      - "8074/udp"
+      - "8075"
 
   haproxy:
     image: nginx
@@ -159,8 +210,12 @@ services:
       - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     restart: on-failure
     depends_on:
-      - leader
-      - follower
+      leader:
+        condition: service_healthy
+      follower:
+        condition: service_healthy
+      follower2:
+        condition: service_healthy
     ports:
       - "8065:8065"
 

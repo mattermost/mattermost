@@ -19,7 +19,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 	})
 
 	t.Run("as system user with write experimental permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_PURGE_BLEVE_INDEXES.Id, model.SYSTEM_USER_ROLE_ID)
 		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
 		_, resp := th.Client.PurgeBleveIndexes()
 		CheckOKStatus(t, resp)

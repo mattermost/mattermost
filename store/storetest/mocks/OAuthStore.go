@@ -74,13 +74,13 @@ func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessDa
 	return r0, r1
 }
 
-// GetAccessDataByUserForApp provides a mock function with given fields: userId, clientId
-func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, error) {
-	ret := _m.Called(userId, clientId)
+// GetAccessDataByUserForApp provides a mock function with given fields: userID, clientId
+func (_m *OAuthStore) GetAccessDataByUserForApp(userID string, clientId string) ([]*model.AccessData, error) {
+	ret := _m.Called(userID, clientId)
 
 	var r0 []*model.AccessData
 	if rf, ok := ret.Get(0).(func(string, string) []*model.AccessData); ok {
-		r0 = rf(userId, clientId)
+		r0 = rf(userID, clientId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.AccessData)
@@ -89,7 +89,7 @@ func (_m *OAuthStore) GetAccessDataByUserForApp(userId string, clientId string) 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, clientId)
+		r1 = rf(userID, clientId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -120,13 +120,13 @@ func (_m *OAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	return r0, r1
 }
 
-// GetAppByUser provides a mock function with given fields: userId, offset, limit
-func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
-	ret := _m.Called(userId, offset, limit)
+// GetAppByUser provides a mock function with given fields: userID, offset, limit
+func (_m *OAuthStore) GetAppByUser(userID string, offset int, limit int) ([]*model.OAuthApp, error) {
+	ret := _m.Called(userID, offset, limit)
 
 	var r0 []*model.OAuthApp
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OAuthApp); ok {
-		r0 = rf(userId, offset, limit)
+		r0 = rf(userID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OAuthApp)
@@ -135,7 +135,7 @@ func (_m *OAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(userId, offset, limit)
+		r1 = rf(userID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -189,13 +189,13 @@ func (_m *OAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	return r0, r1
 }
 
-// GetAuthorizedApps provides a mock function with given fields: userId, offset, limit
-func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
-	ret := _m.Called(userId, offset, limit)
+// GetAuthorizedApps provides a mock function with given fields: userID, offset, limit
+func (_m *OAuthStore) GetAuthorizedApps(userID string, offset int, limit int) ([]*model.OAuthApp, error) {
+	ret := _m.Called(userID, offset, limit)
 
 	var r0 []*model.OAuthApp
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OAuthApp); ok {
-		r0 = rf(userId, offset, limit)
+		r0 = rf(userID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OAuthApp)
@@ -204,7 +204,7 @@ func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(userId, offset, limit)
+		r1 = rf(userID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -212,13 +212,13 @@ func (_m *OAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([
 	return r0, r1
 }
 
-// GetPreviousAccessData provides a mock function with given fields: userId, clientId
-func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, error) {
-	ret := _m.Called(userId, clientId)
+// GetPreviousAccessData provides a mock function with given fields: userID, clientId
+func (_m *OAuthStore) GetPreviousAccessData(userID string, clientId string) (*model.AccessData, error) {
+	ret := _m.Called(userID, clientId)
 
 	var r0 *model.AccessData
 	if rf, ok := ret.Get(0).(func(string, string) *model.AccessData); ok {
-		r0 = rf(userId, clientId)
+		r0 = rf(userID, clientId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AccessData)
@@ -227,7 +227,7 @@ func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*mo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, clientId)
+		r1 = rf(userID, clientId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -235,13 +235,13 @@ func (_m *OAuthStore) GetPreviousAccessData(userId string, clientId string) (*mo
 	return r0, r1
 }
 
-// PermanentDeleteAuthDataByUser provides a mock function with given fields: userId
-func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDeleteAuthDataByUser provides a mock function with given fields: userID
+func (_m *OAuthStore) PermanentDeleteAuthDataByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
