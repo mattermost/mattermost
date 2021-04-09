@@ -391,6 +391,24 @@ type OpenTracingLayerWebhookStore struct {
 	Root *OpenTracingLayer
 }
 
+func (s *OpenTracingLayerActionItemStore) GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ActionItemStore.GetCountsForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ActionItemStore.GetCountsForUser(userid)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ActionItemStore.GetForUser")
@@ -407,6 +425,24 @@ func (s *OpenTracingLayerActionItemStore) GetForUser(userid string) ([]actionite
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerActionItemStore) Save(item actionitem.ActionItem) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ActionItemStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ActionItemStore.Save(item)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {

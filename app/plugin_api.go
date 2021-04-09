@@ -1058,3 +1058,11 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 func (api *PluginAPI) SendNotification(notification actionitem.ExternalNotification) error {
 	return api.app.RecieveNotification(notification)
 }
+
+func (api *PluginAPI) RegisterActionItemProvider(provider actionitem.Provider) error {
+	return api.app.RegisterActionItemProvider(provider)
+}
+
+func (api *PluginAPI) RegisterActionItemType(actionItemType actionitem.Type) error {
+	return api.app.RegisterActionItemType(actionItemType)
+}

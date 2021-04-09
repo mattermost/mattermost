@@ -391,6 +391,22 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
+func (s *TimerLayerActionItemStore) GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error) {
+	start := timemodule.Now()
+
+	result, err := s.ActionItemStore.GetCountsForUser(userid)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ActionItemStore.GetCountsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
 	start := timemodule.Now()
 
@@ -405,6 +421,22 @@ func (s *TimerLayerActionItemStore) GetForUser(userid string) ([]actionitem.Acti
 		s.Root.Metrics.ObserveStoreMethodDuration("ActionItemStore.GetForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerActionItemStore) Save(item actionitem.ActionItem) error {
+	start := timemodule.Now()
+
+	err := s.ActionItemStore.Save(item)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ActionItemStore.Save", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {

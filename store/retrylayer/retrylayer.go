@@ -409,6 +409,26 @@ func isRepeatableError(err error) bool {
 	return false
 }
 
+func (s *RetryLayerActionItemStore) GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error) {
+
+	tries := 0
+	for {
+		result, err := s.ActionItemStore.GetCountsForUser(userid)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerActionItemStore) GetForUser(userid string) ([]actionitem.ActionItem, error) {
 
 	tries := 0
@@ -424,6 +444,26 @@ func (s *RetryLayerActionItemStore) GetForUser(userid string) ([]actionitem.Acti
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerActionItemStore) Save(item actionitem.ActionItem) error {
+
+	tries := 0
+	for {
+		err := s.ActionItemStore.Save(item)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 

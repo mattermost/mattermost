@@ -526,6 +526,8 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData
+	GetActionItemProviders() ([]actionitem.Provider, error)
+	GetActionItemTypes() ([]actionitem.Type, error)
 	GetActionItemsForUser(userid string) ([]actionitem.ActionItem, error)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
 	GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
@@ -868,6 +870,8 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
+	RegisterActionItemProvider(provider actionitem.Provider) error
+	RegisterActionItemType(actionItemType actionitem.Type) error
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError

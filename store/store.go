@@ -811,6 +811,11 @@ type ActionItemStore interface {
 	Save(item actionitem.ActionItem) error
 	GetForUser(userid string) ([]actionitem.ActionItem, error)
 	GetCountsForUser(userid string) ([]actionitem.ActionItemCount, error)
+
+	RegisterProvider(provider actionitem.Provider) error
+	RegisterType(actionItemType actionitem.Type) error
+	GetProviders() ([]actionitem.Provider, error)
+	GetTypes() ([]actionitem.Type, error)
 }
 type SharedChannelStore interface {
 	Save(sc *model.SharedChannel) (*model.SharedChannel, error)

@@ -1041,6 +1041,9 @@ type API interface {
 	DeleteCommand(commandID string) error
 
 	SendNotification(notification actionitem.ExternalNotification) error
+
+	RegisterActionItemProvider(provider actionitem.Provider) error
+	RegisterActionItemType(actionItemType actionitem.Type) error
 }
 
 var handshake = plugin.HandshakeConfig{
