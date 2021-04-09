@@ -2760,7 +2760,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Congratulations - your {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
