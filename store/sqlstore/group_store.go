@@ -712,18 +712,22 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRem
 		Join("GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Join("Teams ON Teams.Id = GroupTeams.TeamId").
-		JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
 		Where(sq.Eq{
 			"UserGroups.DeleteAt":   0,
 			"GroupTeams.DeleteAt":   0,
 			"GroupTeams.AutoAdd":    true,
 			"GroupMembers.DeleteAt": 0,
 			"Teams.DeleteAt":        0,
-		}).
-		Where("(GroupMembers.CreateAt >= ? OR GroupTeams.UpdateAt >= ?)", since, since)
+		})
 
 	if !includeRemovedMembers {
-		builder = builder.Where(sq.Eq{"TeamMembers.UserId": nil})
+		builder = builder.
+			JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
+			Where(sq.Eq{"TeamMembers.UserId": nil}).
+			Where(sq.Or{
+				sq.GtOrEq{"GroupMembers.CreateAt": since},
+				sq.GtOrEq{"GroupTeams.UpdateAt": since},
+			})
 	}
 	if teamID != nil {
 		builder = builder.Where(sq.Eq{"Teams.Id": *teamID})
@@ -750,19 +754,25 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, incl
 		Join("GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Join("Channels ON Channels.Id = GroupChannels.ChannelId").
-		JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
 		Where(sq.Eq{
-			"ChannelMemberHistory.LeaveTime": nil,
-			"UserGroups.DeleteAt":            0,
-			"GroupChannels.DeleteAt":         0,
-			"GroupChannels.AutoAdd":          true,
-			"GroupMembers.DeleteAt":          0,
-			"Channels.DeleteAt":              0,
-		}).
-		Where("(GroupMembers.CreateAt >= ? OR GroupChannels.UpdateAt >= ?)", since, since)
+			"UserGroups.DeleteAt":    0,
+			"GroupChannels.DeleteAt": 0,
+			"GroupChannels.AutoAdd":  true,
+			"GroupMembers.DeleteAt":  0,
+			"Channels.DeleteAt":      0,
+		})
 
 	if !includeRemovedMembers {
-		builder = builder.Where(sq.Eq{"ChannelMemberHistory.UserId": nil})
+		builder = builder.
+			JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
+			Where(sq.Eq{
+				"ChannelMemberHistory.UserId":    nil,
+				"ChannelMemberHistory.LeaveTime": nil,
+			}).
+			Where(sq.Or{
+				sq.GtOrEq{"GroupMembers.CreateAt": since},
+				sq.GtOrEq{"GroupChannels.UpdateAt": since},
+			})
 	}
 	if channelID != nil {
 		builder = builder.Where(sq.Eq{"Channels.Id": *channelID})
