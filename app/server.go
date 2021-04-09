@@ -522,7 +522,7 @@ func NewServer(options ...Option) (*Server, error) {
 	} else {
 		nErr := backend.TestConnection()
 		if nErr != nil {
-			if errors.Is(nErr, filestore.ErrNoS3Bucket) {
+			if _, ok := nErr.(*filestore.S3FileBackendNoBucketError); ok {
 				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
 			}
 			if nErr != nil {
