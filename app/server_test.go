@@ -692,3 +692,61 @@ func TestSentry(t *testing.T) {
 		}
 	})
 }
+
+func TestAdminAdvisor(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// creating a system user to whole admin advisor will send post
+	user := model.User{
+		Email: strings.ToLower(model.NewId()) + "success+test@example.com",
+		Nickname: "Darth Vader",
+		Username: "vader" + model.NewId(),
+		Password: "passwd1",
+		AuthService: "",
+		Roles: model.SYSTEM_ADMIN_ROLE_ID,
+	}
+	ruser, err := th.App.CreateUser(&user)
+	assert.Nil(t, err, "User should be created")
+	defer th.App.PermanentDeleteUser(&user)
+
+	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
+		licenseIndependentCheckMetricStatus(th.App)
+
+		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		assert.NotNil(t, bot, "Bot should have been created now")
+		assert.Nil(t, err, "No error should be generated")
+
+		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+		assert.Nil(t, err, "No error should be generated")
+	})
+
+	t.Run("Should NOT notify admin when support email is configured", func(t *testing.T) {
+		th.App.UpdateConfig(func(m *model.Config) {
+			email := "success+test@example.com"
+			m.SupportSettings.SupportEmail = &email
+		})
+
+		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		assert.NotNil(t, bot, "Bot should be already created")
+		assert.Nil(t, err, "No error should be generated")
+
+		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should already exist")
+		assert.Nil(t, err, "No error should be generated")
+
+		err = th.App.PermanentDeleteChannel(channel)
+		assert.Nil(t, err, "No error should be generated")
+
+		licenseIndependentCheckMetricStatus(th.App)
+
+		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+		assert.Nil(t, err, "No error should be generated")
+
+		posts, err := th.App.GetPosts(channel.Id, 0, 100)
+		assert.Nil(t, err, "No error should be generated")
+		assert.Equal(t, 0, len(posts.Posts))
+	})
+}
