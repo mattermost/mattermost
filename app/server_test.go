@@ -699,12 +699,12 @@ func TestAdminAdvisor(t *testing.T) {
 
 	// creating a system user to whole admin advisor will send post
 	user := model.User{
-		Email: strings.ToLower(model.NewId()) + "success+test@example.com",
-		Nickname: "Darth Vader",
-		Username: "vader" + model.NewId(),
-		Password: "passwd1",
+		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
+		Nickname:    "Darth Vader",
+		Username:    "vader" + model.NewId(),
+		Password:    "passwd1",
 		AuthService: "",
-		Roles: model.SYSTEM_ADMIN_ROLE_ID,
+		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
 	}
 	ruser, err := th.App.CreateUser(&user)
 	assert.Nil(t, err, "User should be created")
