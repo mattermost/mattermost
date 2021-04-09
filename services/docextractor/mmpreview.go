@@ -10,6 +10,7 @@ package docextractor
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"path"
@@ -41,7 +42,7 @@ func (mpe *mmPreviewExtractor) Match(filename string) bool {
 	return mmpreviewSupportedExtensions[extension]
 }
 
-func (mpe *mmPreviewExtractor) Extract(filename string, file io.Reader) (string, error) {
+func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker) (string, error) {
 	b, w, err := createMultipartFormData("file", filename, file)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
@@ -62,10 +63,14 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.Reader) (string,
 	if resp.StatusCode != 200 {
 		return "", errors.New("Unable to generate file preview using mmpreview (The server has replied with an error)")
 	}
-	return mpe.pdfExtractor.Extract(filename, resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to read the response from mmpreview")
+	}
+	return mpe.pdfExtractor.Extract(filename, bytes.NewReader(data))
 }
 
-func createMultipartFormData(fieldName, fileName string, fileData io.Reader) (bytes.Buffer, *multipart.Writer, error) {
+func createMultipartFormData(fieldName, fileName string, fileData io.ReadSeeker) (bytes.Buffer, *multipart.Writer, error) {
 	var b bytes.Buffer
 	var err error
 	w := multipart.NewWriter(&b)
