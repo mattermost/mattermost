@@ -104,7 +104,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
 
-	pErr := th.App.CreateDefaultMemberships(0)
+	pErr := th.App.CreateDefaultMemberships(0, false)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -174,7 +174,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Sync everything after syncable was created (proving that team updates trigger re-sync)
-	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt + 1)
+	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt+1, false)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -217,7 +217,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Sync everything after syncable was created (proving that channel updates trigger re-sync)
-	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt + 1)
+	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt+1, false)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -242,7 +242,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Even re-syncing from the beginning doesn't re-add to channel or team
-	pErr = th.App.CreateDefaultMemberships(0)
+	pErr = th.App.CreateDefaultMemberships(0, false)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -283,7 +283,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
 
-	pErr = th.App.CreateDefaultMemberships(0)
+	pErr = th.App.CreateDefaultMemberships(0, false)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -304,7 +304,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
 
-	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
+	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt, false)
 	if pErr != nil {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
@@ -320,7 +320,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
 
-	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
+	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt, false)
 	if pErr != nil {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
@@ -360,7 +360,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))
 		require.Nil(t, err)
 
-		pErr = th.App.CreateDefaultMemberships(0)
+		pErr = th.App.CreateDefaultMemberships(0, false)
 		require.NoError(t, pErr)
 
 		// Ensure only the restricted user was added to both the team and channel

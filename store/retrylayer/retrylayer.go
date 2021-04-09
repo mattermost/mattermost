@@ -3576,11 +3576,11 @@ func (s *RetryLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 
 }
 
-func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
+func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID)
+		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 		if err == nil {
 			return result, nil
 		}
@@ -4316,11 +4316,11 @@ func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 
 }
 
-func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
+func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.TeamMembersToAdd(since, teamID)
+		result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 		if err == nil {
 			return result, nil
 		}

@@ -298,13 +298,13 @@ func (_m *LdapInterface) RunTest() *model.AppError {
 	return r0
 }
 
-// StartSynchronizeJob provides a mock function with given fields: waitForJobToFinish
-func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError) {
-	ret := _m.Called(waitForJobToFinish)
+// StartSynchronizeJob provides a mock function with given fields: waitForJobToFinish, includeRemovedMembers
+func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError) {
+	ret := _m.Called(waitForJobToFinish, includeRemovedMembers)
 
 	var r0 *model.Job
-	if rf, ok := ret.Get(0).(func(bool) *model.Job); ok {
-		r0 = rf(waitForJobToFinish)
+	if rf, ok := ret.Get(0).(func(bool, bool) *model.Job); ok {
+		r0 = rf(waitForJobToFinish, includeRemovedMembers)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Job)
@@ -312,8 +312,8 @@ func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Jo
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(bool) *model.AppError); ok {
-		r1 = rf(waitForJobToFinish)
+	if rf, ok := ret.Get(1).(func(bool, bool) *model.AppError); ok {
+		r1 = rf(waitForJobToFinish, includeRemovedMembers)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

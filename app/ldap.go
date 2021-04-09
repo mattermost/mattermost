@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-func (a *App) SyncLdap() {
+func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap(); ldapI != nil {
-				ldapI.StartSynchronizeJob(false)
+				ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 			} else {
 				mlog.Error("Not executing ldap sync because ldap is not available")
 			}

@@ -80,7 +80,7 @@ type AppIface interface {
 	CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
-	CreateDefaultMemberships(since int64) error
+	CreateDefaultMemberships(since int64, includeRemovedMembers bool) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(user *model.User) (*model.User, *model.AppError)
@@ -308,7 +308,7 @@ type AppIface interface {
 	SyncPlugins() *model.AppError
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
-	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType)
+	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
@@ -404,7 +404,7 @@ type AppIface interface {
 	BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
-	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
+	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
@@ -998,10 +998,10 @@ type AppIface interface {
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
-	SyncLdap()
+	SyncLdap(includeRemovedMembers bool)
 	SyncPluginsActiveState()
 	T(translationID string, args ...interface{}) string
-	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
+	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError

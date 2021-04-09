@@ -136,11 +136,11 @@ func TestSyncLdap(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.SyncLdap()
+		_, resp := client.SyncLdap(false)
 		CheckNoError(t, resp)
 	})
 
-	_, resp := th.Client.SyncLdap()
+	_, resp := th.Client.SyncLdap(false)
 	CheckForbiddenStatus(t, resp)
 }
 
