@@ -300,8 +300,10 @@ func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, userName, trial
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
 	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
-	body, err := es.srv.TemplatesContainer().RenderToString("cloud_trial_end_warning_email", data)
+	body, err := es.srv.TemplatesContainer().RenderToString("cloud_trial_end_warning", data)
 	if err != nil {
 		return model.NewAppError("SendCloudTrialEndWarningEmail", "api.user.cloud_trial_ending_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}

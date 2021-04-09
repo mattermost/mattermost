@@ -14,10 +14,10 @@
 
       <mj-section padding="0 60px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column>
-          <mj-text css-class="title" align="left" font-family="Arial">
+          <mj-text css-class="title" align="left" font-family="Arial" padding="10px 0px">
             {{.Props.Title}}
           </mj-text>
-          <mj-text padding-bottom="24px" font-size="16px" line-height="24px" align="left" color="#000000" font-family="Arial">
+          <mj-text padding="10px 0px" padding-bottom="24px" font-size="16px" line-height="24px" align="left" color="#000000" font-family="Arial">
             {{.Props.SubTitle}}
           </mj-text>
           <mj-button href="{{.Props.ButtonURL}}" padding="0px" border-top="16px" css-class="button" align="left" font-family="Arial">
