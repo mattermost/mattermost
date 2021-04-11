@@ -19,6 +19,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -861,8 +862,8 @@ func IsValidUsername(s string) bool {
 	return true
 }
 
-func CleanUsername(s string) string {
-	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
+func CleanUsername(username string) string {
+	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {
@@ -883,6 +884,8 @@ func CleanUsername(s string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
+		mlog.Warn("Generating new username since provided username was invalid",
+			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
 	return s
