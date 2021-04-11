@@ -9153,9 +9153,5 @@
   {
     "id": "api.command_remote.cluster_removed",
     "translation": "Remote cluster {{.RemoteId}} {{.Result}}."
-  },
-  {
-    "id": "api.context.remote_id_missing.app_error",
-    "translation": ""
   }
 ]
