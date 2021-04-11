@@ -8789,5 +8789,37 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Ön bellek temizlenirken sorun çıktı"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Çağrı kodlanamadı: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Kümeler arası iletişim için uzak Mattermost kümelerini çağırın."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Çağrı kodu çözülemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Uzak küme {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Uzak küme eklenemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Çağrı kabul edilemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Uzak bir kümeden gelen bir çağrıyı kabul et"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Çağrı kabul edildi ve doğrulandı.\nSite adresi: {{.SiteURL}}"
   }
 ]
