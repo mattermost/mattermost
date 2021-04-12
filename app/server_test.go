@@ -173,10 +173,10 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	require.NoError(t, err)
 
 	// ensure that a new bucket was created
-	backend, err := s.FileBackend()
-	require.Nil(t, err)
+	backend, appErr := s.FileBackend()
+	require.Nil(t, appErr)
 	err = backend.(*filestore.S3FileBackend).TestConnection()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
