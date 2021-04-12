@@ -96,6 +96,10 @@
     "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
   },
   {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Failed to reset AuthData field to Email."
+  },
+  {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
     "translation": "Could not save certificate file."
   },
