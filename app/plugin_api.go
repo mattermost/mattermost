@@ -314,6 +314,9 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 
 func (api *PluginAPI) UpdateUserStatusWithDNDTimeout(userID, status string, endTime int64) (*model.Status, *model.AppError) {
 	if status == model.STATUS_DND {
+		// read-after-write bug which will fail if there are replicas.
+		// it works for now because we have a cache in between.
+		// FIXME: make SetStatusDoNotDisturbTimed return updated status
 		api.app.SetStatusDoNotDisturbTimed(userID, endTime)
 		return api.app.GetStatus(userID)
 	}
