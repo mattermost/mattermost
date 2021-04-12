@@ -53,10 +53,7 @@ type TrialLicenseRequest struct {
 }
 
 func (lr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(struct {
-		*TrialLicenseRequest
-		IsTrial bool `json:"is_trial"`
-	}{lr, true})
+	b, _ := json.Marshal(lr)
 	return string(b)
 }
 
