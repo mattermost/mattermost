@@ -5396,26 +5396,6 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamID string) (
 
 }
 
-func (s *RetryLayerPostStore) CheckIfAutoResponseByUserInChannelSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.CheckIfAutoResponseByUserInChannelSince(options, userId)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
 func (s *RetryLayerPostStore) ClearCaches() {
 
 	s.PostStore.ClearCaches()
@@ -5859,6 +5839,26 @@ func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 	tries := 0
 	for {
 		result, err := s.PostStore.GetSingle(id, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.HasAutoResponsePostByUserSince(options, userId)
 		if err == nil {
 			return result, nil
 		}

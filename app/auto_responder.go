@@ -14,7 +14,7 @@ func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (
 	// get last post in a calender day sent by user and if it's auto responder post then don't send again
 	y, m, d := time.Unix(createdAt, 0).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
-	return a.Srv().Store.Post().CheckIfAutoResponseByUserInChannelSince(
+	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
 	)

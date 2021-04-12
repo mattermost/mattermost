@@ -215,12 +215,14 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		channel := th.CreateDmChannel(receiver)
 
-		savedPost, _ := th.App.CreatePost(&model.Post{
+		savedPost, err := th.App.CreatePost(&model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
 			false, true)
+
+		assert.Nil(t, err)
 
 		sent, err := th.App.SendAutoResponseIfNecessary(channel, th.BasicUser, savedPost)
 

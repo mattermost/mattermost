@@ -959,13 +959,13 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) CheckIfAutoResponseByUserInChannelSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	query := `
 		SELECT 1
 		FROM
 			Posts
 		WHERE
-			UpdateAT >= :Time
+			UpdateAt >= :Time
 			AND
 			ChannelId = :ChannelId
 			AND
@@ -983,7 +983,7 @@ func (s *SqlPostStore) CheckIfAutoResponseByUserInChannelSince(options model.Get
 
 	if err != nil {
 		return false, errors.Wrapf(err,
-			"failed to check if Auto Respose Posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
 	}
 
 	return exist > 0, nil
