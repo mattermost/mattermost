@@ -21,7 +21,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	sup := newSupervisor(config)
+	sup, err := newSupervisor(config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not initialize supervisor: %v\n", err)
+		os.Exit(1)
+	}
+
 	if err = sup.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "Could not start apps: %v\n", err)
 		os.Exit(1)

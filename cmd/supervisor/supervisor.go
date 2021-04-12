@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/user"
 	"strings"
 )
 
@@ -19,31 +20,38 @@ type Supervisor struct {
 	cfg    Config
 	srv    *http.Server
 	logger *log.Logger
-	cmds   []*exec.Cmd
+	cmds   map[string]*exec.Cmd
 	client *http.Client
 }
 
-func newSupervisor(cfg Config) *Supervisor {
+func newSupervisor(cfg Config) (*Supervisor, error) {
 	sup := &Supervisor{
 		cfg:    cfg,
 		logger: log.New(os.Stderr, "[supervisor] ", log.LstdFlags|log.Lshortfile),
+		cmds:   make(map[string]*exec.Cmd),
 	}
 
 	// Initialize commands for all apps.
 	for _, app := range sup.cfg.AppSettings {
 		cmd := exec.CommandContext(context.Background(), app.Command, app.Args...)
+		cmd.Dir = app.CommandDir
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		sup.cmds = append(sup.cmds, cmd)
+		currentUser, err := user.Current()
+		if err != nil {
+			return nil, err
+		}
+		cmd.Env = append(cmd.Env, []string{"USER=" + currentUser.Name, "HOME=" + currentUser.HomeDir}...)
+		sup.cmds[app.Name] = cmd
 	}
 
-	return sup
+	return sup, nil
 }
 
 func (s *Supervisor) Start() error {
 	// Start the apps
-	for _, cmd := range s.cmds {
-		s.logger.Printf("Starting %s\n", cmd.Path)
+	for name, cmd := range s.cmds {
+		s.logger.Printf("Starting %s\n", name)
 		if err := cmd.Start(); err != nil {
 			return fmt.Errorf("error trying to start %q: %v", cmd.Path, err)
 		}
@@ -54,8 +62,8 @@ func (s *Supervisor) Start() error {
 
 func (s *Supervisor) Stop() error {
 	// Stop the apps.
-	for _, cmd := range s.cmds {
-		s.logger.Printf("Shutting down %s\n", cmd.Path)
+	for name, cmd := range s.cmds {
+		s.logger.Printf("Shutting down %s\n", name)
 		// TODO: Interrupt on windows does not work.
 		if err := cmd.Process.Signal(os.Interrupt); err != nil {
 			s.logger.Printf("error trying to interrupt %q: %v", cmd.Path, err)

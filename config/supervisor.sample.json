@@ -7,10 +7,13 @@
     },
     "AppSettings": [
         {
-            "BinaryPath": "./bin/mattermost",
+            "Name": "Chat App",
+            "Command": "./bin/mattermost",
+            "CommandDir": "/Users/mattermost/mattermost-server",
             "Args": ["--disableconfigwatch"],
             "SocketPath": "/var/tmp/chat.socket",
-            "RoutePrefix": "chat"
+            "RoutePrefix": "chat",
+            "Host": "http://localhost:8066"
         }
     ]
 }

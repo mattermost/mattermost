@@ -24,7 +24,9 @@ type ServiceSettings struct {
 }
 
 type AppSetting struct {
+	Name        string
 	Command     string
+	CommandDir  string
 	Args        []string
 	RoutePrefix string
 	SocketPath  string
