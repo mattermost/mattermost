@@ -1841,6 +1841,14 @@
     "translation": "Unable to access the file storage."
   },
   {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Ensure your Amazon S3 bucket is available, and verify your bucket permissions."
+  },
+  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },

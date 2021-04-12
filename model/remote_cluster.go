@@ -11,11 +11,18 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
 const (
 	RemoteOfflineAfterMillis = 1000 * 60 * 5 // 5 minutes
+	RemoteNameMinLength      = 1
+	RemoteNameMaxLength      = 64
+)
+
+var (
+	validRemoteNameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-\_]+$`)
 )
 
 type RemoteCluster struct {
@@ -60,8 +67,8 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.RemoteId, http.StatusBadRequest)
 	}
 
-	if rc.Name == "" {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "name empty", http.StatusBadRequest)
+	if !IsValidRemoteName(rc.Name) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "name="+rc.Name, http.StatusBadRequest)
 	}
 
 	if rc.CreateAt == 0 {
@@ -72,6 +79,13 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
+}
+
+func IsValidRemoteName(s string) bool {
+	if len(s) < RemoteNameMinLength || len(s) > RemoteNameMaxLength {
+		return false
+	}
+	return validRemoteNameChars.MatchString(s)
 }
 
 func (rc *RemoteCluster) PreUpdate() {
