@@ -194,7 +194,7 @@ func TestUpdateUserStatus(t *testing.T) {
 	})
 
 	t.Run("set dnd status timed", func(t *testing.T) {
-		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id, DNDEndTimeUnix: time.Now().Add(10 * time.Minute).Unix()}
+		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id, DNDEndTime: time.Now().Add(10 * time.Minute).Unix()}
 		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", updateUserStatus.Status)

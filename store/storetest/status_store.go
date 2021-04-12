@@ -68,7 +68,7 @@ func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
 	userId := NewTestId()
 
 	status := &model.Status{UserId: userId, Status: model.STATUS_DND, Manual: true,
-		DNDEndTimeUnix: time.Now().Add(5 * time.Second).Unix(), PrevStatus: model.STATUS_ONLINE}
+		DNDEndTime: time.Now().Add(5 * time.Second).Unix(), PrevStatus: model.STATUS_ONLINE}
 	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
 	time.Sleep(2 * time.Second)
@@ -87,7 +87,7 @@ func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
 
 	updatedStatus := *statuses[0]
 	require.Equal(t, updatedStatus.Status, model.STATUS_ONLINE)
-	require.Equal(t, updatedStatus.DNDEndTimeUnix, 0)
+	require.Equal(t, updatedStatus.DNDEndTime, 0)
 	require.Equal(t, updatedStatus.PrevStatus, model.STATUS_DND)
 	require.Equal(t, updatedStatus.Manual, false)
 }

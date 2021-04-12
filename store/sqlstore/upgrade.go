@@ -1014,7 +1014,7 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
 
 	// timed dnd status support
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTimeUnix", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")

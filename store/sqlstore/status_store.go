@@ -112,8 +112,8 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		Where(
 			sq.And{
 				sq.Eq{"Status": model.STATUS_DND},
-				sq.Gt{"DNDEndTimeUnix": 0},
-				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": currUnixTime},
 			},
 		).ToSql()
 	if err != nil {
@@ -128,13 +128,13 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		Where(
 			sq.And{
 				sq.Eq{"Status": model.STATUS_DND},
-				sq.Gt{"DNDEndTimeUnix": 0},
-				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": currUnixTime},
 			},
 		).
 		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.STATUS_DND).
-		Set("DNDEndTimeUnix", 0).
+		Set("DNDEndTime", 0).
 		Set("Manual", false).
 		ToSql()
 
@@ -149,7 +149,7 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 	for _, status := range statuses {
 		status.Status = status.PrevStatus
 		status.PrevStatus = model.STATUS_DND
-		status.DNDEndTimeUnix = 0
+		status.DNDEndTime = 0
 		status.Manual = false
 	}
 
@@ -178,13 +178,13 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		Where(
 			sq.And{
 				sq.Eq{"Status": model.STATUS_DND},
-				sq.Gt{"DNDEndTimeUnix": 0},
-				sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": time.Now().UTC().Unix()},
 			},
 		).
 		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.STATUS_DND).
-		Set("DNDEndTimeUnix", 0).
+		Set("DNDEndTime", 0).
 		Set("Manual", false).
 		Suffix("RETURNING *").
 		ToSql()
@@ -202,7 +202,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	for rows.Next() {
 		var status model.Status
 		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt,
-			&status.DNDEndTimeUnix, &status.PrevStatus); err != nil {
+			&status.DNDEndTime, &status.PrevStatus); err != nil {
 			return nil, errors.Wrap(err, "unable to scan from rows")
 		}
 		statuses = append(statuses, &status)

@@ -299,7 +299,7 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
-	status.DNDEndTimeUnix = endtime
+	status.DNDEndTime = endtime
 
 	a.SaveAndBroadcastStatus(status)
 }
