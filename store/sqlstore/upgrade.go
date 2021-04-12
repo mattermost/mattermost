@@ -952,9 +952,6 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTimeUnix", "BIGINT", "BIGINT")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
-
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -1015,6 +1012,10 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+
+	// timed dnd status support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTimeUnix", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
