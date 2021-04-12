@@ -83,7 +83,7 @@ func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
 	// after 3 more seconds test status should be updated
 	statuses, err = ss.Status().UpdateExpiredDNDStatuses()
 	require.Nil(t, err)
-	require.Len(t, statuses, 0)
+	require.Len(t, statuses, 1)
 
 	updatedStatus := *statuses[0]
 	require.Equal(t, updatedStatus.Status, model.STATUS_ONLINE)
