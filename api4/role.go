@@ -162,6 +162,11 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		ancillaryPermissions := model.AddAncillaryPermissions(*patch.Permissions)
+		*patch.Permissions = append(*patch.Permissions, ancillaryPermissions...)
+
+		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
 	}
 
 	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
