@@ -119,7 +119,7 @@ func TestPing(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Nil(t, merr.ErrorOrNil())
+		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
 		t.Log(fmt.Sprintf("%d web requests counted;  %d expected",
