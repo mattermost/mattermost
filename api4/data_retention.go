@@ -313,7 +313,15 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	opts := model.ChannelSearchOpts{PolicyID: c.Params.PolicyId, IncludePolicyID: true}
+	opts := model.ChannelSearchOpts{
+		PolicyID:        c.Params.PolicyId,
+		IncludePolicyID: true,
+		Deleted:         props.Deleted,
+		IncludeDeleted:  props.IncludeDeleted,
+		Public:          props.Public,
+		Private:         props.Private,
+		TeamIds:         props.TeamIds,
+	}
 
 	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
 	if appErr != nil {
