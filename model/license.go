@@ -52,8 +52,8 @@ type TrialLicenseRequest struct {
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
 }
 
-func (lr *TrialLicenseRequest) ToJson() string {
-	b, _ := json.Marshal(lr)
+func (tlr *TrialLicenseRequest) ToJson() string {
+	b, _ := json.Marshal(tlr)
 	return string(b)
 }
 
