@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"hash/maphash"
@@ -1158,20 +1159,20 @@ func (s *Server) Start() error {
 		ErrorLog:     errStdLog,
 	}
 
-	addr := "/var/tmp/chat.socket"
-	if err2 := os.RemoveAll(addr); err2 != nil {
-		return errors.Wrapf(err2, i18n.T("api.server.start_server.starting.critical"), err2)
+	addr := *s.Config().ServiceSettings.ListenAddress
+	if addr == "" {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			addr = ":https"
+		} else {
+			addr = ":http"
+		}
 	}
 
-	listener, err := net.Listen("unix", addr)
+	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
-	if err = os.Chmod(addr, 0600); err != nil {
-		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
-	}
-
-	// s.ListenAddr = listener.Addr().(*net.TCPAddr)
+	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
@@ -1219,70 +1220,72 @@ func (s *Server) Start() error {
 
 	s.didFinishListen = make(chan struct{})
 	go func() {
-		// if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		var err error
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 
-		// 	tlsConfig := &tls.Config{
-		// 		PreferServerCipherSuites: true,
-		// 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-		// 	}
+			tlsConfig := &tls.Config{
+				PreferServerCipherSuites: true,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			}
 
-		// 	switch *s.Config().ServiceSettings.TLSMinVer {
-		// 	case "1.0":
-		// 		tlsConfig.MinVersion = tls.VersionTLS10
-		// 	case "1.1":
-		// 		tlsConfig.MinVersion = tls.VersionTLS11
-		// 	default:
-		// 		tlsConfig.MinVersion = tls.VersionTLS12
-		// 	}
+			switch *s.Config().ServiceSettings.TLSMinVer {
+			case "1.0":
+				tlsConfig.MinVersion = tls.VersionTLS10
+			case "1.1":
+				tlsConfig.MinVersion = tls.VersionTLS11
+			default:
+				tlsConfig.MinVersion = tls.VersionTLS12
+			}
 
-		// 	defaultCiphers := []uint16{
-		// 		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		// 		tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-		// 		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		// 		tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-		// 		tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
-		// 		tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-		// 	}
+			defaultCiphers := []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			}
 
-		// 	if len(s.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
-		// 		tlsConfig.CipherSuites = defaultCiphers
-		// 	} else {
-		// 		var cipherSuites []uint16
-		// 		for _, cipher := range s.Config().ServiceSettings.TLSOverwriteCiphers {
-		// 			value, ok := model.ServerTLSSupportedCiphers[cipher]
+			if len(s.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
+				tlsConfig.CipherSuites = defaultCiphers
+			} else {
+				var cipherSuites []uint16
+				for _, cipher := range s.Config().ServiceSettings.TLSOverwriteCiphers {
+					value, ok := model.ServerTLSSupportedCiphers[cipher]
 
-		// 			if !ok {
-		// 				mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
-		// 				continue
-		// 			}
+					if !ok {
+						mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
+						continue
+					}
 
-		// 			cipherSuites = append(cipherSuites, value)
-		// 		}
+					cipherSuites = append(cipherSuites, value)
+				}
 
-		// 		if len(cipherSuites) == 0 {
-		// 			mlog.Warn("No supported ciphers passed, fallback to default cipher suite")
-		// 			cipherSuites = defaultCiphers
-		// 		}
+				if len(cipherSuites) == 0 {
+					mlog.Warn("No supported ciphers passed, fallback to default cipher suite")
+					cipherSuites = defaultCiphers
+				}
 
-		// 		tlsConfig.CipherSuites = cipherSuites
-		// 	}
+				tlsConfig.CipherSuites = cipherSuites
+			}
 
-		// 	certFile := ""
-		// 	keyFile := ""
+			certFile := ""
+			keyFile := ""
 
-		// 	if *s.Config().ServiceSettings.UseLetsEncrypt {
-		// 		tlsConfig.GetCertificate = m.GetCertificate
-		// 		tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
-		// 	} else {
-		// 		certFile = *s.Config().ServiceSettings.TLSCertFile
-		// 		keyFile = *s.Config().ServiceSettings.TLSKeyFile
-		// 	}
+			if *s.Config().ServiceSettings.UseLetsEncrypt {
+				tlsConfig.GetCertificate = m.GetCertificate
+				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+			} else {
+				certFile = *s.Config().ServiceSettings.TLSCertFile
+				keyFile = *s.Config().ServiceSettings.TLSKeyFile
+			}
 
-		// 	s.Server.TLSConfig = tlsConfig
-		// 	err = s.Server.ServeTLS(listener, certFile, keyFile)
-		// } else {
-		// }
-		err := s.Server.Serve(listener)
+			s.Server.TLSConfig = tlsConfig
+			err = s.Server.ServeTLS(listener, certFile, keyFile)
+		} else {
+			err = s.Server.Serve(listener)
+		}
+
 		if err != nil && err != http.ErrServerClosed {
 			mlog.Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)

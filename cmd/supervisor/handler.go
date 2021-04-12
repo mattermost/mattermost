@@ -12,7 +12,6 @@ import (
 
 func (s *Supervisor) handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		routePrefix := ""
 		if paths := strings.Split(r.URL.Path, "/"); len(paths) > 1 {
 			routePrefix = paths[1]
@@ -52,7 +51,7 @@ func (s *Supervisor) handler() http.HandlerFunc {
 
 		// Did not match any prefix.
 		// By default route all requests to Chat.
-		// http.Redirect(w, r, "/"+s.cfg.ServiceSettings.DefaultRoutePrefix, http.StatusFound)
+		http.Redirect(w, r, "/"+s.cfg.ServiceSettings.DefaultRoutePrefix, http.StatusFound)
 
 		r.URL.Host = s.cfg.ServiceSettings.DefaultRoutePrefix
 		r.Host = s.cfg.ServiceSettings.DefaultRoutePrefix

@@ -55,7 +55,6 @@ func (w *Web) InitStatic() {
 }
 
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !CheckClientCompatibility(r.UserAgent()) {
 		renderUnsupportedBrowser(c.App, w, r)
 		return

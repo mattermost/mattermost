@@ -28,6 +28,7 @@ type AppSetting struct {
 	Args        []string
 	RoutePrefix string
 	SocketPath  string
+	Host        string
 }
 
 // parseConfig reads the config file and returns a new *Config,

@@ -5,15 +5,14 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
-	"errors"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"os/exec"
-	"time"
+	"strings"
 )
 
 type Supervisor struct {
@@ -30,37 +29,6 @@ func newSupervisor(cfg Config) *Supervisor {
 		logger: log.New(os.Stderr, "[supervisor] ", log.LstdFlags|log.Lshortfile),
 	}
 
-	server := &http.Server{
-		Addr:         cfg.ServiceSettings.Host,
-		ReadTimeout:  60 * time.Second,
-		WriteTimeout: 60 * time.Second,
-		IdleTimeout:  30 * time.Second,
-		TLSConfig: &tls.Config{
-			MinVersion:               tls.VersionTLS12,
-			PreferServerCipherSuites: true,
-			CurvePreferences: []tls.CurveID{
-				tls.CurveP256,
-			},
-		},
-	}
-	sup.srv = server
-	sup.srv.Handler = sup.withRecovery(sup.handler())
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
-			DialContext:           sup.dialer,
-			ForceAttemptHTTP2:     true,
-			MaxConnsPerHost:       100,
-			MaxIdleConns:          50,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ResponseHeaderTimeout: 30 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-		},
-	}
-	sup.client = client
-
 	// Initialize commands for all apps.
 	for _, app := range sup.cfg.AppSettings {
 		cmd := exec.CommandContext(context.Background(), app.Command, app.Args...)
@@ -72,28 +40,6 @@ func newSupervisor(cfg Config) *Supervisor {
 	return sup
 }
 
-func (s *Supervisor) dialer(ctx context.Context, network, addr string) (net.Conn, error) {
-	dialer := net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
-	}
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return dialer.DialContext(ctx, "unix", s.findSocket(host))
-}
-
-func (s *Supervisor) findSocket(routePrefix string) string {
-	for _, app := range s.cfg.AppSettings {
-		if app.RoutePrefix == routePrefix {
-			return app.SocketPath
-		}
-	}
-	return s.cfg.ServiceSettings.DefaultRoutePrefix
-}
-
 func (s *Supervisor) Start() error {
 	// Start the apps
 	for _, cmd := range s.cmds {
@@ -103,28 +49,10 @@ func (s *Supervisor) Start() error {
 		}
 	}
 
-	// Start HTTP server
-	s.logger.Println("Starting HTTP Server..")
-	var err error
-	if s.cfg.ServiceSettings.TLSCertFile != "" && s.cfg.ServiceSettings.TLSKeyFile != "" {
-		err = s.srv.ListenAndServeTLS(s.cfg.ServiceSettings.TLSCertFile, s.cfg.ServiceSettings.TLSKeyFile)
-	} else {
-		err = s.srv.ListenAndServe()
-	}
-	if errors.Is(err, http.ErrServerClosed) {
-		return nil
-	}
-	return err
+	return nil
 }
 
 func (s *Supervisor) Stop() error {
-	// Stop HTTP Server.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	if err := s.srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("error trying to shutdown HTTP server: %v", err)
-	}
-
 	// Stop the apps.
 	for _, cmd := range s.cmds {
 		s.logger.Printf("Shutting down %s\n", cmd.Path)
@@ -140,4 +68,35 @@ func (s *Supervisor) Stop() error {
 		}
 	}
 	return nil
+}
+
+func (s *Supervisor) handleRequestAndRedirect(res http.ResponseWriter, req *http.Request) {
+	routePrefix := ""
+	if paths := strings.Split(req.URL.Path, "/"); len(paths) > 1 {
+		routePrefix = paths[1]
+	}
+
+	if routePrefix == "" {
+		routePrefix = s.cfg.ServiceSettings.DefaultRoutePrefix
+		req.URL.Path = routePrefix + "/" + req.URL.Path
+	}
+
+	for _, app := range s.cfg.AppSettings {
+		if app.RoutePrefix == routePrefix {
+			// parse the url
+			url, _ := url.Parse(app.Host)
+
+			// create the reverse proxy
+			proxy := httputil.NewSingleHostReverseProxy(url)
+
+			// Update the headers to allow for SSL redirection
+			req.URL.Host = url.Host
+			req.URL.Scheme = url.Scheme
+			req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
+			req.Host = url.Host
+
+			// Note that ServeHttp is non blocking and uses a go routine under the hood
+			proxy.ServeHTTP(res, req)
+		}
+	}
 }
