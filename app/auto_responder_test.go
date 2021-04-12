@@ -217,7 +217,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 
 		savedPost, err := th.App.CreatePost(&model.Post{
 			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + "a",
+			Message:   "zz" + NewTestId() + "a",
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
 			false, true)
