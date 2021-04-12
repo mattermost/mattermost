@@ -548,7 +548,7 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) (cmdError err
 
 	updatedWebHook, createErr := app.CreateOutgoingWebhook(webhook)
 	if createErr != nil {
-		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, createErr.Error(), http.StatusInternalServerError)
 	}
 
 	auditRec.Success()

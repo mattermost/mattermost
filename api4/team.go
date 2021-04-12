@@ -1396,8 +1396,8 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_INVALIDATE_EMAIL_INVITE) {
+		c.SetPermissionError(model.PERMISSION_INVALIDATE_EMAIL_INVITE)
 		return
 	}
 
