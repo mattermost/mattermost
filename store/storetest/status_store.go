@@ -87,7 +87,7 @@ func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
 
 	updatedStatus := *statuses[0]
 	require.Equal(t, updatedStatus.Status, model.STATUS_ONLINE)
-	require.Equal(t, updatedStatus.DNDEndTime, 0)
+	require.Equal(t, updatedStatus.DNDEndTime, int64(0))
 	require.Equal(t, updatedStatus.PrevStatus, model.STATUS_DND)
 	require.Equal(t, updatedStatus.Manual, false)
 }
