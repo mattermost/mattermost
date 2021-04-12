@@ -1012,6 +1012,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
 
 	// timed dnd status support
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
@@ -1034,8 +1035,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
-
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
 
 	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
