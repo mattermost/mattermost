@@ -139,8 +139,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}()
 		c.App.SetContext(ctx)
 
-		tmpSrv := app.Server{}
-		tmpSrv = *c.App.Srv()
+		tmpSrv := *c.App.Srv()
 		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)

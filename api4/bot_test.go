@@ -1437,7 +1437,6 @@ func TestConvertBotToUser(t *testing.T) {
 		bot, resp := th.SystemAdminClient.CreateBot(bot)
 		CheckCreatedStatus(t, resp)
 
-		user, resp := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
 		CheckBadRequestStatus(t, resp)
 
 		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)

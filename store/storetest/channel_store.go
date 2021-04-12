@@ -372,7 +372,6 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
-	c1 := &model.Channel{}
 	c1, err := ss.Channel().Get(o1.Id, false)
 	require.NoError(t, err, err)
 	require.Equal(t, o1.ToJson(), c1.ToJson(), "invalid returned channel")
