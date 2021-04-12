@@ -708,6 +708,7 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.EnableDebugLogForTest()
 }
 
+// This function is copy of storetest/NewTestId
 // NewTestId is used for testing as a replacement for model.NewId(). It is a [A-Z0-9] string 26
 // characters long. It replaces every odd character with a digit.
 func NewTestId() string {
