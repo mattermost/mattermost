@@ -266,10 +266,10 @@ func (api *apiTimerLayer) UpdateUserStatus(userID, status string) (*model.Status
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError) {
+func (api *apiTimerLayer) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateUserStatusWithDNDTimeout(userId, status, endtime)
-	api.recordTime(startTime, "UpdateUserStatusWithDNDTimeout", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.SetUserStatusTimedDND(userId, endtime)
+	api.recordTime(startTime, "SetUserStatusTimedDND", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

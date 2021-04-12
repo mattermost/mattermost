@@ -1475,33 +1475,32 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
-type Z_UpdateUserStatusWithDNDTimeoutArgs struct {
+type Z_SetUserStatusTimedDNDArgs struct {
 	A string
-	B string
-	C int64
+	B int64
 }
 
-type Z_UpdateUserStatusWithDNDTimeoutReturns struct {
+type Z_SetUserStatusTimedDNDReturns struct {
 	A *model.Status
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError) {
-	_args := &Z_UpdateUserStatusWithDNDTimeoutArgs{userId, status, endtime}
-	_returns := &Z_UpdateUserStatusWithDNDTimeoutReturns{}
-	if err := g.client.Call("Plugin.UpdateUserStatusWithDNDTimeout", _args, _returns); err != nil {
-		log.Printf("RPC call to UpdateUserStatusWithDNDTimeout API failed: %s", err.Error())
+func (g *apiRPCClient) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	_args := &Z_SetUserStatusTimedDNDArgs{userId, endtime}
+	_returns := &Z_SetUserStatusTimedDNDReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusTimedDND", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusTimedDND API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) UpdateUserStatusWithDNDTimeout(args *Z_UpdateUserStatusWithDNDTimeoutArgs, returns *Z_UpdateUserStatusWithDNDTimeoutReturns) error {
+func (s *apiRPCServer) SetUserStatusTimedDND(args *Z_SetUserStatusTimedDNDArgs, returns *Z_SetUserStatusTimedDNDReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError)
+		SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.UpdateUserStatusWithDNDTimeout(args.A, args.B, args.C)
+		returns.A, returns.B = hook.SetUserStatusTimedDND(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateUserStatusWithDNDTimeout called but not implemented."))
+		return encodableError(fmt.Errorf("API SetUserStatusTimedDND called but not implemented."))
 	}
 	return nil
 }

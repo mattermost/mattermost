@@ -229,12 +229,11 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateUserStatus(userID, status string) (*model.Status, *model.AppError)
 
-	// UpdateUserStatusWithDNDTimeout will set a user's status until the user, or another integration/plugin, sets it back to online.
-	// The status parameter can be: "online", "away", "dnd with end time", or "offline".
-	//
+	// SetUserStatusTimedDND will set a user's status to dnd for given time until the user,
+	// or another integration/plugin, sets it back to online.
 	// @tag User
 	// Minimum server version: 5.35
-	UpdateUserStatusWithDNDTimeout(userId, status string, endtime int64) (*model.Status, *model.AppError)
+	SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
 
 	// UpdateUserActive deactivates or reactivates an user.
 	//
