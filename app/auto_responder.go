@@ -10,8 +10,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// check if there is any auto_response type post in channel by the user in a calender day
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
-	// get last post in a calender day sent by user and if it's auto responder post then don't send again
 	y, m, d := time.Unix(createdAt, 0).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
 	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
