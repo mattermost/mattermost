@@ -676,11 +676,11 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 		},
 		TeamIDs: []string{o.Id},
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Without ExcludePolicyConstrained
 	teams, err := ss.Team().GetAllPage(0, 100, nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	found := false
 	for _, team := range teams {
 		if team.Id == o.Id {
@@ -693,7 +693,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 
 	// With ExcludePolicyConstrained
 	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewBool(true)})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
 		if team.Id == o.Id {
@@ -705,7 +705,7 @@ func testTeamStoreGetAllPage(t *testing.T, ss store.Store) {
 
 	// With policy ID
 	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewBool(true)})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
 		if team.Id == o.Id {

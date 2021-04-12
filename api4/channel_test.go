@@ -1036,7 +1036,7 @@ func TestGetAllChannels(t *testing.T) {
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
-	require.Nil(t, savePolicyErr)
+	require.NoError(t, savePolicyErr)
 
 	t.Run("exclude policy constrained", func(t *testing.T) {
 		_, resp := th.SystemManagerClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
@@ -1458,7 +1458,7 @@ func TestSearchAllChannels(t *testing.T) {
 		},
 		ChannelIDs: []string{policyChannel.Id},
 	})
-	require.Nil(t, savePolicyErr)
+	require.NoError(t, savePolicyErr)
 
 	t.Run("does not return policy ID", func(t *testing.T) {
 		channels, resp := th.SystemManagerClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})

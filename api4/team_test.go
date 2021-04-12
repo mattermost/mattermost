@@ -1034,7 +1034,7 @@ func TestGetAllTeams(t *testing.T) {
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
-	require.Nil(t, savePolicyErr)
+	require.NoError(t, savePolicyErr)
 	// This time, the team shouldn't be returned
 	t.Run("exclude policy constrained, with policy", func(t *testing.T) {
 		teams, excludeConstrainedResp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
@@ -1322,7 +1322,7 @@ func TestSearchAllTeams(t *testing.T) {
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
-	require.Nil(t, savePolicyErr)
+	require.NoError(t, savePolicyErr)
 	t.Run("does not return policy ID", func(t *testing.T) {
 		teams, sysManagerResp := th.SystemManagerClient.SearchTeams(&model.TeamSearch{Term: policyTeam.Name})
 		CheckOKStatus(t, sysManagerResp)
