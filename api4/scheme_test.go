@@ -760,3 +760,36 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNotImplementedStatus(t, r6)
 	})
 }
+
+func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Correctly invalidates team member cache", func(t *testing.T) {
+		th.App.SetPhase2PermissionsMigrationStatus(true)
+
+		team := th.CreateTeam()
+		_, _, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		teamScheme := th.SetupTeamScheme()
+
+		teamUserRole, err := th.App.GetRoleByName(teamScheme.DefaultTeamUserRole)
+		require.Nil(t, err)
+		teamUserRole.Permissions = []string{}
+		_, err = th.App.UpdateRole(teamUserRole)
+		require.Nil(t, err)
+
+		th.LoginBasic()
+
+		_, resp := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id})
+		require.Nil(t, resp.Error)
+
+		team.SchemeId = &teamScheme.Id
+		team, err = th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, resp = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id})
+		require.NotNil(t, resp.Error)
+	})
+}
