@@ -572,7 +572,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 
 		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, UserId: userID}, plugin.BotID(expectedBotID))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.True(t, shouldProcessMessage)
 	})

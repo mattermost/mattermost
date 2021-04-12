@@ -283,7 +283,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 
 	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
 
 	mockBackend = filesStoreMocks.FileBackend{}
@@ -371,7 +371,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			})
 			time.Sleep(1 * time.Millisecond)
 
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			fileInfos[i] = fileInfo
 		}
