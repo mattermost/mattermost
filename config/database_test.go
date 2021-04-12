@@ -82,7 +82,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 
 		var actualCfg *model.Config
 		err = json.Unmarshal(actual.Value, &actualCfg)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		return actual.ID, actualCfg
 	}
 	var actual struct {
@@ -95,7 +95,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 
 	var actualCfg *model.Config
 	err = json.Unmarshal(actual.Value, &actualCfg)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	return actual.ID, actualCfg
 }
 
