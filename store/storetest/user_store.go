@@ -2195,29 +2195,29 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
 			user.Id, model.USER_AUTH_SERVICE_SAML, model.NewString("some-id"), "", false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 	resetAuthDataToID()
 
 	// dry run
 	numAffected, err := ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 	// real run
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 	user, appErr := ss.User().Get(context.Background(), user.Id)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, *user.AuthData, user.Email)
 
 	resetAuthDataToID()
 	// with specific user IDs
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{model.NewId()}, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 0, numAffected)
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{user.Id}, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 
 	// delete user
@@ -2225,11 +2225,11 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 	ss.User().Update(user, true)
 	// without deleted user
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 0, numAffected)
 	// with deleted user
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, true, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 1, numAffected)
 }
 
