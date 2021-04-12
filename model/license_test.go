@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -240,16 +239,4 @@ func TestLicenseRecordPreSave(t *testing.T) {
 	lr.PreSave()
 
 	assert.NotZero(t, lr.CreateAt)
-}
-
-func TestTrialLicenseRequestToFromJson(t *testing.T) {
-	t.Run("is_trial is hard-coded to true", func(t *testing.T) {
-		tlr := &TrialLicenseRequest{}
-		j := tlr.ToJson()
-		inline := &struct {
-			IsTrial bool `json:"is_trial"`
-		}{}
-		json.Unmarshal([]byte(j), inline)
-		CheckBool(t, inline.IsTrial, true)
-	})
 }
