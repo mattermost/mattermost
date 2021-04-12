@@ -28,6 +28,25 @@ func (g *GroupService) GetByName(name string) (*model.Group, error) {
 	return group, normalizeAppErr(appErr)
 }
 
+// GetMemberUsers gets a page of users from the given group.
+//
+// Minimum server version: 5.35
+func (g *GroupService) GetMemberUsers(groupID string, page, perPage int) ([]*model.User, error) {
+	users, appErr := g.api.GetGroupMemberUsers(groupID, page, perPage)
+
+	return users, normalizeAppErr(appErr)
+}
+
+// GetBySource gets a list of all groups for the given source.
+//
+// @tag Group
+// Minimum server version: 5.35
+func (g *GroupService) GetBySource(groupSource model.GroupSource) ([]*model.Group, error) {
+	groups, appErr := g.api.GetGroupsBySource(groupSource)
+
+	return groups, normalizeAppErr(appErr)
+}
+
 // ListForUser gets the groups a user is in.
 //
 // Minimum server version: 5.18
