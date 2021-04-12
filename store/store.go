@@ -345,6 +345,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
 	Get(ctx context.Context, id string) (*model.User, error)
