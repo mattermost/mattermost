@@ -15,10 +15,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -91,13 +91,13 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		if a.Srv().runjobs {
+		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
 				runCheckWarnMetricStatusJob(a)
 			})
+			a.srv.runJobs()
 		}
-		a.srv.RunJobs()
 	})
 }
 
@@ -140,8 +140,8 @@ func (a *App) initJobs() {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
-	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
+	a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {
@@ -498,7 +498,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, body, mailConfig, false, sender.Email); err != nil {
+			if err := mail.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, body, mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
