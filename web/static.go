@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -114,6 +115,6 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templatesDir, _ := fileutils.FindDir("templates")
+	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }
