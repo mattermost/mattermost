@@ -15,18 +15,18 @@ type ExtractSettings struct {
 }
 
 // Extract extract the text from a document using the system default extractors
-func Extract(filename string, r io.Reader, settings ExtractSettings) (string, error) {
+func Extract(filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
 	return ExtractWithExtraExtractors(filename, r, settings, []Extractor{})
 }
 
 // ExtractWithExtraExtractors extract the text from a document using the provided extractors beside the system default extractors.
-func ExtractWithExtraExtractors(filename string, r io.Reader, settings ExtractSettings, extraExtractors []Extractor) (string, error) {
+func ExtractWithExtraExtractors(filename string, r io.ReadSeeker, settings ExtractSettings, extraExtractors []Extractor) (string, error) {
 	enabledExtractors := &combineExtractor{}
 	for _, extraExtractor := range extraExtractors {
 		enabledExtractors.Add(extraExtractor)
 	}
-	enabledExtractors.Add(&pdfExtractor{})
 	enabledExtractors.Add(&documentExtractor{})
+	enabledExtractors.Add(&pdfExtractor{})
 
 	if settings.ArchiveRecursion {
 		enabledExtractors.Add(&archiveExtractor{SubExtractor: enabledExtractors})

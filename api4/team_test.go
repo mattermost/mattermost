@@ -2926,7 +2926,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	t.Run("invalid data in request body", func(t *testing.T) {
 		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
@@ -3321,8 +3321,8 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	})
 
 	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id, model.SYSTEM_USER_ROLE_ID)
 		ok, res := th.Client.InvalidateEmailInvites()
 		require.Equal(t, true, ok)
 		CheckOKStatus(t, res)

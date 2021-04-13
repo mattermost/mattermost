@@ -350,19 +350,11 @@ func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
 		return errors.Wrap(err, "file_info_tosql")
 	}
 
-	sqlResult, err := fs.GetMaster().Exec(queryString, args...)
+	_, err = fs.GetMaster().Exec(queryString, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update FileInfo content with id=%s", fileId)
 	}
 
-	count, err := sqlResult.RowsAffected()
-	if err != nil {
-		// RowsAffected should never fail with the MySQL or Postgres drivers
-		return errors.Wrap(err, "unable to retrieve rows affected")
-	} else if count == 0 {
-		// Could not attach the file to the post
-		return store.NewErrInvalidInput("FileInfo", "<id>", fmt.Sprintf("<%s>", fileId))
-	}
 	return nil
 }
 

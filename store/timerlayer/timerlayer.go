@@ -3809,6 +3809,22 @@ func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+	start := timemodule.Now()
+
+	result, err := s.JobStore.GetAllByTypesPage(jobTypes, offset, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesPage", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 
@@ -8821,6 +8837,22 @@ func (s *TimerLayerUserStore) PromoteGuestToUser(userID string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.PromoteGuestToUser", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.ResetAuthDataToEmailForUsers(service, userIDs, includeDeleted, dryRun)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.ResetAuthDataToEmailForUsers", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerUserStore) ResetLastPictureUpdate(userID string) error {

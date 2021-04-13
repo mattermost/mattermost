@@ -328,6 +328,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
 	Get(ctx context.Context, id string) (*model.User, error)
@@ -630,6 +631,7 @@ type JobStore interface {
 	GetAllPage(offset int, limit int) ([]*model.Job, error)
 	GetAllByType(jobType string) ([]*model.Job, error)
 	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error)
 	GetAllByStatus(status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
