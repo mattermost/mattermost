@@ -843,8 +843,9 @@ func clearSharedChannels(ss store.Store) error {
 func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
 	t.Run("Save shared channel user", func(t *testing.T) {
 		scUser := &model.SharedChannelUser{
-			UserId:   model.NewId(),
-			RemoteId: model.NewId(),
+			UserId:    model.NewId(),
+			RemoteId:  model.NewId(),
+			ChannelId: model.NewId(),
 		}
 
 		userSaved, err := ss.SharedChannel().SaveUser(scUser)
@@ -897,15 +898,16 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 
 	t.Run("Get non-existent shared channel user", func(t *testing.T) {
 		u, err := ss.SharedChannel().GetUser(model.NewId(), model.NewId(), model.NewId())
-		require.NoError(t, err)
+		require.Error(t, err)
 		require.Nil(t, u)
 	})
 }
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	scUser := &model.SharedChannelUser{
-		UserId:   model.NewId(),
-		RemoteId: model.NewId(),
+		UserId:    model.NewId(),
+		RemoteId:  model.NewId(),
+		ChannelId: model.NewId(),
 	}
 
 	userSaved, err := ss.SharedChannel().SaveUser(scUser)
