@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -54,11 +55,25 @@ func (u userCache) Add(id string) {
 func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
+	var teamId string
 	uCache := make(userCache)
 
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
 			continue
+		}
+
+		// lookup team id once
+		if teamId == "" {
+			sc, err := scs.server.GetStore().SharedChannel().Get(p.ChannelId)
+			if err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not get shared channel for post",
+					mlog.String("post_id", p.Id),
+					mlog.Err(err),
+				)
+				continue
+			}
+			teamId = sc.TeamId
 		}
 
 		// any reactions originating from the remote cluster are filtered out
@@ -104,7 +119,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 		}
 
 		// any users originating from the remote cluster are filtered out
-		users := scs.usersForPost(postSync, reactions, rc, uCache)
+		users := scs.usersForPost(postSync, reactions, teamId, rc, uCache)
 
 		// if everything was filtered out then don't send an empty message.
 		if postSync == nil && len(reactions) == 0 && len(users) == 0 {
@@ -127,8 +142,9 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
 // The user cache ensures the same user is not synchronized redundantly if they appear in multiple
 // posts for this sync batch.
-func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster, uCache userCache) []*model.User {
+func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, teamID string, rc *model.RemoteCluster, uCache userCache) []*model.User {
 	userIds := make([]string, 0)
+	var mentionMap model.UserMentionMap
 
 	if post != nil && !uCache.Has(post.UserId) {
 		userIds = append(userIds, post.UserId)
@@ -142,7 +158,20 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 		}
 	}
 
-	// TODO: extract @mentions to local users and sync those as well?
+	// get mentions and userids for each mention
+	if post != nil {
+		mentionMap = scs.app.MentionsToTeamMembers(post.Message, teamID)
+		for mention, id := range mentionMap {
+			if !uCache.Has(id) {
+				userIds = append(userIds, id)
+				uCache.Add(id)
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Found mention",
+					mlog.String("mention", mention),
+					mlog.String("user_id", id),
+				)
+			}
+		}
+	}
 
 	users := make([]*model.User, 0)
 
@@ -152,18 +181,44 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
 					mlog.String("user_id", id),
-					mlog.Err(err2))
+					mlog.Err(err2),
+				)
 				continue
 			} else if sync {
 				users = append(users, sanitizeUserForSync(user))
 			}
+			// if this was a mention then put the real username in place of the username+remotename, but only
+			// when sending to the remote that the user belongs to.
+			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+				fixMention(post, mentionMap, user)
+			}
 		} else {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error checking if user should sync",
 				mlog.String("user_id", id),
-				mlog.Err(err))
+				mlog.Err(err),
+			)
 		}
 	}
 	return users
+}
+
+// fixMention replaces any mentions in a post for the user with the user's real username.
+func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
+	if post == nil || len(mentionMap) == 0 {
+		return
+	}
+
+	realUsername, ok := user.GetProp(KeyRemoteUsername)
+	if !ok {
+		return
+	}
+
+	// there may be more than one mention for each user so we have to walk the whole map.
+	for mention, id := range mentionMap {
+		if id == user.Id && strings.Contains(mention, ":") {
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
+		}
+	}
 }
 
 func sanitizeUserForSync(user *model.User) *model.User {
@@ -172,7 +227,6 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	user.AuthService = ""
 	user.Roles = "system_user"
 	user.AllowMarketing = false
-	user.Props = model.StringMap{}
 	user.NotifyProps = model.StringMap{}
 	user.LastPasswordUpdate = 0
 	user.LastPictureUpdate = 0
