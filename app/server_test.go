@@ -33,10 +33,16 @@ import (
 )
 
 func TestStartServerSuccess(t *testing.T) {
-	s, err := NewServer()
+	configStore, _ := config.NewMemoryStore()
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+	cfg := store.Get()
+	*cfg.ServiceSettings.ListenAddress = ":0"
+
+	store.Set(cfg)
+
+	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 
 	client := &http.Client{}
@@ -180,16 +186,21 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
-	s, err := NewServer()
+	configStore, _ := config.NewMemoryStore()
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+	cfg := store.Get()
+	testDir, _ := fileutils.FindDir("tests")
+
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	store.Set(cfg)
+
+	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-	})
 	serverErr := s.Start()
 
 	tr := &http.Transport{
@@ -387,17 +398,22 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
-	s, err := NewServer()
+	configStore, _ := config.NewMemoryStore()
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+	cfg := store.Get()
+	testDir, _ := fileutils.FindDir("tests")
+
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+	*cfg.ServiceSettings.TLSMinVer = "1.2"
+	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	store.Set(cfg)
+
+	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSMinVer = "1.2"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-	})
 	serverErr := s.Start()
 
 	tr := &http.Transport{
