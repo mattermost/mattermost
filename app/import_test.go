@@ -139,6 +139,16 @@ func TestStopOnError(t *testing.T) {
 		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
 		1,
 	}))
+
+	assert.False(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+
+	assert.False(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
 }
 
 func TestImportBulkImport(t *testing.T) {
