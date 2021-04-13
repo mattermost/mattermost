@@ -139,6 +139,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	return ss.Channel().Save(&m, -1)
 }
 func TestMsgCountRootMigration(t *testing.T) {
+	t.Skip("Waiting for this tests to be fixed: https://mattermost.atlassian.net/browse/MM-34792")
 	type TestCaseChannel struct {
 		Name                           string
 		PostTimes                      []int64

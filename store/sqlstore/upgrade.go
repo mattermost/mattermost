@@ -1227,7 +1227,7 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 			return true
 		}
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if rolesPermissionsInfo.DataType != "text" {
+		if rolesPermissionsInfo.DataType != "longtext" {
 			return true
 		}
 	}
@@ -1241,6 +1241,25 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 	if !sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot") {
 		return true
 	}
+
+	// Check if the collapsable threads queries were applied
+	msgRootCount, _, err := sqlStore.getQueryBuilder().Select(`COUNT(*) as countRoot`).
+		From("ChannelMembers").
+		Where("MsgCountRoot is NULL or MentionCountRoot is NULL").
+		ToSql()
+	if err != nil {
+		mlog.Error("Error creating msgcountroot query", mlog.Err(err))
+		return true
+	}
+	var countRoot int
+	row := sqlStore.GetMaster().Db.QueryRow(msgRootCount)
+	if err = row.Scan(&countRoot); err != nil && err != sql.ErrNoRows {
+		mlog.Error("Error fetching IncomingWebhooks columns data", mlog.Err(err))
+		return true
+	} else if err == nil && countRoot > 0 {
+		return true
+	}
+	mlog.Error("Count root value", mlog.Int("value", countRoot))
 
 	return false
 }
