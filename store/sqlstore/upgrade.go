@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5340
+	CurrentSchemaVersion   = Version5350
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
@@ -1227,7 +1227,7 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 			return true
 		}
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if rolesPermissionsInfo.DataType != "text" {
+		if rolesPermissionsInfo.DataType != "longtext" {
 			return true
 		}
 	}
@@ -1239,6 +1239,23 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 		return true
 	}
 	if !sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot") {
+		return true
+	}
+
+	// Check if the collapsable threads queries were applied
+	msgRootCount, _, err := sqlStore.getQueryBuilder().Select(`COUNT(*) as countRoot`).
+		From("ChannelMembers").
+		Where("MsgCountRoot is NULL or MentionCountRoot is NULL").
+		ToSql()
+	if err != nil {
+		mlog.Error("Error creating msg count root query", mlog.Err(err))
+		return true
+	}
+	countRoot, err := sqlStore.GetMaster().SelectInt(msgRootCount)
+	if err != nil {
+		mlog.Error("Error fetching msg count root", mlog.Err(err))
+		return true
+	} else if countRoot > 0 {
 		return true
 	}
 
