@@ -218,7 +218,7 @@ func TestExportAllUsers(t *testing.T) {
 }
 
 func TestExportDMChannel(t *testing.T) {
-	t.Run("case 1", func(t *testing.T) {
+	t.Run("Export a DM channel to another server", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()
 
@@ -252,7 +252,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
 	})
 
-	t.Run("case 2", func(t *testing.T) {
+	t.Run("Invalid DM channel export", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()
 
