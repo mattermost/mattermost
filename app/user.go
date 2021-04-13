@@ -1215,20 +1215,6 @@ func (a *App) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*m
 		return nil, err
 	}
 
-	if patch.Username != nil && *patch.Username != user.Username {
-		u, err := a.GetUserByUsername(*patch.Username)
-		if err == nil || u != nil {
-			return nil, model.NewAppError("patchUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
-	if patch.Email != nil && *patch.Email != user.Email {
-		u, err := a.GetUserByEmail(*patch.Email)
-		if err == nil || u != nil {
-			return nil, model.NewAppError("patchUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
 	user.Patch(patch)
 
 	updatedUser, err := a.UpdateUser(user, true)
@@ -1295,10 +1281,6 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			}
 		}
 
-		if _, appErr := a.GetUserByEmail(user.Email); appErr == nil {
-			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
-		}
-
 		// Don't set new eMail on user account if email verification is required, this will be done as a post-verification action
 		// to avoid users being able to set non-controlled eMails as their account email
 
@@ -1319,11 +1301,17 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
+		var conErr *store.ErrConflict
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &conErr):
+			if cErr, ok := err.(*store.ErrConflict); ok && cErr.Resource == "Username" {
+				return nil, model.NewAppError("UpdateUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest)
+			}
+			return nil, model.NewAppError("UpdateUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
