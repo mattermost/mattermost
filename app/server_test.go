@@ -32,9 +32,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
-func newServerWithConfig(f func(cfg *model.Config)) (*Server, error) {
-	configStore, _ := config.NewMemoryStore()
-	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
 	cfg := store.Get()
 	f(cfg)
 
@@ -44,7 +46,7 @@ func newServerWithConfig(f func(cfg *model.Config)) (*Server, error) {
 }
 
 func TestStartServerSuccess(t *testing.T) {
-	s, err := newServerWithConfig(func(cfg *model.Config) {
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 	})
 	require.NoError(t, err)
@@ -192,7 +194,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
-	s, err := newServerWithConfig(func(cfg *model.Config) {
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
 		*cfg.ServiceSettings.ListenAddress = ":0"
@@ -448,7 +450,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
-	s, err := newServerWithConfig(func(cfg *model.Config) {
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
 		*cfg.ServiceSettings.ListenAddress = ":0"
@@ -618,7 +620,7 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := newServerWithConfig(func(cfg *model.Config) {
+		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = false
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
@@ -662,7 +664,7 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		s, err := newServerWithConfig(func(cfg *model.Config) {
+		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
