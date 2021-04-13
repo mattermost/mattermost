@@ -315,7 +315,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		// All posts were filtered out, meaning no need to send them. Fast forward SharedChannelRemote's NextSyncAt.
 		scs.updateNextSyncForRemote(scr.Id, rc, nextSince)
 
-		// everything was filtered out, nothing to send.
+		// if there are more posts eligible to sync then schedule another sync
 		if repeat {
 			scs.addTask(newSyncTask(task.channelId, task.remoteId, nil))
 		}
