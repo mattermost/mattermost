@@ -1924,6 +1924,36 @@ func TestThreadMembership(t *testing.T) {
 	})
 }
 
+func TestAutofollowBasedOnRootPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	appErr := th.App.JoinChannel(channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(channel, user2.Id)
+	require.Nil(t, appErr)
+	p1, err := th.App.CreatePost(&model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
+	require.Nil(t, err)
+	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	require.Nil(t, e)
+	require.Len(t, m, 0)
+	_, err2 := th.App.CreatePost(&model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
+	require.Nil(t, err2)
+	m, e = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
+	require.Nil(t, e)
+	require.Len(t, m, 1)
+}
+
 func TestCollapsedThreadFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
