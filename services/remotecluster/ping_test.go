@@ -23,6 +23,7 @@ const (
 )
 
 func TestPing(t *testing.T) {
+	t.Skip("MM-34785")
 	disablePing = false
 
 	t.Run("No error", func(t *testing.T) {
