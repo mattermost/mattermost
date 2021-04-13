@@ -242,7 +242,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	// that might introduce a collision.
 	for i := 1; i <= MaxUpsertRetries; i++ {
 		if i > 1 {
-			suffix = strconv.FormatInt(int64(i+1), 10)
+			suffix = strconv.FormatInt(int64(i), 10)
 		}
 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)

@@ -70,6 +70,7 @@ type shouldProcessMessageOptions struct {
 	FilterChannelIDs    []string
 	FilterUserIDs       []string
 	OnlyBotDMs          bool
+	BotID               string
 }
 
 // AllowSystemMessages configures a call to ShouldProcessMessage to return true for system messages.
@@ -126,6 +127,15 @@ func OnlyBotDMs() ShouldProcessMessageOption {
 	}
 }
 
+// If provided, BotID configures ShouldProcessMessage to skip its retrieval from the store.
+//
+// By default, posts from all non-bot users are allowed.
+func BotID(botID string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.BotID = botID
+	}
+}
+
 // ShouldProcessMessage implements Helpers.ShouldProcessMessage
 func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error) {
 	messageProcessOptions := &shouldProcessMessageOptions{}
@@ -133,9 +143,17 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		option(messageProcessOptions)
 	}
 
-	botIDBytes, kvGetErr := p.API.KVGet(BotUserKey)
-	if kvGetErr != nil {
-		return false, errors.Wrap(kvGetErr, "failed to get bot")
+	var botIDBytes []byte
+	var kvGetErr *model.AppError
+
+	if messageProcessOptions.BotID != "" {
+		botIDBytes = []byte(messageProcessOptions.BotID)
+	} else {
+		botIDBytes, kvGetErr = p.API.KVGet(BotUserKey)
+
+		if kvGetErr != nil {
+			return false, errors.Wrap(kvGetErr, "failed to get bot")
+		}
 	}
 
 	if botIDBytes != nil {

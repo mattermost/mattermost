@@ -19,6 +19,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -759,13 +760,11 @@ func (u *User) GetProp(name string) (string, bool) {
 
 // SetProp sets a prop value by name, creating the map if nil.
 // Not thread safe.
-func (u *User) SetProp(name string, value string) string {
+func (u *User) SetProp(name string, value string) {
 	if u.Props == nil {
 		u.Props = make(map[string]string)
 	}
-	old := u.Props[name]
 	u.Props[name] = value
-	return old
 }
 
 func (u *User) ToPatch() *UserPatch {
@@ -860,11 +859,11 @@ func ComparePassword(hash string, password string) bool {
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
 
-var restrictedUsernames = []string{
-	"all",
-	"channel",
-	"matterbot",
-	"system",
+var restrictedUsernames = map[string]struct{}{
+	"all":       {},
+	"channel":   {},
+	"matterbot": {},
+	"system":    {},
 }
 
 func IsValidUsername(s string) bool {
@@ -876,13 +875,8 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	for _, restrictedUsername := range restrictedUsernames {
-		if s == restrictedUsername {
-			return false
-		}
-	}
-
-	return true
+	_, found := restrictedUsernames[s]
+	return !found
 }
 
 func IsValidUsernameAllowRemote(s string) bool {
@@ -894,17 +888,12 @@ func IsValidUsernameAllowRemote(s string) bool {
 		return false
 	}
 
-	for _, restrictedUsername := range restrictedUsernames {
-		if s == restrictedUsername {
-			return false
-		}
-	}
-
-	return true
+	_, found := restrictedUsernames[s]
+	return !found
 }
 
-func CleanUsername(s string) string {
-	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
+func CleanUsername(username string) string {
+	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {
@@ -925,6 +914,8 @@ func CleanUsername(s string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
+		mlog.Warn("Generating new username since provided username was invalid",
+			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
 	return s
