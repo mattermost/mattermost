@@ -1066,6 +1066,27 @@ func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	return r0
 }
 
+// ResetAuthDataToEmailForUsers provides a mock function with given fields: service, userIDs, includeDeleted, dryRun
+func (_m *UserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	ret := _m.Called(service, userIDs, includeDeleted, dryRun)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, []string, bool, bool) int); ok {
+		r0 = rf(service, userIDs, includeDeleted, dryRun)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, bool, bool) error); ok {
+		r1 = rf(service, userIDs, includeDeleted, dryRun)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ResetLastPictureUpdate provides a mock function with given fields: userID
 func (_m *UserStore) ResetLastPictureUpdate(userID string) error {
 	ret := _m.Called(userID)
