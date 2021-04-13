@@ -9214,5 +9214,21 @@
   {
     "id": "api.command_share.fetch_remote.error",
     "translation": "Ошибка при извлечении удалённых кластеров: {{.Error}}"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Тип задания, которое вы пытаетесь создать, некорректен"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Типы заданий, которые вы пытаетесь получить, не содержат разрешений"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Убедитесь в доступности козины Amazon S3 и проверьте разрешения на доступ."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Невозможно подключиться к S3. Проверьте параметры авторизации и настройки аутентификации подключения Amazon S3."
   }
 ]
