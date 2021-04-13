@@ -6,8 +6,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -27,21 +28,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = sup.Start(); err != nil {
-		fmt.Fprintf(os.Stderr, "Could not start apps: %v\n", err)
-		os.Exit(1)
-	}
-	// start server
 	sup.logger.Println("Starting supervisor proxy...")
-	http.HandleFunc("/", sup.handleRequestAndRedirect)
-	if err := http.ListenAndServe(config.ServiceSettings.Host, nil); err != nil {
-		fmt.Fprintf(os.Stderr, "Could not start the server: %v\n", err)
-		os.Exit(1)
-	}
+	go func() {
+		if err = sup.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "Could not start apps: %v\n", err)
+			os.Exit(1)
+		}
+	}()
 
 	defer func() {
 		if err := sup.Stop(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error during stopping server: %v\n", err)
 		}
 	}()
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sig
 }

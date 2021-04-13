@@ -5,6 +5,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +15,9 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"runtime/debug"
 	"strings"
+	"time"
 )
 
 type Supervisor struct {
@@ -22,7 +26,6 @@ type Supervisor struct {
 	logger  *log.Logger
 	cmds    map[string]*exec.Cmd              // map of app name to the command
 	proxies map[string]*httputil.ReverseProxy // map of app route prefix to the proxy
-	client  *http.Client
 }
 
 func newSupervisor(cfg Config) (*Supervisor, error) {
@@ -32,6 +35,22 @@ func newSupervisor(cfg Config) (*Supervisor, error) {
 		cmds:    make(map[string]*exec.Cmd),
 		proxies: make(map[string]*httputil.ReverseProxy),
 	}
+
+	server := &http.Server{
+		Addr:         cfg.ServiceSettings.Host,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout:  30 * time.Second,
+		TLSConfig: &tls.Config{
+			MinVersion:               tls.VersionTLS12,
+			PreferServerCipherSuites: true,
+			CurvePreferences: []tls.CurveID{
+				tls.CurveP256,
+			},
+		},
+	}
+	sup.srv = server
+	sup.srv.Handler = sup.withRecovery(http.HandlerFunc(sup.handleRequestAndRedirect))
 
 	// Initialize commands and proxies for all apps.
 	for _, app := range sup.cfg.AppSettings {
@@ -69,10 +88,29 @@ func (s *Supervisor) Start() error {
 		}
 	}
 
+	// Start HTTP server
+	s.logger.Println("Starting HTTP Server..")
+	var err error
+	if s.cfg.ServiceSettings.TLSCertFile != "" && s.cfg.ServiceSettings.TLSKeyFile != "" {
+		err = s.srv.ListenAndServeTLS(s.cfg.ServiceSettings.TLSCertFile, s.cfg.ServiceSettings.TLSKeyFile)
+	} else {
+		err = s.srv.ListenAndServe()
+	}
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+
 	return nil
 }
 
 func (s *Supervisor) Stop() error {
+	// Stop HTTP Server.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := s.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("error trying to shutdown HTTP server: %v", err)
+	}
+
 	// Stop the apps.
 	for name, cmd := range s.cmds {
 		s.logger.Printf("Shutting down %s\n", name)
@@ -115,4 +153,16 @@ func (s *Supervisor) handleRequestAndRedirect(w http.ResponseWriter, req *http.R
 			s.proxies[app.RoutePrefix].ServeHTTP(w, req)
 		}
 	}
+}
+
+func (s *Supervisor) withRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if x := recover(); x != nil {
+				s.logger.Printf("recovered from a panic: URL: %s, %v %v",
+					r.URL.String(), x, string(debug.Stack()))
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
 }
