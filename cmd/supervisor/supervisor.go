@@ -17,21 +17,23 @@ import (
 )
 
 type Supervisor struct {
-	cfg    Config
-	srv    *http.Server
-	logger *log.Logger
-	cmds   map[string]*exec.Cmd
-	client *http.Client
+	cfg     Config
+	srv     *http.Server
+	logger  *log.Logger
+	cmds    map[string]*exec.Cmd              // map of app name to the command
+	proxies map[string]*httputil.ReverseProxy // map of app route prefix to the proxy
+	client  *http.Client
 }
 
 func newSupervisor(cfg Config) (*Supervisor, error) {
 	sup := &Supervisor{
-		cfg:    cfg,
-		logger: log.New(os.Stderr, "[supervisor] ", log.LstdFlags|log.Lshortfile),
-		cmds:   make(map[string]*exec.Cmd),
+		cfg:     cfg,
+		logger:  log.New(os.Stderr, "[supervisor] ", log.LstdFlags|log.Lshortfile),
+		cmds:    make(map[string]*exec.Cmd),
+		proxies: make(map[string]*httputil.ReverseProxy),
 	}
 
-	// Initialize commands for all apps.
+	// Initialize commands and proxies for all apps.
 	for _, app := range sup.cfg.AppSettings {
 		cmd := exec.CommandContext(context.Background(), app.Command, app.Args...)
 		cmd.Dir = app.CommandDir
@@ -43,6 +45,16 @@ func newSupervisor(cfg Config) (*Supervisor, error) {
 		}
 		cmd.Env = append(cmd.Env, []string{"USER=" + currentUser.Name, "HOME=" + currentUser.HomeDir}...)
 		sup.cmds[app.Name] = cmd
+
+		// parse the url
+		url, err := url.Parse(app.Host)
+		if err != nil {
+			return nil, err
+		}
+
+		// create the reverse proxy
+		proxy := httputil.NewSingleHostReverseProxy(url)
+		sup.proxies[app.RoutePrefix] = proxy
 	}
 
 	return sup, nil
@@ -78,7 +90,7 @@ func (s *Supervisor) Stop() error {
 	return nil
 }
 
-func (s *Supervisor) handleRequestAndRedirect(res http.ResponseWriter, req *http.Request) {
+func (s *Supervisor) handleRequestAndRedirect(w http.ResponseWriter, req *http.Request) {
 	routePrefix := ""
 	if paths := strings.Split(req.URL.Path, "/"); len(paths) > 1 {
 		routePrefix = paths[1]
@@ -91,20 +103,16 @@ func (s *Supervisor) handleRequestAndRedirect(res http.ResponseWriter, req *http
 
 	for _, app := range s.cfg.AppSettings {
 		if app.RoutePrefix == routePrefix {
-			// parse the url
-			url, _ := url.Parse(app.Host)
-
-			// create the reverse proxy
-			proxy := httputil.NewSingleHostReverseProxy(url)
-
+			url, _ := url.Parse(app.Host) // Any error will already be handled during
+			// initialization.
 			// Update the headers to allow for SSL redirection
 			req.URL.Host = url.Host
 			req.URL.Scheme = url.Scheme
 			req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 			req.Host = url.Host
 
-			// Note that ServeHttp is non blocking and uses a go routine under the hood
-			proxy.ServeHTTP(res, req)
+			// Note that ServeHTTP is non blocking and uses a go routine under the hood
+			s.proxies[app.RoutePrefix].ServeHTTP(w, req)
 		}
 	}
 }
