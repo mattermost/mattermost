@@ -1457,3 +1457,37 @@ func TestDeactivateMfa(t *testing.T) {
 		require.Nil(t, err)
 	})
 }
+
+func TestPatchUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testUser := th.CreateUser()
+	defer th.App.PermanentDeleteUser(testUser)
+
+	t.Run("Patch with a username already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(th.BasicUser.Username),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch with a email already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Email: model.NewString(th.BasicUser.Email),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.email_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch username with a new username", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(model.NewId()),
+		}, true)
+
+		require.Nil(t, err)
+	})
+}
