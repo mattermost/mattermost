@@ -230,6 +230,22 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId stri
 	return r0, r1
 }
 
+// MentionsToTeamMembers provides a mock function with given fields: message, teamID
+func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) model.UserMentionMap {
+	ret := _m.Called(message, teamID)
+
+	var r0 model.UserMentionMap
+	if rf, ok := ret.Get(0).(func(string, string) model.UserMentionMap); ok {
+		r0 = rf(message, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.UserMentionMap)
+		}
+	}
+
+	return r0
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(channel, channelModerationsPatch)

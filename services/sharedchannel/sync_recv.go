@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
@@ -117,7 +118,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 				sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
 			}
 
-			// add/update post (may be nil if only reactions changed)
+			// add/update post
 			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
 			if err != nil {
 				postErrors = append(postErrors, sm.Post.Id)
@@ -169,11 +170,11 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 
 func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
-	var userSaved *model.User
+	if user.RemoteId == nil || *user.RemoteId == "" {
+		user.RemoteId = model.NewString(rc.RemoteId)
+	}
 
-	user.RemoteId = model.NewString(rc.RemoteId)
-
-	// does the user already exist?
+	// Check if user already exists
 	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
@@ -181,41 +182,33 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 		}
 	}
 
+	var userSaved *model.User
 	if euser == nil {
-		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
-			if e, ok := err.(errInvalidInput); ok {
-				_, field, value := e.InvalidInputInfo()
-				if field == "email" || field == "username" {
-					// username or email collision
-					// TODO: handle collision by modifying username/email (MM-32133)
-					return nil, fmt.Errorf("collision inserting sync user (%s=%s): %w", field, value, err)
-				}
-			}
-			return nil, fmt.Errorf("error inserting sync user: %w", err)
+		if userSaved, err = scs.insertSyncUser(user, channel, rc); err != nil {
+			return nil, err
 		}
 	} else {
 		patch := &model.UserPatch{
+			Username:  &user.Username,
 			Nickname:  &user.Nickname,
 			FirstName: &user.FirstName,
 			LastName:  &user.LastName,
+			Email:     &user.Email,
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 			RemoteId:  user.RemoteId,
 		}
-		euser.Patch(patch)
-		userUpdated, err := scs.server.GetStore().User().Update(euser, false)
-		if err != nil {
-			return nil, fmt.Errorf("error updating sync user: %w", err)
+		if userSaved, err = scs.updateSyncUser(patch, euser, channel, rc); err != nil {
+			return nil, err
 		}
-		userSaved = userUpdated.New
 	}
 
-	// add user to team. We do this here regardless of whether the user was
+	// Add user to team. We do this here regardless of whether the user was
 	// just created or patched since there are three steps to adding a user
 	// (insert rec, add to team, add to channel) and any one could fail.
 	// Instead of undoing what succeeded on any failure we simply do all steps each
-	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user already
+	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.
 	if err := scs.app.AddUserToTeamByTeamId(channel.TeamId, userSaved); err != nil {
 		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
@@ -226,6 +219,97 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 	}
 	return userSaved, nil
+}
+
+func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+	var err error
+	var userSaved *model.User
+	var suffix string
+
+	// save the originals in props (if not already done by another remote)
+	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
+		user.SetProp(KeyRemoteUsername, user.Username)
+	}
+	if _, ok := user.GetProp(KeyRemoteEmail); !ok {
+		user.SetProp(KeyRemoteEmail, user.Email)
+	}
+
+	// Apply a suffix to the username until it is unique. Collisions will be quite
+	// rare since we are joining a username that is unique at a remote site with a unique
+	// name for that site. However we need to truncate the combined name to 64 chars and
+	// that might introduce a collision.
+	for i := 1; i <= MaxUpsertRetries; i++ {
+		if i > 1 {
+			suffix = strconv.FormatInt(int64(i), 10)
+		}
+
+		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
+		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
+
+		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
+			e, ok := err.(errInvalidInput)
+			if !ok {
+				break
+			}
+			_, field, value := e.InvalidInputInfo()
+			if field == "email" || field == "username" {
+				// username or email collision; try again with different suffix
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Collision inserting sync user",
+					mlog.String("field", field),
+					mlog.Any("value", value),
+					mlog.Int("attempt", i),
+					mlog.Err(err),
+				)
+			}
+		} else {
+			return userSaved, nil
+		}
+	}
+	return nil, fmt.Errorf("error inserting sync user %s: %w", user.Id, err)
+}
+
+func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+	var err error
+	var update *model.UserUpdate
+	var suffix string
+
+	if patch.Username != nil {
+		user.SetProp(KeyRemoteUsername, *patch.Username)
+	}
+	if patch.Email != nil {
+		user.SetProp(KeyRemoteEmail, *patch.Email)
+	}
+
+	user.Patch(patch)
+
+	// Apply a suffix to the username until it is unique.
+	for i := 1; i <= MaxUpsertRetries; i++ {
+		if i > 1 {
+			suffix = strconv.FormatInt(int64(i), 10)
+		}
+		user.Username = mungUsername(user.Username, rc.Name, suffix, model.USER_NAME_MAX_LENGTH)
+		user.Email = mungEmail(rc.Name, model.USER_EMAIL_MAX_LENGTH)
+
+		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
+			e, ok := err.(errInvalidInput)
+			if !ok {
+				break
+			}
+			_, field, value := e.InvalidInputInfo()
+			if field == "email" || field == "username" {
+				// username or email collision; try again with different suffix
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Collision updating sync user",
+					mlog.String("field", field),
+					mlog.Any("value", value),
+					mlog.Int("attempt", i),
+					mlog.Err(err),
+				)
+			}
+		} else {
+			return update.New, nil
+		}
+	}
+	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
 }
 
 func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
