@@ -1011,7 +1011,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
-	sqlStore.AlterColumnypeIfExists("Roles", "Permissions", "longtext", "text")
+	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
