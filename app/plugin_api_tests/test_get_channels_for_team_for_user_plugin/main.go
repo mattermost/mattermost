@@ -23,14 +23,14 @@ func (p *MyPlugin) OnConfigurationChange() error {
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 
-	channels, err := p.API.GetChannelsForTeamForUser(p.configuration.BasicTeamId, p.configuration.BasicUserId, false)
+	channels, err := p.API.GetChannelsForTeamForUser(p.configuration.BasicTeamID, p.configuration.BasicUserID, false)
 	if err != nil {
 		return nil, err.Error()
 	}
 	if len(channels) != 3 {
 		return nil, "Returned invalid number of channels"
 	}
-	channels, err = p.API.GetChannelsForTeamForUser("invalidid", p.configuration.BasicUserId, false)
+	channels, err = p.API.GetChannelsForTeamForUser("invalidid", p.configuration.BasicUserID, false)
 	if err == nil {
 		return nil, "Expected to get an error while retrieving channels for invalid id"
 	}
