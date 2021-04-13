@@ -4,10 +4,11 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
+	"context"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type HeaderProvider struct {
@@ -25,7 +26,7 @@ func (*HeaderProvider) GetTrigger() string {
 	return CmdHeader
 }
 
-func (*HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*HeaderProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdHeader,
 		AutoComplete:     true,
@@ -64,7 +65,7 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		var channelMember *model.ChannelMember
-		channelMember, err = a.GetChannelMember(args.ChannelId, args.UserId)
+		channelMember, err = a.GetChannelMember(context.Background(), args.ChannelId, args.UserId)
 		if err != nil || channelMember == nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -199,7 +200,7 @@ func TestCreatePost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	r, err := Client.DoApiPost("/posts", "garbage")
-	require.Error(t, err)
+	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
@@ -230,7 +231,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	require.Equal(t, 0, int(rpost.EditAt), "newly created ephemeral post shouldn't have EditAt set")
 
 	r, err := Client.DoApiPost("/posts/ephemeral", "garbage")
-	require.Error(t, err)
+	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
@@ -539,7 +540,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel)
+	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
 	_, resp := Client.CreatePost(post1)
@@ -617,7 +618,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 				}
 			case <-timeout:
 				// We just skip the test instead of failing because waiting for more than 5 seconds
-				// to get a response does not make sense, and it will unncessarily slow down
+				// to get a response does not make sense, and it will unnecessarily slow down
 				// the tests further in an already congested CI environment.
 				t.Skip("timed out waiting for event")
 			}
@@ -664,20 +665,20 @@ func TestUpdatePost(t *testing.T) {
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	for i := 0; i < len(fileIds); i++ {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
 		CheckNoError(t, resp)
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
-	rpost, err := th.App.CreatePost(&model.Post{
+	rpost, appErr := th.App.CreatePost(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
 	}, channel, false, true)
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
 	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
@@ -744,12 +745,12 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	rpost3, err := th.App.CreatePost(&model.Post{
+	rpost3, appErr := th.App.CreatePost(&model.Post{
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
 	}, channel, false, true)
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
 	t.Run("new message, add files", func(t *testing.T) {
 		up3 := &model.Post{
@@ -847,7 +848,7 @@ func TestPatchPost(t *testing.T) {
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	for i := 0; i < len(fileIds); i++ {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
 		CheckNoError(t, resp)
@@ -1721,7 +1722,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Setting limit_after to zero should fail with a 400 BadRequest.
 	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 0, false)
-	require.Error(t, resp.Error)
+	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.context.invalid_url_param.app_error", resp.Error.Id)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
@@ -1732,11 +1733,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20, false)
@@ -1753,11 +1754,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
@@ -1777,11 +1778,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
@@ -1804,11 +1805,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
@@ -1829,11 +1830,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
@@ -1869,11 +1870,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[post12.Id] = "post12 (reply to post4)"
 	postIdNames[post13.Id] = "post13"
 
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2, false)
@@ -1996,7 +1997,7 @@ func TestDeletePost(t *testing.T) {
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
 
 	defer th.TearDown()
 
@@ -2034,7 +2035,7 @@ func TestDeletePostMessage(t *testing.T) {
 					}
 				case <-timeout:
 					// We just skip the test instead of failing because waiting for more than 5 seconds
-					// to get a response does not make sense, and it will unncessarily slow down
+					// to get a response does not make sense, and it will unnecessarily slow down
 					// the tests further in an already congested CI environment.
 					t.Skip("timed out waiting for event")
 				}
@@ -2249,27 +2250,6 @@ func TestSearchHashtagPosts(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-func TestSearchUnderscorePosts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.LoginBasic()
-	Client := th.Client
-
-	message := "test_with_underscore"
-	assert.NotNil(t, th.CreateMessagePost(message))
-
-	message = " test with underscore"
-	assert.NotNil(t, th.CreateMessagePost(message))
-
-	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "test_with_underscore", false)
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 1, "wrong search results")
-
-	Client.Logout()
-	_, resp = Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
-	CheckUnauthorizedStatus(t, resp)
-}
-
 func TestSearchPostsInChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2332,8 +2312,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
-	th.App.AddUserToChannel(user, th.BasicChannel)
-	th.App.AddUserToChannel(user, th.BasicChannel2)
+	th.App.AddUserToChannel(user, th.BasicChannel, false)
+	th.App.AddUserToChannel(user, th.BasicChannel2, false)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)

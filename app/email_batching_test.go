@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -89,11 +90,11 @@ func TestCheckPendingNotifications(t *testing.T) {
 		},
 	}
 
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999999
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	nErr := th.App.Srv().Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
@@ -101,7 +102,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "60",
 	}})
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	// test that notifications aren't sent before interval
 	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
@@ -110,11 +111,11 @@ func TestCheckPendingNotifications(t *testing.T) {
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 1, "shouldn't have sent queued post")
 
 	// test that notifications are cleared if the user has acted
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = 10001000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// We reset the interval to something shorter
 	nErr = th.App.Srv().Store.Preference().Save(&model.Preferences{{
@@ -123,7 +124,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "10",
 	}})
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	var wasCalled int32
 	job.checkPendingNotifications(time.Unix(10050, 0), func(string, []*batchedNotification) {
@@ -208,11 +209,11 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
@@ -246,11 +247,11 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-	require.Nil(t, err)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
 	nErr := th.App.Srv().Store.Preference().Save(&model.Preferences{{
@@ -259,7 +260,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "notAnIntegerValue",
 	}})
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
@@ -304,7 +305,8 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	rendered, err := th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	require.NoError(t, err)
 	require.NotContains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
 }
 
@@ -329,6 +331,7 @@ func TestRenderBatchedPostFull(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	rendered, err := th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	require.NoError(t, err)
 	require.Contains(t, rendered, post.Message, "Rendered email should contain post contents when email notification contents type is set to Full.")
 }

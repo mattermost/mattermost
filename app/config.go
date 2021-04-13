@@ -14,14 +14,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -37,12 +39,12 @@ func (a *App) Config() *model.Config {
 	return a.Srv().Config()
 }
 
-func (s *Server) EnvironmentConfig() map[string]interface{} {
-	return s.configStore.GetEnvironmentOverrides()
+func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (a *App) EnvironmentConfig() map[string]interface{} {
-	return a.Srv().EnvironmentConfig()
+func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return a.Srv().EnvironmentConfig(filter)
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
@@ -397,8 +399,9 @@ func (a *App) GetSanitizedConfig() *model.Config {
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
-func (a *App) GetEnvironmentConfig() map[string]interface{} {
-	return a.EnvironmentConfig()
+// If filter is not nil and returns false for a struct field, that field will be omitted.
+func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+	return a.EnvironmentConfig(filter)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
@@ -410,12 +413,13 @@ func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if s.Metrics != nil {
-		if *s.Config().MetricsSettings.Enable {
-			s.Metrics.StartServer()
-		} else {
-			s.Metrics.StopServer()
+	if s.startMetrics && *s.Config().MetricsSettings.Enable {
+		if s.Metrics != nil {
+			s.Metrics.Register()
 		}
+		s.SetupMetricsServer()
+	} else {
+		s.StopMetricsServer()
 	}
 
 	if s.Cluster != nil {
@@ -449,4 +453,26 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
 		}
 	}
+}
+
+func (s *Server) MailServiceConfig() *mail.SMTPConfig {
+	emailSettings := s.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	cfg := mail.SMTPConfig{
+		Hostname:                          hostname,
+		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
+		SkipServerCertificateVerification: *emailSettings.SkipServerCertificateVerification,
+		ServerName:                        *emailSettings.SMTPServer,
+		Server:                            *emailSettings.SMTPServer,
+		Port:                              *emailSettings.SMTPPort,
+		ServerTimeout:                     *emailSettings.SMTPServerTimeout,
+		Username:                          *emailSettings.SMTPUsername,
+		Password:                          *emailSettings.SMTPPassword,
+		EnableSMTPAuth:                    *emailSettings.EnableSMTPAuth,
+		SendEmailNotifications:            *emailSettings.SendEmailNotifications,
+		FeedbackName:                      *emailSettings.FeedbackName,
+		FeedbackEmail:                     *emailSettings.FeedbackEmail,
+		ReplyToAddress:                    *emailSettings.ReplyToAddress,
+	}
+	return &cfg
 }

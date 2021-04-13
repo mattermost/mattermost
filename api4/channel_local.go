@@ -107,7 +107,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddUserToChannel(user, channel)
+	cm, err := c.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -246,7 +246,7 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", team.Id)
 	auditRec.AddMeta("team_name", team.Name)
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP || channel.Type == model.CHANNEL_PRIVATE {
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		c.Err = model.NewAppError("moveChannel", "api.channel.move_channel.type.invalid", nil, "", http.StatusForbidden)
 		return
 	}

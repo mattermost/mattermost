@@ -2,7 +2,7 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/splitio/go-toolkit/v3/datastructures/set"
+	"github.com/splitio/go-toolkit/v4/datastructures/set"
 	"reflect"
 )
 

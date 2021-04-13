@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/manualtesting"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -69,7 +69,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 
 	options := []app.Option{
 		app.ConfigStore(configStore),
-		app.RunJobs,
+		app.RunEssentialJobs,
 		app.JoinCluster,
 		app.StartSearchEngine,
 		app.StartMetrics,
@@ -110,6 +110,13 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
+
+	// TODO: remove this and handle all required initialization while creating
+	// the server. In theory, we shouldn't depend on App to have a fully-featured
+	// server. This initialization is added so that cluster handlers are registered
+	// and job schedulers are initialized.
+	fakeApp := app.New(app.ServerConnector(server))
+	fakeApp.InitServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

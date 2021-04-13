@@ -22,6 +22,13 @@ make ARGS="config set SqlSettings.DataSource 'postgres://mmuser:mostest@localhos
 echo "Setting up fresh db"
 make ARGS="version --config $TMPDIR/config.json" run-cli
 
+for i in "ChannelMembers MentionCountRoot" "ChannelMembers MsgCountRoot" "Channels TotalMsgCountRoot"; do
+    a=( $i );
+    echo "Ignoring known Postgres mismatch: ${a[0]}.${a[1]}"
+    docker exec mattermost-postgres psql -U mmuser -d migrated -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+    docker exec mattermost-postgres psql -U mmuser -d latest -c "ALTER TABLE ${a[0]} DROP COLUMN ${a[1]};"
+done
+
 echo "Generating dump"
 docker exec mattermost-postgres pg_dump --schema-only -d migrated -U mmuser > $DUMPDIR/migrated.sql
 docker exec mattermost-postgres pg_dump --schema-only -d latest -U mmuser > $DUMPDIR/latest.sql
@@ -30,7 +37,7 @@ echo "Removing databases created for db comparison"
 docker exec mattermost-postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
 echo "Generating diff"
-diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
+git diff --word-diff=color $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
 diffErrorCode=$?
 
 if [ $diffErrorCode -eq 0 ]; then

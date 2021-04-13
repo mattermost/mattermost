@@ -14,9 +14,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -89,7 +89,15 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	pluginsEnv := a.GetPluginsEnvironment()
+
+	// Check if someone has nullified the pluginsEnv in the meantime
+	if pluginsEnv == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	publicFilesPath, err := pluginsEnv.PublicFilesPath(pluginID)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -109,7 +117,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
+		IpAddress:      utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -157,18 +165,18 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
 				sid := ""
-				userId := ""
+				userID := ""
 
 				if session != nil {
 					sid = session.Id
-					userId = session.UserId
+					userID = session.UserId
 				}
 
 				fields := []mlog.Field{
 					mlog.String("path", r.URL.Path),
 					mlog.String("ip", r.RemoteAddr),
 					mlog.String("session_id", sid),
-					mlog.String("user_id", userId),
+					mlog.String("user_id", userID),
 				}
 
 				if *a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {

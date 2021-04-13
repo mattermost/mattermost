@@ -16,6 +16,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
+	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -204,6 +205,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.SharedChannels {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
+			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
 		}
 	}
 

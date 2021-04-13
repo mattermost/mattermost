@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -36,9 +36,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 
@@ -46,7 +46,7 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -138,7 +138,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
 	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", "id1").Return(sess1, nil)
+	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}
@@ -173,7 +173,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamId", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
 		}
 		close(done)
 	}()

@@ -1,0 +1,15 @@
+<mj-section css-class="messageCard" padding="0px">
+  <mj-group>
+    <mj-column css-class="messageAvatarCol">
+      <mj-image css-class="messageAvatar" src="cid:user-avatar.png" padding="0px" />
+    </mj-column>
+    <mj-column css-class="senderInfoCol" width=90% >
+      <mj-text css-class="senderName" padding="0px">
+        {{.Props.SenderName}}
+      </mj-text>
+      <mj-text css-class="senderMessage" padding="0px">
+        {{.Props.Message}}
+      </mj-text>
+    </mj-column>
+  </mj-group>
+</mj-section>

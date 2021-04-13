@@ -19,26 +19,29 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID         = "X-Request-ID"
-	HEADER_VERSION_ID         = "X-Version-ID"
-	HEADER_CLUSTER_ID         = "X-Cluster-ID"
-	HEADER_ETAG_SERVER        = "ETag"
-	HEADER_ETAG_CLIENT        = "If-None-Match"
-	HEADER_FORWARDED          = "X-Forwarded-For"
-	HEADER_REAL_IP            = "X-Real-IP"
-	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
-	HEADER_TOKEN              = "token"
-	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
-	HEADER_BEARER             = "BEARER"
-	HEADER_AUTH               = "Authorization"
-	HEADER_CLOUD_TOKEN        = "X-Cloud-Token"
-	HEADER_REQUESTED_WITH     = "X-Requested-With"
-	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
-	STATUS                    = "status"
-	STATUS_OK                 = "OK"
-	STATUS_FAIL               = "FAIL"
-	STATUS_UNHEALTHY          = "UNHEALTHY"
-	STATUS_REMOVE             = "REMOVE"
+	HEADER_REQUEST_ID          = "X-Request-ID"
+	HEADER_VERSION_ID          = "X-Version-ID"
+	HEADER_CLUSTER_ID          = "X-Cluster-ID"
+	HEADER_ETAG_SERVER         = "ETag"
+	HEADER_ETAG_CLIENT         = "If-None-Match"
+	HEADER_FORWARDED           = "X-Forwarded-For"
+	HEADER_REAL_IP             = "X-Real-IP"
+	HEADER_FORWARDED_PROTO     = "X-Forwarded-Proto"
+	HEADER_TOKEN               = "token"
+	HEADER_CSRF_TOKEN          = "X-CSRF-Token"
+	HEADER_BEARER              = "BEARER"
+	HEADER_AUTH                = "Authorization"
+	HEADER_CLOUD_TOKEN         = "X-Cloud-Token"
+	HEADER_REMOTECLUSTER_TOKEN = "X-RemoteCluster-Token"
+	HEADER_REMOTECLUSTER_ID    = "X-RemoteCluster-Id"
+	HEADER_REQUESTED_WITH      = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML  = "XMLHttpRequest"
+	HEADER_RANGE               = "Range"
+	STATUS                     = "status"
+	STATUS_OK                  = "OK"
+	STATUS_FAIL                = "FAIL"
+	STATUS_UNHEALTHY           = "UNHEALTHY"
+	STATUS_REMOVE              = "REMOVE"
 
 	CLIENT_DIR = "client"
 
@@ -550,6 +553,22 @@ func (c *Client4) GetImportsRoute() string {
 	return "/imports"
 }
 
+func (c *Client4) GetExportsRoute() string {
+	return "/exports"
+}
+
+func (c *Client4) GetExportRoute(name string) string {
+	return fmt.Sprintf(c.GetExportsRoute()+"/%v", name)
+}
+
+func (c *Client4) GetRemoteClusterRoute() string {
+	return "/remotecluster"
+}
+
+func (c *Client4) GetSharedChannelsRoute() string {
+	return "/sharedchannels"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -575,21 +594,25 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, strings.NewReader(data), etag)
+	return c.doApiRequestReader(method, url, strings.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
+}
+
+func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, *AppError) {
+	return c.doApiRequestReader(method, url, strings.NewReader(data), headers)
 }
 
 func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, bytes.NewReader(data), etag)
+	return c.doApiRequestReader(method, url, bytes.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
 }
 
-func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag string) (*http.Response, *AppError) {
+func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, *AppError) {
 	rq, err := http.NewRequest(method, url, data)
 	if err != nil {
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if etag != "" {
-		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
+	for k, v := range headers {
+		rq.Header.Set(k, v)
 	}
 
 	if c.AuthToken != "" {
@@ -3031,6 +3054,25 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchFiles returns any posts with matching terms string.
+func (c *Client4) SearchFiles(teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response) {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchFilesWithParams(teamId, &params)
+}
+
+// SearchFilesWithParams returns any posts with matching terms string.
+func (c *Client4) SearchFilesWithParams(teamId string, params *SearchParameter) (*FileInfoList, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/files/search", params.SearchParameterToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoListFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
 	params := SearchParameter{
@@ -3855,6 +3897,28 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 
 	defer closeBody(r)
 	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r)
+}
+
+// ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
+func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response) {
+	params := map[string]interface{}{
+		"include_deleted": includeDeleted,
+		"dry_run":         dryRun,
+		"user_ids":        userIDs,
+	}
+	b, _ := json.Marshal(params)
+	r, err := c.doApiPostBytes(c.GetSamlRoute()+"/reset_auth_data", b)
+	if err != nil {
+		return 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	respBody := map[string]int64{}
+	jsonErr := json.NewDecoder(r.Body).Decode(&respBody)
+	if jsonErr != nil {
+		appErr := NewAppError("Api4.ResetSamlAuthDataToEmail", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, BuildErrorResponse(r, appErr)
+	}
+	return respBody["num_affected"], BuildResponse(r)
 }
 
 // Compliance Section
@@ -5668,7 +5732,7 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response)
 // a FileInfo object.
 func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
 	url := c.GetUploadRoute(uploadId)
-	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, "")
+	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, nil)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -5752,6 +5816,18 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
+func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/stats", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var stats *SubscriptionStats
+	json.NewDecoder(r.Body).Decode(&stats)
+	return stats, BuildResponse(r)
+}
+
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
 	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
 	if appErr != nil {
@@ -5802,6 +5878,43 @@ func (c *Client4) ListImports() ([]string, *Response) {
 	}
 	defer closeBody(r)
 	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) ListExports() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetExportsRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) DeleteExport(name string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetExportRoute(name))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64, *Response) {
+	var headers map[string]string
+	if offset > 0 {
+		headers = map[string]string{
+			HEADER_RANGE: fmt.Sprintf("bytes=%d-", offset),
+		}
+	}
+	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)
+	if appErr != nil {
+		return 0, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	n, err := io.Copy(wr, r.Body)
+	if err != nil {
+		return n, BuildErrorResponse(r, NewAppError("DownloadExport", "model.client.copy.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return n, BuildResponse(r)
 }
 
 func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
@@ -5871,14 +5984,16 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response) {
 	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
 	if appErr != nil {
-		return BuildErrorResponse(r, appErr)
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
 
-	return BuildResponse(r)
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
@@ -5895,4 +6010,52 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	defer closeBody(r)
 
 	return BuildResponse(r)
+}
+
+func (c *Client4) SendAdminUpgradeRequestEmail() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) SendAdminUpgradeRequestEmailOnJoin() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/join", "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) GetAllSharedChannels(teamID string, page, perPage int) ([]*SharedChannel, *Response) {
+	url := fmt.Sprintf("%s/%s?page=%d&per_page=%d", c.GetSharedChannelsRoute(), teamID, page, perPage)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var channels []*SharedChannel
+	json.NewDecoder(r.Body).Decode(&channels)
+
+	return channels, BuildResponse(r)
+}
+
+func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Response) {
+	url := fmt.Sprintf("%s/remote_info/%s", c.GetSharedChannelsRoute(), remoteID)
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return RemoteClusterInfo{}, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var rci RemoteClusterInfo
+	json.NewDecoder(r.Body).Decode(&rci)
+
+	return rci, BuildResponse(r)
 }

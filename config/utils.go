@@ -8,8 +8,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -86,29 +87,21 @@ func desanitize(actual, target *model.Config) {
 	}
 }
 
-// fixConfig patches invalid or missing data in the configuration, returning true if changed.
-func fixConfig(cfg *model.Config) bool {
-	changed := false
-
+// fixConfig patches invalid or missing data in the configuration.
+func fixConfig(cfg *model.Config) {
 	// Ensure SiteURL has no trailing slash.
 	if strings.HasSuffix(*cfg.ServiceSettings.SiteURL, "/") {
 		*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
-		changed = true
 	}
 
 	// Ensure the directory for a local file store has a trailing slash.
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
-			changed = true
 		}
 	}
 
-	if FixInvalidLocales(cfg) {
-		changed = true
-	}
-
-	return changed
+	FixInvalidLocales(cfg)
 }
 
 // FixInvalidLocales checks and corrects the given config for invalid locale-related settings.
@@ -118,7 +111,7 @@ func fixConfig(cfg *model.Config) bool {
 func FixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
-	locales := utils.GetSupportedLocales()
+	locales := i18n.GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
 		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.")

@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -165,7 +165,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), dir)
+	appErr, lineNumber := w.app.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)

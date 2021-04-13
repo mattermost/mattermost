@@ -9,19 +9,17 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -59,6 +57,7 @@ const (
 	USER_NAME_MIN_LENGTH      = 1
 	USER_PASSWORD_MAX_LENGTH  = 72
 	USER_LOCALE_MAX_LENGTH    = 5
+	USER_TIMEZONE_MAX_RUNES   = 256
 )
 
 //msgp:tuple User
@@ -92,12 +91,14 @@ type User struct {
 	Timezone               StringMap `json:"timezone"`
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
+	RemoteId               *string   `json:"remote_id,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
 	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool      `db:"-" json:"disable_welcome_email"`
 }
 
 //msgp UserMap
@@ -125,6 +126,7 @@ type UserPatch struct {
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
+	RemoteId    *string   `json:"remote_id"`
 }
 
 //msgp:ignore UserAuth
@@ -312,6 +314,14 @@ func (u *User) IsValid() *AppError {
 
 	if !IsValidLocale(u.Locale) {
 		return InvalidUserError("locale", u.Id)
+	}
+
+	if len(u.Timezone) > 0 {
+		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if utf8.RuneCount(tzJSON) > USER_TIMEZONE_MAX_RUNES {
+			return InvalidUserError("timezone_limit", u.Id)
+		}
 	}
 
 	return nil
@@ -505,6 +515,10 @@ func (u *User) Patch(patch *UserPatch) {
 	if patch.Timezone != nil {
 		u.Timezone = patch.Timezone
 	}
+
+	if patch.RemoteId != nil {
+		u.RemoteId = patch.RemoteId
+	}
 }
 
 // ToJson convert a User to a json string
@@ -594,6 +608,16 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.MakeNonNil()
 
 	u.NotifyProps[key] = value
+}
+
+func (u *User) SetCustomStatus(cs *CustomStatus) {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+}
+
+func (u *User) ClearCustomStatus() {
+	u.MakeNonNil()
+	u.Props[UserPropsKeyCustomStatus] = ""
 }
 
 func (u *User) GetFullName() string {
@@ -699,7 +723,10 @@ func (u *User) IsSSOUser() bool {
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_GITLAB
+	return u.AuthService == SERVICE_GITLAB ||
+		u.AuthService == SERVICE_GOOGLE ||
+		u.AuthService == SERVICE_OFFICE365 ||
+		u.AuthService == SERVICE_OPENID
 }
 
 func (u *User) IsLDAPUser() bool {
@@ -712,6 +739,38 @@ func (u *User) IsSAMLUser() bool {
 
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
+}
+
+// IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
+func (u *User) IsRemote() bool {
+	return u.RemoteId != nil && *u.RemoteId != ""
+}
+
+func (u *User) ToPatch() *UserPatch {
+	return &UserPatch{
+		Username: &u.Username, Password: &u.Password,
+		Nickname: &u.Nickname, FirstName: &u.FirstName, LastName: &u.LastName,
+		Position: &u.Position, Email: &u.Email,
+		Props: u.Props, NotifyProps: u.NotifyProps,
+		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
+func (u *UserPatch) SetField(fieldName string, fieldValue string) {
+	switch fieldName {
+	case "FirstName":
+		u.FirstName = &fieldValue
+	case "LastName":
+		u.LastName = &fieldValue
+	case "Nickname":
+		u.Nickname = &fieldValue
+	case "Email":
+		u.Email = &fieldValue
+	case "Position":
+		u.Position = &fieldValue
+	case "Username":
+		u.Username = &fieldValue
+	}
 }
 
 // UserFromJson will decode the input and return a User
@@ -803,8 +862,8 @@ func IsValidUsername(s string) bool {
 	return true
 }
 
-func CleanUsername(s string) string {
-	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
+func CleanUsername(username string) string {
+	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {
@@ -825,6 +884,8 @@ func CleanUsername(s string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
+		mlog.Warn("Generating new username since provided username was invalid",
+			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
 	return s
@@ -898,42 +959,4 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
-}
-
-//msgp:ignore lockedRand
-type lockedRand struct {
-	mu sync.Mutex
-	rn *rand.Rand
-}
-
-func (r *lockedRand) Intn(n int) int {
-	r.mu.Lock()
-	m := r.rn.Intn(n)
-	r.mu.Unlock()
-	return m
-}
-
-var passwordRandom = lockedRand{
-	rn: rand.New(rand.NewSource(time.Now().Unix())),
-}
-
-var passwordSpecialChars = "!$%^&*(),."
-var passwordNumbers = "0123456789"
-var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
-var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
-
-func GeneratePassword(minimumLength int) string {
-	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[passwordRandom.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[passwordRandom.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[passwordRandom.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[passwordRandom.Intn(len(passwordSpecialChars))])
-
-	for len(password) < minimumLength {
-		i := passwordRandom.Intn(len(passwordAllChars))
-		password = password + string([]rune(passwordAllChars)[i])
-	}
-
-	return password
 }

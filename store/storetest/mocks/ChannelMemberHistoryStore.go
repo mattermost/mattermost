@@ -14,13 +14,13 @@ type ChannelMemberHistoryStore struct {
 	mock.Mock
 }
 
-// GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelId
-func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
-	ret := _m.Called(startTime, endTime, channelId)
+// GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelID
+func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error) {
+	ret := _m.Called(startTime, endTime, channelID)
 
 	var r0 []*model.ChannelMemberHistoryResult
 	if rf, ok := ret.Get(0).(func(int64, int64, string) []*model.ChannelMemberHistoryResult); ok {
-		r0 = rf(startTime, endTime, channelId)
+		r0 = rf(startTime, endTime, channelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelMemberHistoryResult)
@@ -29,7 +29,7 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int64, int64, string) error); ok {
-		r1 = rf(startTime, endTime, channelId)
+		r1 = rf(startTime, endTime, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -37,13 +37,13 @@ func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, en
 	return r0, r1
 }
 
-// LogJoinEvent provides a mock function with given fields: userId, channelId, joinTime
-func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
-	ret := _m.Called(userId, channelId, joinTime)
+// LogJoinEvent provides a mock function with given fields: userID, channelID, joinTime
+func (_m *ChannelMemberHistoryStore) LogJoinEvent(userID string, channelID string, joinTime int64) error {
+	ret := _m.Called(userID, channelID, joinTime)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(userId, channelId, joinTime)
+		r0 = rf(userID, channelID, joinTime)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -51,13 +51,13 @@ func (_m *ChannelMemberHistoryStore) LogJoinEvent(userId string, channelId strin
 	return r0
 }
 
-// LogLeaveEvent provides a mock function with given fields: userId, channelId, leaveTime
-func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
-	ret := _m.Called(userId, channelId, leaveTime)
+// LogLeaveEvent provides a mock function with given fields: userID, channelID, leaveTime
+func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userID string, channelID string, leaveTime int64) error {
+	ret := _m.Called(userID, channelID, leaveTime)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(userId, channelId, leaveTime)
+		r0 = rf(userID, channelID, leaveTime)
 	} else {
 		r0 = ret.Error(0)
 	}

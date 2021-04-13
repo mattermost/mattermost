@@ -3,9 +3,14 @@
 
 package model
 
+import "strings"
+
 const (
-	EventTypeFailedPayment       = "failed-payment"
-	EventTypeFailedPaymentNoCard = "failed-payment-no-card"
+	EventTypeFailedPayment         = "failed-payment"
+	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
+	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
+	JoinLimitation                 = "join"
+	InviteLimitation               = "invite"
 )
 
 // Product model represents a product on the cloud system.
@@ -92,6 +97,11 @@ type Subscription struct {
 	LastInvoice *Invoice `json:"last_invoice"`
 }
 
+// GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
+func (s *Subscription) GetWorkSpaceNameFromDNS() string {
+	return strings.Split(s.DNS, ".")[0]
+}
+
 // Invoice model represents a cloud invoice
 type Invoice struct {
 	ID             string             `json:"id"`
@@ -119,12 +129,22 @@ type InvoiceLineItem struct {
 }
 
 type CWSWebhookPayload struct {
-	Event         string         `json:"event"`
-	FailedPayment *FailedPayment `json:"failed_payment"`
+	Event               string               `json:"event"`
+	FailedPayment       *FailedPayment       `json:"failed_payment"`
+	CloudWorkspaceOwner *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
 }
 
 type FailedPayment struct {
 	CardBrand      string `json:"card_brand"`
 	LastFour       int    `json:"last_four"`
 	FailureMessage string `json:"failure_message"`
+}
+
+// CloudWorkspaceOwner is part of the CWS Webhook payload that contains information about the user that created the workspace from the CWS
+type CloudWorkspaceOwner struct {
+	UserName string `json:"username"`
+}
+type SubscriptionStats struct {
+	RemainingSeats int    `json:"remaining_seats"`
+	IsPaidTier     string `json:"is_paid_tier"`
 }

@@ -6,6 +6,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"reflect"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -140,7 +141,13 @@ func (s *Store) GetNoEnv() *model.Config {
 
 // GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 func (s *Store) GetEnvironmentOverrides() map[string]interface{} {
-	return generateEnvironmentMap(GetEnvironment())
+	return generateEnvironmentMap(GetEnvironment(), nil)
+}
+
+// GetEnvironmentOverridesWithFilter fetches the configuration fields overridden by environment variables.
+// If filter is not nil and returns false for a struct field, that field will be omitted.
+func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+	return generateEnvironmentMap(GetEnvironment(), filter)
 }
 
 // RemoveEnvironmentOverrides returns a new config without the environment
@@ -210,9 +217,11 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	loadedConfig := &model.Config{}
 	if len(configBytes) != 0 {
 		if err = json.Unmarshal(configBytes, &loadedConfig); err != nil {
-			return jsonutils.HumanizeJsonError(err, configBytes)
+			return jsonutils.HumanizeJSONError(err, configBytes)
 		}
 	}
+
+	loadedFeatureFlags := loadedConfig.FeatureFlags
 
 	// If we have custom defaults set, the initial config is merged on
 	// top of them and we delete them not to be used again in the
@@ -248,9 +257,28 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal loaded config")
 	}
-	if !s.readOnly && (len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)) {
-		if err := s.backingStore.Set(s.configNoEnv); err != nil {
-			if !errors.Is(err, ErrReadOnlyConfiguration) {
+
+	var shouldStore bool
+	hasChanged := len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)
+	if hasChanged {
+		featureFlags := s.configNoEnv.FeatureFlags
+		// Don't persist feature flags unless we are on MM cloud
+		// MM cloud uses config in the DB as a cache of the feature flag
+		// settings in case the management system is down when a pod starts.
+		if !s.persistFeatureFlags {
+			s.configNoEnv.FeatureFlags = loadedFeatureFlags
+		}
+		toStoreBytes, err := json.Marshal(s.configNoEnv)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal old config")
+		}
+		shouldStore = !bytes.Equal(toStoreBytes, configBytes)
+		// We write back to the backing store only if
+		// the config has changed and the store is not read-only.
+		if !s.readOnly && shouldStore {
+			err := s.backingStore.Set(s.configNoEnv)
+			s.configNoEnv.FeatureFlags = featureFlags
+			if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
 				return errors.Wrap(err, "failed to persist")
 			}
 		}
@@ -260,7 +288,9 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 
 	unlockOnce.Do(s.configLock.Unlock)
 
-	s.invokeConfigListeners(oldCfg, loadedConfig)
+	if hasChanged {
+		s.invokeConfigListeners(oldCfg, loadedConfig)
+	}
 
 	return nil
 }

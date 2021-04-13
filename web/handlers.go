@@ -21,9 +21,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -69,16 +70,17 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
-	HandlerName         string
-	RequireSession      bool
-	RequireCloudKey     bool
-	TrustRequester      bool
-	RequireMfa          bool
-	IsStatic            bool
-	IsLocal             bool
-	DisableWhenBusy     bool
+	GetGlobalAppOptions       app.AppOptionCreator
+	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName               string
+	RequireSession            bool
+	RequireCloudKey           bool
+	RequireRemoteClusterToken bool
+	TrustRequester            bool
+	RequireMfa                bool
+	IsStatic                  bool
+	IsLocal                   bool
+	DisableWhenBusy           bool
 
 	cspShaDirective string
 }
@@ -108,10 +110,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.InitServer()
 
-	t, _ := utils.GetTranslationsAndLocale(w, r)
+	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.App.SetUserAgent(r.UserAgent())
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)
@@ -172,11 +174,25 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+
+		// Add unsafe-eval to the content security policy for faster source maps in development mode
+		devCSP := ""
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-eval'"
+		}
+
+		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+		// see https://github.com/reduxjs/redux-devtools/issues/380
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-inline'"
+		}
+
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
 			cloudCSP,
 			h.cspShaDirective,
+			devCSP,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
@@ -189,7 +205,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
 		defer app.ReturnSessionToPool(session)
 
@@ -222,6 +238,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.App.SetSession(session)
 		}
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+		// Get the remote cluster
+		if remoteId := c.GetRemoteID(r); remoteId == "" {
+			c.Logger.Warn("Missing remote cluster id") //
+			c.Err = model.NewAppError("ServeHTTP", "api.context.remote_id_missing.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			// Check the token is correct for the remote cluster id.
+			session, err := c.App.GetRemoteClusterSession(token, remoteId)
+			if err != nil {
+				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Err = err
+			} else {
+				c.App.SetSession(session)
+			}
+		}
 	}
 
 	c.Logger = c.App.Log().With(
@@ -246,6 +277,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.RequireCloudKey {
 		c.CloudKeyRequired()
+	}
+
+	if c.Err == nil && h.RequireRemoteClusterToken {
+		c.RemoteClusterTokenRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {

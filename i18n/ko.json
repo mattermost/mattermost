@@ -1099,7 +1099,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "api.file.no_driver.app_error",
@@ -1371,15 +1371,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @all이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @channel이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @channel이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @here이 비활성화 되었습니다."
+    "translation": "채널에 {{.Users}}명 이상의 사용자가 있기 때문에 @here이 비활성화 되었습니다."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1631,7 +1631,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v이/가 %v를 채널에 추가했습니다."
+    "translation": "%v님이 %v님을 채널에 추가했습니다."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -1866,14 +1866,6 @@
     "translation": "팀 참여하기"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost에서는 PC와 모바일간에 메시지와 파일들을 공유할 수 있으며, 검색과 보관 기능을 사용할 수 있습니다. [[{{.TeamDisplayName}}]] 에 참여한 후에는, 새로운 팀에 들어갈 수 있으며 이러한 기능들을 언제든지 사용할 수 있습니다. 웹 주소:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "팀 {{.SenderStatus}} [[{{.SenderName}}]] 가 당신을 [[{{.TeamDisplayName}}]] 에 초대했습니다."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "당신은 초대되었습니다."
   },
@@ -1920,14 +1912,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "비밀번호 재설정"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "비밀번호를 변경하기 위해서는, 아래의 \"비밀번호 초기화\" 를 누르세요."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "만약 비밀번호를 초기화할 의사가 없다면, 이 전자우편은 무시하세요. 당신의 비밀번호는 변경되지 않을 것입니다. 비밀번호 변경 링크는 24시간 안에 폐기됩니다."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1995,7 +1979,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
+    "translation": "최상의 경험을 위해 PC, Mac, iOS와 Android용 애플리케이션을 다운로드 받으세요."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2003,19 +1987,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "전자우편 주소를 검증하려면 클릭하세요."
-  },
-  {
-    "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
-  },
-  {
-    "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "translation": "이 이메일 주소는 Mattermost 계정을 생성하는 데 사용되었습니다."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "{{ .ServerURL }}에 가입했습니다"
+    "translation": "팀에 가입하신 걸 환영합니다"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -3275,7 +3251,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "게시글을 지우지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3283,7 +3259,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "게시글을 색인하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3299,11 +3275,11 @@
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Elasticsearch 색인을 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "서버에서 Elasticsearch 검색이 비활성화되어 있습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3311,15 +3287,15 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "검색을 완료하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "검색 결과를 디코딩하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started"
+    "translation": "Elasticsearch가 이미 시작되었습니다."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
@@ -3327,23 +3303,23 @@
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Failed to start Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
+    "translation": "Elasticsearch가 이미 중지되었습니다."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
+    "translation": "Elasticsearch 서버에 연결하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch가 비활성화되어 있습니다."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "현재 라이선스는 Elasticsearch를 지원하지 않습니다."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3606,32 +3582,12 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token"
-  },
-  {
     "id": "mfa.activate.bad_token.app_error",
     "translation": "올바르지 않은 MFA 토큰"
   },
   {
-    "id": "mfa.activate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret"
-  },
-  {
     "id": "mfa.generate_qr_code.create_code.app_error",
     "translation": "QR 코드 생성 중 오류가 발생했습니다."
-  },
-  {
-    "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4218,11 +4174,11 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
   },
   {
@@ -4547,7 +4503,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4807,7 +4763,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+    "translation": "파일의 공개 링크를 가져올 수 없습니다. 현재 사용자가 읽을 수 있는 게시글에 파일이 첨부되어야 합니다."
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
@@ -4888,46 +4844,6 @@
   {
     "id": "system.message.name",
     "translation": "시스템"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Failed to open TLS connection"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Failed to authenticate on SMTP server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Failed to close connection to SMTP server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email messsage data"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5211,19 +5127,19 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Elasticsearch SearchEnabled 설정이 활성화되어 있을 때, Elasticsearch IndexingEnabled 설정도 활성화되어 있어야 합니다."
+    "translation": "Bleve의 EnableIndexing 설정을 활성화하려면 Bleve의 IndexingDir 설정에서 색인을 저장할 디렉터리를 지정해야 합니다"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Elasticsearch SearchEnabled 설정이 활성화되어 있을 때, Elasticsearch IndexingEnabled 설정도 활성화되어 있어야 합니다."
+    "translation": "Bleve의 EnableSearching 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch AutocompleteEnabled 설정이 활성화되어 있을 때, Elasticsearch IndexingEnabled 설정도 활성화되어 있어야 합니다."
+    "translation": "Bleve의 EnableAutocomplete 설정을 활성화하려면 Bleve의 EnableIndexing 설정도 활성화되어야 합니다"
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window는 1초 이상이어야 합니다."
+    "translation": "Bleve 벌크 색인 간격은 1초 이상이어야 합니다."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -5267,7 +5183,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Elasticsearch 서버 버전 파싱이 실패했습니다."
+    "translation": "Elasticsearch 서버 버전을 구문 분석하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
@@ -5279,23 +5195,23 @@
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "검색을 완료하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Failed to decode search results"
+    "translation": "검색 결과를 디코딩하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "검색을 완료하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "서버에서 Elasticsearch 검색이 비활성화되어 있습니다"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Elasticsearch 색인을 가져 오지 못했습니다"
+    "translation": "Elasticsearch 색인을 갱신하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5303,19 +5219,19 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "사용자 색인을 실패하였습니다"
+    "translation": "사용자를 색인하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "채널 색인을 실패하였습니다"
+    "translation": "채널을 색인하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "사용자를 삭제하지 못하였습니다"
+    "translation": "사용자를 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "채널을 삭제하지 못하였습니다"
+    "translation": "채널을 삭제하지 못했습니다"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
@@ -5391,11 +5307,11 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch 인덱싱 워커가 시작시간을 구문 분석 하지 못했습니다"
+    "translation": "Bleve 색인 프로세스가 시작 시간을 구문 분석하지 못했습니다."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch 인덱싱 워커가 종료시간을 구문 분석하지 못했습니다"
+    "translation": "Bleve 색인 프로세스가 종료 시간을 구문 분석하지 못했습니다."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -5852,10 +5768,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 가 당신을 {{ .TeamDisplayName }} 팀에 게스트로 초대했습니다."
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]]님이 당신을 [[{{.TeamDisplayName}}]]팀에 게스트로 초대했습니다."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -7251,7 +7163,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "색인을 위해 채널 배치를 가져올 수 없습니다"
+    "translation": "색인을 위한 채널 배치를 가져올 수 없습니다."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7339,7 +7251,7 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "색인을 위해 채널 배치를 가져올 수 없습니다"
+    "translation": "색인을 위한 게시글 배치를 가져올 수 없습니다."
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
@@ -7456,5 +7368,109 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "멀티폼 요청 구문 분석이 실패했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "검색 결과를 디코딩하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "검색을 완료하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "서버에서 Elasticsearch 파일 검색이 비활성화되어 있습니다"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "파일을 색인하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "사용자 파일을 삭제하지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "게시글의 파일들을 지우지 못했습니다"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "파일을 삭제하지 못했습니다"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "팀과 함께 Mattermost에서 협업을 시작하세요"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Mattermost는 무엇인가요?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "더 알아보기"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "클라우드 구독 내역을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "상태가 “{{.EmojiName}} {{.StatusMessage}}”로 설정되었습니다. 채널 사이드바 상단의 상태 팝업에서 상태를 변경할 수 있습니다."
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] 또는 초기화"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "상태 설정 및 초기화"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "상태가 초기화되었습니다."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "상태 초기화 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "상태"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "상태 설정 중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "시스템 관리자 이메일을 가져오는 도중 에러가 발생했습니다."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}}(으)로 돌아가기"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle1",
+    "translation": "가입해주셔서 감사합니다 "
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Desktop과 mobile 애플리케이션을 다운로드 받으세요"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "zip 파일을 생성하는 동안 에러가 발생했습니다."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "다운로드"
   }
 ]

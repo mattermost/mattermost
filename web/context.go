@@ -11,8 +11,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -87,7 +88,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogErrorByCode(err *model.AppError) {
 	code := err.StatusCode
-	msg := err.SystemMessage(utils.TDefault)
+	msg := err.SystemMessage(i18n.TDefault)
 	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
@@ -125,6 +126,13 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) CloudKeyRequired() {
 	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
+		return
+	}
+}
+
+func (c *Context) RemoteClusterTokenRequired() {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_REMOTECLUSTER_TOKEN {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
@@ -208,6 +216,18 @@ func (c *Context) SetServerBusyError() {
 	c.Err = NewServerBusyError()
 }
 
+func (c *Context) SetInvalidRemoteIdError(id string) {
+	c.Err = NewInvalidRemoteIdError(id)
+}
+
+func (c *Context) SetInvalidRemoteClusterTokenError() {
+	c.Err = NewInvalidRemoteClusterTokenError()
+}
+
+func (c *Context) SetJSONEncodingError() {
+	c.Err = NewJSONEncodingError()
+}
+
 func (c *Context) SetCommandNotFoundError() {
 	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
 }
@@ -242,6 +262,21 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 func NewServerBusyError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
+	return err
+}
+
+func NewInvalidRemoteIdError(parameter string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
+	return err
+}
+
+func NewInvalidRemoteClusterTokenError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", nil, "", http.StatusUnauthorized)
+	return err
+}
+
+func NewJSONEncodingError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
 	return err
 }
 
@@ -683,4 +718,8 @@ func (c *Context) RequireInvoiceId() *Context {
 	}
 
 	return c
+}
+
+func (c *Context) GetRemoteID(r *http.Request) string {
+	return r.Header.Get(model.HEADER_REMOTECLUSTER_ID)
 }

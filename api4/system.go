@@ -18,10 +18,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -119,11 +119,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Send the zip file back to client
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
-	if writeFileResponseErr != nil {
-		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
-		return
-	}
+	writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -176,7 +172,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		appErr := c.App.TestFilesStoreConnection()
+		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
 			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
@@ -199,8 +195,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_EMAIL) {
+		c.SetPermissionError(model.PERMISSION_TEST_EMAIL)
 		return
 	}
 
@@ -219,8 +215,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_SITE_URL) {
+		c.SetPermissionError(model.PERMISSION_TEST_SITE_URL)
 		return
 	}
 
@@ -233,11 +229,6 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 	siteURL := props["site_url"]
 	if siteURL == "" {
 		c.SetInvalidParam("site_url")
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) && siteURL != *c.App.Config().ServiceSettings.SiteURL {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
 		return
 	}
 
@@ -254,8 +245,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_AUDITS) {
+		c.SetPermissionError(model.PERMISSION_READ_AUDITS)
 		return
 	}
 
@@ -273,8 +264,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS) {
+		c.SetPermissionError(model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS)
 		return
 	}
 
@@ -293,8 +284,8 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_INVALIDATE_CACHES) {
+		c.SetPermissionError(model.PERMISSION_INVALIDATE_CACHES)
 		return
 	}
 
@@ -327,8 +318,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_REPORTING) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_REPORTING)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_GET_LOGS) {
+		c.SetPermissionError(model.PERMISSION_GET_LOGS)
 		return
 	}
 
@@ -390,12 +381,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		name = "standard"
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_SYSCONSOLE_READ_REPORTING,
-		model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_GET_ANALYTICS) {
+		c.SetPermissionError(model.PERMISSION_GET_ANALYTICS)
 		return
 	}
 
@@ -434,8 +421,8 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_TEST_S3) {
+		c.SetPermissionError(model.PERMISSION_TEST_S3)
 		return
 	}
 
@@ -454,7 +441,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	appErr := c.App.TestFilesStoreConnectionWithConfig(&cfg.FileSettings)
+	appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return

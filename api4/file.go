@@ -60,6 +60,8 @@ func (api *API) InitFile() {
 	api.BaseRoutes.File.Handle("/preview", api.ApiSessionRequiredTrustRequester(getFilePreview)).Methods("GET")
 	api.BaseRoutes.File.Handle("/info", api.ApiSessionRequired(getFileInfo)).Methods("GET")
 
+	api.BaseRoutes.Team.Handle("/files/search", api.ApiSessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
+
 	api.BaseRoutes.PublicFile.Handle("", api.ApiHandler(getPublicFile)).Methods("GET")
 
 }
@@ -494,11 +496,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -532,11 +530,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -611,11 +605,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -678,14 +668,10 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
 }
 
-func writeFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "private, no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
@@ -740,6 +726,77 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
 	http.ServeContent(w, r, filename, lastModification, fileReader)
+}
 
-	return nil
+func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.FilesSearch {
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.not_implemented.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	params, jsonErr := model.SearchParameterFromJson(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if params.Terms == nil || *params.Terms == "" {
+		c.SetInvalidParam("terms")
+		return
+	}
+	terms := *params.Terms
+
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
+
+	startTime := time.Now()
+
+	results, err := c.App.SearchFilesInTeamForUser(terms, c.App.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+
+	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+	metrics := c.App.Metrics()
+	if metrics != nil {
+		metrics.IncrementFilesSearchCounter()
+		metrics.ObserveFilesSearchDuration(elapsedTime)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(results.ToJson()))
 }

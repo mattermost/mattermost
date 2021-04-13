@@ -21,8 +21,8 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	dm1, err := p.API.GetDirectChannel(p.configuration.BasicUserId, p.configuration.BasicUser2Id)
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
+	dm1, err := p.API.GetDirectChannel(p.configuration.BasicUserID, p.configuration.BasicUser2Id)
 	if err != nil {
 		return nil, err.Error()
 	}
@@ -30,7 +30,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return nil, "dm1 is empty"
 	}
 
-	dm2, err := p.API.GetDirectChannel(p.configuration.BasicUserId, p.configuration.BasicUserId)
+	dm2, err := p.API.GetDirectChannel(p.configuration.BasicUserID, p.configuration.BasicUserID)
 	if err != nil {
 		return nil, err.Error()
 	}
@@ -38,7 +38,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return nil, "dm2 is empty"
 	}
 
-	dm3, err := p.API.GetDirectChannel(p.configuration.BasicUserId, model.NewId())
+	dm3, err := p.API.GetDirectChannel(p.configuration.BasicUserID, model.NewId())
 	if err == nil {
 		return nil, "Expected to get error while fetching incorrect channel"
 	}

@@ -7,16 +7,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -28,16 +29,17 @@ const (
 	pingInterval           = (pongWaitTime * 6) / 10
 	authCheckInterval      = 5 * time.Second
 	webConnMemberCacheTime = 1000 * 60 * 30 // 30 minutes
+	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
 // WebConn represents a single websocket connection to a user.
-// It contains all the necesarry state to manage sending/receiving data to/from
+// It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        *websocket.Conn
-	T                goi18n.TranslateFunc
+	T                i18n.TranslateFunc
 	Locale           string
 	Sequence         int64
 	UserId           string
@@ -46,19 +48,38 @@ type WebConn struct {
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
-	sessionToken              atomic.Value
-	session                   atomic.Value
-	endWritePump              chan struct{}
-	pumpFinished              chan struct{}
+	// deadQueue behaves like a queue of a finite size
+	// which is used to store all messages that are sent via the websocket.
+	// It basically acts as the user-space socket buffer, and is used
+	// to resuscitate any messages that might have got lost when the connection is broken.
+	// It is implemented by using a circular buffer to keep it fast.
+	deadQueue        []model.WebSocketMessage
+	deadQueuePointer int // Pointer which indicates the next slot to insert.
+	sessionToken     atomic.Value
+	session          atomic.Value
+	connectionID     atomic.Value
+	endWritePump     chan struct{}
+	pumpFinished     chan struct{}
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
 	if session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
+	}
+
+	if a.srv.Config().FeatureFlags.WebSocketDelay {
+		// Disable TCP_NO_DELAY for higher throughput
+		tcpConn, ok := ws.UnderlyingConn().(*net.TCPConn)
+		if ok {
+			err := tcpConn.SetNoDelay(false)
+			if err != nil {
+				mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
+			}
+		}
 	}
 
 	wc := &WebConn{
@@ -71,6 +92,10 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 		Locale:             locale,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
+	}
+
+	if *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+		wc.deadQueue = make([]model.WebSocketMessage, deadQueueSize)
 	}
 
 	wc.SetSession(&session)
@@ -106,6 +131,11 @@ func (wc *WebConn) SetSessionToken(v string) {
 	wc.sessionToken.Store(v)
 }
 
+// SetConnectionID sets the connection id of the connection.
+func (wc *WebConn) SetConnectionID(id string) {
+	wc.connectionID.Store(id)
+}
+
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
 	return wc.session.Load().(*model.Session)
@@ -134,6 +164,12 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	// TODO:
+	// Check if the channel is closed or not,
+	// if closed, then remove the entry from conn manager
+	// else
+	// take both channels, and store them in connection manager.
 
 	defer ReturnSessionToPool(wc.GetSession())
 }
@@ -183,8 +219,7 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-				wc.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				wc.writeMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -238,8 +273,11 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
+			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets {
+				wc.addToDeadQueue(msg)
+			}
+
+			if err := wc.writeMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
@@ -248,8 +286,7 @@ func (wc *WebConn) writePump() {
 				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
-			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := wc.writeMessage(websocket.PingMessage, []byte{}); err != nil {
 				wc.logSocketErr("websocket.ticker", err)
 				return
 			}
@@ -265,6 +302,19 @@ func (wc *WebConn) writePump() {
 			authTicker.Stop()
 		}
 	}
+}
+
+// writeMessage is a helper utility that wraps the write to the socket
+// along with setting the write deadline.
+func (wc *WebConn) writeMessage(msgType int, data []byte) error {
+	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+	return wc.WebSocket.WriteMessage(msgType, data)
+}
+
+// addToDeadQueue appends a message to the dead queue.
+func (wc *WebConn) addToDeadQueue(msg model.WebSocketMessage) {
+	wc.deadQueue[wc.deadQueuePointer] = msg
+	wc.deadQueuePointer = (wc.deadQueuePointer + 1) % deadQueueSize
 }
 
 // InvalidateCache resets all internal data of the WebConn.
@@ -306,12 +356,16 @@ func (wc *WebConn) IsAuthenticated() bool {
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.Srv().License() != nil))
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
+		model.BuildNumber,
+		wc.App.ClientConfigHash(),
+		wc.App.Srv().License() != nil))
+	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
-	var userId string
+	var userID string
 	var canSee bool
 
 	switch msg.EventType() {
@@ -321,14 +375,14 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
-		userId = user.Id
+		userID = user.Id
 	case model.WEBSOCKET_EVENT_NEW_USER:
-		userId = msg.GetData()["user_id"].(string)
+		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true
 	}
 
-	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userId)
+	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
@@ -414,8 +468,8 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn
-// is a member of the given teamId or not.
-func (wc *WebConn) isMemberOfTeam(teamId string) bool {
+// is a member of the given teamID or not.
+func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 	currentSession := wc.GetSession()
 
 	if currentSession == nil || currentSession.Token == "" {
@@ -432,7 +486,7 @@ func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 		currentSession = session
 	}
 
-	return currentSession.GetTeamByTeamId(teamId) != nil
+	return currentSession.GetTeamByTeamId(teamID) != nil
 }
 
 func (wc *WebConn) logSocketErr(source string, err error) {

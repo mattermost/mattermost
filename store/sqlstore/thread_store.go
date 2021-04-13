@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -259,7 +260,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	var users []*model.User
 	if opts.Extended {
 		var err error
-		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
@@ -271,7 +272,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := &model.Threads{
 		Total:               totalCount,
-		Threads:             nil,
+		Threads:             []*model.ThreadResponse{},
 		TotalUnreadMentions: totalUnreadMentions,
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
@@ -347,7 +348,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 	var users []*model.User
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(thread.Participants, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
@@ -471,13 +472,21 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
+	// if memebership exists, update it if:
+	// a. user started/stopped following a thread
+	// b. mention count changed
+	// c. user viewed a thread
 	if err == nil {
-		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions {
-			if updateFollowing {
+		followingNeedsUpdate := (updateFollowing && !membership.Following || membership.Following != following)
+		if followingNeedsUpdate || incrementMentions || updateViewedTimestamp {
+			if followingNeedsUpdate {
 				membership.Following = following
+			}
+			if updateViewedTimestamp {
+				membership.LastViewed = now
 			}
 			membership.LastUpdated = now
 			if incrementMentions {

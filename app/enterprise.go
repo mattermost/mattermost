@@ -7,9 +7,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -96,6 +96,13 @@ func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface
 	jobsActiveUsersInterface = f
 }
 
+var jobsResendInvitationEmailInterface func(*App) ejobs.ResendInvitationEmailJobInterface
+
+// RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
+func RegisterJobsResendInvitationEmailInterface(f func(*App) ejobs.ResendInvitationEmailJobInterface) {
+	jobsResendInvitationEmailInterface = f
+}
+
 var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
 
 func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
@@ -120,6 +127,18 @@ func RegisterJobsImportDeleteInterface(f func(*App) tjobs.ImportDeleteInterface)
 	jobsImportDeleteInterface = f
 }
 
+var jobsExportProcessInterface func(*App) tjobs.ExportProcessInterface
+
+func RegisterJobsExportProcessInterface(f func(*App) tjobs.ExportProcessInterface) {
+	jobsExportProcessInterface = f
+}
+
+var jobsExportDeleteInterface func(*App) tjobs.ExportDeleteInterface
+
+func RegisterJobsExportDeleteInterface(f func(*App) tjobs.ExportDeleteInterface) {
+	jobsExportDeleteInterface = f
+}
+
 var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
@@ -138,9 +157,9 @@ func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInt
 	messageExportInterface = f
 }
 
-var cloudInterface func(*App) einterfaces.CloudInterface
+var cloudInterface func(*Server) einterfaces.CloudInterface
 
-func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
+func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
@@ -204,8 +223,5 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
-	}
-	if cloudInterface != nil {
-		a.srv.Cloud = cloudInterface(a)
 	}
 }

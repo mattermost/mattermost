@@ -26,6 +26,13 @@ func (e *ErrInvalidInput) Error() string {
 	return fmt.Sprintf("invalid input: entity: %s field: %s value: %s", e.Entity, e.Field, e.Value)
 }
 
+func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value interface{}) {
+	entity = e.Entity
+	field = e.Field
+	value = e.Value
+	return
+}
+
 // ErrLimitExceeded indicates an error that has occurred because some value exceeded a limit.
 type ErrLimitExceeded struct {
 	What  string // What was the object that exceeded.
@@ -72,21 +79,31 @@ func (e *ErrConflict) Unwrap() error {
 	return e.err
 }
 
+// IsErrConflict allows easy type assertion without adding store as a dependency.
+func (e *ErrConflict) IsErrConflict() bool {
+	return true
+}
+
 // ErrNotFound indicates that a resource was not found
 type ErrNotFound struct {
 	resource string
-	Id       string
+	ID       string
 }
 
 func NewErrNotFound(resource, id string) *ErrNotFound {
 	return &ErrNotFound{
 		resource: resource,
-		Id:       id,
+		ID:       id,
 	}
 }
 
 func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.Id
+	return "resource: " + e.resource + " id: " + e.ID
+}
+
+// IsErrNotFound allows easy type assertion without adding store as a dependency.
+func (e *ErrNotFound) IsErrNotFound() bool {
+	return true
 }
 
 // ErrOutOfBounds indicates that the requested total numbers of rows
