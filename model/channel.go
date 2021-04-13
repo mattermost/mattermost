@@ -142,6 +142,14 @@ type ChannelMemberCountByGroup struct {
 	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
 }
 
+type ChannelOption func(channel *Channel)
+
+func WithID(ID string) ChannelOption {
+	return func(channel *Channel) {
+		channel.Id = ID
+	}
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {

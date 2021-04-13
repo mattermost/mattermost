@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -41,7 +42,7 @@ func TestInviteProvider(t *testing.T) {
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
 	require.Nil(t, err)
 
 	bot3, err := th.App.CreateBot(&model.Bot{
@@ -50,7 +51,7 @@ func TestInviteProvider(t *testing.T) {
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
 	err = th.App.RemoveUserFromTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
@@ -72,7 +73,7 @@ func TestInviteProvider(t *testing.T) {
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
 	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
-	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, "", "")
+	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
 	groupChannel, _ = th.App.UpdateChannel(groupChannel)

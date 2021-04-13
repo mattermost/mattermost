@@ -19,6 +19,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -90,6 +91,7 @@ type User struct {
 	Timezone               StringMap `json:"timezone"`
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
+	RemoteId               *string   `json:"remote_id,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
@@ -124,6 +126,7 @@ type UserPatch struct {
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
+	RemoteId    *string   `json:"remote_id"`
 }
 
 //msgp:ignore UserAuth
@@ -269,8 +272,14 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("update_at", u.Id)
 	}
 
-	if !IsValidUsername(u.Username) {
-		return InvalidUserError("username", u.Id)
+	if u.IsRemote() {
+		if !IsValidUsernameAllowRemote(u.Username) {
+			return InvalidUserError("username", u.Id)
+		}
+	} else {
+		if !IsValidUsername(u.Username) {
+			return InvalidUserError("username", u.Id)
+		}
 	}
 
 	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
@@ -512,6 +521,10 @@ func (u *User) Patch(patch *UserPatch) {
 	if patch.Timezone != nil {
 		u.Timezone = patch.Timezone
 	}
+
+	if patch.RemoteId != nil {
+		u.RemoteId = patch.RemoteId
+	}
 }
 
 // ToJson convert a User to a json string
@@ -734,6 +747,26 @@ func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
 }
 
+// IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
+func (u *User) IsRemote() bool {
+	return u.RemoteId != nil && *u.RemoteId != ""
+}
+
+// GetProp fetches a prop value by name.
+func (u *User) GetProp(name string) (string, bool) {
+	val, ok := u.Props[name]
+	return val, ok
+}
+
+// SetProp sets a prop value by name, creating the map if nil.
+// Not thread safe.
+func (u *User) SetProp(name string, value string) {
+	if u.Props == nil {
+		u.Props = make(map[string]string)
+	}
+	u.Props[name] = value
+}
+
 func (u *User) ToPatch() *UserPatch {
 	return &UserPatch{
 		Username: &u.Username, Password: &u.Password,
@@ -824,12 +857,13 @@ func ComparePassword(hash string, password string) bool {
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
 
-var restrictedUsernames = []string{
-	"all",
-	"channel",
-	"matterbot",
-	"system",
+var restrictedUsernames = map[string]struct{}{
+	"all":       {},
+	"channel":   {},
+	"matterbot": {},
+	"system":    {},
 }
 
 func IsValidUsername(s string) bool {
@@ -841,17 +875,25 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	for _, restrictedUsername := range restrictedUsernames {
-		if s == restrictedUsername {
-			return false
-		}
-	}
-
-	return true
+	_, found := restrictedUsernames[s]
+	return !found
 }
 
-func CleanUsername(s string) string {
-	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
+func IsValidUsernameAllowRemote(s string) bool {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
+		return false
+	}
+
+	if !validUsernameCharsForRemote.MatchString(s) {
+		return false
+	}
+
+	_, found := restrictedUsernames[s]
+	return !found
+}
+
+func CleanUsername(username string) string {
+	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {
@@ -872,6 +914,8 @@ func CleanUsername(s string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
+		mlog.Warn("Generating new username since provided username was invalid",
+			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
 	return s
