@@ -84,7 +84,9 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 	defer func() {
 		if r := recover(); r != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster sendMsg panic",
-				mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Any("panic", r))
+				mlog.String("remote", task.rc.DisplayName),
+				mlog.String("msgId", task.msg.Id), mlog.Any("panic", r),
+			)
 		}
 
 		if errResp != nil {
