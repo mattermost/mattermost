@@ -29,6 +29,7 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocatio
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
 		FileLocation:  getFileFunc(*s.FileLocation),
+		EnableColor:   *s.EnableColor,
 	}
 }
 
@@ -58,6 +59,7 @@ func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.N
 		FileLevel:             notificationLogSettings.FileLevel,
 		FileLocation:          notificationLogSettings.FileLocation,
 		AdvancedLoggingConfig: notificationLogSettings.AdvancedLoggingConfig,
+		EnableColor:           notificationLogSettings.EnableColor,
 	}
 }
 
