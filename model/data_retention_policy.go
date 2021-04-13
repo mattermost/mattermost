@@ -18,7 +18,7 @@ type GlobalRetentionPolicy struct {
 type RetentionPolicy struct {
 	ID           string `db:"Id" json:"id"`
 	DisplayName  string `json:"display_name"`
-	PostDuration int64  `json:"post_duration"`
+	PostDuration *int64 `json:"post_duration"`
 }
 
 type RetentionPolicyWithTeamAndChannelIDs struct {

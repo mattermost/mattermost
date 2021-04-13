@@ -3379,7 +3379,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	policy, nErr := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		ChannelIDs: []string{c1.Id},
 	})
@@ -5490,7 +5490,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		ChannelIDs: []string{o14.Id},
 	})

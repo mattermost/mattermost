@@ -1030,7 +1030,7 @@ func TestGetAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1318,7 +1318,7 @@ func TestSearchAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "Policy 1",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
