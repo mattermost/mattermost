@@ -181,7 +181,7 @@ func testHasSharedChannel(t *testing.T, ss store.Store) {
 }
 
 func testGetSharedChannels(t *testing.T, ss store.Store) {
-	clearSharedChannels(ss)
+	require.NoError(t, clearSharedChannels(ss))
 
 	creator := model.NewId()
 	team1 := model.NewId()
