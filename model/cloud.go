@@ -144,8 +144,7 @@ type FailedPayment struct {
 
 // CloudWorkspaceOwner is part of the CWS Webhook payload that contains information about the user that created the workspace from the CWS
 type CloudWorkspaceOwner struct {
-	UserName  string `json:"username"`
-	UserEmail string `json:"email"`
+	UserName string `json:"username"`
 }
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
