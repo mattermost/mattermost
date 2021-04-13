@@ -1222,6 +1222,56 @@ func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppErro
 	return r0, r1
 }
 
+// GetGroupMemberUsers provides a mock function with given fields: groupID, page, perPage
+func (_m *API) GetGroupMemberUsers(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(groupID, page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
+		r0 = rf(groupID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(groupID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetGroupsBySource provides a mock function with given fields: groupSource
+func (_m *API) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(groupSource)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(model.GroupSource) []*model.Group); ok {
+		r0 = rf(groupSource)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(model.GroupSource) *model.AppError); ok {
+		r1 = rf(groupSource)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupsForUser provides a mock function with given fields: userId
 func (_m *API) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
 	ret := _m.Called(userId)

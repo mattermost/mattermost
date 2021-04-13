@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -477,31 +478,31 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	// For now, don't allow overriding these via the plugin API.
-	userRequestorId := ""
-	postRootId := ""
-
 	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+		// For now, don't allow overriding these via the plugin API.
+		UserRequestorID: "",
+		PostRootID:      "",
+	})
 }
 
-func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserId string) (*model.ChannelMember, *model.AppError) {
-	postRootId := ""
-
+func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
 	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, asUserId, postRootId)
+	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+		UserRequestorID: asUserID,
+	})
 }
 
 func (api *PluginAPI) GetChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	return api.app.GetChannelMember(channelID, userID)
+	return api.app.GetChannelMember(context.Background(), channelID, userID)
 }
 
 func (api *PluginAPI) GetChannelMembers(channelID string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
@@ -534,6 +535,16 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
 	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
+}
+
+func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+
+	return users, err
+}
+
+func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	return api.app.GetGroupsBySource(groupSource)
 }
 
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
@@ -574,7 +585,7 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postID, false, false, false)
+	return api.app.GetPostThread(postID, false, false, false, "")
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {

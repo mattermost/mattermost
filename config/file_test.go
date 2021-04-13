@@ -54,12 +54,12 @@ func getActualFileConfig(t *testing.T, path string) *model.Config {
 	t.Helper()
 
 	f, err := os.Open(path)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer f.Close()
 
 	var actualCfg *model.Config
 	err = json.NewDecoder(f).Decode(&actualCfg)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	return actualCfg
 }

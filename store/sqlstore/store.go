@@ -58,6 +58,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -99,6 +101,7 @@ type SqlStoreStores struct {
 	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
+	remoteCluster        store.RemoteClusterStore
 	compliance           store.ComplianceStore
 	session              store.SessionStore
 	oauth                store.OAuthStore
@@ -125,22 +128,25 @@ type SqlStoreStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	sharedchannel        store.SharedChannelStore
 }
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
@@ -164,6 +170,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -181,6 +188,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
 	store.stores.cluster = newSqlClusterDiscoveryStore(store)
+	store.stores.remoteCluster = newSqlRemoteClusterStore(store)
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
@@ -203,6 +211,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.TermsOfService = newSqlTermsOfServiceStore(store, metrics)
 	store.stores.UserTermsOfService = newSqlUserTermsOfServiceStore(store)
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
+	store.stores.sharedchannel = newSqlSharedChannelStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
@@ -253,8 +262,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	store.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
+	store.stores.sharedchannel.(*SqlSharedChannelStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
 	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
+	store.stores.remoteCluster.(*sqlRemoteClusterStore).createIndexesIfNotExists()
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store
@@ -287,8 +298,20 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
@@ -335,6 +358,17 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			if src.DataSource == nil {
+				continue
+			}
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -408,6 +442,44 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryAbsoluteLag == nil || *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagAbsolute(node, binDiff)
+	}
+	return nil
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() error {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if item.QueryTimeLag == nil || *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff float64
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			return err
+		}
+		// There is no nil check needed here because it's called from the metrics store.
+		ss.metrics.SetReplicaLagTime(node, timeDiff)
+	}
+	return nil
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {
@@ -1146,6 +1218,10 @@ func (ss *SqlStore) ClusterDiscovery() store.ClusterDiscoveryStore {
 	return ss.stores.cluster
 }
 
+func (ss *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	return ss.stores.remoteCluster
+}
+
 func (ss *SqlStore) Compliance() store.ComplianceStore {
 	return ss.stores.compliance
 }
@@ -1248,6 +1324,10 @@ func (ss *SqlStore) Group() store.GroupStore {
 
 func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
+}
+
+func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
+	return ss.stores.sharedchannel
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -53,7 +53,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	us.usersQuery = us.getQueryBuilder().
 		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
-			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
+			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -73,6 +73,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
+		table.ColMap("RemoteId").SetMaxSize(26)
 		table.ColMap("Position").SetMaxSize(128)
 		table.ColMap("Timezone").SetMaxSize(256)
 	}
@@ -101,7 +102,7 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
-	if user.Id != "" {
+	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 
@@ -307,6 +308,48 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 	return userId, nil
 }
 
+// ResetAuthDataToEmailForUsers resets the AuthData of users whose AuthService
+// is |service| to their Email. If userIDs is non-empty, only the users whose
+// IDs are in userIDs will be affected. If dryRun is true, only the number
+// of users who *would* be affected is returned; otherwise, the number of
+// users who actually were affected is returned.
+func (us SqlUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	whereEquals := sq.Eq{"AuthService": service}
+	if len(userIDs) > 0 {
+		whereEquals["Id"] = userIDs
+	}
+	if !includeDeleted {
+		whereEquals["DeleteAt"] = 0
+	}
+
+	if dryRun {
+		builder := us.getQueryBuilder().
+			Select("COUNT(*)").
+			From("Users").
+			Where(whereEquals)
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "select_count_users_tosql")
+		}
+		numAffected, err := us.GetReplica().SelectInt(query, args...)
+		return int(numAffected), err
+	}
+	builder := us.getQueryBuilder().
+		Update("Users").
+		Set("AuthData", sq.Expr("Email")).
+		Where(whereEquals)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "update_users_tosql")
+	}
+	result, err := us.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to update users' AuthData")
+	}
+	numAffected, err := result.RowsAffected()
+	return int(numAffected), err
+}
+
 func (us SqlUserStore) UpdateMfaSecret(userId, secret string) error {
 	updateAt := model.GetMillis()
 
@@ -358,7 +401,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
 		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
 		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret,
-		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("User", id)
@@ -727,7 +770,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	for rows.Next() {
 		var user model.User
 		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId); err != nil {
 			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
 		}
 		if err = json.Unmarshal(props, &user.Props); err != nil {
@@ -1634,6 +1677,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 				cm.LastViewedAt,
 				cm.MsgCount,
 				cm.MentionCount,
+				cm.MentionCountRoot,
 				cm.NotifyProps,
 				cm.LastUpdateAt,
 				cm.SchemeUser,

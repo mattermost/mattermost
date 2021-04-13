@@ -70,7 +70,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
-		olist, _ := ss.Post().Get(context.Background(), otmp.Id, true, false, false)
+		olist, _ := ss.Post().Get(context.Background(), otmp.Id, true, false, false, "")
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
@@ -145,7 +145,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
+		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
 		require.NoError(t, err)
 		require.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -164,7 +164,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id)
+		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
 		require.NoError(t, err)
 		require.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 
@@ -243,7 +243,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {
@@ -263,7 +263,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true)
+		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true, false)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {
@@ -317,7 +317,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
 
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, 0, true)
 		require.NoError(t, err)
 
 		assert.Eventually(t, func() bool {

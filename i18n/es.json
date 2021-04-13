@@ -1872,7 +1872,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Haz sido invitado"
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1984,7 +1984,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android desde:"
+    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -8161,5 +8161,85 @@
   {
     "id": "api.back_to_app",
     "translation": "Volver a {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Añade apps a tu espacio de trabajo"
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativamente, usted puede deshabilitar usuarios en la Consola de Administración para dejar sitios libres para usuarios y mantenerse por debajo del limite de usuarios gratuitos."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Cuerpo de la petición invalido o no encontrado."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error al obtener la suscripción al cloud"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Esta funcionalidad esta en desarrollo, y solo está disponible usando una marca de funcionalidad."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "No fue posible analizar el cuerpo de la petición."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Se requiere una licencia E10 o E20 para usar esta funcionalidad."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Los parametros Before y After de getThreadsForUser son mutuamente excluyentes"
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "No fue posible encontrar el fichero de exportación."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Fallo al borrar el estado reciente. Por favor intente añadir un estado primero o contactar con su administrador del sistema para más detalles."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "La funcionalidad de estados personalizados ha sido deshabilitada. Por favor contacte con su administrador del sistema para más detalles."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Tu estado ha sido establecido a “{{.EmojiName}} {{.StatusMessage}}”. Puede cambiar su estado desde el desplegable de estado en la cabecera de la barra de canales."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "estado"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:nombre_de_emoji:] [mensage_de_estado] o clear"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Establecer o eliminar tu estado"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Su estado ha sido eliminado."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error eliminando el estado."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error estableciendo el estado."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error obteniendo la suscripción al cloud."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error obteniendo el email de los administradores del sistema."
   }
 ]

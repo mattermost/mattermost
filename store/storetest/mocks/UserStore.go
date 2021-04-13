@@ -368,13 +368,13 @@ func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.Use
 	return r0, r1
 }
 
-// GetAllProfilesInChannel provides a mock function with given fields: ctx, channelId, allowFromCache
-func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
-	ret := _m.Called(ctx, channelId, allowFromCache)
+// GetAllProfilesInChannel provides a mock function with given fields: ctx, channelID, allowFromCache
+func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+	ret := _m.Called(ctx, channelID, allowFromCache)
 
 	var r0 map[string]*model.User
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) map[string]*model.User); ok {
-		r0 = rf(ctx, channelId, allowFromCache)
+		r0 = rf(ctx, channelID, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.User)
@@ -383,7 +383,7 @@ func (_m *UserStore) GetAllProfilesInChannel(ctx context.Context, channelId stri
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
-		r1 = rf(ctx, channelId, allowFromCache)
+		r1 = rf(ctx, channelID, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -414,20 +414,20 @@ func (_m *UserStore) GetAllUsingAuthService(authService string) ([]*model.User, 
 	return r0, r1
 }
 
-// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelID
-func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelID string) (int64, error) {
-	ret := _m.Called(userId, channelID)
+// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userID, channelID
+func (_m *UserStore) GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error) {
+	ret := _m.Called(userID, channelID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
-		r0 = rf(userId, channelID)
+		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, channelID)
+		r1 = rf(userID, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -661,13 +661,13 @@ func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, vi
 	return r0, r1
 }
 
-// GetProfileByGroupChannelIdsForUser provides a mock function with given fields: userId, channelIds
-func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, error) {
-	ret := _m.Called(userId, channelIds)
+// GetProfileByGroupChannelIdsForUser provides a mock function with given fields: userID, channelIds
+func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
+	ret := _m.Called(userID, channelIds)
 
 	var r0 map[string][]*model.User
 	if rf, ok := ret.Get(0).(func(string, []string) map[string][]*model.User); ok {
-		r0 = rf(userId, channelIds)
+		r0 = rf(userID, channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]*model.User)
@@ -676,7 +676,7 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelId
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(userId, channelIds)
+		r1 = rf(userID, channelIds)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -799,13 +799,13 @@ func (_m *UserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions)
 	return r0, r1
 }
 
-// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+// GetProfilesNotInChannel provides a mock function with given fields: teamID, channelId, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+		r0 = rf(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -814,7 +814,7 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, gr
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+		r1 = rf(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -937,20 +937,20 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	return r0, r1
 }
 
-// GetUnreadCount provides a mock function with given fields: userId
-func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
-	ret := _m.Called(userId)
+// GetUnreadCount provides a mock function with given fields: userID
+func (_m *UserStore) GetUnreadCount(userID string) (int64, error) {
+	ret := _m.Called(userID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -958,20 +958,20 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 	return r0, r1
 }
 
-// GetUnreadCountForChannel provides a mock function with given fields: userId, channelID
-func (_m *UserStore) GetUnreadCountForChannel(userId string, channelID string) (int64, error) {
-	ret := _m.Called(userId, channelID)
+// GetUnreadCountForChannel provides a mock function with given fields: userID, channelID
+func (_m *UserStore) GetUnreadCountForChannel(userID string, channelID string) (int64, error) {
+	ret := _m.Called(userID, channelID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
-		r0 = rf(userId, channelID)
+		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, channelID)
+		r1 = rf(userID, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1023,9 +1023,9 @@ func (_m *UserStore) InferSystemInstallDate() (int64, error) {
 	return r0, r1
 }
 
-// InvalidateProfileCacheForUser provides a mock function with given fields: userId
-func (_m *UserStore) InvalidateProfileCacheForUser(userId string) {
-	_m.Called(userId)
+// InvalidateProfileCacheForUser provides a mock function with given fields: userID
+func (_m *UserStore) InvalidateProfileCacheForUser(userID string) {
+	_m.Called(userID)
 }
 
 // InvalidateProfilesInChannelCache provides a mock function with given fields: channelID
@@ -1033,18 +1033,18 @@ func (_m *UserStore) InvalidateProfilesInChannelCache(channelID string) {
 	_m.Called(channelID)
 }
 
-// InvalidateProfilesInChannelCacheByUser provides a mock function with given fields: userId
-func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
-	_m.Called(userId)
+// InvalidateProfilesInChannelCacheByUser provides a mock function with given fields: userID
+func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userID string) {
+	_m.Called(userID)
 }
 
-// PermanentDelete provides a mock function with given fields: userId
-func (_m *UserStore) PermanentDelete(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDelete provides a mock function with given fields: userID
+func (_m *UserStore) PermanentDelete(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1066,13 +1066,34 @@ func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	return r0
 }
 
-// ResetLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) ResetLastPictureUpdate(userId string) error {
-	ret := _m.Called(userId)
+// ResetAuthDataToEmailForUsers provides a mock function with given fields: service, userIDs, includeDeleted, dryRun
+func (_m *UserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
+	ret := _m.Called(service, userIDs, includeDeleted, dryRun)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, []string, bool, bool) int); ok {
+		r0 = rf(service, userIDs, includeDeleted, dryRun)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, bool, bool) error); ok {
+		r1 = rf(service, userIDs, includeDeleted, dryRun)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResetLastPictureUpdate provides a mock function with given fields: userID
+func (_m *UserStore) ResetLastPictureUpdate(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1195,13 +1216,13 @@ func (_m *UserStore) SearchNotInChannel(teamID string, channelID string, term st
 	return r0, r1
 }
 
-// SearchNotInTeam provides a mock function with given fields: notInTeamId, term, options
-func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(notInTeamId, term, options)
+// SearchNotInTeam provides a mock function with given fields: notInTeamID, term, options
+func (_m *UserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(notInTeamID, term, options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(notInTeamId, term, options)
+		r0 = rf(notInTeamID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1210,7 +1231,7 @@ func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *m
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(notInTeamId, term, options)
+		r1 = rf(notInTeamID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1264,20 +1285,20 @@ func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.User
 	return r0, r1
 }
 
-// UpdateAuthData provides a mock function with given fields: userId, service, authData, email, resetMfa
-func (_m *UserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
-	ret := _m.Called(userId, service, authData, email, resetMfa)
+// UpdateAuthData provides a mock function with given fields: userID, service, authData, email, resetMfa
+func (_m *UserStore) UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error) {
+	ret := _m.Called(userID, service, authData, email, resetMfa)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, string, *string, string, bool) string); ok {
-		r0 = rf(userId, service, authData, email, resetMfa)
+		r0 = rf(userID, service, authData, email, resetMfa)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *string, string, bool) error); ok {
-		r1 = rf(userId, service, authData, email, resetMfa)
+		r1 = rf(userID, service, authData, email, resetMfa)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1285,13 +1306,13 @@ func (_m *UserStore) UpdateAuthData(userId string, service string, authData *str
 	return r0, r1
 }
 
-// UpdateFailedPasswordAttempts provides a mock function with given fields: userId, attempts
-func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) error {
-	ret := _m.Called(userId, attempts)
+// UpdateFailedPasswordAttempts provides a mock function with given fields: userID, attempts
+func (_m *UserStore) UpdateFailedPasswordAttempts(userID string, attempts int) error {
+	ret := _m.Called(userID, attempts)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int) error); ok {
-		r0 = rf(userId, attempts)
+		r0 = rf(userID, attempts)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1299,13 +1320,13 @@ func (_m *UserStore) UpdateFailedPasswordAttempts(userId string, attempts int) e
 	return r0
 }
 
-// UpdateLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) UpdateLastPictureUpdate(userId string) error {
-	ret := _m.Called(userId)
+// UpdateLastPictureUpdate provides a mock function with given fields: userID
+func (_m *UserStore) UpdateLastPictureUpdate(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1313,13 +1334,13 @@ func (_m *UserStore) UpdateLastPictureUpdate(userId string) error {
 	return r0
 }
 
-// UpdateMfaActive provides a mock function with given fields: userId, active
-func (_m *UserStore) UpdateMfaActive(userId string, active bool) error {
-	ret := _m.Called(userId, active)
+// UpdateMfaActive provides a mock function with given fields: userID, active
+func (_m *UserStore) UpdateMfaActive(userID string, active bool) error {
+	ret := _m.Called(userID, active)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
-		r0 = rf(userId, active)
+		r0 = rf(userID, active)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1327,13 +1348,13 @@ func (_m *UserStore) UpdateMfaActive(userId string, active bool) error {
 	return r0
 }
 
-// UpdateMfaSecret provides a mock function with given fields: userId, secret
-func (_m *UserStore) UpdateMfaSecret(userId string, secret string) error {
-	ret := _m.Called(userId, secret)
+// UpdateMfaSecret provides a mock function with given fields: userID, secret
+func (_m *UserStore) UpdateMfaSecret(userID string, secret string) error {
+	ret := _m.Called(userID, secret)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, secret)
+		r0 = rf(userID, secret)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1341,13 +1362,13 @@ func (_m *UserStore) UpdateMfaSecret(userId string, secret string) error {
 	return r0
 }
 
-// UpdatePassword provides a mock function with given fields: userId, newPassword
-func (_m *UserStore) UpdatePassword(userId string, newPassword string) error {
-	ret := _m.Called(userId, newPassword)
+// UpdatePassword provides a mock function with given fields: userID, newPassword
+func (_m *UserStore) UpdatePassword(userID string, newPassword string) error {
+	ret := _m.Called(userID, newPassword)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, newPassword)
+		r0 = rf(userID, newPassword)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1355,20 +1376,20 @@ func (_m *UserStore) UpdatePassword(userId string, newPassword string) error {
 	return r0
 }
 
-// UpdateUpdateAt provides a mock function with given fields: userId
-func (_m *UserStore) UpdateUpdateAt(userId string) (int64, error) {
-	ret := _m.Called(userId)
+// UpdateUpdateAt provides a mock function with given fields: userID
+func (_m *UserStore) UpdateUpdateAt(userID string) (int64, error) {
+	ret := _m.Called(userID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1376,20 +1397,20 @@ func (_m *UserStore) UpdateUpdateAt(userId string) (int64, error) {
 	return r0, r1
 }
 
-// VerifyEmail provides a mock function with given fields: userId, email
-func (_m *UserStore) VerifyEmail(userId string, email string) (string, error) {
-	ret := _m.Called(userId, email)
+// VerifyEmail provides a mock function with given fields: userID, email
+func (_m *UserStore) VerifyEmail(userID string, email string) (string, error) {
+	ret := _m.Called(userID, email)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string, string) string); ok {
-		r0 = rf(userId, email)
+		r0 = rf(userID, email)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, email)
+		r1 = rf(userID, email)
 	} else {
 		r1 = ret.Error(1)
 	}

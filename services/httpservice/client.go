@@ -10,8 +10,6 @@ import (
 	"net"
 	"net/http"
 	"time"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -86,7 +84,7 @@ func init() {
 		}
 		reservedIPRanges = append(reservedIPRanges, parsed)
 	}
-	defaultUserAgent = "mattermost-" + model.CurrentVersion
+	defaultUserAgent = "Mattermost-Bot/1.1"
 }
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)

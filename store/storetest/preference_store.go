@@ -359,6 +359,9 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
+	_, nErr = ss.Preference().CleanupFlagsBatch(-1)
+	require.Error(t, nErr)
+
 	_, nErr = ss.Preference().CleanupFlagsBatch(10000)
 	assert.NoError(t, nErr)
 
