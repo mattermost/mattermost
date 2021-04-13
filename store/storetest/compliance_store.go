@@ -370,13 +370,20 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 
 		cursor := model.ComplianceExportCursor{}
 
-		cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis}
+		cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 2}
 		cposts, cursor, nErr = ss.Compliance().ComplianceExport(cr4, cursor, 2)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 2)
 
-		cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 1}
+		cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 2}
 		cposts, _, nErr = ss.Compliance().ComplianceExport(cr5, cursor, 3)
+		require.NoError(t, nErr)
+		assert.Len(t, cposts, 3)
+
+		// range should be [inclusive, exclusive)
+		cursor = model.ComplianceExportCursor{}
+		cr6 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: nowMillis, EndAt: nowMillis + 1}
+		cposts, _, nErr = ss.Compliance().ComplianceExport(cr6, cursor, 5)
 		require.NoError(t, nErr)
 		assert.Len(t, cposts, 3)
 	})

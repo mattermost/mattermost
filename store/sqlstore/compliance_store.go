@@ -160,7 +160,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 					Posts.CreateAt > :LastPostCreateAt
 					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
 				)
-				AND Posts.CreateAt <= :EndTime
+				AND Posts.CreateAt < :EndTime
 				` + emailQuery + `
 				` + keywordQuery + `
 		ORDER BY Posts.CreateAt, Posts.Id
@@ -222,7 +222,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 					Posts.CreateAt > :LastPostCreateAt
 					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
 				)
-				AND Posts.CreateAt <= :EndTime
+				AND Posts.CreateAt < :EndTime
 				` + emailQuery + `
 				` + keywordQuery + `
 		ORDER BY Posts.CreateAt, Posts.Id
