@@ -1945,12 +1945,12 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 	p1, err := th.App.CreatePost(&model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + user2.Username}, channel, false, false)
 	require.Nil(t, err)
 	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
-	require.Nil(t, e)
+	require.NoError(t, e)
 	require.Len(t, m, 0)
 	_, err2 := th.App.CreatePost(&model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err2)
 	m, e = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
-	require.Nil(t, e)
+	require.NoError(t, e)
 	require.Len(t, m, 1)
 }
 
