@@ -177,14 +177,14 @@ func makeRemoteClusters(num int, siteURL string) []*model.RemoteCluster {
 
 func makeRemoteCluster(name string, siteURL string, topics string) *model.RemoteCluster {
 	return &model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		DisplayName: name,
-		SiteURL:     siteURL,
-		Token:       model.NewId(),
-		Topics:      topics,
-		CreateAt:    model.GetMillis(),
-		LastPingAt:  model.GetMillis(),
-		CreatorId:   model.NewId(),
+		RemoteId:   model.NewId(),
+		Name:       name,
+		SiteURL:    siteURL,
+		Token:      model.NewId(),
+		Topics:     topics,
+		CreateAt:   model.GetMillis(),
+		LastPingAt: model.GetMillis(),
+		CreatorId:  model.NewId(),
 	}
 }
 

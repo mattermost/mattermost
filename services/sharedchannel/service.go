@@ -25,6 +25,9 @@ const (
 	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
+	MaxUpsertRetries             = 25
+	KeyRemoteUsername            = "RemoteUsername"
+	KeyRemoteEmail               = "RemoteEmail"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -53,6 +56,7 @@ type AppIface interface {
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
