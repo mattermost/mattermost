@@ -253,6 +253,15 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		expected := copyRetentionPolicyWithTeamAndChannelIds(policy)
 		expected.PostDuration = patch.PostDuration
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
+
+		// Store a negative value (= infinity)
+		patch.PostDuration = -1
+		_, err = ss.RetentionPolicy().Patch(patch)
+		require.NoError(t, err)
+		expected = copyRetentionPolicyWithTeamAndChannelIds(policy)
+		expected.PostDuration = patch.PostDuration
+		checkRetentionPolicyLikeThisExists(t, ss, expected)
+
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("clear TeamIds", func(t *testing.T) {
@@ -406,6 +415,7 @@ func testRetentionPolicyStoreGetChannels(t *testing.T, ss store.Store, s SqlStor
 			require.Equal(t, channelIDs[i], channels[i].Id)
 		}
 	})
+	cleanupRetentionPolicyTest(s)
 }
 
 func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStore) {
@@ -493,6 +503,7 @@ func testRetentionPolicyStoreGetTeams(t *testing.T, ss store.Store, s SqlStore) 
 			require.Equal(t, teamIDs[i], teams[i].Id)
 		}
 	})
+	cleanupRetentionPolicyTest(s)
 }
 
 func testRetentionPolicyStoreAddTeams(t *testing.T, ss store.Store, s SqlStore) {

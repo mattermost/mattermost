@@ -236,12 +236,12 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 
 	policyUpdateQuery := ""
 	policyUpdateArgs := []interface{}{}
-	if patch.DisplayName != "" || patch.PostDuration > 0 {
+	if patch.DisplayName != "" || patch.PostDuration != 0 {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
 			builder = builder.Set("DisplayName", patch.DisplayName)
 		}
-		if patch.PostDuration > 0 {
+		if patch.PostDuration != 0 {
 			builder = builder.Set("PostDuration", patch.PostDuration)
 		}
 		policyUpdateQuery, policyUpdateArgs, err = builder.
