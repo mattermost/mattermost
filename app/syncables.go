@@ -15,6 +15,8 @@ import (
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
 // configured to sync with channels for group members on or after the given timestamp. If a channelID is given
 // only that channel's members are created. If channelID is nil all channel memberships are created.
+// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// be re-added; otherwise, they will not be re-added.
 func (a *App) createDefaultChannelMemberships(since int64, channelID *string, includeRemovedMembers bool) error {
 	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if appErr != nil {
@@ -110,6 +112,8 @@ func (a *App) createDefaultTeamMemberships(since int64, teamID *string, includeR
 
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 // are configured to sync with teams and channels for group members on or after the given timestamp.
+// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// be re-added; otherwise, they will not be re-added.
 func (a *App) CreateDefaultMemberships(since int64, includeRemovedMembers bool) error {
 	err := a.createDefaultTeamMemberships(since, nil, includeRemovedMembers)
 	if err != nil {

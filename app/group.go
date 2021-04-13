@@ -399,6 +399,12 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 	return gs, nil
 }
 
+// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
+// based on the groups configurations. The returned list can be optionally scoped to a single given team.
+//
+// Typically since will be the last successful group sync time.
+// If includeRemovedMembers is true, then team members who left or were removed from the team will
+// be included; otherwise, they will be excluded.
 func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
 	userTeams, err := a.Srv().Store.Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
 	if err != nil {
@@ -408,6 +414,12 @@ func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMember
 	return userTeams, nil
 }
 
+// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
+// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
+//
+// Typically since will be the last successful group sync time.
+// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// be included; otherwise, they will be excluded.
 func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
 	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if err != nil {

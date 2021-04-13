@@ -13,6 +13,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
+// SyncLdap starts an LDAP sync job.
+// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// be re-added; otherwise, they will not be re-added.
 func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
