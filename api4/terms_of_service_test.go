@@ -45,6 +45,7 @@ func TestCreateTermsOfServiceAdminUser(t *testing.T) {
 
 	termsOfService, resp := Client.CreateTermsOfService("terms of service new", th.SystemAdminUser.Id)
 	CheckErrorMessage(t, resp, "api.create_terms_of_service.custom_terms_of_service_disabled.app_error")
+	assert.Nil(t, termsOfService)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("EnableCustomTermsOfService"))
 
