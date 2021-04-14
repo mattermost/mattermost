@@ -1865,6 +1865,18 @@ func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) 
 	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r)
 }
 
+// GetAllTeamsExcludePolicyConstrained returns all teams which are not part of a data retention policy.
+// Must be a system administrator.
+func (c *Client4) GetAllTeamsExcludePolicyConstrained(etag string, page int, perPage int) ([]*Team, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&exclude_policy_constrained=%v", page, perPage, true)
+	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag)
@@ -2359,16 +2371,23 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 
 // GetAllChannels get all the channels. Must be a system administrator.
 func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
-	return c.getAllChannels(page, perPage, etag, false)
+	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{})
 }
 
 // GetAllChannelsIncludeDeleted get all the channels. Must be a system administrator.
 func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
-	return c.getAllChannels(page, perPage, etag, true)
+	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{IncludeDeleted: true})
 }
 
-func (c *Client4) getAllChannels(page int, perPage int, etag string, includeDeleted bool) (*ChannelListWithTeamData, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v", page, perPage, includeDeleted)
+// GetAllChannelsExcludePolicyConstrained gets all channels which are not part of a data retention policy.
+// Must be a system administrator.
+func (c *Client4) GetAllChannelsExcludePolicyConstrained(page, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	return c.getAllChannels(page, perPage, etag, ChannelSearchOpts{ExcludePolicyConstrained: true})
+}
+
+func (c *Client4) getAllChannels(page int, perPage int, etag string, opts ChannelSearchOpts) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v",
+		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained)
 	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -4754,6 +4773,34 @@ func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs 
 	}
 	defer closeBody(r)
 	return BuildResponse(r)
+}
+
+// GetTeamPoliciesForUser will get the data retention policies for the teams to which a user belongs.
+func (c *Client4) GetTeamPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForTeamList, *Response) {
+	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/team_policies", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var teams RetentionPolicyForTeamList
+	jsonErr := json.NewDecoder(r.Body).Decode(&teams)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetTeamPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return &teams, BuildResponse(r)
+}
+
+// GetChannelPoliciesForUser will get the data retention policies for the channels to which a user belongs.
+func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*RetentionPolicyForChannelList, *Response) {
+	r, appErr := c.DoApiGet(c.GetUserRoute(userID)+"/data_retention/channel_policies", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	var channels RetentionPolicyForChannelList
+	jsonErr := json.NewDecoder(r.Body).Decode(&channels)
+	if jsonErr != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetChannelPoliciesForUser", "model.utils.decode_json.app_error", nil, jsonErr.Error(), r.StatusCode))
+	}
+	return &channels, BuildResponse(r)
 }
 
 // Commands Section

@@ -1695,9 +1695,11 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:  opts.ExcludeChannelNames,
-		NotAssociatedToGroup: opts.NotAssociatedToGroup,
-		IncludeDeleted:       opts.IncludeDeleted,
+		ExcludeChannelNames:      opts.ExcludeChannelNames,
+		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
+		IncludeDeleted:           opts.IncludeDeleted,
+		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
+		IncludePolicyID:          opts.IncludePolicyID,
 	}
 	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
@@ -2472,6 +2474,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		GroupConstrained:         opts.GroupConstrained,
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
+		IncludePolicyID:          opts.IncludePolicyID,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,

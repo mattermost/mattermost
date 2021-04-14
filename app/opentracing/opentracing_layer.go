@@ -4352,50 +4352,6 @@ func (a *OpenTracingAppLayer) GetAllPrivateTeams() ([]*model.Team, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPrivateTeamsPage")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllPrivateTeamsPage(offset, limit)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllPrivateTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPrivateTeamsPageWithCount")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllPrivateTeamsPageWithCount(offset, limit)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeams")
@@ -4409,50 +4365,6 @@ func (a *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppErro
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetAllPublicTeams()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeamsPage")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllPublicTeamsPage(offset, limit)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeamsPageWithCount")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllPublicTeamsPageWithCount(offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4545,7 +4457,7 @@ func (a *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPage")
 
@@ -4557,7 +4469,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.T
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllTeamsPage(offset, limit)
+	resultVar0, resultVar1 := a.app.GetAllTeamsPage(offset, limit, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4567,7 +4479,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.T
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPageWithCount")
 
@@ -4579,7 +4491,7 @@ func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllTeamsPageWithCount(offset, limit)
+	resultVar0, resultVar1 := a.app.GetAllTeamsPageWithCount(offset, limit, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5130,6 +5042,28 @@ func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(channelID string) (int64
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetChannelPinnedPostCount(channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetChannelPoliciesForUser(userID string, offset int, limit int) (*model.RetentionPolicyForChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelPoliciesForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelPoliciesForUser(userID, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9039,6 +8973,28 @@ func (a *OpenTracingAppLayer) GetTeamMembersForUserWithPagination(userID string,
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetTeamMembersForUserWithPagination(userID, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetTeamPoliciesForUser(userID string, offset int, limit int) (*model.RetentionPolicyForTeamList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamPoliciesForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTeamPoliciesForUser(userID, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13824,7 +13780,7 @@ func (a *OpenTracingAppLayer) SearchPostsInTeamForUser(terms string, userID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPrivateTeams")
 
@@ -13836,7 +13792,7 @@ func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchPrivateTeams(term)
+	resultVar0, resultVar1 := a.app.SearchPrivateTeams(searchOpts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13846,7 +13802,7 @@ func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPublicTeams")
 
@@ -13858,7 +13814,7 @@ func (a *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchPublicTeams(term)
+	resultVar0, resultVar1 := a.app.SearchPublicTeams(searchOpts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -134,7 +134,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIDs []string) error {
 		teamsSelectQuery, teamsSelectArgs, err := s.getQueryBuilder().
 			Select("Id").
 			From("Teams").
-			Where(inStrings("Id", teamIDs)).
+			Where(sq.Eq{"Id": teamIDs}).
 			ToSql()
 		if err != nil {
 			return err
@@ -165,7 +165,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 		channelsSelectQuery, channelsSelectArgs, err := s.getQueryBuilder().
 			Select("Id").
 			From("Channels").
-			Where(inStrings("Id", channelIDs)).
+			Where(sq.Eq{"Id": channelIDs}).
 			ToSql()
 		if err != nil {
 			return err
@@ -236,13 +236,13 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 
 	policyUpdateQuery := ""
 	policyUpdateArgs := []interface{}{}
-	if patch.DisplayName != "" || patch.PostDuration > 0 {
+	if patch.DisplayName != "" || patch.PostDuration != nil {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
 			builder = builder.Set("DisplayName", patch.DisplayName)
 		}
-		if patch.PostDuration > 0 {
-			builder = builder.Set("PostDuration", patch.PostDuration)
+		if patch.PostDuration != nil {
+			builder = builder.Set("PostDuration", *patch.PostDuration)
 		}
 		policyUpdateQuery, policyUpdateArgs, err = builder.
 			Where(sq.Eq{"Id": patch.ID}).
@@ -426,6 +426,9 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 	OFFSET :Offset`
 	props := map[string]interface{}{"PolicyId": policyId, "Limit": limit, "Offset": offset}
 	_, err = s.GetReplica().Select(&channels, query, props)
+	for _, channel := range channels {
+		channel.PolicyID = model.NewString(policyId)
+	}
 	return
 }
 
@@ -476,7 +479,7 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 		Delete("RetentionPoliciesChannels").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
-			inStrings("ChannelId", channelIds),
+			sq.Eq{"ChannelId": channelIds},
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
@@ -492,6 +495,9 @@ func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (
 	OFFSET :Offset`
 	props := map[string]interface{}{"PolicyId": policyId, "Limit": limit, "Offset": offset}
 	_, err = s.GetReplica().Select(&teams, query, props)
+	for _, team := range teams {
+		team.PolicyID = &policyId
+	}
 	return
 }
 
@@ -530,7 +536,7 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 		Delete("RetentionPoliciesTeams").
 		Where(sq.And{
 			sq.Eq{"PolicyId": policyId},
-			inStrings("TeamId", teamIds),
+			sq.Eq{"TeamId": teamIds},
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
@@ -577,4 +583,70 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 	}
 	deleted = rpcDeleted + rptDeleted
 	return
+}
+
+func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForTeam, err error) {
+	const query = `
+	SELECT Teams.Id, RetentionPolicies.PostDuration
+	FROM Users
+	INNER JOIN TeamMembers ON Users.Id = TeamMembers.UserId
+	INNER JOIN Teams ON TeamMembers.TeamId = Teams.Id
+	INNER JOIN RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId
+	INNER JOIN RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+	WHERE Users.Id = :UserId
+		AND TeamMembers.DeleteAt = 0
+		AND Teams.DeleteAt = 0
+	ORDER BY Teams.Id
+	LIMIT :Limit
+	OFFSET :Offset`
+	props := map[string]interface{}{"UserId": userID, "Limit": limit, "Offset": offset}
+	_, err = s.GetReplica().Select(&policies, query, props)
+	return
+}
+
+func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (int64, error) {
+	const query = `
+	SELECT COUNT(*)
+	FROM Users
+	INNER JOIN TeamMembers ON Users.Id = TeamMembers.UserId
+	INNER JOIN Teams ON TeamMembers.TeamId = Teams.Id
+	INNER JOIN RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId
+	INNER JOIN RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+	WHERE Users.Id = :UserId
+		AND TeamMembers.DeleteAt = 0
+		AND Teams.DeleteAt = 0`
+	props := map[string]interface{}{"UserId": userID}
+	return s.GetReplica().SelectInt(query, props)
+}
+
+func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) (policies []*model.RetentionPolicyForChannel, err error) {
+	const query = `
+	SELECT Channels.Id, RetentionPolicies.PostDuration
+	FROM Users
+	INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
+	INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
+	INNER JOIN RetentionPoliciesChannels ON Channels.Id = RetentionPoliciesChannels.ChannelId
+	INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+	WHERE Users.Id = :UserId
+		AND Channels.DeleteAt = 0
+	ORDER BY Channels.Id
+	LIMIT :Limit
+	OFFSET :Offset`
+	props := map[string]interface{}{"UserId": userID, "Limit": limit, "Offset": offset}
+	_, err = s.GetReplica().Select(&policies, query, props)
+	return
+}
+
+func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) (int64, error) {
+	const query = `
+	SELECT COUNT(*)
+	FROM Users
+	INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
+	INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
+	INNER JOIN RetentionPoliciesChannels ON Channels.Id = RetentionPoliciesChannels.ChannelId
+	INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+	WHERE Users.Id = :UserId
+		AND Channels.DeleteAt = 0`
+	props := map[string]interface{}{"UserId": userID}
+	return s.GetReplica().SelectInt(query, props)
 }

@@ -53,6 +53,7 @@ type Channel struct {
 	GroupConstrained  *bool                  `json:"group_constrained"`
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
+	PolicyID          *string                `json:"policy_id" db:"-"`
 }
 
 type ChannelWithTeamData struct {
@@ -132,6 +133,7 @@ type ChannelSearchOpts struct {
 	ExcludeGroupConstrained  bool
 	PolicyID                 string
 	ExcludePolicyConstrained bool
+	IncludePolicyID          bool
 	Public                   bool
 	Private                  bool
 	Page                     *int

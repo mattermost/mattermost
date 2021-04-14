@@ -376,13 +376,13 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
 	require.Nil(t, err)
 
-	nowMillis := thread.LastReplyAt + channelPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis := thread.LastReplyAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
 	_, err = ss.Thread().PermanentDeleteBatchThreadsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
 	_, err = ss.Thread().Get(post.Id)
@@ -397,13 +397,13 @@ func testThreadStorePermanentDeleteBatchThreadsForRetentionPolicies(t *testing.T
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
-			PostDuration: 20,
+			PostDuration: model.NewInt64(20),
 		},
 		TeamIDs: []string{team.Id},
 	})
 	require.Nil(t, err)
 
-	nowMillis = thread.LastReplyAt + teamPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis = thread.LastReplyAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
 	_, err = ss.Thread().PermanentDeleteBatchThreadsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
 	_, err = ss.Thread().Get(post.Id)
@@ -454,13 +454,13 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
-			PostDuration: 30,
+			PostDuration: model.NewInt64(30),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
 	require.Nil(t, err)
 
-	nowMillis := threadMembership.LastUpdated + channelPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis := threadMembership.LastUpdated + *channelPolicy.PostDuration*24*60*60*1000 + 1
 	_, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
@@ -473,13 +473,13 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:  "DisplayName",
-			PostDuration: 20,
+			PostDuration: model.NewInt64(20),
 		},
 		TeamIDs: []string{team.Id},
 	})
 	require.Nil(t, err)
 
-	nowMillis = threadMembership.LastUpdated + teamPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDuration*24*60*60*1000 + 1
 	_, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)
@@ -502,7 +502,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	err = ss.Thread().Delete(post.Id)
 	require.Nil(t, err)
 
-	nowMillis = threadMembership.LastUpdated + teamPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis = threadMembership.LastUpdated + *teamPolicy.PostDuration*24*60*60*1000 + 1
 	_, err = ss.Thread().PermanentDeleteBatchThreadMembershipsForRetentionPolicies(nowMillis, limit)
 	require.Nil(t, err)
 	_, err = ss.Thread().GetMembershipForUser(userID, post.Id)

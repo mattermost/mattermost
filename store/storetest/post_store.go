@@ -2640,7 +2640,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
-				PostDuration: 30,
+				PostDuration: model.NewInt64(30),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -2659,7 +2659,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
 		require.Nil(t, err, "global policy should have been ignored due to granular policy")
 
-		nowMillis := post.CreateAt + channelPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis := post.CreateAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
 		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
 		require.Nil(t, err)
 		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
@@ -2669,7 +2669,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
-				PostDuration: 20,
+				PostDuration: model.NewInt64(20),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -2678,7 +2678,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		post, err = ss.Post().Save(post)
 		require.Nil(t, err)
 
-		nowMillis = post.CreateAt + teamPolicy.PostDuration*24*60*60*1000 + 1
+		nowMillis = post.CreateAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
 		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
 		require.Nil(t, err)
 		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")

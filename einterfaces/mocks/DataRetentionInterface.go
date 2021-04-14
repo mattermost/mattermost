@@ -87,6 +87,31 @@ func (_m *DataRetentionInterface) DeletePolicy(policyID string) *model.AppError 
 	return r0
 }
 
+// GetChannelPoliciesForUser provides a mock function with given fields: userID, offset, limit
+func (_m *DataRetentionInterface) GetChannelPoliciesForUser(userID string, offset int, limit int) (*model.RetentionPolicyForChannelList, *model.AppError) {
+	ret := _m.Called(userID, offset, limit)
+
+	var r0 *model.RetentionPolicyForChannelList
+	if rf, ok := ret.Get(0).(func(string, int, int) *model.RetentionPolicyForChannelList); ok {
+		r0 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RetentionPolicyForChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetChannelsForPolicy provides a mock function with given fields: policyID, offset, limit
 func (_m *DataRetentionInterface) GetChannelsForPolicy(policyID string, offset int, limit int) (*model.ChannelsWithCount, *model.AppError) {
 	ret := _m.Called(policyID, offset, limit)
@@ -201,6 +226,31 @@ func (_m *DataRetentionInterface) GetPolicy(policyID string) (*model.RetentionPo
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(policyID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTeamPoliciesForUser provides a mock function with given fields: userID, offset, limit
+func (_m *DataRetentionInterface) GetTeamPoliciesForUser(userID string, offset int, limit int) (*model.RetentionPolicyForTeamList, *model.AppError) {
+	ret := _m.Called(userID, offset, limit)
+
+	var r0 *model.RetentionPolicyForTeamList
+	if rf, ok := ret.Get(0).(func(string, int, int) *model.RetentionPolicyForTeamList); ok {
+		r0 = rf(userID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RetentionPolicyForTeamList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(userID, offset, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

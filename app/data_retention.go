@@ -100,6 +100,20 @@ func (a *App) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []st
 	return a.DataRetention().RemoveChannelsFromPolicy(policyID, channelIDs)
 }
 
+func (a *App) GetTeamPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForTeamList, *model.AppError) {
+	if a.DataRetention() == nil {
+		return nil, newLicenseError("GetTeamPoliciesForUser")
+	}
+	return a.DataRetention().GetTeamPoliciesForUser(userID, offset, limit)
+}
+
+func (a *App) GetChannelPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForChannelList, *model.AppError) {
+	if a.DataRetention() == nil {
+		return nil, newLicenseError("GetChannelPoliciesForUser")
+	}
+	return a.DataRetention().GetChannelPoliciesForUser(userID, offset, limit)
+}
+
 func newLicenseError(methodName string) *model.AppError {
 	return model.NewAppError("App."+methodName, "ent.data_retention.generic.license.error",
 		nil, "", http.StatusNotImplemented)
