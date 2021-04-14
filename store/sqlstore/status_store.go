@@ -146,13 +146,6 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
 	}
 
-	for _, status := range statuses {
-		status.Status = status.PrevStatus
-		status.PrevStatus = model.STATUS_DND
-		status.DNDEndTime = 0
-		status.Manual = false
-	}
-
 	return statuses, nil
 }
 
@@ -170,6 +163,14 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		if err := transaction.Commit(); err != nil {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
 		}
+
+		for _, status := range statuses {
+			status.Status = status.PrevStatus
+			status.PrevStatus = model.STATUS_DND
+			status.DNDEndTime = 0
+			status.Manual = false
+		}
+
 		return statuses, nil
 	}
 
