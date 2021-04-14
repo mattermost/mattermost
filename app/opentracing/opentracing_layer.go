@@ -11401,6 +11401,21 @@ func (a *OpenTracingAppLayer) NotifySessionsExpired() *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySharedChannelUserUpdate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.NotifySharedChannelUserUpdate(user)
+}
+
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
