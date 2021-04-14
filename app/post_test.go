@@ -2030,26 +2030,26 @@ func TestReplyToPostWithLag(t *testing.T) {
 
 	t.Run("replication lag time great than reply time", func(t *testing.T) {
 		err := mainHelper.SetReplicationLagForTesting(5)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer mainHelper.SetReplicationLagForTesting(0)
 		mainHelper.ToggleReplicasOn()
 		defer mainHelper.ToggleReplicasOff()
 
-		root, err := th.App.CreatePost(&model.Post{
+		root, appErr := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "root post",
 		}, th.BasicChannel, false, true)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
-		reply, err := th.App.CreatePost(&model.Post{
+		reply, appErr := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser2.Id,
 			ChannelId: th.BasicChannel.Id,
 			RootId:    root.Id,
 			ParentId:  root.Id,
 			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
 		}, th.BasicChannel, false, true)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 		require.NotNil(t, reply)
 	})
 }
