@@ -181,6 +181,12 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
+var licenseInterface func(*App) einterfaces.LicenseInterface
+
+func RegisterLicenseInterface(f func(*App) einterfaces.LicenseInterface) {
+	licenseInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s)
@@ -223,5 +229,8 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
+	}
+	if licenseInterface != nil {
+		a.srv.LicenseManager = licenseInterface(a)
 	}
 }

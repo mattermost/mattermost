@@ -154,6 +154,17 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	canStart, err := c.App.Srv().LicenseManager.CanStartTrial()
+	if err != nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !canStart {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	var trialRequest struct {
 		Users                 int  `json:"users"`
 		TermsAccepted         bool `json:"terms_accepted"`
@@ -238,3 +249,4 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
