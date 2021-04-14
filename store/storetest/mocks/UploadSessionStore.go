@@ -51,13 +51,13 @@ func (_m *UploadSessionStore) Get(id string) (*model.UploadSession, error) {
 	return r0, r1
 }
 
-// GetForUser provides a mock function with given fields: userId
-func (_m *UploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
-	ret := _m.Called(userId)
+// GetForUser provides a mock function with given fields: userID
+func (_m *UploadSessionStore) GetForUser(userID string) ([]*model.UploadSession, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.UploadSession
 	if rf, ok := ret.Get(0).(func(string) []*model.UploadSession); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UploadSession)
@@ -66,7 +66,7 @@ func (_m *UploadSessionStore) GetForUser(userId string) ([]*model.UploadSession,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}

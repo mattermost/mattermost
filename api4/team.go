@@ -1227,6 +1227,24 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
 			}
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+
+		scheduledAt := model.GetMillis()
+		jobData := map[string]string{
+			"emailList":   model.ArrayToJson(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.App.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		// we then manually schedule the job
+		_, e := c.App.Srv().Jobs.CreateJob(model.JOB_TYPE_RESEND_INVITATION_EMAIL, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			return
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
@@ -1290,6 +1308,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	if guestsInvite == nil {
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	for i, email := range guestsInvite.Emails {
 		guestsInvite.Emails[i] = strings.ToLower(email)
 	}
@@ -1380,8 +1403,8 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_INVALIDATE_EMAIL_INVITE) {
+		c.SetPermissionError(model.PERMISSION_INVALIDATE_EMAIL_INVITE)
 		return
 	}
 

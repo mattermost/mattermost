@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -347,7 +348,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
+			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
 			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
@@ -436,5 +437,41 @@ func TestGetCloudSession(t *testing.T) {
 		require.Nil(t, session)
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
+	})
+}
+
+func TestGetRemoteClusterSession(t *testing.T) {
+	th := Setup(t)
+	token := model.NewId()
+	remoteId := model.NewId()
+
+	rc := model.RemoteCluster{
+		RemoteId:     remoteId,
+		RemoteTeamId: model.NewId(),
+		DisplayName:  "test",
+		Token:        token,
+		CreatorId:    model.NewId(),
+	}
+
+	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)
+	require.NoError(t, err)
+
+	t.Run("Valid remote token should return session", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		require.Nil(t, err)
+		require.NotNil(t, session)
+		require.Equal(t, token, session.Token)
+	})
+
+	t.Run("Invalid remote token should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		require.NotNil(t, err)
+		require.Nil(t, session)
+	})
+
+	t.Run("Invalid remote id should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
+		require.NotNil(t, err)
+		require.Nil(t, session)
 	})
 }

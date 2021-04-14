@@ -6,9 +6,9 @@ package app
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -29,6 +29,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	_ "github.com/oov/psd"
+	"github.com/pkg/errors"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
@@ -74,6 +75,7 @@ const (
 	ImageThumbnailPixelWidth  = 120
 	ImageThumbnailPixelHeight = 100
 	ImagePreviewPixelWidth    = 1920
+	MaxContentExtractionSize  = 1024 * 1024 // 1Mb
 )
 
 func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
@@ -89,6 +91,17 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
+func connectionTestErrorToAppError(connTestErr error) *model.AppError {
+	switch err := connTestErr.(type) {
+	case *filestore.S3FileBackendAuthError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, err.Error(), http.StatusInternalServerError)
+	case *filestore.S3FileBackendNoBucketError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, err.Error(), http.StatusInternalServerError)
+	default:
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (a *App) TestFileStoreConnection() *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -96,7 +109,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
@@ -109,7 +122,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
@@ -406,7 +419,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(post.Id, false, false, false)
+	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -709,12 +722,10 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, t.newAppError("api.file.upload_file.storage.app_error",
-			"", http.StatusNotImplemented)
+		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.init(a)
@@ -736,8 +747,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
 			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
-		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	t.fileinfo.Size = written
@@ -775,21 +785,9 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(t.fileinfo.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
+			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -826,8 +824,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// in 64 bits systems because images can't have more than 32 bits height or
 	// width)
 	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
-		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
-			"", http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
@@ -941,7 +938,7 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,
@@ -959,7 +956,7 @@ func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus i
 		params[fmt.Sprintf("%v", extra[i])] = extra[i+1]
 	}
 
-	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
+	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
 func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
@@ -1046,21 +1043,9 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(infoCopy.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
+			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1398,4 +1383,27 @@ func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId strin
 	}
 
 	return fileInfoSearchResults, nil
+}
+
+func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	file, aerr := a.FileReader(fileInfo.Path)
+	if aerr != nil {
+		return errors.Wrap(aerr, "failed to open file for extract file content")
+	}
+	defer file.Close()
+	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to extract file content")
+	}
+	if text != "" {
+		if len(text) > MaxContentExtractionSize {
+			text = text[0:MaxContentExtractionSize]
+		}
+		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+			return errors.Wrap(storeErr, "failed to save the extracted file content")
+		}
+	}
+	return nil
 }

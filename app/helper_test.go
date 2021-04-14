@@ -42,7 +42,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -51,9 +51,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	configStore := config.NewTestMemoryStore()
 
 	config := configStore.Get()
-	if configSet != nil {
-		configSet(config)
-	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*config.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -142,7 +139,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb, nil)
+	return setupTestHelper(dbStore, false, true, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -153,12 +150,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, true, tb, nil)
+	return setupTestHelper(dbStore, false, true, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, tb, nil)
+	th := setupTestHelper(mockStore, false, false, tb)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -167,7 +164,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, false, tb, nil)
+	th := setupTestHelper(mockStore, true, false, tb)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -285,15 +282,23 @@ func (th *TestHelper) CreateBot() *model.Bot {
 	return bot
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN, options...)
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -304,10 +309,31 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
+	for _, option := range options {
+		option(channel)
+	}
+
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		panic(err)
+	var appErr *model.AppError
+	if channel, appErr = th.App.CreateChannel(channel, true); appErr != nil {
+		panic(appErr)
+	}
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return channel
@@ -374,7 +400,7 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		panic(err)
 	}
@@ -396,7 +422,7 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
@@ -528,6 +554,21 @@ func (th *TestHelper) TearDown() {
 
 func (*TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return mainHelper.GetSQLStore()
+}
+
+func (th *TestHelper) ConfigureInbucketMail() {
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "localhost"
+	}
+	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "10025"
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SMTPServer = inbucket_host
+		*cfg.EmailSettings.SMTPPort = inbucket_port
+	})
 }
 
 func (*TestHelper) ResetRoleMigration() {

@@ -96,7 +96,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	if token.Type == TokenTypeGuestInvitation {
 		for _, channel := range channels {
-			_, err := a.AddChannelMember(ruser.Id, channel, "", "")
+			_, err := a.AddChannelMember(ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
 				mlog.Warn("Failed to add channel member", mlog.Err(err))
 			}
@@ -149,13 +149,13 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
-	if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+	if _, err := a.JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
@@ -168,8 +168,8 @@ func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User,
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-		mlog.Warn("Failed to send welcome email on create admin user", mlog.Err(err))
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+		mlog.Warn("Failed to send welcome email to the new user, created by system admin", mlog.Err(err))
 	}
 
 	return ruser, nil
@@ -192,7 +192,7 @@ func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.Us
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
@@ -333,6 +333,9 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 	ruser.Sanitize(map[string]bool{})
+
+	// Determine whether to send the created user a welcome email
+	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
 	return ruser, nil
 }
 
@@ -778,10 +781,6 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	if err := mfa.New(a.Srv().Store.User()).Deactivate(userID); err != nil {
 		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1004,7 +1003,6 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 }
 
 func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppError {
-
 	buf, err := a.AdjustImage(file)
 	if err != nil {
 		return err
@@ -1012,7 +1010,7 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 	path := "users/" + userID + "/profile.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().UpdateLastPictureUpdate(userID); err != nil {
@@ -1178,6 +1176,37 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 	}
 
 	return updatedUser, nil
+}
+
+// CheckProviderAttributes returns the empty string if the patch can be applied without
+// overriding attributes set by the user's login provider; otherwise, the name of the offending
+// field is returned.
+func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
+	tryingToChange := func(userValue *string, patchValue *string) bool {
+		return patchValue != nil && *patchValue != *userValue
+	}
+
+	// If any login provider is used, then the username may not be changed
+	if user.AuthService != "" && tryingToChange(&user.Username, patch.Username) {
+		return "username"
+	}
+
+	LdapSettings := &a.Config().LdapSettings
+	SamlSettings := &a.Config().SamlSettings
+
+	conflictField := ""
+	if a.Ldap() != nil &&
+		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
+		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, user, patch)
+	} else if a.Saml() != nil && user.IsSAMLUser() {
+		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, user, patch)
+	} else if user.IsOAuthUser() {
+		if tryingToChange(&user.FirstName, patch.FirstName) || tryingToChange(&user.LastName, patch.LastName) {
+			conflictField = "full name"
+		}
+	}
+
+	return conflictField
 }
 
 func (a *App) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
@@ -1700,7 +1729,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().PermanentDelete(user.Id); err != nil {
@@ -2371,14 +2400,6 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	return threads, nil
 }
 
-func (a *App) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *model.AppError) {
-	res, err := a.Srv().Store.Thread().GetThreadMentionsForUserPerChannel(userId, teamId)
-	if err != nil {
-		return nil, model.NewAppError("GetThreadMentionsForUserPerChannel", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return res, nil
-}
-
 func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
 	thread, err := a.Srv().Store.Thread().GetThreadForUser(userID, teamID, threadId, extended)
 	if err != nil {
@@ -2403,7 +2424,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 }
 
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userID, threadID, state, false, true)
+	err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

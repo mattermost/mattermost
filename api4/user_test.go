@@ -14,11 +14,13 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -376,10 +378,10 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		guest, err := th.App.CreateGuest(guest)
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.AddUserToChannel(guest, th.BasicChannel)
+		_, err = th.App.AddUserToChannel(guest, th.BasicChannel, false)
 		require.Nil(t, err)
 
 		guestClient := th.CreateClient()
@@ -1691,6 +1693,16 @@ func TestPatchUser(t *testing.T) {
 	user := th.CreateUser()
 	th.Client.Login(user.Email, user.Password)
 
+	t.Run("Timezone limit error", func(t *testing.T) {
+		patch := &model.UserPatch{}
+		patch.Timezone = model.StringMap{}
+		patch.Timezone["manualTimezone"] = string(make([]byte, model.USER_TIMEZONE_MAX_RUNES))
+		ruser, resp := th.Client.PatchUser(user.Id, patch)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "model.user.is_valid.timezone_limit.app_error", resp.Error.Id)
+		require.Nil(t, ruser)
+	})
+
 	patch := &model.UserPatch{}
 	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")
@@ -2861,7 +2873,7 @@ func TestResetPassword(t *testing.T) {
 	th.Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	mailservice.DeleteMailBox(user.Email)
+	mail.DeleteMailBox(user.Email)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		success, resp := client.SendPasswordResetEmail(user.Email)
 		CheckNoError(t, resp)
@@ -2874,10 +2886,10 @@ func TestResetPassword(t *testing.T) {
 		require.True(t, success, "should succeed")
 	})
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	err := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(user.Email)
+		resultsMailbox, err = mail.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -2887,7 +2899,7 @@ func TestResetPassword(t *testing.T) {
 	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		require.Contains(t, resultsMailbox[0].To[0], user.Email, "Correct To recipient")
-		resultsEmail, mailErr := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
+		resultsEmail, mailErr := mail.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID)
 		require.NoError(t, mailErr)
 		loc := strings.Index(resultsEmail.Body.Text, "token=")
 		require.NotEqual(t, -1, loc, "Code should be found in email")
@@ -3345,6 +3357,45 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Id, th.BasicUser.Id)
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginWithLag(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	t.Run("with replication lag, caches cleared", func(t *testing.T) {
+		if !replicaFlag {
+			t.Skipf("requires test flag: -mysql-replica")
+		}
+
+		if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+			t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+		}
+
+		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
+		mainHelper.ToggleReplicasOff()
+
+		err := th.App.RevokeAllSessions(th.BasicUser.Id)
+		require.Nil(t, err)
+
+		mainHelper.ToggleReplicasOn()
+		defer mainHelper.ToggleReplicasOff()
+
+		cmdErr := mainHelper.SetReplicationLagForTesting(5)
+		require.NoError(t, cmdErr)
+		defer mainHelper.SetReplicationLagForTesting(0)
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+
+		err = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, err)
+
+		session, err := th.App.GetSession(th.Client.AuthToken)
+		require.Nil(t, err)
+		require.NotNil(t, session)
 	})
 }
 
@@ -4872,12 +4923,30 @@ func TestLoginLockout(t *testing.T) {
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.DemoteUserToGuest(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.PromoteGuestToUser(user, ""))
+	}, "demote a user to guest")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4898,17 +4967,11 @@ func TestDemoteUserToGuest(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.PromoteGuestToUser(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
@@ -4924,13 +4987,31 @@ func TestDemoteUserToGuest(t *testing.T) {
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	user := th.BasicUser
+	th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, respErr := c.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+
+		_, respErr = c.PromoteGuestToUser(user.Id)
+		CheckNoError(t, respErr)
+
+		defer require.Nil(t, th.App.DemoteUserToGuest(user))
+	}, "promete a guest to user")
+
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		user := th.BasicUser
-		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
-
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
 		defer webSocketClient.Close()
@@ -4951,17 +5032,11 @@ func TestPromoteGuestToUser(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.Srv().RemoveLicense()
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)
 		CheckNoError(t, respErr)
+		defer th.SystemAdminClient.DemoteUserToGuest(user.Id)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
 			eventUser, ok := event.GetData()["user"].(*model.User)
@@ -5076,11 +5151,11 @@ func TestGetKnownUsers(t *testing.T) {
 	th.LinkUserToTeam(u3, t2)
 	th.LinkUserToTeam(u4, t3)
 
-	th.App.AddUserToChannel(u1, c1)
-	th.App.AddUserToChannel(u1, c2)
-	th.App.AddUserToChannel(u2, c1)
-	th.App.AddUserToChannel(u3, c2)
-	th.App.AddUserToChannel(u4, c3)
+	th.App.AddUserToChannel(u1, c1, false)
+	th.App.AddUserToChannel(u1, c2, false)
+	th.App.AddUserToChannel(u2, c1, false)
+	th.App.AddUserToChannel(u3, c2, false)
+	th.App.AddUserToChannel(u4, c3, false)
 
 	t.Run("get know users sharing no channels", func(t *testing.T) {
 		_, _ = th.Client.Login(u4.Email, u4.Password)
@@ -5765,11 +5840,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
-	checkMentionCounts := func(client *model.Client4, userId string, expected map[string]int64) {
-		actual, resp2 := client.GetThreadMentionsForUserPerChannel(userId, th.BasicTeam.Id)
-		CheckNoError(t, resp2)
-		require.EqualValues(t, expected, actual)
-	}
 	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
 		uss, resp := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -5795,7 +5865,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	// create reply and mention the original poster and another user
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username, RootId: rpost.Id})
 
-	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1})
 	// basic user 1 was mentioned 1 time
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
 	// basic user 2 was mentioned 1 time
@@ -5824,7 +5893,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
 	// expect increment by two mentions
 	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
-	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1, dm.Id: 2})
 }
 
 func TestReadThreads(t *testing.T) {
@@ -5893,5 +5961,177 @@ func TestReadThreads(t *testing.T) {
 
 		uss3, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 2, nil)
 		require.Equal(t, uss3.Threads[0].LastViewedAt, timestamp)
+	})
+}
+
+func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
+	t.Run("LDAP user", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_LDAP)
+		ldapMock := &mocks.LdapInterface{}
+		ldapMock.Mock.On(
+			"CheckProviderAttributes",
+			mock.Anything, // app.AppIface
+			mock.Anything, // *model.User
+			mock.Anything, // *model.Patch
+		).Return("")
+		th.App.Srv().Ldap = ldapMock
+		// CheckProviderAttributes should be called for both Patch and Update
+		th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
+		ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
+		th.SystemAdminClient.UpdateUser(user)
+		ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
+	})
+	t.Run("SAML user", func(t *testing.T) {
+		t.Run("with LDAP sync", func(t *testing.T) {
+			th := SetupEnterprise(t).InitBasic()
+			defer th.TearDown()
+			th.SetupLdapConfig()
+			th.SetupSamlConfig()
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.SamlSettings.EnableSyncWithLdap = true
+			})
+			user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_SAML)
+			ldapMock := &mocks.LdapInterface{}
+			ldapMock.Mock.On(
+				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+			).Return("")
+			th.App.Srv().Ldap = ldapMock
+			th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
+			ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
+			th.SystemAdminClient.UpdateUser(user)
+			ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
+		})
+		t.Run("without LDAP sync", func(t *testing.T) {
+			th := SetupEnterprise(t).InitBasic()
+			defer th.TearDown()
+			user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_SAML)
+			samlMock := &mocks.SamlInterface{}
+			samlMock.Mock.On(
+				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+			).Return("")
+			th.App.Srv().Saml = samlMock
+			th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
+			samlMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
+			th.SystemAdminClient.UpdateUser(user)
+			samlMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
+		})
+	})
+	t.Run("OpenID user", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		user := th.CreateUserWithAuth(model.SERVICE_OPENID)
+		// OAUTH users cannot change these fields
+		for _, fieldName := range []string{
+			"FirstName",
+			"LastName",
+		} {
+			patch := user.ToPatch()
+			patch.SetField(fieldName, "something new")
+			conflictField := th.App.CheckProviderAttributes(user, patch)
+			require.NotEqual(t, "", conflictField)
+		}
+	})
+	t.Run("Patch username", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		// For non-email users, the username must be changed through the provider
+		for _, authService := range []string{
+			model.USER_AUTH_SERVICE_LDAP,
+			model.USER_AUTH_SERVICE_SAML,
+			model.SERVICE_OPENID,
+		} {
+			user := th.CreateUserWithAuth(authService)
+			patch := &model.UserPatch{Username: model.NewString("something new")}
+			conflictField := th.App.CheckProviderAttributes(user, patch)
+			require.NotEqual(t, "", conflictField)
+		}
+	})
+}
+
+func TestSetProfileImageWithProviderAttributes(t *testing.T) {
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	type imageTestCase struct {
+		testName      string
+		ldapAttrIsSet bool
+		shouldPass    bool
+	}
+
+	doImageTest := func(t *testing.T, th *TestHelper, user *model.User, testCase imageTestCase) {
+		client := th.SystemAdminClient
+		t.Run(testCase.testName, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				if testCase.ldapAttrIsSet {
+					*cfg.LdapSettings.PictureAttribute = "jpegPhoto"
+				} else {
+					*cfg.LdapSettings.PictureAttribute = ""
+				}
+			})
+			ok, resp := client.SetProfileImage(user.Id, data)
+			if testCase.shouldPass {
+				require.True(t, ok)
+				CheckNoError(t, resp)
+			} else {
+				require.False(t, ok)
+				checkHTTPStatus(t, resp, http.StatusConflict, true)
+			}
+		})
+	}
+	doCleanup := func(t *testing.T, th *TestHelper, user *model.User) {
+		info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+		err = th.cleanupTestFile(info)
+		require.NoError(t, err)
+	}
+
+	t.Run("LDAP user", func(t *testing.T) {
+		testCases := []imageTestCase{
+			{"profile picture attribute is set", true, false},
+			{"profile picture attribute is not set", false, true},
+		}
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		th.SetupLdapConfig()
+		user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_LDAP)
+		for _, testCase := range testCases {
+			doImageTest(t, th, user, testCase)
+		}
+		doCleanup(t, th, user)
+	})
+
+	t.Run("SAML user", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		th.SetupLdapConfig()
+		th.SetupSamlConfig()
+		user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_SAML)
+
+		t.Run("with LDAP sync", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.SamlSettings.EnableSyncWithLdap = true
+			})
+			testCases := []imageTestCase{
+				{"profile picture attribute is set", true, false},
+				{"profile picture attribute is not set", false, true},
+			}
+			for _, testCase := range testCases {
+				doImageTest(t, th, user, testCase)
+			}
+		})
+		t.Run("without LDAP sync", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.SamlSettings.EnableSyncWithLdap = false
+			})
+			testCases := []imageTestCase{
+				{"profile picture attribute is set", true, true},
+				{"profile picture attribute is not set", false, true},
+			}
+			for _, testCase := range testCases {
+				doImageTest(t, th, user, testCase)
+			}
+		})
+		doCleanup(t, th, user)
 	})
 }
