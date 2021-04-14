@@ -18,6 +18,9 @@ RUN apk add --no-cache \
   netcat-openbsd \
   xmlsec-dev \
   tzdata \
+  wv \
+  poppler-utils \
+  tidyhtml \
   && rm -rf /tmp/*
 
 # Get Mattermost
