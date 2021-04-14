@@ -290,6 +290,30 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	return nil
 }
 
+func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, userName, trialEndDate, locale, siteURL string) *model.AppError {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_trial_ending_email.subject")
+
+	data := es.newEmailTemplateData(locale)
+	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Username": userName, "TrialEnd": trialEndDate})
+	data.Props["SiteURL"] = siteURL
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
+	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+
+	body, err := es.srv.TemplatesContainer().RenderToString("cloud_trial_end_warning", data)
+	if err != nil {
+		return model.NewAppError("SendCloudTrialEndWarningEmail", "api.user.cloud_trial_ending_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := es.sendMail(userEmail, subject, body); err != nil {
+		return model.NewAppError("SendCloudTrialEndWarningEmail", "api.user.cloud_trial_ending_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
 func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) *model.AppError {
 	T := i18n.GetUserTranslations(locale)
