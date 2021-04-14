@@ -9338,6 +9338,26 @@ func (s *RetryLayerThreadStore) MarkAllAsRead(userID string, teamID string) erro
 
 }
 
+func (s *RetryLayerThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MarkAllAsReadInChannels(userID, channelIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) MarkAsRead(userID string, threadID string, timestamp int64) error {
 
 	tries := 0

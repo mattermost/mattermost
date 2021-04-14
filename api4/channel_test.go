@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -4070,6 +4071,7 @@ func TestMoveChannel(t *testing.T) {
 func TestRootMentionsCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	Client := th.Client
 	user := th.BasicUser
 	channel := th.BasicChannel
@@ -4105,4 +4107,45 @@ func TestRootMentionsCount(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, int64(1), counts.MentionCountRoot)
 	require.Equal(t, int64(2), counts.MentionCount)
+}
+
+func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	Client := th.Client
+	user := th.BasicUser
+	team := th.BasicTeam
+	channel := th.BasicChannel
+
+	// mention the user in a root post
+	post1, resp := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: channel.Id, Message: "hey @" + user.Username})
+	CheckNoError(t, resp)
+	// mention the user in a reply post
+	post2 := &model.Post{ChannelId: channel.Id, Message: "reply at @" + user.Username, RootId: post1.Id}
+	_, resp = th.SystemAdminClient.CreatePost(post2)
+	CheckNoError(t, resp)
+
+	threads, resp := Client.GetUserThreads(user.Id, team.Id, model.GetUserThreadsOpts{})
+	CheckNoError(t, resp)
+	require.EqualValues(t, int64(1), threads.TotalUnreadMentions)
+
+	// simulate opening the channel from an old client
+	_, resp = Client.ViewChannel(user.Id, &model.ChannelView{
+		ChannelId:                 channel.Id,
+		PrevChannelId:             "",
+		CollapsedThreadsSupported: false,
+	})
+	CheckNoError(t, resp)
+
+	threads, resp = Client.GetUserThreads(user.Id, team.Id, model.GetUserThreadsOpts{})
+	CheckNoError(t, resp)
+	require.Zero(t, threads.TotalUnreadMentions)
 }

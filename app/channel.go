@@ -2546,7 +2546,7 @@ func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string)
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string) (map[string]int64, *model.AppError) {
+func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications {
@@ -2608,10 +2608,25 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 	for _, channelID := range channelsToClearPushNotifications {
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
+
+	if !collapsedThreadsSupported {
+		// for compatibility with old clients, when channel is viewed - mark all threads in that channel as read
+		threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+		// check if a participant has overridden collapsed threads settings
+		if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+			threadsEnabled = preference.Value == "on"
+		}
+		if threadsEnabled {
+			if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
+				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
 	return times, nil
 }
 
-func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string) (map[string]int64, *model.AppError) {
+func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	if err := a.SetActiveChannel(userID, view.ChannelId); err != nil {
 		return nil, err
 	}
@@ -2630,7 +2645,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSession
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId)
+	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {

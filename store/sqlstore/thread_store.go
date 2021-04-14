@@ -371,7 +371,37 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 
 	return result, nil
 }
+func (s *SqlThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
+	var threadIDs []string
 
+	query, args, _ := s.getQueryBuilder().
+		Select("ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("Channels ON Threads.ChannelId = Channels.Id").
+		From("ThreadMemberships").
+		Where(sq.Eq{"Threads.ChannelId": channelIDs}).
+		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
+		ToSql()
+
+	_, err := s.GetReplica().Select(&threadIDs, query, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get thread membership with userid=%s", userID)
+	}
+
+	timestamp := model.GetMillis()
+	query, args, _ = s.getQueryBuilder().
+		Update("ThreadMemberships").
+		Where(sq.Eq{"PostId": threadIDs}).
+		Where(sq.Eq{"UserId": userID}).
+		Set("LastViewed", timestamp).
+		Set("UnreadMentions", 0).
+		ToSql()
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userID)
+	}
+	return nil
+
+}
 func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	memberships, err := s.GetMembershipsForUser(userId, teamId)
 	if err != nil {

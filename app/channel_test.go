@@ -1969,7 +1969,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
-	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id)
+	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id, false)
 	require.Nil(t, err)
 }
 

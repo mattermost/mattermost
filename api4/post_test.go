@@ -2491,7 +2491,7 @@ func TestSetChannelUnread(t *testing.T) {
 	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id)
+	_, err = th.App.ViewChannel(c1toc2, u2.Id, s2.Id, false)
 	require.Nil(t, err)
 	unread, err = th.App.GetChannelUnread(c1.Id, u2.Id)
 	require.Nil(t, err)

@@ -9,8 +9,9 @@ import (
 )
 
 type ChannelView struct {
-	ChannelId     string `json:"channel_id"`
-	PrevChannelId string `json:"prev_channel_id"`
+	ChannelId                 string `json:"channel_id"`
+	PrevChannelId             string `json:"prev_channel_id"`
+	CollapsedThreadsSupported bool   `json:"collapsed_threads_supported"`
 }
 
 func (o *ChannelView) ToJson() string {

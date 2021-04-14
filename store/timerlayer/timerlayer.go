@@ -7740,6 +7740,22 @@ func (s *TimerLayerThreadStore) MarkAllAsRead(userID string, teamID string) erro
 	return err
 }
 
+func (s *TimerLayerThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.MarkAllAsReadInChannels(userID, channelIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAllAsReadInChannels", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) MarkAsRead(userID string, threadID string, timestamp int64) error {
 	start := timemodule.Now()
 

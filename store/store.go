@@ -265,6 +265,7 @@ type ThreadStore interface {
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID, teamID string) error
+	MarkAllAsReadInChannels(userID string, channelIDs []string) error
 	MarkAsRead(userID, threadID string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
