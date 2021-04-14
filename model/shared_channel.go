@@ -183,6 +183,7 @@ type SharedChannelRemoteStatus struct {
 type SharedChannelUser struct {
 	Id         string `json:"id"`
 	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
 	RemoteId   string `json:"remote_id"`
 	CreateAt   int64  `json:"create_at"`
 	LastSyncAt int64  `json:"last_sync_at"`
@@ -200,6 +201,10 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 
 	if !IsValidId(scu.UserId) {
 		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "UserId="+scu.UserId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scu.ChannelId) {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+scu.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidId(scu.RemoteId) {
