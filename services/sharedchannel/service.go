@@ -57,6 +57,7 @@ type AppIface interface {
 	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
+	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)
 }
 
