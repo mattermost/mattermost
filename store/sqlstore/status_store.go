@@ -160,15 +160,15 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
 		statuses, err := s.updateExpiredStatuses(transaction)
 		if err != nil {
-			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")
 		}
 		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
+			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
 		}
 		return statuses, nil
 	}

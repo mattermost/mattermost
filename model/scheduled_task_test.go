@@ -4,6 +4,7 @@
 package model
 
 import (
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -76,23 +77,32 @@ func TestCancelTask(t *testing.T) {
 
 func TestCreateRecurringTaskFromNextIntervalTime(t *testing.T) {
 	TASK_NAME := "Test Recurring Task starting from next interval time"
-	TASK_TIME := time.Second * 5
+	TASK_TIME := time.Second * 2
 
 	var executionTime time.Time
+	var mu sync.Mutex
 	testFunc := func() {
+		mu.Lock()
 		executionTime = time.Now()
+		mu.Unlock()
 	}
 
 	task := CreateRecurringTaskFromNextIntervalTime(TASK_NAME, testFunc, TASK_TIME)
-	time.Sleep(TASK_TIME)
-	assert.EqualValues(t, 0, executionTime.Second()%5)
+	defer task.Cancel()
 
 	time.Sleep(TASK_TIME)
-	assert.EqualValues(t, 0, executionTime.Second()%5)
+	mu.Lock()
+	expectedSeconds := executionTime.Second()
+	mu.Unlock()
+	assert.EqualValues(t, 0, expectedSeconds%2)
+
+	time.Sleep(TASK_TIME)
+	mu.Lock()
+	expectedSeconds = executionTime.Second()
+	mu.Unlock()
+	assert.EqualValues(t, 0, expectedSeconds%2)
 
 	assert.Equal(t, TASK_NAME, task.Name)
 	assert.Equal(t, TASK_TIME, task.Interval)
 	assert.True(t, task.Recurring)
-
-	task.Cancel()
 }
