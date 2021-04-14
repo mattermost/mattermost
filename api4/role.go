@@ -163,7 +163,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		ancillaryPermissions := model.AddAncillaryPermissions(*patch.Permissions)
+		ancillaryPermissions := model.RemoveUnwantedAncillaryPermissions(oldRole.Permissions, *patch.Permissions, model.AddAncillaryPermissions(*patch.Permissions))
 		*patch.Permissions = append(*patch.Permissions, ancillaryPermissions...)
 
 		*patch.Permissions = model.UniqueStrings(*patch.Permissions)

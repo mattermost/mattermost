@@ -950,3 +950,43 @@ func AddAncillaryPermissions(permissions []string) []string {
 	}
 	return permissions
 }
+
+// This function removes any ancillary permissions that user has removed
+func RemoveUnwantedAncillaryPermissions(oldPermissions, newPermissions, ancillaryPermissions []string) []string {
+	var permissionsToRemoveFromAncillary []string
+	var ancillaryPermissionsToReturn []string
+
+	oldPermissionsMap := make(map[string]bool)
+	ancillaryPermissionsMap := make(map[string]bool)
+
+	// Make a map of all our old permissions and ancillary permissions
+	for _, permission := range oldPermissions {
+		oldPermissionsMap[permission] = true
+	}
+
+	for _, permission := range ancillaryPermissions {
+		ancillaryPermissionsMap[permission] = true
+	}
+
+	// Check to see what old permissions don't exist anymore in our new permissions
+	for _, permission := range newPermissions {
+		if !oldPermissionsMap[permission] {
+			permissionsToRemoveFromAncillary = append(permissionsToRemoveFromAncillary, permission)
+		}
+	}
+
+	// From those permissions that don't exist, check to see which ones are ancillary permissions and assume you want it removed
+	for _, permission := range permissionsToRemoveFromAncillary {
+		if ancillaryPermissionsMap[permission] {
+			ancillaryPermissionsMap[permission] = false
+		}
+	}
+
+	for permission, addPermission := range ancillaryPermissionsMap {
+		if addPermission {
+			ancillaryPermissionsToReturn = append(ancillaryPermissionsToReturn, permission)
+		}
+	}
+
+	return ancillaryPermissionsToReturn
+}
