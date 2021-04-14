@@ -5491,10 +5491,6 @@
     "translation": "No license present"
   },
   {
-    "id": "app.notification.body.dm.date",
-    "translation": "{{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
     "id": "app.notification.body.dm.subTitle",
     "translation": "While you were away, {{.SenderName}} sent you have a new Direct Message."
   },

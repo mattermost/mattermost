@@ -282,11 +282,6 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
 	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
 	data.Props["ButtonURL"] = siteURL
-	data.Props["Date"] = translateFunc("api.email_batching.send_batched_email_notification.date", map[string]interface{}{
-		"Month": translateFunc(tm.Month().String()),
-		"Day":   tm.Day(),
-		"Year":  tm.Year(),
-	})
 	data.Props["Posts"] = postsData
 	data.Props["MessageButton"] = translateFunc("api.email_batching.send_batched_email_notification.messageButton")
 	data.Props["NotificationFooterTitle"] = translateFunc("app.notification.footer.title")

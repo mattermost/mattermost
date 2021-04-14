@@ -194,13 +194,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
-	date := map[string]interface{}{
+	messageTime := map[string]interface{}{
 		"Hour":     t.Hour,
 		"Minute":   t.Minute,
 		"TimeZone": t.TimeZone,
-		"Month":    t.Month,
-		"Day":      t.Day,
-		"Year":     t.Year,
 	}
 
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -212,7 +209,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 			normalizedPostMessage = postMessage
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
-		pData.Time = translateFunc("app.notification.body.dm.time", date)
+		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
 	}
 
 	data := a.Srv().EmailService.newEmailTemplateData(recipient.Locale)
@@ -225,7 +222,6 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	data.Props["SenderName"] = senderName
 	data.Props["Button"] = translateFunc("api.templates.post_body.button")
-	data.Props["Date"] = translateFunc("app.notification.body.dm.date", date)
 	data.Props["NotificationFooterTitle"] = translateFunc("app.notification.footer.title")
 	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
 	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
