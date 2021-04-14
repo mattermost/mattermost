@@ -6238,10 +6238,10 @@ func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+func (s *TimerLayerSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+	result, err := s.SharedChannelStore.GetUser(userID, channelID, remoteID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
