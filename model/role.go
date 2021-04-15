@@ -951,7 +951,7 @@ func AddAncillaryPermissions(permissions []string) []string {
 	return permissions
 }
 
-// This function removes any ancillary permissions that user has removed
+// This function removes any ancillary permissions that user has removed from their new Permissions without having removed the sub-section permission
 func RemoveUnwantedAncillaryPermissions(oldPermissions, newPermissions, ancillaryPermissions []string) []string {
 	var permissionsToRemoveFromAncillary []string
 	var ancillaryPermissionsToReturn []string

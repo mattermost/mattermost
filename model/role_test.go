@@ -276,3 +276,19 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveUnwantedAncillaryPermissions(t *testing.T) {
+	tests := []struct {
+		Name                 string
+		OldPermissions       []string
+		NewPermissions       []string
+		AncillaryPermissions []string
+		Expected             []string
+	}{}
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			newAncillaryPermissions := RemoveUnwantedAncillaryPermissions(tc.OldPermissions, tc.NewPermissions, tc.AncillaryPermissions)
+			assert.Equal(t, tc.Expected, newAncillaryPermissions)
+		})
+	}
+}
