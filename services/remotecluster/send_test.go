@@ -82,6 +82,8 @@ func TestBroadcastMsg(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -137,6 +139,8 @@ func TestBroadcastMsg(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
