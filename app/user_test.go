@@ -471,7 +471,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 
@@ -514,7 +514,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 }
