@@ -100,7 +100,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
-
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.POST_ADD_TO_CHANNEL {
@@ -124,6 +123,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		// get users that have comment thread mentions enabled
 		if post.RootId != "" && parentPostList != nil {
+			rootPost := parentPostList.Posts[parentPostList.Order[0]]
+			mentions.merge(getExplicitMentions(rootPost, keywords, groups))
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
@@ -752,6 +753,12 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 
 func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
 	for _, userID := range userIDs {
+		m.addMention(userID, mentionType)
+	}
+}
+
+func (m *ExplicitMentions) merge(other *ExplicitMentions) {
+	for userID, mentionType := range other.Mentions {
 		m.addMention(userID, mentionType)
 	}
 }
