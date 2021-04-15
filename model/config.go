@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -1200,6 +1201,7 @@ type LogSettings struct {
 	EnableConsole          *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	ConsoleLevel           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	ConsoleJson            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableColor            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableFile             *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	FileLevel              *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	FileJson               *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -1217,6 +1219,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.ConsoleLevel == nil {
 		s.ConsoleLevel = NewString("DEBUG")
+	}
+
+	if s.EnableColor == nil {
+		s.EnableColor = NewBool(false)
 	}
 
 	if s.EnableFile == nil {
@@ -1305,6 +1311,7 @@ type NotificationLogSettings struct {
 	EnableConsole         *bool   `access:"write_restrictable,cloud_restrictable"`
 	ConsoleLevel          *string `access:"write_restrictable,cloud_restrictable"`
 	ConsoleJson           *bool   `access:"write_restrictable,cloud_restrictable"`
+	EnableColor           *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableFile            *bool   `access:"write_restrictable,cloud_restrictable"`
 	FileLevel             *string `access:"write_restrictable,cloud_restrictable"`
 	FileJson              *bool   `access:"write_restrictable,cloud_restrictable"`
@@ -1335,6 +1342,10 @@ func (s *NotificationLogSettings) SetDefaults() {
 
 	if s.ConsoleJson == nil {
 		s.ConsoleJson = NewBool(true)
+	}
+
+	if s.EnableColor == nil {
+		s.EnableColor = NewBool(false)
 	}
 
 	if s.FileJson == nil {
@@ -1430,7 +1441,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExtractContent == nil {
-		s.ExtractContent = NewBool(false)
+		s.ExtractContent = NewBool(true)
 	}
 
 	if s.ArchiveRecursion == nil {

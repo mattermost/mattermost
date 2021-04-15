@@ -2821,6 +2821,66 @@ func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetGroupMemberUsersArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetGroupMemberUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetGroupMemberUsersArgs{groupID, page, perPage}
+	_returns := &Z_GetGroupMemberUsersReturns{}
+	if err := g.client.Call("Plugin.GetGroupMemberUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupMemberUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupMemberUsers(args *Z_GetGroupMemberUsersArgs, returns *Z_GetGroupMemberUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupMemberUsers(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupMemberUsers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetGroupsBySourceArgs struct {
+	A model.GroupSource
+}
+
+type Z_GetGroupsBySourceReturns struct {
+	A []*model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsBySourceArgs{groupSource}
+	_returns := &Z_GetGroupsBySourceReturns{}
+	if err := g.client.Call("Plugin.GetGroupsBySource", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupsBySource API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupsBySource(args *Z_GetGroupsBySourceArgs, returns *Z_GetGroupsBySourceReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupsBySource(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupsBySource called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetGroupsForUserArgs struct {
 	A string
 }
