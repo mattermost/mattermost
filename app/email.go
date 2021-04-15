@@ -315,11 +315,9 @@ func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, userName, trial
 }
 
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
-func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
+func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) *model.AppError {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_welcome_email.subject")
-
-	workSpacePath := fmt.Sprintf("https://%s", dns)
 
 	data := es.newEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
@@ -327,11 +325,11 @@ func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, w
 	data.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
 	data.Props["Info"] = T("api.templates.cloud_welcome_email.info")
 	data.Props["Info2"] = T("api.templates.cloud_welcome_email.info2")
-	data.Props["WorkSpacePath"] = workSpacePath
+	data.Props["WorkSpacePath"] = siteURL
 	data.Props["DNS"] = dns
 	data.Props["InviteInfo"] = T("api.templates.cloud_welcome_email.invite_info")
 	data.Props["InviteSubInfo"] = T("api.templates.cloud_welcome_email.invite_sub_info", map[string]interface{}{"WorkSpace": workSpaceName})
-	data.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", workSpacePath, teamInviteID)
+	data.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", siteURL, teamInviteID)
 	data.Props["AddAppsInfo"] = T("api.templates.cloud_welcome_email.add_apps_info")
 	data.Props["AddAppsSubInfo"] = T("api.templates.cloud_welcome_email.add_apps_sub_info")
 	data.Props["AppMarketPlace"] = T("api.templates.cloud_welcome_email.app_market_place")
