@@ -328,6 +328,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
 	Get(ctx context.Context, id string) (*model.User, error)
@@ -827,7 +828,7 @@ type SharedChannelStore interface {
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
-	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
+	GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)

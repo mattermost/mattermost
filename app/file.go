@@ -91,6 +91,17 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
+func connectionTestErrorToAppError(connTestErr error) *model.AppError {
+	switch err := connTestErr.(type) {
+	case *filestore.S3FileBackendAuthError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, err.Error(), http.StatusInternalServerError)
+	case *filestore.S3FileBackendNoBucketError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, err.Error(), http.StatusInternalServerError)
+	default:
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (a *App) TestFileStoreConnection() *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -98,7 +109,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
@@ -111,7 +122,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }

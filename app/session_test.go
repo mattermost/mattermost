@@ -448,7 +448,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	rc := model.RemoteCluster{
 		RemoteId:     remoteId,
 		RemoteTeamId: model.NewId(),
-		DisplayName:  "test",
+		Name:         "test",
 		Token:        token,
 		CreatorId:    model.NewId(),
 	}
@@ -465,13 +465,13 @@ func TestGetRemoteClusterSession(t *testing.T) {
 
 	t.Run("Invalid remote token should return error", func(t *testing.T) {
 		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
 
 	t.Run("Invalid remote id should return error", func(t *testing.T) {
 		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
 }
