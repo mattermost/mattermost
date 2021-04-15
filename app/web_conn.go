@@ -134,7 +134,6 @@ func (a *App) NewWebConn(cfg WebConnConfig) *WebConn {
 		pumpFinished:       make(chan struct{}),
 	}
 
-
 	wc.SetSession(&cfg.Session)
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
