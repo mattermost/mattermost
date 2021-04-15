@@ -6,6 +6,7 @@ package remotecluster
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 
 	"go.uber.org/zap/zapcore"
@@ -51,34 +52,69 @@ func (ms *mockServer) GetStore() store.Store {
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)
 	return storeMock
 }
+func (ms *mockServer) Shutdown() { ms.logger.Shutdown() }
 
 type mockLogger struct {
-	t *testing.T
+	t   *testing.T
+	mux sync.Mutex
 }
 
 func (ml *mockLogger) IsLevelEnabled(level mlog.LogLevel) bool {
 	return true
 }
 func (ml *mockLogger) Debug(s string, flds ...mlog.Field) {
-	ml.t.Log("debug", s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log("debug", s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) Info(s string, flds ...mlog.Field) {
-	ml.t.Log("info", s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log("info", s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) Warn(s string, flds ...mlog.Field) {
-	ml.t.Log("warn", s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log("warn", s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) Error(s string, flds ...mlog.Field) {
-	ml.t.Log("error", s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log("error", s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) Critical(s string, flds ...mlog.Field) {
-	ml.t.Log("crit", s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log("crit", s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) Log(level mlog.LogLevel, s string, flds ...mlog.Field) {
-	ml.t.Log(level.Name, s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log(level.Name, s, fieldsToStrings(flds))
+	}
 }
 func (ml *mockLogger) LogM(levels []mlog.LogLevel, s string, flds ...mlog.Field) {
-	ml.t.Log(levelsToString(levels), s, fieldsToStrings(flds))
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	if ml.t != nil {
+		ml.t.Log(levelsToString(levels), s, fieldsToStrings(flds))
+	}
+}
+func (ml *mockLogger) Shutdown() {
+	ml.mux.Lock()
+	defer ml.mux.Unlock()
+	ml.t = nil
 }
 
 func levelsToString(levels []mlog.LogLevel) string {
