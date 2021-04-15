@@ -74,6 +74,8 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		SourcePluginId: sourcePluginId,
 	}
 
+	r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
+
 	hooks.ServeHTTP(context, w, r)
 }
 
@@ -134,6 +136,9 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	} else {
 		token = r.URL.Query().Get("access_token")
 	}
+
+	// Mattermost-Plugin-ID can only be set by inter-plugin requests
+	r.Header.Del("Mattermost-Plugin-ID")
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
