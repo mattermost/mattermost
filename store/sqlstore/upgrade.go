@@ -1108,11 +1108,16 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
-		mlog.Error("Error updating Channels table", mlog.Err(err))
+
+	if !sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot") {
+		if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
-		mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+	if !sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot") {
+		if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
+			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+		}
 	}
 
 	// 	saveSchemaVersion(sqlStore, Version5350)
