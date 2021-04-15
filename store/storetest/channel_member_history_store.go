@@ -200,7 +200,8 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	var tableDataTruncated = false
 	for !tableDataTruncated {
 		var count int64
-		count, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis(), 1000)
+		count, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+			0, model.GetMillis(), 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err, "Failed to truncate ChannelMemberHistory contents")
 		tableDataTruncated = count == int64(0)
 	}
@@ -334,7 +335,8 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	assert.Len(t, channelMembers, 2)
 
 	// the permanent delete should delete at least one record
-	rowsDeleted, err := ss.ChannelMemberHistory().PermanentDeleteBatch(leaveTime, math.MaxInt64)
+	rowsDeleted, _, err := ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		0, leaveTime+1, math.MaxInt64, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	assert.NotEqual(t, int64(0), rowsDeleted)
 
@@ -380,7 +382,8 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 	require.NoError(t, err)
 
 	nowMillis := leaveTime + *channelPolicy.PostDuration*24*60*60*1000 + 1
-	_, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
+	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
+		nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
 	require.NoError(t, err)

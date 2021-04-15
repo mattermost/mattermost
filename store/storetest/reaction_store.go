@@ -575,7 +575,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	_, err = ss.Post().PermanentDeleteBatch(2000, limit)
+	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	require.Nil(t, err)
 
 	_, err = ss.Reaction().DeleteOrphanedRows(limit)

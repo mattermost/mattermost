@@ -596,93 +596,228 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 	return result, nil
 }
 
-func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies.
-	// This will not delete a Thread if the Channel to which it belonged has already been deleted.
-	const selectQuery = `
-		SELECT Threads.PostId FROM Threads
-		INNER JOIN Channels ON Threads.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		INNER JOIN RetentionPolicies ON
-			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR (
-				RetentionPoliciesChannels.PolicyId IS NULL
-				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-			)
-		WHERE :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			AND RetentionPolicies.PostDuration > 0
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Threads WHERE PostId IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Threads FROM Threads INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Threads.PostId = A.PostId`
+func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Threads.PostId").
+		From("Threads").
+		InnerJoin("Channels ON Threads.ChannelId = Channels.Id")
+
+	fallsUnderGranularPolicy := sq.And{
+		sq.Expr("? - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000", now),
+		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
 	}
-	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Threads")
+
+	doDeletion := func(builder sq.SelectBuilder) (rowsAffected int64, err error) {
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "thread_tosql")
+		}
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = `
+			DELETE FROM Threads WHERE PostId IN (
+			` + query + `
+			)`
+		} else {
+			// MySQL does not support the LIMIT clause in a subquery with IN
+			query = `
+			DELETE Threads FROM Threads INNER JOIN (
+			` + query + `
+			) AS A ON Threads.PostId = A.PostId`
+		}
+		result, err := s.GetMaster().Exec(query, args...)
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete Threads")
+		}
+		rowsAffected, err = result.RowsAffected()
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete Threads")
+		}
+		return
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Threads")
+
+	if globalPolicyEndTime <= 0 {
+		cursor.GlobalPoliciesDone = true
 	}
-	return rowsAffected, nil
+
+	var totalRowsAffected int64
+
+	if !cursor.ChannelPoliciesDone {
+		channelPoliciesBuilder := builder.
+			InnerJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
+			Where(fallsUnderGranularPolicy).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(channelPoliciesBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.ChannelPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+		limit -= rowsAffected
+	}
+
+	if cursor.ChannelPoliciesDone && !cursor.TeamPoliciesDone {
+		// Channel-specific policies override team-specific policies.
+		teamPoliciesBuilder := builder.
+			LeftJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			InnerJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
+			InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
+			Where(sq.And{
+				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
+				sq.Expr("RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id"),
+			}).
+			Where(fallsUnderGranularPolicy).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(teamPoliciesBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.TeamPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+		limit -= rowsAffected
+	}
+
+	if cursor.ChannelPoliciesDone && cursor.TeamPoliciesDone && !cursor.GlobalPoliciesDone {
+		// Granular policies override the global policy.
+		globalPolicyBuilder := builder.
+			LeftJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			LeftJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
+			LeftJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
+			Where(sq.And{
+				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
+				sq.Eq{"RetentionPoliciesTeams.PolicyId": nil},
+			}).
+			Where(sq.Lt{"Threads.LastReplyAt": globalPolicyEndTime}).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(globalPolicyBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.GlobalPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+	}
+
+	return totalRowsAffected, cursor, nil
 }
 
-func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies.
-	// We need to join on Threads instead of Posts because the root post may already have been deleted.
-	const selectQuery = `
-		SELECT ThreadMemberships.PostId FROM ThreadMemberships
-		INNER JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
-		INNER JOIN Channels ON Threads.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		INNER JOIN RetentionPolicies ON
-			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR (
-				RetentionPoliciesChannels.PolicyId IS NULL
-				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-			)
-		WHERE :Now - ThreadMemberships.LastUpdated >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			AND RetentionPolicies.PostDuration > 0
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM ThreadMemberships WHERE PostId IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE ThreadMemberships FROM ThreadMemberships INNER JOIN (
-		` + selectQuery + `
-		) AS A ON ThreadMemberships.PostId = A.PostId`
+func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("ThreadMemberships.PostId").
+		From("ThreadMemberships").
+		InnerJoin("Threads ON ThreadMemberships.PostId = Threads.PostId").
+		InnerJoin("Channels ON Threads.ChannelId = Channels.Id")
+
+	fallsUnderGranularPolicy := sq.And{
+		sq.Expr("? - ThreadMemberships.LastUpdated >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000", now),
+		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
 	}
-	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+
+	doDeletion := func(builder sq.SelectBuilder) (rowsAffected int64, err error) {
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "thread_tosql")
+		}
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = `
+			DELETE FROM ThreadMemberships WHERE PostId IN (
+			` + query + `
+			)`
+		} else {
+			// MySQL does not support the LIMIT clause in a subquery with IN
+			query = `
+			DELETE ThreadMemberships FROM ThreadMemberships INNER JOIN (
+			` + query + `
+			) AS A ON ThreadMemberships.PostId = A.PostId`
+		}
+		result, err := s.GetMaster().Exec(query, args...)
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+		}
+		rowsAffected, err = result.RowsAffected()
+		if err != nil {
+			return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+		}
+		return
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+
+	if globalPolicyEndTime <= 0 {
+		cursor.GlobalPoliciesDone = true
 	}
-	return rowsAffected, nil
+
+	var totalRowsAffected int64
+
+	if !cursor.ChannelPoliciesDone {
+		channelPoliciesBuilder := builder.
+			InnerJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
+			Where(fallsUnderGranularPolicy).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(channelPoliciesBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.ChannelPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+		limit -= rowsAffected
+	}
+
+	if cursor.ChannelPoliciesDone && !cursor.TeamPoliciesDone {
+		// Channel-specific policies override team-specific policies.
+		teamPoliciesBuilder := builder.
+			LeftJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			InnerJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
+			InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
+			Where(sq.And{
+				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
+				sq.Expr("RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id"),
+			}).
+			Where(fallsUnderGranularPolicy).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(teamPoliciesBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.TeamPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+		limit -= rowsAffected
+	}
+
+	if cursor.ChannelPoliciesDone && cursor.TeamPoliciesDone && !cursor.GlobalPoliciesDone {
+		// Granular policies override the global policy.
+		globalPolicyBuilder := builder.
+			LeftJoin("RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId").
+			LeftJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
+			LeftJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
+			Where(sq.And{
+				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
+				sq.Eq{"RetentionPoliciesTeams.PolicyId": nil},
+			}).
+			Where(sq.Lt{"ThreadMemberships.LastUpdated": globalPolicyEndTime}).
+			Limit(uint64(limit))
+		rowsAffected, err := doDeletion(globalPolicyBuilder)
+		if err != nil {
+			return 0, cursor, err
+		}
+		if rowsAffected < limit {
+			cursor.GlobalPoliciesDone = true
+		}
+		totalRowsAffected += rowsAffected
+	}
+
+	return totalRowsAffected, cursor, nil
 }
 
-// DeleteOrphanedRows removes entries from Threads and RetentionPoliciesTeams
-// where a channel or team no longer exists.
+// DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
 func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
 	const threadsQuery = `

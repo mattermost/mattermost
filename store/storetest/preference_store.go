@@ -349,39 +349,39 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
 	userId := model.NewId()
 
-	newerPost, err := ss.Post().Save(&model.Post{
+	olderPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    userId,
 		Message:   "message",
 		CreateAt:  1000,
 	})
-	require.Nil(t, err)
-	olderPost, err := ss.Post().Save(&model.Post{
+	require.NoError(t, err)
+	newerPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    userId,
 		Message:   "message",
 		CreateAt:  3000,
 	})
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	preference1 := model.Preference{
-		UserId:   userId,
-		Category: category,
-		Name:     newerPost.Id,
-		Value:    "true",
-	}
-
-	preference2 := model.Preference{
 		UserId:   userId,
 		Category: category,
 		Name:     olderPost.Id,
 		Value:    "true",
 	}
 
+	preference2 := model.Preference{
+		UserId:   userId,
+		Category: category,
+		Name:     newerPost.Id,
+		Value:    "true",
+	}
+
 	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Post().PermanentDeleteBatch(2000, limit)
+	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	assert.Nil(t, nErr)
 
 	_, nErr = ss.Preference().DeleteOrphanedRows(limit)

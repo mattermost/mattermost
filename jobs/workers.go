@@ -137,6 +137,7 @@ func (workers *Workers) Start() {
 	if workers.DataRetention != nil {
 		go workers.DataRetention.Run()
 	}
+
 	if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
 		go workers.MessageExport.Run()
 	}

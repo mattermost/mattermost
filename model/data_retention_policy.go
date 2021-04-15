@@ -68,6 +68,12 @@ type RetentionPolicyForChannelList struct {
 	TotalCount int64                        `json:"total_count"`
 }
 
+type RetentionPolicyCursor struct {
+	ChannelPoliciesDone bool
+	TeamPoliciesDone    bool
+	GlobalPoliciesDone  bool
+}
+
 func (rp *GlobalRetentionPolicy) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
