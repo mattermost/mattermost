@@ -4716,6 +4716,26 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 
 }
 
+func (s *RetryLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+
+	tries := 0
+	for {
+		result, err := s.LicenseStore.GetAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 
 	tries := 0

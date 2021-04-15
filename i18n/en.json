@@ -1993,6 +1993,10 @@
     "translation": "License did not save properly."
   },
   {
+    "id": "api.license.add_license.can_start_trial.app_error",
+    "translation": "TODO api.license.add_license.can_start_trial.app_error"
+  },
+  {
     "id": "api.license.add_license.save_active.app_error",
     "translation": "Active license ID did not save properly."
   },
@@ -2022,7 +2026,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "TODO"
+    "translation": "TODO Not Allowed"
   },
   {
     "id": "api.license.request_renewal_link.app_error",

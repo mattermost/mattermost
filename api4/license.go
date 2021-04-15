@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/utils"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -94,7 +96,27 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
+	licenseBytes := buf.Bytes()
+	license, appErr := utils.LicenseFromBytes(licenseBytes)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if license.IsTrial() {
+		can, err := c.App.Srv().LicenseManager.CanStartTrial()
+		if err != nil {
+			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
+			return
+		}
+
+		if !can {
+			c.Err = model.NewAppError("addLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
+	license, appErr = c.App.Srv().SaveLicense(licenseBytes)
 	if appErr != nil {
 		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
@@ -186,9 +208,9 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentUser, err := c.App.GetUser(c.App.Session().UserId)
-	if err != nil {
-		c.Err = err
+	currentUser, appErr := c.App.GetUser(c.App.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -249,4 +271,3 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

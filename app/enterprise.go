@@ -181,9 +181,9 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
-var licenseInterface func(*App) einterfaces.LicenseInterface
+var licenseInterface func(*Server) einterfaces.LicenseInterface
 
-func RegisterLicenseInterface(f func(*App) einterfaces.LicenseInterface) {
+func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
 	licenseInterface = f
 }
 
@@ -205,6 +205,9 @@ func (s *Server) initEnterprise() {
 	}
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
+	}
+	if licenseInterface != nil {
+		s.LicenseManager = licenseInterface(s)
 	}
 }
 
@@ -229,8 +232,5 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
-	}
-	if licenseInterface != nil {
-		a.srv.LicenseManager = licenseInterface(a)
 	}
 }

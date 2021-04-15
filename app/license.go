@@ -38,6 +38,25 @@ func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
+		license, err := utils.LicenseFromBytes([]byte(licenseStr))
+		if err != nil {
+			mlog.Error("Failed to read license set in environment.", mlog.Err(err))
+			return
+		}
+
+		if license.IsTrial() {
+			can, err := s.LicenseManager.CanStartTrial()
+			if err != nil {
+				mlog.Error("Failed to validate trial eligibility.", mlog.Err(err))
+				return
+			}
+
+			if !can {
+				mlog.Info("Cannot start trial multiple times.")
+				return
+			}
+		}
+
 		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
 			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
 		}

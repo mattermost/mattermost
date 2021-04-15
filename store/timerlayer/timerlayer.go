@@ -3969,6 +3969,22 @@ func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	return result, err
 }
 
+func (s *TimerLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+	start := timemodule.Now()
+
+	result, err := s.LicenseStore.GetAll()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("LicenseStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 

@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -164,4 +165,14 @@ func GetClientLicense(l *model.License) map[string]string {
 	}
 
 	return props
+}
+
+func LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
+	success, licenseStr := ValidateLicense(licenseBytes)
+	if !success {
+		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	}
+
+	license := model.LicenseFromJson(strings.NewReader(licenseStr))
+	return license, nil
 }

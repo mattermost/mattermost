@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 )
 
 const (
@@ -14,6 +15,10 @@ const (
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
 	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
 	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+)
+
+var (
+	trialDuration = (time.Hour * 24 * 30) + (time.Hour * 8)
 )
 
 type LicenseRecord struct {
@@ -260,6 +265,11 @@ func (l *License) IsStarted() bool {
 func (l *License) ToJson() string {
 	b, _ := json.Marshal(l)
 	return string(b)
+}
+
+func (l *License) IsTrial() bool {
+	// TODO use IsTrial flag once https://github.com/mattermost/mattermost-server/pull/17359 is merged
+	return (l.ExpiresAt - l.StartsAt) <= trialDuration.Milliseconds()
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
