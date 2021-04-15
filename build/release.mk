@@ -76,7 +76,7 @@ package:
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
+	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go run ./scripts/config_generator
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
