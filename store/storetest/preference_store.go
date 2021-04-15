@@ -338,14 +338,14 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
 	userId := model.NewId()
 
@@ -362,7 +362,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 		Message:   "message",
 		CreateAt:  3000,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preference1 := model.Preference{
 		UserId:   userId,
@@ -382,14 +382,14 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, _, nErr = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().DeleteOrphanedRows(limit)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference1.Name)
-	assert.NotNil(t, nErr, "older preference should have been deleted")
+	assert.Error(t, nErr, "older preference should have been deleted")
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
-	assert.Nil(t, nErr, "newer preference should not have been deleted")
+	assert.NoError(t, nErr, "newer preference should not have been deleted")
 }

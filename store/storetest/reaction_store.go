@@ -529,26 +529,26 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	olderPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
 		CreateAt:  1000,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	newerPost, err := ss.Post().Save(&model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
 		CreateAt:  3000,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Reactions will be deleted based on the timestamp of their post. So the time at
 	// which a reaction was created doesn't matter.
@@ -572,21 +572,21 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	for _, reaction := range reactions {
 		_, err = ss.Reaction().Save(reaction)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.Reaction().DeleteOrphanedRows(limit)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, returned, 0, "reactions for older post should have been deleted")
 
 	returned, err = ss.Reaction().GetForPost(newerPost.Id, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 }
 

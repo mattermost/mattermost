@@ -355,14 +355,14 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	userID := model.NewId()
 
 	joinTime := int64(1000)
