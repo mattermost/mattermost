@@ -258,8 +258,8 @@ func (wc *WebConn) writePump() {
 	}()
 
 	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
-		if wc.isInDeadQueue(wc.Sequence) {
-			if err := wc.drainDeadQueue(); err != nil {
+		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
+			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
@@ -423,20 +423,22 @@ func (wc *WebConn) hasMsgLoss() bool {
 	return true
 }
 
-func (wc *WebConn) isInDeadQueue(seq int64) bool {
+// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
+// And if it is, it returns that index.
+func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
 	for i := 0; i < deadQueueSize; i++ {
 		elem := wc.deadQueue[i]
 		if elem == nil {
-			return false
+			return false, 0
 		}
 
 		if elem.GetSequence() == seq {
-			return true
+			return true, i
 		}
 	}
-	return false
+	return false, 0
 }
 
 func (wc *WebConn) clearDeadQueue() {
@@ -449,25 +451,19 @@ func (wc *WebConn) clearDeadQueue() {
 	wc.deadQueuePointer = 0
 }
 
-// drainDeadQueue will find until the last message which was sent,
-// and write the remaining messages to the socket.
+// drainDeadQueue will write all messages from a given index to the socket.
 // It is called with the assumption that the item with wc.Sequence is present
 // in it, because otherwise it would have been cleared from WebConn.
-func (wc *WebConn) drainDeadQueue() error {
+func (wc *WebConn) drainDeadQueue(index int) error {
 	if wc.deadQueue[0] == nil {
 		// Empty queue
 		return nil
 	}
 
-	// This means pointer hasn't rolled over and
-	// we have to check from the front of the queue
+	// This means pointer hasn't rolled over.
 	if wc.deadQueue[wc.deadQueuePointer] == nil {
-		var i = 0
-		// Move i forward until the place we want.
-		for ; wc.deadQueue[i].GetSequence() < wc.Sequence; i++ {
-		}
-		// Now send all the messages
-		for ; i < wc.deadQueuePointer; i++ {
+		// Clear till the end of queue.
+		for i := index; i < wc.deadQueuePointer; i++ {
 			if err := wc.writeMessage(wc.deadQueue[i]); err != nil {
 				return err
 			}
@@ -477,9 +473,7 @@ func (wc *WebConn) drainDeadQueue() error {
 
 	// We go on until next sequence number is smaller than previous one.
 	// Which means it has rolled over.
-	currPtr := wc.deadQueuePointer
-	for ; wc.deadQueue[currPtr].GetSequence() < wc.Sequence; currPtr = (currPtr + 1) % deadQueueSize {
-	}
+	currPtr := index
 	for {
 		if err := wc.writeMessage(wc.deadQueue[currPtr]); err != nil {
 			return err

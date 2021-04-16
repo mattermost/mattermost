@@ -151,13 +151,19 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	}
 
 	wc.Sequence = int64(0)
-	assert.True(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind := wc.isInDeadQueue(wc.Sequence)
+	assert.True(t, ok)
+	assert.Equal(t, 0, ind)
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(1)
-	assert.True(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.True(t, ok)
+	assert.Equal(t, 1, ind)
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(2)
-	assert.False(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.False(t, ok)
+	assert.Equal(t, 0, ind)
 	assert.False(t, wc.hasMsgLoss())
 
 	for ; i < deadQueueSize+2; i++ {
@@ -167,16 +173,26 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	}
 
 	wc.Sequence = int64(129)
-	assert.True(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.True(t, ok)
+	assert.Equal(t, 1, ind)
 	wc.Sequence = int64(128)
-	assert.True(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.True(t, ok)
+	assert.Equal(t, 0, ind)
 	wc.Sequence = int64(2)
-	assert.True(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.True(t, ok)
+	assert.Equal(t, 2, ind)
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(0)
-	assert.False(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.False(t, ok)
+	assert.Equal(t, 0, ind)
 	wc.Sequence = int64(130)
-	assert.False(t, wc.isInDeadQueue(wc.Sequence))
+	ok, ind = wc.isInDeadQueue(wc.Sequence)
+	assert.False(t, ok)
+	assert.Equal(t, 0, ind)
 	assert.False(t, wc.hasMsgLoss())
 }
 
@@ -222,7 +238,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		defer wc.WebSocket.Close()
 		wc.clearDeadQueue()
 
-		err := wc.drainDeadQueue()
+		err := wc.drainDeadQueue(0)
 		require.NoError(t, err)
 	})
 
@@ -259,9 +275,10 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 			wc.addToDeadQueue(msg)
 		}
 		wc.Sequence = seqNum
-		require.True(t, wc.isInDeadQueue(wc.Sequence))
+		ok, index := wc.isInDeadQueue(wc.Sequence)
+		require.True(t, ok)
 
-		err := wc.drainDeadQueue()
+		err := wc.drainDeadQueue(index)
 		require.NoError(t, err)
 	}
 
