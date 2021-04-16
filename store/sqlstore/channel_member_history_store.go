@@ -171,18 +171,16 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 	builder := s.getQueryBuilder().
 		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
 		From("ChannelMemberHistory")
-	return genericPermanentDeleteBatchForRetentionPolicies(
-		s.SqlStore,
-		builder,
-		"ChannelMemberHistory",
-		"LeaveTime",
-		[]string{"ChannelId", "UserId", "JoinTime"},
-		"ChannelMemberHistory",
-		now,
-		globalPolicyEndTime,
-		limit,
-		cursor,
-	)
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "ChannelMemberHistory",
+		TimeColumn:          "LeaveTime",
+		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
+		ChannelIDTable:      "ChannelMemberHistory",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.

@@ -653,42 +653,47 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return s.GetReplica().SelectInt(query, props)
 }
 
-// genericPermanentDeleteBatchForRetentionPolicies is a helper function for tables
-// which need to delete records for granular (i.e. channel and team-specific)
-// and global policies.
+// RetentionPolicyBatchDeletionInfo gives information on how to delete records
+// under a retention policy; see `genericPermanentDeleteBatchForRetentionPolicies`.
 //
-// `baseBuilder` should already have selected the primary key(s) for the main table
-// and should be joined to a table with a channelId column, which will be used to join
+// `BaseBuilder` should already have selected the primary key(s) for the main table
+// and should be joined to a table with a ChannelId column, which will be used to join
 // on the Channels table.
-// `table` is the name of the table from which records are being deleted.
-// `timeColumn` is the name of the column which contains the timestamp of the record.
-// `primaryKeys` contains the primary keys of `table`. It should be the same as the
+// `Table` is the name of the table from which records are being deleted.
+// `TimeColumn` is the name of the column which contains the timestamp of the record.
+// `PrimaryKeys` contains the primary keys of `table`. It should be the same as the
 // `From` clause in `baseBuilder`.
-// `channelIDTable` is the table which contains the ChannelId column, it may be the
+// `ChannelIDTable` is the table which contains the ChannelId column, it may be the
 // same as `table`, or will be different if a join was used.
-// `nowMillis` must be a Unix timestamp in milliseconds and is used by the granular
+// `NowMillis` must be a Unix timestamp in milliseconds and is used by the granular
 // policies; if `nowMillis - timestamp(record)` is greater than
 // the post duration of a granular policy, than the record will be deleted.
-// `globalPolicyEndTime` is used by the global policy; any record older than this time
+// `GlobalPolicyEndTime` is used by the global policy; any record older than this time
 // will be deleted by the global policy if it does not fall under a granular policy.
-// To disable the granular policies, set `now` to 0.
-// To disale the global policy, set `globalPolicyEndTime` to 0.
+// To disable the granular policies, set `NowMillis` to 0.
+// To disable the global policy, set `GlobalPolicyEndTime` to 0.
+type RetentionPolicyBatchDeletionInfo struct {
+	BaseBuilder         sq.SelectBuilder
+	Table               string
+	TimeColumn          string
+	PrimaryKeys         []string
+	ChannelIDTable      string
+	NowMillis           int64
+	GlobalPolicyEndTime int64
+	Limit               int64
+}
+
+// genericPermanentDeleteBatchForRetentionPolicies is a helper function for tables
+// which need to delete records for granular and global policies.
 func genericPermanentDeleteBatchForRetentionPolicies(
+	r RetentionPolicyBatchDeletionInfo,
 	s *SqlStore,
-	baseBuilder sq.SelectBuilder,
-	table string,
-	timeColumn string,
-	primaryKeys []string,
-	channelIDTable string,
-	nowMillis int64,
-	globalPolicyEndTime int64,
-	limit int64,
 	cursor model.RetentionPolicyCursor,
 ) (int64, model.RetentionPolicyCursor, error) {
-	baseBuilder = baseBuilder.InnerJoin("Channels ON " + channelIDTable + ".ChannelId = Channels.Id")
+	baseBuilder := r.BaseBuilder.InnerJoin("Channels ON " + r.ChannelIDTable + ".ChannelId = Channels.Id")
 
-	scopedTimeColumn := table + "." + timeColumn
-	nowStr := strconv.FormatInt(nowMillis, 10)
+	scopedTimeColumn := r.Table + "." + r.TimeColumn
+	nowStr := strconv.FormatInt(r.NowMillis, 10)
 	fallsUnderGranularPolicy := sq.And{
 		sq.Expr(nowStr + " - " + scopedTimeColumn + " > RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000"),
 		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
@@ -697,41 +702,41 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 	doDeletion := func(builder sq.SelectBuilder) (rowsAffected int64, err error) {
 		query, args, err := builder.ToSql()
 		if err != nil {
-			return 0, errors.Wrap(err, table+"_tosql")
+			return 0, errors.Wrap(err, r.Table+"_tosql")
 		}
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			primaryKeysStr := "(" + strings.Join(primaryKeys, ",") + ")"
+			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
 			query = `
-			DELETE FROM ` + table + ` WHERE ` + primaryKeysStr + ` IN (
+			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
 			` + query + `
 			)`
 		} else {
 			// MySQL does not support the LIMIT clause in a subquery with IN
-			clauses := make([]string, len(primaryKeys))
-			for i, key := range primaryKeys {
-				clauses[i] = table + "." + key + " = A." + key
+			clauses := make([]string, len(r.PrimaryKeys))
+			for i, key := range r.PrimaryKeys {
+				clauses[i] = r.Table + "." + key + " = A." + key
 			}
 			joinClause := strings.Join(clauses, " AND ")
 			query = `
-			DELETE ` + table + ` FROM ` + table + ` INNER JOIN (
+			DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
 			` + query + `
 			) AS A ON ` + joinClause
 		}
 		result, err := s.GetMaster().Exec(query, args...)
 		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete "+table)
+			return 0, errors.Wrap(err, "failed to delete "+r.Table)
 		}
 		rowsAffected, err = result.RowsAffected()
 		if err != nil {
-			return 0, errors.Wrap(err, "failed to get rows affected for "+table)
+			return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
 		}
 		return
 	}
 
-	if globalPolicyEndTime <= 0 {
+	if r.GlobalPolicyEndTime <= 0 {
 		cursor.GlobalPoliciesDone = true
 	}
-	if nowMillis <= 0 {
+	if r.NowMillis <= 0 {
 		cursor.ChannelPoliciesDone = true
 		cursor.TeamPoliciesDone = true
 	}
@@ -740,25 +745,25 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 
 	if !cursor.ChannelPoliciesDone {
 		channelPoliciesBuilder := baseBuilder.
-			InnerJoin("RetentionPoliciesChannels ON " + channelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
+			InnerJoin("RetentionPoliciesChannels ON " + r.ChannelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
 			InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
 			Where(fallsUnderGranularPolicy).
-			Limit(uint64(limit))
+			Limit(uint64(r.Limit))
 		rowsAffected, err := doDeletion(channelPoliciesBuilder)
 		if err != nil {
 			return 0, cursor, err
 		}
-		if rowsAffected < limit {
+		if rowsAffected < r.Limit {
 			cursor.ChannelPoliciesDone = true
 		}
 		totalRowsAffected += rowsAffected
-		limit -= rowsAffected
+		r.Limit -= rowsAffected
 	}
 
 	if cursor.ChannelPoliciesDone && !cursor.TeamPoliciesDone {
 		// Channel-specific policies override team-specific policies.
 		teamPoliciesBuilder := baseBuilder.
-			LeftJoin("RetentionPoliciesChannels ON " + channelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
+			LeftJoin("RetentionPoliciesChannels ON " + r.ChannelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
 			InnerJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
 			InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
 			Where(sq.And{
@@ -766,35 +771,35 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 				sq.Expr("RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id"),
 			}).
 			Where(fallsUnderGranularPolicy).
-			Limit(uint64(limit))
+			Limit(uint64(r.Limit))
 		rowsAffected, err := doDeletion(teamPoliciesBuilder)
 		if err != nil {
 			return 0, cursor, err
 		}
-		if rowsAffected < limit {
+		if rowsAffected < r.Limit {
 			cursor.TeamPoliciesDone = true
 		}
 		totalRowsAffected += rowsAffected
-		limit -= rowsAffected
+		r.Limit -= rowsAffected
 	}
 
 	if cursor.ChannelPoliciesDone && cursor.TeamPoliciesDone && !cursor.GlobalPoliciesDone {
 		// Granular policies override the global policy.
 		globalPolicyBuilder := baseBuilder.
-			LeftJoin("RetentionPoliciesChannels ON " + channelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
+			LeftJoin("RetentionPoliciesChannels ON " + r.ChannelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
 			LeftJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
 			LeftJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
 			Where(sq.And{
 				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
 				sq.Eq{"RetentionPoliciesTeams.PolicyId": nil},
 			}).
-			Where(sq.Lt{scopedTimeColumn: globalPolicyEndTime}).
-			Limit(uint64(limit))
+			Where(sq.Lt{scopedTimeColumn: r.GlobalPolicyEndTime}).
+			Limit(uint64(r.Limit))
 		rowsAffected, err := doDeletion(globalPolicyBuilder)
 		if err != nil {
 			return 0, cursor, err
 		}
-		if rowsAffected < limit {
+		if rowsAffected < r.Limit {
 			cursor.GlobalPoliciesDone = true
 		}
 		totalRowsAffected += rowsAffected

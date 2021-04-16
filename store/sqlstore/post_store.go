@@ -1958,18 +1958,16 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 	builder := s.getQueryBuilder().
 		Select("Posts.Id").
 		From("Posts")
-	return genericPermanentDeleteBatchForRetentionPolicies(
-		s.SqlStore,
-		builder,
-		"Posts",
-		"CreateAt",
-		[]string{"Id"},
-		"Posts",
-		now,
-		globalPolicyEndTime,
-		limit,
-		cursor,
-	)
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Posts",
+		TimeColumn:          "CreateAt",
+		PrimaryKeys:         []string{"Id"},
+		ChannelIDTable:      "Posts",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.

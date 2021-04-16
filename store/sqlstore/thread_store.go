@@ -603,18 +603,16 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 	builder := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads")
-	return genericPermanentDeleteBatchForRetentionPolicies(
-		s.SqlStore,
-		builder,
-		"Threads",
-		"LastReplyAt",
-		[]string{"PostId"},
-		"Threads",
-		now,
-		globalPolicyEndTime,
-		limit,
-		cursor,
-	)
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Threads",
+		TimeColumn:          "LastReplyAt",
+		PrimaryKeys:         []string{"PostId"},
+		ChannelIDTable:      "Threads",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
 }
 
 // PermanentDeleteBatchThreadMembershipsForRetentionPolicies deletes a batch of records
@@ -625,18 +623,16 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		Select("ThreadMemberships.PostId").
 		From("ThreadMemberships").
 		InnerJoin("Threads ON ThreadMemberships.PostId = Threads.PostId")
-	return genericPermanentDeleteBatchForRetentionPolicies(
-		s.SqlStore,
-		builder,
-		"ThreadMemberships",
-		"LastUpdated",
-		[]string{"PostId"},
-		"Threads",
-		now,
-		globalPolicyEndTime,
-		limit,
-		cursor,
-	)
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "ThreadMemberships",
+		TimeColumn:          "LastUpdated",
+		PrimaryKeys:         []string{"PostId"},
+		ChannelIDTable:      "Threads",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
 }
 
 // DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
