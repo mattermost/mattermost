@@ -4838,10 +4838,6 @@
     "translation": "找不到符合您的認證之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "這個電子郵件已經被使用。請選擇其他的。"
-  },
-  {
     "id": "system.message.name",
     "translation": "系統"
   },

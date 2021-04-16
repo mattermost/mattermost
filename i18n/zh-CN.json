@@ -4838,10 +4838,6 @@
     "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
     "id": "system.message.name",
     "translation": "系统"
   },
