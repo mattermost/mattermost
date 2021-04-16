@@ -225,17 +225,26 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 }
 
 // MaintainMembership provides a mock function with given fields: userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp
-func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) error {
+func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) (*model.ThreadMembership, error) {
 	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool) error); ok {
+	var r0 *model.ThreadMembership
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool) *model.ThreadMembership); ok {
 		r0 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ThreadMembership)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool, bool, bool, bool) error); ok {
+		r1 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MarkAllAsRead provides a mock function with given fields: userID, teamID

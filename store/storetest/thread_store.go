@@ -241,8 +241,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
 		newPosts := makeSomePosts()
-
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false))
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false)
+		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
 		m.LastUpdated -= 1000
@@ -262,7 +262,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false))
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false)
+		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
 		m.LastUpdated -= 1000
@@ -281,8 +282,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
 		newPosts := makeSomePosts()
-
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false))
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false)
+		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
 		m.LastUpdated -= 1000
@@ -302,12 +303,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread membership 'viewed' timestamp is updated properly", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false))
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false)
+		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
 		require.Equal(t, int64(0), m.LastViewed)
 
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, true))
+		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, true)
+		require.NoError(t, e)
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
 		require.Greater(t, m2.LastViewed, int64(0))
@@ -315,8 +318,8 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
 		newPosts := makeSomePosts()
-
-		require.NoError(t, ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false))
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false)
+		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
 		m.LastUpdated += 1000
@@ -422,7 +425,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
-		err := ss.Thread().MaintainMembership(userID, postID, true, false, true, false)
+		_, err := ss.Thread().MaintainMembership(userID, postID, true, false, true, false)
 		require.NoError(t, err)
 		threadMembership, err := ss.Thread().GetMembershipForUser(userID, postID)
 		require.NoError(t, err)
