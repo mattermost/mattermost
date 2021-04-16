@@ -175,3 +175,28 @@ func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
 	}
 	return nil
 }
+
+func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for admin := range sysAdmins {
+		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Username, trialEndDate, sysAdmins[admin].Locale, siteURL)
+		if err != nil {
+			a.Log().Error("Error sending trial ending warning to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudTrialEndWarningEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
+}
