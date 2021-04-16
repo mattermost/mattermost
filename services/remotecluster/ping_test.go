@@ -23,7 +23,6 @@ const (
 )
 
 func TestPing(t *testing.T) {
-	t.Skip("MM-34785")
 	disablePing = false
 
 	t.Run("No error", func(t *testing.T) {
@@ -65,6 +64,8 @@ func TestPing(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -111,6 +112,8 @@ func TestPing(t *testing.T) {
 		defer ts.Close()
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		defer mockServer.Shutdown()
+
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 

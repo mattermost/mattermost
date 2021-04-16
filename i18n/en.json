@@ -3139,6 +3139,22 @@
     "translation": "You’ve reached the user limit for the free tier "
   },
   {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Add Payment method"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud trial ending"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Your free 14-day trial of Mattermost is ending soon"
+  },
+  {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Add apps to your workspace"
   },
@@ -3204,7 +3220,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Congratulations - your {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
@@ -3841,6 +3857,10 @@
   {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Login failed because of invalid password."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Failed to send trial ending warning email"
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",

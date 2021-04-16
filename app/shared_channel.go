@@ -147,3 +147,9 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 	}
 	return a.Srv().Store.SharedChannel().GetRemotesStatus(channelID)
 }
+
+// SharedChannelUsers
+
+func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
+	a.sendUpdatedUserEvent(*user)
+}
