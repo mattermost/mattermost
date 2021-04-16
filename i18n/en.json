@@ -6919,10 +6919,6 @@
     "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.data_retention.run_failed.error",
-    "translation": "Data retention job failed."
-  },
-  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
   },
@@ -6933,6 +6929,10 @@
   {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Policy is invalid."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
