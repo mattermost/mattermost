@@ -300,8 +300,14 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		}
 	}
 
-	if err := a.Srv().Store.User().PermanentDelete(botUserId); err != nil {
-		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	user, appErr := a.GetUser(botUserId)
+	if appErr != nil {
+		return model.NewAppError("PermanentDeleteBot", "app.user.get.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	appErr = a.PermanentDeleteUser(user)
+	if appErr != nil {
+		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
