@@ -4843,10 +4843,6 @@
     "translation": "Konnte kein Konto mit den angegeben Zugangsdaten finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
