@@ -19,6 +19,7 @@ import (
 
 func (api *API) InitLicense() {
 	api.BaseRoutes.ApiRoot.Handle("/trial-license", api.ApiSessionRequired(requestTrialLicense)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/trial-license/prev", api.ApiSessionRequired(getPrevTrialLicense)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.ApiRoot.Handle("/license/renewal", api.ApiSessionRequired(requestRenewalLink)).Methods("GET")
@@ -270,4 +271,22 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, werr.Error(), http.StatusForbidden)
 		return
 	}
+}
+
+func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	license, err := c.App.Srv().LicenseManager.GetPrevTrial()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var clientLicense map[string]string
+
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_LICENSE_INFORMATION) {
+		clientLicense = utils.GetClientLicense(license)
+	} else {
+		clientLicense = utils.GetSanitizedClientLicense(utils.GetClientLicense(license))
+	}
+
+	w.Write([]byte(model.MapToJson(clientLicense)))
 }

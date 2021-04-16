@@ -247,22 +247,23 @@ func (s *Server) RemoveLicenseListener(id string) {
 }
 
 func (s *Server) GetSanitizedClientLicense() map[string]string {
-	sanitizedLicense := make(map[string]string)
-
-	for k, v := range s.ClientLicense() {
-		sanitizedLicense[k] = v
-	}
-
-	delete(sanitizedLicense, "Id")
-	delete(sanitizedLicense, "Name")
-	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "IssuedAt")
-	delete(sanitizedLicense, "StartsAt")
-	delete(sanitizedLicense, "ExpiresAt")
-	delete(sanitizedLicense, "SkuName")
-	delete(sanitizedLicense, "SkuShortName")
-
-	return sanitizedLicense
+	return utils.GetSanitizedClientLicense(s.ClientLicense())
+	//sanitizedLicense := make(map[string]string)
+	//
+	//for k, v := range s.ClientLicense() {
+	//	sanitizedLicense[k] = v
+	//}
+	//
+	//delete(sanitizedLicense, "Id")
+	//delete(sanitizedLicense, "Name")
+	//delete(sanitizedLicense, "Email")
+	//delete(sanitizedLicense, "IssuedAt")
+	//delete(sanitizedLicense, "StartsAt")
+	//delete(sanitizedLicense, "ExpiresAt")
+	//delete(sanitizedLicense, "SkuName")
+	//delete(sanitizedLicense, "SkuShortName")
+	//
+	//return sanitizedLicense
 }
 
 // RequestTrialLicense request a trial license from the mattermost official license server

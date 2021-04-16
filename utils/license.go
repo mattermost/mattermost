@@ -167,6 +167,25 @@ func GetClientLicense(l *model.License) map[string]string {
 	return props
 }
 
+func GetSanitizedClientLicense(l map[string]string) map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range l {
+		sanitizedLicense[k] = v
+	}
+
+	delete(sanitizedLicense, "Id")
+	delete(sanitizedLicense, "Name")
+	delete(sanitizedLicense, "Email")
+	delete(sanitizedLicense, "IssuedAt")
+	delete(sanitizedLicense, "StartsAt")
+	delete(sanitizedLicense, "ExpiresAt")
+	delete(sanitizedLicense, "SkuName")
+	delete(sanitizedLicense, "SkuShortName")
+
+	return sanitizedLicense
+}
+
 func LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	success, licenseStr := ValidateLicense(licenseBytes)
 	if !success {

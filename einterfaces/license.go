@@ -1,5 +1,8 @@
 package einterfaces
 
+import "github.com/mattermost/mattermost-server/v5/model"
+
 type LicenseInterface interface {
 	CanStartTrial() (bool, error)
+	GetPrevTrial() (*model.License, error)
 }
