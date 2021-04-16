@@ -151,13 +151,13 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	}
 
 	wc.Sequence = int64(0)
-	assert.True(t, wc.isInDeadQueue())
+	assert.True(t, wc.isInDeadQueue(wc.Sequence))
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(1)
-	assert.True(t, wc.isInDeadQueue())
+	assert.True(t, wc.isInDeadQueue(wc.Sequence))
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(2)
-	assert.False(t, wc.isInDeadQueue())
+	assert.False(t, wc.isInDeadQueue(wc.Sequence))
 	assert.False(t, wc.hasMsgLoss())
 
 	for ; i < deadQueueSize+2; i++ {
@@ -167,16 +167,16 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	}
 
 	wc.Sequence = int64(129)
-	assert.True(t, wc.isInDeadQueue())
+	assert.True(t, wc.isInDeadQueue(wc.Sequence))
 	wc.Sequence = int64(128)
-	assert.True(t, wc.isInDeadQueue())
+	assert.True(t, wc.isInDeadQueue(wc.Sequence))
 	wc.Sequence = int64(2)
-	assert.True(t, wc.isInDeadQueue())
+	assert.True(t, wc.isInDeadQueue(wc.Sequence))
 	assert.True(t, wc.hasMsgLoss())
 	wc.Sequence = int64(0)
-	assert.False(t, wc.isInDeadQueue())
+	assert.False(t, wc.isInDeadQueue(wc.Sequence))
 	wc.Sequence = int64(130)
-	assert.False(t, wc.isInDeadQueue())
+	assert.False(t, wc.isInDeadQueue(wc.Sequence))
 	assert.False(t, wc.hasMsgLoss())
 }
 
@@ -259,7 +259,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 			wc.addToDeadQueue(msg)
 		}
 		wc.Sequence = seqNum
-		require.True(t, wc.isInDeadQueue())
+		require.True(t, wc.isInDeadQueue(wc.Sequence))
 
 		err := wc.drainDeadQueue()
 		require.NoError(t, err)

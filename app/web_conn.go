@@ -258,7 +258,7 @@ func (wc *WebConn) writePump() {
 	}()
 
 	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
-		if wc.isInDeadQueue() {
+		if wc.isInDeadQueue(wc.Sequence) {
 			if err := wc.drainDeadQueue(); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
@@ -423,7 +423,7 @@ func (wc *WebConn) hasMsgLoss() bool {
 	return true
 }
 
-func (wc *WebConn) isInDeadQueue() bool {
+func (wc *WebConn) isInDeadQueue(seq int64) bool {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
 	for i := 0; i < deadQueueSize; i++ {
@@ -432,7 +432,7 @@ func (wc *WebConn) isInDeadQueue() bool {
 			return false
 		}
 
-		if elem.GetSequence() == wc.Sequence {
+		if elem.GetSequence() == seq {
 			return true
 		}
 	}
