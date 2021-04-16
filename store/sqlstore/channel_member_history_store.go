@@ -164,117 +164,25 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	return histories, nil
 }
 
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	builder := s.getQueryBuilder().
 		Select("ChannelMemberHistory.ChannelId, ChannelMemberHistory.UserId, ChannelMemberHistory.JoinTime").
-		From("ChannelMemberHistory").
-		InnerJoin("Channels ON ChannelMemberHistory.ChannelId = Channels.Id")
-
-	fallsUnderGranularPolicy := sq.And{
-		sq.Expr("? - ChannelMemberHistory.LeaveTime >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000", now),
-		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
-	}
-
-	doDeletion := func(builder sq.SelectBuilder) (rowsAffected int64, err error) {
-		query, args, err := builder.ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, "channel_member_history_tosql")
-		}
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = `
-			DELETE FROM ChannelMemberHistory
-			WHERE (ChannelId, UserId, JoinTime) IN (
-			` + query + `
-			)`
-		} else {
-			// MySQL does not support the LIMIT clause in a subquery with IN
-			query = `
-			DELETE ChannelMemberHistory FROM ChannelMemberHistory INNER JOIN (
-			` + query + `
-			) AS A ON ChannelMemberHistory.ChannelId = A.ChannelId
-				AND ChannelMemberHistory.UserId = A.UserId
-				AND ChannelMemberHistory.JoinTime = A.JoinTime`
-		}
-		result, err := s.GetMaster().Exec(query, args...)
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete ChannelMemberHistory")
-		}
-		rowsAffected, err = result.RowsAffected()
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete ChannelMemberHistory")
-		}
-		return
-	}
-
-	if globalPolicyEndTime <= 0 {
-		cursor.GlobalPoliciesDone = true
-	}
-
-	var totalRowsAffected int64
-
-	if !cursor.ChannelPoliciesDone {
-		channelPoliciesBuilder := builder.
-			InnerJoin("RetentionPoliciesChannels ON ChannelMemberHistory.ChannelId = RetentionPoliciesChannels.ChannelId").
-			InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
-			Where(fallsUnderGranularPolicy).
-			Limit(uint64(limit))
-		rowsAffected, err := doDeletion(channelPoliciesBuilder)
-		if err != nil {
-			return 0, cursor, err
-		}
-		if rowsAffected < limit {
-			cursor.ChannelPoliciesDone = true
-		}
-		totalRowsAffected += rowsAffected
-		limit -= rowsAffected
-	}
-
-	if cursor.ChannelPoliciesDone && !cursor.TeamPoliciesDone {
-		// Channel-specific policies override team-specific policies.
-		teamPoliciesBuilder := builder.
-			LeftJoin("RetentionPoliciesChannels ON ChannelMemberHistory.ChannelId = RetentionPoliciesChannels.ChannelId").
-			InnerJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
-			InnerJoin("RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id").
-			Where(sq.And{
-				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
-				sq.Expr("RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id"),
-			}).
-			Where(fallsUnderGranularPolicy).
-			Limit(uint64(limit))
-		rowsAffected, err := doDeletion(teamPoliciesBuilder)
-		if err != nil {
-			return 0, cursor, err
-		}
-		if rowsAffected < limit {
-			cursor.TeamPoliciesDone = true
-		}
-		totalRowsAffected += rowsAffected
-		limit -= rowsAffected
-	}
-
-	if cursor.ChannelPoliciesDone && cursor.TeamPoliciesDone && !cursor.GlobalPoliciesDone {
-		// Granular policies override the global policy.
-		globalPolicyBuilder := builder.
-			LeftJoin("RetentionPoliciesChannels ON ChannelMemberHistory.ChannelId = RetentionPoliciesChannels.ChannelId").
-			LeftJoin("RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId").
-			LeftJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
-			Where(sq.And{
-				sq.Eq{"RetentionPoliciesChannels.PolicyId": nil},
-				sq.Eq{"RetentionPoliciesTeams.PolicyId": nil},
-			}).
-			Where(sq.Lt{"ChannelMemberHistory.LeaveTime": globalPolicyEndTime}).
-			Limit(uint64(limit))
-		rowsAffected, err := doDeletion(globalPolicyBuilder)
-		if err != nil {
-			return 0, cursor, err
-		}
-		if rowsAffected < limit {
-			cursor.GlobalPoliciesDone = true
-		}
-		totalRowsAffected += rowsAffected
-	}
-
-	return totalRowsAffected, cursor, nil
+		From("ChannelMemberHistory")
+	return genericPermanentDeleteBatchForRetentionPolicies(
+		s.SqlStore,
+		builder,
+		"ChannelMemberHistory",
+		"LeaveTime",
+		[]string{"ChannelId", "UserId", "JoinTime"},
+		"ChannelMemberHistory",
+		now,
+		globalPolicyEndTime,
+		limit,
+		cursor,
+	)
 }
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
