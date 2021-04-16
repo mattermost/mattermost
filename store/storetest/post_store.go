@@ -2637,63 +2637,63 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "Should have found post 3 after purge")
 
 	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: model.NewInt64(30),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		post := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    model.NewId(),
 			Message:   "message",
 			CreateAt:  1,
 		}
-		post, err = ss.Post().Save(post)
-		require.NoError(t, err)
+		post, err2 = ss.Post().Save(post)
+		require.NoError(t, err2)
 
-		_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
-		require.NoError(t, err)
-		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
-		require.NoError(t, err, "global policy should have been ignored due to granular policy")
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err2)
+		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
 		nowMillis := post.CreateAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
-		_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
-		require.NoError(t, err)
-		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
-		require.Error(t, err, "post should have been deleted by channel policy")
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err2)
+		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		require.Error(t, err2, "post should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: model.NewInt64(20),
 			},
 			TeamIDs: []string{team.Id},
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		post.Id = ""
-		post, err = ss.Post().Save(post)
-		require.NoError(t, err)
+		post, err2 = ss.Post().Save(post)
+		require.NoError(t, err2)
 
 		nowMillis = post.CreateAt + *teamPolicy.PostDuration*24*60*60*1000 + 1
-		_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
-		require.NoError(t, err)
-		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
-		require.NoError(t, err, "channel policy should have overridden team policy")
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err2)
+		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		require.NoError(t, err2, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
-		err = ss.RetentionPolicy().Delete(channelPolicy.ID)
-		require.NoError(t, err)
-		_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
-		require.NoError(t, err)
-		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
-		require.Error(t, err, "post should have been deleted by team policy")
+		err2 = ss.RetentionPolicy().Delete(channelPolicy.ID)
+		require.NoError(t, err2)
+		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err2)
+		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		require.Error(t, err2, "post should have been deleted by team policy")
 
-		err = ss.RetentionPolicy().Delete(teamPolicy.ID)
-		require.NoError(t, err)
+		err2 = ss.RetentionPolicy().Delete(teamPolicy.ID)
+		require.NoError(t, err2)
 	})
 
 	t.Run("with channel, team and global policies", func(t *testing.T) {
@@ -2711,53 +2711,53 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		c2.Type = model.CHANNEL_OPEN
 		c2, _ = ss.Channel().Save(c2, -1)
 
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: model.NewInt64(30),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		defer ss.RetentionPolicy().Delete(channelPolicy.ID)
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:  "DisplayName",
 				PostDuration: model.NewInt64(30),
 			},
 			TeamIDs: []string{team.Id},
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		defer ss.RetentionPolicy().Delete(teamPolicy.ID)
 
 		// This one should be deleted by the channel policy
-		_, err = ss.Post().Save(&model.Post{
+		_, err2 = ss.Post().Save(&model.Post{
 			ChannelId: c1.Id,
 			UserId:    model.NewId(),
 			Message:   "message",
 			CreateAt:  1,
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		// This one, by the team policy
-		_, err = ss.Post().Save(&model.Post{
+		_, err2 = ss.Post().Save(&model.Post{
 			ChannelId: channel.Id,
 			UserId:    model.NewId(),
 			Message:   "message",
 			CreateAt:  1,
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 		// This one, by the global policy
-		_, err = ss.Post().Save(&model.Post{
+		_, err2 = ss.Post().Save(&model.Post{
 			ChannelId: c2.Id,
 			UserId:    model.NewId(),
 			Message:   "message",
 			CreateAt:  1,
 		})
-		require.NoError(t, err)
+		require.NoError(t, err2)
 
 		nowMillis := int64(1 + 30*24*60*60*1000 + 1)
-		deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
-		require.NoError(t, err)
+		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)
 	})
 
