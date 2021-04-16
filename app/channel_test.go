@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1966,8 +1967,11 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		"userID": 1,
 	}
 	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", true).Return(times, nil)
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
 
 	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id, false)
 	require.Nil(t, err)
