@@ -106,30 +106,6 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
-/*
-// NullablePost is used when doing a LEFT JOIN on Posts and we may get some
-// null rows back.
-type NullablePost struct {
-	Id           *string
-	CreateAt     *int64
-	EditAt       *int64
-	DeleteAt     *int64
-	IsPinned     *bool
-	UserId       *string
-	ChannelId    *string
-	RootId       *string
-	ParentId     *string
-	OriginalId   *string
-	Message      *string
-	Type         *string
-	Props        *StringInterface
-	Hashtags     *string
-	Filenames    *StringArray
-	FileIds      *StringArray
-	HasReactions *bool
-}
-*/
-
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -751,30 +727,3 @@ func (o *Post) ToNilIfInvalid() *Post {
 	}
 	return o
 }
-
-/*
-func (np *NullablePost) ToPost() *Post {
-	if np.Id == nil {
-		return nil
-	}
-	p := &Post{}
-	p.Id = *np.Id
-	p.CreateAt = *np.CreateAt
-	p.EditAt = *np.EditAt
-	p.DeleteAt = *np.DeleteAt
-	p.IsPinned = *np.IsPinned
-	p.UserId = *np.UserId
-	p.ChannelId = *np.ChannelId
-	p.RootId = *np.RootId
-	p.ParentId = *np.ParentId
-	p.OriginalId = *np.OriginalId
-	p.Message = *np.Message
-	p.Type = *np.Type
-	p.Props = *np.Props
-	p.Hashtags = *np.Hashtags
-	p.Filenames = *np.Filenames
-	p.FileIds = *np.FileIds
-	p.HasReactions = *np.HasReactions
-	return p
-}
-*/

@@ -2691,6 +2691,74 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		_, err = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
 		require.Error(t, err, "post should have been deleted by team policy")
+
+		err = ss.RetentionPolicy().Delete(teamPolicy.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("with channel, team and global policies", func(t *testing.T) {
+		c1 := &model.Channel{}
+		c1.TeamId = model.NewId()
+		c1.DisplayName = "Channel1"
+		c1.Name = "zz" + model.NewId() + "b"
+		c1.Type = model.CHANNEL_OPEN
+		c1, _ = ss.Channel().Save(c1, -1)
+
+		c2 := &model.Channel{}
+		c2.TeamId = model.NewId()
+		c2.DisplayName = "Channel2"
+		c2.Name = "zz" + model.NewId() + "b"
+		c2.Type = model.CHANNEL_OPEN
+		c2, _ = ss.Channel().Save(c2, -1)
+
+		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: model.NewInt64(30),
+			},
+			ChannelIDs: []string{c1.Id},
+		})
+		require.NoError(t, err)
+		defer ss.RetentionPolicy().Delete(channelPolicy.ID)
+		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: model.NewInt64(30),
+			},
+			TeamIDs: []string{team.Id},
+		})
+		require.NoError(t, err)
+		defer ss.RetentionPolicy().Delete(teamPolicy.ID)
+
+		// This one should be deleted by the channel policy
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: c1.Id,
+			UserId:    model.NewId(),
+			Message:   "message",
+			CreateAt:  1,
+		})
+		require.NoError(t, err)
+		// This one, by the team policy
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "message",
+			CreateAt:  1,
+		})
+		require.NoError(t, err)
+		// This one, by the global policy
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: c2.Id,
+			UserId:    model.NewId(),
+			Message:   "message",
+			CreateAt:  1,
+		})
+		require.NoError(t, err)
+
+		nowMillis := int64(1 + 30*24*60*60*1000 + 1)
+		deleted, _, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
+		require.NoError(t, err)
+		require.Equal(t, int64(3), deleted)
 	})
 }
 
