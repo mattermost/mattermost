@@ -221,6 +221,10 @@ func TestMsgCountRootMigration(t *testing.T) {
 							}
 						}
 
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot`)
+						require.NoError(t, err)
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot`)
+						require.NoError(t, err)
 						upgradeDatabaseToVersion535(sqlStore)
 
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
