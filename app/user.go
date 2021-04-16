@@ -2479,3 +2479,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	a.Publish(message)
 	return thread, nil
 }
+
+func (a *App) GetTotalUsersCount() (int64, error) {
+	return c.App.Srv().Store.User().Count(model.UserCountOptions{})
+}

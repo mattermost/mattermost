@@ -1090,4 +1090,5 @@ type AppIface interface {
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(view *model.ChannelView, userID string, currentSessionId string) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
+	GetTotalUsersCount() (int64, error)
 }
