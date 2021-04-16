@@ -61,6 +61,13 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a channel if the
 	// channel were group-constrained with the given groups.
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
+	//
+	// Typically since will be the last successful group sync time.
+	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// be included; otherwise, they will be excluded.
+	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
@@ -80,6 +87,8 @@ type AppIface interface {
 	CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
+	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+	// be re-added; otherwise, they will not be re-added.
 	CreateDefaultMemberships(since int64, includeRemovedMembers bool) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
@@ -303,6 +312,10 @@ type AppIface interface {
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
 	SetStatusLastActivityAt(userID string, activityAt int64)
+	// SyncLdap starts an LDAP sync job.
+	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+	// be re-added; otherwise, they will not be re-added.
+	SyncLdap(includeRemovedMembers bool)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
@@ -319,6 +332,13 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a team if the team
 	// were group-constrained with the given groups.
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
+	//
+	// Typically since will be the last successful group sync time.
+	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// be included; otherwise, they will be excluded.
+	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
 	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
@@ -404,7 +424,6 @@ type AppIface interface {
 	BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
-	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
@@ -999,10 +1018,8 @@ type AppIface interface {
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
-	SyncLdap(includeRemovedMembers bool)
 	SyncPluginsActiveState()
 	T(translationID string, args ...interface{}) string
-	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
