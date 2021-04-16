@@ -191,6 +191,7 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+//nolint:golint,unused,deadcode
 func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 	if err != nil {
@@ -335,6 +336,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
