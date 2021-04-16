@@ -6,9 +6,11 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -90,8 +92,43 @@ type CheckConnResult struct {
 	DeadQueuePointer int
 }
 
+// PopulateWebConnConfig checks if the connection id already exists in the hub,
+// and if so, accordingly populates the other fields of the webconn.
+func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConnConfig, error) {
+	if !model.IsValidId(cfg.ConnectionID) {
+		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
+	}
+
+	var err error
+	// TODO: the method should internally forward the request
+	// to the cluster if it does not have it.
+	res := a.CheckWebConn(a.Session().UserId, cfg.ConnectionID)
+	if res == nil {
+		// If the connection is not present, then we assume either timeout,
+		// or server restart. In that case, we set a new one.
+		cfg.ConnectionID = model.NewId()
+	} else {
+		// Connection is present, we get the active queue, dead queue
+		cfg.ActiveQueue = res.ActiveQueue
+		cfg.DeadQueue = res.DeadQueue
+		cfg.DeadQueuePointer = res.DeadQueuePointer
+		cfg.Active = false
+		// Now we get the sequence number
+		if seqVal == "" {
+			// Sequence_number must be sent with connection id.
+			// A client must be either non-compliant or fully compliant.
+			return nil, errors.New("Sequence number not present in websocket request")
+		}
+		cfg.Sequence, err = strconv.Atoi(seqVal)
+		if err != nil || cfg.Sequence < 0 {
+			return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
+		}
+	}
+	return cfg, nil
+}
+
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(cfg WebConnConfig) *WebConn {
+func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	if cfg.Session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(cfg.Session.UserId, false)

@@ -5,7 +5,6 @@ package api4
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/websocket"
 
@@ -37,75 +36,34 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var connID string
-	var seq int
-	var activeQueue chan model.WebSocketMessage
-	var deadQueue []*model.WebSocketEvent
-	var deadQueuePointer int
-	var active bool = true
+	// We initialize webconn with all the necessary data.
+	// If the queues are empty, they are initialized in the constructor.
+	cfg := &app.WebConnConfig{
+		WebSocket: ws,
+		Session:   *c.App.Session(),
+		TFunc:     c.App.T,
+		Locale:    "",
+		Active:    true,
+	}
+
 	if *c.App.Config().ServiceSettings.EnableReliableWebSockets {
-		connID = r.URL.Query().Get(connectionIDParam)
-		if connID == "" || c.App.Session().UserId == "" {
+		cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)
+		if cfg.ConnectionID == "" || c.App.Session().UserId == "" {
 			// If not present, we assume client is not capable yet, or it's a fresh connection.
 			// We just create a new ID.
-			connID = model.NewId()
+			cfg.ConnectionID = model.NewId()
 			// In case of fresh connection id, sequence number is already zero.
 		} else {
-			if !model.IsValidId(connID) {
-				mlog.Warn("Invalid connection ID", mlog.String("id", connID))
+			cfg, err = c.App.PopulateWebConnConfig(cfg, r.URL.Query().Get(sequenceNumberParam))
+			if err != nil {
+				mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 				ws.Close()
 				return
-			}
-
-			// TODO: the method should internally forward the request
-			// to the cluster if it does not have it.
-			res := c.App.CheckWebConn(c.App.Session().UserId, connID)
-			if res == nil {
-				// If the connection is not present, then we assume either timeout,
-				// or server restart. In that case, we set a new one.
-				connID = model.NewId()
-			} else {
-				// Connection is present, we get the active queue, dead queue
-				activeQueue = res.ActiveQueue
-				deadQueue = res.DeadQueue
-				deadQueuePointer = res.DeadQueuePointer
-				active = false
-				// Now we get the sequence number
-				seqVal := r.URL.Query().Get(sequenceNumberParam)
-				if seqVal == "" {
-					// Sequence_number must be sent with connection id.
-					// A client must be either non-compliant or fully compliant.
-					mlog.Warn("Sequence number not present in websocket request")
-					ws.Close()
-					return
-				}
-				seq, err = strconv.Atoi(seqVal)
-				if err != nil || seq < 0 {
-					mlog.Warn("Invalid sequence number set in query param",
-						mlog.String("query", seqVal),
-						mlog.Err(err))
-					ws.Close()
-					return
-				}
 			}
 		}
 	}
 
-	// We initialize webconn with all the necessary data.
-	// If the queues are empty, they are initialized in the constructor.
-	in := app.WebConnConfig{
-		WebSocket:        ws,
-		Session:          *c.App.Session(),
-		TFunc:            c.App.T,
-		Locale:           "",
-		Sequence:         seq,
-		ConnectionID:     connID,
-		ActiveQueue:      activeQueue,
-		DeadQueue:        deadQueue,
-		DeadQueuePointer: deadQueuePointer,
-		Active:           active,
-	}
-	wc := c.App.NewWebConn(in)
+	wc := c.App.NewWebConn(cfg)
 	if c.App.Session().UserId != "" {
 		c.App.HubRegister(wc)
 	}
