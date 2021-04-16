@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_]*`)
+var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 
 const usernameSpecialChars = ".-_"
 
@@ -24,7 +24,7 @@ func PossibleAtMentions(message string) []string {
 	alreadyMentioned := make(map[string]bool)
 	for _, match := range atMentionRegexp.FindAllString(message, -1) {
 		name := NormalizeUsername(match[1:])
-		if !alreadyMentioned[name] && IsValidUsername(name) {
+		if !alreadyMentioned[name] && IsValidUsernameAllowRemote(name) {
 			names = append(names, name)
 			alreadyMentioned[name] = true
 		}

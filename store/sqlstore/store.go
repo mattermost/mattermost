@@ -42,13 +42,17 @@ import (
 type migrationDirection string
 
 const (
-	IndexTypeFullText      = "full_text"
-	IndexTypeFullTextFunc  = "full_text_func"
-	IndexTypeDefault       = "default"
-	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	DBPingAttempts         = 18
-	DBPingTimeoutSecs      = 10
+	IndexTypeFullText                 = "full_text"
+	IndexTypeFullTextFunc             = "full_text_func"
+	IndexTypeDefault                  = "default"
+	PGDupTableErrorCode               = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MySQLDupTableErrorCode            = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	PGForeignKeyViolationErrorCode    = "23503"
+	MySQLForeignKeyViolationErrorCode = 1452
+	PGDuplicateObjectErrorCode        = "42710"
+	MySQLDuplicateObjectErrorCode     = 1022
+	DBPingAttempts                    = 18
+	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -96,6 +100,7 @@ type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	retentionPolicy      store.RetentionPolicyStore
 	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
@@ -184,6 +189,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
 	store.stores.post = newSqlPostStore(store, metrics)
+	store.stores.retentionPolicy = newSqlRetentionPolicyStore(store, metrics)
 	store.stores.user = newSqlUserStore(store, metrics)
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
@@ -237,6 +243,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
@@ -1077,6 +1084,30 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 	return true
 }
 
+func (ss *SqlStore) CreateForeignKeyIfNotExists(
+	tableName, columnName, refTableName, refColumnName string,
+	onDeleteCascade bool,
+) (err error) {
+	deleteClause := ""
+	if onDeleteCascade {
+		deleteClause = "ON DELETE CASCADE"
+	}
+	constraintName := "FK_" + tableName + "_" + refTableName
+	sQuery := `
+	ALTER TABLE ` + tableName + `
+	ADD CONSTRAINT ` + constraintName + `
+	FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
+	` + deleteClause + `;`
+	_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	if IsConstraintAlreadyExistsError(err) {
+		err = nil
+	}
+	if err != nil {
+		mlog.Warn("Could not create foreign key: " + err.Error())
+	}
+	return
+}
+
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1120,6 +1151,20 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 	}
 
 	return true
+}
+
+func IsConstraintAlreadyExistsError(err error) bool {
+	switch dbErr := err.(type) {
+	case *pq.Error:
+		if dbErr.Code == PGDuplicateObjectErrorCode {
+			return true
+		}
+	case *mysql.MySQLError:
+		if dbErr.Number == MySQLDuplicateObjectErrorCode {
+			return true
+		}
+	}
+	return false
 }
 
 func IsUniqueConstraintError(err error, indexName []string) bool {
@@ -1196,6 +1241,10 @@ func (ss *SqlStore) Channel() store.ChannelStore {
 
 func (ss *SqlStore) Post() store.PostStore {
 	return ss.stores.post
+}
+
+func (ss *SqlStore) RetentionPolicy() store.RetentionPolicyStore {
+	return ss.stores.retentionPolicy
 }
 
 func (ss *SqlStore) User() store.UserStore {

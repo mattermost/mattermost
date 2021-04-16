@@ -9,12 +9,17 @@ import (
 )
 
 type TeamSearch struct {
-	Term                    string `json:"term"`
-	Page                    *int   `json:"page,omitempty"`
-	PerPage                 *int   `json:"per_page,omitempty"`
-	AllowOpenInvite         *bool  `json:"allow_open_invite,omitempty"`
-	GroupConstrained        *bool  `json:"group_constrained,omitempty"`
-	IncludeGroupConstrained *bool  `json:"include_group_constrained,omitempty"`
+	Term                     string  `json:"term"`
+	Page                     *int    `json:"page,omitempty"`
+	PerPage                  *int    `json:"per_page,omitempty"`
+	AllowOpenInvite          *bool   `json:"allow_open_invite,omitempty"`
+	GroupConstrained         *bool   `json:"group_constrained,omitempty"`
+	IncludeGroupConstrained  *bool   `json:"include_group_constrained,omitempty"`
+	PolicyID                 *string `json:"policy_id,omitempty"`
+	ExcludePolicyConstrained *bool   `json:"exclude_policy_constrained,omitempty"`
+	IncludePolicyID          *bool   `json:"-"`
+	IncludeDeleted           *bool   `json:"-"`
+	TeamType                 *string `json:"-"`
 }
 
 func (t *TeamSearch) IsPaginated() bool {

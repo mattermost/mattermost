@@ -40,10 +40,12 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 	invite := model.NewAutocompleteData("invite", "", T("api.command_remote.invite.help"))
 	invite.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
 	invite.AddNamedTextArgument("name", T("api.command_remote.name.help"), T("api.command_remote.name.hint"), "", true)
+	invite.AddNamedTextArgument("displayname", T("api.command_remote.displayname.help"), T("api.command_remote.displayname.hint"), "", false)
 
 	accept := model.NewAutocompleteData("accept", "", T("api.command_remote.accept.help"))
 	accept.AddNamedTextArgument("password", T("api.command_remote.invite_password.help"), T("api.command_remote.invite_password.hint"), "", true)
 	accept.AddNamedTextArgument("name", T("api.command_remote.name.help"), T("api.command_remote.name.hint"), "", true)
+	accept.AddNamedTextArgument("displayname", T("api.command_remote.displayname.help"), T("api.command_remote.displayname.hint"), "", false)
 	accept.AddNamedTextArgument("invite", T("api.command_remote.invitation.help"), T("api.command_remote.invitation.hint"), "", true)
 
 	remove := model.NewAutocompleteData("remove", "", T("api.command_remote.remove.help"))
@@ -115,13 +117,19 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
 	}
 
+	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
+	}
+
 	url := a.GetSiteURL()
 	if url == "" {
 		return responsef(args.T("api.command_remote.site_url_not_set"))
 	}
 
 	rc := &model.RemoteCluster{
-		DisplayName: name,
+		Name:        name,
+		DisplayName: displayname,
 		Token:       model.NewId(),
 		CreatorId:   args.UserId,
 	}
@@ -160,6 +168,11 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "name"}))
 	}
 
+	displayname := margs["displayname"]
+	if displayname == "" {
+		displayname = name
+	}
+
 	blob := margs["invite"]
 	if blob == "" {
 		return responsef(args.T("api.command_remote.missing_empty", map[string]interface{}{"Arg": "invite"}))
@@ -186,7 +199,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, args.UserId, args.TeamId, url)
+	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, args.TeamId, url)
 	if err != nil {
 		return responsef(args.T("api.command_remote.accept_invitation.error", map[string]interface{}{"Error": err.Error()}))
 	}
@@ -241,7 +254,7 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 
 		lastPing := formatTimestamp(model.GetTimeForMillis(rc.LastPingAt))
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s | %s |\n", rc.Name, rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
 	}
 	return responsef(sb.String())
 }

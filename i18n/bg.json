@@ -148,10 +148,6 @@
     "translation": "Система"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Тази ел.поща вече е заета. Моля, изберете друга."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не може да се намери съществуващ профил, отговарящ на вашите идентификационни данни. Този екип може да изисква покана от собственика на екипа, за да се присъедините."
   },
@@ -8753,5 +8749,25 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook събитието не беше обработено. Липсва или не е валидно."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Неуспешно добавяне на отдалечен клъстер: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Неуспешно приемане поканата: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Поканата е приета и потвърдена.\nURL на сайта: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Приемане на покана от отдалечен клъстер"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Грешка при анулиране на кеша"
   }
 ]

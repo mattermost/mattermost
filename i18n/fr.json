@@ -4843,10 +4843,6 @@
     "translation": "Impossible de trouver un compte existant correspondant à vos identifiants. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre."
-  },
-  {
     "id": "system.message.name",
     "translation": "Système"
   },
@@ -7569,5 +7565,105 @@
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
     "translation": "Impossible de supprimer le membre du groupe portant l'identifiant utilisateur « {{.UserId}} »."
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Actions disponibles : {{.Action}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Action inconnue `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Affiche les statuts de tous les clusters distants"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Impossible de supprimer le cluster distant : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Supprime un cluster distant"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Aucun cluster distant trouvé."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  |"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Commande manquante. Actions disponibles : {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Ajouter/retirer des clusters distants. Actions disponibles : {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les clusters distants."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Un nom d'affichage pour le cluster distant"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Nom du cluster distant"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "distant"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Manquant ou vide `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Mot de passe de l'invitation"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Inviter un cluster distant"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Invitation créée."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "L'invitation chiffrée d'un cluster distant"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Invitation d'un cluster distant"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Impossible de chiffre l'invitation. Mot de passe incorrect ou invitation endomagée : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Impossible d'éxtraire les clusters distant : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Impossible de chiffrer l'invitation : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Impossible de décoder l'incitation : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Impossible d'ajouter cluster distant : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Cluster distant {{.RemoteId}} {{.Result}}."
   }
 ]
