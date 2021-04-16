@@ -6843,10 +6843,6 @@
     "translation": "Error occurred while marshalling JSON request"
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
-  },
-  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
