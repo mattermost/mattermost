@@ -338,6 +338,19 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 	return api.app.GetStatus(userID)
 }
 
+func (api *PluginAPI) UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError {
+	custom := &model.CustomStatus{
+		Emoji: emoji,
+		Text:  customStatus,
+	}
+
+	return api.app.SetCustomStatus(userID, custom)
+}
+
+func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
+	return api.app.RemoveCustomStatus(userID)
+}
+
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.ChannelSortByUsername:

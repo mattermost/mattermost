@@ -482,6 +482,49 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	}
 }
 
+func TestPluginAPIUserCustomStatus(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	err = api.UpdateUserCustomStatus(user1.Id, ":tada:", "honk")
+	assert.Nil(t, err)
+	user, err := th.App.GetUser(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"emoji":":tada:","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
+
+	err = api.UpdateUserCustomStatus(user1.Id, ":tada:", "")
+	assert.Nil(t, err)
+	user, err = th.App.GetUser(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"emoji":":tada:","text":""}`, user.Props[model.UserPropsKeyCustomStatus])
+
+	err = api.UpdateUserCustomStatus(user1.Id, "", "honk")
+	assert.Nil(t, err)
+	user, err = th.App.GetUser(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"emoji":"","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
+
+	err = api.UpdateUserCustomStatus(user1.Id, "", "")
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both., ")
+
+	// Remove custom status
+	err = api.RemoveUserCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	user, err = th.App.GetUser(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, "", user.Props[model.UserPropsKeyCustomStatus])
+}
+
 func TestPluginAPIGetFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -703,7 +746,6 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		]
 	}}`)
 	require.NoError(t, err)
-
 }
 
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
@@ -743,7 +785,6 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	}`)
 
 	require.NoError(t, err)
-
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
@@ -1072,6 +1113,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	if ret != "OK" {
 		return errors.New(ret)
 	}
+
 	return nil
 }
 
@@ -1272,7 +1314,6 @@ func TestPluginCreateBot(t *testing.T) {
 		Description: "bot2",
 	})
 	require.NotNil(t, err)
-
 }
 
 func TestPluginCreatePostWithUploadedFile(t *testing.T) {
@@ -1736,6 +1777,7 @@ type MockSlashCommandProvider struct {
 func (*MockSlashCommandProvider) GetTrigger() string {
 	return "mock"
 }
+
 func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          "mock",
@@ -1745,6 +1787,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 		DisplayName:      "mock",
 	}
 }
+
 func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
@@ -1908,5 +1951,4 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
-
 }

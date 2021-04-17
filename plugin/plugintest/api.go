@@ -2945,6 +2945,22 @@ func (_m *API) RemoveTeamIcon(teamID string) *model.AppError {
 	return r0
 }
 
+// RemoveUserCustomStatus provides a mock function with given fields: userID
+func (_m *API) RemoveUserCustomStatus(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RequestTrialLicense provides a mock function with given fields: requesterID, users, termsAccepted, receiveEmailsAccepted
 func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	ret := _m.Called(requesterID, users, termsAccepted, receiveEmailsAccepted)
@@ -3565,6 +3581,22 @@ func (_m *API) UpdateUserActive(userID string, active bool) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
 		r0 = rf(userID, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateUserCustomStatus provides a mock function with given fields: userID, emoji, customStatus
+func (_m *API) UpdateUserCustomStatus(userID string, emoji string, customStatus string) *model.AppError {
+	ret := _m.Called(userID, emoji, customStatus)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+		r0 = rf(userID, emoji, customStatus)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

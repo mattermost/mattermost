@@ -1625,6 +1625,64 @@ func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z
 	return nil
 }
 
+type Z_UpdateUserCustomStatusArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_UpdateUserCustomStatusReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError {
+	_args := &Z_UpdateUserCustomStatusArgs{userID, emoji, customStatus}
+	_returns := &Z_UpdateUserCustomStatusReturns{}
+	if err := g.client.Call("Plugin.UpdateUserCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserCustomStatus API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs, returns *Z_UpdateUserCustomStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError
+	}); ok {
+		returns.A = hook.UpdateUserCustomStatus(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserCustomStatus called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RemoveUserCustomStatusArgs struct {
+	A string
+}
+
+type Z_RemoveUserCustomStatusReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveUserCustomStatus(userID string) *model.AppError {
+	_args := &Z_RemoveUserCustomStatusArgs{userID}
+	_returns := &Z_RemoveUserCustomStatusReturns{}
+	if err := g.client.Call("Plugin.RemoveUserCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveUserCustomStatus API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveUserCustomStatus(args *Z_RemoveUserCustomStatusArgs, returns *Z_RemoveUserCustomStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveUserCustomStatus(userID string) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveUserCustomStatus(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RemoveUserCustomStatus called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUsersInChannelArgs struct {
 	A string
 	B string

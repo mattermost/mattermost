@@ -403,6 +403,10 @@ func (a *App) UpdateDNDStatusOfUsers() {
 }
 
 func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
+		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err

@@ -294,6 +294,20 @@ func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.Ap
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, emoji, customStatus)
+	api.recordTime(startTime, "UpdateUserCustomStatus", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RemoveUserCustomStatus(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RemoveUserCustomStatus(userID)
+	api.recordTime(startTime, "RemoveUserCustomStatus", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUsersInChannel(channelID, sortBy, page, perPage)
