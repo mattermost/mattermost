@@ -90,7 +90,7 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 	for envKey, envValue := range env {
 		applied := applyEnvKey(strings.TrimPrefix(envKey, "MM_"), envValue, rvalConfig)
 		if applied {
-			mlog.Debug("Mattermost is loading value from environment variable.", mlog.String("envKey", envKey), mlog.String("test-skip", ""))
+			mlog.Debug("Loading environment variable", mlog.String("key", envKey))
 		}
 	}
 
