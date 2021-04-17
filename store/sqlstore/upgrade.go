@@ -1011,8 +1011,13 @@ const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion532(sqlStore) {
-		// allow 10 files per post
-		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+		// this migration was reverted on MySQL due to performance reasons. Doing
+		// it only on PostgreSQL for the time being.
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			// allow 10 files per post
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+		}
+
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 		// Shared channels support
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
@@ -1038,10 +1043,6 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
-			return true
-		}
-	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if scIdInfo.DataType != "text" {
 			return true
 		}
 	}
