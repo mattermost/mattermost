@@ -7183,14 +7183,6 @@
     "translation": "No se puede obtener la cantidad de equipos."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos públicos."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos privados."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "No se puede obtener los mensajes del canal."
   },
@@ -7745,10 +7737,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "No se puede analizar el cuerpo de la solicitud."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "No pudimos poner todos los equipos privados en la página."
   },
   {
     "id": "api.user.login_cws.license.error",

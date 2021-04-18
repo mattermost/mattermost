@@ -2504,14 +2504,6 @@
     "translation": "Не може да се броят екипите."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Не могат да се броят публичните екипи."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Не могат да се броят частните екипи."
-  },
-  {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Неуспешна анализ на датата на инсталиране."
   },
@@ -4002,10 +3994,6 @@
   {
     "id": "app.team.get_all_team_listing.app_error",
     "translation": "Не успяхме да вземем всички екипи."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Не успяхме да вземем всички частни екипи в страницата."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",

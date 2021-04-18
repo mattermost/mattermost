@@ -7375,10 +7375,6 @@
     "translation": "Não foi possível obter todas as equipes."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Não foi possível colocar todas as equipes privadas na página."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Não foi possível obter todas as equipes privadas."
   },
@@ -7397,14 +7393,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Não foi possível contar as equipes."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Não foi possível contar as equipes públicas."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Não foi possível contar as equipes privadas."
   },
   {
     "id": "api.user.login_cws.license.error",

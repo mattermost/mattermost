@@ -7031,10 +7031,6 @@
     "translation": "Impossible de récupérer toutes les équipes."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Impossible de récupérer toutes les équipes privées."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Impossible de récupérer toutes les équipes privées."
   },
@@ -7053,14 +7049,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Impossible de compter les équipes."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Impossible de compter les équipes publiques."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Impossible de compter les équipes privées."
   },
   {
     "id": "api.user.login_cws.license.error",

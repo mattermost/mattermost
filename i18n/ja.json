@@ -7026,14 +7026,6 @@
     "translation": "チームをカウントできませんでした。"
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "公開チームをカウントできませんでした。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "非公開チームをカウントできませんでした。"
-  },
-  {
     "id": "app.post.get_post_id_around.app_error",
     "translation": "指定時刻周辺の投稿を取得できませんでした。"
   },
@@ -7184,10 +7176,6 @@
   {
     "id": "app.team.get_member.app_error",
     "translation": "チームメンバーを取得できませんでした。"
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "ページ内の全ての非公開チームを取得できませんでした。"
   },
   {
     "id": "app.team.get_all_private_team_listing.app_error",

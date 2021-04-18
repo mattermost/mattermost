@@ -7583,10 +7583,6 @@
     "translation": "We konden niet alle teams ophalen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "We kunnen niet alle private teams op de pagina krijgen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "We kunnen niet alle private teams ophalen."
   },
@@ -7609,14 +7605,6 @@
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fout bij het ophalen van de teamleden."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Fout bij het tellen van publieke teams."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Fout bij het tellen van private teams."
   },
   {
     "id": "app.post.get_posts_since.app_error",
