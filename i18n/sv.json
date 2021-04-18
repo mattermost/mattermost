@@ -9211,14 +9211,6 @@
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
   },
   {
-    "id": "ent.data_retention.policies.invalid_policy",
-    "translation": "Policyn är ogiltig."
-  },
-  {
-    "id": "ent.data_retention.policies.internal_error",
-    "translation": "Ett fel uppstod när den begärda funktionen skulle utföras."
-  },
-  {
     "id": "api.user.cloud_trial_ending_email.error",
     "translation": "Det gick inte att skicka mejl med information om att testperioden är på väg att ta slut"
   },
