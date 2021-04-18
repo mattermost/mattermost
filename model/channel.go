@@ -53,6 +53,7 @@ type Channel struct {
 	GroupConstrained  *bool                  `json:"group_constrained"`
 	Shared            *bool                  `json:"shared"`
 	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
+	PolicyID          *string                `json:"policy_id" db:"-"`
 }
 
 type ChannelWithTeamData struct {
@@ -122,18 +123,21 @@ type ChannelModeratedRolesPatch struct {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup    string
-	ExcludeDefaultChannels  bool
-	IncludeDeleted          bool
-	Deleted                 bool
-	ExcludeChannelNames     []string
-	TeamIds                 []string
-	GroupConstrained        bool
-	ExcludeGroupConstrained bool
-	Public                  bool
-	Private                 bool
-	Page                    *int
-	PerPage                 *int
+	NotAssociatedToGroup     string
+	ExcludeDefaultChannels   bool
+	IncludeDeleted           bool
+	Deleted                  bool
+	ExcludeChannelNames      []string
+	TeamIds                  []string
+	GroupConstrained         bool
+	ExcludeGroupConstrained  bool
+	PolicyID                 string
+	ExcludePolicyConstrained bool
+	IncludePolicyID          bool
+	Public                   bool
+	Private                  bool
+	Page                     *int
+	PerPage                  *int
 }
 
 type ChannelMemberCountByGroup struct {

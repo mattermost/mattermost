@@ -4838,10 +4838,6 @@
     "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "この電子メールアドレスは既に使用されています。他の電子メールアドレスを指定してください。"
-  },
-  {
     "id": "system.message.name",
     "translation": "システム"
   },
