@@ -407,17 +407,6 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
-func (c *Context) RequirePolicyId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if !model.IsValidId(c.Params.PolicyId) {
-		c.SetInvalidUrlParam("policy_id")
-	}
-	return c
-}
-
 func (c *Context) RequireAppId() *Context {
 	if c.Err != nil {
 		return c

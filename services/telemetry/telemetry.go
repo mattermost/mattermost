@@ -274,7 +274,7 @@ func (ts *TelemetryService) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(nil)
+	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}

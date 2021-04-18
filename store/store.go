@@ -23,7 +23,6 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
-	RetentionPolicy() RetentionPolicyStore
 	Thread() ThreadStore
 	User() UserStore
 	Bot() BotStore
@@ -75,45 +74,29 @@ type Store interface {
 	Context() context.Context
 }
 
-type RetentionPolicyStore interface {
-	Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
-	Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
-	Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
-	GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error)
-	GetCount() (int64, error)
-	Delete(id string) error
-	GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error)
-	GetChannelsCount(policyId string) (int64, error)
-	AddChannels(policyId string, channelIds []string) error
-	RemoveChannels(policyId string, channelIds []string) error
-	GetTeams(policyId string, offset, limit int) ([]*model.Team, error)
-	GetTeamsCount(policyId string) (int64, error)
-	AddTeams(policyId string, teamIds []string) error
-	RemoveTeams(policyId string, teamIds []string) error
-	GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error)
-	GetTeamPoliciesCountForUser(userID string) (int64, error)
-	GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error)
-	GetChannelPoliciesCountForUser(userID string) (int64, error)
-}
-
 type TeamStore interface {
 	Save(team *model.Team) (*model.Team, error)
 	Update(team *model.Team) (*model.Team, error)
 	Get(id string) (*model.Team, error)
 	GetByName(name string) (*model.Team, error)
 	GetByNames(name []string) ([]*model.Team, error)
-	SearchAll(opts *model.TeamSearch) ([]*model.Team, error)
-	SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error)
-	SearchOpen(opts *model.TeamSearch) ([]*model.Team, error)
-	SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error)
+	SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error)
+	SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error)
+	SearchOpen(term string) ([]*model.Team, error)
+	SearchPrivate(term string) ([]*model.Team, error)
 	GetAll() ([]*model.Team, error)
-	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
+	GetAllPage(offset int, limit int) ([]*model.Team, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
+	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error)
+	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
+	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	PermanentDelete(teamID string) error
-	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
+	AnalyticsTeamCount(includeDeleted bool) (int64, error)
+	AnalyticsPublicTeamCount() (int64, error)
+	AnalyticsPrivateTeamCount() (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
@@ -864,23 +847,17 @@ type SharedChannelStore interface {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	Term                     string
-	NotAssociatedToGroup     string
-	IncludeDeleted           bool
-	Deleted                  bool
-	ExcludeChannelNames      []string
-	TeamIds                  []string
-	GroupConstrained         bool
-	ExcludeGroupConstrained  bool
-	PolicyID                 string
-	ExcludePolicyConstrained bool
-	IncludePolicyID          bool
-	IncludeTeamInfo          bool
-	CountOnly                bool
-	Public                   bool
-	Private                  bool
-	Page                     *int
-	PerPage                  *int
+	NotAssociatedToGroup    string
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {
