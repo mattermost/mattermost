@@ -37,20 +37,62 @@ func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeID string) (int64, err
 	return r0, r1
 }
 
-// AnalyticsTeamCount provides a mock function with given fields: opts
-func (_m *TeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) {
-	ret := _m.Called(opts)
+// AnalyticsPrivateTeamCount provides a mock function with given fields:
+func (_m *TeamStore) AnalyticsPrivateTeamCount() (int64, error) {
+	ret := _m.Called()
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(*model.TeamSearch) int64); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.TeamSearch) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AnalyticsPublicTeamCount provides a mock function with given fields:
+func (_m *TeamStore) AnalyticsPublicTeamCount() (int64, error) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AnalyticsTeamCount provides a mock function with given fields: includeDeleted
+func (_m *TeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
+	ret := _m.Called(includeDeleted)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(bool) int64); ok {
+		r0 = rf(includeDeleted)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
+		r1 = rf(includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -167,13 +209,13 @@ func (_m *TeamStore) GetAllForExportAfter(limit int, afterID string) ([]*model.T
 	return r0, r1
 }
 
-// GetAllPage provides a mock function with given fields: offset, limit, opts
-func (_m *TeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
-	ret := _m.Called(offset, limit, opts)
+// GetAllPage provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(int, int, *model.TeamSearch) []*model.Team); ok {
-		r0 = rf(offset, limit, opts)
+	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -181,8 +223,8 @@ func (_m *TeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, *model.TeamSearch) error); ok {
-		r1 = rf(offset, limit, opts)
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -213,6 +255,52 @@ func (_m *TeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	return r0, r1
 }
 
+// GetAllPrivateTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllPublicTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllTeamListing provides a mock function with given fields:
 func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	ret := _m.Called()
@@ -229,6 +317,29 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -781,13 +892,13 @@ func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPe
 	return r0, r1
 }
 
-// SearchAll provides a mock function with given fields: opts
-func (_m *TeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
-	ret := _m.Called(opts)
+// SearchAll provides a mock function with given fields: term, opts
+func (_m *TeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
+	ret := _m.Called(term, opts)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(*model.TeamSearch) []*model.Team); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(string, *model.TeamSearch) []*model.Team); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -795,8 +906,8 @@ func (_m *TeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.TeamSearch) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(string, *model.TeamSearch) error); ok {
+		r1 = rf(term, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -804,13 +915,13 @@ func (_m *TeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// SearchAllPaged provides a mock function with given fields: opts
-func (_m *TeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
-	ret := _m.Called(opts)
+// SearchAllPaged provides a mock function with given fields: term, opts
+func (_m *TeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
+	ret := _m.Called(term, opts)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(*model.TeamSearch) []*model.Team); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(string, *model.TeamSearch) []*model.Team); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -818,15 +929,15 @@ func (_m *TeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int6
 	}
 
 	var r1 int64
-	if rf, ok := ret.Get(1).(func(*model.TeamSearch) int64); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(string, *model.TeamSearch) int64); ok {
+		r1 = rf(term, opts)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(*model.TeamSearch) error); ok {
-		r2 = rf(opts)
+	if rf, ok := ret.Get(2).(func(string, *model.TeamSearch) error); ok {
+		r2 = rf(term, opts)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -834,13 +945,13 @@ func (_m *TeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int6
 	return r0, r1, r2
 }
 
-// SearchOpen provides a mock function with given fields: opts
-func (_m *TeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
-	ret := _m.Called(opts)
+// SearchOpen provides a mock function with given fields: term
+func (_m *TeamStore) SearchOpen(term string) ([]*model.Team, error) {
+	ret := _m.Called(term)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(*model.TeamSearch) []*model.Team); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(term)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -848,8 +959,8 @@ func (_m *TeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.TeamSearch) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(term)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -857,13 +968,13 @@ func (_m *TeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// SearchPrivate provides a mock function with given fields: opts
-func (_m *TeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
-	ret := _m.Called(opts)
+// SearchPrivate provides a mock function with given fields: term
+func (_m *TeamStore) SearchPrivate(term string) ([]*model.Team, error) {
+	ret := _m.Called(term)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(*model.TeamSearch) []*model.Team); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(term)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -871,8 +982,8 @@ func (_m *TeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.TeamSearch) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(term)
 	} else {
 		r1 = ret.Error(1)
 	}
