@@ -330,12 +330,6 @@ func StringFromJson(data io.Reader) string {
 	return s
 }
 
-// ToJson serializes an arbitrary data type to JSON, discarding the error.
-func ToJson(v interface{}) []byte {
-	b, _ := json.Marshal(v)
-	return b
-}
-
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
