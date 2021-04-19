@@ -4838,10 +4838,6 @@
     "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "この電子メールアドレスは既に使用されています。他の電子メールアドレスを指定してください。"
-  },
-  {
     "id": "system.message.name",
     "translation": "システム"
   },
@@ -7030,14 +7026,6 @@
     "translation": "チームをカウントできませんでした。"
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "公開チームをカウントできませんでした。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "非公開チームをカウントできませんでした。"
-  },
-  {
     "id": "app.post.get_post_id_around.app_error",
     "translation": "指定時刻周辺の投稿を取得できませんでした。"
   },
@@ -7188,10 +7176,6 @@
   {
     "id": "app.team.get_member.app_error",
     "translation": "チームメンバーを取得できませんでした。"
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "ページ内の全ての非公開チームを取得できませんでした。"
   },
   {
     "id": "app.team.get_all_private_team_listing.app_error",

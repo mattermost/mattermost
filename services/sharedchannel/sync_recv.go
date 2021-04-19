@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
@@ -194,6 +195,7 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 			FirstName: &user.FirstName,
 			LastName:  &user.LastName,
 			Email:     &user.Email,
+			Props:     user.Props,
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
@@ -226,7 +228,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var userSaved *model.User
 	var suffix string
 
-	// save the originals in props (if not already done by another remote)
+	// save the original username and email in props (if not already done by another remote)
 	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
 		user.SetProp(KeyRemoteUsername, user.Username)
 	}
@@ -262,6 +264,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 				)
 			}
 		} else {
+			scs.app.NotifySharedChannelUserUpdate(userSaved)
 			return userSaved, nil
 		}
 	}
@@ -273,14 +276,22 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	var update *model.UserUpdate
 	var suffix string
 
-	if patch.Username != nil {
-		user.SetProp(KeyRemoteUsername, *patch.Username)
+	// preserve existing real username/email since Patch will over-write them;
+	// the real username/email in props can be updated if they don't contain colons,
+	// meaning the update is coming from the user's origin server (not munged).
+	realUsername, _ := user.GetProp(KeyRemoteUsername)
+	realEmail, _ := user.GetProp(KeyRemoteEmail)
+
+	if patch.Username != nil && !strings.Contains(*patch.Username, ":") {
+		realUsername = *patch.Username
 	}
-	if patch.Email != nil {
-		user.SetProp(KeyRemoteEmail, *patch.Email)
+	if patch.Email != nil && !strings.Contains(*patch.Email, ":") {
+		realEmail = *patch.Email
 	}
 
 	user.Patch(patch)
+	user.SetProp(KeyRemoteUsername, realUsername)
+	user.SetProp(KeyRemoteEmail, realEmail)
 
 	// Apply a suffix to the username until it is unique.
 	for i := 1; i <= MaxUpsertRetries; i++ {
@@ -306,6 +317,8 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 				)
 			}
 		} else {
+			scs.app.InvalidateCacheForUser(update.New.Id)
+			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}
 	}
