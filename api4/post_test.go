@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -2543,4 +2544,31 @@ func TestSetChannelUnread(t *testing.T) {
 		response := th.Client.SetPostUnread(u1.Id, p2.Id)
 		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
 	})
+}
+
+func TestMarkUnreadCausesAutofollow(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	rootPost, appErr := th.App.CreatePost(&model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	replyPost, appErr := th.App.CreatePost(&model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+	require.Zero(t, threads.Total)
+
+	_, appErr = th.App.MarkChannelAsUnreadFromPost(replyPost.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+	require.NotZero(t, threads.Total)
+
 }
