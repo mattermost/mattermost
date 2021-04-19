@@ -617,3 +617,22 @@ func makeSqlSettings(driver string) *model.SqlSettings {
 
 	return nil
 }
+
+func TestExecNoTimeout(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+		var query string
+		timeout := sqlStore.master.QueryTimeout
+		sqlStore.master.QueryTimeout = 1
+		defer func() {
+			sqlStore.master.QueryTimeout = timeout
+		}()
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			query = `SELECT SLEEP(2);`
+		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = `SELECT pg_sleep(2);`
+		}
+		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
+		require.NoError(t, err)
+	})
+}
