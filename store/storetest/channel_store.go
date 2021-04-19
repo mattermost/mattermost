@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"sort"
 	"strconv"
@@ -110,6 +111,8 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
+	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
+	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -326,20 +329,20 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	notifyPropsModel := model.GetDefaultChannelNotifyProps()
 
 	// Setup Channel 1
-	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Downtown", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Downtown", Type: model.CHANNEL_OPEN, TotalMsgCount: 100, TotalMsgCountRoot: 99}
 	_, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
-	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: notifyPropsModel, MsgCount: 90}
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MsgCountRoot: 80}
 	_, err := ss.Channel().SaveMember(cm1)
 	require.NoError(t, err)
 
 	// Setup Channel 2
-	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Cultural", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Cultural", Type: model.CHANNEL_OPEN, TotalMsgCount: 100, TotalMsgCountRoot: 100}
 	_, nErr = ss.Channel().Save(c2, -1)
 	require.NoError(t, nErr)
 
-	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MentionCount: 5}
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MsgCountRoot: 90, MentionCount: 5, MentionCountRoot: 1}
 	_, err = ss.Channel().SaveMember(cm2)
 	require.NoError(t, err)
 
@@ -352,7 +355,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.NotNil(t, ch.NotifyProps, "wrong props for channel 1")
 	require.EqualValues(t, 0, ch.MentionCount, "wrong MentionCount for channel 1")
 	require.EqualValues(t, 10, ch.MsgCount, "wrong MsgCount for channel 1")
-
+	require.EqualValues(t, 19, ch.MsgCountRoot, "wrong MsgCountRoot for channel 1")
 	// Check for Channel 2
 	ch2, nErr := ss.Channel().GetChannelUnread(c2.Id, uid)
 
@@ -360,6 +363,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.Equal(t, c2.Id, ch2.ChannelId, "Wrong channel id")
 	require.Equal(t, teamId2, ch2.TeamId, "Wrong team id")
 	require.EqualValues(t, 5, ch2.MentionCount, "wrong MentionCount for channel 2")
+	require.EqualValues(t, 1, ch2.MentionCountRoot, "wrong MentionCountRoot for channel 2")
 	require.EqualValues(t, 10, ch2.MsgCount, "wrong MsgCount for channel 2")
 }
 
@@ -887,7 +891,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1t3, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t3.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	member, _ := ss.Channel().GetMember(o1.ChannelId, o1.UserId)
+	member, _ := ss.Channel().GetMember(context.Background(), o1.ChannelId, o1.UserId)
 	require.Equal(t, o1.ChannelId, member.ChannelId, "should have go member")
 
 	_, nErr = ss.Channel().SaveMember(&o1)
@@ -4006,19 +4010,19 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
@@ -4043,11 +4047,11 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -4104,19 +4108,19 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
+		count, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
@@ -4166,13 +4170,13 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "failed to update ", err)
 	require.Equal(t, o2.LastPostAt, times[o2.Id], "last viewed at time incorrect")
 
-	rm1, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
+	rm1, err := ss.Channel().GetMember(context.Background(), m1.ChannelId, m1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o1.LastPostAt, rm1.LastViewedAt)
 	assert.Equal(t, o1.LastPostAt, rm1.LastUpdateAt)
 	assert.Equal(t, o1.TotalMsgCount, rm1.MsgCount)
 
-	rm2, err := ss.Channel().GetMember(m2.ChannelId, m2.UserId)
+	rm2, err := ss.Channel().GetMember(context.Background(), m2.ChannelId, m2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o2.LastPostAt, rm2.LastViewedAt)
 	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
@@ -4199,16 +4203,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id", false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id", false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId, false)
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", "missing id", false)
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id", false, false)
 	require.NoError(t, err, "failed to update")
 }
 
@@ -4278,18 +4282,18 @@ func testGetMember(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(m2)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().GetMember(model.NewId(), userId)
+	_, err = ss.Channel().GetMember(context.Background(), model.NewId(), userId)
 	require.Error(t, err, "should've failed to get member for non-existent channel")
 
-	_, err = ss.Channel().GetMember(c1.Id, model.NewId())
+	_, err = ss.Channel().GetMember(context.Background(), c1.Id, model.NewId())
 	require.Error(t, err, "should've failed to get member for non-existent user")
 
-	member, err := ss.Channel().GetMember(c1.Id, userId)
+	member, err := ss.Channel().GetMember(context.Background(), c1.Id, userId)
 	require.NoError(t, err, "shouldn't have errored when getting member", err)
 	require.Equal(t, c1.Id, member.ChannelId, "should've gotten member of channel 1")
 	require.Equal(t, userId, member.UserId, "should've have gotten member for user")
 
-	member, err = ss.Channel().GetMember(c2.Id, userId)
+	member, err = ss.Channel().GetMember(context.Background(), c2.Id, userId)
 	require.NoError(t, err, "should'nt have errored when getting member", err)
 	require.Equal(t, c2.Id, member.ChannelId, "should've gotten member of channel 2")
 	require.Equal(t, userId, member.UserId, "should've gotten member for user")
@@ -4486,7 +4490,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("empty slice for channel with no groups", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{}
 		require.NoError(t, nErr)
 		require.Equal(t, expectedMemberCounts, memberCounts)
@@ -4496,7 +4500,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("returns memberCountsByGroup without timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4509,7 +4513,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4612,7 +4616,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users without timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4635,7 +4639,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users with timezones", func(t *testing.T) {
-		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(context.Background(), c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -6117,21 +6121,21 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 
 	ss.Channel().ClearCaches()
 
-	cm1b, err := ss.Channel().GetMember(cm1.ChannelId, cm1.UserId)
+	cm1b, err := ss.Channel().GetMember(context.Background(), cm1.ChannelId, cm1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", cm1b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm1b.SchemeUser)
 	assert.True(t, cm1b.SchemeAdmin)
 
-	cm2b, err := ss.Channel().GetMember(cm2.ChannelId, cm2.UserId)
+	cm2b, err := ss.Channel().GetMember(context.Background(), cm2.ChannelId, cm2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "", cm2b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm2b.SchemeUser)
 	assert.False(t, cm2b.SchemeAdmin)
 
-	cm3b, err := ss.Channel().GetMember(cm3.ChannelId, cm3.UserId)
+	cm3b, err := ss.Channel().GetMember(context.Background(), cm3.ChannelId, cm3.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, "something_else", cm3b.ExplicitRoles)
 	assert.False(t, cm1b.SchemeGuest)
@@ -6227,19 +6231,19 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 
 	require.NoError(t, ss.Channel().ClearAllCustomRoleAssignments())
 
-	member, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
+	member, err := ss.Channel().GetMember(context.Background(), m1.ChannelId, m1.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m1.ExplicitRoles, member.Roles)
 
-	member, err = ss.Channel().GetMember(m2.ChannelId, m2.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m2.ChannelId, m2.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "channel_user channel_admin", member.Roles)
 
-	member, err = ss.Channel().GetMember(m3.ChannelId, m3.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m3.ChannelId, m3.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, m3.ExplicitRoles, member.Roles)
 
-	member, err = ss.Channel().GetMember(m4.ChannelId, m4.UserId)
+	member, err = ss.Channel().GetMember(context.Background(), m4.ChannelId, m4.UserId)
 	require.NoError(t, err)
 	assert.Equal(t, "", member.Roles)
 }
@@ -6344,9 +6348,9 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	_, execerr = s.GetMaster().ExecNoTimeout(`
 		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId)
+		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
 		VALUES
-		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId);
+		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, 0);
 	`, map[string]interface{}{
 		"Id":            o3.Id,
 		"CreateAt":      o3.CreateAt,
@@ -6845,4 +6849,61 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Channel().GroupSyncedChannelCount()
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
+}
+
+func testSetShared(t *testing.T, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "test_share_flag",
+		Name:        "test_share_flag",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelSaved, err := ss.Channel().Save(channel, 999)
+	require.NoError(t, err)
+
+	t.Run("Check default", func(t *testing.T) {
+		assert.False(t, channelSaved.IsShared())
+	})
+
+	t.Run("Set Shared flag", func(t *testing.T) {
+		err := ss.Channel().SetShared(channelSaved.Id, true)
+		require.NoError(t, err)
+
+		channelMod, err := ss.Channel().Get(channelSaved.Id, false)
+		require.NoError(t, err)
+
+		assert.True(t, channelMod.IsShared())
+	})
+
+	t.Run("Set Shared for invalid id", func(t *testing.T) {
+		err := ss.Channel().SetShared(model.NewId(), true)
+		require.Error(t, err)
+	})
+}
+
+func testGetTeamForChannel(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		Name:        "myteam",
+		DisplayName: "DisplayName",
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "test_share_flag",
+		Name:        "test_share_flag",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelSaved, err := ss.Channel().Save(channel, 999)
+	require.NoError(t, err)
+
+	got, err := ss.Channel().GetTeamForChannel(channelSaved.Id)
+	require.NoError(t, err)
+	assert.Equal(t, team.Id, got.Id)
+
+	_, err = ss.Channel().GetTeamForChannel("notfound")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }

@@ -70,16 +70,17 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
-	HandlerName         string
-	RequireSession      bool
-	RequireCloudKey     bool
-	TrustRequester      bool
-	RequireMfa          bool
-	IsStatic            bool
-	IsLocal             bool
-	DisableWhenBusy     bool
+	GetGlobalAppOptions       app.AppOptionCreator
+	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName               string
+	RequireSession            bool
+	RequireCloudKey           bool
+	RequireRemoteClusterToken bool
+	TrustRequester            bool
+	RequireMfa                bool
+	IsStatic                  bool
+	IsLocal                   bool
+	DisableWhenBusy           bool
 
 	cspShaDirective string
 }
@@ -204,7 +205,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
 		defer app.ReturnSessionToPool(session)
 
@@ -237,6 +238,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.App.SetSession(session)
 		}
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+		// Get the remote cluster
+		if remoteId := c.GetRemoteID(r); remoteId == "" {
+			c.Logger.Warn("Missing remote cluster id") //
+			c.Err = model.NewAppError("ServeHTTP", "api.context.remote_id_missing.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			// Check the token is correct for the remote cluster id.
+			session, err := c.App.GetRemoteClusterSession(token, remoteId)
+			if err != nil {
+				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Err = err
+			} else {
+				c.App.SetSession(session)
+			}
+		}
 	}
 
 	c.Logger = c.App.Log().With(
@@ -261,6 +277,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.RequireCloudKey {
 		c.CloudKeyRequired()
+	}
+
+	if c.Err == nil && h.RequireRemoteClusterToken {
+		c.RemoteClusterTokenRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {

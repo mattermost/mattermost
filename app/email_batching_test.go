@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -89,7 +90,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		},
 	}
 
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999999
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
@@ -110,7 +111,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 1, "shouldn't have sent queued post")
 
 	// test that notifications are cleared if the user has acted
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 10001000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
@@ -208,7 +209,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
@@ -246,7 +247,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)

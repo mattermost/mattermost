@@ -22,7 +22,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-	uid := p.configuration.BasicUserId
+	uid := p.configuration.BasicUserID
 	if err := p.API.UpdateUserActive(uid, true); err != nil {
 		return nil, err.Error()
 	}

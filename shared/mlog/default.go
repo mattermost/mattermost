@@ -33,6 +33,10 @@ func defaultLog(level, msg string, fields ...Field) {
 	}
 }
 
+func defaultIsLevelEnabled(level LogLevel) bool {
+	return true
+}
+
 func defaultDebugLog(msg string, fields ...Field) {
 	defaultLog("debug", msg, fields...)
 }

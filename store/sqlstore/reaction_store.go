@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -24,6 +26,7 @@ func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
+		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
 	return s
@@ -75,26 +78,56 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, er
 	return reaction, nil
 }
 
+// GetForPost returns all reactions associated with `postId` that are not deleted.
 func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
-	var reactions []*model.Reaction
+	queryString, args, err := s.getQueryBuilder().
+		Select("UserId", "PostId", "EmojiName", "CreateAt", "COALESCE(UpdateAt, CreateAt) As UpdateAt",
+			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0}).
+		OrderBy("CreateAt").
+		ToSql()
 
-	if _, err := s.GetReplica().Select(&reactions,
-		`SELECT
-				UserId,
-				PostId,
-				EmojiName,
-				CreateAt,
-				COALESCE(UpdateAt, CreateAt) As UpdateAt,
-				COALESCE(DeleteAt, 0) As DeleteAt
-			FROM
-				Reactions
-			WHERE
-				PostId = :PostId AND COALESCE(DeleteAt, 0) = 0
-			ORDER BY
-				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
+	if err != nil {
+		return nil, errors.Wrap(err, "reactions_getforpost_tosql")
 	}
 
+	var reactions []*model.Reaction
+	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
+	}
+	return reactions, nil
+}
+
+// GetForPostSince returns all reactions associated with `postId` updated after `since`.
+func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+	query := s.getQueryBuilder().
+		Select("UserId", "PostId", "EmojiName", "CreateAt", "COALESCE(UpdateAt, CreateAt) As UpdateAt",
+			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Gt{"UpdateAt": since})
+
+	if excludeRemoteId != "" {
+		query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteId})
+	}
+
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
+	}
+
+	query.OrderBy("CreateAt")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "reactions_getforpostsince_tosql")
+	}
+
+	var reactions []*model.Reaction
+	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find reactions")
+	}
 	return reactions, nil
 }
 
@@ -109,7 +142,8 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				EmojiName,
 				CreateAt,
 				COALESCE(UpdateAt, CreateAt) As UpdateAt,
-				COALESCE(DeleteAt, 0) As DeleteAt
+				COALESCE(DeleteAt, 0) As DeleteAt,
+				RemoteId
 			FROM
 				Reactions
 			WHERE
@@ -133,16 +167,17 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	if _, err := s.GetReplica().Select(&reactions,
 		`SELECT
-					UserId,
-					PostId,
-					EmojiName,
-					CreateAt,
-					COALESCE(UpdateAt, CreateAt) As UpdateAt,
-					COALESCE(DeleteAt, 0) As DeleteAt
-				FROM
-					Reactions
-				WHERE
-					EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
+			UserId,
+			PostId,
+			EmojiName,
+			CreateAt,
+			COALESCE(UpdateAt, CreateAt) As UpdateAt,
+			COALESCE(DeleteAt, 0) As DeleteAt,
+			RemoteId
+		FROM
+			Reactions
+		WHERE
+			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
@@ -201,28 +236,29 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 		"EmojiName": reaction.EmojiName,
 		"CreateAt":  reaction.CreateAt,
 		"UpdateAt":  reaction.UpdateAt,
+		"RemoteId":  reaction.RemoteId,
 	}
 
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt)
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
 			ON DUPLICATE KEY UPDATE
-				UpdateAt = :UpdateAt, DeleteAt = 0`, params); err != nil {
+				UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
 			return err
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Reactions
-				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt)
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt, RemoteId)
 			VALUES
-				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0)
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0, :RemoteId)
 			ON CONFLICT (UserId, PostId, EmojiName) 
-				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0`, params); err != nil {
+				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0, RemoteId = :RemoteId`, params); err != nil {
 			return err
 		}
 	}
@@ -237,13 +273,14 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 		"CreateAt":  reaction.CreateAt,
 		"UpdateAt":  reaction.UpdateAt,
 		"DeleteAt":  reaction.UpdateAt, // DeleteAt = UpdateAt
+		"RemoteId":  reaction.RemoteId,
 	}
 
 	if _, err := transaction.Exec(
 		`UPDATE
 			Reactions
 		SET 
-			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
+			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt, RemoteId = :RemoteId
 		WHERE
 			PostId = :PostId AND
 			UserId = :UserId AND

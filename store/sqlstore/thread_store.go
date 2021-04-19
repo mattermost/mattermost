@@ -109,35 +109,6 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
-func (s *SqlThreadStore) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error) {
-	type Count struct {
-		UnreadMentions int64
-		ChannelId      string
-	}
-	var counts []Count
-
-	sql, args, _ := s.getQueryBuilder().
-		Select("SUM(UnreadMentions) as UnreadMentions", "ChannelId").
-		From("ThreadMemberships").
-		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-		LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-		Where(sq.And{
-			sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-			sq.Eq{"ThreadMemberships.UserId": userId},
-			sq.Eq{"ThreadMemberships.Following": true},
-		}).
-		GroupBy("Threads.ChannelId").ToSql()
-
-	if _, err := s.GetMaster().Select(&counts, sql, args...); err != nil {
-		return nil, err
-	}
-	result := map[string]int64{}
-	for _, count := range counts {
-		result[count.ChannelId] = count.UnreadMentions
-	}
-	return result, nil
-}
-
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	type JoinedThread struct {
 		PostId         string
@@ -501,7 +472,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) error {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) (*model.ThreadMembership, error) {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if memebership exists, update it if:
@@ -523,19 +494,19 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 			}
 			_, err = s.UpdateMembership(membership)
 		}
-		return err
+		return nil, err
 	}
 
 	var nfErr *store.ErrNotFound
 
 	if !errors.As(err, &nfErr) {
-		return errors.Wrap(err, "failed to get thread membership")
+		return nil, errors.Wrap(err, "failed to get thread membership")
 	}
 	mentions := 0
 	if incrementMentions {
 		mentions = 1
 	}
-	_, err = s.SaveMembership(&model.ThreadMembership{
+	membership, err = s.SaveMembership(&model.ThreadMembership{
 		PostId:         postId,
 		UserId:         userId,
 		Following:      following,
@@ -544,18 +515,18 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 		UnreadMentions: int64(mentions),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	thread, err := s.Get(postId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !thread.Participants.Contains(userId) {
 		thread.Participants = append(thread.Participants, userId)
 		_, err = s.Update(thread)
 	}
-	return err
+	return membership, err
 }
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
