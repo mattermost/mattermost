@@ -1032,6 +1032,9 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
+	totalMsgCountRootExists := sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot")
+	msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
+
 	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
@@ -1108,11 +1111,16 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
-		mlog.Error("Error updating Channels table", mlog.Err(err))
+
+	if !totalMsgCountRootExists {
+		if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
-		mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+	if !msgCountRootExists {
+		if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
+			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+		}
 	}
 
 	// 	saveSchemaVersion(sqlStore, Version5350)

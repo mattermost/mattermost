@@ -4843,10 +4843,6 @@
     "translation": "Não foi possível encontrar uma conta correspondente a suas credenciais. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Este email já foi utilizado. Por favor escolha outro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },

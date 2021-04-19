@@ -4838,10 +4838,6 @@
     "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "This email is already taken. Please choose another."
-  },
-  {
     "id": "system.message.name",
     "translation": "시스템"
   },

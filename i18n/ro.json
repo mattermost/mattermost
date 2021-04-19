@@ -4848,10 +4848,6 @@
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistem"
   },
