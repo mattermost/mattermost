@@ -1689,7 +1689,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 		},
 		{
-			Name: "Removing manage members from guests role should error",
+			Name: "Removing manage members from guests role should not error",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
@@ -1697,10 +1697,11 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
-			ShouldError:                 true,
+			ShouldError:                 false,
+			ShouldHaveNoChannelScheme:   true,
 		},
 		{
-			Name: "Removing a permission that is not channel moderated should error",
+			Name: "Removing a permission that is not channel moderated should not error",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &nonChannelModeratedPermission,
@@ -1711,7 +1712,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
-			ShouldError:                 true,
+			ShouldError:                 false,
+			ShouldHaveNoChannelScheme:   true,
 		},
 		{
 			Name: "Error when adding a permission that is disabled in the parent member role",
@@ -1829,12 +1831,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				}
 			}
 
-			moderations, err := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
+			moderations, appErr := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
 			if tc.ShouldError {
-				require.Error(t, err)
+				require.NotNil(t, appErr)
 				return
 			}
-			require.Nil(t, err)
+			require.Nil(t, appErr)
 
 			updatedChannel, _ := th.App.GetChannel(channel.Id)
 			if tc.ShouldHaveNoChannelScheme {

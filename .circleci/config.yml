@@ -255,7 +255,7 @@ jobs:
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
-          no_output_timeout: 1h
+          no_output_timeout: 2h
       - run:
           name: Capture docker logs
           when: always

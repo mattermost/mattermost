@@ -19,7 +19,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8065",
 			Token:        "test",
 			RemoteToken:  "test",
@@ -32,7 +32,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster.RemoteId = model.NewId()
 		_, err = th.App.AddRemoteCluster(remoteCluster)
-		require.Error(t, err, "Adding a duplicate remote cluster should error")
+		require.NotNil(t, err, "Adding a duplicate remote cluster should error")
 		assert.Contains(t, err.Error(), "Remote cluster has already been added.")
 	})
 
@@ -42,7 +42,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8065",
 			Token:        "test",
 			RemoteToken:  "test",
@@ -76,7 +76,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8065",
 			Token:        "test",
 			RemoteToken:  "test",
@@ -86,7 +86,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 
 		otherRemoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8066",
 			Token:        "test",
 			RemoteToken:  "test",
@@ -103,7 +103,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		savedRemoteClustered.SiteURL = remoteCluster.SiteURL
 		savedRemoteClustered.RemoteTeamId = remoteCluster.RemoteTeamId
 		_, err = th.App.UpdateRemoteCluster(savedRemoteClustered)
-		require.Error(t, err, "Updating remote cluster with duplicate site url should error")
+		require.NotNil(t, err, "Updating remote cluster with duplicate site url should error")
 		assert.Contains(t, err.Error(), "Remote cluster with the same url already exists.")
 	})
 
@@ -113,7 +113,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8065",
 			Token:        "test",
 			RemoteToken:  "test",
@@ -123,7 +123,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 
 		otherRemoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
-			DisplayName:  "test",
+			Name:         "test",
 			SiteURL:      "http://localhost:8066",
 			Token:        "test",
 			RemoteToken:  "test",

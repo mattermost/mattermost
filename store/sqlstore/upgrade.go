@@ -1011,6 +1011,7 @@ func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+	sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
 
 	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
 
@@ -1029,10 +1030,18 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "TotalMsgCountRoot", "bigint", "bigint")
+	rootCountMigration(sqlStore)
 
-	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
+	// 	saveSchemaVersion(sqlStore, Version5350)
+	// }
+}
+
+func rootCountMigration(sqlStore *SqlStore) {
+	totalMsgCountRootExists := sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot")
+	msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
+
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
 
@@ -1068,7 +1077,6 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 
-	// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
 	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
 
@@ -1108,13 +1116,15 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
-		mlog.Error("Error updating Channels table", mlog.Err(err))
-	}
-	if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
-		mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
-	}
 
-	// 	saveSchemaVersion(sqlStore, Version5350)
-	// }
+	if !totalMsgCountRootExists {
+		if _, err := sqlStore.GetMaster().Exec(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
+	}
+	if !msgCountRootExists {
+		if _, err := sqlStore.GetMaster().Exec(updateChannelMembers); err != nil {
+			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+		}
+	}
 }

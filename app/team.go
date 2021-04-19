@@ -1970,7 +1970,7 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	path := "teams/" + team.Id + "/teamIcon.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	curTime := model.GetMillis()

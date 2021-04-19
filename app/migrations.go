@@ -16,7 +16,6 @@ const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigMigrationKey = "ContentExtractionConfigMigrationComplete"
-const usersLimitToAutoEnableContentExtraction = 500
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -285,35 +284,6 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	}
 }
 
-func (a *App) doContentExtractionConfigMigration() {
-	if !a.Config().FeatureFlags.FilesSearch {
-		return
-	}
-	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(ContentExtractionConfigMigrationKey); err == nil {
-		return
-	}
-
-	if usersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{}); err != nil {
-		mlog.Critical("Failed to get the users count for migrating the content extraction, using default value", mlog.Err(err))
-	} else {
-		if usersCount < usersLimitToAutoEnableContentExtraction {
-			a.UpdateConfig(func(config *model.Config) {
-				config.FileSettings.ExtractContent = model.NewBool(true)
-			})
-		}
-	}
-
-	system := model.System{
-		Name:  ContentExtractionConfigMigrationKey,
-		Value: "true",
-	}
-
-	if err := a.Srv().Store.System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark content extraction config migration as completed.", mlog.Err(err))
-	}
-}
-
 func (a *App) DoAppMigrations() {
 	a.DoAdvancedPermissionsMigration()
 	a.DoEmojisPermissionsMigration()
@@ -325,5 +295,4 @@ func (a *App) DoAppMigrations() {
 	if err != nil {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
-	a.doContentExtractionConfigMigration()
 }

@@ -3384,7 +3384,7 @@ func TestLoginWithLag(t *testing.T) {
 		defer mainHelper.ToggleReplicasOff()
 
 		cmdErr := mainHelper.SetReplicationLagForTesting(5)
-		require.Nil(t, cmdErr)
+		require.NoError(t, cmdErr)
 		defer mainHelper.SetReplicationLagForTesting(0)
 
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -6083,7 +6083,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	doCleanup := func(t *testing.T, th *TestHelper, user *model.User) {
 		info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 		err = th.cleanupTestFile(info)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	t.Run("LDAP user", func(t *testing.T) {

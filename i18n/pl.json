@@ -4848,10 +4848,6 @@
     "translation": "Nie można znaleźć istniejącego konta pasującego do poświadczeń. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
