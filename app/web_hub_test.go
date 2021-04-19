@@ -46,7 +46,7 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	cfg := WebConnConfig{
+	cfg := &WebConnConfig{
 		WebSocket: c,
 		Session:   *session,
 		TFunc:     i18n.IdentityTfunc(),
