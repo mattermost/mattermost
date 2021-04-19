@@ -519,6 +519,10 @@ func TestPermanentDeleteBot(t *testing.T) {
 	_, err = th.App.GetBot(bot.UserId, false)
 	require.NotNil(t, err)
 	require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+
+	_, err = th.App.GetUser(bot.UserId)
+	require.NotNil(t, err)
+	require.Equal(t, "app.user.missing_account.const", err.Id)
 }
 
 func TestDisableUserBots(t *testing.T) {
