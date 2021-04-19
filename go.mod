@@ -71,7 +71,7 @@ require (
 	github.com/lib/pq v1.10.0
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattermost/go-i18n v1.11.0
-	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
+	github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr v1.0.13
