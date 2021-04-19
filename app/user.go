@@ -2400,7 +2400,6 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	for _, thread := range threads.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
-		thread.RemoveUserFromParticipants(userID)
 	}
 	return threads, nil
 }
@@ -2415,7 +2414,6 @@ func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (
 	}
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
-	thread.RemoveUserFromParticipants(userID)
 	return thread, nil
 }
 

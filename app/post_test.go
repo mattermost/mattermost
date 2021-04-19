@@ -1955,7 +1955,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	require.Nil(t, err)
 	thread, err := th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
 	require.Nil(t, err)
-	require.Len(t, thread.Participants, 1) // length should be 1, only sysadmin is a participant, not the original poster
+	require.Len(t, thread.Participants, 2) // length should be 2, sysadmin and the original poster
 
 	// another user follows the thread
 	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
