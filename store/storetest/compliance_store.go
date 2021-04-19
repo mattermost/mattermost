@@ -297,7 +297,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -367,7 +367,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -401,7 +401,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -471,7 +471,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -507,7 +507,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -562,7 +562,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, len(messages))
@@ -588,7 +588,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -660,7 +660,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -685,7 +685,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -741,7 +741,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -778,7 +778,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -826,7 +826,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -853,7 +853,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports after edit
-	messages, err = ss.Compliance().MessageExport(postEditTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: postEditTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -890,7 +890,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -943,7 +943,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -975,7 +975,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, err := ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err := ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -1023,7 +1023,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -1046,7 +1046,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports after delete
-	messages, err = ss.Compliance().MessageExport(postDeleteTime-1, 10)
+	messages, _, err = ss.Compliance().MessageExport(model.MessageExportCursor{LastPostUpdateAt: postDeleteTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 

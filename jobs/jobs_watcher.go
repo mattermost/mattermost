@@ -84,6 +84,7 @@ func (watcher *Watcher) PollAndNotify() {
 				select {
 				case watcher.workers.MessageExport.JobChannel() <- *job:
 				default:
+					panic("Couldn't send job to worker")
 				}
 			}
 		} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING {
