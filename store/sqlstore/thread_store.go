@@ -123,7 +123,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": nil}},
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": []interface{}{"", nil}}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
