@@ -1404,6 +1404,10 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return
 			}
 
+			if r.Header.Get("Mattermost-Plugin-ID") != "testplugininterclient" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()

@@ -230,6 +230,11 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId stri
 	return r0, r1
 }
 
+// InvalidateCacheForUser provides a mock function with given fields: userID
+func (_m *MockAppIface) InvalidateCacheForUser(userID string) {
+	_m.Called(userID)
+}
+
 // MentionsToTeamMembers provides a mock function with given fields: message, teamID
 func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) model.UserMentionMap {
 	ret := _m.Called(message, teamID)
@@ -244,6 +249,11 @@ func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) mod
 	}
 
 	return r0
+}
+
+// NotifySharedChannelUserUpdate provides a mock function with given fields: user
+func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
+	_m.Called(user)
 }
 
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
