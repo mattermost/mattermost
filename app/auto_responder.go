@@ -42,7 +42,7 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 
 	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
 	if err != nil {
-		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_autoresponse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if autoResponded {
 		return false, nil
