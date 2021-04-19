@@ -363,6 +363,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -381,6 +383,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitImportLocal()
 	api.InitExportLocal()
 	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

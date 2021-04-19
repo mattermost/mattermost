@@ -1873,11 +1873,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Alatura-te echipei"
+    "translation": "Alătură-te acum"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Ați primit o invitație"
+    "translation": "{{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1925,7 +1925,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Ați solicitat o resetare a parolei"
+    "translation": "Resetează parola"
   },
   {
     "id": "api.templates.reset_subject",
@@ -4848,10 +4848,6 @@
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistem"
   },
@@ -7136,14 +7132,6 @@
     "translation": "Imposibilitatea de a număra echipele."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Imposibil de numărat echipele publice."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Imposibil de numărat echipele private."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Nu se pot obține postările pentru canal."
   },
@@ -7444,10 +7432,6 @@
     "translation": "Nu pot posta şterse canal."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nu am putut obține toate echipele private."
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "Accesul la bot este interzis."
   },
@@ -7697,7 +7681,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor,, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8642,5 +8626,585 @@
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Evenimentul Webhook nu a fost gestionat. Fie lipsește, fie nu este valid."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Un nume afișat pentru clusterul la distanță"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Numele clusterului la distanță"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "la distanta"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Lipsește sau este gol `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Comanda lipsește. Acțiuni disponibile: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Trimiteți următorul blob criptat (AES256+Base64) către administratorul site-ului la distanță împreună cu parola. Vor folosi comanda `{{.Command}}` pentru a accepta invitația.\n\n```\n{{.Invitație}}\n```\n\n**Asigurați-vă că site-ul la distanță vă poate accesa clusterul prin** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Parolă pentru a cripta invitația"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Parola de invitație"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Invitați un cluster la distanță"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Invitație creată."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Invitația criptată de la un cluster la distanță"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Invitație din clusterul de la distanță"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Nu s-a putut decripta invitația. Parolă incorectă sau invitație coruptă: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[acțiune]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Nu s-au putut prelua clustere la distanță: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Nu s-a putut cripta invitația: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Invitați clustere Mattermost la distanță pentru comunicarea inter-cluster."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Nu s-a putut decoda invitația: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Cluster de la distanță {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Nu s-a putut adăuga clusterul la distanță: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Nu s-a putut accepta invitația: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Invitație acceptată și confirmată.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Acceptați o invitație de la un cluster la distanță"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Eroare la obținerea abonamentului la cloud."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Eroare la invalidarea memoriei cache"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Această postare conține permalink-uri către alte canale care pot să nu fie vizibile pentru utilizatorii altor site-uri."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Unul sau mai multe mesaje nu au putut fi livrate către site-ul la distanță {{.Remote}} deoarece acesta este offline. Postul (posturile) va (vor) fi livrat(e) atunci când site-ul va fi online."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Nu a reușit să codifice câmpul în JSON"
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Numărul de interogări de întârziere a replicilor este mai mare decât numărul de replici configurate. Trebuie să fie mai mic sau egal cu numărul de replici."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Descriere invalidă."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Eroare la obținerea abonamentului cloud"
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "A apărut o eroare la crearea unui canal partajat direct."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Eroare la generarea parolei."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Imaginea profilului trebuie să fie setată prin intermediul furnizorului de logare al utilizatorului."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Câmpul '{{.Field}}' trebuie să fie setat prin intermediul furnizorului de logare al utilizatorului."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Nu s-a reușit trimiterea e-mailului de bun venit în cloud"
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Câmpul '{{.Field}}' trebuie să fie setat prin intermediul furnizorului de logare al utilizatorului."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Faceți clic pe butonul de mai jos pentru a vă reseta parola. Dacă nu ați solicitat acest lucru, puteți ignora acest e-mail."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Linkul de resetare a parolei expiră în 24 de ore."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Ați fost invitat ca oaspete pentru a colabora cu echipa"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Ce este Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Aflați mai multe"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost este o platformă de mesagerie flexibilă, open source, care permite colaborarea securizată în echipă."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Începeți să colaborați cu echipa dvs. pe Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Felicitări - spațiul tău de lucru {{.WorkSpace}} este gata de plecare!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Urmați următorii pași pentru a vă dezvolta echipele și pentru a profita la maximum de spațiul de lucru."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Configurați-vă spațiul de lucru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Felicitări!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Aveți întrebări despre cum să începeți? Trimiteți-ne un e-mail la"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "pentru cea mai bună experiență pe PC, Mac, iOS și Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Conectați-vă la spațiul de lucru pe site-ul nostru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "aplicații mobile și desktop"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Împărtășiți acest link pentru a vă invita membrii să se alăture {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Invitați oameni în spațiul dvs. de lucru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Nu uitați să salvați sau să marcați linkul pentru utilizare ulterioară."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Vă mulțumim pentru crearea "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Descărcați aplicația Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Deschideți Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "piața de aplicații."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Simplificați-vă munca cu instrumente precum Github, Google Calendar și Chrome. Explorați toate integrările pe care le avem pe site-ul nostru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Adăugați aplicații în spațiul de lucru"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Corpul solicitării nu este valid sau lipsește."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Eroare la obținerea abonamentului cloud"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Există deja un cluster la distanță cu aceeași adresă URL."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Am întâmpinat o eroare la actualizarea clusterului de la distanță."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Serviciul de cluster la distanță nu este activat."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Clusterul la distanță a fost deja adăugat."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Am întâmpinat o eroare la salvarea clusterului de la distanță."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Subiect invalid."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "ID incorect."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Am întâmpinat o eroare la recuperarea unui cluster la distanță."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Am întâmpinat o eroare la ștergerea clusterului de la distanță."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Tipul postului pe care încercați să îl creați nu este valid"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Tipurile de lucrări ale unei lucrări pe care încercați să le recuperați nu conțin permisiuni"
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Eroare la încercarea de a salva statutul primei vizite a administratorului pe piața din magazin."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Eroare la încercarea de a prelua statutul primei vizite a administratorului pe piață din magazin."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Lipsește ID-ul clusterului la distanță."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Identificarea clusterului de la distanță este necorespunzătoare."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Nu se poate găsi id-ul clusterului la distanță {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Eroare de codificare JSON."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Invitația a expirat."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "\"Y\" sau \"N"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Dezarhivează canalul curent"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Acțiune necunoscută `{{.Action}}`. Acțiuni disponibile: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Id-ul instanței la distanță care trebuie dezinvitată."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Dezinvită o instanță de la distanță din acest canal partajat"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Nu se poate anula partajarea acestui canal: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Acest canal nu mai este partajat."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Canalul va fi partajat în modul doar pentru citire"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Partajați canalul curent"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Nu pot partaja acest canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Serviciul Canale partajate este dezactivat."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Remote `{{.RemoteId}}`` neinvitat."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "Remote | Remote | SiteURL | Descriere | ReadOnly | InviteAccepted | Online | Ultima sincronizare |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Trebuie să specificați un cluster la distanță valid pentru dezinvitare"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID-ul clusterului la distanță nu este valid: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id al unei instanțe la distanță existente. Consultați comanda `remote` pentru a adăuga o instanță la distanță."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Clusterul de la distanță a fost deja invitat."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona canalele partajate."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Nu se poate anula partajarea unui canal care nu este partajat."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Nu au fost invitate telecomenzi pe acest canal partajat."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "distribuie"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Trebuie să specificați un id de cluster la distanță valid pentru a invita."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Acțiune lipsă. Acțiuni disponibile: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Invită o instanță de la distanță la canalul partajat curent"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Invitația la canal a fost trimisă la `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Valoare invalidă pentru \"{{.Arg}}\": {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "Actiune"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Nu s-a putut prelua starea pentru telecomenzi: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[descriere] - opțional"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Descriere pentru invitație"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Partajează canalul curent cu o instanță Mattermost de la distanță."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Nu s-a putut dezinvita `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Eroare în timpul verificării dacă există un canal partajat: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Stare pentru canalul Id `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Afișează starea pentru acest canal partajat"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Acest canal este acum partajat."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[scop] - implicit scopul canalului"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Scopul canalului furnizat instanțelor la distanță"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - implicit la numele canalului"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Numele canalului furnizat instanțelor la distanță"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Nu se poate invita un cluster la distanță la un canal partajat care provine din altă parte."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - implicit la antetul canalelor"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Antetul canalului furnizat instanțelor la distanță"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Numele de afișare a canalului furnizat instanțelor la distanță"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Acțiuni disponibile: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Acțiune necunoscută `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Afișează starea pentru toate clusterele la distanță"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURL nu este setat. Vă rugăm să setați acest lucru prin intermediul consolei de sistem."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Serviciul Remote Cluster nu este activat."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Remote Cluster Service este dezactivat."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Id-ul clusterului la distanță remove"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Nu s-a putut elimina clusterul de la distanță: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Îndepărtează un cluster la distanță"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Nu s-au găsit clustere la distanță."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "Nume | Nume | SiteURL | RemoteId | Invitație acceptată | Online | Ultimul ping |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Adăugarea/eliminarea clusterelor la distanță. Acțiuni disponibile: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
   }
 ]

@@ -2926,7 +2926,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	t.Run("invalid data in request body", func(t *testing.T) {
 		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})

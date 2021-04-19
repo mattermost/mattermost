@@ -1872,7 +1872,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Haz sido invitado"
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1984,7 +1984,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android desde:"
+    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -4843,10 +4843,6 @@
     "translation": "No se puede encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },
@@ -7187,14 +7183,6 @@
     "translation": "No se puede obtener la cantidad de equipos."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos públicos."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos privados."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "No se puede obtener los mensajes del canal."
   },
@@ -7749,10 +7737,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "No se puede analizar el cuerpo de la solicitud."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "No pudimos poner todos los equipos privados en la página."
   },
   {
     "id": "api.user.login_cws.license.error",
