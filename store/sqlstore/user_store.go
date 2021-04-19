@@ -210,10 +210,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	count, err := us.GetMaster().Update(user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			return nil, store.NewErrConflict("Email", err, user.Email)
 		}
 		if IsUniqueConstraintError(err, []string{"Username", "users_username_key", "idx_users_username_unique"}) {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			return nil, store.NewErrConflict("Username", err, user.Username)
 		}
 		return nil, errors.Wrapf(err, "failed to update User with userId=%s", user.Id)
 	}
