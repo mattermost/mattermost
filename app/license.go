@@ -47,7 +47,7 @@ func (s *Server) LoadLicense() {
 		if license.IsTrial() {
 			can, err := s.LicenseManager.CanStartTrial()
 			if err != nil {
-				mlog.Error("Failed to validate trial eligibility.", mlog.Err(err))
+				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
 				return
 			}
 
