@@ -1924,6 +1924,49 @@ func TestThreadMembership(t *testing.T) {
 	})
 }
 
+func TestFollowThreadSkipsParticipants(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	sysadmin := th.SystemAdminUser
+
+	appErr := th.App.JoinChannel(channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(channel, user2.Id)
+	require.Nil(t, appErr)
+	_, appErr = th.App.JoinUserToTeam(th.BasicTeam, sysadmin, sysadmin.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(channel, sysadmin.Id)
+	require.Nil(t, appErr)
+
+	p1, err := th.App.CreatePost(&model.Post{UserId: user.Id, ChannelId: channel.Id, Message: "Hi @" + sysadmin.Username}, channel, false, false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePost(&model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
+	require.Nil(t, err)
+	thread, err := th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	require.Nil(t, err)
+	require.Len(t, thread.Participants, 1) // length should be 1, only sysadmin is a participant, not the original poster
+
+	// another user follows the thread
+	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
+
+	thread, err = th.App.GetThreadForUser(user2.Id, th.BasicTeam.Id, p1.Id, false)
+	require.Nil(t, err)
+	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
+	for _, p := range thread.Participants {
+		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
+	}
+}
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

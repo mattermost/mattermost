@@ -2400,6 +2400,7 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	for _, thread := range threads.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
+		thread.RemoveUserFromParticipants(userID)
 	}
 	return threads, nil
 }
@@ -2414,6 +2415,7 @@ func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (
 	}
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
+	thread.RemoveUserFromParticipants(userID)
 	return thread, nil
 }
 
@@ -2428,7 +2430,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 }
 
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
-	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false)
+	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false, false)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

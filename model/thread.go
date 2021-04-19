@@ -61,6 +61,17 @@ func (o *ThreadResponse) ToJson() string {
 	return string(b)
 }
 
+func (o *ThreadResponse) RemoveUserFromParticipants(userID string) {
+	var participants []*User
+	for _, p := range o.Participants {
+		if p.Id == userID {
+			continue
+		}
+		participants = append(participants, p)
+	}
+	o.Participants = participants
+}
+
 func ThreadResponseFromJson(s string) (*ThreadResponse, error) {
 	var t ThreadResponse
 	err := json.Unmarshal([]byte(s), &t)
