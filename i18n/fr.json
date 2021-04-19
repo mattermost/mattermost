@@ -4843,10 +4843,6 @@
     "translation": "Impossible de trouver un compte existant correspondant à vos identifiants. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre."
-  },
-  {
     "id": "system.message.name",
     "translation": "Système"
   },

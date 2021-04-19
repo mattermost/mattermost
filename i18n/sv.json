@@ -148,10 +148,6 @@
     "translation": "System"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Den här e-postadressen används redan. Välj en annan."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Kan inte hitta ett existerande konto som matchar din autentisering. Denna grupp kan behöva en inbjudan av ägaren till gruppen för att gå med."
   },

@@ -4843,10 +4843,6 @@
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
-  },
-  {
     "id": "system.message.name",
     "translation": "Systeem"
   },
