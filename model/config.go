@@ -3386,10 +3386,6 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(s.ReplicaLagSettings) > len(s.DataSourceReplicas) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.replica_mismatch.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	return nil
 }
 
