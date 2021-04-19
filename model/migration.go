@@ -6,6 +6,7 @@ package model
 const (
 	ADVANCED_PERMISSIONS_MIGRATION_KEY         = "AdvancedPermissionsMigrationComplete"
 	MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2 = "migration_advanced_permissions_phase_2"
+	MIGRATION_KEY_POPULATE_THREADS             = "migration_populate_threads"
 
 	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT                     = "emoji_permissions_split"
 	MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT                   = "webhook_permissions_split"

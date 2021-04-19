@@ -60,7 +60,7 @@ endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
-# and docker will add '/', so we need to set the go-build cache location or we'll get 
+# and docker will add '/', so we need to set the go-build cache location or we'll get
 # permission errors on build as it tries to create a cache in filesystem root.
 export CURRENT_UID = $(shell id -u):$(shell id -g)
 ifeq ($(HOME),/)
@@ -179,14 +179,14 @@ ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
-run-haserver: 
+run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
 	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
 endif
 
-stop-haserver: 
+stop-haserver:
 	@echo Stopping docker containers for HA topology
 	docker-compose stop
 

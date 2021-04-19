@@ -254,6 +254,20 @@ func (_m *ThreadStore) MarkAsRead(userID string, threadID string, timestamp int6
 	return r0
 }
 
+// RootCountMigration provides a mock function with given fields:
+func (_m *ThreadStore) RootCountMigration() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: thread
 func (_m *ThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 	ret := _m.Called(thread)

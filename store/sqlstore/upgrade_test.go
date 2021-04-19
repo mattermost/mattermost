@@ -226,7 +226,8 @@ func TestMsgCountRootMigration(t *testing.T) {
 						require.NoError(t, err)
 						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot`)
 						require.NoError(t, err)
-						rootCountMigration(sqlStore)
+
+						sqlStore.Thread().RootCountMigration()
 
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
 						require.NoError(t, err)

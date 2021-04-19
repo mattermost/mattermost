@@ -275,6 +275,8 @@ type ThreadStore interface {
 	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
+
+	RootCountMigration() error
 }
 
 type PostStore interface {

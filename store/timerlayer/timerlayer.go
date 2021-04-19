@@ -7756,6 +7756,22 @@ func (s *TimerLayerThreadStore) MarkAsRead(userID string, threadID string, times
 	return err
 }
 
+func (s *TimerLayerThreadStore) RootCountMigration() error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.RootCountMigration()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.RootCountMigration", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 	start := timemodule.Now()
 
