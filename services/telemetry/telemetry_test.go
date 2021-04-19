@@ -91,7 +91,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	userStore.On("AnalyticsGetSystemAdminCount").Return(int64(9), nil)
 
 	teamStore := storeMocks.TeamStore{}
-	teamStore.On("AnalyticsTeamCount", (*model.TeamSearch)(nil)).Return(int64(3), nil)
+	teamStore.On("AnalyticsTeamCount", false).Return(int64(3), nil)
 	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
 
 	channelStore := storeMocks.ChannelStore{}

@@ -955,37 +955,29 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
-	opts := &model.TeamSearch{}
-	if c.Params.ExcludePolicyConstrained {
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
-			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
-			return
-		}
-		opts.ExcludePolicyConstrained = model.NewBool(true)
-	}
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
-		opts.IncludePolicyID = model.NewBool(true)
-	}
-
 	listPrivate := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PRIVATE_TEAMS)
 	listPublic := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS)
-	limit := c.Params.PerPage
-	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if listPrivate {
-		opts.AllowOpenInvite = model.NewBool(false)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if listPublic {
-		opts.AllowOpenInvite = model.NewBool(true)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
-		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if c.Params.IncludeTotalCount {
-		teamsWithCount, err = c.App.GetAllTeamsPageWithCount(offset, limit, opts)
-	} else {
-		teams, err = c.App.GetAllTeamsPage(offset, limit, opts)
+		err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
 	}
 	if err != nil {
 		c.Err = err
@@ -999,7 +991,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Params.IncludeTotalCount {
 		resBody = model.TeamsWithCountToJson(teamsWithCount)
 	} else {
-		resBody = model.ToJson(teams)
+		resBody = []byte(model.TeamListToJson(teams))
 	}
 
 	w.Write(resBody)
@@ -1010,16 +1002,6 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props == nil {
 		c.SetInvalidParam("team_search")
 		return
-	}
-	// Only system managers may use the ExcludePolicyConstrained field
-	if props.ExcludePolicyConstrained != nil && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
-		return
-	}
-	// policy ID may only be used through the /data_retention/policies endpoint
-	props.PolicyID = nil
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
-		props.IncludePolicyID = model.NewBool(true)
 	}
 
 	var teams []*model.Team
@@ -1033,13 +1015,13 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPrivateTeams(props)
+		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPublicTeams(props)
+		teams, err = c.App.SearchPublicTeams(props.Term)
 	} else {
 		teams = []*model.Team{}
 	}
@@ -1053,8 +1035,8 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
-		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
-		payload = model.ToJson(twc)
+		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
+		payload = model.TeamsWithCountToJson(twc)
 	} else {
 		payload = []byte(model.TeamListToJson(teams))
 	}
