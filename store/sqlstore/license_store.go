@@ -88,7 +88,6 @@ func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 
 	var licenses []*model.LicenseRecord
 	if _, err := ls.GetReplica().Select(&licenses, queryString); err != nil {
-		// TODO check here if not finding any rows raises an error
 		return nil, errors.Wrap(err, "failed to fetch licenses")
 	}
 
