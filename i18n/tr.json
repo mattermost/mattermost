@@ -7435,10 +7435,6 @@
     "translation": "Tüm takımlar alınamadı."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Tüm özel takımlar alınamadı."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Tüm özel takımlar alınamadı."
   },
@@ -7457,14 +7453,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Herkese açık takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Özel takımlar sayılamadı."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
