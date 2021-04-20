@@ -12,7 +12,7 @@ func (api *API) InitPermissions() {
 	api.BaseRoutes.Permissions.Handle("/ancillary", api.ApiSessionRequired(getAncillaryPermissions)).Methods("GET")
 }
 
-func getAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {
+func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Request) {
 	keys, ok := r.URL.Query()["subsection_permissions"]
 
 	if !ok || len(keys[0]) < 1 {
