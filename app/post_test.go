@@ -1953,9 +1953,17 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	require.Nil(t, err)
 	_, err = th.App.CreatePost(&model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err)
+
 	thread, err := th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
 	require.Nil(t, err)
-	require.Len(t, thread.Participants, 2) // length should be 2, sysadmin and the original poster
+	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
+
+	_, err = th.App.CreatePost(&model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, false, false)
+	require.Nil(t, err)
+
+	thread, err = th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	require.Nil(t, err)
+	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
 	// another user follows the thread
 	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
@@ -1967,6 +1975,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 		require.True(t, p.Id == sysadmin.Id || p.Id == user.Id)
 	}
 }
+
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
