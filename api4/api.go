@@ -132,7 +132,7 @@ type Routes struct {
 	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 
-	Permissions *mux.Router // 'api/v4/permissions
+	Permissions *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
