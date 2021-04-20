@@ -634,6 +634,25 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return data, nil
 }
 
+// GetAllTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
+func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
+	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
+		OrderBy("DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset)).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	var teams []*model.Team
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Teams")
+	}
+
+	return teams, nil
+}
+
 // PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
 // To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) error {

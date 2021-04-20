@@ -236,6 +236,29 @@ func (_m *TeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return r0, r1
 }
 
+// GetAllTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
+	ret := _m.Called(offset, limit)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(int, int) []*model.Team); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByInviteId provides a mock function with given fields: inviteID
 func (_m *TeamStore) GetByInviteId(inviteID string) (*model.Team, error) {
 	ret := _m.Called(inviteID)

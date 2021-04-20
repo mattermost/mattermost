@@ -2352,10 +2352,6 @@
     "translation": "Det gick inte att ta fram alla team."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Det gick inte att ta fram alla privata team på en sida."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Det gick inte att ta fram alla privata team."
   },
@@ -2382,14 +2378,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Kan inte räkna antal team."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Kunde inte räkna antal publika team."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Kunde inte räkna antal privata team."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -8688,7 +8676,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Grattis - din arbetsyta {{.WorkSpace}} är klar att användas!"
+    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8824,7 +8812,7 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Ett visningsnamn för det andra klustret"
+    "translation": "Ett unikt namn för det andra klustret"
   },
   {
     "id": "api.command_remote.name.help",
@@ -9221,5 +9209,37 @@
   {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Det gick inte att skicka mejl med information om att testperioden är på väg att ta slut"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud testperiod avslutas"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Lägg till betalmetod"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Visningsnamn för det andra klustret"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Ett visningsnamn för det andra klustret"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunde inte återställa AuthData-fältet till mejl."
   }
 ]
