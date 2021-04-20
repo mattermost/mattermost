@@ -1416,6 +1416,7 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
+//nolint:golint,unused,deadcode
 func runCheckWarnMetricStatusJob(a *App) {
 	doCheckWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
@@ -1443,6 +1444,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
+//nolint:golint,unused,deadcode
 func doCheckWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
