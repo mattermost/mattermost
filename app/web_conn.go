@@ -35,16 +35,18 @@ const (
 )
 
 type WebConnConfig struct {
-	WebSocket        *websocket.Conn
-	Session          model.Session
-	TFunc            i18n.TranslateFunc
-	Locale           string
-	ConnectionID     string
-	Sequence         int
-	ActiveQueue      chan model.WebSocketMessage
-	DeadQueue        []*model.WebSocketEvent
-	DeadQueuePointer int
-	Active           bool
+	WebSocket    *websocket.Conn
+	Session      model.Session
+	TFunc        i18n.TranslateFunc
+	Locale       string
+	ConnectionID string
+	Active       bool
+
+	// These aren't necessary to be exported to api layer.
+	sequence         int
+	activeQueue      chan model.WebSocketMessage
+	deadQueue        []*model.WebSocketEvent
+	deadQueuePointer int
 }
 
 // WebConn represents a single websocket connection to a user.
@@ -99,7 +101,6 @@ func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConn
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
-	var err error
 	// TODO: the method should internally forward the request
 	// to the cluster if it does not have it.
 	res := a.CheckWebConn(a.Session().UserId, cfg.ConnectionID)
@@ -109,9 +110,9 @@ func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConn
 		cfg.ConnectionID = model.NewId()
 	} else {
 		// Connection is present, we get the active queue, dead queue
-		cfg.ActiveQueue = res.ActiveQueue
-		cfg.DeadQueue = res.DeadQueue
-		cfg.DeadQueuePointer = res.DeadQueuePointer
+		cfg.activeQueue = res.ActiveQueue
+		cfg.deadQueue = res.DeadQueue
+		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
 		// Now we get the sequence number
 		if seqVal == "" {
@@ -119,8 +120,9 @@ func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConn
 			// A client must be either non-compliant or fully compliant.
 			return nil, errors.New("Sequence number not present in websocket request")
 		}
-		cfg.Sequence, err = strconv.Atoi(seqVal)
-		if err != nil || cfg.Sequence < 0 {
+		var err error
+		cfg.sequence, err = strconv.Atoi(seqVal)
+		if err != nil || cfg.sequence < 0 {
 			return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
 		}
 	}
@@ -147,20 +149,20 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		}
 	}
 
-	if cfg.ActiveQueue == nil {
-		cfg.ActiveQueue = make(chan model.WebSocketMessage, sendQueueSize)
+	if cfg.activeQueue == nil {
+		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.DeadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
-		cfg.DeadQueue = make([]*model.WebSocketEvent, deadQueueSize)
+	if cfg.deadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
 	wc := &WebConn{
 		App:                a,
-		send:               cfg.ActiveQueue,
-		deadQueue:          cfg.DeadQueue,
-		deadQueuePointer:   cfg.DeadQueuePointer,
-		Sequence:           int64(cfg.Sequence),
+		send:               cfg.activeQueue,
+		deadQueue:          cfg.deadQueue,
+		deadQueuePointer:   cfg.deadQueuePointer,
+		Sequence:           int64(cfg.sequence),
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
@@ -216,7 +218,7 @@ func (wc *WebConn) GetConnectionID() string {
 }
 
 // areAllInactive returns whether all of the connections
-// are inactive or not
+// are inactive or not.
 func areAllInactive(conns []*WebConn) bool {
 	for _, conn := range conns {
 		if conn.active {
@@ -425,8 +427,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	// We don't use the encoder from the write pump because it's unwieldy to pass encoders
 	// around, and this is only called during initialization of the webConn.
 	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	err := msg.Encode(enc)
+	err := msg.Encode(json.NewEncoder(&buf))
 	if err != nil {
 		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil

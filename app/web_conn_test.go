@@ -268,8 +268,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		wc := dialConn(t, th.App, s.Listener.Addr())
 		defer wc.WebSocket.Close()
 
-		var i int
-		for ; i < limit; i++ {
+		for i := 0; i < limit; i++ {
 			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{})
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)
