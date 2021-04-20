@@ -246,14 +246,6 @@ func TestStripPassword(t *testing.T) {
 	}
 }
 
-func sToP(s string) *string {
-	return &s
-}
-
-func bToP(b bool) *bool {
-	return &b
-}
-
 func TestIsJsonMap(t *testing.T) {
 	tests := []struct {
 		name string

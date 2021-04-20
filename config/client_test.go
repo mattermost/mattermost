@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -190,7 +189,7 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			configMap := GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -282,7 +281,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
+			configMap := GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {

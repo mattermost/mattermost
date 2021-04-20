@@ -14,6 +14,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+// marshalConfig converts the given configuration into JSON bytes for persistence.
+func marshalConfig(cfg *model.Config) ([]byte, error) {
+	return json.MarshalIndent(cfg, "", "    ")
+}
+
 // desanitize replaces fake settings with their actual values.
 func desanitize(actual, target *model.Config) {
 	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FAKE_SETTING {

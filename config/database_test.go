@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"bytes"
@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -35,11 +34,11 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	os.Clearenv()
 	truncateTables(t)
 
-	cfgData, err := config.MarshalConfig(cfg)
+	cfgData, err := marshalConfig(cfg)
 	require.NoError(t, err)
 
 	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err = config.InitializeConfigurationsTable(db)
+	err = initializeConfigurationsTable(db)
 	require.NoError(t, err)
 
 	id := model.NewId()
@@ -115,14 +114,14 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }
 
-func newTestDatabaseStore(customDefaults *model.Config) (*config.Store, error) {
+func newTestDatabaseStore(customDefaults *model.Config) (*Store, error) {
 	sqlSettings := mainHelper.GetSQLSettings()
-	dss, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
+	dss, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	if err != nil {
 		return nil, err
 	}
 
-	cStore, err := config.NewStoreFromBacking(dss, customDefaults, false)
+	cStore, err := NewStoreFromBacking(dss, customDefaults, false)
 	if err != nil {
 		return nil, err
 	}
@@ -211,20 +210,20 @@ func TestDatabaseStoreNew(t *testing.T) {
 	})
 
 	t.Run("invalid url", func(t *testing.T) {
-		_, err := config.NewDatabaseStore("")
+		_, err := NewDatabaseStore("")
 		require.Error(t, err)
 
-		_, err = config.NewDatabaseStore("mysql")
+		_, err = NewDatabaseStore("mysql")
 		require.Error(t, err)
 	})
 
 	t.Run("unsupported scheme", func(t *testing.T) {
-		_, err := config.NewDatabaseStore("invalid")
+		_, err := NewDatabaseStore("invalid")
 		require.Error(t, err)
 	})
 
 	t.Run("unsupported scheme with valid data source", func(t *testing.T) {
-		_, err := config.NewDatabaseStore(fmt.Sprintf("invalid://%s", *sqlSettings.DataSource))
+		_, err := NewDatabaseStore(fmt.Sprintf("invalid://%s", *sqlSettings.DataSource))
 		require.Error(t, err)
 	})
 }
@@ -574,7 +573,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", config.MaxWriteLength))
+		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
 		newCfg := emptyConfig.Clone()
 		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
 
@@ -828,7 +827,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		cfgData, err := config.MarshalConfig(invalidConfig)
+		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
 		sqlSettings := mainHelper.GetSQLSettings()
@@ -950,7 +949,7 @@ func TestDatabaseSetFile(t *testing.T) {
 		if *mainHelper.Settings.DriverName == "postgres" {
 			t.Skip("No limit for postgres")
 		}
-		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength)
+		longFile := bytes.Repeat([]byte("a"), MaxWriteLength)
 
 		err := ds.SetFile("toolong", longFile)
 		require.NoError(t, err)
@@ -960,7 +959,7 @@ func TestDatabaseSetFile(t *testing.T) {
 		if *mainHelper.Settings.DriverName == "postgres" {
 			t.Skip("No limit for postgres")
 		}
-		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength+1)
+		longFile := bytes.Repeat([]byte("a"), MaxWriteLength+1)
 
 		err := ds.SetFile("toolong", longFile)
 		if assert.Error(t, err) {

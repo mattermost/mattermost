@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"os"
@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -94,7 +93,7 @@ func TestMergeConfigs(t *testing.T) {
 		patch := &model.Config{}
 		patch.SetDefaults()
 
-		merged, err := config.Merge(base, patch, nil)
+		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, patch, merged)
@@ -104,7 +103,7 @@ func TestMergeConfigs(t *testing.T) {
 		base.SetDefaults()
 		patch := base.Clone()
 
-		merged, err := config.Merge(base, patch, nil)
+		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, base, merged)
@@ -116,7 +115,7 @@ func TestMergeConfigs(t *testing.T) {
 		patch := base.Clone()
 		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
 
-		merged, err := config.Merge(base, patch, nil)
+		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
 
 		assert.NotEqual(t, base, merged)
@@ -133,7 +132,7 @@ func TestMergeConfigs(t *testing.T) {
 		expected.ServiceSettings.SiteURL = newString("http://newhost.ca")
 		expected.GoogleSettings.Enable = newBool(true)
 
-		merged, err := config.Merge(base, patch, nil)
+		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
 
 		assert.NotEqual(t, base, merged)
@@ -143,9 +142,9 @@ func TestMergeConfigs(t *testing.T) {
 }
 
 func TestConfigEnvironmentOverrides(t *testing.T) {
-	memstore, err := config.NewMemoryStore()
+	memstore, err := NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil, false)
+	base, err := NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
 	originalConfig.ServiceSettings.SiteURL = newString("http://notoverriden.ca")
@@ -172,9 +171,9 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-	memstore, err := config.NewMemoryStore()
+	memstore, err := NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil, false)
+	base, err := NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	oldCfg := base.Get()
 	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
