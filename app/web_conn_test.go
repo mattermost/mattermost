@@ -110,7 +110,9 @@ func TestWebConnAddDeadQueue(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableReliableWebSockets = true })
 
-	wc := th.App.NewWebConn(&WebConnConfig{})
+	wc := th.App.NewWebConn(&WebConnConfig{
+		WebSocket: &websocket.Conn{},
+	})
 
 	for i := 0; i < 2; i++ {
 		msg := &model.WebSocketEvent{}
@@ -141,7 +143,9 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 		*cfg.ServiceSettings.EnableReliableWebSockets = true
 	})
 
-	wc := th.App.NewWebConn(&WebConnConfig{})
+	wc := th.App.NewWebConn(&WebConnConfig{
+		WebSocket: &websocket.Conn{},
+	})
 
 	var i int
 	for ; i < 2; i++ {
