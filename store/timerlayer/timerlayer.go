@@ -2882,6 +2882,22 @@ func (s *TimerLayerFileInfoStore) GetForUser(userID string) ([]*model.FileInfo, 
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.GetFromMaster(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
