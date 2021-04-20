@@ -446,16 +446,17 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // hasMsgLoss indicates whether the next wanted sequence is right after
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
+	var index int
 	if wc.deadQueuePointer == 0 {
 		if wc.deadQueue[deadQueueSize-1] == nil {
 			return false // No msg written
 		}
-		if wc.deadQueue[deadQueueSize-1].GetSequence() == wc.Sequence-1 {
-			return false
-		}
-		return true
+		index = deadQueueSize - 1
+	} else {
+		index = wc.deadQueuePointer - 1
 	}
-	if wc.deadQueue[wc.deadQueuePointer-1].GetSequence() == wc.Sequence-1 {
+
+	if wc.deadQueue[index].GetSequence() == wc.Sequence-1 {
 		return false
 	}
 	return true
