@@ -2695,6 +2695,7 @@ type DataRetentionSettings struct {
 	MessageRetentionDays  *int    `access:"compliance_data_retention_policy"`
 	FileRetentionDays     *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime  *string `access:"compliance_data_retention_policy"`
+	BatchSize             *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2716,6 +2717,10 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.DeletionJobStartTime == nil {
 		s.DeletionJobStartTime = NewString(DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(3000)
 	}
 }
 
