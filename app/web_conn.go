@@ -140,14 +140,14 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		})
 	}
 
-	if a.srv.Config().FeatureFlags.WebSocketDelay {
-		// Disable TCP_NO_DELAY for higher throughput
-		tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
-		if ok {
-			err := tcpConn.SetNoDelay(false)
-			if err != nil {
-				mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
-			}
+	// Disable TCP_NO_DELAY for higher throughput
+	// Unfortunately, it doesn't work for tls.Conn,
+	// and currently, the API doesn't expose the underlying TCP conn.
+	tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
+	if ok {
+		err := tcpConn.SetNoDelay(false)
+		if err != nil {
+			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
 		}
 	}
 
