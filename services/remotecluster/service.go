@@ -63,7 +63,7 @@ type RemoteClusterServiceIFace interface {
 	RemoveConnectionStateListener(listenerId string)
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
-	AcceptInvitation(invite *model.RemoteClusterInvite, name string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 }
 
