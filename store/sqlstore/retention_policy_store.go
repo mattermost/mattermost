@@ -694,48 +694,19 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 
 	scopedTimeColumn := r.Table + "." + r.TimeColumn
 	nowStr := strconv.FormatInt(r.NowMillis, 10)
+	// A record falls under the scope of a granular retention policy if:
+	// 1. The policy's post duration is >= 0
+	// 2. The record's lifespan has not exceeded the policy's post duration
 	fallsUnderGranularPolicy := sq.And{
-		sq.Expr(nowStr + " - " + scopedTimeColumn + " > RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000"),
 		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
+		sq.Expr(nowStr + " - " + scopedTimeColumn + " > RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000"),
 	}
 
-	doDeletion := func(builder sq.SelectBuilder) (rowsAffected int64, err error) {
-		query, args, err := builder.ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, r.Table+"_tosql")
-		}
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
-			query = `
-			DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
-			` + query + `
-			)`
-		} else {
-			// MySQL does not support the LIMIT clause in a subquery with IN
-			clauses := make([]string, len(r.PrimaryKeys))
-			for i, key := range r.PrimaryKeys {
-				clauses[i] = r.Table + "." + key + " = A." + key
-			}
-			joinClause := strings.Join(clauses, " AND ")
-			query = `
-			DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
-			` + query + `
-			) AS A ON ` + joinClause
-		}
-		result, err := s.GetMaster().Exec(query, args...)
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete "+r.Table)
-		}
-		rowsAffected, err = result.RowsAffected()
-		if err != nil {
-			return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
-		}
-		return
-	}
-
+	// If the caller wants to disable the global policy from running
 	if r.GlobalPolicyEndTime <= 0 {
 		cursor.GlobalPoliciesDone = true
 	}
+	// If the caller wants to disable the granular policies from running
 	if r.NowMillis <= 0 {
 		cursor.ChannelPoliciesDone = true
 		cursor.TeamPoliciesDone = true
@@ -743,13 +714,14 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 
 	var totalRowsAffected int64
 
+	// First, delete all of the records which fall under the scope of a channel-specific policy
 	if !cursor.ChannelPoliciesDone {
 		channelPoliciesBuilder := baseBuilder.
 			InnerJoin("RetentionPoliciesChannels ON " + r.ChannelIDTable + ".ChannelId = RetentionPoliciesChannels.ChannelId").
 			InnerJoin("RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id").
 			Where(fallsUnderGranularPolicy).
 			Limit(uint64(r.Limit))
-		rowsAffected, err := doDeletion(channelPoliciesBuilder)
+		rowsAffected, err := genericRetentionPoliciesDeletion(channelPoliciesBuilder, r, s)
 		if err != nil {
 			return 0, cursor, err
 		}
@@ -760,6 +732,7 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 		r.Limit -= rowsAffected
 	}
 
+	// Next, delete all of the records which fall under the scope of a team-specific policy
 	if cursor.ChannelPoliciesDone && !cursor.TeamPoliciesDone {
 		// Channel-specific policies override team-specific policies.
 		teamPoliciesBuilder := baseBuilder.
@@ -772,7 +745,7 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 			}).
 			Where(fallsUnderGranularPolicy).
 			Limit(uint64(r.Limit))
-		rowsAffected, err := doDeletion(teamPoliciesBuilder)
+		rowsAffected, err := genericRetentionPoliciesDeletion(teamPoliciesBuilder, r, s)
 		if err != nil {
 			return 0, cursor, err
 		}
@@ -783,6 +756,7 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 		r.Limit -= rowsAffected
 	}
 
+	// Finally, delete all of the records which fall under the scope of the global policy
 	if cursor.ChannelPoliciesDone && cursor.TeamPoliciesDone && !cursor.GlobalPoliciesDone {
 		// Granular policies override the global policy.
 		globalPolicyBuilder := baseBuilder.
@@ -795,7 +769,7 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 			}).
 			Where(sq.Lt{scopedTimeColumn: r.GlobalPolicyEndTime}).
 			Limit(uint64(r.Limit))
-		rowsAffected, err := doDeletion(globalPolicyBuilder)
+		rowsAffected, err := genericRetentionPoliciesDeletion(globalPolicyBuilder, r, s)
 		if err != nil {
 			return 0, cursor, err
 		}
@@ -806,4 +780,44 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 	}
 
 	return totalRowsAffected, cursor, nil
+}
+
+// genericRetentionPoliciesDeletion actually executes the DELETE query using a sq.SelectBuilder
+// which selects the rows to delete.
+func genericRetentionPoliciesDeletion(
+	builder sq.SelectBuilder,
+	r RetentionPolicyBatchDeletionInfo,
+	s *SqlStore,
+) (rowsAffected int64, err error) {
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, r.Table+"_tosql")
+	}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
+		query = `
+		DELETE FROM ` + r.Table + ` WHERE ` + primaryKeysStr + ` IN (
+		` + query + `
+		)`
+	} else {
+		// MySQL does not support the LIMIT clause in a subquery with IN
+		clauses := make([]string, len(r.PrimaryKeys))
+		for i, key := range r.PrimaryKeys {
+			clauses[i] = r.Table + "." + key + " = A." + key
+		}
+		joinClause := strings.Join(clauses, " AND ")
+		query = `
+		DELETE ` + r.Table + ` FROM ` + r.Table + ` INNER JOIN (
+		` + query + `
+		) AS A ON ` + joinClause
+	}
+	result, err := s.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete "+r.Table)
+	}
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+	}
+	return
 }
