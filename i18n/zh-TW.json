@@ -7146,10 +7146,6 @@
     "translation": "無法取得全部的團隊。"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "無法取得分頁內全部的私人團隊。"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "無法取得全部的私人團隊。"
   },
@@ -7176,14 +7172,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "無法計數團隊。"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "無法計數公開團隊。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "無法計數私人團隊。"
   },
   {
     "id": "app.post.get_posts_since.app_error",

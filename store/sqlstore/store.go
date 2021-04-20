@@ -8,7 +8,6 @@ import (
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -1364,7 +1363,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 
 	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	dataSource := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	if err != nil {
+		return err
+	}
 	conn := setupConnection("migrations", dataSource, ss.settings)
 	defer conn.Db.Close()
 
@@ -1422,22 +1424,20 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	return nil
 }
 
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
+func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
 	// We need to tell the MySQL driver that we want to use multiStatements
 	// in order to make migrations work.
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		u, err := url.Parse(dataSource)
+		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
-			mlog.Critical("Invalid database url found", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			return "", err
 		}
-		q := u.Query()
-		q.Set("multiStatements", "true")
-		u.RawQuery = q.Encode()
-		return u.String()
+
+		config.Params["multiStatements"] = "true"
+		return config.FormatDSN(), nil
 	}
 
-	return dataSource
+	return dataSource, nil
 }
 
 type mattermConverter struct{}
