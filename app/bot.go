@@ -88,6 +88,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
