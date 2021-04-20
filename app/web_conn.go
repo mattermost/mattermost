@@ -76,6 +76,8 @@ type WebConn struct {
 	deadQueuePointer int
 	// active indicates whether there is an open websocket connection attached
 	// to this webConn or not.
+	// It is not used as an atomic, because there is no need to.
+	// So do not use this outside the web hub.
 	active       bool
 	sessionToken atomic.Value
 	session      atomic.Value
