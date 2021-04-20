@@ -138,7 +138,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+func (fs SqlFileInfoStore) get(id string, fromMaster bool) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	query := fs.getQueryBuilder().
@@ -152,13 +152,26 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
-	if err := fs.GetReplica().SelectOne(info, queryString, args...); err != nil {
+	db := fs.GetReplica()
+	if fromMaster {
+		db = fs.GetMaster()
+	}
+
+	if err := db.SelectOne(info, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("FileInfo", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get FileInfo with id=%s", id)
 	}
 	return info, nil
+}
+
+func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
+	return fs.get(id, false)
+}
+
+func (fs SqlFileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	return fs.get(id, true)
 }
 
 func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
