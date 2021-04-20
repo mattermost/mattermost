@@ -47,13 +47,17 @@ func (a *App) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.App
 //	['town-square', 'game-of-thrones', 'wow']
 //
 func (a *App) DefaultChannelNames() []string {
+	return a.Srv().DefaultChannelNames()
+}
+
+func (s *Server) DefaultChannelNames() []string {
 	names := []string{"town-square"}
 
-	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
+	if len(s.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
 		names = append(names, "off-topic")
 	} else {
 		seenChannels := map[string]bool{"town-square": true}
-		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
+		for _, channelName := range s.Config().TeamSettings.ExperimentalDefaultChannels {
 			if !seenChannels[channelName] {
 				names = append(names, channelName)
 				seenChannels[channelName] = true
@@ -321,7 +325,11 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	channel, nErr := a.getDirectChannel(userID, otherUserID)
+	return a.Srv().GetOrCreateDirectChannel(a, userID, otherUserID, channelOptions...)
+}
+
+func (s *Server) GetOrCreateDirectChannel(a *App, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, nErr := s.getDirectChannel(userID, otherUserID)
 	if nErr != nil {
 		return nil, nErr
 	}
@@ -330,7 +338,7 @@ func (a *App) GetOrCreateDirectChannel(userID, otherUserID string, channelOption
 		return channel, nil
 	}
 
-	channel, err := a.createDirectChannel(userID, otherUserID, channelOptions...)
+	channel, err := s.createDirectChannel(userID, otherUserID, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -338,7 +346,7 @@ func (a *App) GetOrCreateDirectChannel(userID, otherUserID string, channelOption
 		return nil, err
 	}
 
-	a.handleCreationEvent(userID, otherUserID, channel)
+	s.handleCreationEvent(a, userID, otherUserID, channel)
 	return channel, nil
 }
 
@@ -365,27 +373,37 @@ func (a *App) getOrCreateDirectChannelWithUser(user, otherUser *model.User) (*mo
 }
 
 func (a *App) handleCreationEvent(userID, otherUserID string, channel *model.Channel) {
-	a.InvalidateCacheForUser(userID)
-	a.InvalidateCacheForUser(otherUserID)
+	a.Srv().handleCreationEvent(a, userID, otherUserID, channel)
+}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, channel)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
+func (s *Server) handleCreationEvent(a *App, userID, otherUserID string, channel *model.Channel) {
+	s.InvalidateCacheForUser(userID)
+	s.InvalidateCacheForUser(otherUserID)
+
+	if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		s.Go(func() {
+			if a != nil {
+				pluginContext := a.PluginContext()
+				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.ChannelHasBeenCreated(pluginContext, channel)
+					return true
+				}, plugin.ChannelHasBeenCreatedID)
+			}
 		})
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 	message.Add("creator_id", userID)
 	message.Add("teammate_id", otherUserID)
-	a.Publish(message)
+	s.Publish(message)
 }
 
 func (a *App) createDirectChannel(userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	users, err := a.Srv().Store.User().GetMany(context.Background(), []string{userID, otherUserID})
+	return a.Srv().createDirectChannel(userID, otherUserID, channelOptions...)
+}
+
+func (s *Server) createDirectChannel(userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	users, err := s.Store.User().GetMany(context.Background(), []string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -414,11 +432,15 @@ func (a *App) createDirectChannel(userID string, otherUserID string, channelOpti
 		user = users[1]
 		otherUser = users[0]
 	}
-	return a.createDirectChannelWithUser(user, otherUser, channelOptions...)
+	return s.createDirectChannelWithUser(user, otherUser, channelOptions...)
 }
 
 func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser, channelOptions...)
+	return a.Srv().createDirectChannelWithUser(user, otherUser, channelOptions...)
+}
+
+func (s *Server) createDirectChannelWithUser(user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, nErr := s.Store.Channel().CreateDirectChannel(user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -450,11 +472,11 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOp
 		}
 	}
 
-	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
+	if err := s.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 		return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if user.Id != otherUser.Id {
-		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUser.Id, channel.Id, model.GetMillis()); err != nil {
+		if err := s.Store.ChannelMemberHistory().LogJoinEvent(otherUser.Id, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -475,7 +497,7 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOp
 			Type:             channel.Type,
 		}
 
-		if _, err := a.SaveSharedChannel(sc); err != nil {
+		if _, err := s.SaveSharedChannel(sc); err != nil {
 			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -1595,7 +1617,11 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userID string, channel *model.
 }
 
 func (a *App) GetChannel(channelID string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().Get(channelID, true)
+	return a.Srv().GetChannel(channelID)
+}
+
+func (s *Server) GetChannel(channelID string) (*model.Channel, *model.AppError) {
+	channel, err := s.Store.Channel().Get(channelID, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1676,7 +1702,11 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 }
 
 func (a *App) GetChannelsForUser(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, includeDeleted, lastDeleteAt)
+	return a.Srv().GetChannelsForUser(teamID, userID, includeDeleted, lastDeleteAt)
+}
+
+func (s *Server) GetChannelsForUser(teamID string, userID string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError) {
+	list, err := s.Store.Channel().GetChannels(teamID, userID, includeDeleted, lastDeleteAt)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1691,15 +1721,19 @@ func (a *App) GetChannelsForUser(teamID string, userID string, includeDeleted bo
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	return a.Srv().GetAllChannels(page, perPage, opts)
+}
+
+func (s *Server) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = s.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+	channels, err := s.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
 		return nil, model.NewAppError("GetAllChannels", "app.channel.get_all_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2992,11 +3026,15 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 }
 
 func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
+	return a.Srv().forEachChannelMember(channelID, f)
+}
+
+func (s *Server) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
 	perPage := 100
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
+		channelMembers, err := s.Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
 			return err
 		}
@@ -3019,15 +3057,19 @@ func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember)
 }
 
 func (a *App) ClearChannelMembersCache(channelID string) {
+	a.Srv().ClearChannelMembersCache(channelID)
+}
+
+func (s *Server) ClearChannelMembersCache(channelID string) {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
-		a.ClearSessionCacheForUser(channelMember.UserId)
+		s.ClearSessionCacheForUser(channelMember.UserId)
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
 		message.Add("channelMember", channelMember.ToJson())
-		a.Publish(message)
+		s.Publish(message)
 		return nil
 	}
-	if err := a.forEachChannelMember(channelID, clearSessionCache); err != nil {
-		a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+	if err := s.forEachChannelMember(channelID, clearSessionCache); err != nil {
+		s.Log.Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
 	}
 }
 
@@ -3041,7 +3083,11 @@ func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, incl
 }
 
 func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
+	return a.Srv().getDirectChannel(userID, otherUserID)
+}
+
+func (s *Server) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := s.Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {

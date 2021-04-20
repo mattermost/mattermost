@@ -14,19 +14,27 @@ import (
 )
 
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
-	a.Srv().statusCache.Set(status.UserId, status)
+	a.Srv().AddStatusCacheSkipClusterSend(status)
+}
+
+func (s *Server) AddStatusCacheSkipClusterSend(status *model.Status) {
+	s.statusCache.Set(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
-	a.AddStatusCacheSkipClusterSend(status)
+	a.Srv().AddStatusCache(status)
+}
 
-	if a.Cluster() != nil {
+func (s *Server) AddStatusCache(status *model.Status) {
+	s.AddStatusCacheSkipClusterSend(status)
+
+	if s.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     status.ToClusterJson(),
 		}
-		a.Cluster().SendClusterMessage(msg)
+		s.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -225,29 +233,37 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 }
 
 func (a *App) BroadcastStatus(status *model.Status) {
-	if a.Srv().Busy.IsBusy() {
+	a.Srv().BroadcastStatus(status)
+}
+
+func (s *Server) BroadcastStatus(status *model.Status) {
+	if s.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
 	}
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	a.Publish(event)
+	s.Publish(event)
 }
 
 func (a *App) SetStatusOffline(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+	a.Srv().SetStatusOffline(userID, manual)
+}
+
+func (s *Server) SetStatusOffline(userID string, manual bool) {
+	if !*s.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userID)
+	status, err := s.GetStatus(userID)
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 
 	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	a.SaveAndBroadcastStatus(status)
+	s.SaveAndBroadcastStatus(status)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
@@ -300,13 +316,17 @@ func (a *App) SetStatusDoNotDisturb(userID string) {
 }
 
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
-	a.AddStatusCache(status)
+	a.Srv().SaveAndBroadcastStatus(status)
+}
 
-	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+func (s *Server) SaveAndBroadcastStatus(status *model.Status) {
+	s.AddStatusCache(status)
+
+	if err := s.Store.Status().SaveOrUpdate(status); err != nil {
 		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
-	a.BroadcastStatus(status)
+	s.BroadcastStatus(status)
 }
 
 func (a *App) SetStatusOutOfOffice(userID string) {
@@ -327,8 +347,12 @@ func (a *App) SetStatusOutOfOffice(userID string) {
 }
 
 func (a *App) GetStatusFromCache(userID string) *model.Status {
+	return a.Srv().GetStatusFromCache(userID)
+}
+
+func (s *Server) GetStatusFromCache(userID string) *model.Status {
 	var status *model.Status
-	if err := a.Srv().statusCache.Get(userID, &status); err == nil {
+	if err := s.statusCache.Get(userID, &status); err == nil {
 		statusCopy := &model.Status{}
 		*statusCopy = *status
 		return statusCopy
@@ -338,16 +362,20 @@ func (a *App) GetStatusFromCache(userID string) *model.Status {
 }
 
 func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+	return a.Srv().GetStatus(userID)
+}
+
+func (s *Server) GetStatus(userID string) (*model.Status, *model.AppError) {
+	if !*s.Config().ServiceSettings.EnableUserStatuses {
 		return &model.Status{}, nil
 	}
 
-	status := a.GetStatusFromCache(userID)
+	status := s.GetStatusFromCache(userID)
 	if status != nil {
 		return status, nil
 	}
 
-	status, err := a.Srv().Store.Status().Get(userID)
+	status, err := s.Store.Status().Get(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

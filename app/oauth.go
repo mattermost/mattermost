@@ -517,21 +517,25 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
-	session, _ := a.GetSession(token)
+	return a.Srv().RevokeAccessToken(token)
+}
+
+func (s *Server) RevokeAccessToken(token string) *model.AppError {
+	session, _ := s.GetSession(token)
 
 	defer ReturnSessionToPool(session)
 
 	schan := make(chan error, 1)
 	go func() {
-		schan <- a.Srv().Store.Session().Remove(token)
+		schan <- s.Store.Session().Remove(token)
 		close(schan)
 	}()
 
-	if _, err := a.Srv().Store.OAuth().GetAccessData(token); err != nil {
+	if _, err := s.Store.OAuth().GetAccessData(token); err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.OAuth().RemoveAccessData(token); err != nil {
+	if err := s.Store.OAuth().RemoveAccessData(token); err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -540,7 +544,7 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 	}
 
 	if session != nil {
-		a.ClearSessionCacheForUser(session.UserId)
+		s.ClearSessionCacheForUser(session.UserId)
 	}
 
 	return nil

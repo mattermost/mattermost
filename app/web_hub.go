@@ -219,9 +219,13 @@ func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 }
 
 func (a *App) invalidateCacheForChannelMembers(channelID string) {
-	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelID)
-	a.Srv().Store.Channel().InvalidateMemberCount(channelID)
-	a.Srv().Store.Channel().InvalidateGuestCount(channelID)
+	a.Srv().invalidateCacheForChannelMembers(channelID)
+}
+
+func (s *Server) invalidateCacheForChannelMembers(channelID string) {
+	s.Store.User().InvalidateProfilesInChannelCache(channelID)
+	s.Store.Channel().InvalidateMemberCount(channelID)
+	s.Store.Channel().InvalidateGuestCount(channelID)
 }
 
 func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
@@ -243,18 +247,22 @@ func (a *App) invalidateCacheForChannelPosts(channelID string) {
 }
 
 func (a *App) InvalidateCacheForUser(userID string) {
-	a.Srv().invalidateCacheForUserSkipClusterSend(userID)
+	a.Srv().InvalidateCacheForUser(userID)
+}
 
-	a.Srv().Store.User().InvalidateProfilesInChannelCacheByUser(userID)
-	a.Srv().Store.User().InvalidateProfileCacheForUser(userID)
+func (s *Server) InvalidateCacheForUser(userID string) {
+	s.invalidateCacheForUserSkipClusterSend(userID)
 
-	if a.Cluster() != nil {
+	s.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
+	s.Store.User().InvalidateProfileCacheForUser(userID)
+
+	if s.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     userID,
 		}
-		a.Cluster().SendClusterMessage(msg)
+		s.Cluster.SendClusterMessage(msg)
 	}
 }
 

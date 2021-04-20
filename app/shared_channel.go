@@ -13,13 +13,17 @@ import (
 )
 
 func (a *App) checkChannelNotShared(channelId string) error {
+	return a.Srv().checkChannelNotShared(channelId)
+}
+
+func (s *Server) checkChannelNotShared(channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(channelId); err != nil {
+	if _, err := s.GetChannel(channelId); err != nil {
 		return fmt.Errorf("cannot share this channel: %w", err)
 	}
 
 	// Check channel is not already shared.
-	if _, err := a.GetSharedChannel(channelId); err == nil {
+	if _, err := s.GetSharedChannel(channelId); err == nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			return errors.New("channel is already shared.")
@@ -59,14 +63,22 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 // SharedChannels
 
 func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	if err := a.checkChannelNotShared(sc.ChannelId); err != nil {
+	return a.Srv().SaveSharedChannel(sc)
+}
+
+func (s *Server) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	if err := s.checkChannelNotShared(sc.ChannelId); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.SharedChannel().Save(sc)
+	return s.Store.SharedChannel().Save(sc)
 }
 
 func (a *App) GetSharedChannel(channelID string) (*model.SharedChannel, error) {
-	return a.Srv().Store.SharedChannel().Get(channelID)
+	return a.Srv().GetSharedChannel(channelID)
+}
+
+func (s *Server) GetSharedChannel(channelID string) (*model.SharedChannel, error) {
+	return s.Store.SharedChannel().Get(channelID)
 }
 
 func (a *App) HasSharedChannel(channelID string) (bool, error) {

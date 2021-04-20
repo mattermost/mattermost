@@ -880,7 +880,11 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetAllPage(offset, limit)
+	return a.Srv().GetAllTeamsPage(offset, limit)
+}
+
+func (s *Server) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	teams, err := s.Store.Team().GetAllPage(offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetAllTeamsPage", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -996,7 +1000,11 @@ func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetTeamsByUserId(userID)
+	return a.Srv().GetTeamsForUser(userID)
+}
+
+func (s *Server) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
+	teams, err := s.Store.Team().GetTeamsByUserId(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsForUser", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2015,22 +2023,26 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 }
 
 func (a *App) ClearTeamMembersCache(teamID string) {
+	a.Srv().ClearTeamMembersCache(teamID)
+}
+
+func (s *Server) ClearTeamMembersCache(teamID string) {
 	perPage := 100
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page*perPage, perPage, nil)
+		teamMembers, err := s.Store.Team().GetMembers(teamID, page*perPage, perPage, nil)
 		if err != nil {
-			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
+			s.Log.Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
 		}
 
 		for _, teamMember := range teamMembers {
-			a.ClearSessionCacheForUser(teamMember.UserId)
+			s.ClearSessionCacheForUser(teamMember.UserId)
 
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", teamMember.UserId, nil)
 			message.Add("member", teamMember.ToJson())
-			a.Publish(message)
+			s.Publish(message)
 		}
 
 		length := len(teamMembers)

@@ -67,7 +67,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 
 	if a.Ldap() != nil {
 		var err *model.AppError
-		groups, total, err = a.Ldap().GetAllGroupsPage(page, perPage, opts)
+		groups, total, err = a.Ldap().GetAllGroupsPage(a, page, perPage, opts)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -102,7 +102,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.SwitchToLdap(user.Id, ldapLoginId, ldapPassword); err != nil {
+	if err := ldapInterface.SwitchToLdap(a, user.Id, ldapLoginId, ldapPassword); err != nil {
 		return "", err
 	}
 
@@ -163,7 +163,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 	if ldapI := a.Ldap(); ldapI != nil {
-		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+		if err := ldapI.MigrateIDAttribute(a, toAttribute); err != nil {
 			switch err := err.(type) {
 			case *model.AppError:
 				return err

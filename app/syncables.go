@@ -109,6 +109,10 @@ func (a *App) createDefaultTeamMemberships(since int64, teamID *string) error {
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 // are configured to sync with teams and channels for group members on or after the given timestamp.
 func (a *App) CreateDefaultMemberships(since int64) error {
+	return a.Srv().CreateDefaultMemberships(a, since)
+}
+
+func (s *Server) CreateDefaultMemberships(a *App, since int64) error {
 	err := a.createDefaultTeamMemberships(since, nil)
 	if err != nil {
 		return err
@@ -125,6 +129,10 @@ func (a *App) CreateDefaultMemberships(since int64) error {
 // DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 // groups of all group-constrained teams and channels.
 func (a *App) DeleteGroupConstrainedMemberships() error {
+	return a.Srv().DeleteGroupConstrainedMemberships(a)
+}
+
+func (s *Server) DeleteGroupConstrainedMemberships(a *App) error {
 	err := a.deleteGroupConstrainedChannelMemberships(nil)
 	if err != nil {
 		return err
@@ -195,12 +203,16 @@ func (a *App) deleteGroupConstrainedChannelMemberships(channelID *string) error 
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
+	return a.Srv().SyncSyncableRoles(syncableID, syncableType)
+}
+
+func (s *Server) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+	permittedAdmins, err := s.Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
 		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	a.Log().Info(
+	s.Log.Info(
 		fmt.Sprintf("Permitted admins for %s", syncableType),
 		mlog.String(strings.ToLower(fmt.Sprintf("%s_id", syncableType)), syncableID),
 		mlog.Any("permitted_admins", permittedAdmins),
@@ -208,13 +220,13 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := s.Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 		return nil
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := s.Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
 			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

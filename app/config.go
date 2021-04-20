@@ -390,6 +390,16 @@ func (a *App) GetConfigFile(name string) ([]byte, error) {
 	return data, nil
 }
 
+// GetConfigFile proxies access to the given configuration file to the underlying config store.
+func (s *Server) GetConfigFile(name string) ([]byte, error) {
+	data, err := s.configStore.GetFile(name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get config file %s", name)
+	}
+
+	return data, nil
+}
+
 // GetSanitizedConfig gets the configuration for a system admin without any secrets.
 func (a *App) GetSanitizedConfig() *model.Config {
 	cfg := a.Config().Clone()

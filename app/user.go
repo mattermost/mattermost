@@ -436,7 +436,11 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().Get(context.Background(), userID)
+	return a.Srv().GetUser(userID)
+}
+
+func (s *Server) GetUser(userID string) (*model.User, *model.AppError) {
+	user, err := s.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -497,7 +501,11 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetAllProfiles(options)
+	return a.Srv().GetUsers(options)
+}
+
+func (s *Server) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := s.Store.User().GetAllProfiles(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1050,13 +1058,17 @@ func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) 
 }
 
 func (a *App) userDeactivated(userID string) *model.AppError {
-	if err := a.RevokeAllSessions(userID); err != nil {
+	return a.Srv().userDeactivated(a, userID)
+}
+
+func (s *Server) userDeactivated(a *App, userID string) *model.AppError {
+	if err := s.RevokeAllSessions(userID); err != nil {
 		return err
 	}
 
-	a.SetStatusOffline(userID, false)
+	s.SetStatusOffline(userID, false)
 
-	user, err := a.GetUser(userID)
+	user, err := s.GetUser(userID)
 	if err != nil {
 		return err
 	}
@@ -1065,30 +1077,30 @@ func (a *App) userDeactivated(userID string) *model.AppError {
 	// bots the user owns. Only notify once, when the user is the owner, not the
 	// owners bots
 	if !user.IsBot {
-		a.notifySysadminsBotOwnerDeactivated(userID)
+		s.notifySysadminsBotOwnerDeactivated(a, userID)
 	}
 
-	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
-		a.disableUserBots(userID)
+	if *s.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
+		s.disableUserBots(a, userID)
 	}
 
 	return nil
 }
 
-func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError {
-	teamsForUser, err := a.GetTeamsForUser(userID)
+func (s *Server) invalidateUserChannelMembersCaches(userID string) *model.AppError {
+	teamsForUser, err := s.GetTeamsForUser(userID)
 	if err != nil {
 		return err
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, userID, false, 0)
+		channelsForUser, err := s.GetChannelsForUser(team.Id, userID, false, 0)
 		if err != nil {
 			return err
 		}
 
 		for _, channel := range *channelsForUser {
-			a.invalidateCacheForChannelMembers(channel.Id)
+			s.invalidateCacheForChannelMembers(channel.Id)
 		}
 	}
 
@@ -1096,6 +1108,10 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 }
 
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	return a.Srv().UpdateActive(a, user, active)
+}
+
+func (s *Server) UpdateActive(a *App, user *model.User, active bool) (*model.User, *model.AppError) {
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1103,7 +1119,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		user.DeleteAt = user.UpdateAt
 	}
 
-	userUpdate, err := a.Srv().Store.User().Update(user, true)
+	userUpdate, err := s.Store.User().Update(user, true)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -1119,15 +1135,15 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	ruser := userUpdate.New
 
 	if !active {
-		if err := a.userDeactivated(ruser.Id); err != nil {
+		if err := s.userDeactivated(a, ruser.Id); err != nil {
 			return nil, err
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(user.Id)
-	a.InvalidateCacheForUser(user.Id)
+	s.invalidateUserChannelMembersCaches(user.Id)
+	s.InvalidateCacheForUser(user.Id)
 
-	a.sendUpdatedUserEvent(*ruser)
+	s.sendUpdatedUserEvent(*ruser)
 
 	return ruser, nil
 }
@@ -1154,7 +1170,11 @@ func (a *App) DeactivateGuests() *model.AppError {
 }
 
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
-	options := a.Config().GetSanitizeOptions()
+	return a.Srv().GetSanitizeOptions(asAdmin)
+}
+
+func (s *Server) GetSanitizeOptions(asAdmin bool) map[string]bool {
+	options := s.Config().GetSanitizeOptions()
 	if asAdmin {
 		options["email"] = true
 		options["fullname"] = true
@@ -1164,7 +1184,11 @@ func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 }
 
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
-	options := a.GetSanitizeOptions(asAdmin)
+	a.Srv().SanitizeProfile(user, asAdmin)
+}
+
+func (s *Server) SanitizeProfile(user *model.User, asAdmin bool) {
+	options := s.GetSanitizeOptions(asAdmin)
 
 	user.SanitizeProfile(options)
 }
@@ -1241,18 +1265,22 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 }
 
 func (a *App) sendUpdatedUserEvent(user model.User) {
+	a.Srv().sendUpdatedUserEvent(user)
+}
+
+func (s *Server) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
-	a.SanitizeProfile(adminCopyOfUser, true)
+	s.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
+	s.Publish(adminMessage)
 
-	a.SanitizeProfile(&user, false)
+	s.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(message)
+	s.Publish(message)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {

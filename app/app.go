@@ -103,7 +103,7 @@ func (a *App) InitServer() {
 
 func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
-		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
+		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a.srv)
 	}
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)

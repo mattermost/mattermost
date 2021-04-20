@@ -231,7 +231,11 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
-	bots, err := a.Srv().Store.Bot().GetAll(options)
+	return a.Srv().GetBots(options)
+}
+
+func (s *Server) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
+	bots, err := s.Store.Bot().GetAll(options)
 	if err != nil {
 		return nil, model.NewAppError("GetBots", "app.bot.getbots.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -240,7 +244,11 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
+	return a.Srv().UpdateBotActive(a, botUserId, active)
+}
+
+func (s *Server) UpdateBotActive(a *App, botUserId string, active bool) (*model.Bot, *model.AppError) {
+	user, nErr := s.Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -251,11 +259,11 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		}
 	}
 
-	if _, err := a.UpdateActive(user, active); err != nil {
+	if _, err := s.UpdateActive(a, user, active); err != nil {
 		return nil, err
 	}
 
-	bot, nErr := a.Srv().Store.Bot().Get(botUserId, true)
+	bot, nErr := s.Store.Bot().Get(botUserId, true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -276,7 +284,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 	}
 
 	if changed {
-		bot, nErr = a.Srv().Store.Bot().Update(bot)
+		bot, nErr = s.Store.Bot().Update(bot)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			var appErr *model.AppError
@@ -379,6 +387,39 @@ func (a *App) disableUserBots(userID string) *model.AppError {
 	return nil
 }
 
+func (s *Server) disableUserBots(a *App, userID string) *model.AppError {
+	perPage := 20
+	for {
+		options := &model.BotGetOptions{
+			OwnerId:        userID,
+			IncludeDeleted: false,
+			OnlyOrphaned:   false,
+			Page:           0,
+			PerPage:        perPage,
+		}
+		userBots, err := s.GetBots(options)
+		if err != nil {
+			return err
+		}
+
+		for _, bot := range userBots {
+			_, err := s.UpdateBotActive(a, bot.UserId, false)
+			if err != nil {
+				mlog.Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
+			}
+		}
+
+		// Get next set of bots if we got the max number of bots
+		if len(userBots) == perPage {
+			options.Page += 1
+			continue
+		}
+		break
+	}
+
+	return nil
+}
+
 func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
@@ -461,8 +502,94 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError 
 	return nil
 }
 
+func (s *Server) notifySysadminsBotOwnerDeactivated(a *App, userID string) *model.AppError {
+	perPage := 25
+	botOptions := &model.BotGetOptions{
+		OwnerId:        userID,
+		IncludeDeleted: false,
+		OnlyOrphaned:   false,
+		Page:           0,
+		PerPage:        perPage,
+	}
+	// get owner bots
+	var userBots []*model.Bot
+	for {
+		bots, err := s.GetBots(botOptions)
+		if err != nil {
+			return err
+		}
+
+		userBots = append(userBots, bots...)
+
+		if len(bots) < perPage {
+			break
+		}
+
+		botOptions.Page += 1
+	}
+
+	// user does not own bots
+	if len(userBots) == 0 {
+		return nil
+	}
+
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+	// get sysadmins
+	var sysAdmins []*model.User
+	for {
+		sysAdminsList, err := s.GetUsers(userOptions)
+		if err != nil {
+			return err
+		}
+
+		sysAdmins = append(sysAdmins, sysAdminsList...)
+
+		if len(sysAdminsList) < perPage {
+			break
+		}
+
+		userOptions.Page += 1
+	}
+
+	// user being disabled
+	user, err := s.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	// for each sysadmin, notify user that owns bots was disabled
+	for _, sysAdmin := range sysAdmins {
+		channel, appErr := s.GetOrCreateDirectChannel(a, sysAdmin.Id, sysAdmin.Id)
+		if appErr != nil {
+			return appErr
+		}
+
+		post := &model.Post{
+			UserId:    sysAdmin.Id,
+			ChannelId: channel.Id,
+			Message:   s.getDisableBotSysadminMessage(user, userBots),
+			Type:      model.POST_SYSTEM_GENERIC,
+		}
+
+		_, appErr = a.CreatePost(post, channel, false, true)
+		if appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
 func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotList) string {
-	disableBotsSetting := *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
+	return a.Srv().getDisableBotSysadminMessage(user, userBots)
+}
+
+func (s *Server) getDisableBotSysadminMessage(user *model.User, userBots model.BotList) string {
+	disableBotsSetting := *s.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated
 
 	var printAllBots = true
 	numBotsToPrint := len(userBots)

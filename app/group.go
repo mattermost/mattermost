@@ -93,12 +93,16 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	updatedGroup, err := a.Srv().Store.Group().Update(group)
+	return a.Srv().UpdateGroup(group)
+}
+
+func (s *Server) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	updatedGroup, err := s.Store.Group().Update(group)
 
 	if err == nil {
 		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
 		messageWs.Add("group", updatedGroup.ToJson())
-		a.Publish(messageWs)
+		s.Publish(messageWs)
 	}
 
 	if err != nil {
@@ -118,12 +122,16 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
+	return a.Srv().DeleteGroup(groupID)
+}
+
+func (s *Server) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	deletedGroup, err := s.Store.Group().Delete(groupID)
 
 	if err == nil {
 		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
 		messageWs.Add("group", deletedGroup.ToJson())
-		a.Publish(messageWs)
+		s.Publish(messageWs)
 	}
 
 	if err != nil {
@@ -149,7 +157,11 @@ func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.Group().GetMemberUsers(groupID)
+	return a.Srv().GetGroupMemberUsers(groupID)
+}
+
+func (s *Server) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+	users, err := s.Store.Group().GetMemberUsers(groupID)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupMemberUsers", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -171,7 +183,11 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 }
 
 func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	groupMember, err := a.Srv().Store.Group().UpsertMember(groupID, userID)
+	return a.Srv().UpsertGroupMember(groupID, userID)
+}
+
+func (s *Server) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	groupMember, err := s.Store.Group().UpsertMember(groupID, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -189,7 +205,11 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 }
 
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	groupMember, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
+	return a.Srv().DeleteGroupMember(groupID, userID)
+}
+
+func (s *Server) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	groupMember, err := s.Store.Group().DeleteMember(groupID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

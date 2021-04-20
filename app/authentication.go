@@ -132,7 +132,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(a, *ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err

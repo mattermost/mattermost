@@ -66,9 +66,9 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
-var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
+var jobsLdapSyncInterface func(*Server) ejobs.LdapSyncInterface
 
-func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
+func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
@@ -145,9 +145,9 @@ func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInte
 	productNoticesJobInterface = f
 }
 
-var ldapInterface func(*App) einterfaces.LdapInterface
+var ldapInterface func(*Server) einterfaces.LdapInterface
 
-func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
+func RegisterLdapInterface(f func(*Server) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
@@ -207,7 +207,7 @@ func (a *App) initEnterprise() {
 		a.srv.AccountMigration = accountMigrationInterface(a)
 	}
 	if ldapInterface != nil {
-		a.srv.Ldap = ldapInterface(a)
+		a.srv.Ldap = ldapInterface(a.srv)
 	}
 	if notificationInterface != nil {
 		a.srv.Notification = notificationInterface(a)

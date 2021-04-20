@@ -70,7 +70,7 @@ func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
 
 	toAttribute := args[0]
 	if ldapI := a.Ldap(); ldapI != nil {
-		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+		if err := ldapI.MigrateIDAttribute(a, toAttribute); err != nil {
 			CommandPrintErrorln("ERROR: AD/LDAP IdAttribute migration failed! Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
