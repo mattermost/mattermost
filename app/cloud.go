@@ -200,3 +200,28 @@ func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model
 
 	return nil
 }
+
+func (a *App) SendCloudTrialEndedEmail() *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for admin := range sysAdmins {
+		err := a.Srv().EmailService.SendCloudTrialEndedEmail(sysAdmins[admin].Email, sysAdmins[admin].Username, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending trial ended email to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudTrialEndedEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
+}
