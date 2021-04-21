@@ -8049,7 +8049,7 @@ func (a *OpenTracingAppLayer) GetRole(id string) (*model.Role, *model.AppError) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRoleByName(name string) (*model.Role, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRoleByName")
 
@@ -8061,7 +8061,7 @@ func (a *OpenTracingAppLayer) GetRoleByName(name string) (*model.Role, *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRoleByName(name)
+	resultVar0, resultVar1 := a.app.GetRoleByName(ctx, name)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
