@@ -211,7 +211,12 @@ func (a *App) SendCloudTrialEndedEmail() *model.AppError {
 	countNotOks := 0
 
 	for admin := range sysAdmins {
-		err := a.Srv().EmailService.SendCloudTrialEndedEmail(sysAdmins[admin].Email, sysAdmins[admin].Username, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+
+		err := a.Srv().EmailService.SendCloudTrialEndedEmail(sysAdmins[admin].Email, name, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
 		if err != nil {
 			a.Log().Error("Error sending trial ended email to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
 			countNotOks++

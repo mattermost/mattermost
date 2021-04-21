@@ -3136,7 +3136,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Username}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
