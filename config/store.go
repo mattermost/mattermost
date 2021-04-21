@@ -24,6 +24,21 @@ var (
 // Listener is a callback function invoked when the configuration changes.
 type Listener func(oldConfig *model.Config, newConfig *model.Config)
 
+// Store is the higher level object that handles storing and retrieval of config data.
+// To do so it relies on a variety of backing stores (e.g. file, database, memory).
+type Store struct {
+	emitter
+	backingStore BackingStore
+
+	configLock           sync.RWMutex
+	config               *model.Config
+	configNoEnv          *model.Config
+	configCustomDefaults *model.Config
+
+	persistFeatureFlags bool
+	readOnly            bool
+}
+
 type BackingStore interface {
 	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) error
@@ -54,22 +69,7 @@ type BackingStore interface {
 	Close() error
 }
 
-// NewStore creates a database or file store given a data source name by which to connect.
-func NewStore(dsn string, watch, readOnly bool, customDefaults *model.Config) (*Store, error) {
-	backingStore, err := getBackingStore(dsn, watch)
-	if err != nil {
-		return nil, err
-	}
-
-	store, err := NewStoreFromBacking(backingStore, customDefaults, readOnly)
-	if err != nil {
-		backingStore.Close()
-		return nil, errors.Wrap(err, "failed to create store")
-	}
-
-	return store, nil
-}
-
+// NewStore creates and returns a new config store given a backing store.
 func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config, readOnly bool) (*Store, error) {
 	store := &Store{
 		backingStore:         backingStore,
@@ -90,14 +90,31 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 	return store, nil
 }
 
-func getBackingStore(dsn string, watch bool) (BackingStore, error) {
+// NewStore creates and returns a new config store backed by either a database or file store
+// depending on the value of the given data source name string.
+func NewStoreFromDSN(dsn string, watch, readOnly bool, customDefaults *model.Config) (*Store, error) {
+	var err error
+	var backingStore BackingStore
 	if IsDatabaseDSN(dsn) {
-		return NewDatabaseStore(dsn)
+		backingStore, err = NewDatabaseStore(dsn)
+	} else {
+		backingStore, err = NewFileStore(dsn, watch)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	return NewFileStore(dsn, watch)
+	store, err := NewStoreFromBacking(backingStore, customDefaults, readOnly)
+	if err != nil {
+		backingStore.Close()
+		return nil, errors.Wrap(err, "failed to create store")
+	}
+
+	return store, nil
 }
 
+// NewTestMemoryStore returns a new config store backed by a memory store
+// to be used for testing purposes.
 func NewTestMemoryStore() *Store {
 	memoryStore, err := NewMemoryStore()
 	if err != nil {
@@ -112,19 +129,6 @@ func NewTestMemoryStore() *Store {
 	return configStore
 }
 
-type Store struct {
-	emitter
-	backingStore BackingStore
-
-	configLock           sync.RWMutex
-	config               *model.Config
-	configNoEnv          *model.Config
-	configCustomDefaults *model.Config
-
-	persistFeatureFlags bool
-	readOnly            bool
-}
-
 // Get fetches the current, cached configuration.
 func (s *Store) Get() *model.Config {
 	s.configLock.RLock()
@@ -132,7 +136,7 @@ func (s *Store) Get() *model.Config {
 	return s.config
 }
 
-// Get fetches the current, cached configuration without environment variable overrides.
+// Get fetches the current cached configuration without environment variable overrides.
 func (s *Store) GetNoEnv() *model.Config {
 	s.configLock.RLock()
 	defer s.configLock.RUnlock()
@@ -151,7 +155,7 @@ func (s *Store) GetEnvironmentOverridesWithFilter(filter func(reflect.StructFiel
 }
 
 // RemoveEnvironmentOverrides returns a new config without the environment
-// overrides
+// overrides.
 func (s *Store) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	s.configLock.RLock()
 	defer s.configLock.RUnlock()
