@@ -1695,9 +1695,11 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:  opts.ExcludeChannelNames,
-		NotAssociatedToGroup: opts.NotAssociatedToGroup,
-		IncludeDeleted:       opts.IncludeDeleted,
+		ExcludeChannelNames:      opts.ExcludeChannelNames,
+		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
+		IncludeDeleted:           opts.IncludeDeleted,
+		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
+		IncludePolicyID:          opts.IncludePolicyID,
 	}
 	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
@@ -2385,7 +2387,11 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		}
 
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
-		if threadMembership != nil && threadMembership.Following {
+		if threadMembership == nil {
+			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true, false)
+		}
+		threadData, _ := a.Srv().Store.Thread().Get(threadId)
+		if threadData != nil && threadMembership != nil && threadMembership.Following {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2464,17 +2470,20 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:     opts.ExcludeChannelNames,
-		NotAssociatedToGroup:    opts.NotAssociatedToGroup,
-		IncludeDeleted:          opts.IncludeDeleted,
-		Deleted:                 opts.Deleted,
-		TeamIds:                 opts.TeamIds,
-		GroupConstrained:        opts.GroupConstrained,
-		ExcludeGroupConstrained: opts.ExcludeGroupConstrained,
-		Public:                  opts.Public,
-		Private:                 opts.Private,
-		Page:                    opts.Page,
-		PerPage:                 opts.PerPage,
+		ExcludeChannelNames:      opts.ExcludeChannelNames,
+		NotAssociatedToGroup:     opts.NotAssociatedToGroup,
+		IncludeDeleted:           opts.IncludeDeleted,
+		Deleted:                  opts.Deleted,
+		TeamIds:                  opts.TeamIds,
+		GroupConstrained:         opts.GroupConstrained,
+		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
+		PolicyID:                 opts.PolicyID,
+		IncludePolicyID:          opts.IncludePolicyID,
+		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
+		Public:                   opts.Public,
+		Private:                  opts.Private,
+		Page:                     opts.Page,
+		PerPage:                  opts.PerPage,
 	}
 
 	term = strings.TrimSpace(term)
@@ -2587,7 +2596,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			}
 		}
 	}
-	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, *a.Config().ServiceSettings.ThreadAutoFollow)
+	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, false)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

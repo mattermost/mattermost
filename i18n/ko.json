@@ -4838,10 +4838,6 @@
     "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "This email is already taken. Please choose another."
-  },
-  {
     "id": "system.message.name",
     "translation": "시스템"
   },
@@ -7034,14 +7030,6 @@
     "translation": "팀의 갯수를 계산할 수 없습니다."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "공개 팀의 갯수를 계산할 수 없습니다."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "비공개 팀의 갯수를 계산할 수 없습니다."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "해당 채널에 대한 게시글을 가져올 수 없습니다."
   },
@@ -7324,10 +7312,6 @@
   {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "시간 구간 이후의 게시글을 가져올 수 없습니다."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "모든 비공개 팀을 페이지 형태로 가져오지 못했습니다."
   },
   {
     "id": "api.user.login_cws.license.error",
