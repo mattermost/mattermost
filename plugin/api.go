@@ -255,13 +255,13 @@ type API interface {
 	// The custom status have two parameters: emoji icon and custom text.
 	//
 	// @tag User
-	// Minimum server version: 5.34
-	UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError
+	// Minimum server version: 5.36
+	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
 
 	// RemoveUserCustomStatus will remove a user's custom status.
 	//
 	// @tag User
-	// Minimum server version: 5.34
+	// Minimum server version: 5.36
 	RemoveUserCustomStatus(userID string) *model.AppError
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.

@@ -294,9 +294,9 @@ func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.Ap
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UpdateUserCustomStatus(userID, emoji, customStatus string) *model.AppError {
+func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, emoji, customStatus)
+	_returnsA := api.apiImpl.UpdateUserCustomStatus(userID, customStatus)
 	api.recordTime(startTime, "UpdateUserCustomStatus", _returnsA == nil)
 	return _returnsA
 }

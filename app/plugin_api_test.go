@@ -495,25 +495,34 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteUser(user1)
 
-	err = api.UpdateUserCustomStatus(user1.Id, ":tada:", "honk")
+	custom := &model.CustomStatus{
+		Emoji: ":tada:",
+		Text:  "honk",
+	}
+
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
 	user, err := th.App.GetUser(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"emoji":":tada:","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
 
-	err = api.UpdateUserCustomStatus(user1.Id, ":tada:", "")
+	custom.Text = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
 	user, err = th.App.GetUser(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"emoji":":tada:","text":""}`, user.Props[model.UserPropsKeyCustomStatus])
 
-	err = api.UpdateUserCustomStatus(user1.Id, "", "honk")
+	custom.Text = "honk"
+	custom.Emoji = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
 	user, err = th.App.GetUser(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"emoji":"","text":"honk"}`, user.Props[model.UserPropsKeyCustomStatus])
 
-	err = api.UpdateUserCustomStatus(user1.Id, "", "")
+	custom.Text = ""
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.NotNil(t, err)
 	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both., ")
 
