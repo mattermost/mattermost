@@ -38,7 +38,6 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
 		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")

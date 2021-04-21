@@ -117,7 +117,7 @@ func handleInvitation(s *Server, syncService SharedChannelServiceIFace, event *m
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}
 
-	return syncService.SendChannelInvite(channel, creator.Id, "", rc, sharedchannel.WithDirectParticipantID(creator.Id), sharedchannel.WithDirectParticipantID(participant.Id))
+	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipantID(creator.Id), sharedchannel.WithDirectParticipantID(participant.Id))
 }
 
 func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*model.User, error) {

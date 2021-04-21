@@ -17,8 +17,8 @@ type ShareProvider struct {
 }
 
 const (
-	CommandTriggerShare   = "share"
-	AvailableShareActions = "share_channel, unshare_channel, invite_remove, uninvite_remote, status"
+	CommandTriggerShare   = "share-channel"
+	AvailableShareActions = "unshare, invite, uninvite, status"
 )
 
 func init() {
@@ -32,29 +32,20 @@ func (sp *ShareProvider) GetTrigger() string {
 func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	share := model.NewAutocompleteData(CommandTriggerShare, "[action]", T("api.command_share.available_actions", map[string]interface{}{"Actions": AvailableShareActions}))
 
-	shareChannel := model.NewAutocompleteData("share_channel", "", T("api.command_share.share_current"))
-	shareChannel.AddNamedTextArgument("readonly", T("api.command_share.share_read_only.help"), T("api.command_share.share_read_only.hint"), "Y|N|y|n", false)
-	shareChannel.AddNamedTextArgument("name", T("api.command_share.channel_name.help"), T("api.command_share.channel_name.hint"), "", false)
-	shareChannel.AddNamedTextArgument("displayname", T("api.command_share.channel_display_name.help"), T("api.command_share.channel_display_name.hint"), "", false)
-	shareChannel.AddNamedTextArgument("purpose", T("api.command_share.channel_purpose.help"), T("api.command_share.channel_purpose.hint"), "", false)
-	shareChannel.AddNamedTextArgument("header", T("api.command_share.channel_header.help"), T("api.command_share.channel_header.hint"), "", false)
+	inviteRemote := model.NewAutocompleteData("invite", "", T("api.command_share.invite_remote.help"))
+	inviteRemote.AddNamedDynamicListArgument("connectionID", T("api.command_share.remote_id.help"), "builtin:share-channel", true)
+	inviteRemote.AddNamedTextArgument("readonly", T("api.command_share.share_read_only.help"), T("api.command_share.share_read_only.hint"), "Y|N|y|n", false)
 
-	unshareChannel := model.NewAutocompleteData("unshare_channel", "", T("api.command_share.unshare_channel.help"))
-	unshareChannel.AddNamedTextArgument("are_you_sure", T("api.command_share.unshare_confirmation.help"), T("api.command_share.unshare_confirmation.hint"), "Y|N|y|n", true)
+	unInviteRemote := model.NewAutocompleteData("uninvite", "", T("api.command_share.uninvite_remote.help"))
+	unInviteRemote.AddNamedDynamicListArgument("connectionID", T("api.command_share.uninvite_remote_id.help"), "builtin:share", true)
 
-	inviteRemote := model.NewAutocompleteData("invite_remote", "", T("api.command_share.invite_remote.help"))
-	inviteRemote.AddNamedDynamicListArgument("remoteId", T("api.command_share.remote_id.help"), "builtin:share", true)
-	inviteRemote.AddNamedTextArgument("description", T("api.command_share.description_invite.help"), T("api.command_share.description_invite.hint"), "", false)
-
-	unInviteRemote := model.NewAutocompleteData("uninvite_remote", "", T("api.command_share.uninvite_remote.help"))
-	unInviteRemote.AddNamedDynamicListArgument("remoteId", T("api.command_share.uninvite_remote_id.help"), "builtin:share", true)
+	unshareChannel := model.NewAutocompleteData("unshare", "", T("api.command_share.unshare_channel.help"))
 
 	status := model.NewAutocompleteData("status", "", T("api.command_share.channel_status.help"))
 
-	share.AddCommand(shareChannel)
-	share.AddCommand(unshareChannel)
 	share.AddCommand(inviteRemote)
 	share.AddCommand(unInviteRemote)
+	share.AddCommand(unshareChannel)
 	share.AddCommand(status)
 
 	return &model.Command{
@@ -69,15 +60,15 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 
 func (sp *ShareProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	switch {
-	case strings.Contains(parsed, " share_channel "):
+	case strings.Contains(parsed, " share "):
 
 		return sp.getAutoCompleteShareChannel(a, commandArgs, arg)
 
-	case strings.Contains(parsed, " invite_remote "):
+	case strings.Contains(parsed, " invite "):
 
 		return sp.getAutoCompleteInviteRemote(a, commandArgs, arg)
 
-	case strings.Contains(parsed, " uninvite_remote "):
+	case strings.Contains(parsed, " uninvite "):
 
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
 
@@ -112,7 +103,7 @@ func (sp *ShareProvider) getAutoCompleteShareChannel(a *app.App, commandArgs *mo
 
 func (sp *ShareProvider) getAutoCompleteInviteRemote(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
 	switch arg.Name {
-	case "remoteId":
+	case "connectionID":
 		return getRemoteClusterAutocompleteListItemsNotInChannel(a, commandArgs.ChannelId, true)
 	default:
 		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
@@ -121,7 +112,7 @@ func (sp *ShareProvider) getAutoCompleteInviteRemote(a *app.App, commandArgs *mo
 
 func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
 	switch arg.Name {
-	case "remoteId":
+	case "connectionID":
 		return getRemoteClusterAutocompleteListItems(a, true)
 	default:
 		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
@@ -148,13 +139,13 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 	}
 
 	switch action {
-	case "share_channel":
+	case "share":
 		return sp.doShareChannel(a, args, margs)
-	case "unshare_channel":
+	case "unshare":
 		return sp.doUnshareChannel(a, args, margs)
-	case "invite_remote":
+	case "invite":
 		return sp.doInviteRemote(a, args, margs)
-	case "uninvite_remote":
+	case "uninvite":
 		return sp.doUninviteRemote(a, args, margs)
 	case "status":
 		return sp.doStatus(a, args, margs)
@@ -212,15 +203,6 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 }
 
 func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	if _, ok := margs["are_you_sure"]; !ok {
-		margs["are_you_sure"] = "N"
-	}
-
-	sure, err := parseBool(margs["are_you_sure"])
-	if err != nil || !sure {
-		return responsef(args.T("api.command_share.shared_channel_not_deleted", map[string]interface{}{"Arg": "are_you_sure", "Expected": "Y"}))
-	}
-
 	sc, appErr := a.GetSharedChannel(args.ChannelId)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]interface{}{"Error": appErr.Error()}))
@@ -240,7 +222,7 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
-	remoteId, ok := margs["remoteId"]
+	remoteId, ok := margs["connectionID"]
 	if !ok || remoteId == "" {
 		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
@@ -284,7 +266,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef(args.T("api.command_share.channel_invite.error", map[string]interface{}{"Name": rc.DisplayName, "Error": errApp.Error()}))
 	}
 	// send channel invite to remote cluster
-	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, args.UserId, margs["description"], rc); err != nil {
+	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, args.UserId, rc); err != nil {
 		return responsef(args.T("api.command_share.channel_invite.error", map[string]interface{}{"Name": rc.DisplayName, "Error": err.Error()}))
 	}
 
@@ -292,7 +274,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	remoteId, ok := margs["remoteId"]
+	remoteId, ok := margs["connectionID"]
 	if !ok || remoteId == "" {
 		return responsef(args.T("api.command_share.remote_not_valid"))
 	}
@@ -323,19 +305,18 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 	fmt.Fprintf(&sb, args.T("api.command_share.channel_status_id", map[string]interface{}{"ChannelId": statuses[0].ChannelId})+"\n\n")
 
 	fmt.Fprintf(&sb, args.T("api.command_share.remote_table_header")+" \n")
-	fmt.Fprintf(&sb, "| ------ | ------- | ----------- | -------- | -------------- | ------ | --------- | \n")
+	// "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
+	fmt.Fprintf(&sb, "| ---- | ---- | ---- | ---- | ---- | ---- | \n")
 
 	for _, status := range statuses {
-		online := ":white_check_mark:"
-		if !isOnline(status.LastPingAt) {
-			online = ":skull_and_crossbones:"
-		}
+		readonly := formatBool(args.T, status.ReadOnly)
+		accepted := formatBool(args.T, status.IsInviteAccepted)
+		online := formatBool(args.T, isOnline(status.LastPingAt))
 
-		lastSync := formatTimestamp(model.GetTimeForMillis(status.NextSyncAt))
+		lastSync := formatTimestamp(status.NextSyncAt)
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %t | %t | %s | %s |\n",
-			status.DisplayName, status.SiteURL, status.Description,
-			status.ReadOnly, status.IsInviteAccepted, online, lastSync)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n",
+			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)
 	}
 	return responsef(sb.String())
 }
