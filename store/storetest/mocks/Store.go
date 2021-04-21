@@ -476,6 +476,22 @@ func (_m *Store) ReplicaLagTime() error {
 	return r0
 }
 
+// RetentionPolicy provides a mock function with given fields:
+func (_m *Store) RetentionPolicy() store.RetentionPolicyStore {
+	ret := _m.Called()
+
+	var r0 store.RetentionPolicyStore
+	if rf, ok := ret.Get(0).(func() store.RetentionPolicyStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RetentionPolicyStore)
+		}
+	}
+
+	return r0
+}
+
 // Role provides a mock function with given fields:
 func (_m *Store) Role() store.RoleStore {
 	ret := _m.Called()
