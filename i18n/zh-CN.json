@@ -6998,10 +6998,6 @@
     "translation": "无法获取所有的团队。"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "无法获取页面中的所有私有团队。"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "无法获取所有私有团队。"
   },
@@ -7028,14 +7024,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "无法统计团队数。"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "无法统计公开团队数。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "无法统计私有团队数。"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
