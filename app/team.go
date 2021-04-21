@@ -385,7 +385,7 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles strin
 
 	for _, roleName := range strings.Fields(newRoles) {
 		var role *model.Role
-		role, err = a.GetRoleByName(roleName)
+		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err

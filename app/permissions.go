@@ -5,6 +5,7 @@ package app
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -98,7 +99,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				if roleName == "" {
 					continue
 				}
-				role, err := a.GetRoleByName(roleName)
+				role, err := a.GetRoleByName(context.Background(), roleName)
 				if err != nil {
 					return err
 				}
@@ -171,7 +172,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 
 		if schemeConveyor.Name == systemSchemeName {
 			for _, roleIn := range schemeConveyor.Roles {
-				dbRole, err := a.GetRoleByName(roleIn.Name)
+				dbRole, err := a.GetRoleByName(context.Background(), roleIn.Name)
 				if err != nil {
 					rollback(a, createdSchemeIDs)
 					return errors.New(err.Message)
@@ -236,7 +237,7 @@ func rollback(a *App, createdSchemeIDs []string) {
 func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
 	var err *model.AppError
 
-	roleCreated, err := a.GetRoleByName(roleCreatedName)
+	roleCreated, err := a.GetRoleByName(context.Background(), roleCreatedName)
 	if err != nil {
 		return errors.New(err.Message)
 	}
