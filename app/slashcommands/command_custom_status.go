@@ -68,7 +68,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
 		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
 	} else {
-		spaceSeparatedMessage := strings.Split(message, " ")
+		spaceSeparatedMessage := strings.Fields(message)
 		emojiString := spaceSeparatedMessage[0]
 		var unicode []string
 		for utf8.RuneCountInString(emojiString) >= 1 {
