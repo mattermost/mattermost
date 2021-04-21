@@ -221,6 +221,9 @@ func (t *TableMap) SqlForCreate(ifNotExists bool) string {
 			if col.isPK || col.isNotNull {
 				s.WriteString(" not null")
 			}
+			if col.DefaultConstraint != nil {
+				s.WriteString(fmt.Sprintf(" default '%s'", *col.DefaultConstraint))
+			}
 			if col.isPK && len(t.keys) == 1 {
 				s.WriteString(" primary key")
 			}

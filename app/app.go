@@ -76,7 +76,7 @@ func (a *App) InitServer() {
 		a.initJobs()
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
+			a.registerAppClusterMessageHandlers()
 		}
 
 		a.DoAppMigrations()
@@ -94,7 +94,6 @@ func (a *App) InitServer() {
 		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
-				runCheckWarnMetricStatusJob(a)
 			})
 			a.srv.runJobs()
 		}
@@ -138,6 +137,10 @@ func (a *App) initJobs() {
 
 	if jobsCloudInterface != nil {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
+	}
+
+	if jobsResendInvitationEmailInterface != nil {
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
 	}
 
 	a.srv.Jobs.InitWorkers()
@@ -188,6 +191,7 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+//nolint:golint,unused,deadcode
 func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 	if err != nil {
@@ -332,6 +336,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{

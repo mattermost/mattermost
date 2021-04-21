@@ -2207,15 +2207,15 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "未能发送电子邮件通知电子邮件成功"
+    "translation": "无法发送电子邮件通知电子邮件"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "未能发送用户名更改通知邮件"
+    "translation": "无法发送用户名更改通知邮件"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "未能发送电子邮件更改验证电子邮件成功"
+    "translation": "无法发送电子邮件更改验证电子邮件"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -2223,11 +2223,11 @@
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功"
+    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "未能发送密码重置电子邮件成功。"
+    "translation": "无法发送密码重置电子邮件。"
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
@@ -2235,7 +2235,7 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功"
+    "translation": "无法发送更新密码电子邮件"
   },
   {
     "id": "api.user.send_user_access_token.error",
@@ -2243,11 +2243,11 @@
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "未能发送验证电子邮件成功"
+    "translation": "无法发送验证电子邮件"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "未能成功发送欢迎电子邮件"
+    "translation": "无法成功发送欢迎电子邮件"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -4838,10 +4838,6 @@
     "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
     "id": "system.message.name",
     "translation": "系统"
   },
@@ -7002,10 +6998,6 @@
     "translation": "无法获取所有的团队。"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "无法获取页面中的所有私有团队。"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "无法获取所有私有团队。"
   },
@@ -7032,14 +7024,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "无法统计团队数。"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "无法统计公开团队数。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "无法统计私有团队数。"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -7815,7 +7799,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8655,7 +8639,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8704,5 +8688,61 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "将应用程序添加到您的工作区"
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "搜索文件在此服务器上已被禁用。请与您的系统管理员联系。"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "无法将字段编码为 JSON"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "无法批量获取要建立索引的文件。"
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "获取云订阅时出错"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "生成密码错误。"
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "个人资料图片必须通过用户的登录提供商设置。"
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "无法发送云欢迎电子邮件"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "随时通过电子邮件发送给我们 "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "对入门有疑问吗？给我们发电子邮件"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "分享此链接以邀请您的成员加入{{.WorkSpace}}："
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "感谢创建 "
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "尝试保存商店中检索第一个管理员访问市场状态时出错。"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "尝试从商店中检索第一个管理员访问市场状态时出错。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "清除缓存时出错"
   }
 ]

@@ -148,10 +148,6 @@
     "translation": "System"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Den här e-postadressen används redan. Välj en annan."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Kan inte hitta ett existerande konto som matchar din autentisering. Denna grupp kan behöva en inbjudan av ägaren till gruppen för att gå med."
   },
@@ -2356,10 +2352,6 @@
     "translation": "Det gick inte att ta fram alla team."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Det gick inte att ta fram alla privata team på en sida."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Det gick inte att ta fram alla privata team."
   },
@@ -2386,14 +2378,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Kan inte räkna antal team."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Kunde inte räkna antal publika team."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Kunde inte räkna antal privata team."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -4417,7 +4401,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Ett fel uppstod när inställningar raderades.."
+    "translation": "Ett fel uppstod när inställningar raderades."
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -8692,7 +8676,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Grattis - din arbetsyta {{.WorkSpace}} är klar att användas!"
+    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8777,5 +8761,485 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Fel vid upplösande av cache"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Okänd åtgärd `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Visa status för alla anslutna kluster"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SajtURL är inte angiven. Gör detta via systemkonsolen."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Tjänsten för andra kluster är inte aktiverad."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Tjänsten för andra kluster är avaktiverad."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Id på kluster att ta bort"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Kunde inte ta bort annat kluster: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Tar bort ett annat kluster"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Inga andra kluster hittade."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Namn | SajtURL  | RemoteId   | Inbjudan accepterad | Online | Senast Ping  |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Lägg till/ta bort anslutning till andra kluster. Tillgängliga åtgärder: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Du behöver behörigheten `{{.Permission}}` för att hantera anslutning av andra kluster."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Ett unikt namn för det andra klustret"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Namn på annat kluster"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "annat"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Tom eller saknad `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Saknar kommando. Tillgängliga åtgärder: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Skicka följande krypterade (AES256 + Base64) blob och lösenordet till administratören för det andra klustret. De använder sedan slash-kommandot `{{.Command}}` för att acceptera inbjudan.\n\n```\n{{.Invitation}}\n```\n\n**Säkerställ att det andra klustret kan nå ditt kluster på** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Lösenord som används för att kryptera inbjudan"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Lösenord för inbjudan"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Bjud in ett annat kluster"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Inbjudan skapad."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "En krypterad inbjudan från annat kluster"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Inbjudan från annat kluster"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Kunde inte dekryptera inbjudan. Felaktigt lösenord eller skadad inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[åtgärd]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Det gick inte att hämta andra kluster: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Kunde inte skapa inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Anslut annat Mattermost-kluster för att möjliggöra kommunikation mellan olika kluster."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Kunde inte tolka inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Det andra klustret {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Kunde inte lägga till det andra klustret: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Kunde inte acceptera inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Inbjudan accepterad och verifierad.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Acceptera en inbjudan från ett annat kluster"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Det går inte att sluta dela en kanal som inte är delad."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Inga externa parter har blivit inbjudan till denna delade kanal."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "dela"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Måste ange ett giltigt kluster-id för att bjuda in annat kluster."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Saknar åtgärd. Tillgängliga åtgärder: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Bjuder in en annan instans till den aktuella delade kanalen"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Inbjudan till kanalen har skickats till `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Ogiltigt värde för '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[aktivitet]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Kunde inte hämta status för andra kluster: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Fel när annat kluster hämtades: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - valfri"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Beskriv inbjudan"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Delar denna kanal med en annan Mattermost-instans."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Kan inte dra tillbaka inbjudan av `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Fel vid kontroll om den delade kanalen finns: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status för kanalid `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Visa status för den här delade kanalen"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Kanalen är nu delad."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Remote id för den delade kanalen `{{.RemoteId}}` finns inte för denna kanal."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - kanalens syfte som standard"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Kanalens syfte till andra instanser"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - kanalens namn som standard"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Kanalnamn till andra instanser"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Kan inte bjuda in ett annat kluster till en delad kanal som kommer från annat ställe."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Fel när `{{.Name}}` blev inbjuden till kanalen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - kanalens visningsnamn som standard"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Kanalens visningsnamn som visas i andra anslutna instanser"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Tillgängliga åtgärder: {{.Actions}}"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Detta meddelande innehåller permalänkar till andra kanaler som kanske inte kommer kunna ses av användare i andra kluster."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Antalet förfrågningar om replikfördröjning är fler än antal repliker som konfigurerats. Måste vara mindre än eller lika med antalet repliker."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Ogiltig beskrivning."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Ett fel uppstod när en direkt delad kanal skapades."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Ett annat kluster med samma URL finns redan."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Ett fel uppstod vid uppdatering av det andra klustret."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Tjänsten för andra kluster är inte aktiverad."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Det andra klustret har redan lagts till."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Ett fel uppstod när uppgifterna om det andra klustret sparades."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Ogiltigt ämne."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Ogiltigt id."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Ett fel uppstod när det andra klustret skulle hämtas."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Ett fel uppstod när det andra klustret skulle raderas."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Jobbtypen för det jobb du försöker skapa är ogiltig"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Jobbtyperna för ett jobb som du försöker hämta innehåller inga behörigheter"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Säkerställ att din Amazon S3 bucket är tillgänglig och kontrollera rättigheterna."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Kunde inte ansluta till S3. Kontrollera auktorisations och autentiseringsparametrar för Amazon S3."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Id för annat kluster saknas."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Id för annat kluster stämmer inte."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Kunde inte hitta id {{.RemoteId}} för annat kluster ."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Fel då JSON skulle skapas."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Inbjudan är inte längre giltig."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' eller 'N'"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Är du säker? Den aktuella kanalen kommer sluta delas och alla andra inbjudna instanser kommer sluta vara anslutna"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Slutar dela den aktuella kanalen"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Okänd åtgärd `{{.Action}}`. Tillgängliga åtgärder: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "ID på den andra instansen som inte ska vara inbjuden."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Ta bort en annan instans från den delade kanalen"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Det går inte att sluta dela kanalen: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Kanalen är inte längre delad."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Delad kanal blev inte delad: `{{.Arg}}` måste vara `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' eller 'N'.  'N' som standard"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanalen kommer delas i läsläge"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Dela den aktuella kanalen"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Kan inte dela kanalen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Tjänsten Delade kanaler är avaktiverad."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Annat kluster `{{.RemoteId}}` är inte längre inbjuden."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Annat | SiteURL | Beskrivning | ReadOnly | Inbjudan accepterad | Online | Senast synkroniserad |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Du måste ange en giltig annat kluster för att dra tillbaka inbjudan"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID på annat kluster är felaktigt: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id på ett existerande annan instans. Se `remote`-kommandot för att lägga till en annan instans."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Det andra klustret har redan blivit inbjudet."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Du behöver ha behörigheten `{{.Permission}}` för att hantera delade kanaler."
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - kanalens huvud som standard"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Kanalhuvud som tillhandahålls till andra instanser"
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Det gick inte att spara status för det första administratörsbesöket på marknadsplatsen från butiken."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Det gick inte att skicka mejl med information om att testperioden är på väg att ta slut"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud testperiod avslutas"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Lägg till betalmetod"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Visningsnamn för det andra klustret"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Ett visningsnamn för det andra klustret"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunde inte återställa AuthData-fältet till mejl."
   }
 ]

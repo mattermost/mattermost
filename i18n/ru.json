@@ -4848,10 +4848,6 @@
     "translation": "Не удалось найти действительную учетную запись с соответствующими учетными данными. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Этот e-mail уже зарегистрирован, выберите другой."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -7153,7 +7149,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+    "translation": "Запрос контакта с Mattermost. У моей команды сейчас 100 пользователей, и я рассматриваю Корпоративную редакцию Mattermost.\n"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7456,10 +7452,6 @@
     "translation": "Не удалось получить все команды."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Мы не могли получить все приватные команды на странице."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Не удалось получить все приватные команды."
   },
@@ -7478,14 +7470,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Не удалось подсчитать команды."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Не удалось подсчитать публичные команды."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Не удалось подсчитать приватные команды."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -7525,7 +7509,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация >  Гостевой доступ**, чтобы включить гостевые учетные записи."
+    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация > Гостевой доступ**, чтобы включить гостевые учетные записи."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
@@ -8465,11 +8449,11 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -8778,5 +8762,457 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Ошибка при генерации пароля."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Количество запросов с запаздыванием реплик больше, чем количество настроенных реплик. Должно быть меньше или равно количеству реплик."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Ошибка аннулирования кеша"
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Ошибка при попытке сохранить статус первого посещения рынка администратором в магазине."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Ошибка при попытке получить из магазина статус первого посещения рынка администратором."
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - опционально"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Описание приглашения"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Разделяет текущий канал с удалённым экземпляром Mattermost."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Не удалось отменить приглашение `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Ошибка при проверке существования общего канала: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Статус для Id канала `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Отображает статус для этого общего канала"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Этот канал теперь общий."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - назначение канала по умолчанию"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Назначение канала, предоставляемого удалённым инсталляциям"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - имя канала по умолчанию"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Имя канала, предоставляемое удалённым инсталляциям"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Невозможно пригласить удалённый кластер на общий канал, созданный где-то в другом месте."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Ошибка приглашения `{{.Name}}` в этот канал: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - заголовок канала по умолчанию"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Заголовок канала для удалённых инсталляций"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - по умолчанию отображаемое имя канала"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Отображаемое имя канала для удалённых инсталляций"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Доступные действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Неизвестное действие `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Отображает состояние для всех удаленных кластеров"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURL не установлен. Пожалуйста, установите его через системную консоль."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Служба удаленного кластера не включена."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Служба удаленного кластера отключена."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Идентификатор удаления удаленного кластера"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Не смог удалить удалённый кластер: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Удаляет удалённый кластер"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Никаких удаленных кластеров не найдено."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Имя | SiteURL | RemoteId | Invite Accepted | Online | Последний пинг |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Добавить/удалить удалённые кластеры. Доступные действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Для управления удалёнными кластерами требуется разрешение `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Отображаемое имя для удаленного кластера"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Имя удаленного кластера"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "удалённый"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Отсутствует или пуст `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Отсутствует команда. Доступные действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Отправьте следующий зашифрованный (AES256 + Base64) блог администратору удаленного сайта вместе с паролем. Для принятия приглашения они будут использовать команду `{{.Command}}`слэш команда.\n\n```\n{{.Invitation}}\n```\n\n**Предоставьте удаленному сайту доступ к вашему кластеру через** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Пароль, используемый для шифрования приглашения"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Пароль приглашения"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Пригласить удалённый кластер"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Приглашение создано."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Зашифрованное приглашение от удаленного кластера"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Приглашение от удаленного кластера"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Не удалось расшифровать приглашение. Неправильный пароль или испорченное приглашение: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[действие]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Не удалось получить удалённые кластеры: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Не удалось зашифровать приглашение: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Пригласите удаленные кластеры Mattermost для межкластерной связи."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Не удалось декодировать приглашение: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Удалённый кластер {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Не удалось добавить удалённый кластер: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Не удалось принять приглашение: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Приглашение принято и подтверждено.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Принять приглашение от удаленного кластера"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' или 'N'.  По умолчанию 'N'"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Служба общих каналов отключена."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Remote | SiteURL | Описание | Только для чтения | InviteAccepted | Онлайн | Последняя синхронизация |"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Этот пост содержит ссылки на другие каналы, которые могут быть невидимы для пользователей других сайтов."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Одно или несколько сообщений не могут быть доставлены на удалённый сайт {{.Remote}}, так как он в оффлайне. Сообщения будут доставлены, когда сайт будет онлайн."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Некорректное описание."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Возникла ошибка при создании прямого общего канала."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Удалённый кластер с таким же URL уже существует."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Возникла ошибка при обновлении удалённого кластера."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Служба удалённого кластера не включена."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Удалённый кластер уже добавлен."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Возникла ошибка при сохранении удалённого кластера."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Некорректный топик."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Недопустимый идентификатор."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Возникла ошибка при поиске удалённого кластера."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Возникла ошибка удаления удалённого кластера."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Отсутствует идентификатор удалённого кластера."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Несоответствие идентификатора удаленного кластера."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Невозможно найти идентификатор удаленного кластера {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Ошибка шифрования JSON."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Приглашение истекло."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' или 'N'"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Вы уверены? Этот канал перестанет быть общим, и все удалённые инсталляции будут отключены"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Отменить свойство \"общий\" для текущего канала"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Неизвестное действие `{{.Action}}`. Доступные действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Идентификатор удалённой инсталляции для отключения."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Отключить удалённую инсталляцию от этого общего канала"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Не удалось отключить доступ к этому каналу: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Этот канал больше не общий."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Общий канал не был удален: `{{.Arg}}`должно быть `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Канал будет предоставлен в режиме только для чтения"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Поделиться текущим каналом"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Не удалось поделиться этим каналом: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Удалённый `{{.RemoteId}}`отключен."
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Для отключения должен быть указан валидный удалённый кластер"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Идентификатор удалённого кластера некорректен: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id существующей удалённой инсталляции. Смотрите команду `remote` для добавления."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Удаленный кластер уже приглашен."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Для управления общими каналами требуется разрешение `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Нельзя отменить свойство \"общий\" для канала, который не является общим."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Никакие удалённые объекты в этот общий канал не приглашались."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "поделиться"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Должен быть указан действительный идентификатор удаленного кластера для приглашения."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Пропущено действие. Доступные действия: : {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Приглашает удалённую инсталляцию в текущий общий канал"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Приглашение канала отправлено `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Некорректное значение '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Не удалось получить статус удалённых объектов: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Ошибка при извлечении удалённых кластеров: {{.Error}}"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Тип задания, которое вы пытаетесь создать, некорректен"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Типы заданий, которые вы пытаетесь получить, не содержат разрешений"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Убедитесь в доступности козины Amazon S3 и проверьте разрешения на доступ."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Невозможно подключиться к S3. Проверьте параметры авторизации и настройки аутентификации подключения Amazon S3."
   }
 ]

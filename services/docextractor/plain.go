@@ -16,14 +16,19 @@ func (pe *plainExtractor) Match(filename string) bool {
 	return true
 }
 
-func (pe *plainExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	// This detects any visible character plus any whitespace
 	validRanges := append(unicode.GraphicRanges, unicode.White_Space)
 
-	text, _ := ioutil.ReadAll(r)
+	runes := make([]byte, 1028)
+	_, err := r.Read(runes)
+	if err != nil {
+		return "", err
+	}
+
 	count := 0
 	for {
-		c, size := utf8.DecodeRune(text[count:])
+		c, size := utf8.DecodeRune(runes[count:])
 		if !unicode.In(c, validRanges...) {
 			return "", nil
 		}
@@ -36,5 +41,6 @@ func (pe *plainExtractor) Extract(filename string, r io.Reader) (string, error) 
 		}
 	}
 
+	text, _ := ioutil.ReadAll(r)
 	return string(text), nil
 }

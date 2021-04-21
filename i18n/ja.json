@@ -1863,11 +1863,11 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "チームに参加する"
+    "translation": "今すぐ参加する"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "招待されました"
+    "translation": "{{ .SenderName }}は、あなたを{{ .TeamDisplayName }}チームに招待しました。"
   },
   {
     "id": "api.templates.invite_subject",
@@ -1915,7 +1915,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "あなたはパスワードの初期化をリクエストしました"
+    "translation": "パスワードをリセットする"
   },
   {
     "id": "api.templates.reset_subject",
@@ -4838,10 +4838,6 @@
     "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "この電子メールアドレスは既に使用されています。他の電子メールアドレスを指定してください。"
-  },
-  {
     "id": "system.message.name",
     "translation": "システム"
   },
@@ -7030,14 +7026,6 @@
     "translation": "チームをカウントできませんでした。"
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "公開チームをカウントできませんでした。"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "非公開チームをカウントできませんでした。"
-  },
-  {
     "id": "app.post.get_post_id_around.app_error",
     "translation": "指定時刻周辺の投稿を取得できませんでした。"
   },
@@ -7188,10 +7176,6 @@
   {
     "id": "app.team.get_member.app_error",
     "translation": "チームメンバーを取得できませんでした。"
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "ページ内の全ての非公開チームを取得できませんでした。"
   },
   {
     "id": "app.team.get_all_private_team_listing.app_error",
@@ -7787,7 +7771,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8499,7 +8483,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "代わりに、管理者コンソールからユーザーを無効化することで、無料枠の範囲内でユーザー枠を空けることができます。"
+    "translation": "代わりに、システムコンソールからユーザーを無効化することで、無料枠の範囲内でユーザー枠を空けることができます。"
   },
   {
     "id": "api.export.export_not_found.app_error",
@@ -8559,7 +8543,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -8640,5 +8624,585 @@
   {
     "id": "api.cloud.get_admins_emails.error",
     "translation": "システム管理者の電子メールを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "フィールド'{{.Field}}'は、ユーザーのログインプロバイダを通じて設定する必要があります。"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "`{{.RemoteId}}`の招待を解除できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "キャッシュ無効化エラー"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "この投稿には他のチャンネルへのパーマリンクが含まれており、他のサイトのユーザーには見えない可能性があります。"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "リモートサイト {{.Remote}} がオフラインのため、1つ以上の投稿を配信できませんでした。サイトがオンラインになると、投稿が配信されます。"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "フィールドをJSONにエンコードできませんでした"
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "レプリカ遅延クエリの数が設定されたレプリカ数を超えています。レプリカ数以下でなければなりません。"
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "不正な説明です。"
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "ダイレクト共有チャネルの作成中にエラーが発生しました。"
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "パスワードの生成に失敗しました。"
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "プロフィール画像は、ユーザーのログインプロバイダを通じて設定する必要があります。"
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "クラウドウェルカムメールを送信できませんでした"
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "フィールド'{{.Field}}'は、ユーザーのログインプロバイダを通じて設定する必要があります。"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "下のボタンをクリックして、パスワードをリセットしてください。ご希望でない場合は、このメールは無視していただいて結構です。"
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "パスワードリセットリンクの有効期限は24時間です。"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "チームとのコラボレーションのためにゲストとして招待されました"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Mattermostとは?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "詳しく知る"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermostは、セキュアなチームコラボレーションを可能にする、柔軟なオープンソースのメッセージングプラットフォームです。"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Mattermostでチームとの共同作業を始める"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "おめでとう- ワークスペース{{.WorkSpace}} の準備が整いました!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "以下のステップにより、チームを構築し、ワークスペースを最大限に活用することができます。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "ワークスペースを設定する"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "おめでとう!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "利用を開始するにあたり、質問がありますか? メールにてお問い合わせください"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "PC、Mac、iOS、Androidで最高の体験を。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "ワークスペースにサインインしてください"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "モバイルおよびデスクトップアプリ"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "このリンクを共有して、メンバーを {{.WorkSpace}} へ招待してください。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "ワークスペースにメンバーを招待する"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "今後の使用のために、リンクを必ず保存またはブックマークしてください。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "作成してくれてありがとうございます "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Mattermostアプリをダウンロードする"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "アプリマーケットプレース。"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Github、Googleカレンダー、Chromeなどのツールを使って仕事を効率化しましょう。我々のマーケットプレースですべての統合機能をご覧ください"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Mattermostを開く"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "ワークスペースにアプリを追加する"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "リクエストボディが存在しない、または不正です。"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "同じURLのリモートクラスタがすでに存在しています。"
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "リモートクラスターを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "リモートクラスターサービスは有効化されていません。"
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "リモートクラスターはすでに追加されています。"
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "リモートクラスターを保存する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "不正なトピックです。"
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "不正なIDです。"
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "リモートクラスターを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "リモートクラスターを削除する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "作成しようとしているジョブのジョブタイプが不正です"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "取得しようとしているジョブのジョブタイプにパーミッションが含まれていません"
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "ストア に初回管理者訪問マーケットプレースステータスを保存する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "ストアから初回管理者アクセスマーケットプレースステータスを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "リモートクラスターIDが存在しません。"
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "リモートクラスターIDが一致しません。"
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "リモートクラスターID {{.RemoteId}} が見つかりませんでした。"
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "JSONエンコードエラー。"
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "招待は有効期限切れです。"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' または 'N'"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "本当に実行しますか? このチャンネルの共有が解除され、全てのリモートインスタンスの招待も解除されます"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "現在のチャンネルの共有を解除する"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "不明なアクション `{{.Action}}`。利用可能なアクション: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "招待を解除するリモートインスタンスのIDです。"
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "この共有チャンネルからリモートインスタンスの共有を解除する"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "このチャンネルの共有を解除できません: {{.Error}}。"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "このチャンネルはもう共有されていません。"
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "共有チャンネルは削除されませんでした: `{{.Arg}}` は `{{.Expected}}` でなければなりません。"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[読取専用] - 'Y' or 'N'。デフォルトは'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "チャンネルは読取専用モードで共有されます"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "現在のチャンネルを共有する"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "このチャンネルを共有できません: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "共有チャンネルサービスが無効化されています。"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "リモート `{{.RemoteId}}` の招待が解除されました。"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| リモート | SiteURL | 説明 | 読取専用 | 招待承認済み | オンライン | 最終同期時刻 |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "招待を解除するには有効なリモートクラスターを指定する必要があります"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "リモートクラスターIDが不正です: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "既存のリモートインスタンスのIDです。リモートインスタンスを追加するには `remote` コマンドを参照してください。"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "リモートクラスターはすでに招待されています。"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "共有チャンネルを管理するには、`{{.Permission}}`の権限が必要です。"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "共有されていないため、チャンネルを共有解除できません。"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "この共有チャンネルには、どのリモートも招待されていません。"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "共有"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "招待するには有効なリモートクラスターIDを指定する必要があります。"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "アクションが見つかりません。利用可能なアクション: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "現在の共有チャネルにリモートインスタンスを招待する"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "チャンネル招待が `{{.Name}} {{.SiteURL}}`に送信されました。"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}' の値が不正です: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[アクション]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "リモートにおける状態を取得できませんでした: {{.Error}}。"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "リモートクラスター取得エラー: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[説明] - 任意"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "招待の説明"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "現在のチャンネルをリモートのMattermostインスタンスへ共有します。"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "共有チャネルの存在確認中にエラーが発生しました: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "チャンネルID `{{.ChannelId}}` のステータス"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "この共有チャネルのステータスを表示"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "このチャンネルは現在共有されています。"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "共有チャネルのリモートID `{{.RemoteId}}`がこのチャネルには存在しません。"
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - デフォルトはチャンネルの目的"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "リモートインスタンスに提供されるチャンネルの目的"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - デフォルトはチャンネル名"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "リモートインスタンスに提供されるチャンネル名"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "他の場所から発信された共有チャネルに、リモートクラスタを招待できませんでした。"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "`{{.Name}}` をこのチャンネルに招待する際にエラーが発生しました: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - デフォルトはチャンネルヘッダー"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "リモートインスタンスに提供されるチャンネルヘッダ"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - デフォルトはチャンネル表示名"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "リモートインスタンスに提供されるチャンネル表示名"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "利用可能なアクション: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "不明なアクション `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "すべてのリモートクラスターの状態を表示"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURLが設定されていません。システムコンソールから設定してください。"
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "リモートクラスターサービスが有効化されていません。"
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "リモートクラスターサービスは無効化されています。"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "リモートクラスタのIDを削除する"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "リモートクラスタを削除できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "リモートクラスタを削除する"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "リモートクラスタが見つかりませんでした。"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| 名前 | SiteURL | リモートID | 招待承認済み | オンライン | 最後のPing |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "リモートクラスタを追加/削除します。利用可能なアクション: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "リモートクラスターを管理するには、`{{.Permission}}`の権限が必要です。"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "リモートクラスターの表示名"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "リモートクラスター名"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "リモート"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "見つからない、または空の `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "コマンドが見つかりません。利用可能なアクション: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "以下の暗号化された(AES256 + Base64)データを、パスワードと共にリモートサイトの管理者に送ります。彼らは `{{.Command}}` のスラッシュコマンドを使って招待を受け付けます。\n\n```\n{{.Invitation}}\n```\n\n**リモートサイトからあなたのクラスタに {{.SiteURL}} でアクセスできるようにする**"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "招待を暗号化するために使用されるパスワード"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "招待パスワード"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "リモートクラスターを招待する"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "招待を作成しました。"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "リモートクラスターからの暗号化された招待"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "リモートクラスターからの招待"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "招待を復号できませんでした。不正なパスワードか、招待が壊れています: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[アクション]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "リモートクラスタを取得できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "招待を暗号化できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "クラスタ間通信のためにリモードMattermostクラスタを招待します。"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "招待をデコードできませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "リモートクラスター {{.RemoteId}} {{.Result}}。"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "リモードクラスターを追加できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "招待を受け付けることができませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "招待を受け付け、確認しました。\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "リモートクラスターからの招待を受け付ける"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhookイベントが処理されませんでした。存在しないか、有効でないかのいずれかです。"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Amazon S3バケットが利用可能であることを確認し、バケットの権限を確認してください。"
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "S3へ接続できませんでした。Amazon S3接続の認証パラメーターと認証設定を確認してください。"
   }
 ]

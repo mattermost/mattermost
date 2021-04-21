@@ -20,6 +20,7 @@ func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
+	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
 	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
 	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, ss) })
 	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, ss) })
@@ -122,6 +123,61 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
 
 	received, err = ss.Job().GetAllByTypePage(jobType, 2, 2)
+	require.NoError(t, err)
+	require.Len(t, received, 1)
+	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
+}
+
+func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
+	jobType := model.NewId()
+	jobType2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 1000,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 999,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1001,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.NewId(),
+			CreateAt: 1002,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	// test return all
+	jobTypes := []string{jobType, jobType2}
+	received, err := ss.Job().GetAllByTypesPage(jobTypes, 0, 4)
+	require.NoError(t, err)
+	require.Len(t, received, 3)
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
+
+	// test paging
+	jobTypes = []string{jobType, jobType2}
+	received, err = ss.Job().GetAllByTypesPage(jobTypes, 0, 2)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.Equal(t, received[0].Id, jobs[2].Id, "should've received newest job first")
+	require.Equal(t, received[1].Id, jobs[0].Id, "should've received second newest job second")
+
+	received, err = ss.Job().GetAllByTypesPage(jobTypes, 2, 2)
 	require.NoError(t, err)
 	require.Len(t, received, 1)
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")

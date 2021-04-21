@@ -26,4 +26,12 @@ const (
 	MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS       = "manage_shared_channel_permissions"
 	MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS      = "manage_remote_clusters_permissions"
 	MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS      = "download_compliance_export_results"
+	MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS       = "compliance_subsection_permissions"
+	MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS     = "experimental_subsection_permissions"
+	MIGRATION_KEY_ADD_AUTHENTICATION_SUBSECTION_PERMISSIONS   = "authentication_subsection_permissions"
+	MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS             = "site_subsection_permissions"
+	MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS      = "environment_subsection_permissions"
+	MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS        = "reporting_subsection_permissions"
+	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
+	MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS     = "integrations_subsection_permissions"
 )

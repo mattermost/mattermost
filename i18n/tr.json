@@ -4843,10 +4843,6 @@
     "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Bu e-posta adresi zaten alınmış. Lütfen başka bir adres seçin."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistem"
   },
@@ -7439,10 +7435,6 @@
     "translation": "Tüm takımlar alınamadı."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Tüm özel takımlar alınamadı."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Tüm özel takımlar alınamadı."
   },
@@ -7461,14 +7453,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Herkese açık takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Özel takımlar sayılamadı."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
@@ -8773,5 +8757,269 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Alan JSON olarak kodlanamadı"
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Kopya gecikme sorgularının sayısı, yapılandırılmış kopya sayısından fazla. Kopya sayısından küçük ya da eşit olmalıdır."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Mağazada ilk yönetici ziyareti durum bilgisi kaydedilirken sorun çıktı."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Mağazadan ilk yönetici ziyareti durum bilgisi alınırken sorun çıktı."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Ön bellek temizlenirken sorun çıktı"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Çağrı kodlanamadı: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Kümeler arası iletişim için uzak Mattermost kümelerini çağırın."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Çağrı kodu çözülemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Uzak küme {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Uzak küme eklenemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Çağrı kabul edilemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Uzak bir kümeden gelen bir çağrıyı kabul et"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Çağrı kabul edildi ve doğrulandı.\nSite adresi: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "İşlem eksik. Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Bir uzak kümeyi geçerli paylaşılan kanala çağırır"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "`{{.Name}} {{.SiteURL}}` üzerine kanal çağrısı gönderildi."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "'{{.Arg}}' değeri geçersiz: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Uzak durumlar alınamadı: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Uzak kümeler alınırken sorun çıktı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - isteğe bağlı"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Geçerli kanalı bir uzak Mattermost kopyası ile paylaşır."
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Çağrı açıklaması"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "`{{.RemoteId}}` çağrılamadı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Paylaşılan kanal denetlenirken sorun çıktı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "`{{.ChannelId}}` kodlu kanalın durumu"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Bu paylaşılan kanalın durumunu görüntüler"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Artık bu kanal paylaşılıyor."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal uzak kodu bulunamadı."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - varsayılan kanal amacı"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Uzak kopyalara iletilen kanal amacı"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - varsayılan kanal adı"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Uzak kümelere iletilen kanal adı"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Uzak küme, kaynağüı başka bir yerde bulunan paylaşılmış bir kanala çağrılamaz."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - varsayılan kanal üst bilgileri"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Uzak kopyalara iletilecek kanal üst bilgileri"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - varsayılan görüntülenecek kanal adı"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Uzak kopyalara iletilecek kanal görüntülenme adı"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "`{{.Action}}` işlemi bilinmiyor"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Tüm uzak kümelerin durumunu görüntüler"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "Site adresi ayarlanmamış. Lütfen sistem panosundan ayarlayın."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Uzak Küme hizmeti etkinleştirilmemiş."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Uzak Küme Hizmeti devre dışı bırakılmış."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Silinecek uzak kümenin kodu"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Uzak küme silinemedi: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile uzak site yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Sizin kümenizden uzak siteye ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Uzak küme ekleme ve silme. Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Bir uzak kümeyi siler"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Herhangi bir uzak küme bulunamadı."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Ad| Site Adresi  | Uzak Kod   | Çağrı Onaylandı | Çevrimiçi | Son İletişim  |"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Uzak kümeleri yönetebilmek için `{{.Permission}}` izniniz bulunmalı."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Uzak kümenin görüntülenecek adı"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Uzak kümenin adı"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "uzak"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "`{{.Arg}}` eksik ya da boş"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Komut eksik. Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Çağrıyı şifrelemek için kullanılacak parola"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Çağrı parolası"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Bir uzak kümeyi çağır"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Çağrı oluşturuldu."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Uzak bir kümeden şifrelenmiş çağrı"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Uzak kümeden çağrı"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Çağrının şifresi çözülemedi. Parola yanlış ya da çağrı bozuk: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Uzak kümeler alınamadı: {{.Error}}"
   }
 ]

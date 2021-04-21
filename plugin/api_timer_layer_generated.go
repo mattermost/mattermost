@@ -581,6 +581,20 @@ func (api *apiTimerLayer) GetGroupByName(name string) (*model.Group, *model.AppE
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroupMemberUsers(groupID, page, perPage)
+	api.recordTime(startTime, "GetGroupMemberUsers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroupsBySource(groupSource)
+	api.recordTime(startTime, "GetGroupsBySource", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetGroupsForUser(userId)

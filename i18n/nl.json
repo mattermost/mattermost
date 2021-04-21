@@ -3916,7 +3916,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Het Elasticsearch bulkindexeertijdsvenster moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4841,10 +4841,6 @@
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
   },
   {
     "id": "system.message.name",
@@ -7587,10 +7583,6 @@
     "translation": "We konden niet alle teams ophalen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "We kunnen niet alle private teams op de pagina krijgen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "We kunnen niet alle private teams ophalen."
   },
@@ -7613,14 +7605,6 @@
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fout bij het ophalen van de teamleden."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Fout bij het tellen van publieke teams."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Fout bij het tellen van private teams."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -8773,5 +8757,457 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Fout bij het genereren van het wachtwoord."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "Aantal replica lag queries is meer dan het aantal geconfigureerde replica's. Moet kleiner zijn dan of gelijk aan het aantal replica's."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Fout bij het opslaan van de eerste-admin-bezoek-marktplaats-status in de winkel."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Fout bij het ophalen van de eerste adminbezoek-marktplaats-status van de winkel."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Fout bij het ongeldig maken van de cache"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Kon externe cluster niet toevoegen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Kon de uitnodiging niet accepteren: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Uitnodiging aanvaard en bevestigd.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Accepteer een uitnodiging van een externe cluster"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "De gecodeerde uitnodiging van een externe cluster"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Uitnodiging van externe cluster"
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Externe cluster verschilt."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Kan externe cluster id {{.RemoteId}} niet vinden."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Fout bij het coderen van JSON."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Uitnodiging is verlopen."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' of 'N'"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Ben je zeker? Dit kanaal zal niet gedeeld worden en alle externe instanties zullen hun uitnodiging ongedaan zien worden"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Maakt het delen van het huidige kanaal ongedaan"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Onbekende actie `{{.Action}}`. Beschikbare acties: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Id van externe instantie om uitnodiging ongedaan te maken."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Verwijdert de uitnodiging van een externe instantie uit dit gedeelde kanaal"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Kan het delen van dit kanaal niet ongdaan maken {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Dit kanaal wordt niet langer gedeeld."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Gedeelde kanaal is niet verwijderd: `{{.Arg}}` moet zijn `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' of 'N'.  Standaard is 'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanaal zal worden gedeeld in alleen-lezen modus"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Deel het huidige kanaal"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Kan dit kanaal niet delen: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Gedeelde Kanalen Service is uitgeschakeld."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Externe `{{.RemoteId}}` niet langer uitgenodigd."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "Extern | SiteURL | Omschrijving |Alleen Lezen | Uitnodiging Aanvaard | Online | Laatste Sync |"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Moet een geldig externe cluster specificeren om het uitnodigen ongedaan te maken"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Externe cluster id is ongeldig: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id van een externe bestaande instantie. Zie `remote`opdracht om een externe instantie toe te voegen."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "De externe cluster is reeds uitgenodigd."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "U heeft `{{.Permission}} toestemming nodig om gedeelde kanalen te beheren."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Kan het delen van een kanaal dat niet gedeeld is niet ongedaan maken."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Er zijn geen externen uitgenodigd voor dit gedeelde kanaal."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "delen"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Moet een geldig externe cluster-id specificeren om uit te nodigen."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Ontbrekende actie. Beschikbare acties: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Nodigt een externe instantie uit in het huidige gedeelde kanaal"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Kanaaluitnodiging is verzonden naar `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Ongeldige waarde voor '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[actie]"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[actie]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Kon de status voor externe servers niet ophalen: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Fout bij ophalen externe clusters: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[beschrijving] - optioneel"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Beschrijving voor uitnodiging"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Deelt het huidige kanaal met een externe Mattermost instantie."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Kon `{{.RemoteId}}` uitnodiging niet intrekken: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Fout tijdens het controleren of een gedeeld kanaal bestaat: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status voor kanaalId `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Geeft status weer voor dit gedeelde kanaal"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Dit kanaal is nu gedeeld."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Gedeelde kanaal remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[doel] - staat standaard op kanaaldoel"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[naam] - staat standaard op kanaalnaam"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Doel van het kanaal, verstrekt aan externe instanties"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Kanaalnaam verstrekt aan externe instanties"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Kan externe cluster niet uitnodigen voor een gedeeld kanaal dat ergens anders vandaan komt."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Fout bij het binnenhalen van `{{.Name}}` in dit kanaal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[hoofding] - staat standaard op kanaalhoofding"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Kanaalhoofding verstrekt aan externe instanties"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - standaard kanaal weergavenaam"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Kanaal weergavenaam verstrekt aan externe instanties"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Beschikbare acties: {{.Acties}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Onbekende actie `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Toont de status voor alle externe clusters"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURL niet ingesteld. Stel dit in via de systeemconsole."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Externe cluster service niet ingeschakeld."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Externe cluster service is uitgeschakeld."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Id van externe cluster verwijderen"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Kon externe cluster niet verwijderen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Verwijdert een externe cluster"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Geen externe clusters gevonden."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Naam | SiteURL  | RemoteId   | Uitnodiging aanvaard | Online | Laatste Ping  |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Externe clusters toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Je hebt `{{.Permission}} toestemming nodig om externe clusters te beheren."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Een weergavenaam voor de externe cluster"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Naam externe cluster"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "extern"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Ontbrekend of leeg `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Ontbrekende opdracht. Beschikbare acties: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Stuur de volgende versleutelde (AES256 + Base64) blob naar de beheerder van de remote site samen met het wachtwoord. Deze zal de `{.Command}}` slashopdracht gebruiken om de uitnodiging te accepteren.\n\n```\n{{.Invitation}}\n```\n\n**Zorg ervoor dat de externe site toegang heeft tot jouw cluster via** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Wachtwoord dat wordt gebruikt om de uitnodiging te coderen"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Uitnodiging wachtwoord"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Een externe cluster uitnodigen"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Uitnodiging aangemaakt."
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Kon de uitnodiging niet decoderen. Onjuist wachtwoord of ongeldige uitnodiging: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Kon externe clusters niet ophalen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Kon uitnodiging niet coderen: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Externe Mattermost clusters uitnodigen voor inter-cluster communicatie."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Kon de uitnodiging niet decoderen: {{.Fout}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Externe cluster {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "De taaktypes van een taak die je probeert op te halen, bevatten geen machtigingen"
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Externe cluster id ontbreekt."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van een externe cluster."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "We zijn een fout tegengekomen bij het bijwerken van de externe cluster."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Dit bericht bevat permalinks naar andere kanalen die mogelijk niet zichtbaar zijn voor gebruikers op andere sites."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Een of meer berichten konden niet worden afgeleverd op de externe site {{.Remote}} omdat deze offline is. De post(s) zullen worden afgeleverd als de site online is."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Ongeldige omschrijving."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Er is een fout opgetreden bij het maken van een direct gedeeld kanaal."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Externe cluster met dezelfde url bestaat al."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "De externe cluster service is niet ingeschakeld."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Er is al een externe cluster toegevoegd."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de externe cluster."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Ongeldig onderwerp."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Ongeldig id."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van het externe cluster."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Het functietype van de job die je probeert aan te maken is ongeldig"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Zorg ervoor dat jouw Amazon S3 bucket beschikbaar is, en controleer jouw bucketpermissies."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
   }
 ]
