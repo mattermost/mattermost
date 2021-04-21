@@ -28,7 +28,7 @@
 
       <mj-section padding="40px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
         <mj-column>
-          <mj-image src="{{.Props.SiteURL}}/static/images/add_payment_method.png" width="320px" padding="0px" />
+          <mj-image src="{{.Props.SiteURL}}/static/images/add_subscription.png" width="320px" padding="0px" />
         </mj-column>
       </mj-section>
 
