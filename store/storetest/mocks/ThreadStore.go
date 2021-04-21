@@ -203,13 +203,13 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 	return r0, r1
 }
 
-// MaintainMembership provides a mock function with given fields: userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp
-func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool) (*model.ThreadMembership, error) {
-	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+// MaintainMembership provides a mock function with given fields: userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants
+func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
+	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
 
 	var r0 *model.ThreadMembership
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool) *model.ThreadMembership); ok {
-		r0 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool, bool) *model.ThreadMembership); ok {
+		r0 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadMembership)
@@ -217,8 +217,8 @@ func (_m *ThreadStore) MaintainMembership(userID string, postID string, followin
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool, bool, bool, bool) error); ok {
-		r1 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp)
+	if rf, ok := ret.Get(1).(func(string, string, bool, bool, bool, bool, bool) error); ok {
+		r1 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
 	} else {
 		r1 = ret.Error(1)
 	}
