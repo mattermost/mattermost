@@ -290,13 +290,13 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	return nil
 }
 
-func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, userName, trialEndDate, locale, siteURL string) *model.AppError {
+func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) *model.AppError {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_trial_ending_email.subject")
 
 	data := es.newEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Username": userName, "TrialEnd": trialEndDate})
+	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
 	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")

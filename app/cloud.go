@@ -186,7 +186,11 @@ func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model
 	countNotOks := 0
 
 	for admin := range sysAdmins {
-		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Username, trialEndDate, sysAdmins[admin].Locale, siteURL)
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, name, trialEndDate, sysAdmins[admin].Locale, siteURL)
 		if err != nil {
 			a.Log().Error("Error sending trial ending warning to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
 			countNotOks++
