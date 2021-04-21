@@ -21,9 +21,6 @@ var (
 	ErrReadOnlyStore = errors.New("configuration store is read-only")
 )
 
-// Listener is a callback function invoked when the configuration changes.
-type Listener func(oldConfig *model.Config, newConfig *model.Config)
-
 // Store is the higher level object that handles storing and retrieval of config data.
 // To do so it relies on a variety of backing stores (e.g. file, database, memory).
 type Store struct {
