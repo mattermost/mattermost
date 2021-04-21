@@ -704,11 +704,20 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(permissions...)
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained parameter
+	if c.Params.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+		return
+	}
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
-		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
-		IncludeDeleted:         c.Params.IncludeDeleted,
+		NotAssociatedToGroup:     c.Params.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   c.Params.ExcludeDefaultChannels,
+		IncludeDeleted:           c.Params.IncludeDeleted,
+		ExcludePolicyConstrained: c.Params.ExcludePolicyConstrained,
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		opts.IncludePolicyID = true
 	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)
@@ -1013,6 +1022,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
@@ -1022,17 +1036,21 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:    props.NotAssociatedToGroup,
-		ExcludeDefaultChannels:  props.ExcludeDefaultChannels,
-		TeamIds:                 props.TeamIds,
-		GroupConstrained:        props.GroupConstrained,
-		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
-		Public:                  props.Public,
-		Private:                 props.Private,
-		IncludeDeleted:          includeDeleted,
-		Deleted:                 props.Deleted,
-		Page:                    props.Page,
-		PerPage:                 props.PerPage,
+		NotAssociatedToGroup:     props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
+		TeamIds:                  props.TeamIds,
+		GroupConstrained:         props.GroupConstrained,
+		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
+		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		Public:                   props.Public,
+		Private:                  props.Private,
+		IncludeDeleted:           includeDeleted,
+		Deleted:                  props.Deleted,
+		Page:                     props.Page,
+		PerPage:                  props.PerPage,
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		opts.IncludePolicyID = true
 	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)

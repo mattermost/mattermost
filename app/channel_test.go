@@ -1966,7 +1966,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	times := map[string]int64{
 		"userID": 1,
 	}
-	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", true).Return(times, nil)
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", false).Return(times, nil)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("User").Return(&mockUserStore)
