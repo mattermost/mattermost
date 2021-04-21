@@ -283,15 +283,23 @@ func (th *TestHelper) CreateBot() *model.Bot {
 	return bot
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN, options...)
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -302,10 +310,31 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
+	for _, option := range options {
+		option(channel)
+	}
+
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		panic(err)
+	var appErr *model.AppError
+	if channel, appErr = th.App.CreateChannel(channel, true); appErr != nil {
+		panic(appErr)
+	}
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return channel
@@ -372,7 +401,7 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		panic(err)
 	}
@@ -394,7 +423,7 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		panic(err)
 	}
@@ -578,7 +607,7 @@ func (*TestHelper) ResetEmojisMigration() {
 }
 
 func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }

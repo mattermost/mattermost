@@ -955,29 +955,37 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var teamsWithCount *model.TeamsWithCount
 
+	opts := &model.TeamSearch{}
+	if c.Params.ExcludePolicyConstrained {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+			return
+		}
+		opts.ExcludePolicyConstrained = model.NewBool(true)
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		opts.IncludePolicyID = model.NewBool(true)
+	}
+
 	listPrivate := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PRIVATE_TEAMS)
 	listPublic := c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS)
+	limit := c.Params.PerPage
+	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		} else {
-			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		}
 	} else if listPrivate {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPrivateTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		} else {
-			teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		}
+		opts.AllowOpenInvite = model.NewBool(false)
 	} else if listPublic {
-		if c.Params.IncludeTotalCount {
-			teamsWithCount, err = c.App.GetAllPublicTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		} else {
-			teams, err = c.App.GetAllPublicTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-		}
+		opts.AllowOpenInvite = model.NewBool(true)
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
-		err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if c.Params.IncludeTotalCount {
+		teamsWithCount, err = c.App.GetAllTeamsPageWithCount(offset, limit, opts)
+	} else {
+		teams, err = c.App.GetAllTeamsPage(offset, limit, opts)
 	}
 	if err != nil {
 		c.Err = err
@@ -991,7 +999,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Params.IncludeTotalCount {
 		resBody = model.TeamsWithCountToJson(teamsWithCount)
 	} else {
-		resBody = []byte(model.TeamListToJson(teams))
+		resBody = model.ToJson(teams)
 	}
 
 	w.Write(resBody)
@@ -1002,6 +1010,16 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props == nil {
 		c.SetInvalidParam("team_search")
 		return
+	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained != nil && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+		return
+	}
+	// policy ID may only be used through the /data_retention/policies endpoint
+	props.PolicyID = nil
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		props.IncludePolicyID = model.NewBool(true)
 	}
 
 	var teams []*model.Team
@@ -1015,13 +1033,13 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPrivateTeams(props.Term)
+		teams, err = c.App.SearchPrivateTeams(props)
 	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
-		teams, err = c.App.SearchPublicTeams(props.Term)
+		teams, err = c.App.SearchPublicTeams(props)
 	} else {
 		teams = []*model.Team{}
 	}
@@ -1035,8 +1053,8 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
-		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
-		payload = model.TeamsWithCountToJson(twc)
+		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
+		payload = model.ToJson(twc)
 	} else {
 		payload = []byte(model.TeamListToJson(teams))
 	}
@@ -1220,6 +1238,24 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
 			}
 		}
+
+		// we get the emailList after it has finished checks like the emails over the list
+
+		scheduledAt := model.GetMillis()
+		jobData := map[string]string{
+			"emailList":   model.ArrayToJson(emailList),
+			"teamID":      c.Params.TeamId,
+			"senderID":    c.App.Session().UserId,
+			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		// we then manually schedule the job
+		_, e := c.App.Srv().Jobs.CreateJob(model.JOB_TYPE_RESEND_INVITATION_EMAIL, jobData)
+		if e != nil {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", e.Id, nil, e.Error(), e.StatusCode)
+			return
+		}
+
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
@@ -1378,8 +1414,8 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_INVALIDATE_EMAIL_INVITE) {
+		c.SetPermissionError(model.PERMISSION_INVALIDATE_EMAIL_INVITE)
 		return
 	}
 

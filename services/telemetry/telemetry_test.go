@@ -92,7 +92,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	userStore.On("AnalyticsGetSystemAdminCount").Return(int64(9), nil)
 
 	teamStore := storeMocks.TeamStore{}
-	teamStore.On("AnalyticsTeamCount", false).Return(int64(3), nil)
+	teamStore.On("AnalyticsTeamCount", (*model.TeamSearch)(nil)).Return(int64(3), nil)
 	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
 
 	channelStore := storeMocks.ChannelStore{}
@@ -286,7 +286,7 @@ func TestRudderTelemetry(t *testing.T) {
 			}
 		}
 		assert.Equal(t, "analytics-go", actual.Context.Library.Name)
-		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
+		assert.Equal(t, "3.3.0", actual.Context.Library.Version)
 	}
 
 	collectInfo := func(info *[]string) {

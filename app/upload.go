@@ -14,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/docextractor"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -253,6 +252,10 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	info.CreatorId = us.UserId
 	info.Path = us.Path
+	info.RemoteId = model.NewString(us.RemoteId)
+	if us.ReqFileId != "" {
+		info.Id = us.ReqFileId
+	}
 
 	// run plugins upload hook
 	if err := a.runPluginsHook(info, file); err != nil {
@@ -299,15 +302,9 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
+			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}

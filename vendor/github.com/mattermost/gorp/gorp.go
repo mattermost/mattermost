@@ -173,9 +173,13 @@ func exec(e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
-	defer cancel()
-	return executor.ExecContext(ctx, query, args...)
+	if doTimeout {
+		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+		defer cancel()
+		return executor.ExecContext(ctx, query, args...)
+	}
+
+	return executor.Exec(query, args...)
 }
 
 // maybeExpandNamedQuery checks the given arg to see if it's eligible to be used

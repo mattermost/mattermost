@@ -632,14 +632,14 @@ func (c *clusterStateHolder) Reload(ctx context.Context) (*clusterState, error) 
 	return state, nil
 }
 
-func (c *clusterStateHolder) LazyReload(ctx context.Context) {
+func (c *clusterStateHolder) LazyReload() {
 	if !atomic.CompareAndSwapUint32(&c.reloading, 0, 1) {
 		return
 	}
 	go func() {
 		defer atomic.StoreUint32(&c.reloading, 0)
 
-		_, err := c.Reload(ctx)
+		_, err := c.Reload(context.Background())
 		if err != nil {
 			return
 		}
@@ -652,7 +652,7 @@ func (c *clusterStateHolder) Get(ctx context.Context) (*clusterState, error) {
 	if v != nil {
 		state := v.(*clusterState)
 		if time.Since(state.createdAt) > 10*time.Second {
-			c.LazyReload(ctx)
+			c.LazyReload()
 		}
 		return state, nil
 	}
@@ -732,7 +732,7 @@ func (c *ClusterClient) Options() *ClusterOptions {
 // ReloadState reloads cluster state. If available it calls ClusterSlots func
 // to get cluster slots information.
 func (c *ClusterClient) ReloadState(ctx context.Context) {
-	c.state.LazyReload(ctx)
+	c.state.LazyReload()
 }
 
 // Close closes the cluster client, releasing any open resources.
@@ -793,7 +793,7 @@ func (c *ClusterClient) process(ctx context.Context, cmd Cmder) error {
 		}
 		if isReadOnly := isReadOnlyError(lastErr); isReadOnly || lastErr == pool.ErrClosed {
 			if isReadOnly {
-				c.state.LazyReload(ctx)
+				c.state.LazyReload()
 			}
 			node = nil
 			continue
@@ -1228,7 +1228,7 @@ func (c *ClusterClient) checkMovedErr(
 	}
 
 	if moved {
-		c.state.LazyReload(ctx)
+		c.state.LazyReload()
 		failedCmds.Add(node, cmd)
 		return true
 	}
@@ -1414,7 +1414,7 @@ func (c *ClusterClient) cmdsMoved(
 	}
 
 	if moved {
-		c.state.LazyReload(ctx)
+		c.state.LazyReload()
 		for _, cmd := range cmds {
 			failedCmds.Add(node, cmd)
 		}
@@ -1472,7 +1472,7 @@ func (c *ClusterClient) Watch(ctx context.Context, fn func(*Tx) error, keys ...s
 
 		if isReadOnly := isReadOnlyError(err); isReadOnly || err == pool.ErrClosed {
 			if isReadOnly {
-				c.state.LazyReload(ctx)
+				c.state.LazyReload()
 			}
 			node, err = c.slotMasterNode(ctx, slot)
 			if err != nil {

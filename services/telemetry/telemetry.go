@@ -275,7 +275,7 @@ func (ts *TelemetryService) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(false)
+	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(nil)
 	if err != nil {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}
@@ -707,7 +707,6 @@ func (ts *TelemetryService) trackConfig() {
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
 		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
-		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
 		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
@@ -735,6 +734,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 	})
 
 	ts.sendTelemetry(TrackConfigAnalytics, map[string]interface{}{

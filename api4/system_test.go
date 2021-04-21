@@ -507,12 +507,20 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
+	})
+
+	t.Run("with incorrect credentials", func(t *testing.T) {
+		configCopy := config
+		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
+		_, resp := th.SystemAdminClient.TestS3Connection(&configCopy)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection_s3_auth.app_error", resp.Error.Id)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
@@ -521,7 +529,6 @@ func TestS3TestConnection(t *testing.T) {
 		_, resp := th.SystemAdminClient.TestS3Connection(&config)
 		CheckForbiddenStatus(t, resp)
 	})
-
 }
 
 func TestSupportedTimezones(t *testing.T) {

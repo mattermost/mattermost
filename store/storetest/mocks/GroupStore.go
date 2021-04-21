@@ -464,13 +464,13 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 	return r0, r1
 }
 
-// GetByUser provides a mock function with given fields: userId
-func (_m *GroupStore) GetByUser(userId string) ([]*model.Group, error) {
-	ret := _m.Called(userId)
+// GetByUser provides a mock function with given fields: userID
+func (_m *GroupStore) GetByUser(userID string) ([]*model.Group, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Group
 	if rf, ok := ret.Get(0).(func(string) []*model.Group); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
@@ -479,7 +479,7 @@ func (_m *GroupStore) GetByUser(userId string) ([]*model.Group, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -820,13 +820,13 @@ func (_m *GroupStore) GroupTeamCount() (int64, error) {
 	return r0, r1
 }
 
-// PermanentDeleteMembersByUser provides a mock function with given fields: userId
-func (_m *GroupStore) PermanentDeleteMembersByUser(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDeleteMembersByUser provides a mock function with given fields: userID
+func (_m *GroupStore) PermanentDeleteMembersByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

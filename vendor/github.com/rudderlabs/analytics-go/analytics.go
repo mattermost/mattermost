@@ -1,19 +1,24 @@
 package analytics
 
 import (
+	"errors"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"io/ioutil"
+	"strconv"
 	"sync"
 
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 // Version of the client.
-const Version = "3.0.0"
+const Version = "3.3.0"
 const unimplementedError = "not implemented"
 
 // This interface is the main API exposed by the analytics package.
@@ -53,9 +58,9 @@ type client struct {
 	// The first channel is closed to signal the backend goroutine that it has
 	// to stop, then the second one is closed by the backend goroutine to signal
 	// that it has finished flushing all queued messages.
-	quit     chan struct{}
-	shutdown chan struct{}
-
+	quit       chan struct{}
+	shutdown   chan struct{}
+	totalNodes int
 	// This HTTP client is used to send requests to the backend, it uses the
 	// HTTP transport provided in the configuration.
 	http http.Client
@@ -90,7 +95,7 @@ func NewWithConfig(writeKey string, dataPlaneUrl string, config Config) (cli Cli
 		shutdown: make(chan struct{}),
 		http:     makeHttpClient(config.Transport),
 	}
-
+	c.totalNodes = 1
 	go c.loop()
 
 	cli = c
@@ -303,45 +308,139 @@ func (c *client) sendAsync(msgs []message, wg *sync.WaitGroup, ex *executor) {
 	}
 }
 
-// Send batch request.
-func (c *client) send(msgs []message) {
-	const attempts = 10
+//Split based on Anonymous ID
+func (c *client) getNodePayload(msgs []message) map[int][]message {
+	nodePayload := make(map[int][]message)
+	totalNodes := c.totalNodes
+	for _, msg := range msgs {
+		userId := gjson.GetBytes(msg.json, "userId").String()
+		anonymousId := gjson.GetBytes(msg.json, "anonymousId").String()
+		rudderId := userId + ":" + anonymousId
+		hashInt := crc32.ChecksumIEEE([]byte(rudderId))
+		nodePayload[int(hashInt)%totalNodes] = append(nodePayload[int(hashInt)%totalNodes], msg)
+	}
+	return nodePayload
+}
 
-	b, err := json.Marshal(batch{
+/*In the nodepayload , we have sent the payloads till the nodeValue k,
+So we get the payloads for remaining nodes to recompuute the nodePayload
+based on the new targetNodes
+*/
+func (c *client) getRevisedMsgs(nodePayload map[int][]message, startFrom int) []message {
+	msgs := make([]message, 0)
+	for k, v := range nodePayload {
+		if k >= startFrom {
+			for _, msg := range v {
+				msgs = append(msgs, msg)
+			}
+		}
+	}
+	return msgs
+}
+
+func (c *client) setNodeCount() {
+	const attempts = 10
+	for i := 0; i < attempts; i++ {
+		url := c.Endpoint + "/cluster-info"
+		req, err := http.NewRequest("GET", url, bytes.NewReader([]byte{}))
+		if err != nil {
+			c.errorf("creating request - %s", err)
+			time.Sleep(200 * time.Millisecond)
+			continue
+		}
+
+		req.Header.Add("User-Agent", "analytics-go (version: "+Version+")")
+		req.SetBasicAuth(c.key, "")
+
+		res, err := c.http.Do(req)
+
+		if err != nil {
+			c.errorf("sending request - %s", err)
+			time.Sleep(200 * time.Millisecond)
+			continue
+		}
+		if res.StatusCode == 200 {
+			body, err := ioutil.ReadAll(res.Body)
+			if err == nil {
+				c.totalNodes = int(gjson.GetBytes(body, "nodeCount").Int())
+				res.Body.Close()
+				return
+			} else {
+				res.Body.Close()
+				time.Sleep(200 * time.Millisecond)
+			}
+		} else {
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
+	return
+}
+
+func (c *client) getMarshalled(msgs []message) ([]byte, error) {
+	nodeBatch, err := json.Marshal(batch{
 		MessageId: c.uid(),
 		SentAt:    c.now(),
 		Messages:  msgs,
 		Context:   c.DefaultContext,
 	})
+	return nodeBatch, err
+}
 
-	if err != nil {
-		c.errorf("marshalling messages - %s", err)
-		c.notifyFailure(msgs, err)
-		return
-	}
+// Send batch request.
+func (c *client) send(msgs []message) {
+	const attempts = 10
 
-	for i := 0; i != attempts; i++ {
-		if err = c.upload(b); err == nil {
-			c.notifySuccess(msgs)
-			return
+	nodePayload := c.getNodePayload(msgs)
+	for k, b := range nodePayload {
+		for i := 0; i != attempts; i++ {
+			//Get Node Count from Client
+			if c.totalNodes == 0 {
+				/*
+					Since we are running the setNodeCount in a seperate goroutine from the main thread,  we should not send out any packets till
+					we have atleast one API call made and totalNodes are set to 1.If the proxy server takes more time to send the response
+					we skip this attempt and move to the next attempt.
+				*/
+				continue
+			}
+			targetNode := strconv.Itoa(k % c.totalNodes)
+			marshalB, err := c.getMarshalled(b)
+			if err != nil {
+				c.errorf("marshalling messages - %s", err)
+				c.notifyFailure(b, err)
+				break
+			}
+			err = c.upload(marshalB, targetNode) // change the names of errors?
+			if err == nil {
+				c.notifySuccess(b)
+				break
+			} else if err.Error() == "451" {
+				/*In case we have a scaleup/scaledown in the kubernetes nodes, We would recieve a status code of 451 from the Proxy server
+				We would then reset the node count by making a call to configure-info end point, then regenerate the payload at a node level
+				for only those nodes where we failed in sending the data and then recursively call the send function with the updated payload.
+				*/
+				c.setNodeCount()
+				newMsgs := c.getRevisedMsgs(nodePayload, k)
+				c.send(newMsgs)
+				return
+			}
+			if i == attempts-1 {
+				c.errorf("%d messages dropped because they failed to be sent after %d attempts", len(b), attempts)
+				c.notifyFailure(b, err)
+			}
+			// Wait for either a retry timeout or the client to be closed.
+			select {
+			case <-time.After(c.RetryAfter(i)):
+			case <-c.quit:
+				c.errorf("%d messages dropped because they failed to be sent and the client was closed", len(b))
+				c.notifyFailure(b, err)
+				return
+			}
 		}
-
-		// Wait for either a retry timeout or the client to be closed.
-		select {
-		case <-time.After(c.RetryAfter(i)):
-		case <-c.quit:
-			c.errorf("%d messages dropped because they failed to be sent and the client was closed", len(msgs))
-			c.notifyFailure(msgs, err)
-			return
-		}
 	}
-
-	c.errorf("%d messages dropped because they failed to be sent after %d attempts", len(msgs), attempts)
-	c.notifyFailure(msgs, err)
 }
 
 // Upload serialized batch message.
-func (c *client) upload(b []byte) error {
+func (c *client) upload(b []byte, targetNode string) error {
 	url := c.Endpoint + "/v1/batch"
 	req, err := http.NewRequest("POST", url, bytes.NewReader(b))
 	if err != nil {
@@ -352,6 +451,11 @@ func (c *client) upload(b []byte) error {
 	req.Header.Add("User-Agent", "analytics-go (version: "+Version+")")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Length", string(len(b)))
+	if !c.NoProxySupport {
+		req.Header.Add("RS-targetNode", targetNode)
+		req.Header.Add("RS-nodeCount", strconv.Itoa(c.totalNodes))
+		req.Header.Add("RS-userAgent", "serverSDK")
+	}
 	req.SetBasicAuth(c.key, "")
 
 	res, err := c.http.Do(req)
@@ -368,10 +472,13 @@ func (c *client) upload(b []byte) error {
 // Report on response body.
 func (c *client) report(res *http.Response) (err error) {
 	var body []byte
-
 	if res.StatusCode < 300 {
 		c.debugf("response %s", res.Status)
 		return
+	}
+
+	if res.StatusCode == 451 {
+		return errors.New(strconv.Itoa(res.StatusCode))
 	}
 
 	if body, err = ioutil.ReadAll(res.Body); err != nil {
