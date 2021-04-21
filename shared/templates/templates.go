@@ -32,12 +32,12 @@ type Data struct {
 }
 
 func GetTemplateDirectory() (string, bool) {
-	translationsDir := "templates"
+	templatesDir := "templates"
 	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
-		translationsDir = filepath.Join(mattermostPath, translationsDir)
+		templatesDir = filepath.Join(mattermostPath, templatesDir)
 	}
 
-	return fileutils.FindDir(translationsDir)
+	return fileutils.FindDir(templatesDir)
 }
 
 // NewFromTemplates creates a new templates container using a
