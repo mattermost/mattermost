@@ -1148,7 +1148,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Invite a secure connection"
+    "translation": "Create a secure connection"
   },
   {
     "id": "api.command_remote.invite_password.help",

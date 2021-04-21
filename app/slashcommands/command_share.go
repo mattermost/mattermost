@@ -18,7 +18,7 @@ type ShareProvider struct {
 
 const (
 	CommandTriggerShare   = "share-channel"
-	AvailableShareActions = "unshare, invite, uninvite, status"
+	AvailableShareActions = "invite, uninvite, unshare, status"
 )
 
 func init() {
