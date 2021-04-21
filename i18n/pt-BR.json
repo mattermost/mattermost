@@ -4843,10 +4843,6 @@
     "translation": "Não foi possível encontrar uma conta correspondente a suas credenciais. Esta equipe pode exigir um convite do dono da equipe para participar."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Este email já foi utilizado. Por favor escolha outro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },
@@ -7379,10 +7375,6 @@
     "translation": "Não foi possível obter todas as equipes."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Não foi possível colocar todas as equipes privadas na página."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Não foi possível obter todas as equipes privadas."
   },
@@ -7401,14 +7393,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Não foi possível contar as equipes."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Não foi possível contar as equipes públicas."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Não foi possível contar as equipes privadas."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -8340,7 +8324,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Como alternativa, você pode desabilitar usuários no Console Admin para abrir vagas para usuários e ficar abaixo do limite de usuários gratuitos."
+    "translation": "Como alternativa, você pode desabilitar usuários no Console do Sistema para abrir vagas para usuários e ficar abaixo do limite de usuários gratuitos."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -8629,5 +8613,561 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Não foi possível analisar o corpo da solicitação."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Valor inválido para '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[ação]"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Não foi possível obter status para remotos: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Erro ao buscar clusters remotos: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - opcional"
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Descrição do convite"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Compartilha o canal atual com uma instância remota do Mattermost."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Não foi possível cancelar o convite `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Erro ao verificar se o canal compartilhado existe: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status para id do canal `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Exibe o status deste canal compartilhado"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Este canal agora está compartilhado."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "O id remoto do canal compartilhado `{{.RemoteId}}` não existe para este canal."
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - padrão do propósito do canal"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Propósito do canal fornecido para instâncias remotas"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - padrão do nome do canal"
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Nome do canal fornecido para instâncias remotas"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Não é possível convidar cluster remoto para um canal compartilhado originado em outro lugar."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Erro ao convidar `{{.Name}}` para este canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - padrão do cabeçalho dos canais"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Cabeçalho do canal fornecido para instâncias remotas"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - padrão para nome de exibição do canal"
+  },
+  {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Nome de exibição do canal fornecido para instâncias remotas"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Ação desconhecida `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Exibe o status de todos os clusters remotos"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "SiteURL não definido. Defina isso por meio do console do sistema."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Serviço de Cluster Remoto não habilitado."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "O Serviço de Cluster Remoto está desabilitado."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Id de remoção de cluster remoto"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Não foi possível remover o cluster remoto: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Remove um cluster remoto"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Nenhum cluster remoto encontrado."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Nome | SiteURL | RemoteId | Convite Aceito | Online | Último Ping |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Adicionar/remover clusters remotos. Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Você requer permissão de `{{.Permission}}` para gerenciar clusters remotos."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Um nome de exibição para o cluster remoto"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Nome do cluster remoto"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "remoto"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Faltando ou vazio `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Comando ausente. Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Envie o seguinte blob criptografado (AES256 + Base64) ao administrador do site remoto junto com a senha. Eles usarão o comando de barra `{{.Command}}` para aceitar o convite.\n\n```\n{{.Invitation}}\n```\n\n**Certifique-se de que o site remoto pode acessar seu cluster via** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Senha a ser usada para criptografar o convite"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Senha de convite"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Convide um cluster remoto"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Convite criado."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "O convite criptografado de um cluster remoto"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Convite de cluster remoto"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Não foi possível descriptografar o convite. Senha incorreta ou convite corrompido: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[ação]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Não foi possível buscar clusters remotos: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Não foi possível criptografar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Convide clusters remotos do Mattermost para comunicação entre clusters."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Não foi possível decodificar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Cluster remoto {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Não foi possível adicionar cluster remoto: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Não foi possível aceitar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Convite aceito e confirmado.\nURL do site: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Aceite um convite de um cluster remoto"
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Erro ao obter a assinatura da nuvem."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Erro ao obter o e-mail dos administradores do sistema."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "O evento de webhook não foi tratado. Está faltando ou não é válido."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Erro ao invalidar o cache"
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Não foi possível encontrar o id do cluster remoto {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Erro ao codificar JSON."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'S' ou 'N'"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Ação desconhecida `{{.Action}}`. Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Não é possível cancelar o compartilhamento deste canal: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "O canal compartilhado não foi excluído: `{{.Arg}}` deve ser `{{.Expected}}`."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'S' ou 'N'. O padrão é 'N'"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Não é possível compartilhar este canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Remoto `{{.RemoteId}}` sem convite."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "O id do cluster remoto é inválido: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Id de uma instância remota existente. Veja o comando `remote` para adicionar uma instância remota."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Você requer permissão de `{{.Permission}}` para gerenciar canais compartilhados."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
+  },
+  {
+    "id": "model.config.is_valid.replica_mismatch.app_error",
+    "translation": "O número de consultas de atraso de réplica é maior do que o número de réplicas configuradas. Deve ser menor ou igual ao número de réplicas."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Descrição inválida."
+  },
+  {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Erro ao obter assinatura na nuvem"
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Erro ao criar um canal compartilhado direto."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Erro ao gerar senha."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "A imagem do perfil deve ser definida por meio do provedor de login do usuário."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Falha ao enviar e-mail de boas-vindas à nuvem"
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Clique no botão abaixo para redefinir sua senha. Se você não solicitou isso, pode ignorar este e-mail com segurança."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "O link de redefinição de senha expira em 24 horas."
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Você foi convidado para colaborar com a equipe"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "O que é Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Saiba mais"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost é uma plataforma de mensagens flexível e de código aberto que permite a colaboração segura da equipe."
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Comece a colaborar com sua equipe no Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Siga as etapas a seguir para formar suas equipes e obter o máximo de seu espaço de trabalho."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Configure o seu espaço de trabalho"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Parabéns!"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Tem dúvidas sobre como começar? Envie-nos um e-mail para"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "para a melhor experiência em PC, Mac, iOS e Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Faça login em seu espaço de trabalho"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Convide pessoas para o seu espaço de trabalho"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Certifique-se de salvar ou marcar seu link para uso futuro."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Obrigado por criar "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Baixar Aplicativo Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Abrir Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "app marketplace."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Otimize seu trabalho com ferramentas como Github, Google Agenda e Chrome. Explore todas as integrações que temos"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Adicionar aplicativos ao seu espaço de trabalho"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Corpo da solicitação inválido ou ausente."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Erro ao obter assinatura na nuvem"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Já existe um cluster remoto com a mesmo url."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Encontramos um erro ao atualizar o cluster remoto."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "O serviço de cluster remoto não está habilitado."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "O cluster remoto já foi adicionado."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Encontramos um erro ao salvar o cluster remoto."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Tópico Inválido."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Id Inválido."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Encontramos um erro ao recuperar um cluster remoto."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Encontramos um erro ao excluir o cluster remoto."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "O tipo de trabalho que você está tentando criar é inválido"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Os tipos de trabalho que você está tentando recuperar não contêm permissões"
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Erro ao tentar salvar o status da primeira visita do administrador ao marketplace na loja."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Erro ao tentar recuperar o status do marketplace da primeira visita do administrador da loja."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Falta a id do cluster remoto."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Incompatibilidade de id do cluster remoto."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "O convite expirou."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Tem certeza? Este canal não será compartilhado e todas as instâncias remotas não serão convidadas"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Cancela o compartilhamento do canal atual"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Id da instância remota para desconvidar."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Cancela o convite de uma instância remota deste canal compartilhado"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Este canal não é mais compartilhado."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "O canal será compartilhado em modo somente leitura"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Compartilhe o canal atual"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Serviço de Canais Compartilhados está desativado."
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Deve especificar um cluster remoto válido para cancelar o convite"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "O cluster remoto já foi convidado."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Não é possível cancelar o compartilhamento de um canal que não é compartilhado."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Nenhum remoto foi convidado para este canal compartilhado."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "compartilhar"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Deve especificar um ID de conjunto remoto válido para convidar."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Ação ausente. Ações disponíveis: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Convidar uma instância remota para o canal atual compartilhado"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "O convite do canal foi enviado para `{{.Name}} {{.SiteURL}}`."
   }
 ]

@@ -4843,10 +4843,6 @@
     "translation": "Konnte kein Konto mit den angegeben Zugangsdaten finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -7055,10 +7051,6 @@
     "translation": "Konnte nicht alle Teams abrufen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Konnte nicht alle privaten Teams abrufen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Konnte nicht alle privaten Teams abrufen."
   },
@@ -7077,14 +7069,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Konnte die Anzahl der Teams nicht abrufen."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
   },
   {
     "id": "api.user.login_cws.license.error",

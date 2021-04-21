@@ -37,7 +37,7 @@ func NewTestingLogger(tb testing.TB, writer io.Writer) *Logger {
 		mutex:        &sync.RWMutex{},
 	}
 
-	logWriterCore := zapcore.NewCore(makeEncoder(true), zapcore.Lock(logWriterSync), testingLogger.consoleLevel)
+	logWriterCore := zapcore.NewCore(makeEncoder(true, false), zapcore.Lock(logWriterSync), testingLogger.consoleLevel)
 
 	testingLogger.zap = zap.New(logWriterCore,
 		zap.AddCaller(),
