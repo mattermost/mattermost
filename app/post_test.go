@@ -2034,7 +2034,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	th.App.ViewChannel(&model.ChannelView{
 		ChannelId:     channel.Id,
 		PrevChannelId: "",
-	}, user2.Id, "")
+	}, user2.Id, "", true)
 
 	m1, e1 := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e1)
