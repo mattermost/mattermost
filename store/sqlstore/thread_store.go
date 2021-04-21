@@ -472,7 +472,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) (*model.ThreadMembership, error) {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error) {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if memebership exists, update it if:
@@ -518,13 +518,15 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 		return nil, err
 	}
 
-	thread, err := s.Get(postId)
-	if err != nil {
-		return nil, err
-	}
-	if !thread.Participants.Contains(userId) {
-		thread.Participants = append(thread.Participants, userId)
-		_, err = s.Update(thread)
+	if updateParticipants {
+		thread, err2 := s.Get(postId)
+		if err2 != nil {
+			return nil, err2
+		}
+		if !thread.Participants.Contains(userId) {
+			thread.Participants = append(thread.Participants, userId)
+			_, err = s.Update(thread)
+		}
 	}
 	return membership, err
 }
