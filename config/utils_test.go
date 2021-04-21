@@ -246,7 +246,7 @@ func TestStripPassword(t *testing.T) {
 	}
 }
 
-func TestIsJsonMap(t *testing.T) {
+func TestIsJSONMap(t *testing.T) {
 	tests := []struct {
 		name string
 		data string
@@ -270,8 +270,8 @@ func TestIsJsonMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsJsonMap(tt.data); got != tt.want {
-				t.Errorf("IsJsonMap() = %v, want %v", got, tt.want)
+			if got := isJSONMap(tt.data); got != tt.want {
+				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
 			}
 		})
 	}

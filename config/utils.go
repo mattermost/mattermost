@@ -196,18 +196,9 @@ func stripPassword(dsn, schema string) string {
 	return prefix + dsn[:i+1] + dsn[j:]
 }
 
-func IsJsonMap(data string) bool {
+func isJSONMap(data string) bool {
 	var m map[string]interface{}
 	return json.Unmarshal([]byte(data), &m) == nil
-}
-
-func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
-	cfg := make(mlog.LogTargetCfg)
-	err := json.Unmarshal(data, &cfg)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
 }
 
 func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
