@@ -14,13 +14,13 @@ type StatusStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: userId
-func (_m *StatusStore) Get(userId string) (*model.Status, error) {
-	ret := _m.Called(userId)
+// Get provides a mock function with given fields: userID
+func (_m *StatusStore) Get(userID string) (*model.Status, error) {
+	ret := _m.Called(userID)
 
 	var r0 *model.Status
 	if rf, ok := ret.Get(0).(func(string) *model.Status); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Status)
@@ -29,7 +29,7 @@ func (_m *StatusStore) Get(userId string) (*model.Status, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -109,13 +109,13 @@ func (_m *StatusStore) SaveOrUpdate(status *model.Status) error {
 	return r0
 }
 
-// UpdateLastActivityAt provides a mock function with given fields: userId, lastActivityAt
-func (_m *StatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
-	ret := _m.Called(userId, lastActivityAt)
+// UpdateLastActivityAt provides a mock function with given fields: userID, lastActivityAt
+func (_m *StatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
+	ret := _m.Called(userID, lastActivityAt)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(userId, lastActivityAt)
+		r0 = rf(userID, lastActivityAt)
 	} else {
 		r0 = ret.Error(0)
 	}

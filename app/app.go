@@ -76,7 +76,7 @@ func (a *App) InitServer() {
 		a.initJobs()
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
+			a.registerAppClusterMessageHandlers()
 		}
 
 		a.DoAppMigrations()
@@ -91,13 +91,12 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		if a.Srv().runjobs {
+		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
-				runCheckWarnMetricStatusJob(a)
 			})
+			a.srv.runJobs()
 		}
-		a.srv.RunJobs()
 	})
 }
 
@@ -140,8 +139,12 @@ func (a *App) initJobs() {
 		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
-	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
+	if jobsResendInvitationEmailInterface != nil {
+		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
+	}
+
+	a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {
@@ -188,6 +191,7 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+//nolint:golint,unused,deadcode
 func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 	if err != nil {
@@ -332,6 +336,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{

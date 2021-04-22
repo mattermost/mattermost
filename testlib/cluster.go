@@ -74,6 +74,19 @@ func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
 	return c.messages
 }
 
+func (c *FakeClusterInterface) SelectMessages(filterCond func(message *model.ClusterMessage) bool) []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	filteredMessages := []*model.ClusterMessage{}
+	for _, msg := range c.messages {
+		if filterCond(msg) {
+			filteredMessages = append(filteredMessages, msg)
+		}
+	}
+	return filteredMessages
+}
+
 func (c *FakeClusterInterface) ClearMessages() {
 	c.mut.Lock()
 	defer c.mut.Unlock()

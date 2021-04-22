@@ -416,13 +416,13 @@ func (_m *TeamStore) GetByNames(name []string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetChannelUnreadsForAllTeams provides a mock function with given fields: excludeTeamID, userId
-func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamID string, userId string) ([]*model.ChannelUnread, error) {
-	ret := _m.Called(excludeTeamID, userId)
+// GetChannelUnreadsForAllTeams provides a mock function with given fields: excludeTeamID, userID
+func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamID string, userID string) ([]*model.ChannelUnread, error) {
+	ret := _m.Called(excludeTeamID, userID)
 
 	var r0 []*model.ChannelUnread
 	if rf, ok := ret.Get(0).(func(string, string) []*model.ChannelUnread); ok {
-		r0 = rf(excludeTeamID, userId)
+		r0 = rf(excludeTeamID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelUnread)
@@ -431,7 +431,7 @@ func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamID string, userId s
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(excludeTeamID, userId)
+		r1 = rf(excludeTeamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -439,13 +439,13 @@ func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamID string, userId s
 	return r0, r1
 }
 
-// GetChannelUnreadsForTeam provides a mock function with given fields: teamID, userId
-func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userId string) ([]*model.ChannelUnread, error) {
-	ret := _m.Called(teamID, userId)
+// GetChannelUnreadsForTeam provides a mock function with given fields: teamID, userID
+func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userID string) ([]*model.ChannelUnread, error) {
+	ret := _m.Called(teamID, userID)
 
 	var r0 []*model.ChannelUnread
 	if rf, ok := ret.Get(0).(func(string, string) []*model.ChannelUnread); ok {
-		r0 = rf(teamID, userId)
+		r0 = rf(teamID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelUnread)
@@ -454,7 +454,7 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userId string) ([]*
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamID, userId)
+		r1 = rf(teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -462,13 +462,13 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userId string) ([]*
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: ctx, teamID, userId
-func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userId string) (*model.TeamMember, error) {
-	ret := _m.Called(ctx, teamID, userId)
+// GetMember provides a mock function with given fields: ctx, teamID, userID
+func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error) {
+	ret := _m.Called(ctx, teamID, userID)
 
 	var r0 *model.TeamMember
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.TeamMember); ok {
-		r0 = rf(ctx, teamID, userId)
+		r0 = rf(ctx, teamID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
@@ -477,7 +477,7 @@ func (_m *TeamStore) GetMember(ctx context.Context, teamID string, userId string
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, teamID, userId)
+		r1 = rf(ctx, teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -531,13 +531,13 @@ func (_m *TeamStore) GetMembersByIds(teamID string, userIds []string, restrictio
 	return r0, r1
 }
 
-// GetTeamMembersForExport provides a mock function with given fields: userId
-func (_m *TeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
-	ret := _m.Called(userId)
+// GetTeamMembersForExport provides a mock function with given fields: userID
+func (_m *TeamStore) GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.TeamMemberForExport
 	if rf, ok := ret.Get(0).(func(string) []*model.TeamMemberForExport); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMemberForExport)
@@ -546,7 +546,7 @@ func (_m *TeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMember
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -577,13 +577,13 @@ func (_m *TeamStore) GetTeamsByScheme(schemeID string, offset int, limit int) ([
 	return r0, r1
 }
 
-// GetTeamsByUserId provides a mock function with given fields: userId
-func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
-	ret := _m.Called(userId)
+// GetTeamsByUserId provides a mock function with given fields: userID
+func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Team
 	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -592,7 +592,7 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -600,13 +600,13 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: ctx, userId
-func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
-	ret := _m.Called(ctx, userId)
+// GetTeamsForUser provides a mock function with given fields: ctx, userID
+func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
+	ret := _m.Called(ctx, userID)
 
 	var r0 []*model.TeamMember
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.TeamMember); ok {
-		r0 = rf(ctx, userId)
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -615,7 +615,7 @@ func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userId)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -623,13 +623,13 @@ func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mod
 	return r0, r1
 }
 
-// GetTeamsForUserWithPagination provides a mock function with given fields: userId, page, perPage
-func (_m *TeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, error) {
-	ret := _m.Called(userId, page, perPage)
+// GetTeamsForUserWithPagination provides a mock function with given fields: userID, page, perPage
+func (_m *TeamStore) GetTeamsForUserWithPagination(userID string, page int, perPage int) ([]*model.TeamMember, error) {
+	ret := _m.Called(userID, page, perPage)
 
 	var r0 []*model.TeamMember
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.TeamMember); ok {
-		r0 = rf(userId, page, perPage)
+		r0 = rf(userID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -638,7 +638,7 @@ func (_m *TeamStore) GetTeamsForUserWithPagination(userId string, page int, perP
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(userId, page, perPage)
+		r1 = rf(userID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -667,13 +667,13 @@ func (_m *TeamStore) GetTotalMemberCount(teamID string, restrictions *model.View
 	return r0, r1
 }
 
-// GetUserTeamIds provides a mock function with given fields: userId, allowFromCache
-func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
-	ret := _m.Called(userId, allowFromCache)
+// GetUserTeamIds provides a mock function with given fields: userID, allowFromCache
+func (_m *TeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, error) {
+	ret := _m.Called(userID, allowFromCache)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(string, bool) []string); ok {
-		r0 = rf(userId, allowFromCache)
+		r0 = rf(userID, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -682,7 +682,7 @@ func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]strin
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(userId, allowFromCache)
+		r1 = rf(userID, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -711,18 +711,18 @@ func (_m *TeamStore) GroupSyncedTeamCount() (int64, error) {
 	return r0, r1
 }
 
-// InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
-func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	_m.Called(userId)
+// InvalidateAllTeamIdsForUser provides a mock function with given fields: userID
+func (_m *TeamStore) InvalidateAllTeamIdsForUser(userID string) {
+	_m.Called(userID)
 }
 
-// MigrateTeamMembers provides a mock function with given fields: fromTeamID, fromUserId
-func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error) {
-	ret := _m.Called(fromTeamID, fromUserId)
+// MigrateTeamMembers provides a mock function with given fields: fromTeamID, fromUserID
+func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
+	ret := _m.Called(fromTeamID, fromUserID)
 
 	var r0 map[string]string
 	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
-		r0 = rf(fromTeamID, fromUserId)
+		r0 = rf(fromTeamID, fromUserID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
@@ -731,7 +731,7 @@ func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (m
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(fromTeamID, fromUserId)
+		r1 = rf(fromTeamID, fromUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -767,13 +767,13 @@ func (_m *TeamStore) RemoveAllMembersByTeam(teamID string) error {
 	return r0
 }
 
-// RemoveAllMembersByUser provides a mock function with given fields: userId
-func (_m *TeamStore) RemoveAllMembersByUser(userId string) error {
-	ret := _m.Called(userId)
+// RemoveAllMembersByUser provides a mock function with given fields: userID
+func (_m *TeamStore) RemoveAllMembersByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -781,13 +781,13 @@ func (_m *TeamStore) RemoveAllMembersByUser(userId string) error {
 	return r0
 }
 
-// RemoveMember provides a mock function with given fields: teamID, userId
-func (_m *TeamStore) RemoveMember(teamID string, userId string) error {
-	ret := _m.Called(teamID, userId)
+// RemoveMember provides a mock function with given fields: teamID, userID
+func (_m *TeamStore) RemoveMember(teamID string, userID string) error {
+	ret := _m.Called(teamID, userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(teamID, userId)
+		r0 = rf(teamID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1088,20 +1088,20 @@ func (_m *TeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mode
 	return r0, r1
 }
 
-// UserBelongsToTeams provides a mock function with given fields: userId, teamIds
-func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, error) {
-	ret := _m.Called(userId, teamIds)
+// UserBelongsToTeams provides a mock function with given fields: userID, teamIds
+func (_m *TeamStore) UserBelongsToTeams(userID string, teamIds []string) (bool, error) {
+	ret := _m.Called(userID, teamIds)
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, []string) bool); ok {
-		r0 = rf(userId, teamIds)
+		r0 = rf(userID, teamIds)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(userId, teamIds)
+		r1 = rf(userID, teamIds)
 	} else {
 		r1 = ret.Error(1)
 	}

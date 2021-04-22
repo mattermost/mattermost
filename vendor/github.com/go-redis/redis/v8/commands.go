@@ -124,6 +124,7 @@ type Cmdable interface {
 	MSet(ctx context.Context, values ...interface{}) *StatusCmd
 	MSetNX(ctx context.Context, values ...interface{}) *BoolCmd
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *StatusCmd
+	SetArgs(ctx context.Context, key string, value interface{}, a SetArgs) *StatusCmd
 	SetEX(ctx context.Context, key string, value interface{}, expiration time.Duration) *StatusCmd
 	SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) *BoolCmd
 	SetXX(ctx context.Context, key string, value interface{}, expiration time.Duration) *BoolCmd
