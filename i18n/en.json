@@ -6419,8 +6419,8 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
-      "id": "app.user.send_auto_response.app_error",
-      "translation": "Unable to send auto response from user."
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Unable to send auto response from user."
   },
   {
     "id": "app.user.send_emails.app_error",
@@ -6521,10 +6521,6 @@
   {
     "id": "app.user_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "app.user.send_auto_response.app_error",
-    "translation": "Unable to send auto response from user."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
