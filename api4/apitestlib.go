@@ -1135,7 +1135,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -1152,7 +1152,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	utils.DisableDebugLogForTest()
 
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -1177,7 +1177,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
@@ -1209,7 +1209,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
