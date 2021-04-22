@@ -570,16 +570,14 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 
 	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
-		Add:    permissionsExperimentalWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalWrite,
 	})
 
 	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
@@ -599,16 +597,14 @@ func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) 
 
 	// Give the new subsection READ permissions to any user with READ_INTEGRATIONS
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
-		Add:    permissionsIntegrationsRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
-		Add:    permissionsIntegrationsWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsWrite,
 	})
 
 	return transformations, nil
@@ -622,16 +618,14 @@ func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_SITE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
-		Add:    permissionsSiteRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_SITE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
+		Add: permissionsSiteRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_SITE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
-		Add:    permissionsSiteWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
+		Add: permissionsSiteWrite,
 	})
 
 	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
@@ -651,16 +645,14 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_COMPLIANCE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
-		Add:    permissionsComplianceRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add: permissionsComplianceRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_COMPLIANCE
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
-		Add:    permissionsComplianceWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add: permissionsComplianceWrite,
 	})
 
 	// Ancilary permissions
@@ -728,16 +720,14 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
-		Add:    permissionsEnvironmentRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_ENVIRONMENT
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
-		Add:    permissionsEnvironmentWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentWrite,
 	})
 
 	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
@@ -792,15 +782,13 @@ func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
 	permissionsAboutWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id}
 
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
-		Add:    permissionsAboutRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
+		Add: permissionsAboutRead,
 	})
 
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
-		Add:    permissionsAboutWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
+		Add: permissionsAboutWrite,
 	})
 
 	transformations = append(transformations, permissionTransformation{
@@ -832,16 +820,14 @@ func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with READ_REPORTING
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
-		Add:    permissionsReportingRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
+		Add: permissionsReportingRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_REPORTING
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
-		Add:    permissionsReportingWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
+		Add: permissionsReportingWrite,
 	})
 
 	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
@@ -867,16 +853,14 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 
 	// Give the new subsection READ permissions to any user with READ_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
-		Add:    permissionsAuthenticationRead,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_AUTHENTICATION
 	transformations = append(transformations, permissionTransformation{
-		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
-		Add:    permissionsAuthenticationWrite,
-		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id},
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationWrite,
 	})
 
 	// Give the ancillary permissions for LDAP to anyone with WRITE_AUTHENTICATION_LDAP

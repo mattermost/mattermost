@@ -607,6 +607,44 @@ func TestReplicaLagQuery(t *testing.T) {
 	}
 }
 
+func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
+	testCases := []struct {
+		Scenario    string
+		DSN         string
+		ExpectedDSN string
+		Driver      string
+	}{
+		{
+			"Should append multiStatements param to the DSN path with existing params",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
+			model.DATABASE_DRIVER_MYSQL,
+		},
+		{
+			"Should append multiStatements param to the DSN path with no existing params",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
+			model.DATABASE_DRIVER_MYSQL,
+		},
+		{
+			"Should not multiStatements param to the DSN when driver is not MySQL",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
+			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
+			model.DATABASE_DRIVER_POSTGRES,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Scenario, func(t *testing.T) {
+			t.Parallel()
+			store := &SqlStore{settings: &model.SqlSettings{DriverName: &tc.Driver, DataSource: &tc.DSN}}
+			res, err := store.appendMultipleStatementsFlag(*store.settings.DataSource)
+			require.NoError(t, err)
+			assert.Equal(t, tc.ExpectedDSN, res)
+		})
+	}
+}
+
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:
@@ -616,4 +654,23 @@ func makeSqlSettings(driver string) *model.SqlSettings {
 	}
 
 	return nil
+}
+
+func TestExecNoTimeout(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+		var query string
+		timeout := sqlStore.master.QueryTimeout
+		sqlStore.master.QueryTimeout = 1
+		defer func() {
+			sqlStore.master.QueryTimeout = timeout
+		}()
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			query = `SELECT SLEEP(2);`
+		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = `SELECT pg_sleep(2);`
+		}
+		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
+		require.NoError(t, err)
+	})
 }

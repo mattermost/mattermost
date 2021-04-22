@@ -88,6 +88,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
@@ -178,11 +179,17 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
+		var conErr *store.ErrConflict
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, nErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &conErr):
+			if cErr, ok := nErr.(*store.ErrConflict); ok && cErr.Resource == "Username" {
+				return nil, model.NewAppError("PatchBot", "app.user.save.username_exists.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			}
+			return nil, model.NewAppError("PatchBot", "app.user.save.email_exists.app_error", nil, nErr.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.update.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -407,10 +408,20 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if appErr := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS); appErr != nil {
+		if appErr := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS, *c.App.Config().ServiceSettings.SiteURL); appErr != nil {
 			c.Err = appErr
 			return
 		}
+	case model.EventTypeTrialWillEnd:
+		endTimeStamp := event.SubscriptionTrialEndUnixTimeStamp
+		t := time.Unix(endTimeStamp, 0)
+		trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+
+		if appErr := c.App.SendCloudTrialEndWarningEmail(trialEndDate, *c.App.Config().ServiceSettings.SiteURL); appErr != nil {
+			c.Err = appErr
+			return
+		}
+
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
 		return

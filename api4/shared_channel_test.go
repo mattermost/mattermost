@@ -95,7 +95,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 	// create a remote cluster
 	rc := &model.RemoteCluster{
 		RemoteId:     model.NewId(),
-		DisplayName:  "Test1",
+		Name:         "Test1",
 		RemoteTeamId: model.NewId(),
 		SiteURL:      model.NewId(),
 		CreatorId:    model.NewId(),
@@ -130,7 +130,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 	t.Run("valid remote, user is member", func(t *testing.T) {
 		rcInfo, resp := th.Client.GetRemoteClusterInfo(rc.RemoteId)
 		CheckNoError(t, resp)
-		assert.Equal(t, rc.DisplayName, rcInfo.DisplayName)
+		assert.Equal(t, rc.Name, rcInfo.Name)
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
@@ -173,9 +173,9 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		rc := &model.RemoteCluster{
-			DisplayName: "test",
-			Token:       model.NewId(),
-			CreatorId:   localUser.Id,
+			Name:      "test",
+			Token:     model.NewId(),
+			CreatorId: localUser.Id,
 		}
 		rc, err := th.App.AddRemoteCluster(rc)
 		require.Nil(t, err)
@@ -206,9 +206,9 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		rc := &model.RemoteCluster{
-			DisplayName: "test",
-			Token:       model.NewId(),
-			CreatorId:   localUser.Id,
+			Name:      "test",
+			Token:     model.NewId(),
+			CreatorId: localUser.Id,
 		}
 		rc, err := th.App.AddRemoteCluster(rc)
 		require.Nil(t, err)

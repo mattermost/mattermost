@@ -211,32 +211,41 @@ func TestUserGetDisplayNameWithPrefix(t *testing.T) {
 	assert.Equal(t, user.GetDisplayNameWithPrefix(SHOW_NICKNAME_FULLNAME, "@"), "nickname", "Display name should be nickname")
 }
 
-var usernames = []struct {
-	value    string
-	expected bool
-}{
-	{"spin-punch", true},
-	{"sp", true},
-	{"s", true},
-	{"1spin-punch", true},
-	{"-spin-punch", true},
-	{".spin-punch", true},
-	{"Spin-punch", false},
-	{"spin punch-", false},
-	{"spin_punch", true},
-	{"spin", true},
-	{"PUNCH", false},
-	{"spin.punch", true},
-	{"spin'punch", false},
-	{"spin*punch", false},
-	{"all", false},
-	{"system", false},
+type usernamesTest struct {
+	value              string
+	expected           bool
+	expectedWhenRemote bool
+}
+
+var usernames = []usernamesTest{
+	{"spin-punch", true, true},
+	{"sp", true, true},
+	{"s", true, true},
+	{"1spin-punch", true, true},
+	{"-spin-punch", true, true},
+	{".spin-punch", true, true},
+	{"Spin-punch", false, false},
+	{"spin punch-", false, false},
+	{"spin_punch", true, true},
+	{"spin", true, true},
+	{"PUNCH", false, false},
+	{"spin.punch", true, true},
+	{"spin'punch", false, false},
+	{"spin*punch", false, false},
+	{"all", false, false},
+	{"system", false, false},
+	{"spin:punch", false, true},
 }
 
 func TestValidUsername(t *testing.T) {
 	for _, v := range usernames {
 		if IsValidUsername(v.value) != v.expected {
 			t.Errorf("expect %v as %v", v.value, v.expected)
+		}
+	}
+	for _, v := range usernames {
+		if IsValidUsernameAllowRemote(v.value) != v.expectedWhenRemote {
+			t.Errorf("expect %v as %v", v.value, v.expectedWhenRemote)
 		}
 	}
 }

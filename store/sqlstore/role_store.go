@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -175,10 +176,9 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	return roles, nil
 }
 
-func (s *SqlRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var dbRole Role
-
-	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}
