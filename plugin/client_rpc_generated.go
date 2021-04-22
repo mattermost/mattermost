@@ -532,6 +532,40 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["OnPluginEvent"] = OnPluginEventID
+}
+
+type Z_OnPluginEventArgs struct {
+	A *Context
+	B model.PluginEvent
+}
+
+type Z_OnPluginEventReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginEvent(c *Context, ev model.PluginEvent) {
+	_args := &Z_OnPluginEventArgs{c, ev}
+	_returns := &Z_OnPluginEventReturns{}
+	if g.implemented[OnPluginEventID] {
+		if err := g.client.Call("Plugin.OnPluginEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginEvent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnPluginEvent(args *Z_OnPluginEventArgs, returns *Z_OnPluginEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginEvent(c *Context, ev model.PluginEvent)
+	}); ok {
+		hook.OnPluginEvent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginEvent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -4903,6 +4937,36 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishPluginEventArgs struct {
+	A model.PluginEvent
+	B model.PluginEventSendOptions
+}
+
+type Z_PublishPluginEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
+	_args := &Z_PublishPluginEventArgs{ev, opts}
+	_returns := &Z_PublishPluginEventReturns{}
+	if err := g.client.Call("Plugin.PublishPluginEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishPluginEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishPluginEvent(args *Z_PublishPluginEventArgs, returns *Z_PublishPluginEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error
+	}); ok {
+		returns.A = hook.PublishPluginEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API PublishPluginEvent called but not implemented."))
 	}
 	return nil
 }

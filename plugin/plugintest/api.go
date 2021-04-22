@@ -2682,6 +2682,20 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
+// PublishPluginEvent provides a mock function with given fields: ev, opts
+func (_m *API) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
+	ret := _m.Called(ev, opts)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.PluginEvent, model.PluginEventSendOptions) error); ok {
+		r0 = rf(ev, opts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublishUserTyping provides a mock function with given fields: userID, channelId, parentId
 func (_m *API) PublishUserTyping(userID string, channelId string, parentId string) *model.AppError {
 	ret := _m.Called(userID, channelId, parentId)

@@ -162,3 +162,9 @@ func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(c *Context, reaction *model
 	hooks.hooksImpl.ReactionHasBeenRemoved(c, reaction)
 	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
 }
+
+func (hooks *hooksTimerLayer) OnPluginEvent(c *Context, ev model.PluginEvent) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginEvent(c, ev)
+	hooks.recordTime(startTime, "OnPluginEvent", true)
+}

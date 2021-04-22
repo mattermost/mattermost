@@ -1063,3 +1063,22 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 
 	return nil
 }
+
+// PublishPluginEvent broadcasts a plugin event to all other running instances of
+// the calling plugin.
+func (api *PluginAPI) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
+	if api.app.Cluster() == nil {
+		return nil
+	}
+	api.app.Cluster().SendClusterMessage(&model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		SendType:         opts.SendType,
+		WaitForAllToSend: false,
+		Props: map[string]string{
+			"PluginID": api.id,
+			"EventID":  ev.Id,
+		},
+		Data: string(ev.Data),
+	})
+	return nil
+}

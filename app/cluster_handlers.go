@@ -20,6 +20,7 @@ func (a *App) registerAppClusterMessageHandlers() {
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, a.clusterClearSessionCacheForAllUsersHandler)
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.clusterInstallPluginHandler)
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.clusterRemovePluginHandler)
+	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_PLUGIN_EVENT, a.clusterPluginEventHandler)
 }
 
 func (a *App) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -32,6 +33,35 @@ func (a *App) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessa
 
 func (a *App) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	a.InstallPluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+}
+
+func (a *App) clusterPluginEventHandler(msg *model.ClusterMessage) {
+	env := a.GetPluginsEnvironment()
+	if env == nil {
+		return
+	}
+	if msg.Props == nil {
+		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
+		return
+	}
+	pluginID := msg.Props["PluginID"]
+	eventID := msg.Props["EventID"]
+	if pluginID == "" || eventID == "" {
+		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
+			mlog.String("PluginID", pluginID), mlog.String("EventID", eventID))
+		return
+	}
+
+	hooks, err := env.HooksForPlugin(pluginID)
+	if err != nil {
+		mlog.Warn("Getting hooks for plugin failed", mlog.String("pluginID", pluginID), mlog.Err(err))
+		return
+	}
+
+	hooks.OnPluginEvent(a.PluginContext(), model.PluginEvent{
+		Id:   eventID,
+		Data: []byte(msg.Data),
+	})
 }
 
 func (a *App) clusterRemovePluginHandler(msg *model.ClusterMessage) {
