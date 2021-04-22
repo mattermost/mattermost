@@ -213,6 +213,29 @@ func (_m *FileInfoStore) GetForUser(userID string) ([]*model.FileInfo, error) {
 	return r0, r1
 }
 
+// GetFromMaster provides a mock function with given fields: id
+func (_m *FileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(string) *model.FileInfo); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetWithOptions provides a mock function with given fields: page, perPage, opt
 func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	ret := _m.Called(page, perPage, opt)
