@@ -85,7 +85,7 @@ func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	count, err := c.App.GetTotalUsersCount()
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = err
 		return
 	}
 	cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
