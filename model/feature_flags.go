@@ -87,10 +87,10 @@ func (f *FeatureFlags) ToMap() map[string]string {
 	ret := make(map[string]string)
 	for i := 0; i < refStructVal.NumField(); i++ {
 		refFieldVal := refStructVal.Field(i)
-		refFieldType := refStructType.Field(i)
 		if !refFieldVal.IsValid() {
 			continue
 		}
+		refFieldType := refStructType.Field(i)
 		switch refFieldType.Type.Kind() {
 		case reflect.Bool:
 			ret[refFieldType.Name] = strconv.FormatBool(refFieldVal.Bool())
