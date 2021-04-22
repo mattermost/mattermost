@@ -45,13 +45,13 @@ func (s *Server) LoadLicense() {
 		}
 
 		if license.IsTrial() {
-			can, err := s.LicenseManager.CanStartTrial()
+			canStartTrial, err := s.LicenseManager.CanStartTrial()
 			if err != nil {
 				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
 				return
 			}
 
-			if !can {
+			if !canStartTrial {
 				mlog.Info("Cannot start trial multiple times.")
 				return
 			}

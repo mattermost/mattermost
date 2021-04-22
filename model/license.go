@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	trialDuration = (time.Hour * 24 * 30) + (time.Hour * 8)
+	trialDuration = 30*(time.Hour*24) + (time.Hour * 8) // 720 hours (30 days) + 8 hours is trial license duration
 )
 
 type LicenseRecord struct {

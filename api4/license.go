@@ -105,13 +105,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if license.IsTrial() {
-		can, err := c.App.Srv().LicenseManager.CanStartTrial()
+		canStartTrial, err := c.App.Srv().LicenseManager.CanStartTrial()
 		if err != nil {
 			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
 			return
 		}
 
-		if !can {
+		if !canStartTrial {
 			c.Err = model.NewAppError("addLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
 			return
 		}

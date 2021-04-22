@@ -2022,7 +2022,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "TODO Not Allowed"
+    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please contact our sales team."
   },
   {
     "id": "api.license.request_renewal_link.app_error",
