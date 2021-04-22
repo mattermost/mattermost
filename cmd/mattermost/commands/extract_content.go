@@ -21,9 +21,17 @@ var ExtractContentCmd = &cobra.Command{
 	RunE:    extractContentCmdF,
 }
 
+var ignoredFiles map[string]bool
+
 func init() {
+	ignoredFiles = map[string]bool{
+		"png": true, "jpg": true, "jpeg": true, "gif": true, "wmv": true,
+		"mpg": true, "mpeg": true, "mp3": true, "mp4": true, "ogg": true,
+		"ogv": true, "mov": true, "apk": true, "svg": true, "webm": true,
+		"mkv": true,
+	}
 	ExtractContentCmd.Flags().Int64("from", 0, "The timestamp of the earliest file to extract, expressed in seconds since the unix epoch.")
-	ExtractContentCmd.Flags().Int64("to", model.GetMillis(), "The timestamp of the latest file to extract, expressed in seconds since the unix epoch.")
+	ExtractContentCmd.Flags().Int64("to", model.GetMillis()/1000, "The timestamp of the latest file to extract, expressed in seconds since the unix epoch.")
 	RootCmd.AddCommand(ExtractContentCmd)
 }
 
@@ -54,7 +62,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 		return errors.New("\"to\" must be greater than from")
 	}
 
-	since := startTime
+	since := startTime * 1000
 	for {
 		opts := model.GetFileInfosOptions{
 			Since:          since,
@@ -69,14 +77,16 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 			break
 		}
 		for _, fileInfo := range fileInfos {
-			fmt.Println("extracting file", fileInfo.Name, fileInfo.Path)
-			err = a.ExtractContentFromFileInfo(fileInfo)
-			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", fileInfo.Id))
+			if !ignoredFiles[fileInfo.Extension] {
+				fmt.Println("extracting file", fileInfo.Name, fileInfo.Path)
+				err = a.ExtractContentFromFileInfo(fileInfo)
+				if err != nil {
+					mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", fileInfo.Id))
+				}
 			}
 		}
 		lastFileInfo := fileInfos[len(fileInfos)-1]
-		if lastFileInfo.CreateAt > endTime {
+		if lastFileInfo.CreateAt > endTime*1000 {
 			break
 		}
 		since = lastFileInfo.CreateAt + 1
