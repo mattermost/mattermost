@@ -998,3 +998,11 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
 }
+
+func UsersToUserIDs(users []*User) []string {
+	userIDs := make([]string, len(users))
+	for _, user := range users {
+		userIDs = append(userIDs, user.Id)
+	}
+	return userIDs
+}

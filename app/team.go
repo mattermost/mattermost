@@ -692,6 +692,15 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
 func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, *model.AppError) {
+	canAddOneUser, err := a.TeamCanAddNMembers(team.Id, 1)
+	if err != nil {
+		return nil, false, model.NewAppError("joinUserToTeam", "app.team.get_active_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if !canAddOneUser {
+		return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+team.Id, http.StatusBadRequest)
+	}
+
 	tm := &model.TeamMember{
 		TeamId:      team.Id,
 		UserId:      user.Id,
@@ -737,15 +746,6 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	// Do nothing if already added
 	if rtm.DeleteAt == 0 {
 		return rtm, true, nil
-	}
-
-	membersCount, err := a.Srv().Store.Team().GetActiveMemberCount(tm.TeamId, nil)
-	if err != nil {
-		return nil, false, model.NewAppError("joinUserToTeam", "app.team.get_active_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if membersCount >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
-		return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
 	}
 
 	member, nErr := a.Srv().Store.Team().UpdateMember(tm)
@@ -1030,11 +1030,99 @@ func (a *App) AddTeamMember(c *request.Context, teamID, userID string) (*model.T
 	return teamMember, nil
 }
 
+func (a *App) TeamCanAddNMembers(teamID string, count int) (bool, error) {
+	membersCount, err := a.Srv().Store.Team().GetActiveMemberCount(teamID, nil)
+	if err != nil {
+		return false, err
+	}
+
+	if (int(membersCount) + count) > *a.Config().TeamSettings.MaxUsersPerTeam {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
 	var membersWithErrors []*model.TeamMemberWithError
 
 	for _, userID := range userIDs {
 		_, teamMember, err := a.AddUserToTeam(c, teamID, userID, userRequestorId)
+		if err != nil {
+			if graceful {
+				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+					UserId: userID,
+					Error:  err,
+				})
+				continue
+			}
+			return nil, err
+		}
+
+		membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+			UserId: userID,
+			Member: teamMember,
+		})
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
+		message.Add("team_id", teamID)
+		message.Add("user_id", userID)
+		a.Publish(message)
+	}
+
+	return membersWithErrors, nil
+}
+
+func StringSetDifference(set1, set2 []string) []string {
+
+}
+
+// AddTeamMembersBatched adds the users to the team, performing all of the same downstream operations as performed by (*App).AddTeamMember, but with a different signature and response errors.
+func (a *App) AddTeamMembersBatched(teamID string, userIDs []string, userRequestorId string) error {
+	// * SQL: If the team is not found return immediately with an error.
+	_, appErr := a.GetTeam(teamID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// * SQL: If the max user count for the team will be exceeded then return with an error.
+	teamCanAddNMembers, err := a.TeamCanAddNMembers(teamID, len(userIDs))
+	if err != nil {
+		return err
+	}
+	if !teamCanAddNMembers {
+		return model.NewAppError("AddTeamMembersBatched", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+teamID, http.StatusBadRequest)
+	}
+
+	// * SQL: Get all requested users.
+	users, appErr := a.GetUsersByIds(userIDs, nil)
+	if len(users) != len(userIDs) {
+		// add the list
+	}
+
+	// * Error: If a user doesn't exist include that in the response error.
+	// * Error: Test that each user's email is allowed for each team, include rejections in the error response.
+	// * Create the TeamMember records in memory.
+	// * Set each TeamMember's SchemeUser and SchemeGuest based on whether the user is a guest.
+	// * Set each TeamMember's SchemeAdmin based on (*App).UserIsInAdminRoleGroup or whether the Teams's email matches the user.
+	// * SQL: Batch insert the team member records.
+	// * SQL: Update each updated User's UpdateAt timestamp.
+	// * Run plugin hooks (as done in (*App).JoinUserToTeam).
+	// * SQL: Create sidebar categories for each user.
+	// * SQL: Join default channels.
+	// * Clear the session, user, and team caches.
+	// * Send a websocket message about each new team member.
+
+	// error response:
+	// - non-existent or deleted users
+	// - users with rejected email addresses for the team
+	// - max users exceeded
+	// - any other downstream error
+
+	// Ensure all old invocations of (*App).AddTeamMembers is doing a type switch on the error
+
+	for _, userID := range userIDs {
+		_, teamMember, err := a.AddUserToTeam(teamID, userID, userRequestorId)
 		if err != nil {
 			if graceful {
 				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
