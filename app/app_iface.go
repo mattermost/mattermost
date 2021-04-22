@@ -687,7 +687,7 @@ type AppIface interface {
 	GetRetentionPoliciesCount() (int64, *model.AppError)
 	GetRetentionPolicy(policyID string) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
-	GetRoleByName(name string) (*model.Role, *model.AppError)
+	GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
 	GetSamlMetadata() (string, *model.AppError)

@@ -7452,10 +7452,6 @@
     "translation": "Не удалось получить все команды."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Мы не могли получить все приватные команды на странице."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Не удалось получить все приватные команды."
   },
@@ -7474,14 +7470,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Не удалось подсчитать команды."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Не удалось подсчитать публичные команды."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Не удалось подсчитать приватные команды."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",

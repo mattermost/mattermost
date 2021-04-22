@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -854,14 +855,14 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		return nil, err
 	}
 
-	memberRole, err := a.GetRoleByName(memberRoleName)
+	memberRole, err := a.GetRoleByName(context.Background(), memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var guestRole *model.Role
 	if guestRoleName != "" {
-		guestRole, err = a.GetRoleByName(guestRoleName)
+		guestRole, err = a.GetRoleByName(context.Background(), guestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -871,14 +872,14 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	if err != nil {
 		return nil, err
 	}
-	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	higherScopedMemberRole, err := a.GetRoleByName(context.Background(), higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var higherScopedGuestRole *model.Role
 	if higherScopedGuestRoleName != "" {
-		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
+		higherScopedGuestRole, err = a.GetRoleByName(context.Background(), higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -894,14 +895,15 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		return nil, err
 	}
 
-	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	ctx := sqlstore.WithMaster(context.Background())
+	higherScopedMemberRole, err := a.GetRoleByName(ctx, higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var higherScopedGuestRole *model.Role
 	if higherScopedGuestRoleName != "" {
-		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
+		higherScopedGuestRole, err = a.GetRoleByName(ctx, higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -933,7 +935,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 		// Send a websocket event about this new role. The other new roles—member and guest—get emitted when they're updated.
 		var adminRole *model.Role
-		adminRole, err = a.GetRoleByName(scheme.DefaultChannelAdminRole)
+		adminRole, err = a.GetRoleByName(ctx, scheme.DefaultChannelAdminRole)
 		if err != nil {
 			return nil, err
 		}
@@ -951,14 +953,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	guestRoleName := scheme.DefaultChannelGuestRole
 	memberRoleName := scheme.DefaultChannelUserRole
-	memberRole, err := a.GetRoleByName(memberRoleName)
+	memberRole, err := a.GetRoleByName(ctx, memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var guestRole *model.Role
 	if guestRoleName != "" {
-		guestRole, err = a.GetRoleByName(guestRoleName)
+		guestRole, err = a.GetRoleByName(ctx, guestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -1090,7 +1092,7 @@ func (a *App) UpdateChannelMemberRoles(channelID string, userID string, newRoles
 
 	for _, roleName := range strings.Fields(newRoles) {
 		var role *model.Role
-		role, err = a.GetRoleByName(roleName)
+		role, err = a.GetRoleByName(context.Background(), roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
@@ -2388,9 +2390,10 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		if threadMembership == nil {
-			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true)
+			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true, false)
 		}
-		if threadMembership != nil && threadMembership.Following {
+		threadData, _ := a.Srv().Store.Thread().Get(threadId)
+		if threadData != nil && threadMembership != nil && threadMembership.Following {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2595,7 +2598,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			}
 		}
 	}
-	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, *a.Config().ServiceSettings.ThreadAutoFollow)
+	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIDs, userID, false)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"context"
 	"sort"
 	"strings"
 
@@ -40,13 +41,13 @@ func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return s.RoleStore.Save(role)
 }
 
-func (s LocalCacheRoleStore) GetByName(name string) (*model.Role, error) {
+func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
-	role, err := s.RoleStore.GetByName(name)
+	role, err := s.RoleStore.GetByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}

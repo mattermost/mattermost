@@ -1023,9 +1023,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_USER_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
@@ -1044,7 +1044,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
 		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
@@ -1059,9 +1059,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		teamAdminRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))

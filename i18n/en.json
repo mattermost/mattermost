@@ -6419,6 +6419,10 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Unable to send auto response from user."
+  },
+  {
     "id": "app.user.send_emails.app_error",
     "translation": "No emails were successfully sent"
   },
@@ -6829,10 +6833,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -8157,10 +8157,6 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Number of replica lag queries is more than the number of replicas configured. Must be less than or equal to the number of replicas."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
