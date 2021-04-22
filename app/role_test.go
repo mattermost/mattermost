@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/csv"
 	"io/ioutil"
 	"os"
@@ -42,7 +43,7 @@ func TestGetRolesByNames(t *testing.T) {
 
 func TestGetRoleByName(t *testing.T) {
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		actualRole, err := th.App.GetRoleByName(testData.channelRole.Name)
+		actualRole, err := th.App.GetRoleByName(context.Background(), testData.channelRole.Name)
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
@@ -149,7 +150,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				}
 
 				// add or remove the permission from the higher-scoped scheme
-				higherScopedRole, testErr := th.App.GetRoleByName(roleNameUnderTest)
+				higherScopedRole, testErr := th.App.GetRoleByName(context.Background(), roleNameUnderTest)
 				require.Nil(t, testErr)
 
 				var higherScopedPermissions []string
@@ -171,7 +172,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				case higherScopedAdmin:
 					channelRoleName = channelScheme.DefaultChannelAdminRole
 				}
-				channelRole, testErr := th.App.GetRoleByName(channelRoleName)
+				channelRole, testErr := th.App.GetRoleByName(context.Background(), channelRoleName)
 				require.Nil(t, testErr)
 
 				// add or remove the permission from the channel scheme
