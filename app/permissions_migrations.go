@@ -940,7 +940,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
 	}
 
-	roles, err := a.GetAllRoles()
+	roles, err := a.srv.Store.Role().GetAll()
 	if err != nil {
 		return err
 	}
