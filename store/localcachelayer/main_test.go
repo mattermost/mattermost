@@ -44,7 +44,7 @@ func getMockStore() *mocks.Store {
 	mockRolesStore := mocks.RoleStore{}
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
-	mockRolesStore.On("GetByName", "role-name").Return(&fakeRole, nil)
+	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
 	mockRolesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Role").Return(&mockRolesStore)
