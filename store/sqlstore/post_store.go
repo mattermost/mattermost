@@ -1991,6 +1991,26 @@ func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) 
 	return
 }
 
+func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
+
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Posts")
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Posts")
+	}
+	return rowsAffected, nil
+}
+
 func (s *SqlPostStore) GetOldest() (*model.Post, error) {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")

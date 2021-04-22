@@ -287,3 +287,43 @@ func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err e
 	deleted, err = result.RowsAffected()
 	return
 }
+
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+	if limit < 0 {
+		// uint64 does not throw an error, it overflows if it is negative.
+		// it is better to manually check here, or change the function type to uint64
+		return int64(0), errors.Errorf("Received a negative limit")
+	}
+	nameInQ, nameInArgs, err := sq.Select("*").
+		FromSelect(
+			sq.Select("Preferences.Name").
+				From("Preferences").
+				LeftJoin("Posts ON Preferences.Name = Posts.Id").
+				Where(sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+				Where(sq.Eq{"Posts.Id": nil}).
+				Limit(uint64(limit)),
+			"t").
+		ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build nested sql query to delete preference")
+	}
+	query, args, err := s.getQueryBuilder().Delete("Preferences").
+		Where(sq.Eq{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}).
+		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
+		ToSql()
+
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
+	}
+
+	sqlResult, err := s.GetMaster().Exec(query, args...)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to delete Preference")
+	}
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "unable to get rows affected")
+	}
+
+	return rowsAffected, nil
+}

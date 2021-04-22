@@ -272,6 +272,7 @@ type ChannelMemberHistoryStore interface {
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
@@ -333,6 +334,7 @@ type PostStore interface {
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error)
@@ -571,6 +573,7 @@ type PreferenceStore interface {
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userID string) error
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
+	CleanupFlagsBatch(limit int64) (int64, error)
 }
 
 type LicenseStore interface {
@@ -643,6 +646,7 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	DeleteOrphanedRows(limit int) (int64, error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 
 type JobStore interface {

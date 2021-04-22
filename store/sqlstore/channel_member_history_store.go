@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -202,4 +203,53 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 	}
 	deleted, err = result.RowsAffected()
 	return
+}
+
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	var (
+		query string
+		args  []interface{}
+		err   error
+	)
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		var innerSelect string
+		innerSelect, args, err = s.getQueryBuilder().
+			Select("ctid").
+			From("ChannelMemberHistory").
+			Where(sq.And{
+				sq.NotEq{"LeaveTime": nil},
+				sq.LtOrEq{"LeaveTime": endTime},
+			}).Limit(uint64(limit)).
+			ToSql()
+		if err != nil {
+			return 0, errors.Wrap(err, "channel_member_history_to_sql")
+		}
+		query, _, err = s.getQueryBuilder().
+			Delete("ChannelMemberHistory").
+			Where(fmt.Sprintf(
+				"ctid IN (%s)", innerSelect,
+			)).ToSql()
+	} else {
+		query, args, err = s.getQueryBuilder().
+			Delete("ChannelMemberHistory").
+			Where(sq.And{
+				sq.NotEq{"LeaveTime": nil},
+				sq.LtOrEq{"LeaveTime": endTime},
+			}).
+			Limit(uint64(limit)).ToSql()
+	}
+	if err != nil {
+		return 0, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+	sqlResult, err := s.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
+	}
+	return rowsAffected, nil
 }

@@ -2222,6 +2222,22 @@ func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, chann
 	return err
 }
 
+func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.PermanentDeleteBatch", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	start := timemodule.Now()
 
@@ -5001,6 +5017,22 @@ func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.PermanentDeleteBatch(endTime, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteBatch", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 	start := timemodule.Now()
 
@@ -5125,6 +5157,22 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.CleanupFlagsBatch", success, elapsed)
 	}
 	return result, err
 }
@@ -5429,6 +5477,22 @@ func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, ex
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatch", success, elapsed)
 	}
 	return result, err
 }

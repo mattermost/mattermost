@@ -2568,6 +2568,26 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, chann
 
 }
 
+func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
@@ -5950,6 +5970,26 @@ func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 
 }
 
+func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
 
 	tries := 0
@@ -6095,6 +6135,26 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	tries := 0
 	for {
 		result, err := s.PostStore.Update(newPost, oldPost)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6475,6 +6535,26 @@ func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, ex
 	tries := 0
 	for {
 		result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
 		if err == nil {
 			return result, nil
 		}

@@ -230,6 +230,26 @@ func (s *SqlReactionStore) DeleteOrphanedRows(limit int) (deleted int64, err err
 	return
 }
 
+func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
+
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Reactions")
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to get rows affected for deleted Reactions")
+	}
+	return rowsAffected, nil
+}
+
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
 	params := map[string]interface{}{
 		"UserId":    reaction.UserId,
