@@ -756,10 +756,6 @@
     "translation": "[:emoji_name:] [status_message] or clear"
   },
   {
-    "id": "api.command_custom_status.message.app_error",
-    "translation": "A message must be provided with the /status command."
-  },
-  {
     "id": "api.command_custom_status.name",
     "translation": "status"
   },
