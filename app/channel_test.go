@@ -1813,7 +1813,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			if higherScopedPermissionsOverriden {
 				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
 				if tc.HigherScopedMemberPermissions != nil {
-					higherScopedMemberRole, err := th.App.GetRoleByName(higherScopedMemberRoleName)
+					higherScopedMemberRole, err := th.App.GetRoleByName(context.Background(), higherScopedMemberRoleName)
 					require.Nil(t, err)
 					originalPermissions := higherScopedMemberRole.Permissions
 
@@ -1822,7 +1822,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				}
 
 				if tc.HigherScopedGuestPermissions != nil {
-					higherScopedGuestRole, err := th.App.GetRoleByName(higherScopedGuestRoleName)
+					higherScopedGuestRole, err := th.App.GetRoleByName(context.Background(), higherScopedGuestRoleName)
 					require.Nil(t, err)
 					originalPermissions := higherScopedGuestRole.Permissions
 
@@ -1911,8 +1911,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		wg.Wait()
 
 		higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
-		higherScopedMemberRole, _ := th.App.GetRoleByName(higherScopedMemberRoleName)
-		higherScopedGuestRole, _ := th.App.GetRoleByName(higherScopedGuestRoleName)
+		higherScopedMemberRole, _ := th.App.GetRoleByName(context.Background(), higherScopedMemberRoleName)
+		higherScopedGuestRole, _ := th.App.GetRoleByName(context.Background(), higherScopedGuestRoleName)
 		assert.Contains(t, higherScopedMemberRole.Permissions, createPosts)
 		assert.Contains(t, higherScopedGuestRole.Permissions, createPosts)
 	})

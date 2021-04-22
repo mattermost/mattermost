@@ -573,6 +573,10 @@ func (c *Client4) GetSharedChannelsRoute() string {
 	return "/sharedchannels"
 }
 
+func (c *Client4) GetPermissionsRoute() string {
+	return "/permissions"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -6311,4 +6315,17 @@ func (c *Client4) GetRemoteClusterInfo(remoteID string) (RemoteClusterInfo, *Res
 	json.NewDecoder(r.Body).Decode(&rci)
 
 	return rci, BuildResponse(r)
+}
+
+func (c *Client4) GetAncillaryPermissions(subsectionPermissions []string) ([]string, *Response) {
+	var returnedPermissions []string
+	url := fmt.Sprintf("%s/ancillary?subsection_permissions=%s", c.GetPermissionsRoute(), strings.Join(subsectionPermissions, ","))
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return returnedPermissions, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	json.NewDecoder(r.Body).Decode(&returnedPermissions)
+	return returnedPermissions, BuildResponse(r)
 }
