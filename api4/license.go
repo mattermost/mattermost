@@ -183,7 +183,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !canStart {
+	if !canStartTrialLicense {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
 		return
 	}
