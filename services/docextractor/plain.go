@@ -20,10 +20,14 @@ func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker) (string, err
 	// This detects any visible character plus any whitespace
 	validRanges := append(unicode.GraphicRanges, unicode.White_Space)
 
-	runes := make([]byte, 1028)
-	_, err := r.Read(runes)
-	if err != nil {
+	runes := make([]byte, 1024)
+	total, err := r.Read(runes)
+	if err != nil && err != io.EOF {
 		return "", err
+	}
+
+	if total == 0 {
+		return "", nil
 	}
 
 	count := 0
@@ -36,11 +40,11 @@ func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker) (string, err
 			break
 		}
 		count += size
-		if count > 1024 {
+		if count > total-4 || count > len(runes)-4 {
 			break
 		}
 	}
 
 	text, _ := ioutil.ReadAll(r)
-	return string(text), nil
+	return string(runes) + string(text), nil
 }
