@@ -142,11 +142,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	threadsChan := make(chan store.StoreResult, 1)
 	go func() {
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(Posts.Id)").
+			Select("COUNT(DISTINCT(Posts.RootId))").
 			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
+			Where(sq.NotEq{"Posts.UserId": userId}).
 			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
 
 		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
