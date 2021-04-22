@@ -47,6 +47,11 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 	}
 
 	message = strings.TrimSpace(message)
+
+	if message == "" {
+		return &model.CommandResponse{Text: args.T("api.command_custom_status.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
 	if message == CmdCustomStatusClear {
 		if err := a.RemoveCustomStatus(args.UserId); err != nil {
 			mlog.Error(err.Error())
