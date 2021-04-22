@@ -5675,8 +5675,8 @@ func checkThreadListReplies(t *testing.T, th *TestHelper, client *model.Client4,
 		}
 		sum += thr.UnreadReplies
 	}
-	require.EqualValues(t, expectedReplies, sum)
-	require.Equal(t, count, u.TotalUnreadThreads)
+	require.EqualValues(t, expectedReplies, sum, "expectedReplies don't match")
+	require.Equal(t, count, u.TotalUnreadThreads, "TotalUnreadThreads don't match")
 
 	return u, r
 }
