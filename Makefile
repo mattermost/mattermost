@@ -327,6 +327,8 @@ endif
 
 check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
+check-style-ci: plugin-checker vet ## Runs plugin-checker and vet
+
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
