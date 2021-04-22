@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration migration-prereqs
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -56,6 +56,15 @@ ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
 	endif
 else
 	BUILD_CLIENT = false
+endif
+
+# We need current user's UID for `run-haserver` so docker compose does not run server
+# as root and mess up file permissions for devs. When running like this HOME will be blank
+# and docker will add '/', so we need to set the go-build cache location or we'll get 
+# permission errors on build as it tries to create a cache in filesystem root.
+export CURRENT_UID = $(shell id -u):$(shell id -g)
+ifeq ($(HOME),/)
+	export XDG_CACHE_HOME = /tmp/go-cache/
 endif
 
 # Go Flags
@@ -170,12 +179,16 @@ ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
-run-haserver: run-client
+run-haserver: 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Starting mattermost in an HA topology
+	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
-	docker-compose -f docker-compose.yaml up haproxy
+	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
 endif
+
+stop-haserver: 
+	@echo Stopping docker containers for HA topology
+	docker-compose stop
 
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)
@@ -293,6 +306,11 @@ einterfaces-mocks: ## Creates mock files for einterfaces.
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
+
+sharedchannel-mocks: ## Creates mock files for shared channels.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
+	$(GOBIN)/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -497,6 +515,7 @@ restart-server: | stop-server run-server ## Restarts the mattermost server to pi
 restart-haserver:
 	@echo Restarting mattermost in an HA topology
 
+	docker-compose restart follower2
 	docker-compose restart follower
 	docker-compose restart leader
 	docker-compose restart haproxy
@@ -584,7 +603,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \

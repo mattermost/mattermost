@@ -62,7 +62,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png")
 
 	if _, err := a.WriteFile(buf, BrandFilePath+BrandFileName); err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

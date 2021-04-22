@@ -107,7 +107,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddUserToChannel(user, channel)
+	cm, err := c.App.AddUserToChannel(user, channel, false)
 	if err != nil {
 		c.Err = err
 		return

@@ -32,6 +32,7 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M         = "warn_metric_number_of_posts_2M"
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
+	SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE          = "FirstAdminVisitMarketplace"
 	AWS_METERING_REPORT_INTERVAL                  = 1
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
 	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"

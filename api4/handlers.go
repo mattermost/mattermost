@@ -72,6 +72,26 @@ func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.
 
 }
 
+// RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
+func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &web.Handler{
+		GetGlobalAppOptions:       api.GetGlobalAppOptions,
+		HandleFunc:                h,
+		HandlerName:               web.GetHandlerName(h),
+		RequireSession:            false,
+		RequireCloudKey:           false,
+		RequireRemoteClusterToken: true,
+		TrustRequester:            false,
+		RequireMfa:                false,
+		IsStatic:                  false,
+		IsLocal:                   false,
+	}
+	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
 // ApiSessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
 // if MFA is enabled, the MFA process is not yet complete, and therefore the requirement to have completed the MFA
 // authentication must be waived.

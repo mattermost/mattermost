@@ -42,7 +42,7 @@ func (s *SqlPostStore) ClearCaches() {
 }
 
 func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -65,6 +65,7 @@ func postToSlice(post *model.Post) []interface{} {
 		model.ArrayToJson(post.Filenames),
 		model.ArrayToJson(post.FileIds),
 		post.HasReactions,
+		post.RemoteId,
 	}
 }
 
@@ -89,6 +90,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
 		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
 	return s
@@ -96,11 +98,12 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 
 func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
+	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
-		if post.Id != "" {
+		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
@@ -109,8 +112,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			return nil, idx, err
 		}
 
-		currentChannelCount, ok := channelNewPosts[post.ChannelId]
-		if !ok {
+		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
@@ -127,11 +129,21 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 
 		if post.RootId == "" {
+			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
+				if post.IsJoinLeaveMessage() {
+					channelNewRootPosts[post.ChannelId] = 0
+				} else {
+					channelNewRootPosts[post.ChannelId] = 1
+				}
+			} else {
+				if !post.IsJoinLeaveMessage() {
+					channelNewRootPosts[post.ChannelId] = currentChannelCount + 1
+				}
+			}
 			continue
 		}
 
-		currentRootCount, ok := rootIds[post.RootId]
-		if !ok {
+		if currentRootCount, ok := rootIds[post.RootId]; !ok {
 			rootIds[post.RootId] = 1
 			maxDateRootIds[post.RootId] = post.CreateAt
 		} else {
@@ -172,7 +184,9 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	for channelId, count := range channelNewPosts {
-		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
+		countRoot := channelNewRootPosts[channelId]
+
+		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count, TotalMsgCountRoot = TotalMsgCountRoot + :CountRoot WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count, "CountRoot": countRoot}); err != nil {
 			mlog.Warn("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
@@ -183,7 +197,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 	}
 
-	unknownRepliesPosts := []*model.Post{}
+	var unknownRepliesPosts []*model.Post
 	for _, post := range posts {
 		if post.RootId == "" {
 			count, ok := rootIds[post.Id]
@@ -493,9 +507,23 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) (*model.Post, error) {
+func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Id": id})
+
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getsingleincldeleted_tosql")
+	}
+
 	var post model.Post
-	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	err = s.GetReplica().SelectOne(&post, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -841,6 +869,11 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 	var posts []*model.Post
 
+	order := "DESC"
+	if options.SortAscending {
+		order = "ASC"
+	}
+
 	replyCountQuery1 := ""
 	replyCountQuery2 := ""
 	if options.SkipFetchThreads {
@@ -877,7 +910,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 							  AND ChannelId = :ChannelId
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
-          ORDER BY CreateAt DESC`
+          ORDER BY CreateAt ` + order
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = `WITH cte AS (SELECT
 		       *
@@ -889,7 +922,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		(SELECT *` + replyCountQuery2 + ` FROM cte)
 		UNION
 		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
-		ORDER BY CreateAt DESC`
+		ORDER BY CreateAt ` + order
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 
@@ -907,6 +940,56 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	return list, nil
+}
+
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
+	if options.Limit < 0 || options.Limit > 1000 {
+		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
+	}
+
+	order := " ASC"
+	if options.SortDescending {
+		order = " DESC"
+	}
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.GtOrEq{"UpdateAt": options.Since}).
+		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		Limit(uint64(options.Limit)).
+		OrderBy("CreateAt"+order, "DeleteAt", "Id")
+
+	if options.Until > 0 {
+		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
+	}
+
+	if !options.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if options.ExcludeRemoteId != "" {
+		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
+	}
+
+	if options.Offset > 0 {
+		query = query.Offset(uint64(options.Offset))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+	}
+
+	var posts []*model.Post
+
+	_, err = s.GetReplica().Select(&posts, queryString, args...)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	}
+
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
@@ -2002,7 +2085,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		channelIds = append(channelIds, post.ChannelId)
 	}
 	query = s.getQueryBuilder().
-		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.Eq{

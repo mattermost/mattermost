@@ -125,8 +125,12 @@ type Routes struct {
 	Cloud *mux.Router // 'api/v4/cloud'
 
 	Imports *mux.Router // 'api/v4/imports'
+
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
+
+	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
+	SharedChannels *mux.Router // 'api/v4/sharedchannels'
 }
 
 type API struct {
@@ -243,6 +247,9 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
+	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -280,6 +287,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitAction()
 	api.InitCloud()
 	api.InitImport()
+	api.InitRemoteCluster()
+	api.InitSharedChannels()
 	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
@@ -354,6 +363,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -372,6 +383,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitImportLocal()
 	api.InitExportLocal()
 	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

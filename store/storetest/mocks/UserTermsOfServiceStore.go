@@ -14,13 +14,13 @@ type UserTermsOfServiceStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: userId, termsOfServiceId
-func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
-	ret := _m.Called(userId, termsOfServiceId)
+// Delete provides a mock function with given fields: userID, termsOfServiceId
+func (_m *UserTermsOfServiceStore) Delete(userID string, termsOfServiceId string) error {
+	ret := _m.Called(userID, termsOfServiceId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, termsOfServiceId)
+		r0 = rf(userID, termsOfServiceId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -28,13 +28,13 @@ func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string
 	return r0
 }
 
-// GetByUser provides a mock function with given fields: userId
-func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
-	ret := _m.Called(userId)
+// GetByUser provides a mock function with given fields: userID
+func (_m *UserTermsOfServiceStore) GetByUser(userID string) (*model.UserTermsOfService, error) {
+	ret := _m.Called(userID)
 
 	var r0 *model.UserTermsOfService
 	if rf, ok := ret.Get(0).(func(string) *model.UserTermsOfService); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserTermsOfService)
@@ -43,7 +43,7 @@ func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfS
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
