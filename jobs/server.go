@@ -4,6 +4,8 @@
 package jobs
 
 import (
+	"sync"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
@@ -16,8 +18,6 @@ type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
 	metrics       einterfaces.MetricsInterface
-	Workers       *Workers
-	Schedulers    *Schedulers
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
@@ -35,6 +35,12 @@ type JobServer struct {
 	ExportProcess           tjobs.ExportProcessInterface
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
+	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
+
+	// mut is used to protect the following fields from concurrent access.
+	mut        sync.Mutex
+	workers    *Workers
+	schedulers *Schedulers
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
@@ -49,22 +55,58 @@ func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
 }
 
-func (srv *JobServer) StartWorkers() {
-	srv.Workers = srv.Workers.Start()
-}
-
-func (srv *JobServer) StartSchedulers() {
-	srv.Schedulers = srv.Schedulers.Start()
-}
-
-func (srv *JobServer) StopWorkers() {
-	if srv.Workers != nil {
-		srv.Workers.Stop()
+func (srv *JobServer) StartWorkers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.workers == nil {
+		return ErrWorkersUninitialized
+	} else if srv.workers.running {
+		return ErrWorkersRunning
 	}
+	srv.workers.Start()
+	return nil
 }
 
-func (srv *JobServer) StopSchedulers() {
-	if srv.Schedulers != nil {
-		srv.Schedulers.Stop()
+func (srv *JobServer) StartSchedulers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.schedulers == nil {
+		return ErrSchedulersUninitialized
+	} else if srv.schedulers.running {
+		return ErrSchedulersRunning
+	}
+	srv.schedulers.Start()
+	return nil
+}
+
+func (srv *JobServer) StopWorkers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.workers == nil {
+		return ErrWorkersUninitialized
+	} else if !srv.workers.running {
+		return ErrWorkersNotRunning
+	}
+	srv.workers.Stop()
+	return nil
+}
+
+func (srv *JobServer) StopSchedulers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.schedulers == nil {
+		return ErrSchedulersUninitialized
+	} else if !srv.schedulers.running {
+		return ErrSchedulersNotRunning
+	}
+	srv.schedulers.Stop()
+	return nil
+}
+
+func (srv *JobServer) HandleClusterLeaderChange(isLeader bool) {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.schedulers != nil {
+		srv.schedulers.HandleClusterLeaderChange(isLeader)
 	}
 }

@@ -97,7 +97,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var teamsCount int64
 		g.Go(func() error {
 			var err error
-			if teamsCount, err = a.Srv().Store.Team().AnalyticsTeamCount(false); err != nil {
+			if teamsCount, err = a.Srv().Store.Team().AnalyticsTeamCount(nil); err != nil {
 				return model.NewAppError("GetAnalytics", "app.team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 			return nil

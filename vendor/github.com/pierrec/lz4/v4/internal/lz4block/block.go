@@ -187,6 +187,9 @@ func (c *Compressor) CompressBlock(src, dst []byte) (int, error) {
 		}
 
 		mLen = si - mLen
+		if di >= len(dst) {
+			return 0, lz4errors.ErrInvalidSourceShortBuffer
+		}
 		if mLen < 0xF {
 			dst[di] = byte(mLen)
 		} else {

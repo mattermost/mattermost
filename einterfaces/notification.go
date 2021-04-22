@@ -8,6 +8,6 @@ import (
 )
 
 type NotificationInterface interface {
-	GetNotificationMessage(ack *model.PushNotificationAck, userId string) (*model.PushNotification, *model.AppError)
+	GetNotificationMessage(ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError)
 	CheckLicense() *model.AppError
 }

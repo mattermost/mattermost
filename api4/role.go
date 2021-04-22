@@ -56,7 +56,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(c.Params.RoleName)
+	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return
@@ -162,6 +162,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
 	}
 
 	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {

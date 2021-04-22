@@ -197,6 +197,20 @@ func (_m *LdapInterface) GetGroup(groupUID string) (*model.Group, *model.AppErro
 	return r0, r1
 }
 
+// GetSAMLIdFromADLdapId provides a mock function with given fields: authData
+func (_m *LdapInterface) GetSAMLIdFromADLdapId(authData string) string {
+	ret := _m.Called(authData)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(authData)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetUser provides a mock function with given fields: id
 func (_m *LdapInterface) GetUser(id string) (*model.User, *model.AppError) {
 	ret := _m.Called(id)
@@ -323,13 +337,13 @@ func (_m *LdapInterface) StartSynchronizeJob(waitForJobToFinish bool) (*model.Jo
 	return r0, r1
 }
 
-// SwitchToLdap provides a mock function with given fields: userId, ldapId, ldapPassword
-func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword string) *model.AppError {
-	ret := _m.Called(userId, ldapId, ldapPassword)
+// SwitchToLdap provides a mock function with given fields: userID, ldapID, ldapPassword
+func (_m *LdapInterface) SwitchToLdap(userID string, ldapID string, ldapPassword string) *model.AppError {
+	ret := _m.Called(userID, ldapID, ldapPassword)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
-		r0 = rf(userId, ldapId, ldapPassword)
+		r0 = rf(userID, ldapID, ldapPassword)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

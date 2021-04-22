@@ -121,7 +121,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 		return nil
 	}
 
-	role, err := a.GetRoleByName(*data.Name)
+	role, err := a.GetRoleByName(context.Background(), *data.Name)
 	if err != nil {
 		role = new(model.Role)
 	}
@@ -337,8 +337,12 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		password = *data.Password
 		authData = nil
 	} else {
+		var err error
 		// If no AuthData or Password is specified, we must generate a password.
-		password = model.GeneratePassword(*a.Config().PasswordSettings.MinimumLength)
+		password, err = generatePassword(*a.Config().PasswordSettings.MinimumLength)
+		if err != nil {
+			return model.NewAppError("importUser", "app.import.generate_password.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 		authData = nil
 	}
 

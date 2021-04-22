@@ -30,13 +30,13 @@ func (_m *NotificationInterface) CheckLicense() *model.AppError {
 	return r0
 }
 
-// GetNotificationMessage provides a mock function with given fields: ack, userId
-func (_m *NotificationInterface) GetNotificationMessage(ack *model.PushNotificationAck, userId string) (*model.PushNotification, *model.AppError) {
-	ret := _m.Called(ack, userId)
+// GetNotificationMessage provides a mock function with given fields: ack, userID
+func (_m *NotificationInterface) GetNotificationMessage(ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
+	ret := _m.Called(ack, userID)
 
 	var r0 *model.PushNotification
 	if rf, ok := ret.Get(0).(func(*model.PushNotificationAck, string) *model.PushNotification); ok {
-		r0 = rf(ack, userId)
+		r0 = rf(ack, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PushNotification)
@@ -45,7 +45,7 @@ func (_m *NotificationInterface) GetNotificationMessage(ack *model.PushNotificat
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.PushNotificationAck, string) *model.AppError); ok {
-		r1 = rf(ack, userId)
+		r1 = rf(ack, userID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

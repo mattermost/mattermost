@@ -67,11 +67,6 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().JobSettings.RunJobs {
-		c.App.Srv().Jobs.Workers = c.App.Srv().Jobs.InitWorkers()
-		c.App.Srv().Jobs.StartWorkers()
-	}
-
 	auditRec.Success()
 	c.LogAudit("success")
 
