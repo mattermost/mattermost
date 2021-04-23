@@ -35,9 +35,9 @@ type ReaderProvider interface {
 // SendFile asynchronously sends a file to a remote cluster.
 //
 // `ctx` determines behaviour when the outbound queue is full. A timeout or deadline context will return a
-// BufferFullError if the file cannot be enqueued before the timeout. A background context will block indefinitely.
+// BufferFullError if the task cannot be enqueued before the timeout. A background context will block indefinitely.
 //
-// Nil or error return indicates success or failure of file enqueue only.
+// Nil or error return indicates success or failure of task enqueue only.
 //
 // An optional callback can be provided that receives the response from the remote cluster. The `err` provided to the
 // callback is regarding file delivery only. The `resp` contains the decoded bytes returned from the remote.
@@ -55,17 +55,6 @@ func (rcs *Service) SendFile(ctx context.Context, us *model.UploadSession, fi *m
 
 // sendFile is called when a sendFileTask is popped from the send channel.
 func (rcs *Service) sendFile(task sendFileTask) {
-	// Ensure a panic from the callback does not exit the goroutine.
-	defer func() {
-		if r := recover(); r != nil {
-			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster sendFile panic",
-				mlog.String("remote", task.rc.DisplayName),
-				mlog.String("uploadId", task.us.Id),
-				mlog.Any("panic", r),
-			)
-		}
-	}()
-
 	fi, err := rcs.sendFileToRemote(SendTimeout, task)
 	var response Response
 
