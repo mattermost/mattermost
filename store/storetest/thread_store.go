@@ -425,7 +425,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
-		_, err := ss.Thread().MaintainMembership(userID, postID, true, false, true, false)
+		_, err := ss.Thread().MaintainMembership(userID, postID, true, false, true, false, false)
 		require.NoError(t, err)
 		threadMembership, err := ss.Thread().GetMembershipForUser(userID, postID)
 		require.NoError(t, err)
