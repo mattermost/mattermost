@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -158,7 +159,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
-		if _, errGet := c.App.GetChannelMember(channel.Id, c.App.Session().UserId); errGet != nil {
+		if _, errGet := c.App.GetChannelMember(context.Background(), channel.Id, c.App.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
@@ -371,7 +372,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
-		if _, err = c.App.GetChannelMember(c.Params.ChannelId, c.App.Session().UserId); err != nil {
+		if _, err = c.App.GetChannelMember(context.Background(), c.Params.ChannelId, c.App.Session().UserId); err != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
@@ -703,11 +704,20 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(permissions...)
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained parameter
+	if c.Params.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+		return
+	}
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
-		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
-		IncludeDeleted:         c.Params.IncludeDeleted,
+		NotAssociatedToGroup:     c.Params.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   c.Params.ExcludeDefaultChannels,
+		IncludeDeleted:           c.Params.IncludeDeleted,
+		ExcludePolicyConstrained: c.Params.ExcludePolicyConstrained,
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		opts.IncludePolicyID = true
 	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)
@@ -1012,6 +1022,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_search")
 		return
 	}
+	// Only system managers may use the ExcludePolicyConstrained field
+	if props.ExcludePolicyConstrained && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY)
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
@@ -1021,17 +1036,21 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted = includeDeleted || props.IncludeDeleted
 
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:    props.NotAssociatedToGroup,
-		ExcludeDefaultChannels:  props.ExcludeDefaultChannels,
-		TeamIds:                 props.TeamIds,
-		GroupConstrained:        props.GroupConstrained,
-		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
-		Public:                  props.Public,
-		Private:                 props.Private,
-		IncludeDeleted:          includeDeleted,
-		Deleted:                 props.Deleted,
-		Page:                    props.Page,
-		PerPage:                 props.PerPage,
+		NotAssociatedToGroup:     props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:   props.ExcludeDefaultChannels,
+		TeamIds:                  props.TeamIds,
+		GroupConstrained:         props.GroupConstrained,
+		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
+		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
+		Public:                   props.Public,
+		Private:                  props.Private,
+		IncludeDeleted:           includeDeleted,
+		Deleted:                  props.Deleted,
+		Page:                     props.Page,
+		PerPage:                  props.PerPage,
+	}
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY) {
+		opts.IncludePolicyID = true
 	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)
@@ -1249,7 +1268,7 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member, err := c.App.GetChannelMember(c.Params.ChannelId, c.Params.UserId)
+	member, err := c.App.GetChannelMember(app.WithMaster(context.Background()), c.Params.ChannelId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1480,7 +1499,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isNewMembership := false
-	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
+	if _, err = c.App.GetChannelMember(context.Background(), member.ChannelId, member.UserId); err != nil {
 		if err.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {
@@ -1539,7 +1558,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session().UserId, postRootId)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, app.ChannelMemberOpts{
+		UserRequestorID: c.App.Session().UserId,
+		PostRootID:      postRootId,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -1736,7 +1758,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
-	channelMemberCounts, err := c.App.GetMemberCountsByGroup(c.Params.ChannelId, includeTimezones)
+	channelMemberCounts, err := c.App.GetMemberCountsByGroup(app.WithMaster(context.Background()), c.Params.ChannelId, includeTimezones)
 	if err != nil {
 		c.Err = err
 		return

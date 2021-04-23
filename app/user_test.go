@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"image"
@@ -117,7 +118,8 @@ func TestSetDefaultProfileImage(t *testing.T) {
 		Id:       model.NewId(),
 		Username: "notvaliduser",
 	})
-	require.Error(t, err)
+	// It doesn't fail, but it does nothing
+	require.Nil(t, err)
 
 	user := th.BasicUser
 
@@ -469,7 +471,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 
@@ -512,7 +514,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 }
@@ -992,9 +994,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
 	require.Nil(t, err)
 
-	th.App.AddUserToChannel(user1, team1channel1)
-	th.App.AddUserToChannel(user1, team1channel2)
-	th.App.AddUserToChannel(user1, team2channel1)
+	th.App.AddUserToChannel(user1, team1channel1, false)
+	th.App.AddUserToChannel(user1, team1channel2, false)
+	th.App.AddUserToChannel(user1, team2channel1, false)
 
 	addPermission := func(role *model.Role, permission string) *model.AppError {
 		newPermissions := append(role.Permissions, permission)
@@ -1021,9 +1023,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_USER_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
@@ -1042,7 +1044,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
 		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
@@ -1057,9 +1059,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		teamAdminRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
@@ -1145,7 +1147,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1177,7 +1179,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1308,7 +1310,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1340,7 +1342,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1370,7 +1372,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		th.AddUserToChannel(user, channel)
 		th.App.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, false, true, true)
 
-		channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
+		channelMember, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.True(t, channelMember.SchemeUser)
 		assert.True(t, channelMember.SchemeAdmin)
@@ -1389,7 +1391,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, teamMember.SchemeAdmin)
 		assert.True(t, teamMember.SchemeGuest)
 
-		channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, channelMember.SchemeUser)
 		assert.False(t, channelMember.SchemeAdmin)
@@ -1439,4 +1441,53 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	// Test bad role.
 	_, err = th.App.UpdateUserRolesWithUser(user, "does not exist", false)
 	require.NotNil(t, err)
+}
+
+func TestDeactivateMfa(t *testing.T) {
+	t.Run("MFA is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = false
+		})
+
+		user := th.BasicUser
+		err := th.App.DeactivateMfa(user.Id)
+		require.Nil(t, err)
+	})
+}
+
+func TestPatchUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testUser := th.CreateUser()
+	defer th.App.PermanentDeleteUser(testUser)
+
+	t.Run("Patch with a username already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(th.BasicUser.Username),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch with a email already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Email: model.NewString(th.BasicUser.Email),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.email_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch username with a new username", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(model.NewId()),
+		}, true)
+
+		require.Nil(t, err)
+	})
 }

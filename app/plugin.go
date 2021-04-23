@@ -97,6 +97,13 @@ func (a *App) SyncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
+			// Tie Apps proxy disabled status to the feature flag.
+			if pluginID == "com.mattermost.apps" {
+				if !a.Config().FeatureFlags.AppsEnabled {
+					pluginEnabled = false
+				}
+			}
+
 			if pluginEnabled {
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
@@ -598,13 +605,13 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		// If available in the markteplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
 		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {

@@ -20,6 +20,7 @@ const (
 	TokenLocationCookie
 	TokenLocationQueryString
 	TokenLocationCloudHeader
+	TokenLocationRemoteClusterHeader
 )
 
 func (tl TokenLocation) String() string {
@@ -34,6 +35,8 @@ func (tl TokenLocation) String() string {
 		return "QueryString"
 	case TokenLocationCloudHeader:
 		return "CloudHeader"
+	case TokenLocationRemoteClusterHeader:
+		return "RemoteClusterHeader"
 	default:
 		return "Unknown"
 	}
@@ -289,6 +292,10 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 
 	if token := r.Header.Get(model.HEADER_CLOUD_TOKEN); token != "" {
 		return token, TokenLocationCloudHeader
+	}
+
+	if token := r.Header.Get(model.HEADER_REMOTECLUSTER_TOKEN); token != "" {
+		return token, TokenLocationRemoteClusterHeader
 	}
 
 	return "", TokenLocationNotFound
