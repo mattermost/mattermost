@@ -177,13 +177,13 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canStart, err := c.App.Srv().LicenseManager.CanStartTrial()
+	canStartTrial, err := c.App.Srv().LicenseManager.CanStartTrial()
 	if err != nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !canStart {
+	if !canStartTrial {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.not-allowed", nil, "", http.StatusBadRequest)
 		return
 	}
