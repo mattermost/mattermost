@@ -12,6 +12,7 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
+
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -129,9 +130,10 @@ jobs:
             cd mattermost-server
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
   check-mocks:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -141,6 +143,7 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
+
   check-migrations:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
@@ -156,6 +159,8 @@ jobs:
             make migrations-bindata
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
 
+  # Dedicate job for golangci-lint it does not need anything only the server code for that
+  # and to make more clear when the job fails
   check-golangci-lint:
     docker:
       - image: golangci/golangci-lint:v1.33.2
@@ -164,10 +169,10 @@ jobs:
       - run:
           command: make golangci-lint
 
+  # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
-    resource_class: medium
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -180,7 +185,8 @@ jobs:
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style-ci BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+            make plugin-checker
+            make vet BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
 
   build-api-spec:
     docker:
@@ -438,7 +444,6 @@ jobs:
     working_directory: ~/
     docker:
       - image: circleci/buildpack-deps:stretch
-    resource_class: xlarge
     steps:
       - attach_workspace:
           at: .
@@ -562,6 +567,13 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
+      - check-golangci-lint:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
       - check-app-layers:
           requires:
             - setup
