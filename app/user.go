@@ -2483,7 +2483,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 func (a *App) GetTotalUsersCount() (int64, error) {
 	count, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, model.NewAppError("GetTotalUsersCount", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetTotalUsersCount", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return count, nil
 }
