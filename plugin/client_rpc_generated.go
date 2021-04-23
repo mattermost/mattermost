@@ -533,35 +533,35 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 }
 
 func init() {
-	hookNameToId["OnPluginEvent"] = OnPluginEventID
+	hookNameToId["OnPluginClusterEvent"] = OnPluginClusterEventID
 }
 
-type Z_OnPluginEventArgs struct {
+type Z_OnPluginClusterEventArgs struct {
 	A *Context
-	B model.PluginEvent
+	B model.PluginClusterEvent
 }
 
-type Z_OnPluginEventReturns struct {
+type Z_OnPluginClusterEventReturns struct {
 }
 
-func (g *hooksRPCClient) OnPluginEvent(c *Context, ev model.PluginEvent) {
-	_args := &Z_OnPluginEventArgs{c, ev}
-	_returns := &Z_OnPluginEventReturns{}
-	if g.implemented[OnPluginEventID] {
-		if err := g.client.Call("Plugin.OnPluginEvent", _args, _returns); err != nil {
-			g.log.Error("RPC call OnPluginEvent to plugin failed.", mlog.Err(err))
+func (g *hooksRPCClient) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	_args := &Z_OnPluginClusterEventArgs{c, ev}
+	_returns := &Z_OnPluginClusterEventReturns{}
+	if g.implemented[OnPluginClusterEventID] {
+		if err := g.client.Call("Plugin.OnPluginClusterEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginClusterEvent to plugin failed.", mlog.Err(err))
 		}
 	}
 
 }
 
-func (s *hooksRPCServer) OnPluginEvent(args *Z_OnPluginEventArgs, returns *Z_OnPluginEventReturns) error {
+func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, returns *Z_OnPluginClusterEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		OnPluginEvent(c *Context, ev model.PluginEvent)
+		OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
 	}); ok {
-		hook.OnPluginEvent(args.A, args.B)
+		hook.OnPluginClusterEvent(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnPluginEvent called but not implemented."))
+		return encodableError(fmt.Errorf("Hook OnPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }
@@ -4941,32 +4941,32 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 	return nil
 }
 
-type Z_PublishPluginEventArgs struct {
-	A model.PluginEvent
-	B model.PluginEventSendOptions
+type Z_PublishPluginClusterEventArgs struct {
+	A model.PluginClusterEvent
+	B model.PluginClusterEventSendOptions
 }
 
-type Z_PublishPluginEventReturns struct {
+type Z_PublishPluginClusterEventReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
-	_args := &Z_PublishPluginEventArgs{ev, opts}
-	_returns := &Z_PublishPluginEventReturns{}
-	if err := g.client.Call("Plugin.PublishPluginEvent", _args, _returns); err != nil {
-		log.Printf("RPC call to PublishPluginEvent API failed: %s", err.Error())
+func (g *apiRPCClient) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	_args := &Z_PublishPluginClusterEventArgs{ev, opts}
+	_returns := &Z_PublishPluginClusterEventReturns{}
+	if err := g.client.Call("Plugin.PublishPluginClusterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishPluginClusterEvent API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) PublishPluginEvent(args *Z_PublishPluginEventArgs, returns *Z_PublishPluginEventReturns) error {
+func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEventArgs, returns *Z_PublishPluginClusterEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error
+		PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 	}); ok {
-		returns.A = hook.PublishPluginEvent(args.A, args.B)
+		returns.A = hook.PublishPluginClusterEvent(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API PublishPluginEvent called but not implemented."))
+		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }

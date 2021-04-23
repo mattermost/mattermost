@@ -1051,15 +1051,15 @@ type API interface {
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
 
-	// PublishPluginEvent broadcasts a plugin event to all other running instances of
+	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 	// the calling plugin that are present in the cluster.
 	//
 	// This method is used to allow plugin communication in a High-Availability cluster.
-	// The receiving side should implement the OnPluginEvent hook
+	// The receiving side should implement the OnPluginClusterEvent hook
 	// to receive events sent through this method.
 	//
 	// Minimum server version: 5.36
-	PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error
+	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 }
 
 var handshake = plugin.HandshakeConfig{

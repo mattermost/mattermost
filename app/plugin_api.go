@@ -1064,9 +1064,10 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	return nil
 }
 
-// PublishPluginEvent broadcasts a plugin event to all other running instances of
+// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 // the calling plugin.
-func (api *PluginAPI) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
+func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
+	opts model.PluginClusterEventSendOptions) error {
 	if api.app.Cluster() == nil {
 		return nil
 	}

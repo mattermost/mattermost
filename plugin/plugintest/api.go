@@ -2682,12 +2682,12 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
-// PublishPluginEvent provides a mock function with given fields: ev, opts
-func (_m *API) PublishPluginEvent(ev model.PluginEvent, opts model.PluginEventSendOptions) error {
+// PublishPluginClusterEvent provides a mock function with given fields: ev, opts
+func (_m *API) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
 	ret := _m.Called(ev, opts)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(model.PluginEvent, model.PluginEventSendOptions) error); ok {
+	if rf, ok := ret.Get(0).(func(model.PluginClusterEvent, model.PluginClusterEventSendOptions) error); ok {
 		r0 = rf(ev, opts)
 	} else {
 		r0 = ret.Error(0)

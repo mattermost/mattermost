@@ -58,7 +58,7 @@ func (a *App) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	hooks.OnPluginEvent(a.PluginContext(), model.PluginEvent{
+	hooks.OnPluginClusterEvent(a.PluginContext(), model.PluginClusterEvent{
 		Id:   eventID,
 		Data: []byte(msg.Data),
 	})

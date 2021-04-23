@@ -194,8 +194,8 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
-// OnPluginEvent provides a mock function with given fields: c, ev
-func (_m *Hooks) OnPluginEvent(c *plugin.Context, ev model.PluginEvent) {
+// OnPluginClusterEvent provides a mock function with given fields: c, ev
+func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)
 }
 

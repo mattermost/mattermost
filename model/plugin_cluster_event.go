@@ -4,21 +4,21 @@
 package model
 
 const (
-	PluginEventSendTypeReliable   = CLUSTER_SEND_RELIABLE
-	PluginEventSendTypeBestEffort = CLUSTER_SEND_BEST_EFFORT
+	PluginClusterEventSendTypeReliable   = CLUSTER_SEND_RELIABLE
+	PluginClusterEventSendTypeBestEffort = CLUSTER_SEND_BEST_EFFORT
 )
 
-// PluginEvent is used to allow intra-cluster plugin communication.
-type PluginEvent struct {
+// PluginClusterEvent is used to allow intra-cluster plugin communication.
+type PluginClusterEvent struct {
 	// Id is the unique identifier for the event.
 	Id string
 	// Data is the event payload.
 	Data []byte
 }
 
-// PluginEventSendOptions defines some properties that apply when sending
+// PluginClusterEventSendOptions defines some properties that apply when sending
 // plugin events across a cluster.
-type PluginEventSendOptions struct {
+type PluginClusterEventSendOptions struct {
 	// SendType defines the type of communication channel used to send the event.
 	SendType string
 }
