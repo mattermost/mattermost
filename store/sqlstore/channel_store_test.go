@@ -31,8 +31,8 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 				SqlStore: st.SqlStore,
 			}
 
-			opts := store.ChannelSearchOpts{}
-			builder := s.channelSearchQuery("'or'1'=sleep(3))); -- -", opts, false)
+			opts := store.ChannelSearchOpts{Term: "'or'1'=sleep(3))); -- -"}
+			builder := s.channelSearchQuery(&opts)
 			query, _, err := builder.ToSql()
 			require.NoError(t, err)
 			assert.NotContains(t, query, "sleep")

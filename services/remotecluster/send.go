@@ -48,6 +48,8 @@ func (rcs *Service) sendLoop(idx int, done chan struct{}) {
 				rcs.sendMsg(task)
 			case sendFileTask:
 				rcs.sendFile(task)
+			case sendProfileImageTask:
+				rcs.sendProfileImage(task)
 			}
 		case <-done:
 			return
