@@ -471,7 +471,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 
@@ -514,7 +514,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
 		require.NotNil(t, err)
-		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
 	})
 }
@@ -1023,9 +1023,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_USER_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
@@ -1044,7 +1044,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
 		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
@@ -1059,9 +1059,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
-		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		teamAdminRole, err := th.App.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
@@ -1454,6 +1454,40 @@ func TestDeactivateMfa(t *testing.T) {
 
 		user := th.BasicUser
 		err := th.App.DeactivateMfa(user.Id)
+		require.Nil(t, err)
+	})
+}
+
+func TestPatchUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testUser := th.CreateUser()
+	defer th.App.PermanentDeleteUser(testUser)
+
+	t.Run("Patch with a username already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(th.BasicUser.Username),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch with a email already exists", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Email: model.NewString(th.BasicUser.Email),
+		}, true)
+
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.email_exists.app_error", err.Id)
+	})
+
+	t.Run("Patch username with a new username", func(t *testing.T) {
+		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+			Username: model.NewString(model.NewId()),
+		}, true)
+
 		require.Nil(t, err)
 	})
 }

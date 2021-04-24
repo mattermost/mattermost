@@ -66,7 +66,7 @@ func (mrcs *mockRemoteClusterService) SendFile(ctx context.Context, us *model.Up
 	return nil
 }
 
-func (mrcs *mockRemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error) {
+func (mrcs *mockRemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error) {
 	return nil, nil
 }
 

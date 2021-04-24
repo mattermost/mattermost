@@ -138,6 +138,7 @@ func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastP
 	m.Type = model.CHANNEL_OPEN
 	return ss.Channel().Save(&m, -1)
 }
+
 func TestMsgCountRootMigration(t *testing.T) {
 	type TestCaseChannel struct {
 		Name                           string
@@ -221,7 +222,11 @@ func TestMsgCountRootMigration(t *testing.T) {
 							}
 						}
 
-						upgradeDatabaseToVersion535(sqlStore)
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot`)
+						require.NoError(t, err)
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot`)
+						require.NoError(t, err)
+						rootCountMigration(sqlStore)
 
 						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
 						require.NoError(t, err)

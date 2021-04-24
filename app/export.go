@@ -610,6 +610,11 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 		for _, channel := range channels {
 			afterId = channel.Id
 
+			// Skip if there are no active members in the channel
+			if len(*channel.Members) == 0 {
+				continue
+			}
+
 			// Skip deleted.
 			if channel.DeleteAt != 0 {
 				continue

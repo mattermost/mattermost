@@ -607,6 +607,27 @@ func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	return r0, r1
 }
 
+// HasAutoResponsePostByUserSince provides a mock function with given fields: options, userId
+func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	ret := _m.Called(options, userId)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, string) bool); ok {
+		r0 = rf(options, userId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, string) error); ok {
+		r1 = rf(options, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InvalidateLastPostTimeCache provides a mock function with given fields: channelID
 func (_m *PostStore) InvalidateLastPostTimeCache(channelID string) {
 	_m.Called(channelID)
