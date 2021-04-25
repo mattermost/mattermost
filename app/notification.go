@@ -768,12 +768,6 @@ func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType
 	}
 }
 
-func (m *ExplicitMentions) merge(other *ExplicitMentions) {
-	for userID, mentionType := range other.Mentions {
-		m.addMention(userID, mentionType)
-	}
-}
-
 func (m *ExplicitMentions) removeMention(userID string) {
 	delete(m.Mentions, userID)
 }
