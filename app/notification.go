@@ -172,11 +172,15 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 			if channel.Type != model.CHANNEL_DIRECT {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
-				mentions.merge(getExplicitMentions(rootPost, keywords, groups))
+				rootMentions = getExplicitMentions(rootPost, keywords, groups)
+				for id := range rootMentions.Mentions {
+					threadParticipants[id] = true
+				}
 			}
 		}
 		for id := range mentions.Mentions {
@@ -187,8 +191,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mac := make(chan *model.AppError, 1)
 			go func(userID string) {
 				defer close(mac)
+				isRootMention := false
+				if rootMentions != nil {
+					_, isRootMention = rootMentions.Mentions[userID]
+				}
 				_, incrementMentions := mentions.Mentions[userID]
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
+				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, !isRootMention && incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
