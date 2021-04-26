@@ -7292,6 +7292,24 @@ func (s *OpenTracingLayerSharedChannelStore) GetUser(userID string, channelID st
 	return result, err
 }
 
+func (s *OpenTracingLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetUsers")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SharedChannelStore.GetUsers(filter)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.HasChannel")

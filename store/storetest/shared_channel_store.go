@@ -35,6 +35,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, ss) })
 	t.Run("GetSharedChannelUser", func(t *testing.T) { testGetSharedChannelUser(t, ss) })
+	t.Run("GetSharedChannelUsers", func(t *testing.T) { testGetSharedChannelUsers(t, ss) })
 	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, ss) })
 
 	t.Run("SaveSharedChannelAttachment", func(t *testing.T) { testSaveSharedChannelAttachment(t, ss) })
@@ -900,6 +901,83 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 		u, err := ss.SharedChannel().GetUser(model.NewId(), model.NewId(), model.NewId())
 		require.Error(t, err)
 		require.Nil(t, u)
+	})
+}
+
+func testGetSharedChannelUsers(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	channelID := model.NewId()
+	remoteID := model.NewId()
+
+	data := []model.SharedChannelUser{
+		{UserId: model.NewId(), ChannelId: model.NewId(), RemoteId: model.NewId()},
+		{UserId: userID, ChannelId: model.NewId(), RemoteId: model.NewId()},
+		{UserId: userID, ChannelId: model.NewId(), RemoteId: model.NewId()},
+		{UserId: userID, ChannelId: channelID, RemoteId: remoteID},
+		{UserId: model.NewId(), ChannelId: channelID, RemoteId: model.NewId()},
+		{UserId: model.NewId(), ChannelId: channelID, RemoteId: model.NewId()},
+		{UserId: model.NewId(), ChannelId: channelID, RemoteId: model.NewId()},
+		{UserId: model.NewId(), ChannelId: channelID, RemoteId: remoteID},
+		{UserId: model.NewId(), ChannelId: channelID, RemoteId: remoteID},
+	}
+
+	for i, u := range data {
+		scu := &model.SharedChannelUser{
+			UserId:    u.UserId,
+			ChannelId: u.ChannelId,
+			RemoteId:  u.RemoteId,
+		}
+		_, err := ss.SharedChannel().SaveUser(scu)
+		require.NoError(t, err, "could not save user #", i, err)
+	}
+
+	t.Run("Filter by userId", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			UserID: userID,
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "couldn't get shared channel users", err)
+		require.Len(t, users, 3)
+	})
+
+	t.Run("Filter by channelId", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			ChannelID: channelID,
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "couldn't get shared channel users", err)
+		require.Len(t, users, 6)
+	})
+
+	t.Run("Filter by remoteId", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			RemoteID: remoteID,
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "couldn't get shared channel users", err)
+		require.Len(t, users, 3)
+	})
+
+	t.Run("Filter by all", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			UserID:    userID,
+			ChannelID: channelID,
+			RemoteID:  remoteID,
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "couldn't get shared channel users", err)
+		require.Len(t, users, 1)
+	})
+
+	t.Run("Get non-existent shared channel users", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			UserID:    model.NewId(),
+			ChannelID: model.NewId(),
+			RemoteID:  model.NewId(),
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "shouldn't error for empty result set", err)
+		require.Len(t, users, 0)
 	})
 }
 

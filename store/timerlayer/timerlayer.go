@@ -6584,6 +6584,22 @@ func (s *TimerLayerSharedChannelStore) GetUser(userID string, channelID string, 
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetUsers(filter)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUsers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 	start := timemodule.Now()
 

@@ -557,7 +557,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	return scUser, nil
 }
 
-// GetUser fetches a shared channel user based on user_id and remoteId.
+// GetUser fetches a shared channel user based on user_id, channelid and remoteId.
 func (s SqlSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 	var scu model.SharedChannelUser
 
@@ -580,6 +580,38 @@ func (s SqlSharedChannelStore) GetUser(userID string, channelID string, remoteID
 		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, ChannelId=%s, RemoteId=%s", userID, channelID, remoteID)
 	}
 	return &scu, nil
+}
+
+// GetUsers fetches all shared channel users based on a filter.
+func (s SqlSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelUsers")
+
+	if filter.UserID != "" {
+		query = query.Where(sq.Eq{"SharedChannelUsers.UserId": filter.UserID})
+	}
+	if filter.ChannelID != "" {
+		query = query.Where(sq.Eq{"SharedChannelUsers.ChannelId": filter.ChannelID})
+	}
+	if filter.RemoteID != "" {
+		query = query.Where(sq.Eq{"SharedChannelUsers.RemoteId": filter.RemoteID})
+	}
+
+	sqlQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchannelusers_tosql")
+	}
+
+	var users []*model.SharedChannelUser
+	if _, err := s.GetReplica().Select(&users, sqlQuery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return make([]*model.SharedChannelUser, 0), nil
+		}
+		return nil, errors.Wrapf(err, "failed to fetch shared channel users with UserId=%s, ChannelId=%s, RemoteId=%s",
+			filter.UserID, filter.ChannelID, filter.RemoteID)
+	}
+	return users, nil
 }
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.

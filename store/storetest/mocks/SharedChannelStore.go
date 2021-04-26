@@ -284,6 +284,29 @@ func (_m *SharedChannelStore) GetUser(userID string, channelID string, remoteID 
 	return r0, r1
 }
 
+// GetUsers provides a mock function with given fields: filter
+func (_m *SharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+	ret := _m.Called(filter)
+
+	var r0 []*model.SharedChannelUser
+	if rf, ok := ret.Get(0).(func(model.SharedChannelUserFilter) []*model.SharedChannelUser); ok {
+		r0 = rf(filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.SharedChannelUserFilter) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HasChannel provides a mock function with given fields: channelID
 func (_m *SharedChannelStore) HasChannel(channelID string) (bool, error) {
 	ret := _m.Called(channelID)

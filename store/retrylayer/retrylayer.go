@@ -7916,6 +7916,26 @@ func (s *RetryLayerSharedChannelStore) GetUser(userID string, channelID string, 
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUsers(filter)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 
 	tries := 0
