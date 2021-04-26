@@ -9206,5 +9206,45 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Невозможно подключиться к S3. Проверьте параметры авторизации и настройки аутентификации подключения Amazon S3."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Политика некорректна."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Мы столкнулись с ошибкой при выполнении запрошенной операции."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Не удалось отправить автоматический ответ от пользователя."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Не удалось отправить предупреждение по электронной почте об окончании пробного периода"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Завершение пробной подписки на Mattermost cloud"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Добавить способ оплаты"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Отображаемое имя удалённого кластера"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Отображаемое имя удалённого кластера"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Не удалось сбросить поле AuthData в Email."
   }
 ]
