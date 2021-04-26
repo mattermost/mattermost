@@ -8919,10 +8919,6 @@
     "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "O número de consultas de atraso de réplica é maior do que o número de réplicas configuradas. Deve ser menor ou igual ao número de réplicas."
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "Descrição inválida."
   },

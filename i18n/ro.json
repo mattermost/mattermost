@@ -8740,10 +8740,6 @@
     "translation": "Nu a reușit să codifice câmpul în JSON"
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Numărul de interogări de întârziere a replicilor este mai mare decât numărul de replici configurate. Trebuie să fie mai mic sau egal cu numărul de replici."
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "Descriere invalidă."
   },

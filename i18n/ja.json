@@ -8650,10 +8650,6 @@
     "translation": "フィールドをJSONにエンコードできませんでした"
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "レプリカ遅延クエリの数が設定されたレプリカ数を超えています。レプリカ数以下でなければなりません。"
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "不正な説明です。"
   },

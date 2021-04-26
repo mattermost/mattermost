@@ -8764,10 +8764,6 @@
     "translation": "Ошибка при генерации пароля."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Количество запросов с запаздыванием реплик больше, чем количество настроенных реплик. Должно быть меньше или равно количеству реплик."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Ошибка аннулирования кеша"
   },

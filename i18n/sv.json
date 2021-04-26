@@ -9027,10 +9027,6 @@
     "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Antalet förfrågningar om replikfördröjning är fler än antal repliker som konfigurerats. Måste vara mindre än eller lika med antalet repliker."
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "Ogiltig beskrivning."
   },
