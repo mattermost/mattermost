@@ -5503,8 +5503,16 @@
     "translation": "{{.SenderName}} sent you a new message"
   },
   {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent a message to your group."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} sent you a new message"
+  },
+  {
     "id": "app.notification.body.mention.subTitle",
-    "translation": "While you were away, you were mentioned in the {{.ChannelName}} channel."
+    "translation": "While you were away, {{.SenderName}} mentioned you in the {{.ChannelName}} channel."
   },
   {
     "id": "app.notification.body.mention.title",
