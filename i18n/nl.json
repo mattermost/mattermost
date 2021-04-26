@@ -9205,9 +9205,5 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error_tom_tom_tom",
-    "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
   }
 ]
