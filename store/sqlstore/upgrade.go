@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5350
+	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
@@ -1053,12 +1054,20 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 		}
 		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
-		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
 		rootCountMigration(sqlStore)
 
 		saveSchemaVersion(sqlStore, Version5350)
 	}
+}
+
+func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+
+	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+
+	//saveSchemaVersion(sqlStore, Version5360)
+	//}
 }
 
 func rootCountMigration(sqlStore *SqlStore) {
