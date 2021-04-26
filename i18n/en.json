@@ -629,7 +629,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "That channel header is too long. It can be at most {{.MaxLength}} characters long."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -661,7 +665,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "That channel purpose is too long. It can be at most {{.MaxLength}} characters long."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",

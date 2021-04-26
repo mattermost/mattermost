@@ -94,8 +94,15 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 
 	_, err = a.PatchChannel(channel, patch, args.UserId)
 	if err != nil {
+		text := args.T("api.command_channel_header.update_channel.app_error")
+		if err.Id == "model.channel.is_valid.header.app_error" {
+			text = args.T("api.command_channel_header.update_channel.max_length", map[string]interface{}{
+				"MaxLength": model.CHANNEL_HEADER_MAX_RUNES,
+			})
+		}
+
 		return &model.CommandResponse{
-			Text:         args.T("api.command_channel_header.update_channel.app_error"),
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}
