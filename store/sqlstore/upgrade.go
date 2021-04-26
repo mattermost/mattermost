@@ -1100,6 +1100,7 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 		}
 		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
 		// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 		sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
@@ -1136,6 +1137,9 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
 		defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+
+		totalMsgCountRootExists := sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot")
+		msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
 
 		// note: setting default 0 on pre-5.0 tables causes test-db-migration script to fail, so this column will be added to ignore list
 		sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
@@ -1177,11 +1181,16 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			SET MsgCountRoot=TotalMsgCountRoot
 			`
 		}
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
-			mlog.Error("Error updating Channels table", mlog.Err(err))
+
+		if !totalMsgCountRootExists {
+			if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+				mlog.Error("Error updating Channels table", mlog.Err(err))
+			}
 		}
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannelMembers); err != nil {
-			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+		if !msgCountRootExists {
+			if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannelMembers); err != nil {
+				mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+			}
 		}
 	}
 
@@ -1210,6 +1219,9 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 		return true
 	}
 	if !sqlStore.DoesColumnExist("UploadSessions", "ReqFileId") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("SharedChannelUsers", "ChannelId") {
 		return true
 	}
 
