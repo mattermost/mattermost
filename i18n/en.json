@@ -5919,10 +5919,6 @@
     "translation": "Unable to get role."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
