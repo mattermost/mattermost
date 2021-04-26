@@ -145,7 +145,7 @@ func migrateChunk(sqlStore store.Store, a *app.App, lastChannelId string) (strin
 						}
 					}
 					// create/update membership
-					_, err = sqlStore.Thread().MaintainMembership(membership.UserId, post.RootId, true, userMentionedInPost, true, false)
+					_, err = sqlStore.Thread().MaintainMembership(membership.UserId, post.RootId, true, userMentionedInPost, true, false, true)
 					if err != nil {
 						return "", err
 					}
