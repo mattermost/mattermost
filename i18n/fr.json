@@ -6623,10 +6623,6 @@
     "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Une erreur s'est produite lors de la connexion au serveur"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Le nœud d'API cluster est introuvable."
   },

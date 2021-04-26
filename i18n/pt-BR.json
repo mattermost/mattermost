@@ -6871,10 +6871,6 @@
     "translation": "Não foi possível analisar a tarefa de exportação de mensagens BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Encontramos um erro enquanto conectava ao servidor."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Endpoint Cluster API não encontrado."
   },
@@ -8933,10 +8929,6 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "O número de consultas de atraso de réplica é maior do que o número de réplicas configuradas. Deve ser menor ou igual ao número de réplicas."
   },
   {
     "id": "model.channel.is_valid.description.app_error",

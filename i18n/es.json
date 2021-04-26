@@ -6871,10 +6871,6 @@
     "translation": "No se pudo interpretar el tamaño de bloque de datos de la exportación de mensajes."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Encontramos un error mientras conectábamos al servidor."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
   },

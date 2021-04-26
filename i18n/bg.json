@@ -2240,10 +2240,6 @@
     "translation": "Системната конзола е настроена само за четене, когато е активирана High Availability, освен ако ReadOnlyConfig не е забранен в конфигурационния файл."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Възникна грешка при свързването със сървъра."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Възникна грешка по време на заявка за JSON"
   },

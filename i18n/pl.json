@@ -6636,10 +6636,6 @@
     "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Napotkano błąd podczas podłączania się do serwera"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
   },

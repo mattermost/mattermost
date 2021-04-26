@@ -6891,10 +6891,6 @@
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API non trovate."
   },

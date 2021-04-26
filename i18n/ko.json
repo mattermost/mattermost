@@ -6818,10 +6818,6 @@
     "translation": "Could not parse message export job BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },

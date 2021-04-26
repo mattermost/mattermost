@@ -6924,10 +6924,6 @@
     "translation": "Ar putea analiza mesaj export job BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Am întâmpinat o eroare la conectarea la server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
   },
@@ -8756,10 +8752,6 @@
     "translation": "Nu a reușit să codifice câmpul în JSON"
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Numărul de interogări de întârziere a replicilor este mai mare decât numărul de replici configurate. Trebuie să fie mai mic sau egal cu numărul de replici."
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "Descriere invalidă."
   },
@@ -9222,5 +9214,45 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Nu a reușit să trimită un e-mail de avertizare privind încheierea procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud trial se încheie"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Adăugați metoda de plată"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Nu se poate conecta la S3. Verificați parametrii de autorizare a conexiunii Amazon S3 și setările de autentificare."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Un nume de afișare pentru clusterul la distanță"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Numele de afișare al clusterului la distanță"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
   }
 ]
