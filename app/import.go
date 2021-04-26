@@ -23,11 +23,16 @@ const (
 )
 
 func stopOnError(err LineImportWorkerError) bool {
-	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
+	switch err.Error.Id {
+	case "api.file.upload_file.large_image.app_error":
 		mlog.Warn("Large image import error", mlog.Err(err.Error))
 		return false
+	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
+		mlog.Warn("Invalid direct channel import data", mlog.Err(err.Error))
+		return false
+	default:
+		return true
 	}
-	return true
 }
 
 func rewriteAttachmentPaths(files *[]AttachmentImportData, basePath string) {

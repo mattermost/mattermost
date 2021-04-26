@@ -5,6 +5,8 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -18,6 +20,7 @@ func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -211,4 +214,64 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(info.ToJson()))
+}
+
+func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if *c.App.Config().FileSettings.DriverName == "" {
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := r.MultipartForm
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(imageArray) == 0 {
+		c.Err = model.NewAppError("remoteUploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("remoteUploadProfileImage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	if imageArray[0] != nil {
+		auditRec.AddMeta("filename", imageArray[0].Filename)
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil || !user.IsRemote() {
+		c.SetInvalidUrlParam("user_id")
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	imageData := imageArray[0]
+	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("")
+
+	ReturnStatusOK(w)
 }
