@@ -53,7 +53,7 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 
 	t.Run("Save missing creator id", func(t *testing.T) {
 		rc := &model.RemoteCluster{
-			Name:    "some_remote 2",
+			Name:    "some_remote_2",
 			SiteURL: "somewhere.com",
 		}
 		_, err := ss.RemoteCluster().Save(rc)
