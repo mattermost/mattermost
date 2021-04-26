@@ -17,8 +17,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-const MAX_NUMBER_OF_POSTS_TO_INDEX = 10000
-const CHANNELS_PER_CHUNK = 10
+const MaxNumberOfPostToIndex = 10000
+const ChannelsPerChunk = 10
 
 /*
 Populate Threads migration strategy
@@ -93,7 +93,8 @@ func createThread(sqlStore store.Store, posts *model.PostList, channelID, thread
 
 }
 func migrateChunk(sqlStore store.Store, a *app.App, lastChannelId string) (string, error) {
-	channels, err := sqlStore.Channel().GetAllChannelsForExportAfter(CHANNELS_PER_CHUNK, lastChannelId)
+	var err error
+	channels, err := sqlStore.Channel().GetAllChannelsForExportAfter(ChannelsPerChunk, lastChannelId)
 	if err != nil {
 		return "", err
 	}
@@ -106,8 +107,8 @@ func migrateChunk(sqlStore store.Store, a *app.App, lastChannelId string) (strin
 			return "", err
 		}
 		oldMax := model.MAX_POSTS_TO_FETCH
-		model.MAX_POSTS_TO_FETCH = MAX_NUMBER_OF_POSTS_TO_INDEX
-		posts, err := sqlStore.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: MAX_NUMBER_OF_POSTS_TO_INDEX - 1}, true)
+		model.MAX_POSTS_TO_FETCH = MaxNumberOfPostToIndex
+		posts, err := sqlStore.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: MaxNumberOfPostToIndex - 1}, true)
 		model.MAX_POSTS_TO_FETCH = oldMax
 		if err != nil {
 			return "", err
@@ -127,6 +128,7 @@ func migrateChunk(sqlStore store.Store, a *app.App, lastChannelId string) (strin
 			return ok
 		}
 		for _, membership := range *memberships {
+			membership := membership
 			for _, post := range posts.Posts {
 				// if it's a reply and user is mentioned in it or it the parent post
 				// or they are the author

@@ -15,7 +15,7 @@ func TestPopulateThreads(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	// disable collapsed threads and autofollow to immitate an old system that doesn't create metadata on post creation
+	// disable collapsed threads and autofollow to imitate an old system that doesn't create metadata on post creation
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "false")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
