@@ -207,6 +207,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
 	upgradeDatabaseToVersion535(sqlStore)
+	upgradeDatabaseToVersion536(sqlStore)
 
 	return nil
 }
