@@ -76,7 +76,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 			v.Set(PropSecurityActiveUserCount, strconv.FormatInt(ucr, 10))
 		}
 
-		if teamCount, err := s.Store.Team().AnalyticsTeamCount(false); err == nil {
+		if teamCount, err := s.Store.Team().AnalyticsTeamCount(nil); err == nil {
 			v.Set(PropSecurityTeamCount, strconv.FormatInt(teamCount, 10))
 		}
 

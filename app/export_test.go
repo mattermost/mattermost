@@ -218,38 +218,69 @@ func TestExportAllUsers(t *testing.T) {
 }
 
 func TestExportDMChannel(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	t.Run("Export a DM channel to another server", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
 
-	// DM Channel
-	th1.CreateDmChannel(th1.BasicUser2)
+		// DM Channel
+		th1.CreateDmChannel(th1.BasicUser2)
 
-	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
-	require.Nil(t, err)
+		var b bytes.Buffer
+		err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+		require.Nil(t, err)
 
-	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.NoError(t, nErr)
-	assert.Equal(t, 1, len(channels))
+		channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(channels))
 
-	th1.TearDown()
+		th2 := Setup(t).InitBasic()
+		defer th2.TearDown()
 
-	th2 := Setup(t)
-	defer th2.TearDown()
+		channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		require.NoError(t, nErr)
+		assert.Equal(t, 0, len(channels))
 
-	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.NoError(t, nErr)
-	assert.Equal(t, 0, len(channels))
+		// import the exported channel
+		err, i := th2.App.BulkImport(&b, false, 5)
+		require.Nil(t, err)
+		assert.Equal(t, 0, i)
 
-	// import the exported channel
-	err, i := th2.App.BulkImport(&b, false, 5)
-	assert.Nil(t, err)
-	assert.Equal(t, 0, i)
+		// Ensure the Members of the imported DM channel is the same was from the exported
+		channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(channels))
+		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
+	})
 
-	// Ensure the Members of the imported DM channel is the same was from the exported
-	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.NoError(t, nErr)
-	assert.Equal(t, 1, len(channels))
-	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
+	t.Run("Invalid DM channel export", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// DM Channel
+		th1.CreateDmChannel(th1.BasicUser2)
+
+		channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(channels))
+
+		th1.App.PermanentDeleteUser(th1.BasicUser2)
+		th1.App.PermanentDeleteUser(th1.BasicUser)
+
+		var b bytes.Buffer
+		err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+		require.Nil(t, err)
+
+		th2 := Setup(t).InitBasic()
+		defer th2.TearDown()
+
+		// import the exported channel
+		err, _ = th2.App.BulkImport(&b, true, 5)
+		require.Nil(t, err)
+
+		channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		require.NoError(t, nErr)
+		assert.Empty(t, channels)
+	})
 }
 
 func TestExportDMChannelToSelf(t *testing.T) {

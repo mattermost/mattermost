@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -956,6 +957,36 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	return list, nil
+}
+
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAt >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
+
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.POST_AUTO_RESPONDER,
+	})
+
+	if err != nil {
+		return false, errors.Wrapf(err,
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+	}
+
+	return exist > 0, nil
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {

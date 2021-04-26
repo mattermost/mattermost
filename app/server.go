@@ -67,7 +67,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -384,7 +383,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	templatesDir, ok := fileutils.FindDir("templates")
+	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
@@ -1490,7 +1489,7 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
 	if err1 != nil {
 		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
