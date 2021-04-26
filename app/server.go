@@ -1422,6 +1422,13 @@ func runCheckWarnMetricStatusJob(a *App) {
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
+func runCheckAdminSupportStatusJob(a *App) {
+	doCheckAdminSupportStatus(a)
+	model.CreateRecurringTask("Check Admin Support Status Job", func() {
+		doCheckAdminSupportStatus(a)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1444,8 +1451,6 @@ func doSessionCleanup(s *Server) {
 
 //nolint:golint,unused,deadcode
 func doCheckWarnMetricStatus(a *App) {
-	licenseIndependentCheckMetricStatus(a)
-
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1588,7 +1593,7 @@ func doCheckWarnMetricStatus(a *App) {
 	}
 }
 
-func licenseIndependentCheckMetricStatus(a *App) {
+func doCheckAdminSupportStatus(a *App) {
 	isE0Edition := model.BuildEnterpriseReady == "true"
 
 	if *a.Config().SupportSettings.SupportEmail == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {

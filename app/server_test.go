@@ -714,7 +714,7 @@ func TestAdminAdvisor(t *testing.T) {
 	defer th.App.PermanentDeleteUser(&user)
 
 	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
-		licenseIndependentCheckMetricStatus(th.App)
+		doCheckAdminSupportStatus(th.App)
 
 		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
 		assert.NotNil(t, bot, "Bot should have been created now")
@@ -742,7 +742,7 @@ func TestAdminAdvisor(t *testing.T) {
 		err = th.App.PermanentDeleteChannel(channel)
 		assert.Nil(t, err, "No error should be generated")
 
-		licenseIndependentCheckMetricStatus(th.App)
+		doCheckAdminSupportStatus(th.App)
 
 		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
 		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
