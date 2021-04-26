@@ -22,7 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
-var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
+var publicKey = []byte(`-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
 tSyzyxrXkJjsFUf0Ke7bm/TLtIggRdqOcUF3XEWqQk5RGD5vuq7Rlg1zZqMEBk8N
 EZeRhkxyaZW8pLjxwuBUOnXfJew31+gsTNdKZzRjrvPumKr3EtkleuoxNdoatu4E
@@ -31,6 +31,31 @@ HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
 a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
 hwIDAQAB
 -----END PUBLIC KEY-----`)
+
+var LicenseValidator LicenseValidatorIface
+
+func init() {
+	if LicenseValidator == nil {
+		LicenseValidator = &LicenseValidatorImpl{}
+	}
+}
+
+type LicenseValidatorIface interface {
+	LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError)
+}
+
+type LicenseValidatorImpl struct {
+}
+
+func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
+	success, licenseStr := ValidateLicense(licenseBytes)
+	if !success {
+		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	}
+
+	license := model.LicenseFromJson(strings.NewReader(licenseStr))
+	return license, nil
+}
 
 func ValidateLicense(signed []byte) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
@@ -184,14 +209,4 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
-}
-
-func LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := ValidateLicense(licenseBytes)
-	if !success {
-		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
-	}
-
-	license := model.LicenseFromJson(strings.NewReader(licenseStr))
-	return license, nil
 }

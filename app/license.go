@@ -38,7 +38,7 @@ func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
-		license, err := utils.LicenseFromBytes([]byte(licenseStr))
+		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
 		if err != nil {
 			mlog.Error("Failed to read license set in environment.", mlog.Err(err))
 			return
