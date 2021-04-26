@@ -44,7 +44,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if a.allowGroupMentions(post) {
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
-			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
+			groupsMap, err := a.GetGroupsAllowedForReferenceInChannel(channel, team)
 			gchan <- store.StoreResult{Data: groupsMap, NErr: err}
 			close(gchan)
 		}()
@@ -96,10 +96,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
-		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
-		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+		allowChannelMentions := a.AllowChannelMentions(post, len(profileMap))
+		keywords := a.GetMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
-		mentions = getExplicitMentions(post, keywords, groups)
+		mentions = GetExplicitMentions(post, keywords, groups)
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.POST_ADD_TO_CHANNEL {
@@ -124,7 +124,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		// get users that have comment thread mentions enabled
 		if post.RootId != "" && parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			mentions.merge(getExplicitMentions(rootPost, keywords, groups))
+			mentions.merge(GetExplicitMentions(rootPost, keywords, groups))
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
@@ -769,7 +769,7 @@ func (m *ExplicitMentions) removeMention(userID string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *ExplicitMentions {
+func GetExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *ExplicitMentions {
 	ret := &ExplicitMentions{}
 
 	buf := ""
@@ -809,8 +809,8 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	return ret
 }
 
-// allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
-func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
+// AllowChannelMentions returns whether or not the channel mentions are allowed for the given post.
+func (a *App) AllowChannelMentions(post *model.Post, numProfiles int) bool {
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
 		return false
 	}
@@ -843,8 +843,8 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 	return true
 }
 
-// getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
-func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
+// GetGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
+func (a *App) GetGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
 	var err error
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
@@ -882,7 +882,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for _, profile := range profiles {

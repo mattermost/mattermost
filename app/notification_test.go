@@ -926,7 +926,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, tc.Keywords, tc.Groups)
+			m := GetExplicitMentions(post, tc.Keywords, tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, m)
 		})
@@ -979,7 +979,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		}
 		for message, shouldMention := range cases {
 			post := &model.Post{Message: message}
-			m := getExplicitMentions(post, nil, nil)
+			m := GetExplicitMentions(post, nil, nil)
 			require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
 			require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
 		}
@@ -987,7 +987,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	t.Run("Mention @here and someone", func(t *testing.T) {
 		id := model.NewId()
-		m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}, nil)
+		m := GetExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}, nil)
 		require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
 		require.Len(t, m.Mentions, 1)
 		require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
@@ -997,7 +997,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	t.Run("Username ending with period", func(t *testing.T) {
 		id := model.NewId()
-		m := getExplicitMentions(&model.Post{Message: "@potential. test"}, map[string][]string{"@user": {id}}, nil)
+		m := GetExplicitMentions(&model.Post{Message: "@potential. test"}, map[string][]string{"@user": {id}}, nil)
 		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
 		assert.Equal(t, "potential", m.OtherPotentialMentions[0])
 	})
@@ -1010,24 +1010,24 @@ func TestAllowChannelMentions(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
-		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+		allowChannelMentions := th.App.AllowChannelMentions(post, 5)
 		assert.True(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a channel header post", func(t *testing.T) {
 		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
-		allowChannelMentions := th.App.allowChannelMentions(headerChangePost, 5)
+		allowChannelMentions := th.App.AllowChannelMentions(headerChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a channel purpose post", func(t *testing.T) {
 		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
-		allowChannelMentions := th.App.allowChannelMentions(purposeChangePost, 5)
+		allowChannelMentions := th.App.AllowChannelMentions(purposeChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a regular post with many channel members", func(t *testing.T) {
-		allowChannelMentions := th.App.allowChannelMentions(post, int(*th.App.Config().TeamSettings.MaxNotificationsPerChannel)+1)
+		allowChannelMentions := th.App.AllowChannelMentions(post, int(*th.App.Config().TeamSettings.MaxNotificationsPerChannel)+1)
 		assert.False(t, allowChannelMentions)
 	})
 
@@ -1036,7 +1036,7 @@ func TestAllowChannelMentions(t *testing.T) {
 		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
-		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+		allowChannelMentions := th.App.AllowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
 	})
 }
@@ -1104,7 +1104,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles := map[string]*model.User{user1.Id: user1}
-	mentions := th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off)
+	mentions := th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off)
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 
 	ids, ok := mentions["user"]
@@ -1134,7 +1134,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user2.Id: user2}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off)
 	require.Len(t, mentions, 2, "should've returned two mention keyword")
 
 	ids, ok = mentions["First"]
@@ -1158,7 +1158,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off)
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
@@ -1174,7 +1174,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault)
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
@@ -1186,7 +1186,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel member notify props is empty
 	channelMemberNotifyPropsMapEmpty := map[string]model.StringMap{}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty)
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["@channel"]
 	require.True(t, ok)
@@ -1201,7 +1201,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
 	require.NotEmpty(t, mentions, "should've not returned any keywords")
 
 	// user with all types of mentions enabled
@@ -1224,7 +1224,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user4.Id: user4}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
 	require.Len(t, mentions, 6, "should've returned six mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
@@ -1251,7 +1251,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
 	require.Len(t, mentions, 4, "should've returned four mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
@@ -1306,7 +1306,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
 	require.Len(t, mentions, 6, "should've returned six mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
@@ -1341,7 +1341,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.False(t, ids[0] != user4.Id && ids[1] != user4.Id, "should've mentioned user4 with @all")
 
 	// multiple users and more than MaxNotificationsPerChannel
-	mentions = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
 	require.Len(t, mentions, 4, "should've returned four mention keywords")
 	_, ok = mentions["@channel"]
 	require.False(t, ok, "should not have mentioned any user with @channel")
@@ -1353,7 +1353,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	profiles = map[string]*model.User{
 		user1.Id: user1,
 	}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
 	require.Len(t, mentions, 3, "should've returned three mention keywords")
 	ids, ok = mentions["user"]
 	require.True(t, ok)
@@ -1397,7 +1397,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{userNoMentionKeys.Id: userNoMentionKeys}
-	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmptyOff)
 	assert.Equal(t, 1, len(mentions), "should've returned one metion keyword")
 	ids, ok = mentions["@user"]
 	assert.True(t, ok)
@@ -1962,7 +1962,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, tc.Keywords, tc.Groups)
+			m := GetExplicitMentions(post, tc.Keywords, tc.Groups)
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
@@ -2519,7 +2519,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group1 := th.CreateGroup()
 
 	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 0)
 	})
@@ -2530,7 +2530,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	group2 := th.CreateGroup()
 	t.Run("should only return groups with allow reference", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
@@ -2554,7 +2554,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
@@ -2579,7 +2579,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[*group3.Name])
@@ -2588,7 +2588,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group3.Name])
@@ -2601,7 +2601,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
-		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		groupsMap, nErr := th.App.GetGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 3)
 		require.Equal(t, groupsMap[*group1.Name], group1)

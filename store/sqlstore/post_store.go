@@ -795,7 +795,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, error) {
-	if options.PerPage > 1000 {
+	if options.PerPage > model.MAX_POSTS_TO_FETCH {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 	if options.CollapsedThreads {

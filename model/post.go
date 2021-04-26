@@ -251,6 +251,8 @@ type GetPostsSinceForSyncOptions struct {
 	Offset          int
 }
 
+var MAX_POSTS_TO_FETCH = 1000
+
 type GetPostsOptions struct {
 	UserId                   string
 	ChannelId                string

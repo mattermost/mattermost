@@ -23,11 +23,12 @@ const (
 
 type MigrationsJobInterfaceImpl struct {
 	srv *app.Server
+	app *app.App
 }
 
 func init() {
-	app.RegisterJobsMigrationsJobInterface(func(s *app.Server) tjobs.MigrationsJobInterface {
-		return &MigrationsJobInterfaceImpl{s}
+	app.RegisterJobsMigrationsJobInterface(func(s *app.Server, a *app.App) tjobs.MigrationsJobInterface {
+		return &MigrationsJobInterfaceImpl{s, a}
 	})
 }
 

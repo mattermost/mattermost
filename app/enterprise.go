@@ -72,9 +72,9 @@ func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsMigrationsInterface func(*Server) tjobs.MigrationsJobInterface
+var jobsMigrationsInterface func(*Server, *App) tjobs.MigrationsJobInterface
 
-func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInterface) {
+func RegisterJobsMigrationsJobInterface(f func(*Server, *App) tjobs.MigrationsJobInterface) {
 	jobsMigrationsInterface = f
 }
 

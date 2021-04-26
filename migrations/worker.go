@@ -25,6 +25,7 @@ type Worker struct {
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	srv       *app.Server
+	app       *app.App
 }
 
 func (m *MigrationsJobInterfaceImpl) MakeWorker() model.Worker {
@@ -35,6 +36,7 @@ func (m *MigrationsJobInterfaceImpl) MakeWorker() model.Worker {
 		jobs:      make(chan model.Job),
 		jobServer: m.srv.Jobs,
 		srv:       m.srv,
+		app:       m.app,
 	}
 
 	return &worker

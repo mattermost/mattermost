@@ -144,6 +144,10 @@ func (a *App) initJobs() {
 		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
 	}
 
+	if jobsMigrationsInterface != nil {
+		a.srv.Jobs.Migrations = jobsMigrationsInterface(a.srv, a)
+	}
+
 	a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.InitSchedulers()
 }
