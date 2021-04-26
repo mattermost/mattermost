@@ -3924,19 +3924,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "De instelling Elastisearch IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+    "translation": "Elasticsearch Live Indexing Batch Size moet ten minste 1 zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+    "translation": "De Elasticsearch PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Elasticsearch Timeout Aanvraag moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3948,11 +3948,11 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "Ongeldig e-mailmeldingeninhoudstype voor e-mailinstellingen. Moet of 'full' of 'generic' zijn."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Ongeldige beveiligings instelling bij e-mail. Moet '', 'TLS' of 'STARTTLS' zijn"
+    "translation": "Ongeldige beveiligingsinstelling bij e-mail. Moet '', 'TLS' of 'STARTTLS' zijn."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -3960,7 +3960,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Ongeldige stuurprogramma voor bestand instellingen. Deze moet 'lokaal' of 'amazons3' zijn"
+    "translation": "Ongeldige stuurprogramma voor bestandsinstellingen. Dit moet 'lokaal' of 'amazons3' zijn."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -3968,11 +3968,11 @@
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+    "translation": "Ongeldige groep ongelezen kanalen voor service-instellingen. Moet 'disabled', 'default_on' of 'default_off' zijn."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Ongeldig afbeeldingsproxy type. Moet 'local' of 'atmos/camo' zijn."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -3996,7 +3996,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ongeldige verbindings instelling bij AD/LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
+    "translation": "Ongeldige verbindingsinstelling bij AD/LDAP instellingen. Keuze uit: '', 'TLS' of 'STARTTLS'."
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4016,7 +4016,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Available Languages must contain Default Client Language"
+    "translation": "Beschikbare talen moet de standaard clienttaal bevatten."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4024,7 +4024,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Maximum burst size must be greater than zero."
+    "translation": "De maximale burstgrootte moet groter zijn dan nul."
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
@@ -4032,7 +4032,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
+    "translation": "Ongeldige maximale bestandsgrootte bij bestandsinstellingen. Moet een geheel getal groter dan nul zijn."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4044,59 +4044,59 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Message export job BatchSize must be a positive integer"
+    "translation": "Message export job BatchSize moet een positief geheel getal zijn."
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+    "translation": "Berichtenexport DagelijkeUitvoertijd moet een tijdsaanduiding van 24 uur zijn in de notatie UU:MM."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Message export job EnableExport setting must be either true or false"
+    "translation": "Message export job EnableExport instelling moet waar of onwaar zijn."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "Bericht Export job ExportFromTimestamp moet een tijdsaanduiding zijn (uitgedrukt in seconden sinds unix-epoch). Alleen berichten verzonden die na deze tijdsaanduiding, worden geëxporteerd."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'"
+    "translation": "Message export job ExportFormat moet of 'actiantie', of 'csv' of 'globalrelay' zijn."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "Message export job ExportFormat is ingesteld op 'globalrelay', maar GlobalRelaySettings ontbreken."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.EmailAddress moet worden ingesteld op een geldig e-mailadres."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpPassword moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpUsername moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "Wachtwoord moet een lengte hebben van minimaal {{.MinLength}} en/of maximaal {{.MaxLength}}"
+    "translation": "Wachtwoord moet een lengte hebben van minimaal {{.MinLength}} en/of maximaal {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Ongeldige 'geheugen opslag' bij frequentie beperings instellingen. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldige grootte geheugenruimte voor snelheidslimiet. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Ongeldige frequentie beperings instelling. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldig per sec voor instellingen voor snelheidslimiet. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
-    "translation": "Invalid value for read timeout."
+    "translation": "Ongeldige waarde voor lees-timeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
@@ -8668,7 +8668,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Gefeliciteerd - jouw {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+    "translation": "Jouw 14-daagse proef van de {{.WorkSpace}} werkruimte is klaar voor gebruik!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -9072,7 +9072,7 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Een weergavenaam voor de externe cluster"
+    "translation": "Een unieke naam voor de externe cluster"
   },
   {
     "id": "api.command_remote.name.help",
@@ -9205,5 +9205,73 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Fout bij het tellen van private teams."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Fout bij het resetten van AuthData veld naar e-mail."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Het beleid is ongeldig."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Fout bij het verzenden van waarschuwingsmail over einde proefperiode"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost Cloud Professional loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud proefperiode eindigt"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Betalingsmethode toevoegen"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Een weergavenaam voor de externe cluster"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Externe cluster weergavenaam"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kan geen automatisch antwoord van gebruiker sturen."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Fout bij het verzenden van e-mail einde proefperiode"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt vandaag"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigt vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud proefperiode is afgelopen"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start abonnement"
   }
 ]
