@@ -3127,6 +3127,22 @@
     "translation": "You’ve reached the user limit for the free tier "
   },
   {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start subscription"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud trial has ended"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Your free 14-day trial of Mattermost ends today"
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Add Payment method"
   },
@@ -3136,7 +3152,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3845,6 +3861,10 @@
   {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Login failed because of invalid password."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Failed to send trial ended email"
   },
   {
     "id": "api.user.cloud_trial_ending_email.error",
@@ -6067,14 +6087,6 @@
     "translation": "Failed to parse installation date."
   },
   {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Unable to count the private teams."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Unable to count the public teams."
-  },
-  {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Unable to count the teams."
   },
@@ -6101,10 +6113,6 @@
   {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "We could not get all private teams."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "We could not get all private teams in page."
   },
   {
     "id": "app.team.get_all_team_listing.app_error",
@@ -6429,6 +6437,10 @@
   {
     "id": "app.user.search.app_error",
     "translation": "Unable to find any user matching the search parameters."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Unable to send auto response from user."
   },
   {
     "id": "app.user.send_emails.app_error",
@@ -6843,10 +6855,6 @@
     "translation": "Error occurred while marshalling JSON request"
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
-  },
-  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
@@ -6945,6 +6953,14 @@
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "We encountered an error performing the requested operation."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policy is invalid."
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
