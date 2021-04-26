@@ -2301,6 +2301,7 @@ type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
 	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
+	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
 
 func (s *ComplianceSettings) SetDefaults() {
@@ -2314,6 +2315,10 @@ func (s *ComplianceSettings) SetDefaults() {
 
 	if s.EnableDaily == nil {
 		s.EnableDaily = NewBool(false)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(30000)
 	}
 }
 
