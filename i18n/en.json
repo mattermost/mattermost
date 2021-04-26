@@ -7623,6 +7623,10 @@
     "translation": "We encountered an error saving the system property."
   },
   {
+    "id": "migrations.worker.runPopulateThreadsMigration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
+  },
+  {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
     "translation": "Migration failed due to invalid progress data."
   },
