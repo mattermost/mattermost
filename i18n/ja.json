@@ -6862,10 +6862,6 @@
     "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "サーバーに接続中にエラーになりました。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },

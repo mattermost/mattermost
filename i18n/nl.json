@@ -6903,10 +6903,6 @@
     "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het verbinden met de server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint niet gevonden."
   },
@@ -9205,10 +9201,6 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Fout bij het tellen van private teams."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",

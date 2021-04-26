@@ -6920,10 +6920,6 @@
     "translation": "Ar putea analiza mesaj export job BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Am întâmpinat o eroare la conectarea la server."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
   },
@@ -9202,18 +9198,6 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nu am putut obține toate echipele private."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Imposibil de numărat echipele publice."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Imposibil de numărat echipele private."
   },
   {
     "id": "api.user.cloud_trial_ending_email.error",

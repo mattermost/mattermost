@@ -3488,10 +3488,6 @@
     "translation": "System Console är read-only när High Availability är aktiverad, om inte ReadOnlyConfig ar avaktiverad i konfigurationsfilen."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Ett fel uppstod vid anslutning till servern."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Fel uppstod när JSON-anrop rangerades"
   },
@@ -9239,15 +9235,7 @@
     "translation": "Kunde inte återställa AuthData-fältet till mejl."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Det gick inte att ta fram alla privata team på en sida."
-  },
-  {
     "id": "app.team.analytics_public_team_count.app_error",
     "translation": "Kunde inte räkna antal publika team."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Kunde inte räkna antal privata team."
   }
 ]

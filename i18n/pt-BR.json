@@ -6867,10 +6867,6 @@
     "translation": "Não foi possível analisar a tarefa de exportação de mensagens BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Encontramos um erro enquanto conectava ao servidor."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Endpoint Cluster API não encontrado."
   },

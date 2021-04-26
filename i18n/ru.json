@@ -6920,10 +6920,6 @@
     "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Мы обнаружили ошибку при подключении к серверу."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Не найдена конечная точка API кластера."
   },

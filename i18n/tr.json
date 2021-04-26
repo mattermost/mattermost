@@ -6903,10 +6903,6 @@
     "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Küme API uç noktası bulunamadı."
   },
