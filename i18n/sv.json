@@ -9241,5 +9241,17 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Kunde inte återställa AuthData-fältet till mejl."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Det gick inte att ta fram alla privata team på en sida."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Kunde inte räkna antal publika team."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Kunde inte räkna antal privata team."
   }
 ]
