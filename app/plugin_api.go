@@ -1071,7 +1071,8 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	if api.app.Cluster() == nil {
 		return nil
 	}
-	api.app.Cluster().SendClusterMessage(&model.ClusterMessage{
+
+	msg := &model.ClusterMessage{
 		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
 		SendType:         opts.SendType,
 		WaitForAllToSend: false,
@@ -1080,6 +1081,16 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 			"EventID":  ev.Id,
 		},
 		Data: string(ev.Data),
-	})
+	}
+
+	// If ReceiverId is not set we broadcast to all other cluster nodes.
+	if opts.ReceiverId == "" {
+		api.app.Cluster().SendClusterMessage(msg)
+	} else {
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.ReceiverId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.ReceiverId, err)
+		}
+	}
+
 	return nil
 }
