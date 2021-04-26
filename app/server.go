@@ -1596,7 +1596,7 @@ func doCheckWarnMetricStatus(a *App) {
 func doCheckAdminSupportStatus(a *App) {
 	isE0Edition := model.BuildEnterpriseReady == "true"
 
-	if *a.Config().SupportSettings.SupportEmail == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
 		if err := a.notifyAdminsOfWarnMetricStatus(model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
