@@ -118,8 +118,17 @@ func migrateChunk(sqlStore store.Store, a *app.App, lastChannelId string) (strin
 			return "", err
 		}
 		profileMap, err := sqlStore.User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+		if err != nil {
+			return "", err
+		}
 		channelMemberNotifyPropsMap, err := sqlStore.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		if err != nil {
+			return "", err
+		}
 		groups, err := a.GetGroupsAllowedForReferenceInChannel(&channel.Channel, team)
+		if err != nil {
+			return "", err
+		}
 		isUserMentioned := func(p *model.Post, userID string) bool {
 			allowChannelMentions := a.AllowChannelMentions(p, len(profileMap))
 			keywords := a.GetMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
