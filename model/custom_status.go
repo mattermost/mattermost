@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"time"
 )
 
 const (
@@ -15,9 +16,21 @@ const (
 	MaxRecentCustomStatuses  = 5
 )
 
+var ValidCustomStatusDuration = map[string]bool{
+	"dont_clear":     true,
+	"thirty_minutes": true,
+	"one_hour":       true,
+	"four_hours":     true,
+	"today":          true,
+	"this_week":      true,
+	"date_and_time":  true,
+}
+
 type CustomStatus struct {
-	Emoji string `json:"emoji"`
-	Text  string `json:"text"`
+	Emoji     string    `json:"emoji"`
+	Text      string    `json:"text"`
+	Duration  string    `json:"duration"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 func (cs *CustomStatus) TrimMessage() {
@@ -31,6 +44,14 @@ func (cs *CustomStatus) ToJson() string {
 	csCopy := *cs
 	b, _ := json.Marshal(csCopy)
 	return string(b)
+}
+
+func (cs *CustomStatus) IsDurationValid() bool {
+	return ValidCustomStatusDuration[cs.Duration]
+}
+
+func (cs *CustomStatus) IsExpirationTimeValid() bool {
+	return !(cs.Duration != "dont_clear" && (cs.ExpiresAt.IsZero() || cs.ExpiresAt.Before(time.Now())))
 }
 
 func CustomStatusFromJson(data io.Reader) *CustomStatus {
