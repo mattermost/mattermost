@@ -117,6 +117,8 @@ func TestHubStopRaceCondition(t *testing.T) {
 }
 
 func TestHubSessionRevokeRace(t *testing.T) {
+	t.Skip("MM-35239")
+
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
