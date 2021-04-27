@@ -6838,10 +6838,6 @@
     "translation": "無法解析訊息匯出工作 BatchSize。"
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "連接伺服器時遇到錯誤"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "找不到叢集 API 端點。"
   },

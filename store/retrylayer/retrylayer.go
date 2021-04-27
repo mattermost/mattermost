@@ -2934,21 +2934,21 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) error {
 
 }
 
-func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
+func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.ComplianceExport(compliance)
+		result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
@@ -5884,6 +5884,26 @@ func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 
 }
 
+func (s *RetryLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.HasAutoResponsePostByUserSince(options, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 
 	s.PostStore.InvalidateLastPostTimeCache(channelID)
@@ -7110,11 +7130,11 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 
 }
 
-func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *RetryLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.RoleStore.GetByName(name)
+		result, err := s.RoleStore.GetByName(ctx, name)
 		if err == nil {
 			return result, nil
 		}
@@ -9533,6 +9553,26 @@ func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetPosts(threadID, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadFollowers(threadID)
 		if err == nil {
 			return result, nil
 		}

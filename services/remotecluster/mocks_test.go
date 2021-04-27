@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -22,6 +23,7 @@ import (
 type mockServer struct {
 	remotes []*model.RemoteCluster
 	logger  *mockLogger
+	user    *model.User
 }
 
 func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
@@ -29,6 +31,10 @@ func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
 		remotes: remotes,
 		logger:  &mockLogger{t: t},
 	}
+}
+
+func (ms *mockServer) SetUser(user *model.User) {
+	ms.user = user
 }
 
 func (ms *mockServer) Config() *model.Config                                  { return nil }
@@ -40,16 +46,21 @@ func (ms *mockServer) GetLogger() mlog.LoggerIFace {
 	return ms.logger
 }
 func (ms *mockServer) GetStore() store.Store {
-	anyFilter := mock.MatchedBy(func(filter model.RemoteClusterQueryFilter) bool {
+	anyQueryFilter := mock.MatchedBy(func(filter model.RemoteClusterQueryFilter) bool {
 		return true
 	})
+	anyUserId := mock.AnythingOfType("string")
 
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
-	remoteClusterStoreMock.On("GetAll", anyFilter).Return(ms.remotes, nil)
+	remoteClusterStoreMock.On("GetAll", anyQueryFilter).Return(ms.remotes, nil)
+
+	userStoreMock := &mocks.UserStore{}
+	userStoreMock.On("Get", context.Background(), anyUserId).Return(ms.user, nil)
 
 	storeMock := &mocks.Store{}
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)
+	storeMock.On("User").Return(userStoreMock)
 	return storeMock
 }
 func (ms *mockServer) Shutdown() { ms.logger.Shutdown() }
