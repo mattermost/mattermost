@@ -66,6 +66,7 @@ const (
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
+	TrackFeatureFlags            = "config_feature_flags"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -825,6 +826,14 @@ func (ts *TelemetryService) trackConfig() {
 	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
+
+	// Convert feature flags to map[string]interface{} for sending
+	flags := cfg.FeatureFlags.ToMap()
+	interfaceFlags := make(map[string]interface{})
+	for k, v := range flags {
+		interfaceFlags[k] = v
+	}
+	ts.sendTelemetry(TrackFeatureFlags, interfaceFlags)
 }
 
 func (ts *TelemetryService) trackLicense() {
