@@ -234,10 +234,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		// Group Messages
 		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]interface{}{"SenderName": senderName})
-	}	else {
+	} else {
 		// mentions
 		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName,"ChannelName": channelName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
 		pData.ChannelName = channelName
 	}
 
