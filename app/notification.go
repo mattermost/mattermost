@@ -427,11 +427,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
-		thread, err := a.Srv().Store.Thread().Get(post.RootId)
+		followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId)
 		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
+			return nil, errors.Wrapf(err, "cannot get thread %q followers", post.RootId)
 		}
-		for _, uid := range thread.Participants {
+		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
 			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
@@ -439,9 +439,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, post.RootId, true)
 				if err != nil {
-					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
+					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
