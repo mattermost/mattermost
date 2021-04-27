@@ -3127,6 +3127,22 @@
     "translation": "You’ve reached the user limit for the free tier "
   },
   {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start subscription"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud trial has ended"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Your free 14-day trial of Mattermost ends today"
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Add Payment method"
   },
@@ -3136,7 +3152,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3845,6 +3861,10 @@
   {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Login failed because of invalid password."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Failed to send trial ended email"
   },
   {
     "id": "api.user.cloud_trial_ending_email.error",
@@ -6419,6 +6439,10 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Unable to send auto response from user."
+  },
+  {
     "id": "app.user.send_emails.app_error",
     "translation": "No emails were successfully sent"
   },
@@ -6829,10 +6853,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -8157,10 +8177,6 @@
   {
     "id": "model.config.is_valid.read_timeout.app_error",
     "translation": "Invalid value for read timeout."
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Number of replica lag queries is more than the number of replicas configured. Must be less than or equal to the number of replicas."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",

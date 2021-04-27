@@ -7,8 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -177,26 +179,35 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 
 	for _, id := range userIds {
 		user, err := scs.server.GetStore().User().Get(context.Background(), id)
-		if err == nil {
-			if sync, err2 := scs.shouldUserSync(user, channelID, rc); err2 != nil {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
-					mlog.String("user_id", id),
-					mlog.Err(err2),
-				)
-				continue
-			} else if sync {
-				users = append(users, sanitizeUserForSync(user))
-			}
-			// if this was a mention then put the real username in place of the username+remotename, but only
-			// when sending to the remote that the user belongs to.
-			if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-				fixMention(post, mentionMap, user)
-			}
-		} else {
+		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error checking if user should sync",
 				mlog.String("user_id", id),
 				mlog.Err(err),
 			)
+			continue
+		}
+
+		sync, syncImage, err2 := scs.shouldUserSync(user, channelID, rc)
+		if err2 != nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
+				mlog.String("user_id", id),
+				mlog.Err(err2),
+			)
+			continue
+		}
+
+		if sync {
+			users = append(users, sanitizeUserForSync(user))
+		}
+
+		if syncImage {
+			scs.syncProfileImage(user, channelID, rc)
+		}
+
+		// if this was a mention then put the real username in place of the username+remotename, but only
+		// when sending to the remote that the user belongs to.
+		if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+			fixMention(post, mentionMap, user)
 		}
 	}
 	return users
@@ -240,16 +251,16 @@ func sanitizeUserForSync(user *model.User) *model.User {
 // shouldUserSync determines if a user needs to be synchronized.
 // User should be synchronized if it has no entry in the SharedChannelUsers table for the specified channel,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
-func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (bool, error) {
+func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model.RemoteCluster) (sync bool, syncImage bool, err error) {
 	// don't sync users with the remote they originated from.
 	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
-		return false, nil
+		return false, false, nil
 	}
 
 	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, channelID, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			return false, err
+			return false, false, err
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
@@ -266,8 +277,52 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 				mlog.Err(err),
 			)
 		}
-	} else if scu.LastSyncAt >= user.UpdateAt {
-		return false, nil
+		return true, true, nil
 	}
-	return true, nil
+
+	return user.UpdateAt > scu.LastSyncAt, user.LastPictureUpdate > scu.LastSyncAt, nil
+}
+
+func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *model.RemoteCluster) {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	rcs.SendProfileImage(ctx, user.Id, rc, scs.app, func(userId string, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		if resp.IsSuccess() {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Users profile image synchronized",
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("user_id", user.Id),
+			)
+
+			scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, channelID, rc.RemoteId)
+			if err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error fetching shared channel user while updating users LastSyncTime after profile image update",
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.String("user_id", user.Id),
+					mlog.String("channel_id", channelID),
+					mlog.Err(err),
+				)
+			}
+
+			if err = scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(scu.Id, model.GetMillis()); err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.String("user_id", user.Id),
+					mlog.Err(err),
+				)
+			}
+			return
+		}
+
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("user_id", user.Id),
+			mlog.String("Err", resp.Err),
+		)
+	})
 }

@@ -6867,10 +6867,6 @@
     "translation": "Não foi possível analisar a tarefa de exportação de mensagens BatchSize."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Encontramos um erro enquanto conectava ao servidor."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Endpoint Cluster API não encontrado."
   },
@@ -7375,10 +7371,6 @@
     "translation": "Não foi possível obter todas as equipes."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Não foi possível colocar todas as equipes privadas na página."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Não foi possível obter todas as equipes privadas."
   },
@@ -7397,14 +7389,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Não foi possível contar as equipes."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Não foi possível contar as equipes públicas."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Não foi possível contar as equipes privadas."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -8929,10 +8913,6 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "O número de consultas de atraso de réplica é maior do que o número de réplicas configuradas. Deve ser menor ou igual ao número de réplicas."
   },
   {
     "id": "model.channel.is_valid.description.app_error",
