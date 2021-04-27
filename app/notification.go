@@ -176,7 +176,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 			if channel.Type != model.CHANNEL_DIRECT {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
-				mentions.merge(getExplicitMentions(rootPost, keywords, groups))
+				rootMentions := getExplicitMentions(rootPost, keywords, groups)
+				for id := range rootMentions.Mentions {
+					threadParticipants[id] = true
+				}
 			}
 		}
 		for id := range mentions.Mentions {
@@ -756,12 +759,6 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 
 func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
 	for _, userID := range userIDs {
-		m.addMention(userID, mentionType)
-	}
-}
-
-func (m *ExplicitMentions) merge(other *ExplicitMentions) {
-	for userID, mentionType := range other.Mentions {
 		m.addMention(userID, mentionType)
 	}
 }
