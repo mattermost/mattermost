@@ -83,7 +83,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
-
+	var allowChannelMentions bool
+	var keywords map[string][]string
 	if channel.Type == model.CHANNEL_DIRECT {
 		otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 
@@ -96,8 +97,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
-		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
-		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
+		allowChannelMentions = a.allowChannelMentions(post, len(profileMap))
+		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
 		mentions = getExplicitMentions(post, keywords, groups)
 		// Add an implicit mention when a user is added to a channel
@@ -123,8 +124,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		// get users that have comment thread mentions enabled
 		if post.RootId != "" && parentPostList != nil {
-			rootPost := parentPostList.Posts[parentPostList.Order[0]]
-			mentions.merge(getExplicitMentions(rootPost, keywords, groups))
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile == nil {
@@ -175,6 +174,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
+			if channel.Type != model.CHANNEL_DIRECT {
+				rootPost := parentPostList.Posts[parentPostList.Order[0]]
+				rootMentions := getExplicitMentions(rootPost, keywords, groups)
+				for id := range rootMentions.Mentions {
+					threadParticipants[id] = true
+				}
+			}
 		}
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
@@ -753,12 +759,6 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 
 func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
 	for _, userID := range userIDs {
-		m.addMention(userID, mentionType)
-	}
-}
-
-func (m *ExplicitMentions) merge(other *ExplicitMentions) {
-	for userID, mentionType := range other.Mentions {
 		m.addMention(userID, mentionType)
 	}
 }
