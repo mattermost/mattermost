@@ -34,6 +34,12 @@ const (
 	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
+const (
+	reconnectFound    = "success"
+	reconnectNotFound = "failure"
+	reconnectLossless = "lossless"
+)
+
 type WebConnConfig struct {
 	WebSocket    *websocket.Conn
 	Session      model.Session
@@ -304,6 +310,9 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectFound)
+			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
@@ -319,6 +328,13 @@ func (wc *WebConn) writePump() {
 			if err := wc.writeMessage(msg); err != nil {
 				wc.logSocketErr("websocket.sendHello", err)
 				return
+			}
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+			}
+		} else {
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectLossless)
 			}
 		}
 	}
