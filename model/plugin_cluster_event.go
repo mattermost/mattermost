@@ -21,8 +21,8 @@ type PluginClusterEvent struct {
 type PluginClusterEventSendOptions struct {
 	// SendType defines the type of communication channel used to send the event.
 	SendType string
-	// ReceiverId identifies which node the message should be sent to.
-	// It should match the cluster id of the receiving node.
-	// If empty, the message gets broadcasted to all other nodes.
-	ReceiverId string
+	// TargetId identifies the cluster node to which the event should be sent.
+	// It should match the cluster id of the receiving instance.
+	// If empty, the event gets broadcasted to all other nodes.
+	TargetId string
 }

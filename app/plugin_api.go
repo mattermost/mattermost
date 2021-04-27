@@ -1083,12 +1083,12 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 		Data: string(ev.Data),
 	}
 
-	// If ReceiverId is not set we broadcast to all other cluster nodes.
-	if opts.ReceiverId == "" {
+	// If TargetId is empty we broadcast to all other cluster nodes.
+	if opts.TargetId == "" {
 		api.app.Cluster().SendClusterMessage(msg)
 	} else {
-		if err := api.app.Cluster().SendClusterMessageToNode(opts.ReceiverId, msg); err != nil {
-			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.ReceiverId, err)
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
 		}
 	}
 
