@@ -325,7 +325,8 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
-check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
+check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
+
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
@@ -374,7 +375,7 @@ test-server-race: test-server-pre
   endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
   ifneq ($(IS_CI),true)
     ifneq ($(MM_NO_DOCKER),true)
       ifneq ($(TEMP_DOCKER_SERVICES),)

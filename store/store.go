@@ -275,6 +275,8 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
+	GetThreadFollowers(threadID string) ([]string, error)
+
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
@@ -476,7 +478,7 @@ type ComplianceStore interface {
 	Update(compliance *model.Compliance) (*model.Compliance, error)
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
-	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error)
+	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
 	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
 }
 
