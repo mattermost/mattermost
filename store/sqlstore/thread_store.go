@@ -307,6 +307,21 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	return result, nil
 }
+
+func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+	var users []string
+	query, args, _ := s.getQueryBuilder().
+		Select("ThreadMemberships.UserId").
+		From("ThreadMemberships").
+		Where(sq.Eq{"PostId": threadID}).ToSql()
+	_, err := s.GetReplica().Select(&users, query, args...)
+
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
 	type JoinedThread struct {
 		PostId         string
