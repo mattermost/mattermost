@@ -353,7 +353,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 	}
 
-	for key, value := range featureFlagsToMap(c.FeatureFlags) {
+	for key, value := range c.FeatureFlags.ToMap() {
 		props["FeatureFlag"+key] = value
 	}
 
