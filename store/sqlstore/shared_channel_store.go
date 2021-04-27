@@ -14,6 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	DefaultGetUsersLimit = 100
+)
+
 type SqlSharedChannelStore struct {
 	*SqlStore
 }
@@ -584,9 +588,14 @@ func (s SqlSharedChannelStore) GetUser(userID string, channelID string, remoteID
 
 // GetUsers fetches all shared channel users based on a filter.
 func (s SqlSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+	if filter.Limit <= 0 {
+		filter.Limit = DefaultGetUsersLimit
+	}
+
 	query := s.getQueryBuilder().
 		Select("*").
-		From("SharedChannelUsers")
+		From("SharedChannelUsers").
+		Limit(uint64(filter.Limit))
 
 	if filter.UserID != "" {
 		query = query.Where(sq.Eq{"SharedChannelUsers.UserId": filter.UserID})

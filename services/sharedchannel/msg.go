@@ -52,14 +52,18 @@ func (u userCache) Add(id string) {
 	u[id] = struct{}{}
 }
 
+// usersSyncMessage checks for any channel users who updated their user profile since the last sync and  generates a single
+// `RemoteClusterMsg` which can be sent to a remote cluster.
+func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) (syncMsg, error) {
+
+}
+
 // postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToSyncMessages(posts []*model.Post, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	var teamID string
-	uCache := make(userCache)
-
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
 			continue

@@ -86,7 +86,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 	for _, user := range scusers {
 		// update every channel + remote combination they belong to.
 		// Redunant updates (ie. to same remote for multiple channels) will be
-		// fitlered out.
+		// filtered out.
 		combo := user.ChannelId + user.RemoteId
 		if _, ok := notified[combo]; ok {
 			continue
@@ -300,8 +300,36 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 
 	var posts []*model.Post
 	var repeat bool
+	var syncMessages []syncMsg
 	nextSince := scr.NextSyncAt
+	uCache := make(userCache) // user cache to ensure a user only gets updates once per sync.
 
+	
+	filter := model.SharedChannelUserFilter{
+		ChannelID: task.channelID,
+		RemoteID:  rc.RemoteId,
+		Limit:     MaxUsersPerSync,
+	}
+	users, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
+	if err != nil {
+		return err
+	}
+	if len(users) >= MaxUsersPerSync { // if we hit the limit there may be more
+		repeat = true
+	}
+
+	// Sync any channel users that have updated their profile since last sync.	
+	msg, err := scs.usersSyncMessage(uCache, task.channelID, rc, scr.NextSyncAt)
+	if err != nil {
+		return err
+	}
+	if 
+	syncMessages = append(syncMessages, msg)
+
+	if 
+
+
+	// Sync any new posts.
 	if task.retryPost != nil {
 		posts = []*model.Post{task.retryPost}
 	} else {
@@ -339,10 +367,11 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		return nil
 	}
 
-	syncMessages, err := scs.postsToSyncMessages(posts, task.channelID, rc, scr.NextSyncAt)
+	msgs, err := scs.postsToSyncMessages(posts, uCache, task.channelID, rc, scr.NextSyncAt)
 	if err != nil {
 		return err
 	}
+	syncMessages = append(syncMessages, msgs)
 
 	if len(syncMessages) == 0 {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task, all messages filtered out; skipping sync",

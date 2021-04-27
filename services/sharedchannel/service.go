@@ -23,6 +23,7 @@ const (
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
 	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
+	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25

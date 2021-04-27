@@ -979,6 +979,16 @@ func testGetSharedChannelUsers(t *testing.T, ss store.Store) {
 		require.NoError(t, err, "shouldn't error for empty result set", err)
 		require.Len(t, users, 0)
 	})
+
+	t.Run("Filter by channelId with Limit", func(t *testing.T) {
+		filter := model.SharedChannelUserFilter{
+			ChannelID: channelID,
+			Limit:     2,
+		}
+		users, err := ss.SharedChannel().GetUsers(filter)
+		require.NoError(t, err, "couldn't get shared channel users", err)
+		require.Len(t, users, 2)
+	})
 }
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
