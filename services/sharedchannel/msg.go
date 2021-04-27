@@ -54,13 +54,33 @@ func (u userCache) Add(id string) {
 
 // usersSyncMessage checks for any channel users who updated their user profile since the last sync and  generates a single
 // `RemoteClusterMsg` which can be sent to a remote cluster.
-func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) (syncMsg, error) {
+func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) (*syncMsg, error) {
+	filter := model.SharedChannelUserFilter{
+		ChannelID: channelID,
+		RemoteID:  rc.RemoteId,
+		Limit:     MaxUsersPerSync,
+	}
+	susers, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*model.User
+
+	for _, u := range susers {
+
+	}
+
+	sm := syncMsg{
+		ChannelId: channelID,
+		Users:     users,
+	}
 
 }
 
 // postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]*syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	var teamID string

@@ -85,7 +85,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 
 	for _, user := range scusers {
 		// update every channel + remote combination they belong to.
-		// Redunant updates (ie. to same remote for multiple channels) will be
+		// Redundant updates (ie. to same remote for multiple channels) will be
 		// filtered out.
 		combo := user.ChannelId + user.RemoteId
 		if _, ok := notified[combo]; ok {
@@ -300,34 +300,21 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 
 	var posts []*model.Post
 	var repeat bool
-	var syncMessages []syncMsg
+	var syncMessages []*syncMsg
 	nextSince := scr.NextSyncAt
 	uCache := make(userCache) // user cache to ensure a user only gets updates once per sync.
 
-	
-	filter := model.SharedChannelUserFilter{
-		ChannelID: task.channelID,
-		RemoteID:  rc.RemoteId,
-		Limit:     MaxUsersPerSync,
-	}
-	users, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
+	// Sync any channel users that have updated their profile since last sync.
+	umsg, err := scs.usersSyncMessage(uCache, task.channelID, rc, scr.NextSyncAt)
 	if err != nil {
 		return err
 	}
-	if len(users) >= MaxUsersPerSync { // if we hit the limit there may be more
-		repeat = true
+	if umsg != nil {
+		syncMessages = append(syncMessages, umsg)
+		if len(umsg.Users) >= MaxPostsPerSync { // if we hit the limit there may be more
+			repeat = true
+		}
 	}
-
-	// Sync any channel users that have updated their profile since last sync.	
-	msg, err := scs.usersSyncMessage(uCache, task.channelID, rc, scr.NextSyncAt)
-	if err != nil {
-		return err
-	}
-	if 
-	syncMessages = append(syncMessages, msg)
-
-	if 
-
 
 	// Sync any new posts.
 	if task.retryPost != nil {
@@ -371,7 +358,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	if err != nil {
 		return err
 	}
-	syncMessages = append(syncMessages, msgs)
+	syncMessages = append(syncMessages, msgs...)
 
 	if len(syncMessages) == 0 {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task, all messages filtered out; skipping sync",
@@ -449,7 +436,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	return err
 }
 
-func (scs *Service) sendAttachments(syncMessages []syncMsg, rc *model.RemoteCluster) {
+func (scs *Service) sendAttachments(syncMessages []*syncMsg, rc *model.RemoteCluster) {
 	for _, sm := range syncMessages {
 		for _, fi := range sm.Attachments {
 			if err := scs.sendAttachmentForRemote(fi, sm.Post, rc); err != nil {
