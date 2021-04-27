@@ -32,7 +32,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster.RemoteId = model.NewId()
 		_, err = th.App.AddRemoteCluster(remoteCluster)
-		require.Error(t, err, "Adding a duplicate remote cluster should error")
+		require.NotNil(t, err, "Adding a duplicate remote cluster should error")
 		assert.Contains(t, err.Error(), "Remote cluster has already been added.")
 	})
 
@@ -103,7 +103,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		savedRemoteClustered.SiteURL = remoteCluster.SiteURL
 		savedRemoteClustered.RemoteTeamId = remoteCluster.RemoteTeamId
 		_, err = th.App.UpdateRemoteCluster(savedRemoteClustered)
-		require.Error(t, err, "Updating remote cluster with duplicate site url should error")
+		require.NotNil(t, err, "Updating remote cluster with duplicate site url should error")
 		assert.Contains(t, err.Error(), "Remote cluster with the same url already exists.")
 	})
 

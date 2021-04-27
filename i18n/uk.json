@@ -4848,10 +4848,6 @@
     "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Цей e-mail вже зареєстрований, виберіть інший."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -7032,10 +7028,6 @@
     "translation": "Не вдалося отримати всі команди"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Не вдалося отримати всі команди"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Не вдалося отримати всі команди"
   },
@@ -7053,14 +7045,6 @@
   },
   {
     "id": "app.team.analytics_team_count.app_error",
-    "translation": "Неможливо підрахувати команди"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Неможливо підрахувати команди"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
     "translation": "Неможливо підрахувати команди"
   },
   {

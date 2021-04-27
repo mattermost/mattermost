@@ -15,6 +15,8 @@ const (
 	InviteLimitation               = "invite"
 )
 
+var MockCWS string
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID           string   `json:"id"`

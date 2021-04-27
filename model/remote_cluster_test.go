@@ -20,8 +20,8 @@ func TestRemoteClusterJson(t *testing.T) {
 	json, err := o.ToJSON()
 	require.NoError(t, err)
 
-	ro, err := RemoteClusterFromJSON(strings.NewReader(json))
-	require.Nil(t, err)
+	ro, appErr := RemoteClusterFromJSON(strings.NewReader(json))
+	require.Nil(t, appErr)
 
 	require.Equal(t, o.RemoteId, ro.RemoteId)
 	require.Equal(t, o.Name, ro.Name)
@@ -72,8 +72,8 @@ func TestRemoteClusterMsgJson(t *testing.T) {
 	json, err := json.Marshal(o)
 	require.NoError(t, err)
 
-	ro, err := RemoteClusterMsgFromJSON(strings.NewReader(string(json)))
-	require.Nil(t, err)
+	ro, appErr := RemoteClusterMsgFromJSON(strings.NewReader(string(json)))
+	require.Nil(t, appErr)
 
 	require.Equal(t, o.Id, ro.Id)
 	require.Equal(t, o.CreateAt, ro.CreateAt)

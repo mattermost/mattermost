@@ -4848,10 +4848,6 @@
     "translation": "Nie można znaleźć istniejącego konta pasującego do poświadczeń. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -7048,10 +7044,6 @@
     "translation": "Nie mogliśmy pobrać wszystkich zespołów"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
   },
@@ -7070,14 +7062,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Nie można policzyć zespołów"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Nie można policzyć publicznych zespołów"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Nie można policzyć prywatnych zespołów"
   },
   {
     "id": "api.user.login_cws.license.error",

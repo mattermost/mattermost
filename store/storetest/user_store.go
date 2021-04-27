@@ -67,6 +67,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, ss) })
 	t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, ss) })
+	t.Run("ResetAuthDataToEmailForUsers", func(t *testing.T) { testUserStoreResetAuthDataToEmailForUsers(t, ss) })
 	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, ss) })
 	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, ss) })
 	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
@@ -2181,6 +2182,55 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	require.Equal(t, service, user.AuthService, "AuthService was not updated correctly")
 	require.Equal(t, authData, *user.AuthData, "AuthData was not updated correctly")
 	require.Equal(t, "", user.Password, "Password was not cleared properly")
+}
+
+func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
+	user := &model.User{}
+	user.Username = "user1" + model.NewId()
+	user.Email = MakeEmail()
+	_, err := ss.User().Save(user)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
+
+	resetAuthDataToID := func() {
+		_, err = ss.User().UpdateAuthData(
+			user.Id, model.USER_AUTH_SERVICE_SAML, model.NewString("some-id"), "", false)
+		require.NoError(t, err)
+	}
+	resetAuthDataToID()
+
+	// dry run
+	numAffected, err := ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, numAffected)
+	// real run
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, numAffected)
+	user, appErr := ss.User().Get(context.Background(), user.Id)
+	require.NoError(t, appErr)
+	require.Equal(t, *user.AuthData, user.Email)
+
+	resetAuthDataToID()
+	// with specific user IDs
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{model.NewId()}, false, true)
+	require.NoError(t, err)
+	require.Equal(t, 0, numAffected)
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, []string{user.Id}, false, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, numAffected)
+
+	// delete user
+	user.DeleteAt = model.GetMillisForTime(time.Now())
+	ss.User().Update(user, true)
+	// without deleted user
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, false, true)
+	require.NoError(t, err)
+	require.Equal(t, 0, numAffected)
+	// with deleted user
+	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.USER_AUTH_SERVICE_SAML, nil, true, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, numAffected)
 }
 
 func testUserUnreadCount(t *testing.T, ss store.Store) {

@@ -148,10 +148,6 @@
     "translation": "System"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Den här e-postadressen används redan. Välj en annan."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Kan inte hitta ett existerande konto som matchar din autentisering. Denna grupp kan behöva en inbjudan av ägaren till gruppen för att gå med."
   },
@@ -2356,10 +2352,6 @@
     "translation": "Det gick inte att ta fram alla team."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Det gick inte att ta fram alla privata team på en sida."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Det gick inte att ta fram alla privata team."
   },
@@ -2386,14 +2378,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Kan inte räkna antal team."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Kunde inte räkna antal publika team."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Kunde inte räkna antal privata team."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -8692,7 +8676,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Grattis - din arbetsyta {{.WorkSpace}} är klar att användas!"
+    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
