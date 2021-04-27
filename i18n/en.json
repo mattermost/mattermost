@@ -5492,7 +5492,7 @@
   },
   {
     "id": "app.notification.body.dm.subTitle",
-    "translation": "While you were away, {{.SenderName}} sent you have a new Direct Message."
+    "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
   {
     "id": "app.notification.body.dm.time",
