@@ -222,12 +222,12 @@ func (a *App) DoGuestRolesCreationMigration() {
 			} else {
 				scheme.DefaultChannelGuestRole = savedRole.Name
 			}
-		}
 
-		_, err := a.Srv().Store.Scheme().Save(scheme)
-		if err != nil {
-			mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
-			allSucceeded = false
+			_, err := a.Srv().Store.Scheme().Save(scheme)
+			if err != nil {
+				mlog.Critical("Failed to update custom scheme.", mlog.Err(err))
+				allSucceeded = false
+			}
 		}
 	}
 
