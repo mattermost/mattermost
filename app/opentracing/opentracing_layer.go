@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -1340,6 +1339,23 @@ func (a *OpenTracingAppLayer) CheckValidDomains(team *model.Team) *model.AppErro
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *app.CheckConnResult {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckWebConn(userID, connectionID)
 
 	return resultVar0
 }
@@ -4378,28 +4394,6 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQue
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(filter)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRoles")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRoles()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11468,7 +11462,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c *app.Context, manifest *model.Manif
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, c *app.Context, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(cfg *app.WebConnConfig) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
@@ -11480,7 +11474,7 @@ func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, c *app.Context, loc
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NewWebConn(ws, c, locale)
+	resultVar0 := a.app.NewWebConn(cfg)
 
 	return resultVar0
 }
@@ -11977,6 +11971,28 @@ func (a *OpenTracingAppLayer) PluginContext(c *app.Context) *plugin.Context {
 	resultVar0 := a.app.PluginContext(c)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) PopulateWebConnConfig(c *app.Context, cfg *app.WebConnConfig, seqVal string) (*app.WebConnConfig, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PopulateWebConnConfig(c, cfg, seqVal)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) PostActionCookieSecret() []byte {
@@ -14107,6 +14123,28 @@ func (a *OpenTracingAppLayer) SendCloudTrialEndWarningEmail(trialEndDate string,
 
 	defer span.Finish()
 	resultVar0 := a.app.SendCloudTrialEndWarningEmail(trialEndDate, siteURL)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SendCloudTrialEndedEmail() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendCloudTrialEndedEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendCloudTrialEndedEmail()
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

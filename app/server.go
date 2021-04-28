@@ -1424,6 +1424,13 @@ func runCheckWarnMetricStatusJob(a *App, c *Context) {
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
+func runCheckAdminSupportStatusJob(a *App, c *Context) {
+	doCheckAdminSupportStatus(a, c)
+	model.CreateRecurringTask("Check Admin Support Status Job", func() {
+		doCheckAdminSupportStatus(a, c)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1584,6 +1591,16 @@ func doCheckWarnMetricStatus(a *App, c *Context) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
 		} else {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
+		}
+	}
+}
+
+func doCheckAdminSupportStatus(a *App, c *Context) {
+	isE0Edition := model.BuildEnterpriseReady == "true"
+
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 	}
 }

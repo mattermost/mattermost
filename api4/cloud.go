@@ -421,6 +421,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	case model.EventTypeTrialEnded:
+		if appErr := c.App.SendCloudTrialEndedEmail(); appErr != nil {
+			c.Err = appErr
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)

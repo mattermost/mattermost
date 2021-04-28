@@ -10,6 +10,7 @@ const (
 	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
 	EventTypeTrialWillEnd          = "trial-will-end"
+	EventTypeTrialEnded            = "trial-ended"
 	JoinLimitation                 = "join"
 	InviteLimitation               = "invite"
 )
