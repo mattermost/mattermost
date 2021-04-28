@@ -199,10 +199,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
 					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
-					if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+					var nfErr *store.ErrNotFound
+
+					if err != nil && !errors.As(err, &nfErr) {
 						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 						return
 					}
+
 					if membership != nil && !membership.Following {
 						return
 					}
