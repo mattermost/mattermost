@@ -527,7 +527,7 @@ func TestPluginSync(t *testing.T) {
 				require.NoError(t, err)
 				defer fileReader.Close()
 
-				_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -545,7 +545,7 @@ func TestPluginSync(t *testing.T) {
 					*cfg.PluginSettings.RequirePluginSignature = false
 				})
 
-				appErr := th.App.RemoveFile(th.App.getBundleStorePath("testplugin"))
+				appErr := th.App.RemoveFile(getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -565,7 +565,7 @@ func TestPluginSync(t *testing.T) {
 				pluginFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 				require.NoError(t, err)
 				defer pluginFileReader.Close()
-				_, appErr := th.App.WriteFile(pluginFileReader, th.App.getBundleStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(pluginFileReader, getBundleStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -583,7 +583,7 @@ func TestPluginSync(t *testing.T) {
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin2.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr := th.App.WriteFile(signatureFileReader, th.App.getSignatureStorePath("testplugin"))
+				_, appErr := th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -607,7 +607,7 @@ func TestPluginSync(t *testing.T) {
 				signatureFileReader, err := os.Open(filepath.Join(path, "testplugin.tar.gz.sig"))
 				require.NoError(t, err)
 				defer signatureFileReader.Close()
-				_, appErr = th.App.WriteFile(signatureFileReader, th.App.getSignatureStorePath("testplugin"))
+				_, appErr = th.App.WriteFile(signatureFileReader, getSignatureStorePath("testplugin"))
 				checkNoError(t, appErr)
 
 				appErr = th.App.SyncPlugins()
@@ -648,7 +648,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	require.NoError(t, err)
 	defer fileReader.Close()
 
-	_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
+	_, appErr := th.App.WriteFile(fileReader, getBundleStorePath("testplugin"))
 	checkNoError(t, appErr)
 
 	// Sync with file store so the plugin environment has access to this plugin.
@@ -772,7 +772,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -799,7 +799,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 1)
 		require.Equal(t, plugins[0].Manifest.Id, "testplugin")
 		require.Empty(t, plugins[0].Signature, 0)
@@ -832,7 +832,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -881,7 +881,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)
@@ -918,7 +918,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
-		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
+		plugins := th.App.Srv().processPrepackagedPlugins(prepackagedPluginsDir)
 		require.Len(t, plugins, 2)
 		require.Contains(t, []string{"testplugin", "testplugin2"}, plugins[0].Manifest.Id)
 		require.NotEmpty(t, plugins[0].Signature)

@@ -126,13 +126,13 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(c *Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(c, *ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
@@ -229,7 +229,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(c *Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
@@ -239,7 +239,7 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err

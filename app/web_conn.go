@@ -161,6 +161,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	wc := &WebConn{
+		App:                a,
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
 		deadQueuePointer:   cfg.deadQueuePointer,

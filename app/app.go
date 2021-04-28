@@ -55,99 +55,92 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) InitServer(c *Context) {
-	a.srv.AppInitializedOnce.Do(func() {
-		a.initEnterprise()
-
-		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-				if appErr := a.DeactivateGuests(c); appErr != nil {
-					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-				}
-			}
-		})
-
-		// Disable active guest accounts on first run if guest accounts are disabled
-		if !*a.Config().GuestAccountsSettings.Enable {
+func (s *Server) FinalizeInit(c *Context) {
+	a := New(ServerConnector(s))
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
 			if appErr := a.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
+	})
 
-		// Scheduler must be started before cluster.
-		a.initJobs()
-
-		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAppClusterMessageHandlers()
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := a.DeactivateGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
+	}
 
-		a.DoAppMigrations()
+	// Scheduler must be started before cluster.
+	s.initJobs2()
 
-		a.InitPostMetadata()
+	s.doAppMigrations()
 
-		a.InitPlugins(c, *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
-			if *cfg.PluginSettings.Enable {
-				a.InitPlugins(c, *cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-			} else {
-				a.srv.ShutDownPlugins()
-			}
-		})
-		if a.Srv().runEssentialJobs {
-			a.Srv().Go(func() {
-				runLicenseExpirationCheckJob(a)
-				runCheckAdminSupportStatusJob(a, c)
-			})
-			a.srv.runJobs()
+	s.initPostMetadata()
+
+	s.initPlugins(c, *s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+		} else {
+			s.ShutDownPlugins()
 		}
 	})
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(a, c)
+		})
+		s.runJobs()
+	}
 }
 
-func (a *App) initJobs() {
+func (s *Server) initJobs2() {
 	if jobsLdapSyncInterface != nil {
-		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
+		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
 	}
 	if jobsPluginsInterface != nil {
-		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
+		s.Jobs.Plugins = jobsPluginsInterface(s)
 	}
 	if jobsExpiryNotifyInterface != nil {
-		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
+		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
 	}
 	if productNoticesJobInterface != nil {
-		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
+		s.Jobs.ProductNotices = productNoticesJobInterface(s)
 	}
 	if jobsImportProcessInterface != nil {
-		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
+		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
 	}
 	if jobsImportDeleteInterface != nil {
-		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
+		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
 	}
 	if jobsExportDeleteInterface != nil {
-		a.srv.Jobs.ExportDelete = jobsExportDeleteInterface(a)
+		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
 	}
 
 	if jobsExportProcessInterface != nil {
-		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
 	}
 
 	if jobsExportProcessInterface != nil {
-		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
 	}
 
 	if jobsActiveUsersInterface != nil {
-		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
+		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
 	}
 
 	if jobsCloudInterface != nil {
-		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
+		s.Jobs.Cloud = jobsCloudInterface(s)
 	}
 
 	if jobsResendInvitationEmailInterface != nil {
-		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
+		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
 	}
 
-	a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.InitSchedulers()
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {

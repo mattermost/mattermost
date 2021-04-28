@@ -190,7 +190,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.tempWorkspace = tempWorkspace
 	}
 
-	th.App.InitServer(th.Context) //TODO-Context: check
+	th.App.Srv().FinalizeInit(th.Context) //TODO-Context: check
 
 	return th
 }

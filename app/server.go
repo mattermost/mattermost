@@ -50,6 +50,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -857,19 +858,20 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
+	scApp := &SharedChannelApp{
+		app: app,
+		ctx: &Context{},
+	}
+	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, scApp)
+	if err != nil {
+		return err
+	}
+
+	if err = s.sharedChannelService.Start(); err != nil {
+		s.remoteClusterService = nil
+		return err
+	}
 	return nil
-
-	//TODO-Context: fix
-	// s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if err = s.sharedChannelService.Start(); err != nil {
-	// 	s.remoteClusterService = nil
-	// 	return err
-	// }
-	// return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -1391,10 +1393,10 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-func runLicenseExpirationCheckJob(a *App) {
-	doLicenseExpirationCheck(a)
+func (s *Server) runLicenseExpirationCheckJob() {
+	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
-		doLicenseExpirationCheck(a)
+		s.doLicenseExpirationCheck()
 	}, time.Hour*24)
 }
 
@@ -1705,9 +1707,9 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
-func doLicenseExpirationCheck(a *App) {
-	a.Srv().LoadLicense()
-	license := a.Srv().License()
+func (s *Server) doLicenseExpirationCheck() {
+	s.LoadLicense()
+	license := s.License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -1719,7 +1721,7 @@ func doLicenseExpirationCheck(a *App) {
 		return
 	}
 
-	users, err := a.Srv().Store.User().GetSystemAdminProfiles()
+	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -1734,15 +1736,15 @@ func doLicenseExpirationCheck(a *App) {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL); err != nil {
+		s.Go(func() {
+			if err := s.EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	a.Srv().RemoveLicense()
+	s.RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {

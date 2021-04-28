@@ -88,16 +88,20 @@ func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
 }
 
 func (a *App) UnregisterPluginCommands(pluginID string) {
-	a.Srv().pluginCommandsLock.Lock()
-	defer a.Srv().pluginCommandsLock.Unlock()
+	a.Srv().unregisterPluginCommands(pluginID)
+}
+
+func (s *Server) unregisterPluginCommands(pluginID string) {
+	s.pluginCommandsLock.Lock()
+	defer s.pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv().pluginCommands {
+	for _, pc := range s.pluginCommands {
 		if pc.PluginId != pluginID {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv().pluginCommands = remaining
+	s.pluginCommands = remaining
 }
 
 func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {

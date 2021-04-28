@@ -41,7 +41,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(c *Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -111,7 +111,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 	}
 
 	// and then authenticate them
-	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
+	if user, err = a.authenticateUser(c, user, password, mfaToken); err != nil {
 		return nil, err
 	}
 

@@ -21,7 +21,8 @@ import (
 )
 
 func init() {
-	app.RegisterJobsImportProcessInterface(func(a *app.App) tjobs.ImportProcessInterface {
+	app.RegisterJobsImportProcessInterface(func(s *app.Server) tjobs.ImportProcessInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ImportProcessInterfaceImpl{a}
 	})
 }

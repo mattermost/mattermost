@@ -115,8 +115,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	// the server. In theory, we shouldn't depend on App to have a fully-featured
 	// server. This initialization is added so that cluster handlers are registered
 	// and job schedulers are initialized.
-	fakeApp := app.New(app.ServerConnector(server))
-	fakeApp.InitServer(&app.Context{}) // TODO-Context: remove this
+	server.FinalizeInit(&app.Context{}) // TODO-Context: remove this
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

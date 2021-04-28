@@ -139,9 +139,8 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-// Caller must close the first return value
-func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	backend, err := a.FileBackend()
+func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +151,17 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return result, nil
 }
 
+// Caller must close the first return value
+func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return a.Srv().fileReader(path)
+}
+
 func (a *App) FileExists(path string) (bool, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().fileExists(path)
+}
+
+func (s *Server) fileExists(path string) (bool, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return false, err
 	}
@@ -202,7 +210,11 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().writeFile(fr, path)
+}
+
+func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return 0, err
 	}
@@ -228,7 +240,11 @@ func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
-	backend, err := a.FileBackend()
+	return a.Srv().removeFile(path)
+}
+
+func (s *Server) removeFile(path string) *model.AppError {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return err
 	}
@@ -240,7 +256,11 @@ func (a *App) RemoveFile(path string) *model.AppError {
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().listDirectory(path)
+}
+
+func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}

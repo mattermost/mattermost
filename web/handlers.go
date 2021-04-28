@@ -110,7 +110,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
-	c.App.InitServer(c.AppContext) // TODO-Context: remove
+	// c.App.Srv().(c.AppContext) // TODO-Context: remove
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 	c.AppContext.SetT(t)

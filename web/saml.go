@@ -120,7 +120,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
+	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
 		mlog.Error(err.Error())

@@ -722,7 +722,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(c *app.Context, w http.Respon
 	a.app.AttachSessionCookies(c, w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(c *app.Context, id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
 
@@ -734,7 +734,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
+	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(c, id, loginId, password, mfaToken, cwsToken, ldapOnly)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10465,36 +10465,6 @@ func (a *OpenTracingAppLayer) InitPlugins(c *app.Context, pluginDir string, weba
 
 	defer span.Finish()
 	a.app.InitPlugins(c, pluginDir, webappPluginDir)
-}
-
-func (a *OpenTracingAppLayer) InitPostMetadata() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitPostMetadata")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.InitPostMetadata()
-}
-
-func (a *OpenTracingAppLayer) InitServer(c *app.Context) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitServer")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.InitServer(c)
 }
 
 func (a *OpenTracingAppLayer) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {

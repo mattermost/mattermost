@@ -393,7 +393,7 @@ type AppIface interface {
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError
 	AttachSessionCookies(c *Context, w http.ResponseWriter, r *http.Request)
-	AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
+	AuthenticateUserForLogin(c *Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError)
 	AutocompleteChannels(teamID string, term string) (*model.ChannelList, *model.AppError)
 	AutocompleteChannelsForSearch(teamID string, userID string, term string) (*model.ChannelList, *model.AppError)
@@ -794,8 +794,6 @@ type AppIface interface {
 	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c *Context, pluginDir, webappPluginDir string)
-	InitPostMetadata()
-	InitServer(c *Context)
 	InstallPluginFromData(data model.PluginEventData)
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateCacheForUser(userID string)

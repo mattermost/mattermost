@@ -57,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(s *Server) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
@@ -88,7 +88,6 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th.Server.initEnterprise()
-			th.App.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {
