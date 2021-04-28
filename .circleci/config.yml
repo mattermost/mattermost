@@ -12,6 +12,7 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
+
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -28,7 +29,7 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
+          trap 'npm ci && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
           trap - ERR
@@ -129,9 +130,10 @@ jobs:
             cd mattermost-server
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
   check-mocks:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -141,6 +143,7 @@ jobs:
             cd mattermost-server
             make einterfaces-mocks store-mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
+
   check-migrations:
     docker:
       - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
@@ -155,6 +158,36 @@ jobs:
             export PATH=$PATH:$GOBIN
             make migrations-bindata
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the migration bindata using `make migrations-bindata`"; exit 1; fi
+
+  # Dedicate job for golangci-lint it does not need anything only the server code for that
+  # and to make more clear when the job fails
+  check-golangci-lint:
+    docker:
+      - image: golangci/golangci-lint:v1.33.2
+    steps:
+      - checkout
+      - run:
+          command: make golangci-lint
+
+  # Dedicate job for mattermost-vet to make more clear when the job fails
+  check-mattermost-vet:
+    docker:
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            echo "Installing mattermost-govet"
+            export GOBIN=${PWD}/mattermost-server/bin
+            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+            export PATH=$PATH:$GOBIN
+            cd mattermost-server
+            make config-reset
+            make plugin-checker
+            make vet BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -184,15 +217,8 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.38.0
-            echo "Installing mattermost-govet"
-            export GOBIN=${PWD}/mattermost-server/bin
-            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
-            export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
@@ -219,6 +245,8 @@ jobs:
       dbdriver:
         type: string
       dbsource:
+        type: string
+      racemode:
         type: string
     steps:
       - attach_workspace:
@@ -251,9 +279,9 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
-              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
+              bash -c "ulimit -n 8096; make test-server<< parameters.racemode >> BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE=" \
               bash -c scripts/diff-email-templates.sh
-          no_output_timeout: 1h
+          no_output_timeout: 2h
       - run:
           name: Capture docker logs
           when: always
@@ -318,6 +346,15 @@ jobs:
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
 
+            echo "Ignoring known mismatch: ChannelMembers.MentionCountRoot"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;" | exec psql -U mmuser -d migrated'
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;" | exec psql -U mmuser -d latest'
+            echo "Ignoring known mismatch: ChannelMembers.MsgCountRoot and Channels.TotalMsgCountRoot"
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;" | exec psql -U mmuser -d migrated'
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;" | exec psql -U mmuser -d latest'
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;" | exec psql -U mmuser -d migrated'
+            docker-compose --no-ansi exec -T postgres sh -c 'exec echo "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;" | exec psql -U mmuser -d latest'
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
@@ -347,9 +384,18 @@ jobs:
               mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 
+
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
             docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+            echo "Ignoring known MySQL mismatch: ChannelMembers.MentionCountRoot and MsgCountRoot"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot;"
+            echo "Ignoring known MySQL mismatch: Channels.TotalMsgCountRoot"
+            docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;"
+            docker-compose --no-ansi exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot;"
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
@@ -398,7 +444,6 @@ jobs:
     working_directory: ~/
     docker:
       - image: circleci/buildpack-deps:stretch
-    resource_class: xlarge
     steps:
       - attach_workspace:
           at: .
@@ -431,6 +476,12 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
+      - check-golangci-lint:
+          filters:
+            branches:
+              ignore:
+                - master
+                - /^release-.*/
       - check-app-layers:
           requires:
             - setup
@@ -443,6 +494,9 @@ workflows:
       - check-migrations:
           requires:
             - setup
+      - check-mattermost-vet:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
@@ -453,6 +507,8 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-mattermost-vet
+            - check-golangci-lint
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -470,6 +526,7 @@ workflows:
           name: test-mysql
           dbdriver: mysql
           dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers
@@ -479,6 +536,7 @@ workflows:
           name: test-postgres
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: ""
           requires:
             - check-app-layers
             - check-store-layers
@@ -509,6 +567,13 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
+      - check-golangci-lint:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
       - check-app-layers:
           requires:
             - setup
@@ -536,6 +601,7 @@ workflows:
           name: test-mysql
           dbdriver: mysql
           dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers
@@ -545,6 +611,7 @@ workflows:
           name: test-postgres
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers

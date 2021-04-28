@@ -94,7 +94,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
-	api.BaseRoutes.UserThreads.Handle("/mention_counts", api.ApiSessionRequired(getMentionCountsForAllThreadsByUser)).Methods("GET")
 
 	api.BaseRoutes.UserThread.Handle("", api.ApiSessionRequired(getThreadForUser)).Methods("GET")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
@@ -466,8 +465,19 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("filename", imageArray[0].Filename)
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.SetInvalidUrlParam("user_id")
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	if (user.IsLDAPUser() || (user.IsSAMLUser() && *c.App.Config().SamlSettings.EnableSyncWithLdap)) &&
+		*c.App.Config().LdapSettings.PictureAttribute != "" {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+			nil, "", http.StatusConflict)
+		return
 	}
 
 	imageData := imageArray[0]
@@ -1109,6 +1119,15 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check that the fields being updated are not set by the login provider
+	conflictField := c.App.CheckProviderAttributes(ouser, user.ToPatch())
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.App.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(ouser, user.Password)
@@ -1170,6 +1189,14 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err.DetailedError += ", attempted email update by oauth app"
 			return
 		}
+	}
+
+	conflictField := c.App.CheckProviderAttributes(ouser, patch)
+	if conflictField != "" {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+		return
 	}
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
@@ -2841,26 +2868,6 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(threads.ToJson()))
-}
-
-func getMentionCountsForAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-	counts, err := c.App.GetThreadMentionsForUserPerChannel(c.Params.UserId, c.Params.TeamId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	resp, _ := json.Marshal(counts)
-
-	w.Write(resp)
 }
 
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

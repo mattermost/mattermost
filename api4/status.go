@@ -15,7 +15,11 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
+
+	// Both these handlers are for removing the recent custom status but the one with the POST method should be preferred
+	// as DELETE method doesn't support request body in the mobile app.
 	api.BaseRoutes.User.Handle("/status/custom/recent", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status/custom/recent/delete", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("POST")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {

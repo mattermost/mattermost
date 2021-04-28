@@ -36,6 +36,13 @@ type S3FileBackend struct {
 	client     *s3.Client
 }
 
+type S3FileBackendAuthError struct {
+	DetailedError string
+}
+
+// S3FileBackendNoBucketError is returned when testing a connection and no S3 bucket is found
+type S3FileBackendNoBucketError struct{}
+
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
 	bucketNotFound = "NoSuchBucket"
@@ -57,6 +64,14 @@ func getImageMimeType(ext string) string {
 		return "image"
 	}
 	return imageMimeTypes[ext]
+}
+
+func (s *S3FileBackendAuthError) Error() string {
+	return s.DetailedError
+}
+
+func (s *S3FileBackendNoBucketError) Error() string {
+	return "no such bucket"
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend.
@@ -146,27 +161,29 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound {
-				return errors.Wrap(err, "unable to list objects in the s3 bucket")
+				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
 			}
 			exists = false
 		}
 	} else {
 		exists, err = b.client.BucketExists(context.Background(), b.bucket)
 		if err != nil {
-			return errors.Wrap(err, "unable to check if the s3 bucket exists")
+			return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
 		}
 	}
 
-	if exists {
-		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
-	} else {
-		mlog.Warn("Bucket specified does not exist. Attempting to create...")
-		err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
-		if err != nil {
-			return errors.Wrap(err, "unable to create the s3 bucket")
-		}
+	if !exists {
+		return &S3FileBackendNoBucketError{}
 	}
+	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
+	return nil
+}
 
+func (b *S3FileBackend) MakeBucket() error {
+	err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
+	if err != nil {
+		return errors.Wrap(err, "unable to create the s3 bucket")
+	}
 	return nil
 }
 

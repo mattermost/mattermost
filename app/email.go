@@ -290,12 +290,61 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 	return nil
 }
 
+func (es *EmailService) SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) *model.AppError {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_trial_ending_email.subject")
+
+	data := es.newEmailTemplateData(locale)
+	data.Props["Title"] = T("api.templates.cloud_trial_ending_email.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_trial_ending_email.subtitle", map[string]interface{}{"Name": name, "TrialEnd": trialEndDate})
+	data.Props["SiteURL"] = siteURL
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
+	data.Props["Button"] = T("api.templates.cloud_trial_ending_email.add_payment_method")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+
+	body, err := es.srv.TemplatesContainer().RenderToString("cloud_trial_end_warning", data)
+	if err != nil {
+		return model.NewAppError("SendCloudTrialEndWarningEmail", "api.user.cloud_trial_ending_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := es.sendMail(userEmail, subject, body); err != nil {
+		return model.NewAppError("SendCloudTrialEndWarningEmail", "api.user.cloud_trial_ending_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (es *EmailService) SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) *model.AppError {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.cloud_trial_ended_email.subject")
+
+	t := time.Now()
+	todayDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+
+	data := es.newEmailTemplateData(locale)
+	data.Props["Title"] = T("api.templates.cloud_trial_ended_email.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_trial_ended_email.subtitle", map[string]interface{}{"Name": name, "TodayDate": todayDate})
+	data.Props["SiteURL"] = siteURL
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/admin_console/billing/subscription", siteURL)
+	data.Props["Button"] = T("api.templates.cloud_trial_ended_email.start_subscription")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+
+	body, err := es.srv.TemplatesContainer().RenderToString("cloud_trial_ended_email", data)
+	if err != nil {
+		return model.NewAppError("SendCloudTrialEndedEmail", "api.user.cloud_trial_ended_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := es.sendMail(userEmail, subject, body); err != nil {
+		return model.NewAppError("SendCloudTrialEndedEmail", "api.user.cloud_trial_ended_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 // SendCloudWelcomeEmail sends the cloud version of the welcome email
-func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns string) *model.AppError {
+func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) *model.AppError {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_welcome_email.subject")
-
-	workSpacePath := fmt.Sprintf("https://%s.cloud.mattermost.com", workSpaceName)
 
 	data := es.newEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_welcome_email.title", map[string]interface{}{"WorkSpace": workSpaceName})
@@ -303,11 +352,11 @@ func (es *EmailService) SendCloudWelcomeEmail(userEmail, locale, teamInviteID, w
 	data.Props["SubTitleInfo"] = T("api.templates.cloud_welcome_email.subtitle_info")
 	data.Props["Info"] = T("api.templates.cloud_welcome_email.info")
 	data.Props["Info2"] = T("api.templates.cloud_welcome_email.info2")
-	data.Props["WorkSpacePath"] = workSpacePath
+	data.Props["WorkSpacePath"] = siteURL
 	data.Props["DNS"] = dns
 	data.Props["InviteInfo"] = T("api.templates.cloud_welcome_email.invite_info")
 	data.Props["InviteSubInfo"] = T("api.templates.cloud_welcome_email.invite_sub_info", map[string]interface{}{"WorkSpace": workSpaceName})
-	data.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", workSpacePath, teamInviteID)
+	data.Props["InviteSubInfoLink"] = fmt.Sprintf("%s/signup_user_complete/?id=%s", siteURL, teamInviteID)
 	data.Props["AddAppsInfo"] = T("api.templates.cloud_welcome_email.add_apps_info")
 	data.Props["AddAppsSubInfo"] = T("api.templates.cloud_welcome_email.add_apps_sub_info")
 	data.Props["AppMarketPlace"] = T("api.templates.cloud_welcome_email.app_market_place")
