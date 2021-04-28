@@ -18,7 +18,7 @@ func TestDefaultsGenerator(t *testing.T) {
 	tmpFile, err := ioutil.TempFile("", "tempconfig")
 	defer os.Remove(tmpFile.Name())
 	require.NoError(t, err)
-	require.NoError(t, generator.GenerateDefaultConfig(tmpFile))
+	require.NoError(t, generateDefaultConfig(tmpFile))
 	_ = tmpFile.Close()
 	var config model.Config
 
