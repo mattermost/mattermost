@@ -18,6 +18,40 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	s.removePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
 }
 
+func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
+	env := s.GetPluginsEnvironment()
+	if env == nil {
+		return
+	}
+	if msg.Props == nil {
+		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
+		return
+	}
+	pluginID := msg.Props["PluginID"]
+	eventID := msg.Props["EventID"]
+	if pluginID == "" || eventID == "" {
+		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
+			mlog.String("plugin_id", pluginID), mlog.String("event_id", eventID))
+		return
+	}
+
+	hooks, err := env.HooksForPlugin(pluginID)
+	if err != nil {
+		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		return
+	}
+
+	a := New(ServerConnector(s))
+	hooks.OnPluginClusterEvent(a.PluginContext(&Context{}), model.PluginClusterEvent{
+		Id:   eventID,
+		Data: []byte(msg.Data),
+	})
+}
+
+func (a *App) clusterRemovePluginHandler(msg *model.ClusterMessage) {
+	a.RemovePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
+}
+
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
 //
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
@@ -35,6 +69,7 @@ func (s *Server) registerClusterHandlers() {
 	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS, s.clusterClearSessionCacheForAllUsersHandler)
 	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, s.clusterInstallPluginHandler)
 	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, s.clusterRemovePluginHandler)
+	s.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_PLUGIN_EVENT, s.clusterPluginEventHandler)
 }
 
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {

@@ -260,8 +260,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	post := &model.Post{}
-	post = th.BasicPost.Clone()
+	post := th.BasicPost.Clone()
 
 	post.IsPinned = true
 	saved, err := th.App.UpdatePost(th.Context, post, true)
@@ -283,8 +282,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	post := &model.Post{}
-	post = th.BasicPost.Clone()
+	post := th.BasicPost.Clone()
 
 	th.App.Srv().SetLicense(model.NewTestLicense())
 

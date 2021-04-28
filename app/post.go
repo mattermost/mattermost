@@ -585,8 +585,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	newPost := &model.Post{}
-	newPost = oldPost.Clone()
+	newPost := oldPost.Clone()
 
 	if newPost.Message != post.Message {
 		newPost.Message = post.Message

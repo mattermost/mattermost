@@ -1065,3 +1065,34 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 
 	return nil
 }
+
+// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+// the calling plugin.
+func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
+	opts model.PluginClusterEventSendOptions) error {
+	if api.app.Cluster() == nil {
+		return nil
+	}
+
+	msg := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		SendType:         opts.SendType,
+		WaitForAllToSend: false,
+		Props: map[string]string{
+			"PluginID": api.id,
+			"EventID":  ev.Id,
+		},
+		Data: string(ev.Data),
+	}
+
+	// If TargetId is empty we broadcast to all other cluster nodes.
+	if opts.TargetId == "" {
+		api.app.Cluster().SendClusterMessage(msg)
+	} else {
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
+		}
+	}
+
+	return nil
+}

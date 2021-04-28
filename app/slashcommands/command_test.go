@@ -173,6 +173,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	// Command is not built in, so it is a bot command.
 	builtIn = false
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	builtIn = true

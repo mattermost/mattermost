@@ -105,6 +105,7 @@ func TestUploadFile(t *testing.T) {
 
 	info1, err = th.App.UploadFile(th.Context, data, "", filename)
 	require.Nil(t, err, "empty channel IDs should be valid")
+	require.NotNil(t, info1)
 
 	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")

@@ -72,9 +72,6 @@ func (s *Server) FinalizeInit(c *Context) {
 		}
 	}
 
-	// Scheduler must be started before cluster.
-	s.initJobs2()
-
 	s.doAppMigrations()
 
 	s.initPostMetadata()
@@ -94,53 +91,6 @@ func (s *Server) FinalizeInit(c *Context) {
 		})
 		s.runJobs()
 	}
-}
-
-func (s *Server) initJobs2() {
-	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
-	}
-	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
-	}
-	if productNoticesJobInterface != nil {
-		s.Jobs.ProductNotices = productNoticesJobInterface(s)
-	}
-	if jobsImportProcessInterface != nil {
-		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
-	}
-	if jobsImportDeleteInterface != nil {
-		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
-	}
-	if jobsExportDeleteInterface != nil {
-		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsExportProcessInterface != nil {
-		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
-	}
-
-	if jobsCloudInterface != nil {
-		s.Jobs.Cloud = jobsCloudInterface(s)
-	}
-
-	if jobsResendInvitationEmailInterface != nil {
-		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
-	}
-
-	s.Jobs.InitWorkers()
-	s.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {

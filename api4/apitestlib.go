@@ -122,12 +122,15 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
+	ctx := &app.Context{}
+	s.FinalizeInit(ctx) //TODO-Context: check
+
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           &app.Context{},
+		Context:           ctx,
 	}
 
 	if searchEngine != nil && (searchEngine.BleveEngine != nil || searchEngine.ElasticsearchEngine != nil) {
@@ -189,8 +192,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
-
-	th.App.Srv().FinalizeInit(th.Context) //TODO-Context: check
 
 	return th
 }
