@@ -1356,9 +1356,11 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 	t.Run("too many members because previous existing members", func(t *testing.T) {
 		teamID := model.NewId()
 
-		//m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		_, nErr := ss.Team().SaveMember(m1, 1)
+		require.NoError(t, nErr)
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
-		_, nErr := ss.Team().SaveMember(m2, 1)
+		_, nErr = ss.Team().SaveMember(m2, 1)
 		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
 	})

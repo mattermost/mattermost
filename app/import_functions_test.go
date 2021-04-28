@@ -3934,7 +3934,9 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
+	user3, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.NotNil(t, user3)
 
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
@@ -3950,7 +3952,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user3, appErr := th.App.GetUserByUsername(username3)
+	user3, appErr = th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	username4 := model.NewId()
