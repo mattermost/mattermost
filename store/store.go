@@ -847,8 +847,9 @@ type SharedChannelStore interface {
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
-	GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
-	GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error)
+	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
+	GetUser(userID string) ([]*model.SharedChannelUser, error)
+	GetUsers(filter model.SharedChannelUserFilter) ([]*model.User, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)

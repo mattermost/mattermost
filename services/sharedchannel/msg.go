@@ -56,32 +56,37 @@ func (u userCache) Add(id string) {
 // `RemoteClusterMsg` which can be sent to a remote cluster.
 func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) (*syncMsg, error) {
 	filter := model.SharedChannelUserFilter{
-		ChannelID: channelID,
-		RemoteID:  rc.RemoteId,
-		Limit:     MaxUsersPerSync,
+		ChannelID:       channelID,
+		ExcludeRemoteID: rc.RemoteId,
+		LastSyncAt:      nextSyncAt,
+		Limit:           MaxUsersPerSync,
 	}
-	susers, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
+	users, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*model.User
-
-	for _, u := range susers {
-
+	// update cache
+	usersFiltered := make([]*model.User, 0, len(users))
+	for _, u := range users {
+		if uCache.Has(u.Id) {
+			continue
+		}
+		usersFiltered = append(usersFiltered, u)
+		uCache.Add(u.Id)
 	}
 
-	sm := syncMsg{
+	sm := &syncMsg{
 		ChannelId: channelID,
-		Users:     users,
+		Users:     usersFiltered,
 	}
-
+	return sm, nil
 }
 
 // postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
 func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]*syncMsg, error) {
-	syncMessages := make([]syncMsg, 0, len(posts))
+	syncMessages := make([]*syncMsg, 0, len(posts))
 
 	var teamID string
 	for _, p := range posts {
@@ -152,7 +157,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, c
 			continue
 		}
 
-		sm := syncMsg{
+		sm := &syncMsg{
 			ChannelId:   p.ChannelId,
 			PostId:      p.Id,
 			Post:        postSync,
@@ -281,7 +286,7 @@ func (scs *Service) shouldUserSync(user *model.User, channelID string, rc *model
 		return false, false, nil
 	}
 
-	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, channelID, rc.RemoteId)
+	scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return false, false, err
@@ -323,7 +328,7 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 				mlog.String("user_id", user.Id),
 			)
 
-			scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, channelID, rc.RemoteId)
+			scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(user.Id, channelID, rc.RemoteId)
 			if err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error fetching shared channel user while updating users LastSyncTime after profile image update",
 					mlog.String("remote_id", rc.RemoteId),

@@ -66,10 +66,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 		return
 	}
 
-	filter := model.SharedChannelUserFilter{
-		UserID: userID,
-	}
-	scusers, err := scs.server.GetStore().SharedChannel().GetUsers(filter)
+	scusers, err := scs.server.GetStore().SharedChannel().GetUser(userID)
 	if err != nil {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel users",
 			mlog.String("userID", userID),
@@ -527,7 +524,7 @@ func (scs *Service) updateNextSyncForRemote(scrId string, rc *model.RemoteCluste
 
 func (scs *Service) updateSyncUsers(userIds []string, channelID string, rc *model.RemoteCluster, lastSyncAt int64) {
 	for _, uid := range userIds {
-		scu, err := scs.server.GetStore().SharedChannel().GetUser(uid, channelID, rc.RemoteId)
+		scu, err := scs.server.GetStore().SharedChannel().GetSingleUser(uid, channelID, rc.RemoteId)
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error getting user for lastSyncAt update",
 				mlog.String("remote", rc.DisplayName),

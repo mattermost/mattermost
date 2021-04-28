@@ -7896,11 +7896,11 @@ func (s *RetryLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
+func (s *RetryLayerSharedChannelStore) GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetUser(userID, channelID, remoteID)
+		result, err := s.SharedChannelStore.GetSingleUser(userID, channelID, remoteID)
 		if err == nil {
 			return result, nil
 		}
@@ -7916,7 +7916,27 @@ func (s *RetryLayerSharedChannelStore) GetUser(userID string, channelID string, 
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.SharedChannelUser, error) {
+func (s *RetryLayerSharedChannelStore) GetUser(userID string) ([]*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUser(userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.User, error) {
 
 	tries := 0
 	for {
