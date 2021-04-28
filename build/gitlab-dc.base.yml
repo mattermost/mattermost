@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 services:
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
