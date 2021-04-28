@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -xe
 
 DOCKER_NETWORK="${CI_PIPELINE_IID}-schema-postgres"
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"

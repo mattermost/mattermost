@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -xe
 
 docker ps
 DOCKER_NETWORK="${CI_PIPELINE_IID}-schema-mysql"
