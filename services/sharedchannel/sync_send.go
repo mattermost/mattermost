@@ -374,7 +374,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		return nil
 	}
 
-	scs.sendAttachments(syncMessages, rc)
+	scs.sendAttachments(syncMessages, rc) // attachments must go before the post they are attached to.
 
 	b, err := json.Marshal(syncMessages)
 	if err != nil {
