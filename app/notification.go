@@ -196,7 +196,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					_, isRootMention = rootMentions.Mentions[userID]
 				}
 				_, incrementMentions := mentions.Mentions[userID]
+				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
+				if !incrementMentions {
+					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
+					if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					if membership != nil && !membership.Following {
+						return
+					}
+				}
 				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, !isRootMention && incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
+
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
