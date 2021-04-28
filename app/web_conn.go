@@ -317,7 +317,6 @@ func (wc *WebConn) writePump() {
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
-			// TODO: Add metrics for this. (both true and false cases)
 			wc.clearDeadQueue()
 			wc.SetConnectionID(model.NewId())
 			wc.Sequence = 0
