@@ -2289,7 +2289,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, true)
+		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, false)
 	}
 	return result, nil
 }

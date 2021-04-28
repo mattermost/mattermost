@@ -2747,7 +2747,7 @@ func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) error
 	return err
 }
 
-func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
+func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.ComplianceExport")
 	s.Root.Store.SetContext(newCtx)
@@ -2756,13 +2756,13 @@ func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Com
 	}()
 
 	defer span.Finish()
-	result, err := s.ComplianceStore.ComplianceExport(compliance)
+	result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, error) {
@@ -8804,6 +8804,24 @@ func (s *OpenTracingLayerThreadStore) GetPosts(threadID string, since int64) ([]
 
 	defer span.Finish()
 	result, err := s.ThreadStore.GetPosts(threadID, since)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadFollowers")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetThreadFollowers(threadID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

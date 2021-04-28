@@ -2525,10 +2525,10 @@ func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	return err
 }
 
-func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
+func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	start := timemodule.Now()
 
-	result, err := s.ComplianceStore.ComplianceExport(compliance)
+	result, resultVar1, err := s.ComplianceStore.ComplianceExport(compliance, cursor, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2538,7 +2538,7 @@ func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Complianc
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ComplianceStore.ComplianceExport", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerComplianceStore) Get(id string) (*model.Compliance, error) {
@@ -7938,6 +7938,22 @@ func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadFollowers(threadID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadFollowers", success, elapsed)
 	}
 	return result, err
 }
