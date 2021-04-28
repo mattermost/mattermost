@@ -76,6 +76,8 @@ test-schema-postgres:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  before_script:
+    - docker info
   script:
     - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
 
@@ -91,5 +93,7 @@ test-schema-mysql:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  before_script:
+    - docker info
   script:
     - cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
