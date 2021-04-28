@@ -75,7 +75,7 @@ func rewriteFilePaths(line *LineImportData, basePath string) {
 	}
 }
 
-func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+func (a *App) bulkImportWorker(c *Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	postLines := []LineImportWorkerData{}
 	directPostLines := []LineImportWorkerData{}
 	for line := range lines {
@@ -86,7 +86,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(postLines, dryRun); err != nil {
+				if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
 					errors <- LineImportWorkerError{err, errLine}
 				}
 				postLines = []LineImportWorkerData{}
@@ -97,40 +97,40 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(directPostLines, dryRun); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
 					errors <- LineImportWorkerError{err, errLine}
 				}
 				directPostLines = []LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(line.LineImportData, dryRun); err != nil {
+			if err := a.importLine(c, line.LineImportData, dryRun); err != nil {
 				errors <- LineImportWorkerError{err, line.LineNumber}
 			}
 		}
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(postLines, dryRun); err != nil {
+		if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
 			errors <- LineImportWorkerError{err, errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(directPostLines, dryRun); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
 			errors <- LineImportWorkerError{err, errLine}
 		}
 	}
 	wg.Done()
 }
 
-func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
-	return a.bulkImport(fileReader, dryRun, workers, "")
+func (a *App) BulkImport(c *Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+	return a.bulkImport(c, fileReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
-	return a.bulkImport(fileReader, dryRun, workers, importPath)
+func (a *App) BulkImportWithPath(c *Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	return a.bulkImport(c, fileReader, dryRun, workers, importPath)
 }
 
-func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c *Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -192,7 +192,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 			linesChan = make(chan LineImportWorkerData, workers)
 			for i := 0; i < workers; i++ {
 				wg.Add(1)
-				go a.bulkImportWorker(dryRun, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(c, dryRun, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -236,7 +236,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(c *Context, line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
@@ -247,12 +247,12 @@ func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importTeam(line.Team, dryRun)
+		return a.importTeam(c, line.Team, dryRun)
 	case line.Type == "channel":
 		if line.Channel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importChannel(line.Channel, dryRun)
+		return a.importChannel(c, line.Channel, dryRun)
 	case line.Type == "user":
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)

@@ -115,7 +115,7 @@ func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
 // command can be found, returns nil for all arguments.
-func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecutePluginCommand(c *Context, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
@@ -156,7 +156,7 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		args.AddChannelMention(channelName, channelID)
 	}
 
-	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
+	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(c), args)
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {

@@ -30,9 +30,10 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    app.AppIface
-	Server *app.Server
-	Web    *Web
+	App     app.AppIface
+	Context *app.Context
+	Server  *app.Server
+	Web     *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
@@ -108,8 +109,9 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
+	ctx := &app.Context{}
 	a := app.New(app.ServerConnector(s))
-	a.InitServer()
+	a.InitServer(ctx)
 
 	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
@@ -123,6 +125,7 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 
 	th := &TestHelper{
 		App:               a,
+		Context:           ctx,
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
@@ -135,21 +138,25 @@ func (th *TestHelper) InitPlugins() *TestHelper {
 	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
 	webappDir := filepath.Join(th.tempWorkspace, "webapp")
 
-	th.App.InitPlugins(pluginDir, webappDir)
+	th.App.InitPlugins(th.Context, pluginDir, webappDir)
 
 	return th
 }
 
+func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
+	return th.App.NewPluginAPI(th.Context, manifest)
+}
+
 func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser, _ = th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
 
-	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
+	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
 
-	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
 
-	th.App.JoinUserToTeam(team, user, "")
+	th.App.JoinUserToTeam(th.Context, team, user, "")
 
-	channel, _ := th.App.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
+	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
 
 	th.BasicUser = user
 	th.BasicChannel = channel
@@ -263,7 +270,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"

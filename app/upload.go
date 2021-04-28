@@ -21,7 +21,7 @@ import (
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 const IncompleteUploadSuffix = ".tmp"
 
-func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
+func (a *App) runPluginsHook(c *Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil
@@ -39,7 +39,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		defer close(errChan)
 		var rejErr *model.AppError
 		var once sync.Once
-		pluginContext := a.PluginContext()
+		pluginContext := a.PluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
@@ -162,7 +162,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c *Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.Srv().uploadLockMapMut.Lock()
@@ -258,7 +258,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 	}
 
 	// run plugins upload hook
-	if err := a.runPluginsHook(info, file); err != nil {
+	if err := a.runPluginsHook(c, info, file); err != nil {
 		return nil, err
 	}
 

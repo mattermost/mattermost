@@ -104,19 +104,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.Debug("Received HTTP request", responseLogFields...)
 	}()
 
-	c := &Context{}
+	c := &Context{
+		AppContext: &app.Context{},
+	}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
-	c.App.InitServer()
+	c.App.InitServer(c.AppContext) // TODO-Context: remove
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
-	c.App.SetT(t)
-	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
-	c.App.SetUserAgent(r.UserAgent())
-	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.App.SetPath(r.URL.Path)
+	c.AppContext.SetT(t)
+	c.AppContext.SetRequestId(requestID)
+	c.AppContext.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.AppContext.SetUserAgent(r.UserAgent())
+	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
+	c.AppContext.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -125,10 +127,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		carrier := opentracing.HTTPHeadersCarrier(r.Header)
 		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
 		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, c.App.Path())
-		ext.PeerAddress.Set(span, c.App.IpAddress())
-		span.SetTag("request_id", c.App.RequestId())
-		span.SetTag("user_agent", c.App.UserAgent())
+		ext.HTTPUrl.Set(span, c.AppContext.Path())
+		ext.PeerAddress.Set(span, c.AppContext.IpAddress())
+		span.SetTag("request_id", c.AppContext.RequestId())
+		span.SetTag("user_agent", c.AppContext.UserAgent())
 
 		defer func() {
 			if c.Err != nil {
@@ -138,7 +140,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			span.Finish()
 		}()
-		c.App.SetContext(ctx)
+		c.AppContext.SetContext(ctx)
 
 		tmpSrv := app.Server{}
 		tmpSrv = *c.App.Srv()
@@ -159,7 +161,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
+	w.Header().Set(model.HEADER_REQUEST_ID, c.AppContext.RequestId())
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
@@ -220,11 +222,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.App.SetSession(session)
+			c.AppContext.SetSession(session)
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.App.Session().UserId, w) {
+		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w) {
 			return
 		}
 
@@ -236,7 +238,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
-			c.App.SetSession(session)
+			c.AppContext.SetSession(session)
 		}
 	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
@@ -250,16 +252,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
 				c.Err = err
 			} else {
-				c.App.SetSession(session)
+				c.AppContext.SetSession(session)
 			}
 		}
 	}
 
 	c.Logger = c.App.Log().With(
-		mlog.String("path", c.App.Path()),
-		mlog.String("request_id", c.App.RequestId()),
-		mlog.String("ip_addr", c.App.IpAddress()),
-		mlog.String("user_id", c.App.Session().UserId),
+		mlog.String("path", c.AppContext.Path()),
+		mlog.String("request_id", c.AppContext.RequestId()),
+		mlog.String("ip_addr", c.AppContext.IpAddress()),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
 
@@ -288,7 +290,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.App.SetSession(&model.Session{Local: true})
+			c.AppContext.SetSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
@@ -300,8 +302,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.App.T)
-		c.Err.RequestId = c.App.RequestId()
+		c.Err.Translate(c.AppContext.T)
+		c.Err.RequestId = c.AppContext.RequestId()
 		c.LogErrorByCode(c.Err)
 
 		c.Err.Where = r.URL.Path
@@ -383,7 +385,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		}
 
 		if !csrfCheckPassed {
-			c.App.SetSession(&model.Session{})
+			c.AppContext.SetSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}

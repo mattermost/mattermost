@@ -31,7 +31,9 @@ type App struct {
 	// to be registered in (h *MainHelper) setupStore, but that creates
 	// a cyclic dependency as bleve tests themselves import testlib.
 	searchEngine *searchengine.Broker
+}
 
+type Context struct {
 	t              i18n.TranslateFunc
 	session        model.Session
 	requestId      string
@@ -53,13 +55,13 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) InitServer() {
+func (a *App) InitServer(c *Context) {
 	a.srv.AppInitializedOnce.Do(func() {
 		a.initEnterprise()
 
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-				if appErr := a.DeactivateGuests(); appErr != nil {
+				if appErr := a.DeactivateGuests(c); appErr != nil {
 					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 				}
 			}
@@ -67,7 +69,7 @@ func (a *App) InitServer() {
 
 		// Disable active guest accounts on first run if guest accounts are disabled
 		if !*a.Config().GuestAccountsSettings.Enable {
-			if appErr := a.DeactivateGuests(); appErr != nil {
+			if appErr := a.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -83,10 +85,10 @@ func (a *App) InitServer() {
 
 		a.InitPostMetadata()
 
-		a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+		a.InitPlugins(c, *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
 			if *cfg.PluginSettings.Enable {
-				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+				a.InitPlugins(c, *cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 			} else {
 				a.srv.ShutDownPlugins()
 			}
@@ -337,7 +339,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 }
 
 //nolint:golint,unused,deadcode
-func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
+func (a *App) notifyAdminsOfWarnMetricStatus(c *Context, warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -383,7 +385,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
 		bot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, bot.UserId, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -447,7 +449,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
-		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(c, botPost, c.Session().Id, true); err != nil {
 			return err
 		}
 	}
@@ -550,12 +552,12 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 	return nil
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+func (a *App) RequestLicenseAndAckWarnMetric(c *Context, warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	currentUser, appErr := a.GetUser(a.Session().UserId)
+	currentUser, appErr := a.GetUser(c.Session().UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -605,26 +607,26 @@ func (a *App) Log() *mlog.Logger {
 func (a *App) NotificationsLog() *mlog.Logger {
 	return a.srv.NotificationsLog
 }
-func (a *App) T(translationID string, args ...interface{}) string {
-	return a.t(translationID, args...)
+func (c *Context) T(translationID string, args ...interface{}) string {
+	return c.t(translationID, args...)
 }
-func (a *App) Session() *model.Session {
-	return &a.session
+func (c *Context) Session() *model.Session {
+	return &c.session
 }
-func (a *App) RequestId() string {
-	return a.requestId
+func (c *Context) RequestId() string {
+	return c.requestId
 }
-func (a *App) IpAddress() string {
-	return a.ipAddress
+func (c *Context) IpAddress() string {
+	return c.ipAddress
 }
-func (a *App) Path() string {
-	return a.path
+func (c *Context) Path() string {
+	return c.path
 }
-func (a *App) UserAgent() string {
-	return a.userAgent
+func (c *Context) UserAgent() string {
+	return c.userAgent
 }
-func (a *App) AcceptLanguage() string {
-	return a.acceptLanguage
+func (c *Context) AcceptLanguage() string {
+	return c.acceptLanguage
 }
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
@@ -668,40 +670,40 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.srv.timezones
 }
-func (a *App) Context() context.Context {
-	return a.context
+func (c *Context) Context() context.Context {
+	return c.context
 }
 
-func (a *App) SetSession(s *model.Session) {
-	a.session = *s
+func (c *Context) SetSession(s *model.Session) {
+	c.session = *s
 }
 
-func (a *App) SetT(t i18n.TranslateFunc) {
-	a.t = t
+func (c *Context) SetT(t i18n.TranslateFunc) {
+	c.t = t
 }
-func (a *App) SetRequestId(s string) {
-	a.requestId = s
+func (c *Context) SetRequestId(s string) {
+	c.requestId = s
 }
-func (a *App) SetIpAddress(s string) {
-	a.ipAddress = s
+func (c *Context) SetIpAddress(s string) {
+	c.ipAddress = s
 }
-func (a *App) SetUserAgent(s string) {
-	a.userAgent = s
+func (c *Context) SetUserAgent(s string) {
+	c.userAgent = s
 }
-func (a *App) SetAcceptLanguage(s string) {
-	a.acceptLanguage = s
+func (c *Context) SetAcceptLanguage(s string) {
+	c.acceptLanguage = s
 }
-func (a *App) SetPath(s string) {
-	a.path = s
+func (c *Context) SetPath(s string) {
+	c.path = s
 }
-func (a *App) SetContext(c context.Context) {
-	a.context = c
+func (c *Context) SetContext(ctx context.Context) {
+	c.context = ctx
 }
 func (a *App) SetServer(srv *Server) {
 	a.srv = srv
 }
-func (a *App) GetT() i18n.TranslateFunc {
-	return a.t
+func (c *Context) GetT() i18n.TranslateFunc {
+	return c.t
 }
 
 func (a *App) DBHealthCheckWrite() error {

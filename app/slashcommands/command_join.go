@@ -36,7 +36,7 @@ func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*JoinProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channelName := strings.ToLower(message)
 
 	if strings.HasPrefix(message, "~") {
@@ -65,7 +65,7 @@ func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if appErr := a.JoinChannel(channel, args.UserId); appErr != nil {
+	if appErr := a.JoinChannel(c, channel, args.UserId); appErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

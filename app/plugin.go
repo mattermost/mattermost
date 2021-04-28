@@ -160,11 +160,11 @@ func (a *App) SyncPluginsActiveState() {
 	}
 }
 
-func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
-	return NewPluginAPI(a, manifest)
+func (a *App) NewPluginAPI(c *Context, manifest *model.Manifest) plugin.API {
+	return NewPluginAPI(a, c, manifest)
 }
 
-func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
+func (a *App) InitPlugins(c *Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	a.Srv().PluginsLock.RLock()
 	pluginsEnvironment := a.Srv().PluginsEnvironment
@@ -186,7 +186,11 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 
-	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log(), a.Metrics())
+	newApiFunc := func(manifest *model.Manifest) plugin.API {
+		return a.NewPluginAPI(c, manifest)
+	}
+
+	env, err := plugin.NewEnvironment(newApiFunc, pluginDir, webappPluginDir, a.Log(), a.Metrics())
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return

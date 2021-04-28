@@ -40,7 +40,7 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CustomStatusProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}

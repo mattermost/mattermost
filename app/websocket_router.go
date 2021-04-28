@@ -25,7 +25,7 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
-	wr.app.InitServer()
+	wr.app.InitServer(conn.Context)
 
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)

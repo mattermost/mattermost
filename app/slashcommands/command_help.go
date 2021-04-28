@@ -33,7 +33,7 @@ func (h *HelpProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (h *HelpProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *HelpProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {

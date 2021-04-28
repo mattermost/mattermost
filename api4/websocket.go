@@ -36,7 +36,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := c.App.NewWebConn(ws, *c.App.Session(), c.App.T, "")
+	wc := c.App.NewWebConn(ws, c.AppContext, "")
 
 	if *c.App.Config().ServiceSettings.EnableReliableWebSockets {
 		connID := r.URL.Query().Get(connectionIDParam)
@@ -83,7 +83,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		wc.SetConnectionID(connID)
 	}
 
-	if c.App.Session().UserId != "" {
+	if c.AppContext.Session().UserId != "" {
 		c.App.HubRegister(wc)
 	}
 

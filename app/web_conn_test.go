@@ -110,7 +110,11 @@ func TestWebConnDeadQueue(t *testing.T) {
 		Id: model.NewId(),
 	}
 
-	wc := th.App.NewWebConn(&websocket.Conn{}, session, nil, "")
+	ctx := &Context{
+		session: session,
+	}
+
+	wc := th.App.NewWebConn(&websocket.Conn{}, ctx, "")
 
 	for i := 0; i < 2; i++ {
 		msg := &model.WebSocketEvent{}

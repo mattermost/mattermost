@@ -20,7 +20,7 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool)
 		panic(err)
 	}
 
-	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+	a.InitPlugins(&app.Context{}, *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 	a.DoAppMigrations()
 
 	return a, nil
@@ -53,7 +53,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()
 	}
-	a.InitServer()
+	a.InitServer(&app.Context{}) //TODO-Context: remove this
 
 	return a, nil
 }

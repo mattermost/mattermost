@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (a *App) SaveReactionForPost(c *Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := a.PluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenAdded(pluginContext, reaction)
 				return true
@@ -105,7 +105,7 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+func (a *App) DeleteReactionForPost(c *Context, reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := a.PluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
 				return true

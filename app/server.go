@@ -50,7 +50,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -858,16 +857,19 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
-	if err != nil {
-		return err
-	}
-
-	if err = s.sharedChannelService.Start(); err != nil {
-		s.remoteClusterService = nil
-		return err
-	}
 	return nil
+
+	//TODO-Context: fix
+	// s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if err = s.sharedChannelService.Start(); err != nil {
+	// 	s.remoteClusterService = nil
+	// 	return err
+	// }
+	// return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -1415,10 +1417,10 @@ func doReportUsageToAWSMeteringService(s *Server) {
 }
 
 //nolint:golint,unused,deadcode
-func runCheckWarnMetricStatusJob(a *App) {
-	doCheckWarnMetricStatus(a)
+func runCheckWarnMetricStatusJob(a *App, c *Context) {
+	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
-		doCheckWarnMetricStatus(a)
+		doCheckWarnMetricStatus(a, c)
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
@@ -1443,7 +1445,7 @@ func doSessionCleanup(s *Server) {
 }
 
 //nolint:golint,unused,deadcode
-func doCheckWarnMetricStatus(a *App) {
+func doCheckWarnMetricStatus(a *App, c *Context) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1574,7 +1576,7 @@ func doCheckWarnMetricStatus(a *App) {
 			}
 		}
 
-		if nerr := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); nerr != nil {
+		if nerr := a.notifyAdminsOfWarnMetricStatus(c, warnMetric.Id, isE0Edition); nerr != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 

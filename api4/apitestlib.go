@@ -40,6 +40,7 @@ type TestHelper struct {
 	Server      *app.Server
 	ConfigStore *config.Store
 
+	Context              *app.Context
 	Client               *model.Client4
 	BasicUser            *model.User
 	BasicUser2           *model.User
@@ -126,6 +127,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
+		Context:           &app.Context{},
 	}
 
 	if searchEngine != nil {
@@ -188,7 +190,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.tempWorkspace = tempWorkspace
 	}
 
-	th.App.InitServer()
+	th.App.InitServer(th.Context) //TODO-Context: check
 
 	return th
 }
@@ -526,7 +528,7 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 		EmailVerified: true,
 		AuthService:   authService,
 	}
-	user, err := th.App.CreateUser(user)
+	user, err := th.App.CreateUser(th.Context, user)
 	if err != nil {
 		panic(err)
 	}
@@ -695,7 +697,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
+	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -770,7 +772,7 @@ func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 	utils.DisableDebugLogForTest()
 
-	_, err := th.App.UpdateActive(user, active)
+	_, err := th.App.UpdateActive(th.Context, user, active)
 	if err != nil {
 		panic(err)
 	}
@@ -781,7 +783,7 @@ func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	_, err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
 	}

@@ -422,7 +422,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
@@ -452,8 +453,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App:    th.App,
-			Logger: th.App.Log(),
+			App:        th.App,
+			Logger:     th.App.Log(),
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -501,8 +503,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App:    th.App,
-			Logger: th.App.Log(),
+			App:        th.App,
+			Logger:     th.App.Log(),
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -532,7 +535,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		session := &model.Session{
@@ -561,7 +565,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodGet, "", nil)
 		session := &model.Session{
@@ -590,7 +595,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationHeader
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		session := &model.Session{
@@ -619,7 +625,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
@@ -644,7 +651,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)

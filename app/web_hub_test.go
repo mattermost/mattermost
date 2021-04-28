@@ -42,11 +42,16 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 	})
 	require.Nil(t, appErr)
 
+	ctx := &Context{
+		session: *session,
+		t:       i18n.IdentityTfunc(),
+	}
+
 	d := websocket.Dialer{}
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
+	wc := a.NewWebConn(c, ctx, "en")
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc

@@ -373,7 +373,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		}
 
 		var importErr *model.AppError
-		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
+		importErr, lineNumber := a.BulkImport(&app.Context{}, bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}

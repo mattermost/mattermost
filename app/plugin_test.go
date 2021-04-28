@@ -691,6 +691,7 @@ func TestPluginPanicLogs(t *testing.T) {
 	t.Run("should panic", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 		package main
@@ -713,7 +714,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 		`,
-		}, th.App, th.App.NewPluginAPI)
+		}, th.App, th.NewPluginAPI)
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -721,7 +722,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
 		// We shutdown plugins first so that the read on the log buffer is race-free.
 		th.App.Srv().ShutDownPlugins()

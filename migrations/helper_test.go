@@ -15,6 +15,7 @@ import (
 
 type TestHelper struct {
 	App          *app.App
+	Context      *app.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -52,8 +53,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:    app.New(app.ServerConnector(s)),
-		Server: s,
+		App:     app.New(app.ServerConnector(s)),
+		Context: &app.Context{},
+		Server:  s,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -122,7 +124,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = th.App.CreateTeam(team); err != nil {
+	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -142,7 +144,7 @@ func (th *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = th.App.CreateUser(user); err != nil {
+	if user, err = th.App.CreateUser(th.Context, user); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -166,7 +168,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
+	if channel, err = th.App.CreateChannel(th.Context, channel, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -177,7 +179,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
+	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -196,7 +198,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -206,7 +208,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	_, err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
 		panic(err)
 	}

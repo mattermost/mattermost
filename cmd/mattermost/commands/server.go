@@ -116,7 +116,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	// server. This initialization is added so that cluster handlers are registered
 	// and job schedulers are initialized.
 	fakeApp := app.New(app.ServerConnector(server))
-	fakeApp.InitServer()
+	fakeApp.InitServer(&app.Context{}) // TODO-Context: remove this
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

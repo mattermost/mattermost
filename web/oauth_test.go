@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -530,14 +531,15 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := &Context{
-		App: th.App,
+		App:        th.App,
+		AppContext: &app.Context{},
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
 	translationFunc := i18n.GetUserTranslations("en")
-	c.App.SetT(translationFunc)
+	c.AppContext.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })

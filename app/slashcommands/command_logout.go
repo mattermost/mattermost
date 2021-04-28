@@ -34,7 +34,7 @@ func (*LogoutProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*LogoutProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LogoutProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	// Actual logout is handled client side.
 	return &model.CommandResponse{GotoLocation: "/login"}
 }

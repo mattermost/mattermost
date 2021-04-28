@@ -38,6 +38,7 @@ const (
 type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
+	Context          *Context
 	WebSocket        *websocket.Conn
 	T                i18n.TranslateFunc
 	Locale           string
@@ -63,11 +64,11 @@ type WebConn struct {
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
-	if session.UserId != "" {
+func (a *App) NewWebConn(ws *websocket.Conn, c *Context, locale string) *WebConn {
+	if c.session.UserId != "" {
 		a.Srv().Go(func() {
-			a.SetStatusOnline(session.UserId, false)
-			a.UpdateLastActivityAtIfNeeded(session)
+			a.SetStatusOnline(c.session.UserId, false)
+			a.UpdateLastActivityAtIfNeeded(c.session)
 		})
 	}
 
@@ -84,11 +85,12 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 
 	wc := &WebConn{
 		App:                a,
+		Context:            c,
 		send:               make(chan model.WebSocketMessage, sendQueueSize),
 		WebSocket:          ws,
 		lastUserActivityAt: model.GetMillis(),
-		UserId:             session.UserId,
-		T:                  t,
+		UserId:             c.session.UserId,
+		T:                  c.t,
 		Locale:             locale,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -98,9 +100,9 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 		wc.deadQueue = make([]model.WebSocketMessage, deadQueueSize)
 	}
 
-	wc.SetSession(&session)
-	wc.SetSessionToken(session.Token)
-	wc.SetSessionExpiresAt(session.ExpiresAt)
+	wc.SetSession(&c.session)
+	wc.SetSessionToken(c.session.Token)
+	wc.SetSessionExpiresAt(c.session.ExpiresAt)
 
 	return wc
 }
