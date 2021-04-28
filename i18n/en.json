@@ -2755,6 +2755,14 @@
     "translation": "Getting Trial"
   },
   {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Set Your Support Email Address"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
