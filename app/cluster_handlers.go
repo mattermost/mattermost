@@ -48,13 +48,13 @@ func (a *App) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
-			mlog.String("PluginID", pluginID), mlog.String("EventID", eventID))
+			mlog.String("plugin_id", pluginID), mlog.String("event_id", eventID))
 		return
 	}
 
 	hooks, err := env.HooksForPlugin(pluginID)
 	if err != nil {
-		mlog.Warn("Getting hooks for plugin failed", mlog.String("pluginID", pluginID), mlog.Err(err))
+		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return
 	}
 
