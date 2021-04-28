@@ -1068,6 +1068,10 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 
 	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
+	// timed dnd status support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+
 	//saveSchemaVersion(sqlStore, Version5360)
 	//}
 }
