@@ -1,6 +1,7 @@
 #!/bin/bash
 set -xe
 
+echo $DOCKER_HOST
 docker ps
 DOCKER_NETWORK="${CI_PIPELINE_IID}-schema-mysql"
 DOCKER_COMPOSE_FILE="gitlab-dc.mysql.yml"

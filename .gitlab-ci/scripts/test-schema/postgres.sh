@@ -1,6 +1,7 @@
 #!/bin/bash
 set -xe
 
+echo $DOCKER_HOST
 DOCKER_NETWORK="${CI_PIPELINE_IID}-schema-postgres"
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
 docker network create ${DOCKER_NETWORK}
