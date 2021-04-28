@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "That channel header is too long. It can be at most {{.MaxLength}} characters long."
+    "translation": "The text entered exceeds the character limit. The channel header is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "That channel purpose is too long. It can be at most {{.MaxLength}} characters long."
+    "translation": "The text entered exceeds the character limit. The channel purpose is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
