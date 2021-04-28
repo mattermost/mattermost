@@ -99,23 +99,20 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	if usedPlatform {
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
+	server.FinalizeInit(&app.Context{}) // TODO-Context: remove this
 
-	api := api4.Init(server, server.AppOptions, server.Router)
+	a := app.New(app.ServerConnector(server))
+	api := api4.Init(server, a, server.Router)
+
 	wsapi.Init(server)
-	web.New(server, server.AppOptions, server.Router)
-	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
+	web.New(server, a, server.Router)
+	api4.InitLocal(server, a, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
-
-	// TODO: remove this and handle all required initialization while creating
-	// the server. In theory, we shouldn't depend on App to have a fully-featured
-	// server. This initialization is added so that cluster handlers are registered
-	// and job schedulers are initialized.
-	server.FinalizeInit(&app.Context{}) // TODO-Context: remove this
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

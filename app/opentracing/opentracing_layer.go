@@ -11943,7 +11943,7 @@ func (a *OpenTracingAppLayer) PluginContext(c *app.Context) *plugin.Context {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PopulateWebConnConfig(c *app.Context, cfg *app.WebConnConfig, seqVal string) (*app.WebConnConfig, error) {
+func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *app.WebConnConfig, seqVal string) (*app.WebConnConfig, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")
 
@@ -11955,7 +11955,7 @@ func (a *OpenTracingAppLayer) PopulateWebConnConfig(c *app.Context, cfg *app.Web
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PopulateWebConnConfig(c, cfg, seqVal)
+	resultVar0, resultVar1 := a.app.PopulateWebConnConfig(s, cfg, seqVal)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

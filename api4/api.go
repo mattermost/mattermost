@@ -136,16 +136,16 @@ type Routes struct {
 }
 
 type API struct {
-	ConfigService       configservice.ConfigService
-	GetGlobalAppOptions app.AppOptionCreator
-	BaseRoutes          *Routes
+	ConfigService configservice.ConfigService
+	app           app.AppIface
+	BaseRoutes    *Routes
 }
 
-func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func Init(configservice configservice.ConfigService, a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		ConfigService: configservice,
+		app:           a,
+		BaseRoutes:    &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -301,11 +301,11 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	return api
 }
 
-func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func InitLocal(configservice configservice.ConfigService, a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		ConfigService: configservice,
+		app:           a,
+		BaseRoutes:    &Routes{},
 	}
 
 	api.BaseRoutes.Root = root

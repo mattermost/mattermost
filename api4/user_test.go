@@ -22,6 +22,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+
+	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -366,6 +368,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
+
 		guestPassword := "Pa$$word11"
 		guest := &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",

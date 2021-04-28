@@ -54,7 +54,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 			cfg.ConnectionID = model.NewId()
 			// In case of fresh connection id, sequence number is already zero.
 		} else {
-			cfg, err = c.App.PopulateWebConnConfig(c.AppContext, cfg, r.URL.Query().Get(sequenceNumberParam))
+			cfg, err = c.App.PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
 			if err != nil {
 				mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 				ws.Close()

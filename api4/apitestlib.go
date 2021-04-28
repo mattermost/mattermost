@@ -130,7 +130,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Context:           &app.Context{},
 	}
 
-	if searchEngine != nil {
+	if searchEngine != nil && (searchEngine.BleveEngine != nil || searchEngine.ElasticsearchEngine != nil) {
 		th.App.SetSearchEngine(searchEngine)
 	}
 
@@ -159,9 +159,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
-	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
-	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	Init(th.Server, th.App, th.App.Srv().Router)
+	InitLocal(th.Server, th.App, th.App.Srv().LocalRouter)
+	web.New(th.Server, th.App, th.App.Srv().Router)
 	wsapi.Init(th.App.Srv())
 
 	if enterprise {

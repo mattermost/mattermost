@@ -19,18 +19,18 @@ import (
 )
 
 type Web struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	ConfigService       configservice.ConfigService
-	MainRouter          *mux.Router
+	app           app.AppIface
+	ConfigService configservice.ConfigService
+	MainRouter    *mux.Router
 }
 
-func New(config configservice.ConfigService, globalOptions app.AppOptionCreator, root *mux.Router) *Web {
+func New(config configservice.ConfigService, a app.AppIface, root *mux.Router) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
-		GetGlobalAppOptions: globalOptions,
-		ConfigService:       config,
-		MainRouter:          root,
+		app:           a,
+		ConfigService: config,
+		MainRouter:    root,
 	}
 
 	web.InitOAuth()

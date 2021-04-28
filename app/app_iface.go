@@ -262,7 +262,7 @@ type AppIface interface {
 	PermanentDeleteBot(botUserId string) *model.AppError
 	// PopulateWebConnConfig checks if the connection id already exists in the hub,
 	// and if so, accordingly populates the other fields of the webconn.
-	PopulateWebConnConfig(c *Context, cfg *WebConnConfig, seqVal string) (*WebConnConfig, error)
+	PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal string) (*WebConnConfig, error)
 	// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c *Context, user *model.User, requestorId string) *model.AppError
