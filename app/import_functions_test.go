@@ -3936,6 +3936,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	}, false)
 	user3, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.NotNil(t, user3)
 
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
