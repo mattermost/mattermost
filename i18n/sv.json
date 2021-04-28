@@ -3488,10 +3488,6 @@
     "translation": "System Console är read-only när High Availability är aktiverad, om inte ReadOnlyConfig ar avaktiverad i konfigurationsfilen."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Ett fel uppstod vid anslutning till servern."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Fel uppstod när JSON-anrop rangerades"
   },
@@ -9027,10 +9023,6 @@
     "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Antalet förfrågningar om replikfördröjning är fler än antal repliker som konfigurerats. Måste vara mindre än eller lika med antalet repliker."
-  },
-  {
     "id": "model.channel.is_valid.description.app_error",
     "translation": "Ogiltig beskrivning."
   },
@@ -9220,7 +9212,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost Cloud Professional avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9241,5 +9233,37 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Kunde inte återställa AuthData-fältet till mejl."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policyn är felaktig."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Ett fel uppstod när den begärda åtgärden skulle utföras."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kunde inte skicka automatisk svar från användaren."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Misslyckades att skicka mejl om att testperioden avslutas"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Din kostnadsfria testperiod av Mattermost tar slut idag"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Professional tar slut idag {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Din testperiod av Mattermost Cloud är slut"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Börja din prenumeration"
   }
 ]

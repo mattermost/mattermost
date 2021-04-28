@@ -7942,6 +7942,22 @@ func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadFollowers(threadID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadFollowers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
 	start := timemodule.Now()
 

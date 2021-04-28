@@ -9588,6 +9588,26 @@ func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 
 }
 
+func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadFollowers(threadID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
