@@ -107,7 +107,6 @@ func postSliceColumns() []string {
 }
 
 func postSliceCoalesceQuery() string {
-	// TODO: calculate this once in an init() function?
 	colInfos := postSliceColumnsWithTypes()
 	cols := make([]string, len(colInfos))
 	for i, colInfo := range colInfos {
