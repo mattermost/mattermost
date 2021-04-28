@@ -4,9 +4,10 @@
 package sqlstore
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 
