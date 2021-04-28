@@ -6862,10 +6862,6 @@
     "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "サーバーに接続中にエラーになりました。"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },
@@ -8648,10 +8644,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "フィールドをJSONにエンコードできませんでした"
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "レプリカ遅延クエリの数が設定されたレプリカ数を超えています。レプリカ数以下でなければなりません。"
   },
   {
     "id": "model.channel.is_valid.description.app_error",
