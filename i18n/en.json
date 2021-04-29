@@ -6951,6 +6951,10 @@
     "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.context.cast.app_error",
+    "translation": "App context type casting error."
+  },
+  {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
     "translation": "Failed to purge records."
   },

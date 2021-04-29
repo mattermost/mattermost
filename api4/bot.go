@@ -92,7 +92,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("bot_id", botUserId)
 
-	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil { //TODO-Context: refactor
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -203,7 +203,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.AddMeta("bot_id", botUserId)
 	auditRec.AddMeta("enable", active)
 
-	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil { //TODO-Context: refactor
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -234,7 +234,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddMeta("bot_id", botUserId)
 	auditRec.AddMeta("assign_user_id", userId)
 
-	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil { //TODO-Context: refactor
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -312,7 +312,7 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("bot_id", botUserId)
 
-	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil { // TODO-Context: refactor
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -364,7 +364,7 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("bot_id", botUserId)
 
-	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil { //TODO-Context: refactor
+	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}

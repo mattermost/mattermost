@@ -99,7 +99,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	if usedPlatform {
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
-	server.FinalizeInit(&app.Context{}) // TODO-Context: remove this
+	server.FinalizeInit(&app.Context{})
 
 	a := app.New(app.ServerConnector(server))
 	api := api4.Init(server, a, server.Router)

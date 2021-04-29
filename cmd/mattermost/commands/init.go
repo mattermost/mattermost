@@ -53,7 +53,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()
 	}
-	s.FinalizeInit(&app.Context{}) //TODO-Context: remove this
+	s.FinalizeInit(&app.Context{})
 
 	return a, nil
 }

@@ -123,7 +123,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	ctx := &app.Context{}
-	s.FinalizeInit(ctx) //TODO-Context: check
+	s.FinalizeInit(ctx)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),

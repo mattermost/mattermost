@@ -93,7 +93,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := c.App.CreateTeamWithUser(c.AppContext, team, c.AppContext.Session().UserId) //TODO-Context: refactor
+	rteam, err := c.App.CreateTeamWithUser(c.AppContext, team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -658,14 +658,14 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.AddMeta("invite_id", inviteId)
 
 	if tokenId != "" {
-		member, err = c.App.AddTeamMemberByToken(c.AppContext, c.AppContext.Session().UserId, tokenId) //TODO-Context: refactor
+		member, err = c.App.AddTeamMemberByToken(c.AppContext, c.AppContext.Session().UserId, tokenId)
 	} else if inviteId != "" {
 		if c.AppContext.Session().Props[model.SESSION_PROP_IS_GUEST] == "true" {
 			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
-		member, err = c.App.AddTeamMemberByInviteId(c.AppContext, inviteId, c.AppContext.Session().UserId) //TODO-Context: refactor
+		member, err = c.App.AddTeamMemberByInviteId(c.AppContext, inviteId, c.AppContext.Session().UserId)
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -758,7 +758,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	membersWithErrors, err := c.App.AddTeamMembers(c.AppContext, c.Params.TeamId, userIds, c.AppContext.Session().UserId, graceful) //TODO-Context: refactor
+	membersWithErrors, err := c.App.AddTeamMembers(c.AppContext, c.Params.TeamId, userIds, c.AppContext.Session().UserId, graceful)
 
 	if membersWithErrors != nil {
 		errList := make([]string, 0, len(membersWithErrors))
@@ -822,7 +822,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.RemoveUserFromTeam(c.AppContext, c.Params.TeamId, c.Params.UserId, c.AppContext.Session().UserId); err != nil { //TODO-Context: refactor
+	if err := c.App.RemoveUserFromTeam(c.AppContext, c.Params.TeamId, c.Params.UserId, c.AppContext.Session().UserId); err != nil {
 		c.Err = err
 		return
 	}

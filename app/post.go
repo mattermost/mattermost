@@ -281,7 +281,7 @@ func (a *App) CreatePost(c *Context, post *model.Post, channel *model.Channel, t
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := a.PluginContext(c)
+		pluginContext := c.pluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -326,7 +326,7 @@ func (a *App) CreatePost(c *Context, post *model.Post, channel *model.Channel, t
 	rPostCopy := rpost.Clone()
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext(c)
+			pluginContext := c.pluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
@@ -615,7 +615,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := a.PluginContext(c)
+		pluginContext := c.pluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -638,7 +638,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext(c)
+			pluginContext := c.pluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true

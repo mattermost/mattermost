@@ -39,7 +39,7 @@ func (a *App) runPluginsHook(c *Context, info *model.FileInfo, file io.Reader) *
 		defer close(errChan)
 		var rejErr *model.AppError
 		var once sync.Once
-		pluginContext := a.PluginContext(c)
+		pluginContext := c.pluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}

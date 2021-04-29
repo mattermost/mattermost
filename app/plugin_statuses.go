@@ -106,7 +106,3 @@ func (s *Server) notifyPluginStatusesChanged() error {
 
 	return nil
 }
-
-func (a *App) notifyPluginStatusesChanged() error {
-	return a.Srv().notifyPluginStatusesChanged()
-}

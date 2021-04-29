@@ -160,7 +160,7 @@ func (a *App) tryExecutePluginCommand(c *Context, args *model.CommandArgs) (*mod
 		args.AddChannelMention(channelName, channelID)
 	}
 
-	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(c), args)
+	response, appErr := pluginHooks.ExecuteCommand(c.pluginContext(), args)
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {

@@ -11176,7 +11176,7 @@ func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MakePermissionError(c *app.Context, permissions []*model.Permission) *model.AppError {
+func (a *OpenTracingAppLayer) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakePermissionError")
 
@@ -11188,7 +11188,7 @@ func (a *OpenTracingAppLayer) MakePermissionError(c *app.Context, permissions []
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MakePermissionError(c, permissions)
+	resultVar0 := a.app.MakePermissionError(s, permissions)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11922,23 +11922,6 @@ func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamID string) []*model.Comm
 
 	defer span.Finish()
 	resultVar0 := a.app.PluginCommandsForTeam(teamID)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) PluginContext(c *app.Context) *plugin.Context {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginContext")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.PluginContext(c)
 
 	return resultVar0
 }
@@ -14415,7 +14398,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToCreateJob(session model.Sess
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(c *app.Context, session model.Session, botUserId string) *model.AppError {
+func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageBot")
 
@@ -14427,7 +14410,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(c *app.Context, se
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToManageBot(c, session, botUserId)
+	resultVar0 := a.app.SessionHasPermissionToManageBot(session, botUserId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14488,7 +14471,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(c *app.Context, session model.Session, userID string) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToUserOrBot")
 
@@ -14500,7 +14483,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(c *app.Context, se
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToUserOrBot(c, session, userID)
+	resultVar0 := a.app.SessionHasPermissionToUserOrBot(session, userID)
 
 	return resultVar0
 }

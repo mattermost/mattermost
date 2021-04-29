@@ -12,13 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-func (a *App) MakePermissionError(c *Context, permissions []*model.Permission) *model.AppError {
+func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
 	permissionsStr := "permission="
 	for _, permission := range permissions {
 		permissionsStr += permission.Id
 		permissionsStr += ","
 	}
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session().UserId+", "+permissionsStr, http.StatusForbidden)
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -132,7 +132,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToUserOrBot(c *Context, session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
 	if session.IsUnrestricted() {
 		return true
 	}
@@ -140,7 +140,7 @@ func (a *App) SessionHasPermissionToUserOrBot(c *Context, session model.Session,
 		return true
 	}
 
-	if err := a.SessionHasPermissionToManageBot(c, session, userID); err == nil {
+	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
 		return true
 	}
 
@@ -247,7 +247,7 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
-func (a *App) SessionHasPermissionToManageBot(c *Context, session model.Session, botUserId string) *model.AppError {
+func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
 	existingBot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err
@@ -263,7 +263,7 @@ func (a *App) SessionHasPermissionToManageBot(c *Context, session model.Session,
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(c, []*model.Permission{model.PERMISSION_MANAGE_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_BOTS})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
@@ -272,7 +272,7 @@ func (a *App) SessionHasPermissionToManageBot(c *Context, session model.Session,
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(c, []*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
+			return a.MakePermissionError(&session, []*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
 		}
 	}
 

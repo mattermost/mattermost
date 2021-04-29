@@ -49,7 +49,7 @@ func (i *ImportProcessInterfaceImpl) MakeWorker() model.Worker {
 		jobsChan:    make(chan model.Job),
 		jobServer:   i.app.Srv().Jobs,
 		app:         i.app,
-		appContext:  &app.Context{}, //TODO-Context: check the requirements
+		appContext:  &app.Context{},
 	}
 }
 

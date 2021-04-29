@@ -529,11 +529,6 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 }
 
 // getPrepackagedPlugin returns a pre-packaged plugin.
-func (a *App) getPrepackagedPlugin(pluginID, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
-	return a.Srv().getPrepackagedPlugin(pluginID, version)
-}
-
-// getPrepackagedPlugin returns a pre-packaged plugin.
 func (s *Server) getPrepackagedPlugin(pluginID, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
 	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -551,10 +546,6 @@ func (s *Server) getPrepackagedPlugin(pluginID, version string) (*plugin.Prepack
 }
 
 // getRemoteMarketplacePlugin returns plugin from marketplace-server.
-func (a *App) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
-	return a.Srv().getRemoteMarketplacePlugin(pluginID, version)
-}
-
 func (s *Server) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
 		*s.Config().PluginSettings.MarketplaceUrl,
@@ -770,10 +761,6 @@ func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
 // it will notify all connected websocket clients (across all peers) to trigger the (re-)installation.
 // There is a small chance that this never occurs, because the last server to finish installing dies before it can announce.
 // There is also a chance that multiple servers notify, but the webapp handles this idempotently.
-func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
-	return a.Srv().notifyPluginEnabled(manifest)
-}
-
 func (s *Server) notifyPluginEnabled(manifest *model.Manifest) error {
 	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -818,10 +805,6 @@ func (s *Server) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
-func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
-	return a.Srv().getPluginsFromFolder()
-}
-
 func (s *Server) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
 	fileStorePaths, appErr := s.listDirectory(fileStorePluginFolder)
 	if appErr != nil {
@@ -829,10 +812,6 @@ func (s *Server) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model
 	}
 
 	return s.getPluginsFromFilePaths(fileStorePaths), nil
-}
-
-func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
-	return a.Srv().getPluginsFromFilePaths(fileStorePaths)
 }
 
 func (s *Server) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
@@ -959,10 +938,6 @@ func (s *Server) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plu
 }
 
 // installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
-func (a *App) installFeatureFlagPlugins() {
-	a.Srv().installFeatureFlagPlugins()
-}
-
 func (s *Server) installFeatureFlagPlugins() {
 	ffControledPlugins := s.Config().FeatureFlags.Plugins()
 

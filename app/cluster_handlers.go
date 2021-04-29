@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -41,15 +42,10 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	a := New(ServerConnector(s))
-	hooks.OnPluginClusterEvent(a.PluginContext(&Context{}), model.PluginClusterEvent{
+	hooks.OnPluginClusterEvent(&plugin.Context{}, model.PluginClusterEvent{
 		Id:   eventID,
 		Data: []byte(msg.Data),
 	})
-}
-
-func (a *App) clusterRemovePluginHandler(msg *model.ClusterMessage) {
-	a.RemovePluginFromData(model.PluginEventDataFromJson(strings.NewReader(msg.Data)))
 }
 
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.

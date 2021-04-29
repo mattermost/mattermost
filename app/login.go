@@ -157,7 +157,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 func (a *App) DoLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := a.PluginContext(c)
+		pluginContext := c.pluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
 			return rejectionReason == ""
@@ -226,7 +226,7 @@ func (a *App) DoLogin(c *Context, w http.ResponseWriter, r *http.Request, user *
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext(c)
+			pluginContext := c.pluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)
 				return true

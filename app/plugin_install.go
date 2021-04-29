@@ -320,10 +320,6 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	return manifest, extractDir, nil
 }
 
-func (a *App) installExtractedPlugin(manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	return a.Srv().installExtractedPlugin(manifest, fromPluginDir, installationStrategy)
-}
-
 func (s *Server) installExtractedPlugin(manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -499,10 +495,6 @@ func (s *Server) removePluginLocally(id string) *model.AppError {
 	}
 
 	return nil
-}
-
-func (a *App) removeSignature(pluginID string) *model.AppError {
-	return a.Srv().removeSignature(pluginID)
 }
 
 func (s *Server) removeSignature(pluginID string) *model.AppError {

@@ -54,7 +54,7 @@ func (a *App) SaveReactionForPost(c *Context, reaction *model.Reaction) (*model.
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext(c)
+			pluginContext := c.pluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenAdded(pluginContext, reaction)
 				return true
@@ -140,7 +140,7 @@ func (a *App) DeleteReactionForPost(c *Context, reaction *model.Reaction) *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext(c)
+			pluginContext := c.pluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
 				return true

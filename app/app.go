@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -584,6 +585,18 @@ func (c *Context) UserAgent() string {
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+
+func (c *Context) pluginContext() *plugin.Context {
+	context := &plugin.Context{
+		RequestId:      c.RequestId(),
+		SessionId:      c.Session().Id,
+		IpAddress:      c.IpAddress(),
+		AcceptLanguage: c.AcceptLanguage(),
+		UserAgent:      c.UserAgent(),
+	}
+	return context
+}
+
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
 }

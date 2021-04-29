@@ -255,7 +255,7 @@ func (a *App) getDynamicListArgument(c *Context, commandArgs *model.CommandArgs,
 
 	// Encode the information normally provided to a plugin slash command handler into the request parameters
 	// Encode PluginContext:
-	pluginContext := a.PluginContext(c)
+	pluginContext := c.pluginContext()
 	params.Add("request_id", pluginContext.RequestId)
 	params.Add("session_id", pluginContext.SessionId)
 	params.Add("ip_address", pluginContext.IpAddress)
