@@ -4970,3 +4970,34 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 	}
 	return nil
 }
+
+type Z_RequestTrialLicenseArgs struct {
+	A string
+	B int
+	C bool
+	D bool
+}
+
+type Z_RequestTrialLicenseReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	_args := &Z_RequestTrialLicenseArgs{requesterID, users, termsAccepted, receiveEmailsAccepted}
+	_returns := &Z_RequestTrialLicenseReturns{}
+	if err := g.client.Call("Plugin.RequestTrialLicense", _args, _returns); err != nil {
+		log.Printf("RPC call to RequestTrialLicense API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, returns *Z_RequestTrialLicenseReturns) error {
+	if hook, ok := s.impl.(interface {
+		RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+	}); ok {
+		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
+	}
+	return nil
+}

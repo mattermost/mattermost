@@ -1094,3 +1094,40 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 
 	return nil
 }
+
+// RequestTrialLicense requests a trial license and installs it in the server
+func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	if !termsAccepted {
+		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+	}
+
+	if users == 0 {
+		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.bad-request.no-users", nil, "", http.StatusBadRequest)
+	}
+
+	requester, err := api.app.GetUser(requesterID)
+	if err != nil {
+		return err
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              api.app.TelemetryId(),
+		Name:                  requester.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 requester.Email,
+		SiteName:              *api.app.Config().TeamSettings.SiteName,
+		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,
+		Users:                 users,
+		TermsAccepted:         termsAccepted,
+		ReceiveEmailsAccepted: receiveEmailsAccepted,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestTrialLicense", "plugin_api.license.request_trial_license.no-site-url", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
+}
