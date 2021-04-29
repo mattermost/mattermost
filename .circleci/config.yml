@@ -605,6 +605,9 @@ workflows:
       - check-migrations:
           requires:
             - setup
+      - check-mattermost-vet:
+          requires:
+            - setup
       - sentry:
           context: matterbuild-sentry
           requires:
@@ -621,6 +624,7 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-mattermost-vet
             - build-api-spec
       - test:
           name: test-mysql
