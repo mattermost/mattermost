@@ -476,8 +476,6 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 	}
 
 	if _, err = db.Select(&categories, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to get categories for userId=%s,teamId=%s", userId, teamId)
-	} else if len(categories) == 0 {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 
