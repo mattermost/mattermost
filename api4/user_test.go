@@ -368,7 +368,6 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
-
 		guestPassword := "Pa$$word11"
 		guest := &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",

@@ -133,7 +133,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Context:           ctx,
 	}
 
-	if searchEngine != nil && (searchEngine.BleveEngine != nil || searchEngine.ElasticsearchEngine != nil) {
+	// TODO-Context: investigate this black magic
+	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
+		searchEngine.BleveEngine = s.SearchEngine.BleveEngine
+	}
+
+	if searchEngine != nil {
 		th.App.SetSearchEngine(searchEngine)
 	}
 

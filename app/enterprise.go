@@ -222,7 +222,3 @@ func (s *Server) initEnterprise() {
 		})
 	}
 }
-
-func (s *Server) initEnterprise2() {
-
-}

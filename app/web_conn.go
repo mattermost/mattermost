@@ -55,7 +55,6 @@ type WebConnConfig struct {
 type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
-	Context          *Context
 	WebSocket        *websocket.Conn
 	T                i18n.TranslateFunc
 	Locale           string
