@@ -6639,10 +6639,6 @@
     "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster-API-Endpunkt nicht gefunden."
   },

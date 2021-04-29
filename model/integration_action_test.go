@@ -76,6 +76,7 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should fail on bad key", func(t *testing.T) {
 		_, triggerId, err := GenerateTriggerId(NewId(), key)
+		require.Nil(t, err)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, keyErr)
 		_, _, err = DecodeAndVerifyTriggerId(triggerId, newKey)

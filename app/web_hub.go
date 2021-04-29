@@ -9,13 +9,15 @@ import (
 	"runtime/debug"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	broadcastQueueSize = 4096
+	broadcastQueueSize         = 4096
+	inactiveConnReaperInterval = 5 * time.Minute
 )
 
 type webConnActivityMessage struct {
@@ -33,6 +35,12 @@ type webConnSessionMessage struct {
 	userID       string
 	sessionToken string
 	isRegistered chan bool
+}
+
+type webConnCheckMessage struct {
+	userID       string
+	connectionID string
+	result       chan *CheckConnResult
 }
 
 // Hub is the central place to manage all websocket connections in the server.
@@ -54,6 +62,7 @@ type Hub struct {
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
+	checkConn       chan *webConnCheckMessage
 }
 
 // NewWebHub creates a new Hub.
@@ -69,6 +78,7 @@ func (a *App) NewWebHub() *Hub {
 		activity:        make(chan *webConnActivityMessage),
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
+		checkConn:       make(chan *webConnCheckMessage),
 	}
 }
 
@@ -289,6 +299,14 @@ func (a *App) SessionIsRegistered(session model.Session) bool {
 	return false
 }
 
+func (a *App) CheckWebConn(userID, connectionID string) *CheckConnResult {
+	hub := a.GetHubForUserId(userID)
+	if hub != nil {
+		return hub.CheckConn(userID, connectionID)
+	}
+	return nil
+}
+
 // Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) {
 	select {
@@ -318,6 +336,20 @@ func (h *Hub) IsRegistered(userID, sessionToken string) bool {
 	case <-h.stop:
 	}
 	return false
+}
+
+func (h *Hub) CheckConn(userID, connectionID string) *CheckConnResult {
+	req := &webConnCheckMessage{
+		userID:       userID,
+		connectionID: connectionID,
+		result:       make(chan *CheckConnResult),
+	}
+	select {
+	case h.checkConn <- req:
+		return <-req.result
+	case <-h.stop:
+	}
+	return nil
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -387,7 +419,10 @@ func (h *Hub) Start() {
 	doStart = func() {
 		mlog.Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
 
-		connIndex := newHubConnectionIndex()
+		ticker := time.NewTicker(inactiveConnReaperInterval)
+		defer ticker.Stop()
+
+		connIndex := newHubConnectionIndex(inactiveConnReaperInterval)
 
 		for {
 			select {
@@ -395,27 +430,70 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webSessionMessage.userID)
 				var isRegistered bool
 				for _, conn := range conns {
+					if !conn.active {
+						continue
+					}
 					if conn.GetSessionToken() == webSessionMessage.sessionToken {
 						isRegistered = true
 					}
 				}
 				webSessionMessage.isRegistered <- isRegistered
+			case req := <-h.checkConn:
+				var res *CheckConnResult
+				conn := connIndex.GetInactiveByConnectionID(req.userID, req.connectionID)
+				if conn != nil {
+					res = &CheckConnResult{
+						ConnectionID:     req.connectionID,
+						UserID:           req.userID,
+						ActiveQueue:      conn.send,
+						DeadQueue:        conn.deadQueue,
+						DeadQueuePointer: conn.deadQueuePointer,
+					}
+				}
+				req.result <- res
+			case <-ticker.C:
+				connIndex.RemoveInactiveConnections()
 			case webConn := <-h.register:
+				var oldConn *WebConn
+				if *h.app.Config().ServiceSettings.EnableReliableWebSockets {
+					// Delete the old conn from connIndex if it exists.
+					oldConn = connIndex.RemoveInactiveByConnectionID(
+						webConn.GetSession().UserId,
+						webConn.GetConnectionID())
+				}
+
+				// Mark the current one as active.
+				// There is no need to check if it was inactive or not,
+				// we will anyways need to make it active.
+				webConn.active = true
+
 				connIndex.Add(webConn)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
-				if webConn.IsAuthenticated() {
+				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
+
+				if webConn.IsAuthenticated() && oldConn == nil {
+					// The hello message should only be sent when the conn wasn't found.
+					// i.e in server restart, or long timeout, or fresh connection case.
+					// In case of seq number not found in dead queue, it is handled by
+					// the webconn write pump.
 					webConn.send <- webConn.createHelloMessage()
 				}
 			case webConn := <-h.unregister:
-				connIndex.Remove(webConn)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
+				// If already removed (via queue full), then removing again becomes a noop.
+				// But if not removed, mark inactive.
+				if *h.app.Config().ServiceSettings.EnableReliableWebSockets {
+					webConn.active = false
+				} else {
+					connIndex.Remove(webConn)
+				}
+
+				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
 				if webConn.UserId == "" {
 					continue
 				}
 
 				conns := connIndex.ForUser(webConn.UserId)
-				if len(conns) == 0 {
+				if len(conns) == 0 || areAllInactive(conns) {
 					h.app.Srv().Go(func() {
 						h.app.SetStatusOffline(webConn.UserId, false)
 					})
@@ -423,6 +501,9 @@ func (h *Hub) Start() {
 				}
 				var latestActivity int64 = 0
 				for _, conn := range conns {
+					if !conn.active {
+						continue
+					}
 					if conn.lastUserActivityAt > latestActivity {
 						latestActivity = conn.lastUserActivityAt
 					}
@@ -439,6 +520,9 @@ func (h *Hub) Start() {
 				}
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
+					if !webConn.active {
+						continue
+					}
 					if webConn.GetSessionToken() == activity.sessionToken {
 						webConn.lastUserActivityAt = activity.activityAt
 					}
@@ -531,12 +615,16 @@ type hubConnectionIndex struct {
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
 	byConnection map[*WebConn]int
+	// staleThreshold is the limit beyond which inactive connections
+	// will be deleted.
+	staleThreshold time.Duration
 }
 
-func newHubConnectionIndex() *hubConnectionIndex {
+func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 	return &hubConnectionIndex{
-		byUserId:     make(map[string][]*WebConn),
-		byConnection: make(map[*WebConn]int),
+		byUserId:       make(map[string][]*WebConn),
+		byConnection:   make(map[*WebConn]int),
+		staleThreshold: interval,
 	}
 }
 
@@ -570,10 +658,67 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 	return ok
 }
 
+// ForUser returns all connections for a user ID.
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 	return i.byUserId[id]
 }
 
+// All returns the full webConn index.
 func (i *hubConnectionIndex) All() map[*WebConn]int {
 	return i.byConnection
+}
+
+// GetInactiveByConnectionID returns an inactive connection for the given
+// userID and connectionID.
+func (i *hubConnectionIndex) GetInactiveByConnectionID(userID, connectionID string) *WebConn {
+	// To handle empty sessions.
+	if userID == "" {
+		return nil
+	}
+	for _, conn := range i.ForUser(userID) {
+		if conn.GetConnectionID() == connectionID && !conn.active {
+			return conn
+		}
+	}
+	return nil
+}
+
+// RemoveInactiveByConnectionID removes an inactive connection for the given
+// userID and connectionID.
+func (i *hubConnectionIndex) RemoveInactiveByConnectionID(userID, connectionID string) *WebConn {
+	// To handle empty sessions.
+	if userID == "" {
+		return nil
+	}
+	for _, conn := range i.ForUser(userID) {
+		if conn.GetConnectionID() == connectionID && !conn.active {
+			i.Remove(conn)
+			return conn
+		}
+	}
+	return nil
+}
+
+// RemoveInactiveConnections removes all inactive connections whose lastUserActivityAt
+// exceeded staleThreshold.
+func (i *hubConnectionIndex) RemoveInactiveConnections() {
+	now := model.GetMillis()
+	for conn := range i.byConnection {
+		if !conn.active && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
+			i.Remove(conn)
+		}
+	}
+}
+
+// AllActive returns the number of active connections.
+// This is only called during register/unregister so we can take
+// a bit of perf hit here.
+func (i *hubConnectionIndex) AllActive() int {
+	cnt := 0
+	for conn := range i.byConnection {
+		if conn.active {
+			cnt++
+		}
+	}
+	return cnt
 }

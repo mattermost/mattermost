@@ -629,7 +629,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel header is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -661,7 +665,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel purpose is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -2755,6 +2763,14 @@
     "translation": "Getting Trial"
   },
   {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Set Your Support Email Address"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
@@ -3127,6 +3143,22 @@
     "translation": "You’ve reached the user limit for the free tier "
   },
   {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start subscription"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud trial has ended"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Your free 14-day trial of Mattermost ends today"
+  },
+  {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
     "translation": "Add Payment method"
   },
@@ -3136,7 +3168,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day trial of Mattermost Cloud Professional is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.title",
@@ -3845,6 +3877,10 @@
   {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Login failed because of invalid password."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Failed to send trial ended email"
   },
   {
     "id": "api.user.cloud_trial_ending_email.error",
@@ -5917,10 +5953,6 @@
   {
     "id": "app.role.get.app_error",
     "translation": "Unable to get role."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Unable to get all the roles."
   },
   {
     "id": "app.role.get_by_name.app_error",
