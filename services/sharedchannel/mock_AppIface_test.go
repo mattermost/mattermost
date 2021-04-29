@@ -230,6 +230,64 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId stri
 	return r0, r1
 }
 
+// GetProfileImage provides a mock function with given fields: user
+func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	ret := _m.Called(user)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(*model.User) []byte); ok {
+		r0 = rf(user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 bool
+	if rf, ok := ret.Get(1).(func(*model.User) bool); ok {
+		r1 = rf(user)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	var r2 *model.AppError
+	if rf, ok := ret.Get(2).(func(*model.User) *model.AppError); ok {
+		r2 = rf(user)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
+// InvalidateCacheForUser provides a mock function with given fields: userID
+func (_m *MockAppIface) InvalidateCacheForUser(userID string) {
+	_m.Called(userID)
+}
+
+// MentionsToTeamMembers provides a mock function with given fields: message, teamID
+func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) model.UserMentionMap {
+	ret := _m.Called(message, teamID)
+
+	var r0 model.UserMentionMap
+	if rf, ok := ret.Get(0).(func(string, string) model.UserMentionMap); ok {
+		r0 = rf(message, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.UserMentionMap)
+		}
+	}
+
+	return r0
+}
+
+// NotifySharedChannelUserUpdate provides a mock function with given fields: user
+func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
+	_m.Called(user)
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(channel, channelModerationsPatch)

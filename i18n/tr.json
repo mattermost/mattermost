@@ -4843,10 +4843,6 @@
     "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Bu e-posta adresi zaten alınmış. Lütfen başka bir adres seçin."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistem"
   },
@@ -6907,10 +6903,6 @@
     "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Küme API uç noktası bulunamadı."
   },
@@ -7439,10 +7431,6 @@
     "translation": "Tüm takımlar alınamadı."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Tüm özel takımlar alınamadı."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Tüm özel takımlar alınamadı."
   },
@@ -7461,14 +7449,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Herkese açık takımlar sayılamadı."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Özel takımlar sayılamadı."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
@@ -8676,7 +8656,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Tebrikler - {{.WorkSpace}} çalışma alanınız kullanılmaya hazır!"
+    "translation": "14 gün süreyle kullanabileceğiniz {{.WorkSpace}} çalışma alanınız hazır!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8775,10 +8755,6 @@
     "translation": "Alan JSON olarak kodlanamadı"
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Kopya gecikme sorgularının sayısı, yapılandırılmış kopya sayısından fazla. Kopya sayısından küçük ya da eşit olmalıdır."
-  },
-  {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Mağazada ilk yönetici ziyareti durum bilgisi kaydedilirken sorun çıktı."
   },
@@ -8864,7 +8840,7 @@
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
-    "translation": "`{{.RemoteId}}` çağrılamadı: {{.Error}}"
+    "translation": "`{{.RemoteId}}` çağrısı geri alınamadı: {{.Error}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -8984,7 +8960,7 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Uzak kümenin görüntülenecek adı"
+    "translation": "Uzak küme için tekil ad"
   },
   {
     "id": "api.command_remote.name.help",
@@ -9037,5 +9013,237 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Uzak kümeler alınamadı: {{.Error}}"
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Bu iletide, diğer sitelerdeki kullanıcıların göremeyebileceği başka kanalların bağlantıları var."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Çevrimdışı olduğundan, bir ya da daha fazla ileti {{.Remote}} uzak kümesine aktarılamadı. İletiler site yeniden çevrimiçi olduğunda aktarılacak."
+  },
+  {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Açıklama geçersiz."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "İlke geçersiz."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "İstenilen işlem yapılırken bir sorun çıktı."
+  },
+  {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Deneme süresi sona eriyor bildirim e-postası gönderilemedi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "14 günlük Mattermost deneme süreniz yakında sona erecek"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Lütfen ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi yazın."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud deneme süresi sona eriyor"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Ödeme yöntemi ekle"
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Aynı adresi kullanan bir uzak küme zaten var."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Uzak küme güncellenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Uzak küme hizmeti etkinleştirilmemiş."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Uzak küme zaten eklenmiş."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Uzak küme kaydedilirken bir sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Konu geçersiz."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Kod geçersiz."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Bir uzak küme alınırken sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Uzak küme silinirken bir sorun çıktı."
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Eklemeye çalıştığınız görevin görev türü geçersiz"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Almaya çalıştığınız bir görevin görev türlerinde izinler bulunmuyor"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Amazon S3 klasörünüzün kullanılabilir olduğundan emin olduktan sonra klasör izinlerinizi denetleyin."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "S3 bağlantısı kurulamadı. Amazon S3 bağlantı kimlik doğrulama parametrelerinizi ve kimlik doğrulama ayarlarınızı denetleyin."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Uzak küme kodu eksik."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Uzak küme kodu eşleşmiyor."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "{{.RemoteId}} uzak küme kodu bulunamadı."
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "JSON kodlanırken sorun çıktı."
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Çağrının süresi dolmuş."
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.hint",
+    "translation": "'Y' ya da 'N'"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Bu kanal paylaşımdan kaldırılamadı: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Bu kanal artık paylaşılmıyor."
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Paylaşılmış kanal silinmedi: `{{.Arg}}`, `{{.Expected}}` olmalı."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[readonly] - 'Y' ya da 'N'.  Varsayılan 'N'"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Kanal salt okunur kipte paylaşılacak"
+  },
+  {
+    "id": "api.command_share.share_current",
+    "translation": "Geçerli kanalı paylaş"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Bu kanal paylaşılamadı: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Paylaşılmış Kanallar Hizmeti devre dışı bırakılmış."
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Uzak | Site Adresi | Açıklama| Salt Okunur| Çağrı Onaylandı | Çevrimiçi | Son Eşitleme |"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Uzak küme kodu geçersiz: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Geçerli kanalı paylaşımdan kaldırır"
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "`{{.Action}}` işlemi bilinmiyor. Yapılabilecek işlemler: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.unshare_confirmation.help",
+    "translation": "Emin misiniz? Bu kanal paylaşımdan kaldırılacak ve tüm uzak kopya çağrıları geri alınacak"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Çağrısı geri alınacak uzak kopyanın kodu."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Bu paylaşılmış kanala çağrılmış bir uzak kopyanın çağrısını geri alır"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "`{{.RemoteId}}` uzak çağrısı geri alındı."
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Çağrısı geri alınacak geçerli bir uzak küme belirtilmelidir"
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Var olan bir uzak kopyanın kodu. Bir uzak kopya eklemek için `remote` komutuna bakın."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Uzak küme zaten çağrılmış."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Paylaşılmış kanalları yönetebilmek için `{{.Permission}}` izninizin olması gereklidir."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Paylaşılmamış bir kanal paylaşımdan kaldırılamaz."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Bu paylaşılmış kanala herhangi bir uzak katılım çağrısı yapılmamış."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "paylaş"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Çağrılacak geçerli bir uzak küme kodu belirtilmelidir."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Uzak küme için görüntülenecek ad"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Uzak kümenin görüntülenecek adı"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kimlik doğrulama verileri alanı e-posta olarak sıfırlanamadı."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
   }
 ]

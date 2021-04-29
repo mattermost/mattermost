@@ -56,7 +56,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(c.Params.RoleName)
+	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return
@@ -162,9 +162,6 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
-		ancillaryPermissions := model.AddAncillaryPermissions(*patch.Permissions)
-		*patch.Permissions = append(*patch.Permissions, ancillaryPermissions...)
 
 		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
 	}

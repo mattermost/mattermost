@@ -197,6 +197,8 @@ github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
+# github.com/getkin/kin-openapi v0.49.0
+## explicit
 # github.com/getsentry/sentry-go v0.10.0
 ## explicit
 github.com/getsentry/sentry-go
@@ -383,7 +385,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
+# github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.3
@@ -399,6 +401,8 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
+# github.com/mattermost/mattermost-govet v0.0.0-20210226164958-a9556728767b
+## explicit
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
