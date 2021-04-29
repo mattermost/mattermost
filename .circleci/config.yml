@@ -163,7 +163,7 @@ jobs:
   # and to make more clear when the job fails
   check-golangci-lint:
     docker:
-      - image: golangci/golangci-lint:v1.33.2
+      - image: golangci/golangci-lint:v1.39.0
     steps:
       - checkout
       - run:
