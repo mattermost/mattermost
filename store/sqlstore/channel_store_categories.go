@@ -248,10 +248,8 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	categoriesWithOrder, err := s.getSidebarCategoriesT(transaction, userId, teamId)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(categoriesWithOrder.Categories) < 1 {
-		return nil, errors.Wrap(err, "categories not found")
+	} else if len(categoriesWithOrder.Categories) == 0 {
+		return nil, store.NewErrNotFound("categories not found", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
 
 	newOrder := categoriesWithOrder.Order
@@ -478,8 +476,11 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId, teamId str
 	}
 
 	if _, err = db.Select(&categories, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get categories for userId=%s,teamId=%s", userId, teamId)
+	} else if len(categories) == 0 {
 		return nil, store.NewErrNotFound("SidebarCategories", fmt.Sprintf("userId=%s,teamId=%s", userId, teamId))
 	}
+
 	for _, category := range categories {
 		var prevCategory *model.SidebarCategoryWithChannels
 		for _, existing := range oc.Categories {
