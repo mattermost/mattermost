@@ -493,7 +493,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer fs.Close()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
+		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
 
 		_, err = fs.Set(newCfg)
 		require.NoError(t, err)
@@ -512,7 +512,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer fs.Close()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = sToP("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
 
 		_, err = fs.Set(newCfg)
 		if assert.Error(t, err) {
@@ -972,7 +972,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://new"),
+			SiteURL: model.NewString("http://new"),
 		},
 	}
 

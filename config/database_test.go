@@ -451,7 +451,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
+		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
 
 		_, err = ds.Set(newCfg)
 		require.NoError(t, err)
@@ -468,7 +468,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = sToP("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
 
 		_, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
@@ -507,7 +507,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: sToP("http://new"),
+				SiteURL: model.NewString("http://new"),
 			},
 		}
 
@@ -527,7 +527,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: sToP("http://new"),
+				SiteURL: model.NewString("http://new"),
 			},
 		}
 
@@ -575,7 +575,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
 		newCfg := emptyConfig.Clone()
-		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
+		newCfg.ServiceSettings.SiteURL = model.NewString(longSiteURL)
 
 		_, err = ds.Set(newCfg)
 		require.Error(t, err)

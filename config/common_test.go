@@ -19,23 +19,23 @@ func init() {
 	emptyConfig = &model.Config{}
 	readOnlyConfig = &model.Config{
 		ClusterSettings: model.ClusterSettings{
-			Enable:         bToP(true),
-			ReadOnlyConfig: bToP(true),
+			Enable:         model.NewBool(true),
+			ReadOnlyConfig: model.NewBool(true),
 		},
 	}
 	minimalConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://minimal"),
+			SiteURL: model.NewString("http://minimal"),
 		},
 		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+			AtRestEncryptKey: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
-			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+			PublicLinkSalt: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		LocalizationSettings: model.LocalizationSettings{
-			DefaultServerLocale: sToP("en"),
-			DefaultClientLocale: sToP("en"),
+			DefaultServerLocale: model.NewString("en"),
+			DefaultClientLocale: model.NewString("en"),
 		},
 	}
 
@@ -46,34 +46,34 @@ func init() {
 
 	invalidConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("invalid"),
+			SiteURL: model.NewString("invalid"),
 		},
 	}
 	fixesRequiredConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://trailingslash/"),
+			SiteURL: model.NewString("http://trailingslash/"),
 		},
 		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+			AtRestEncryptKey: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
-			DriverName:     sToP(model.IMAGE_DRIVER_LOCAL),
-			Directory:      sToP("/path/to/directory"),
-			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+			DriverName:     model.NewString(model.IMAGE_DRIVER_LOCAL),
+			Directory:      model.NewString("/path/to/directory"),
+			PublicLinkSalt: model.NewString("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		LocalizationSettings: model.LocalizationSettings{
-			DefaultServerLocale: sToP("garbage"),
-			DefaultClientLocale: sToP("garbage"),
+			DefaultServerLocale: model.NewString("garbage"),
+			DefaultClientLocale: model.NewString("garbage"),
 		},
 	}
 	ldapConfig = &model.Config{
 		LdapSettings: model.LdapSettings{
-			BindPassword: sToP("password"),
+			BindPassword: model.NewString("password"),
 		},
 	}
 	testConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://TestStoreNew"),
+			SiteURL: model.NewString("http://TestStoreNew"),
 		},
 	}
 	customConfigDefaults = &model.Config{
@@ -113,7 +113,7 @@ func TestMergeConfigs(t *testing.T) {
 		base := &model.Config{}
 		base.SetDefaults()
 		patch := base.Clone()
-		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
+		patch.ServiceSettings.SiteURL = model.NewString("http://newhost.ca")
 
 		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
@@ -125,12 +125,12 @@ func TestMergeConfigs(t *testing.T) {
 		base := &model.Config{}
 		base.SetDefaults()
 		patch := &model.Config{}
-		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
-		patch.GoogleSettings.Enable = newBool(true)
+		patch.ServiceSettings.SiteURL = model.NewString("http://newhost.ca")
+		patch.GoogleSettings.Enable = model.NewBool(true)
 
 		expected := base.Clone()
-		expected.ServiceSettings.SiteURL = newString("http://newhost.ca")
-		expected.GoogleSettings.Enable = newBool(true)
+		expected.ServiceSettings.SiteURL = model.NewString("http://newhost.ca")
+		expected.GoogleSettings.Enable = model.NewBool(true)
 
 		merged, err := Merge(base, patch, nil)
 		require.NoError(t, err)
@@ -147,7 +147,7 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 	base, err := NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
-	originalConfig.ServiceSettings.SiteURL = newString("http://notoverriden.ca")
+	originalConfig.ServiceSettings.SiteURL = model.NewString("http://notoverriden.ca")
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
@@ -180,6 +180,3 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
 	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
 }
-
-func newBool(b bool) *bool       { return &b }
-func newString(s string) *string { return &s }
