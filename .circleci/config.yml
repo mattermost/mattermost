@@ -196,6 +196,8 @@ jobs:
     steps:
       - checkout
       - run:
+          command: apk add git
+      - run:
           command: |
             sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
             sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
