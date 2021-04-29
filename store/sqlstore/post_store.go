@@ -478,17 +478,16 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 	var posts []*model.Post
 	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = :RootId AND DeleteAt = 0", map[string]interface{}{"RootId": id})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
+		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
 	}
 
 	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 	if err != nil {
 		return nil, err
 	}
-	for i := range posts {
-		idx := i
-		list.AddPost(posts[idx])
-		list.AddOrder(posts[idx].Id)
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
 	}
 	return list, nil
 }
