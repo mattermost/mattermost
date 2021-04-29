@@ -74,6 +74,11 @@ func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *mod
 		}
 		usersFiltered = append(usersFiltered, u)
 		uCache.Add(u.Id)
+
+		// the user definitely exists on the remote so it's safe to send the image immediately.
+		if u.LastPictureUpdate >= nextSyncAt {
+			scs.syncProfileImage(u, channelID, rc)
+		}
 	}
 
 	sm := &syncMsg{
@@ -230,7 +235,10 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 		}
 
 		if syncImage {
-			scs.syncProfileImage(user, channelID, rc)
+			// The user may not exist on the remote server yet, so we can't send a profile image yet.
+			// Force another update for this remote/channel and the profile image will be updated
+			// then.
+			scs.addTask(newSyncTask(channelID, rc.RemoteId, nil))
 		}
 
 		// if this was a mention then put the real username in place of the username+remotename, but only
