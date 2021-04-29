@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
@@ -71,7 +70,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		attributes["group_id"] = groupId
 	}
 
-	synchronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
+	synchronizer, err := NewFeatureFlagSynchronizer(FeatureFlagSyncParams{
 		ServerID:   s.TelemetryId(),
 		SplitKey:   *s.Config().ServiceSettings.SplitKey,
 		Log:        log,

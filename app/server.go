@@ -197,7 +197,7 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagSynchronizer      *FeatureFlagSynchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
