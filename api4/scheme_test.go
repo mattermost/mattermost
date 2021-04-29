@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -774,7 +775,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 
 		teamScheme := th.SetupTeamScheme()
 
-		teamUserRole, err := th.App.GetRoleByName(teamScheme.DefaultTeamUserRole)
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
 		require.Nil(t, err)
 		teamUserRole.Permissions = []string{}
 		_, err = th.App.UpdateRole(teamUserRole)
