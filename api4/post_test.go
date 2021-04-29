@@ -1726,6 +1726,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.context.invalid_url_param.app_error", resp.Error.Id)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Nil(t, posts)
 
 	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20, false)
