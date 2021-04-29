@@ -49,7 +49,7 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 	accept.AddNamedTextArgument("invite", T("api.command_remote.invitation.help"), T("api.command_remote.invitation.hint"), "", true)
 
 	remove := model.NewAutocompleteData("remove", "", T("api.command_remote.remove.help"))
-	remove.AddNamedDynamicListArgument("connectionID", T("api.command_remote.remove_remote_id.help"), "builtin:remote", true)
+	remove.AddNamedDynamicListArgument("connectionID", T("api.command_remote.remove_remote_id.help"), "builtin:"+CommandTriggerRemote, true)
 
 	status := model.NewAutocompleteData("status", "", T("api.command_remote.status.help"))
 
