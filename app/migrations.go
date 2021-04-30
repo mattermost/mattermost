@@ -16,7 +16,7 @@ import (
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
-const ContentExtractionConfigMigrationKey = "ContentExtractionConfigMigrationComplete"
+const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -203,19 +203,21 @@ func (s *Server) doGuestRolesCreationMigration() {
 	}
 	for _, scheme := range schemes {
 		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
-			// Team Guest Role
-			teamGuestRole := &model.Role{
-				Name:          model.NewId(),
-				DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
-				Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
-				SchemeManaged: true,
-			}
+			if scheme.Scope == model.SCHEME_SCOPE_TEAM {
+				// Team Guest Role
+				teamGuestRole := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
+					SchemeManaged: true,
+				}
 
-			if savedRole, err := s.Store.Role().Save(teamGuestRole); err != nil {
-				mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
-				allSucceeded = false
-			} else {
-				scheme.DefaultTeamGuestRole = savedRole.Name
+				if savedRole, err := s.Store.Role().Save(teamGuestRole); err != nil {
+					mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultTeamGuestRole = savedRole.Name
+				}
 			}
 
 			// Channel Guest Role
@@ -301,6 +303,29 @@ func (s *Server) doSystemConsoleRolesCreationMigration() {
 	}
 }
 
+func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
+	if !s.Config().FeatureFlags.FilesSearch {
+		return
+	}
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
+		return
+	}
+
+	s.UpdateConfig(func(config *model.Config) {
+		config.FileSettings.ExtractContent = model.NewBool(true)
+	})
+
+	system := model.System{
+		Name:  ContentExtractionConfigDefaultTrueMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark content extraction config migration as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -316,4 +341,5 @@ func (s *Server) doAppMigrations() {
 	if err != nil {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
+	s.doContentExtractionConfigDefaultTrueMigration()
 }

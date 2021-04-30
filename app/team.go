@@ -233,6 +233,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		}
 	}
 
+	a.ClearTeamMembersCache(team.Id)
+
 	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM_SCHEME)
 
 	return oldTeam, nil

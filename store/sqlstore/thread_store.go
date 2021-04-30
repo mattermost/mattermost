@@ -147,7 +147,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
-			Where(sq.NotEq{"Posts.UserId": userId}).
 			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
 
 		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
@@ -335,7 +334,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		model.Post
 	}
 
-	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0 AND Posts.UserId != ?"
+	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
@@ -346,7 +345,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
 		From("Threads").
-		Column(sq.Alias(sq.Expr(unreadRepliesQuery, userId), "UnreadReplies")).
+		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
