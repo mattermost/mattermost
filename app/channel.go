@@ -2389,38 +2389,40 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		}
 
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
 			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true, false)
-		}
-		threadData, _ := a.Srv().Store.Thread().Get(threadId)
-		if threadData != nil && threadMembership != nil && threadMembership.Following {
-			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
-			if nErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			}
-			threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, channel.TeamId, post.UpdateAt-1)
-			if err != nil {
-				return nil, err
-			}
-			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-			if nErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			}
-			thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
-			a.sanitizeProfiles(thread.Participants, false)
-			thread.Post.SanitizeProps()
+			threadData, _ := a.Srv().Store.Thread().Get(threadId)
+			if threadData != nil && threadMembership != nil && threadMembership.Following {
+				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+				if nErr != nil {
+					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				}
+				threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, channel.TeamId, post.UpdateAt-1)
+				if err != nil {
+					return nil, err
+				}
+				_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+				if nErr != nil {
+					return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				}
+				thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+				a.sanitizeProfiles(thread.Participants, false)
+				thread.Post.SanitizeProps()
 
-			payload := thread.ToJson()
-			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-			if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent = preference.Value == "on"
-			}
-			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
-				message.Add("thread", payload)
-				a.Publish(message)
+				payload := thread.ToJson()
+				sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+				if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+					sendEvent = preference.Value == "on"
+				}
+				if sendEvent {
+					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+					message.Add("thread", payload)
+					a.Publish(message)
+				}
 			}
 		}
+
 	}
 
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
