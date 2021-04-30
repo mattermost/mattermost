@@ -2633,6 +2633,19 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
 				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
+
+			teamIDs := make(map[string]struct{}, len(channelIDs))
+			for _, channelID := range channelIDs {
+				c, err := a.GetChannel(channelID)
+				if err != nil {
+					return nil, err
+				}
+				teamIDs[c.TeamId] = struct{}{}
+			}
+			for teamID := range teamIDs {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
+				a.Publish(message)
+			}
 		}
 	}
 
