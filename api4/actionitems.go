@@ -14,18 +14,19 @@ type APIActionItemProvider struct {
 }
 
 func (api *API) InitActionItems() {
-	api.BaseRoutes.ActionItems.Handle("/items", api.ApiSessionRequired(getActionItems)).Methods("GET")
-	api.BaseRoutes.ActionItems.Handle("/counts", api.ApiSessionRequired(getActionItemCounts)).Methods("GET")
-	api.BaseRoutes.ActionItems.Handle("/notify", api.ApiSessionRequired(notify)).Methods("PUT")
+	if api.ConfigService.Config().FeatureFlags.ActionItemsMissionControl {
+		api.BaseRoutes.ActionItems.Handle("/items", api.ApiSessionRequired(getActionItems)).Methods("GET")
+		api.BaseRoutes.ActionItems.Handle("/counts", api.ApiSessionRequired(getActionItemCounts)).Methods("GET")
+		api.BaseRoutes.ActionItems.Handle("/notify", api.ApiSessionRequired(notify)).Methods("PUT")
 
-	api.BaseRoutes.ActionItems.Handle("/registry", api.ApiSessionRequired(getRegistry)).Methods("GET")
+		api.BaseRoutes.ActionItems.Handle("/registry", api.ApiSessionRequired(getRegistry)).Methods("GET")
 
-	api.BaseRoutes.ActionItems.Handle("/providers", api.ApiSessionRequired(registerProvider)).Methods("POST")
-	//api.BaseRoutes.ActionItems.Handle("/providers", api.ApiSessionRequired(unregister)).Methods("DELETE")
+		api.BaseRoutes.ActionItems.Handle("/providers", api.ApiSessionRequired(registerProvider)).Methods("POST")
+		//api.BaseRoutes.ActionItems.Handle("/providers", api.ApiSessionRequired(unregister)).Methods("DELETE")
 
-	api.BaseRoutes.ActionItems.Handle("/types", api.ApiSessionRequired(registerType)).Methods("POST")
-	//api.BaseRoutes.ActionItems.Handle("/types", api.ApiSessionRequired(unregister)).Methods("DELETE")
-
+		api.BaseRoutes.ActionItems.Handle("/types", api.ApiSessionRequired(registerType)).Methods("POST")
+		//api.BaseRoutes.ActionItems.Handle("/types", api.ApiSessionRequired(unregister)).Methods("DELETE")
+	}
 }
 
 func getActionItems(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -40,6 +40,9 @@ type FeatureFlags struct {
 
 	// Control support for custom data retention policies
 	CustomDataRetentionEnabled bool
+
+	// Control the Action Items / Mission Control feature.
+	ActionItemsMissionControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -54,6 +57,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginIncidentManagement = "1.7.0"
 	f.PluginApps = ""
 	f.CustomDataRetentionEnabled = false
+	f.ActionItemsMissionControl = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
