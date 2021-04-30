@@ -1017,6 +1017,7 @@ func (a *App) SetProfileImageFromFile(userID string, file io.Reader) *model.AppE
 		mlog.Warn("Error with updating last picture update", mlog.Err(err))
 	}
 	a.invalidateUserCacheAndPublish(userID)
+	a.onUserProfileChange(userID)
 
 	return nil
 }
@@ -1347,6 +1348,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	}
 
 	a.InvalidateCacheForUser(user.Id)
+	a.onUserProfileChange(user.Id)
 
 	return userUpdate.New, nil
 }

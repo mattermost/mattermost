@@ -153,3 +153,13 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
 	a.sendUpdatedUserEvent(*user)
 }
+
+// onUserProfileChange is called when a user's profile has changed
+// (username, email, profile image, ...)
+func (a *App) onUserProfileChange(userID string) {
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		return
+	}
+	syncService.NotifyUserProfileChanged(userID)
+}
