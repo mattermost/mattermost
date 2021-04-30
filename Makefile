@@ -105,11 +105,11 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0

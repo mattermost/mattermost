@@ -191,19 +191,21 @@ func (a *App) DoGuestRolesCreationMigration() {
 	}
 	for _, scheme := range schemes {
 		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
-			// Team Guest Role
-			teamGuestRole := &model.Role{
-				Name:          model.NewId(),
-				DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
-				Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
-				SchemeManaged: true,
-			}
+			if scheme.Scope == model.SCHEME_SCOPE_TEAM {
+				// Team Guest Role
+				teamGuestRole := &model.Role{
+					Name:          model.NewId(),
+					DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+					Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
+					SchemeManaged: true,
+				}
 
-			if savedRole, err := a.Srv().Store.Role().Save(teamGuestRole); err != nil {
-				mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
-				allSucceeded = false
-			} else {
-				scheme.DefaultTeamGuestRole = savedRole.Name
+				if savedRole, err := a.Srv().Store.Role().Save(teamGuestRole); err != nil {
+					mlog.Critical("Failed to create new guest role for custom scheme.", mlog.Err(err))
+					allSucceeded = false
+				} else {
+					scheme.DefaultTeamGuestRole = savedRole.Name
+				}
 			}
 
 			// Channel Guest Role

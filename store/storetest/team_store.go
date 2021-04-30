@@ -1358,6 +1358,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 
 		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(m1, 1)
+		require.NoError(t, nErr)
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr = ss.Team().SaveMember(m2, 1)
 		require.Error(t, nErr)
