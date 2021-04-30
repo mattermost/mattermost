@@ -288,9 +288,6 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 }
 
 func (a *App) doContentExtractionConfigDefaultTrueMigration() {
-	if !a.Config().FeatureFlags.FilesSearch {
-		return
-	}
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := a.Srv().Store.System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
 		return
