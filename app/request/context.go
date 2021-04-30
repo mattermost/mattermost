@@ -37,10 +37,7 @@ func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acce
 
 func EmptyContext() *Context {
 	return &Context{
-		t: i18n.T,
-		session: model.Session{
-			TeamMembers: make([]*model.TeamMember, 0),
-		},
+		t:       i18n.T,
 		context: context.Background(),
 	}
 }

@@ -76,7 +76,7 @@ type TopicListener func(c *request.Context, msg model.RemoteClusterMsg, rc *mode
 // ConnectionStateListener is used to listen to remote cluster connection state changes.
 type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
-// Service provides inter-cluster communication via topic based messages.
+// Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
 	server     ServerIface
 	httpClient *http.Client
@@ -91,7 +91,7 @@ type Service struct {
 	done                     chan struct{}
 }
 
-// NewRemoteClusterService creates a RemoteClusterService instance.
+// NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
 func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,

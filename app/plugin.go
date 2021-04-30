@@ -225,9 +225,13 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 	// Sync plugin active state when config changes. Also notify plugins.
 	s.PluginsLock.Lock()
 	s.RemoveConfigListener(s.PluginConfigListenerId)
-	s.PluginConfigListenerId = s.AddConfigListener(func(*model.Config, *model.Config) {
-		s.installFeatureFlagPlugins()
-		s.syncPluginsActiveState()
+	s.PluginConfigListenerId = s.AddConfigListener(func(old, new *model.Config) {
+		// If plugin status remains unchanged, only then run this.
+		// Because (*App).InitPlugins is already run as a config change hook.
+		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
+			s.installFeatureFlagPlugins()
+			s.syncPluginsActiveState()
+		}
 		if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
