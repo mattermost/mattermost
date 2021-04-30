@@ -71,6 +71,7 @@ const (
 	PermissionEditBrand                      = "edit_brand"
 	PermissionManageSharedChannels           = "manage_shared_channels"
 	PermissionManageSecureConnections        = "manage_secure_connections"
+	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -526,12 +527,23 @@ func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
 }
 
 func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
+	transformations := []permissionTransformation{}
+
+	// add the new permission to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: []string{PermissionManageSecureConnections},
-		},
-	}, nil
+		})
+
+	// remote the decprecated permission from system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Remove: []string{PermissionManageRemoteClusters},
+		})
+
+	return transformations, nil
 }
 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
