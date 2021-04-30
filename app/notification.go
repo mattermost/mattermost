@@ -172,11 +172,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 			if channel.Type != model.CHANNEL_DIRECT {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
-				rootMentions := getExplicitMentions(rootPost, keywords, groups)
+				rootMentions = getExplicitMentions(rootPost, keywords, groups)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
 				}
@@ -191,7 +192,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			go func(userID string) {
 				defer close(mac)
 				_, incrementMentions := mentions.Mentions[userID]
+				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
+				if !incrementMentions {
+					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
+					var nfErr *store.ErrNotFound
+
+					if err != nil && !errors.As(err, &nfErr) {
+						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					if membership != nil && !membership.Following {
+						return
+					}
+				}
 				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
+
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return

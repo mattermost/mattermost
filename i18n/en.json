@@ -629,7 +629,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel header is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -661,7 +665,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel purpose is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
