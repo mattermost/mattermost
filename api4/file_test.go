@@ -1048,33 +1048,15 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
 
-func TestSearchFilesOnFeatureFlagDisabled(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	terms := "search"
-	isOrSearch := false
-	timezoneOffset := 5
-	searchParams := model.SearchParameter{
-		Terms:          &terms,
-		IsOrSearch:     &isOrSearch,
-		TimeZoneOffset: &timezoneOffset,
-	}
-	_, resp := th.Client.SearchFilesWithParams(th.BasicTeam.Id, &searchParams)
-	require.NotNil(t, resp.Error)
-}
-
 func TestSearchFiles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
-		os.Unsetenv("MM_FEATUREFLAGS_FILESSEARCH")
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
 		})
 	}()
-	os.Setenv("MM_FEATUREFLAGS_FILESSEARCH", "true")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
 	})
