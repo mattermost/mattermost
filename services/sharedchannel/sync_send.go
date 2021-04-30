@@ -326,8 +326,8 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		nextSince = result.nextSince
 	}
 
-	if len(posts) == 0 {
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found zero posts; skipping sync",
+	if len(posts) == 0 && len(syncMessages) == 0 {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found zero posts & zero users; skipping sync",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("channel_id", task.channelID),
 			mlog.Int64("lastSyncAt", scr.NextSyncAt),
@@ -337,7 +337,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		return nil
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found posts to sync",
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found posts or users to sync",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("channel_id", task.channelID),
 		mlog.Int64("lastSyncAt", scr.NextSyncAt),

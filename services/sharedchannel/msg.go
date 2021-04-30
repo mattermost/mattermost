@@ -93,6 +93,10 @@ func (scs *Service) usersSyncMessage(uCache userCache, channelID string, rc *mod
 func (scs *Service) postsToSyncMessages(posts []*model.Post, uCache userCache, channelID string, rc *model.RemoteCluster, nextSyncAt int64) ([]*syncMsg, error) {
 	syncMessages := make([]*syncMsg, 0, len(posts))
 
+	if len(posts) == 0 {
+		return syncMessages, nil
+	}
+
 	var teamID string
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
