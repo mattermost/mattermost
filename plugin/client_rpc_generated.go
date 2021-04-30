@@ -533,6 +533,40 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["OnPluginClusterEvent"] = OnPluginClusterEventID
+}
+
+type Z_OnPluginClusterEventArgs struct {
+	A *Context
+	B model.PluginClusterEvent
+}
+
+type Z_OnPluginClusterEventReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	_args := &Z_OnPluginClusterEventArgs{c, ev}
+	_returns := &Z_OnPluginClusterEventReturns{}
+	if g.implemented[OnPluginClusterEventID] {
+		if err := g.client.Call("Plugin.OnPluginClusterEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginClusterEvent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, returns *Z_OnPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+	}); ok {
+		hook.OnPluginClusterEvent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -2822,6 +2856,66 @@ func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetGroupMemberUsersArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetGroupMemberUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetGroupMemberUsersArgs{groupID, page, perPage}
+	_returns := &Z_GetGroupMemberUsersReturns{}
+	if err := g.client.Call("Plugin.GetGroupMemberUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupMemberUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupMemberUsers(args *Z_GetGroupMemberUsersArgs, returns *Z_GetGroupMemberUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupMemberUsers(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupMemberUsers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetGroupsBySourceArgs struct {
+	A model.GroupSource
+}
+
+type Z_GetGroupsBySourceReturns struct {
+	A []*model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsBySourceArgs{groupSource}
+	_returns := &Z_GetGroupsBySourceReturns{}
+	if err := g.client.Call("Plugin.GetGroupsBySource", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroupsBySource API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroupsBySource(args *Z_GetGroupsBySourceArgs, returns *Z_GetGroupsBySourceReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroupsBySource(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroupsBySource called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetGroupsForUserArgs struct {
 	A string
 }
@@ -4844,6 +4938,36 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishPluginClusterEventArgs struct {
+	A model.PluginClusterEvent
+	B model.PluginClusterEventSendOptions
+}
+
+type Z_PublishPluginClusterEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	_args := &Z_PublishPluginClusterEventArgs{ev, opts}
+	_returns := &Z_PublishPluginClusterEventReturns{}
+	if err := g.client.Call("Plugin.PublishPluginClusterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishPluginClusterEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEventArgs, returns *Z_PublishPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+	}); ok {
+		returns.A = hook.PublishPluginClusterEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }

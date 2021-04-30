@@ -534,6 +534,18 @@ type API interface {
 	// Minimum server version: 5.18
 	GetGroupByName(name string) (*model.Group, *model.AppError)
 
+	// GetGroupMemberUsers gets a page of users belonging to the given group.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+
+	// GetGroupsBySource gets a list of all groups for the given source.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+
 	// GetGroupsForUser gets the groups a user is in.
 	//
 	// @tag Group
@@ -1040,8 +1052,17 @@ type API interface {
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
 
-	SendNotification(notification actionitem.ExternalNotification) error
+	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+	// the calling plugin that are present in the cluster.
+	//
+	// This method is used to allow plugin communication in a High-Availability cluster.
+	// The receiving side should implement the OnPluginClusterEvent hook
+	// to receive events sent through this method.
+	//
+	// Minimum server version: 5.36
+	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 
+	SendNotification(notification actionitem.ExternalNotification) error
 	RegisterActionItemProvider(provider actionitem.Provider) error
 	RegisterActionItemType(actionItemType actionitem.Type) error
 }

@@ -67,7 +67,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -384,7 +383,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	templatesDir, ok := fileutils.FindDir("templates")
+	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
@@ -522,7 +521,7 @@ func NewServer(options ...Option) (*Server, error) {
 	} else {
 		nErr := backend.TestConnection()
 		if nErr != nil {
-			if errors.Is(nErr, filestore.ErrNoS3Bucket) {
+			if _, ok := nErr.(*filestore.S3FileBackendNoBucketError); ok {
 				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
 			}
 			if nErr != nil {
@@ -1415,10 +1414,18 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
+//nolint:golint,unused,deadcode
 func runCheckWarnMetricStatusJob(a *App) {
 	doCheckWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
 		doCheckWarnMetricStatus(a)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+}
+
+func runCheckAdminSupportStatusJob(a *App) {
+	doCheckAdminSupportStatus(a)
+	model.CreateRecurringTask("Check Admin Support Status Job", func() {
+		doCheckAdminSupportStatus(a)
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
@@ -1442,6 +1449,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
+//nolint:golint,unused,deadcode
 func doCheckWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
@@ -1488,7 +1496,7 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
 	if err1 != nil {
 		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
@@ -1581,6 +1589,16 @@ func doCheckWarnMetricStatus(a *App) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
 		} else {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
+		}
+	}
+}
+
+func doCheckAdminSupportStatus(a *App) {
+	isE0Edition := model.BuildEnterpriseReady == "true"
+
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+		if err := a.notifyAdminsOfWarnMetricStatus(model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 	}
 }

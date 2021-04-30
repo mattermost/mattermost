@@ -60,7 +60,7 @@ endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
-# and docker will add '/', so we need to set the go-build cache location or we'll get 
+# and docker will add '/', so we need to set the go-build cache location or we'll get
 # permission errors on build as it tries to create a cache in filesystem root.
 export CURRENT_UID = $(shell id -u):$(shell id -g)
 ifeq ($(HOME),/)
@@ -105,11 +105,11 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
@@ -142,6 +142,8 @@ all: run ## Alias for 'run'.
 -include config.override.mk
 include config.mk
 include build/*.mk
+
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
@@ -179,14 +181,14 @@ ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
-run-haserver: 
+run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology '(3 node cluster)'
 
 	docker-compose -f docker-compose.yaml up --remove-orphans haproxy
 endif
 
-stop-haserver: 
+stop-haserver:
 	@echo Stopping docker containers for HA topology
 	docker-compose stop
 
@@ -323,7 +325,8 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
-check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
+check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
+
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
@@ -372,7 +375,7 @@ test-server-race: test-server-pre
   endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
   ifneq ($(IS_CI),true)
     ifneq ($(MM_NO_DOCKER),true)
       ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -603,7 +606,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \

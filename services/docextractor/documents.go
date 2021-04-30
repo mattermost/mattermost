@@ -25,6 +25,7 @@ var doconvConverterByExtensions = map[string]func(io.Reader) (string, map[string
 	"html":  func(r io.Reader) (string, map[string]string, error) { return docconv.ConvertHTML(r, true) },
 	"pages": docconv.ConvertPages,
 	"rtf":   docconv.ConvertRTF,
+	"pdf":   docconv.ConvertPDF,
 }
 
 func (de *documentExtractor) Match(filename string) bool {
@@ -33,7 +34,7 @@ func (de *documentExtractor) Match(filename string) bool {
 	return ok
 }
 
-func (de *documentExtractor) Extract(filename string, r io.Reader) (string, error) {
+func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
 	converter, ok := doconvConverterByExtensions[extension]
 	if !ok {

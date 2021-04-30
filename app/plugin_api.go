@@ -538,6 +538,16 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
+func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+
+	return users, err
+}
+
+func (api *PluginAPI) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	return api.app.GetGroupsBySource(groupSource)
+}
+
 func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.AppError) {
 	return api.app.GetGroupsByUserId(userID)
 }
@@ -1065,4 +1075,35 @@ func (api *PluginAPI) RegisterActionItemProvider(provider actionitem.Provider) e
 
 func (api *PluginAPI) RegisterActionItemType(actionItemType actionitem.Type) error {
 	return api.app.RegisterActionItemType(actionItemType)
+}
+
+// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+// the calling plugin.
+func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
+	opts model.PluginClusterEventSendOptions) error {
+	if api.app.Cluster() == nil {
+		return nil
+	}
+
+	msg := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		SendType:         opts.SendType,
+		WaitForAllToSend: false,
+		Props: map[string]string{
+			"PluginID": api.id,
+			"EventID":  ev.Id,
+		},
+		Data: string(ev.Data),
+	}
+
+	// If TargetId is empty we broadcast to all other cluster nodes.
+	if opts.TargetId == "" {
+		api.app.Cluster().SendClusterMessage(msg)
+	} else {
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
+		}
+	}
+
+	return nil
 }

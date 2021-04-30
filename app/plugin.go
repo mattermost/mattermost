@@ -210,9 +210,13 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	// Sync plugin active state when config changes. Also notify plugins.
 	a.Srv().PluginsLock.Lock()
 	a.RemoveConfigListener(a.Srv().PluginConfigListenerId)
-	a.Srv().PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
-		a.installFeatureFlagPlugins()
-		a.SyncPluginsActiveState()
+	a.Srv().PluginConfigListenerId = a.AddConfigListener(func(old, new *model.Config) {
+		// If plugin status remains unchanged, only then run this.
+		// Because (*App).InitPlugins is already run as a config change hook.
+		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
+			a.installFeatureFlagPlugins()
+			a.SyncPluginsActiveState()
+		}
 		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
@@ -605,13 +609,13 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		// If available in the markteplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
 		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {

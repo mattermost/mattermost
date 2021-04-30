@@ -132,6 +132,8 @@ type Routes struct {
 	ActionItems    *mux.Router // 'api/v4/action_items'
 	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
+
+	Permissions *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
@@ -252,6 +254,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
 
+	api.BaseRoutes.Permissions = api.BaseRoutes.ApiRoot.PathPrefix("/permissions").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -291,6 +295,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitImport()
 	api.InitRemoteCluster()
 	api.InitSharedChannels()
+	api.InitPermissions()
 	api.InitExport()
 	api.InitActionItems()
 
@@ -366,6 +371,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -384,6 +391,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitImportLocal()
 	api.InitExportLocal()
 	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

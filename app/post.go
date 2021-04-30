@@ -585,8 +585,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	newPost := &model.Post{}
-	newPost = oldPost.Clone()
+	newPost := oldPost.Clone()
 
 	if newPost.Message != post.Message {
 		newPost.Message = post.Message
@@ -1387,18 +1386,14 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-
-	mentions := getExplicitMentions(post, keywords, groups)
-	if post.UpdateAt >= timestamp {
-		if _, ok := mentions.Mentions[user.Id]; ok {
-			count += 1
-		}
-	}
+	posts = append(posts, post)
 
 	for _, p := range posts {
-		mentions = getExplicitMentions(p, keywords, groups)
-		if _, ok := mentions.Mentions[user.Id]; ok {
-			count += 1
+		if p.CreateAt >= timestamp {
+			mentions := getExplicitMentions(p, keywords, groups)
+			if _, ok := mentions.Mentions[user.Id]; ok {
+				count += 1
+			}
 		}
 	}
 

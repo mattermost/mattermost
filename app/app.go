@@ -94,7 +94,7 @@ func (a *App) InitServer() {
 		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
-				runCheckWarnMetricStatusJob(a)
+				runCheckAdminSupportStatusJob(a)
 			})
 			a.srv.runJobs()
 		}
@@ -192,6 +192,7 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+//nolint:golint,unused,deadcode
 func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 	if err != nil {
@@ -326,6 +327,9 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_2M.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
+		case model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.support_email_not_configured.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.support_email_not_configured.start_trial.notification_body")
 		default:
 			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -336,6 +340,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
+//nolint:golint,unused,deadcode
 func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
@@ -375,6 +380,11 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
 	if err != nil {
 		return err
+	}
+
+	warnMetric, ok := model.WarnMetricsTable[warnMetricId]
+	if !ok {
+		return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	for _, sysAdmin := range sysAdmins {
@@ -441,8 +451,12 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 			AuthorName: "",
 			Title:      warnMetricDisplayTexts.BotTitle,
 			Text:       warnMetricDisplayTexts.BotMessageBody,
-			Actions:    actions,
 		}}
+
+		if !warnMetric.SkipAction {
+			attachments[0].Actions = actions
+		}
+
 		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
