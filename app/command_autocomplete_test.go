@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -658,7 +659,7 @@ func (p *testCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (p *testCommandProvider) DoCommand(a *App, c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

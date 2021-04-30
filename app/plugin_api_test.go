@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -68,7 +69,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, app *App, c *Context) string {
+func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, app *App, c *request.Context) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -119,7 +120,7 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *Context) string {
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
 	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginID}, app, c)
 }
 
@@ -838,7 +839,7 @@ func TestInstallPlugin(t *testing.T) {
 	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *Context) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
 		pluginDir, err := ioutil.TempDir("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := ioutil.TempDir("", "")
@@ -1711,7 +1712,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 		DisplayName:      "mock",
 	}
 }
-func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
 	return &model.CommandResponse{

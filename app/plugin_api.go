@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -23,12 +24,12 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
-	ctx      *Context
+	ctx      *request.Context
 	logger   *mlog.SugarLogger
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c *Context, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,

@@ -21,6 +21,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -105,7 +106,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	c := &Context{
-		AppContext: &app.Context{},
+		AppContext: &request.Context{},
 		App:        h.App,
 	}
 

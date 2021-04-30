@@ -37,6 +37,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -858,11 +859,7 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	scApp := &SharedChannelApp{
-		app: app,
-		ctx: &Context{},
-	}
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, scApp)
+	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
@@ -1419,14 +1416,14 @@ func doReportUsageToAWSMeteringService(s *Server) {
 }
 
 //nolint:golint,unused,deadcode
-func runCheckWarnMetricStatusJob(a *App, c *Context) {
+func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
 	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
 		doCheckWarnMetricStatus(a, c)
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
-func runCheckAdminSupportStatusJob(a *App, c *Context) {
+func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
 	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
 		doCheckAdminSupportStatus(a, c)
@@ -1454,7 +1451,7 @@ func doSessionCleanup(s *Server) {
 }
 
 //nolint:golint,unused,deadcode
-func doCheckWarnMetricStatus(a *App, c *Context) {
+func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1597,7 +1594,7 @@ func doCheckWarnMetricStatus(a *App, c *Context) {
 	}
 }
 
-func doCheckAdminSupportStatus(a *App, c *Context) {
+func doCheckAdminSupportStatus(a *App, c *request.Context) {
 	isE0Edition := model.BuildEnterpriseReady == "true"
 
 	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {

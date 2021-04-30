@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -20,7 +21,7 @@ type AutocompleteDynamicArgProvider interface {
 }
 
 // GetSuggestions returns suggestions for user input.
-func (a *App) GetSuggestions(c *Context, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
+func (a *App) GetSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	sort.Slice(commands, func(i, j int) bool {
 		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
 	})
@@ -47,7 +48,7 @@ func (a *App) GetSuggestions(c *Context, commandArgs *model.CommandArgs, command
 	return suggestions
 }
 
-func (a *App) getSuggestions(c *Context, commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
+func (a *App) getSuggestions(c *request.Context, commandArgs *model.CommandArgs, commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
 	suggestions := []model.AutocompleteSuggestion{}
 	index := strings.Index(inputToBeParsed, " ")
 
@@ -92,7 +93,7 @@ func (a *App) getSuggestions(c *Context, commandArgs *model.CommandArgs, command
 	return suggestions
 }
 
-func (a *App) parseArguments(c *Context, commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArguments(c *request.Context, commandArgs *model.CommandArgs, args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	if len(args) == 0 {
 		return false, parsed, toBeParsed, suggestions
 	}
@@ -140,7 +141,7 @@ func (a *App) parseArguments(c *Context, commandArgs *model.CommandArgs, args []
 	return foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestions
 }
 
-func (a *App) parseArgument(c *Context, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArgument(c *request.Context, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	if arg.Name != "" { //Parse the --name first
 		found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
 		if found {
@@ -237,7 +238,7 @@ func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed stri
 	return parseListItems(a.PossibleArguments, parsed, toBeParsed)
 }
 
-func (a *App) getDynamicListArgument(c *Context, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) getDynamicListArgument(c *request.Context, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 
 	if strings.HasPrefix(dynamicArg.FetchURL, "builtin:") {
@@ -255,7 +256,7 @@ func (a *App) getDynamicListArgument(c *Context, commandArgs *model.CommandArgs,
 
 	// Encode the information normally provided to a plugin slash command handler into the request parameters
 	// Encode PluginContext:
-	pluginContext := c.pluginContext()
+	pluginContext := pluginContext(c)
 	params.Add("request_id", pluginContext.RequestId)
 	params.Add("session_id", pluginContext.SessionId)
 	params.Add("ip_address", pluginContext.IpAddress)

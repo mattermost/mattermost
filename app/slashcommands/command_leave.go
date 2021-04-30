@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -33,7 +34,7 @@ func (*LeaveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*LeaveProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {

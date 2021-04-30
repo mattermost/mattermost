@@ -29,6 +29,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -50,7 +51,7 @@ const (
 	ImageProfilePixelDimension = 128
 )
 
-func (a *App) CreateUserWithToken(c *Context, user *model.User, token *model.Token) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (a *App) CreateUserWithToken(c *Context, user *model.User, token *model.Tok
 	return ruser, nil
 }
 
-func (a *App) CreateUserWithInviteId(c *Context, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -162,7 +163,7 @@ func (a *App) CreateUserWithInviteId(c *Context, user *model.User, inviteId, red
 	return ruser, nil
 }
 
-func (a *App) CreateUserAsAdmin(c *Context, user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserAsAdmin(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError) {
 	ruser, err := a.CreateUser(c, user)
 	if err != nil {
 		return nil, err
@@ -175,7 +176,7 @@ func (a *App) CreateUserAsAdmin(c *Context, user *model.User, redirect string) (
 	return ruser, nil
 }
 
-func (a *App) CreateUserFromSignup(c *Context, user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserFromSignup(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -232,17 +233,17 @@ func (a *App) IsFirstUserAccount() bool {
 
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
-func (a *App) CreateUser(c *Context, user *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateUser(c *request.Context, user *model.User) (*model.User, *model.AppError) {
 	return a.createUserOrGuest(c, user, false)
 }
 
 // CreateGuest creates a guest and sets several fields of the returned User struct to
 // their zero values.
-func (a *App) CreateGuest(c *Context, user *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *model.AppError) {
 	return a.createUserOrGuest(c, user, true)
 }
 
-func (a *App) createUserOrGuest(c *Context, user *model.User, guest bool) (*model.User, *model.AppError) {
+func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 	if guest {
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
@@ -281,7 +282,7 @@ func (a *App) createUserOrGuest(c *Context, user *model.User, guest bool) (*mode
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := c.pluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasBeenCreated(pluginContext, user)
 				return true
@@ -339,7 +340,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c *Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -695,7 +696,7 @@ func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) (
 	return a.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
-func (a *App) GetUsersByGroupChannelIds(c *Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+func (a *App) GetUsersByGroupChannelIds(c *request.Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
 	usersByChannelId, err := a.Srv().Store.User().GetProfileByGroupChannelIdsForUser(c.Session().UserId, channelIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1049,7 +1050,7 @@ func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) userDeactivated(c *Context, userID string) *model.AppError {
+func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError {
 	if err := a.RevokeAllSessions(userID); err != nil {
 		return err
 	}
@@ -1095,7 +1096,7 @@ func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError 
 	return nil
 }
 
-func (a *App) UpdateActive(c *Context, user *model.User, active bool) (*model.User, *model.AppError) {
+func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError) {
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1132,7 +1133,7 @@ func (a *App) UpdateActive(c *Context, user *model.User, active bool) (*model.Us
 	return ruser, nil
 }
 
-func (a *App) DeactivateGuests(c *Context) *model.AppError {
+func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	userIDs, err := a.Srv().Store.User().DeactivateGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1351,7 +1352,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	return userUpdate.New, nil
 }
 
-func (a *App) UpdateUserActive(c *Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
@@ -1640,7 +1641,7 @@ func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWeb
 	return ruser, nil
 }
 
-func (a *App) PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
+func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError {
 	mlog.Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
 		mlog.Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
@@ -1753,7 +1754,7 @@ func (a *App) PermanentDeleteUser(c *Context, user *model.User) *model.AppError 
 	return nil
 }
 
-func (a *App) PermanentDeleteAllUsers(c *Context) *model.AppError {
+func (a *App) PermanentDeleteAllUsers(c *request.Context) *model.AppError {
 	users, err := a.Srv().Store.User().GetAll()
 	if err != nil {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -2216,7 +2217,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 // guest roles to regular user roles.
-func (a *App) PromoteGuestToUser(c *Context, user *model.User, requestorId string) *model.AppError {
+func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
 	nErr := a.Srv().Store.User().PromoteGuestToUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {

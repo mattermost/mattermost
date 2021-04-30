@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -78,7 +79,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	return nil
 }
 
-func (a *App) CheckAndSendUserLimitWarningEmails(c *Context) *model.AppError {
+func (a *App) CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		// Not cloud instance, do nothing
 		return nil

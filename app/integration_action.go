@@ -32,6 +32,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -39,11 +40,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) DoPostAction(c *Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
+func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
 	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(c *Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
@@ -298,7 +299,7 @@ func (a *App) DoPostActionWithCookie(c *Context, postID, actionId, userID, selec
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
-func (a *App) DoActionRequest(c *Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -362,7 +363,7 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
-func (a *App) doPluginRequest(c *Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
@@ -428,7 +429,7 @@ func (a *App) doPluginRequest(c *Context, method, rawURL string, values url.Valu
 	return resp, nil
 }
 
-func (a *App) doLocalWarnMetricsRequest(c *Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
+func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -564,7 +565,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	return mailToLinkContent.ToJson()
 }
 
-func (a *App) DoLocalRequest(c *Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
@@ -585,7 +586,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(c *Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_submission"

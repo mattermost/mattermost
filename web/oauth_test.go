@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -532,7 +532,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	defer th.TearDown()
 	c := &Context{
 		App:        th.App,
-		AppContext: &app.Context{},
+		AppContext: &request.Context{},
 		Params: &Params{
 			Service: "gitlab",
 		},

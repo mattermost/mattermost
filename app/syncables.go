@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -15,7 +16,7 @@ import (
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
 // configured to sync with channels for group members on or after the given timestamp. If a channelID is given
 // only that channel's members are created. If channelID is nil all channel memberships are created.
-func (a *App) createDefaultChannelMemberships(c *Context, since int64, channelID *string) error {
+func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID)
 	if appErr != nil {
 		return appErr
@@ -78,7 +79,7 @@ func (a *App) createDefaultChannelMemberships(c *Context, since int64, channelID
 // createDefaultTeamMemberships adds users to teams based on their group memberships and how those groups are
 // configured to sync with teams for group members on or after the given timestamp. If a teamID is given
 // only that team's members are created. If teamID is nil all team memberships are created.
-func (a *App) createDefaultTeamMemberships(c *Context, since int64, teamID *string) error {
+func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, teamID *string) error {
 	teamMembers, appErr := a.TeamMembersToAdd(since, teamID)
 	if appErr != nil {
 		return appErr
@@ -108,7 +109,7 @@ func (a *App) createDefaultTeamMemberships(c *Context, since int64, teamID *stri
 
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 // are configured to sync with teams and channels for group members on or after the given timestamp.
-func (a *App) CreateDefaultMemberships(c *Context, since int64) error {
+func (a *App) CreateDefaultMemberships(c *request.Context, since int64) error {
 	err := a.createDefaultTeamMemberships(c, since, nil)
 	if err != nil {
 		return err
@@ -124,7 +125,7 @@ func (a *App) CreateDefaultMemberships(c *Context, since int64) error {
 
 // DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 // groups of all group-constrained teams and channels.
-func (a *App) DeleteGroupConstrainedMemberships(c *Context) error {
+func (a *App) DeleteGroupConstrainedMemberships(c *request.Context) error {
 	err := a.deleteGroupConstrainedChannelMemberships(c, nil)
 	if err != nil {
 		return err
@@ -141,7 +142,7 @@ func (a *App) DeleteGroupConstrainedMemberships(c *Context) error {
 // deleteGroupConstrainedTeamMemberships deletes team memberships of users who aren't members of the allowed
 // groups of the given group-constrained team. If a teamID is given then the procedure is scoped to the given team,
 // if teamID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedTeamMemberships(c *Context, teamID *string) error {
+func (a *App) deleteGroupConstrainedTeamMemberships(c *request.Context, teamID *string) error {
 	teamMembers, appErr := a.TeamMembersToRemove(teamID)
 	if appErr != nil {
 		return appErr
@@ -165,7 +166,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(c *Context, teamID *string) 
 // deleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
 // if channelID is nil then the procedure affects all teams.
-func (a *App) deleteGroupConstrainedChannelMemberships(c *Context, channelID *string) error {
+func (a *App) deleteGroupConstrainedChannelMemberships(c *request.Context, channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
 	if appErr != nil {
 		return appErr
@@ -226,7 +227,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(c *Context, syncableID string, syncableType model.GroupSyncableType) {
+func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
 	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)

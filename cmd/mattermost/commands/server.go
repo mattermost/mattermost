@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/manualtesting"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -99,7 +100,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	if usedPlatform {
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
-	server.FinalizeInit(&app.Context{})
+	server.FinalizeInit(&request.Context{})
 
 	a := app.New(app.ServerConnector(server))
 	api := api4.Init(a, server.Router)

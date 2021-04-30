@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -68,7 +69,7 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (rp *RemoteProvider) DoCommand(a *app.App, c *app.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (rp *RemoteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
 		return responsef(args.T("api.command_remote.permission_required", map[string]interface{}{"Permission": "manage_shared_channels"}))
 	}

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
@@ -28,7 +29,7 @@ const (
 	PageDefault             = 0
 )
 
-func (a *App) CreatePostAsUser(c *Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -100,7 +101,7 @@ func (a *App) CreatePostAsUser(c *Context, post *model.Post, currentSessionId st
 	return rp, nil
 }
 
-func (a *App) CreatePostMissingChannel(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostMissingChannel(c *request.Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	channel, err := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -157,7 +158,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(c *Context, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -281,7 +282,7 @@ func (a *App) CreatePost(c *Context, post *model.Post, channel *model.Channel, t
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := c.pluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -326,7 +327,7 @@ func (a *App) CreatePost(c *Context, post *model.Post, channel *model.Channel, t
 	rPostCopy := rpost.Clone()
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := c.pluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
@@ -439,7 +440,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
-func (a *App) handlePostEvents(c *Context, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
+func (a *App) handlePostEvents(c *request.Context, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store.Team().Get(channel.TeamId)
@@ -535,7 +536,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, false, false, false, "")
@@ -615,7 +616,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := c.pluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -638,7 +639,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := c.pluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
@@ -657,7 +658,7 @@ func (a *App) UpdatePost(c *Context, post *model.Post, safeUpdate bool) (*model.
 	return rpost, nil
 }
 
-func (a *App) PatchPost(c *Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
@@ -790,7 +791,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 	return postList, nil
 }
 
-func (a *App) GetPermalinkPost(c *Context, postID string, userID string) (*model.PostList, *model.AppError) {
+func (a *App) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
 	list, nErr := a.Srv().Store.Post().Get(context.Background(), postID, false, false, false, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -1082,7 +1083,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
@@ -1156,7 +1157,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(c *Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
@@ -1189,7 +1190,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(c *Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsInTeamForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels

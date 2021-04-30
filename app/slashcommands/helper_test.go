@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -25,7 +26,7 @@ import (
 
 type TestHelper struct {
 	App          *app.App
-	Context      *app.Context
+	Context      *request.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -81,7 +82,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
-		Context:           &app.Context{},
+		Context:           &request.Context{},
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,

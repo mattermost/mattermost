@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -119,7 +120,7 @@ func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
 // command can be found, returns nil for all arguments.
-func (a *App) tryExecutePluginCommand(c *Context, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
@@ -160,7 +161,7 @@ func (a *App) tryExecutePluginCommand(c *Context, args *model.CommandArgs) (*mod
 		args.AddChannelMention(channelName, channelID)
 	}
 
-	response, appErr := pluginHooks.ExecuteCommand(c.pluginContext(), args)
+	response, appErr := pluginHooks.ExecuteCommand(pluginContext(c), args)
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {

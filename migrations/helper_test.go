@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
@@ -15,7 +16,7 @@ import (
 
 type TestHelper struct {
 	App          *app.App
-	Context      *app.Context
+	Context      *request.Context
 	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -54,7 +55,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	th := &TestHelper{
 		App:     app.New(app.ServerConnector(s)),
-		Context: &app.Context{},
+		Context: &request.Context{},
 		Server:  s,
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	date_constraints "github.com/reflog/dateconstraints"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -237,7 +238,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c *Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PERMISSION_MANAGE_TEAM)
 

@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -35,7 +36,7 @@ func NewAutoChannelCreator(a *app.App, team *model.Team, userID string) *AutoCha
 	}
 }
 
-func (cfg *AutoChannelCreator) createRandomChannel(c *app.Context) (*model.Channel, error) {
+func (cfg *AutoChannelCreator) createRandomChannel(c *request.Context) (*model.Channel, error) {
 	var displayName string
 	if cfg.Fuzzy {
 		displayName = utils.FuzzName()
@@ -59,7 +60,7 @@ func (cfg *AutoChannelCreator) createRandomChannel(c *app.Context) (*model.Chann
 	return channel, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestChannels(c *app.Context, num utils.Range) ([]*model.Channel, error) {
+func (cfg *AutoChannelCreator) CreateTestChannels(c *request.Context, num utils.Range) ([]*model.Channel, error) {
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 

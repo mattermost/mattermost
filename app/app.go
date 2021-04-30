@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -42,7 +43,7 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (s *Server) FinalizeInit(c *Context) {
+func (s *Server) FinalizeInit(c *request.Context) {
 	a := New(ServerConnector(s))
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
@@ -273,7 +274,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 }
 
 //nolint:golint,unused,deadcode
-func (a *App) notifyAdminsOfWarnMetricStatus(c *Context, warnMetricId string, isE0Edition bool) *model.AppError {
+func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -495,7 +496,7 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 	return nil
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(c *Context, warnMetricId string, isBot bool) *model.AppError {
+func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
@@ -610,4 +611,8 @@ func (a *App) DBHealthCheckDelete() error {
 
 func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
+}
+
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
 }

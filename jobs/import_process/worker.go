@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -38,7 +39,7 @@ type ImportProcessWorker struct {
 	jobsChan    chan model.Job
 	jobServer   *jobs.JobServer
 	app         *app.App
-	appContext  *app.Context
+	appContext  *request.Context
 }
 
 func (i *ImportProcessInterfaceImpl) MakeWorker() model.Worker {
@@ -49,7 +50,7 @@ func (i *ImportProcessInterfaceImpl) MakeWorker() model.Worker {
 		jobsChan:    make(chan model.Job),
 		jobServer:   i.app.Srv().Jobs,
 		app:         i.app,
-		appContext:  &app.Context{},
+		appContext:  &request.Context{},
 	}
 }
 

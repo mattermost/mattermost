@@ -20,6 +20,7 @@ import (
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
@@ -164,15 +165,15 @@ func (s *Server) syncPluginsActiveState() {
 	}
 }
 
-func (a *App) NewPluginAPI(c *Context, manifest *model.Manifest) plugin.API {
+func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
 	return NewPluginAPI(a, c, manifest)
 }
 
-func (a *App) InitPlugins(c *Context, pluginDir, webappPluginDir string) {
+func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	a.Srv().initPlugins(c, pluginDir, webappPluginDir)
 }
 
-func (s *Server) initPlugins(c *Context, pluginDir, webappPluginDir string) {
+func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	s.PluginsLock.RLock()
 	pluginsEnvironment := s.PluginsEnvironment

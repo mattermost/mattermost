@@ -16,6 +16,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -30,7 +31,7 @@ import (
 
 type TestHelper struct {
 	App          *App
-	Context      *Context
+	Context      *request.Context
 	Server       *Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -87,7 +88,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               New(ServerConnector(s)),
-		Context:           &Context{},
+		Context:           &request.Context{},
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,

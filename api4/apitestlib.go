@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -40,7 +41,7 @@ type TestHelper struct {
 	Server      *app.Server
 	ConfigStore *config.Store
 
-	Context              *app.Context
+	Context              *request.Context
 	Client               *model.Client4
 	BasicUser            *model.User
 	BasicUser2           *model.User
@@ -122,7 +123,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
-	ctx := &app.Context{}
+	ctx := &request.Context{}
 	s.FinalizeInit(ctx)
 
 	th := &TestHelper{

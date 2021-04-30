@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -31,7 +32,7 @@ var URL string
 
 type TestHelper struct {
 	App     app.AppIface
-	Context *app.Context
+	Context *request.Context
 	Server  *app.Server
 	Web     *Web
 
@@ -109,7 +110,7 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
-	ctx := &app.Context{}
+	ctx := &request.Context{}
 	a := app.New(app.ServerConnector(s))
 	a.Srv().FinalizeInit(ctx)
 

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -19,7 +20,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	AppContext    *app.Context
+	AppContext    *request.Context
 	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError

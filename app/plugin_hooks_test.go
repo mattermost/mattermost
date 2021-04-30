@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -909,12 +911,7 @@ func TestHookContext(t *testing.T) {
 	defer th.TearDown()
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	ctx := &Context{
-		requestId:      model.NewId(),
-		ipAddress:      model.NewId(),
-		acceptLanguage: model.NewId(),
-		userAgent:      model.NewId(),
-	}
+	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API

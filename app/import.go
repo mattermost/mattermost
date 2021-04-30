@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -75,7 +76,7 @@ func rewriteFilePaths(line *LineImportData, basePath string) {
 	}
 }
 
-func (a *App) bulkImportWorker(c *Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	postLines := []LineImportWorkerData{}
 	directPostLines := []LineImportWorkerData{}
 	for line := range lines {
@@ -122,15 +123,15 @@ func (a *App) bulkImportWorker(c *Context, dryRun bool, wg *sync.WaitGroup, line
 	wg.Done()
 }
 
-func (a *App) BulkImport(c *Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *App) BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	return a.bulkImport(c, fileReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	return a.bulkImport(c, fileReader, dryRun, workers, importPath)
 }
 
-func (a *App) bulkImport(c *Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -236,7 +237,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) importLine(c *Context, line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
