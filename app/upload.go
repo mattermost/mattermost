@@ -299,7 +299,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
