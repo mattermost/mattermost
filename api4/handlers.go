@@ -26,7 +26,7 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -45,7 +45,7 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -65,7 +65,7 @@ func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.
 		IsStatic:        false,
 		IsLocal:         false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -86,7 +86,7 @@ func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter,
 		IsStatic:                  false,
 		IsLocal:                   false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -106,7 +106,7 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -127,7 +127,7 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -147,7 +147,7 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -168,7 +168,7 @@ func (api *API) ApiSessionRequiredDisableWhenBusy(h func(*Context, http.Response
 		IsLocal:         false,
 		DisableWhenBusy: true,
 	}
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -191,7 +191,7 @@ func (api *API) ApiLocal(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        true,
 	}
 
-	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *api.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

@@ -102,11 +102,11 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	server.FinalizeInit(&app.Context{})
 
 	a := app.New(app.ServerConnector(server))
-	api := api4.Init(server, a, server.Router)
+	api := api4.Init(a, server.Router)
 
 	wsapi.Init(server)
-	web.New(server, a, server.Router)
-	api4.InitLocal(server, a, server.LocalRouter)
+	web.New(a, server.Router)
+	api4.InitLocal(a, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {

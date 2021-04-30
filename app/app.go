@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -32,18 +30,6 @@ type App struct {
 	// to be registered in (h *MainHelper) setupStore, but that creates
 	// a cyclic dependency as bleve tests themselves import testlib.
 	searchEngine *searchengine.Broker
-}
-
-type Context struct {
-	t              i18n.TranslateFunc
-	session        model.Session
-	requestId      string
-	ipAddress      string
-	path           string
-	userAgent      string
-	acceptLanguage string
-
-	context context.Context
 }
 
 func New(options ...AppOption) *App {
@@ -564,38 +550,6 @@ func (a *App) Log() *mlog.Logger {
 func (a *App) NotificationsLog() *mlog.Logger {
 	return a.srv.NotificationsLog
 }
-func (c *Context) T(translationID string, args ...interface{}) string {
-	return c.t(translationID, args...)
-}
-func (c *Context) Session() *model.Session {
-	return &c.session
-}
-func (c *Context) RequestId() string {
-	return c.requestId
-}
-func (c *Context) IpAddress() string {
-	return c.ipAddress
-}
-func (c *Context) Path() string {
-	return c.path
-}
-func (c *Context) UserAgent() string {
-	return c.userAgent
-}
-func (c *Context) AcceptLanguage() string {
-	return c.acceptLanguage
-}
-
-func (c *Context) pluginContext() *plugin.Context {
-	context := &plugin.Context{
-		RequestId:      c.RequestId(),
-		SessionId:      c.Session().Id,
-		IpAddress:      c.IpAddress(),
-		AcceptLanguage: c.AcceptLanguage(),
-		UserAgent:      c.UserAgent(),
-	}
-	return context
-}
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
@@ -638,41 +592,6 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 }
 func (a *App) Timezones() *timezones.Timezones {
 	return a.srv.timezones
-}
-func (c *Context) Context() context.Context {
-	return c.context
-}
-
-func (c *Context) SetSession(s *model.Session) {
-	c.session = *s
-}
-
-func (c *Context) SetT(t i18n.TranslateFunc) {
-	c.t = t
-}
-func (c *Context) SetRequestId(s string) {
-	c.requestId = s
-}
-func (c *Context) SetIpAddress(s string) {
-	c.ipAddress = s
-}
-func (c *Context) SetUserAgent(s string) {
-	c.userAgent = s
-}
-func (c *Context) SetAcceptLanguage(s string) {
-	c.acceptLanguage = s
-}
-func (c *Context) SetPath(s string) {
-	c.path = s
-}
-func (c *Context) SetContext(ctx context.Context) {
-	c.context = ctx
-}
-func (a *App) SetServer(srv *Server) {
-	a.srv = srv
-}
-func (c *Context) GetT() i18n.TranslateFunc {
-	return c.t
 }
 
 func (a *App) DBHealthCheckWrite() error {

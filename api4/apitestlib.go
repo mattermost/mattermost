@@ -167,9 +167,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
-	Init(th.Server, th.App, th.App.Srv().Router)
-	InitLocal(th.Server, th.App, th.App.Srv().LocalRouter)
-	web.New(th.Server, th.App, th.App.Srv().Router)
+	Init(th.App, th.App.Srv().Router)
+	InitLocal(th.App, th.App.Srv().LocalRouter)
+	web.New(th.App, th.App.Srv().Router)
 	wsapi.Init(th.App.Srv())
 
 	if enterprise {

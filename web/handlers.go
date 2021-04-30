@@ -54,7 +54,7 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
 
 	return &Handler{
 		App:            w.app,
@@ -402,7 +402,7 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -422,7 +422,7 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -441,7 +441,7 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

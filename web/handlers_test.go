@@ -25,7 +25,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	web := New(th.Server, th.App, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPErrors)
 
 	var flagtests = []struct {
@@ -84,7 +84,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := New(th.Server, th.App, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
 	request := httptest.NewRequest("GET", "/api/v4/test", nil)
@@ -136,7 +136,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	web := New(th.Server, th.App, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 
 	handler := Handler{
 		App:            web.app,
@@ -263,7 +263,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.Server, th.App, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
 			App:            web.app,
@@ -285,7 +285,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.Server, th.App, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
 			App:            web.app,
@@ -325,7 +325,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
 		})
 
-		web := New(th.Server, th.App, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
 			App:            web.app,
@@ -380,7 +380,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
 			})
 
-			web := New(th.Server, th.App, th.Server.Router)
+			web := New(th.App, th.Server.Router)
 
 			handler := Handler{
 				App:            web.app,
