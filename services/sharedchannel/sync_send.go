@@ -342,7 +342,7 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 		mlog.String("channel_id", task.channelID),
 		mlog.Int64("lastSyncAt", scr.NextSyncAt),
 		mlog.Int64("nextSince", nextSince),
-		mlog.Int("count", len(posts)),
+		mlog.Int("post_count", len(posts)),
 		mlog.Bool("repeat", repeat),
 	)
 
