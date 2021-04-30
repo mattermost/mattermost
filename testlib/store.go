@@ -59,7 +59,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
-	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 

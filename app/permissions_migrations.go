@@ -70,7 +70,8 @@ const (
 	PermissionReadPrivateChannelGroups       = "read_private_channel_groups"
 	PermissionEditBrand                      = "edit_brand"
 	PermissionManageSharedChannels           = "manage_shared_channels"
-	PermissionManageRemoteClusters           = "manage_remote_clusters"
+	PermissionManageSecureConnections        = "manage_secure_connections"
+	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -525,13 +526,24 @@ func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
-func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
+func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// add the new permission to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PermissionManageRemoteClusters},
-		},
-	}, nil
+			Add: []string{PermissionManageSecureConnections},
+		})
+
+	// remote the decprecated permission from system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Remove: []string{PermissionManageRemoteClusters},
+		})
+
+	return transformations, nil
 }
 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
@@ -910,7 +922,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Migration: a.getAddConvertChannelPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Migration: a.getAddManageSecureConnectionsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
