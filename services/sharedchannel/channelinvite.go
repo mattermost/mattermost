@@ -38,7 +38,7 @@ func WithDirectParticipantID(participantID string) InviteOption {
 // SendChannelInvite asynchronously sends a channel invite to a remote cluster. The remote cluster is
 // expected to create a new channel with the same channel id, and respond with status OK.
 // If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
-func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...InviteOption) error {
+func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...InviteOption) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channel.Id)
@@ -82,7 +82,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 
 		scr := &model.SharedChannelRemote{
 			ChannelId:         sc.ChannelId,
-			Description:       description,
 			CreatorId:         userId,
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
@@ -165,7 +164,6 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	sharedChannelRemote := &model.SharedChannelRemote{
 		Id:                model.NewId(),
 		ChannelId:         channel.Id,
-		Description:       invite.DisplayName,
 		CreatorId:         channel.CreatorId,
 		IsInviteAccepted:  true,
 		IsInviteConfirmed: true,
