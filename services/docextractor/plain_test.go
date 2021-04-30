@@ -35,7 +35,7 @@ func TestSmallBinaryFile(t *testing.T) {
 	extractor := plainExtractor{}
 	notUTF8Char := byte(0x7)
 	content := bytes.Repeat([]byte{notUTF8Char}, 1000)
-	extractedText, err := extractor.Extract("test.bin", bytes.NewReader([]byte(content)))
+	extractedText, err := extractor.Extract("test.bin", bytes.NewReader(content))
 	require.NoError(t, err)
 	require.Equal(t, "", extractedText)
 }
@@ -44,7 +44,7 @@ func TestBigBinaryFile(t *testing.T) {
 	extractor := plainExtractor{}
 	notUTF8Char := byte(0x7)
 	content := bytes.Repeat([]byte{notUTF8Char}, 10000)
-	extractedText, err := extractor.Extract("test.bin", bytes.NewReader([]byte(content)))
+	extractedText, err := extractor.Extract("test.bin", bytes.NewReader(content))
 	require.NoError(t, err)
 	require.Equal(t, "", extractedText)
 }
