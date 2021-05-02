@@ -9068,7 +9068,7 @@
   },
   {
     "id": "system.message.name",
-    "translation": "System"
+    "translation": "Info"
   },
   {
     "id": "web.command_webhook.command.app_error",
