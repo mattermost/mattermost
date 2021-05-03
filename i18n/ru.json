@@ -9242,5 +9242,33 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Не удалось сбросить поле AuthData в Email."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Не удалось отправить письмо об окончании пробной подписки"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Ваша бесплатная 14-дневная пробная версия Mattermost заканчивается сегодня"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Завершение пробной подписки на Mattermost cloud"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Начать подписку"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Установите email-адрес службы поддержки"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Введенный текст превышает лимит символов. Назначение канала ограничено {{.MaxLength}} символами."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Введенный текст превышает лимит символов. Заголовок канала ограничен {{.MaxLength}} символами."
   }
 ]
