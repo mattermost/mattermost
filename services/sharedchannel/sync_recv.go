@@ -62,7 +62,7 @@ func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster
 
 	if channel == nil {
 		if channel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
-			// if the channel doesn't exist then none of these sync messages are going to work.
+			// if the channel doesn't exist then none of these sync items are going to work.
 			return fmt.Errorf("channel not found processing sync message: %w", err)
 		}
 	}

@@ -53,6 +53,14 @@ func (sd *syncData) String() string {
 	return fmt.Sprintf("{rc:%s, ch:%s, nextSyncAt:%d, retry:%d}", sd.rc.Name, sd.task.channelID, sd.nextSyncAt, sd.task.retryCount)
 }
 
+func (sd *syncData) isEmpty() bool {
+	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.attachments) == 0
+}
+
+func (sd *syncData) hasMsgData() bool {
+	return len(sd.users) != 0 || len(sd.posts) != 0 || len(sd.reactions) != 0
+}
+
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
@@ -123,7 +131,15 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return fmt.Errorf("cannot fetch post attachments for sync %v: %w", sd, err)
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task counts",
+	if sd.isEmpty() {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Not sending sync data; everything filtered out",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("channel_id", task.channelID),
+		)
+		return nil
+	}
+
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sending sync data",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("channel_id", task.channelID),
 		mlog.Bool("repeat", sd.resultRepeat),
