@@ -7310,16 +7310,16 @@ func (s *OpenTracingLayerSharedChannelStore) GetUser(userID string) ([]*model.Sh
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.User, error) {
+func (s *OpenTracingLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetUsers")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetUsersForSync")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.SharedChannelStore.GetUsers(filter)
+	result, err := s.SharedChannelStore.GetUsersForSync(filter)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7508,7 +7508,7 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, s
 	return err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+func (s *OpenTracingLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateUserLastSyncAt")
 	s.Root.Store.SetContext(newCtx)
@@ -7517,7 +7517,7 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syn
 	}()
 
 	defer span.Finish()
-	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -307,12 +307,12 @@ func (_m *SharedChannelStore) GetUser(userID string) ([]*model.SharedChannelUser
 	return r0, r1
 }
 
-// GetUsers provides a mock function with given fields: filter
-func (_m *SharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.User, error) {
+// GetUsersForSync provides a mock function with given fields: filter
+func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	ret := _m.Called(filter)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(model.SharedChannelUserFilter) []*model.User); ok {
+	if rf, ok := ret.Get(0).(func(model.GetUsersForSyncFilter) []*model.User); ok {
 		r0 = rf(filter)
 	} else {
 		if ret.Get(0) != nil {
@@ -321,7 +321,7 @@ func (_m *SharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(model.SharedChannelUserFilter) error); ok {
+	if rf, ok := ret.Get(1).(func(model.GetUsersForSyncFilter) error); ok {
 		r1 = rf(filter)
 	} else {
 		r1 = ret.Error(1)
@@ -538,13 +538,13 @@ func (_m *SharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) 
 	return r0
 }
 
-// UpdateUserLastSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
-	ret := _m.Called(id, syncTime)
+// UpdateUserLastSyncAt provides a mock function with given fields: userID, channelID, remoteID
+func (_m *SharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
+	ret := _m.Called(userID, channelID, remoteID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(id, syncTime)
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(userID, channelID, remoteID)
 	} else {
 		r0 = ret.Error(0)
 	}

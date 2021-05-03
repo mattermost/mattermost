@@ -211,12 +211,11 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 	return nil
 }
 
-type SharedChannelUserFilter struct {
-	UserID          string
-	ChannelID       string
-	ExcludeRemoteID string
-	LastSyncAt      int64
-	Limit           int
+type GetUsersForSyncFilter struct {
+	CheckProfileImage bool
+	ChannelID         string
+	ExcludeRemoteID   string
+	Limit             uint64
 }
 
 // SharedChannelAttachment stores a lastSyncAt timestamp on behalf of a remote cluster for

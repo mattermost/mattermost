@@ -6600,10 +6600,10 @@ func (s *TimerLayerSharedChannelStore) GetUser(userID string) ([]*model.SharedCh
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFilter) ([]*model.User, error) {
+func (s *TimerLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetUsers(filter)
+	result, err := s.SharedChannelStore.GetUsersForSync(filter)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6611,7 +6611,7 @@ func (s *TimerLayerSharedChannelStore) GetUsers(filter model.SharedChannelUserFi
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUsers", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUsersForSync", success, elapsed)
 	}
 	return result, err
 }
@@ -6776,10 +6776,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTim
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

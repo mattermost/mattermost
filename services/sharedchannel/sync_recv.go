@@ -50,18 +50,21 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 	var channel *model.Channel
 	var team *model.Team
 
-	postErrors := make([]string, 0)
-	usersSyncd := make([]string, 0)
-	var lastSyncAt int64
 	var err error
+	syncResp := SyncResponse{
+		UserErrors:     make([]string, 0),
+		UsersSyncd:     make([]string, 0),
+		PostErrors:     make([]string, 0),
+		ReactionErrors: make([]string, 0),
+	}
 
 	for _, sm := range syncMessages {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
-			mlog.String("post_id", sm.PostId),
+			mlog.String("remote", rc.Name),
 			mlog.String("channel_id", sm.ChannelId),
-			mlog.Int("reaction_count", len(sm.Reactions)),
 			mlog.Int("user_count", len(sm.Users)),
-			mlog.Bool("has_post", sm.Post != nil),
+			mlog.Int("post_count", len(sm.Posts)),
+			mlog.Int("reaction_count", len(sm.Reactions)),
 		)
 
 		if channel == nil {
@@ -75,28 +78,32 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 		for _, user := range sm.Users {
 			if userSaved, err := scs.upsertSyncUser(user, channel, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
-					mlog.String("post_id", sm.PostId),
+					mlog.String("remote", rc.Name),
 					mlog.String("channel_id", sm.ChannelId),
 					mlog.String("user_id", user.Id),
 					mlog.Err(err))
 			} else {
-				usersSyncd = append(usersSyncd, userSaved.Id)
+				syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
+				if syncResp.UsersLastUpdateAt < user.UpdateAt {
+					syncResp.UsersLastUpdateAt = user.UpdateAt
+				}
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "User upserted via sync",
-					mlog.String("post_id", sm.PostId),
+					mlog.String("remote", rc.Name),
 					mlog.String("channel_id", sm.ChannelId),
 					mlog.String("user_id", user.Id),
 				)
 			}
 		}
 
-		if sm.Post != nil {
-			if sm.ChannelId != sm.Post.ChannelId {
+		for _, post := range sm.Posts {
+			if sm.ChannelId != sm.ChannelId {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch",
+					mlog.String("remote", rc.Name),
 					mlog.String("sm.ChannelId", sm.ChannelId),
-					mlog.String("sm.Post.ChannelId", sm.Post.ChannelId),
-					mlog.String("PostId", sm.Post.Id),
+					mlog.String("sm.Post.ChannelId", post.ChannelId),
+					mlog.String("PostId", post.Id),
 				)
-				postErrors = append(postErrors, sm.Post.Id)
+				syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 				continue
 			}
 
@@ -105,31 +112,33 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 				team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(sm.ChannelId)
 				if err2 != nil {
 					scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
-						mlog.String("ChannelId", sm.Post.ChannelId),
-						mlog.String("PostId", sm.Post.Id),
+						mlog.String("ChannelId", post.ChannelId),
+						mlog.String("PostId", post.Id),
+						mlog.String("remote", rc.Name),
 						mlog.Err(err2),
 					)
-					postErrors = append(postErrors, sm.Post.Id)
+					syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 					continue
 				}
 			}
 
 			// process perma-links for remote
 			if team != nil {
-				sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
+				post.Message = scs.processPermalinkFromRemote(post, team)
 			}
 
 			// add/update post
-			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
+			rpost, err := scs.upsertSyncPost(post, channel, rc)
 			if err != nil {
-				postErrors = append(postErrors, sm.Post.Id)
+				syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
-					mlog.String("post_id", sm.Post.Id),
-					mlog.String("channel_id", sm.Post.ChannelId),
+					mlog.String("post_id", post.Id),
+					mlog.String("channel_id", post.ChannelId),
+					mlog.String("remote", rc.Name),
 					mlog.Err(err),
 				)
-			} else if lastSyncAt < rpost.UpdateAt {
-				lastSyncAt = rpost.UpdateAt
+			} else if syncResp.PostsLastUpdateAt < rpost.UpdateAt {
+				syncResp.PostsLastUpdateAt = rpost.UpdateAt
 			}
 		}
 
@@ -137,6 +146,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 		for _, reaction := range sm.Reactions {
 			if _, err := scs.upsertSyncReaction(reaction, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync reaction",
+					mlog.String("remote", rc.Name),
 					mlog.String("user_id", reaction.UserId),
 					mlog.String("post_id", reaction.PostId),
 					mlog.String("emoji", reaction.EmojiName),
@@ -145,23 +155,18 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 				)
 			} else {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Reaction upserted via sync",
+					mlog.String("remote", rc.Name),
 					mlog.String("user_id", reaction.UserId),
 					mlog.String("post_id", reaction.PostId),
 					mlog.String("emoji", reaction.EmojiName),
 					mlog.Int64("delete_at", reaction.DeleteAt),
 				)
 
-				if lastSyncAt < reaction.UpdateAt {
-					lastSyncAt = reaction.UpdateAt
+				if syncResp.ReactionsLastUpdateAt < reaction.UpdateAt {
+					syncResp.ReactionsLastUpdateAt = reaction.UpdateAt
 				}
 			}
 		}
-	}
-
-	syncResp := SyncResponse{
-		LastSyncAt: lastSyncAt, // might be zero
-		PostErrors: postErrors, // might be empty
-		UsersSyncd: usersSyncd, // might be empty
 	}
 
 	response.SetPayload(syncResp)

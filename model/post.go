@@ -472,6 +472,14 @@ func (o *Post) IsRemote() bool {
 	return o.RemoteId != nil && *o.RemoteId != ""
 }
 
+// GetRemoteID safely returns the remoteID or empty string if not remote.
+func (o *Post) GetRemoteID() string {
+	if o.RemoteId != nil {
+		return *o.RemoteId
+	}
+	return ""
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
 	return o.Type == POST_JOIN_LEAVE ||
 		o.Type == POST_ADD_REMOVE ||
