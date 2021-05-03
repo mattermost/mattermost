@@ -532,7 +532,11 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(readOnlyConfig)
+		newReadOnlyConfig := readOnlyConfig.Clone()
+		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
+			SiteURL: model.NewString("http://test"),
+		}
+		_, err = fs.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
 			assert.Equal(t, ErrReadOnlyConfiguration, errors.Cause(err))
 		}
@@ -579,7 +583,7 @@ func TestFileStoreSet(t *testing.T) {
 		}
 		fs.AddListener(callback)
 
-		newCfg := &model.Config{}
+		newCfg := minimalConfig
 
 		_, err = fs.Set(newCfg)
 		require.NoError(t, err)
@@ -601,7 +605,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(&model.Config{})
+		_, err = fs.Set(minimalConfig)
 		require.NoError(t, err)
 
 		// Let the initial call to invokeConfigListeners finish.
@@ -832,6 +836,25 @@ func TestFileStoreLoad(t *testing.T) {
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
+	})
+
+	t.Run("invalid environment value", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "invalid_url")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		newCfg := minimalConfig
+		_, err = fs.Set(newCfg)
+		require.Error(t, err)
+		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 	})
 
 	t.Run("fixes required", func(t *testing.T) {

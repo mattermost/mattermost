@@ -4,7 +4,6 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"reflect"
 	"sync"
@@ -177,8 +176,9 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	}
 
 	oldCfg := s.config.Clone()
+	oldCfgNoEnv := s.configNoEnv.Clone()
 
-	// Really just for some tests we need to set defaults here
+	// Setting defaults allows us to accept partial config objects.
 	newCfg.SetDefaults()
 
 	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
@@ -189,21 +189,40 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
-	newCfg = removeEnvOverrides(newCfg, s.configNoEnv, s.GetEnvironmentOverrides())
+	newCfgNoEnv := removeEnvOverrides(newCfg, oldCfgNoEnv, s.GetEnvironmentOverrides())
 
 	// Don't persist feature flags unless we are on MM cloud
 	// MM cloud uses config in the DB as a cache of the feature flag
 	// settings in case the management system is down when a pod starts.
 	if !s.persistFeatureFlags {
-		newCfg.FeatureFlags = nil
+		newCfgNoEnv.FeatureFlags = nil
+		oldCfgNoEnv.FeatureFlags = nil
 	}
 
-	if err := s.backingStore.Set(newCfg); err != nil {
-		return nil, errors.Wrap(err, "failed to persist")
+	hasChanged, err := confsDiff(oldCfgNoEnv, newCfgNoEnv)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to compare configs")
 	}
 
-	if err := s.loadLockedWithOld(oldCfg, &unlockOnce); err != nil {
-		return nil, errors.Wrap(err, "failed to load on save")
+	if hasChanged {
+		if err := s.backingStore.Set(newCfgNoEnv); err != nil {
+			return nil, errors.Wrap(err, "failed to persist")
+		}
+	}
+
+	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
+	fixConfig(newCfg)
+	if err := newCfg.IsValid(); err != nil {
+		return nil, errors.Wrap(err, "new configuration is invalid")
+	}
+
+	s.configNoEnv = newCfgNoEnv
+	s.config = newCfg
+
+	unlockOnce.Do(s.configLock.Unlock)
+
+	if hasChanged {
+		s.invokeConfigListeners(oldCfg, newCfg)
 	}
 
 	return oldCfg, nil
@@ -222,8 +241,6 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		}
 	}
 
-	loadedFeatureFlags := loadedConfig.FeatureFlags
-
 	// If we have custom defaults set, the initial config is merged on
 	// top of them and we delete them not to be used again in the
 	// configuration reloads
@@ -238,54 +255,37 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 
 	loadedConfig.SetDefaults()
 
-	s.configNoEnv = loadedConfig.Clone()
-	fixConfig(s.configNoEnv)
+	if !s.persistFeatureFlags {
+		oldCfg.FeatureFlags = nil
+		loadedConfig.FeatureFlags = nil
+	}
+
+	loadedConfigNoEnv := loadedConfig.Clone()
+	fixConfig(loadedConfigNoEnv)
 
 	loadedConfig = applyEnvironmentMap(loadedConfig, GetEnvironment())
-
 	fixConfig(loadedConfig)
-
 	if err := loadedConfig.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid config")
 	}
 
 	// Apply changes that may have happened on load to the backing store.
-	oldCfgBytes, err := json.Marshal(oldCfg)
+	hasChanged, err := confsDiff(oldCfg, loadedConfig)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal old config")
-	}
-	newCfgBytes, err := json.Marshal(loadedConfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal loaded config")
+		return errors.Wrap(err, "failed to compare configs")
 	}
 
-	var shouldStore bool
-	hasChanged := len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)
-	if hasChanged {
-		featureFlags := s.configNoEnv.FeatureFlags
-		// Don't persist feature flags unless we are on MM cloud
-		// MM cloud uses config in the DB as a cache of the feature flag
-		// settings in case the management system is down when a pod starts.
-		if !s.persistFeatureFlags {
-			s.configNoEnv.FeatureFlags = loadedFeatureFlags
-		}
-		toStoreBytes, err := json.Marshal(s.configNoEnv)
-		if err != nil {
-			return errors.Wrap(err, "failed to marshal old config")
-		}
-		shouldStore = !bytes.Equal(toStoreBytes, configBytes)
-		// We write back to the backing store only if
-		// the config has changed and the store is not read-only.
-		if !s.readOnly && shouldStore {
-			err := s.backingStore.Set(s.configNoEnv)
-			s.configNoEnv.FeatureFlags = featureFlags
-			if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
-				return errors.Wrap(err, "failed to persist")
-			}
+	// We write back to the backing store only if the store is not read-only
+	// and the config has either changed or is missing.
+	if !s.readOnly && (hasChanged || len(configBytes) == 0) {
+		err := s.backingStore.Set(loadedConfigNoEnv)
+		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
+			return errors.Wrap(err, "failed to persist")
 		}
 	}
 
 	s.config = loadedConfig
+	s.configNoEnv = loadedConfigNoEnv
 
 	unlockOnce.Do(s.configLock.Unlock)
 

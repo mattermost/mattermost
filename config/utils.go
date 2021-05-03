@@ -4,7 +4,9 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -244,4 +246,16 @@ func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
 		}
 	}
 	return nil, false
+}
+
+func confsDiff(oldCfg, newCfg *model.Config) (bool, error) {
+	oldCfgBytes, err := json.Marshal(oldCfg)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal old config: %w", err)
+	}
+	newCfgBytes, err := json.Marshal(newCfg)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal new config: %w", err)
+	}
+	return !bytes.Equal(oldCfgBytes, newCfgBytes), nil
 }

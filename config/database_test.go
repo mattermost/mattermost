@@ -553,7 +553,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, err = db.Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
-		newCfg := &model.Config{}
+		newCfg := minimalConfig
 
 		_, err = ds.Set(newCfg)
 		require.Error(t, err)
@@ -596,7 +596,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		}
 		ds.AddListener(callback)
 
-		newCfg := &model.Config{}
+		newCfg := minimalConfig
 
 		_, err = ds.Set(newCfg)
 		require.NoError(t, err)

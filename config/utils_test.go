@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -275,4 +276,29 @@ func TestIsJSONMap(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfsDiff(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		diff, err := confsDiff(nil, nil)
+		require.NoError(t, err)
+		require.False(t, diff)
+	})
+
+	t.Run("no diff", func(t *testing.T) {
+		old := minimalConfig.Clone()
+		new := minimalConfig.Clone()
+		diff, err := confsDiff(old, new)
+		require.NoError(t, err)
+		require.False(t, diff)
+	})
+
+	t.Run("diff", func(t *testing.T) {
+		old := minimalConfig.Clone()
+		new := minimalConfig.Clone()
+		new.SqlSettings = model.SqlSettings{}
+		diff, err := confsDiff(old, new)
+		require.NoError(t, err)
+		require.True(t, diff)
+	})
 }
