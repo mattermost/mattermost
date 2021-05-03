@@ -803,7 +803,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
@@ -1061,7 +1061,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)

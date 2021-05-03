@@ -177,6 +177,7 @@ func TestPreparePostForClient(t *testing.T) {
 		defer th.TearDown()
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo.Content = "test"
 		require.Nil(t, err)
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{

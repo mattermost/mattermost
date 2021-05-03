@@ -300,7 +300,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)

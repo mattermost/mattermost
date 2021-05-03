@@ -42,7 +42,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	if !*a.Config().FileSettings.ExtractContent || !a.Config().FeatureFlags.FilesSearch {
+	if !*a.Config().FileSettings.ExtractContent {
 		return errors.New("ERROR: Document extraction is not enabled")
 	}
 

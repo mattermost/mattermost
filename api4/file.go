@@ -734,11 +734,6 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.FilesSearch {
-		c.Err = model.NewAppError("searchFiles", "api.post.search_files.not_implemented.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
