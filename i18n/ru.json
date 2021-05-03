@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Ошибка обновления текущего канала."
+    "translation": "Ошибка обновления заголовка канала."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Ошибка обновления текущего канала."
+    "translation": "Ошибка обновления цели канала."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -8845,23 +8845,23 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Добавить/удалить удалённые кластеры. Доступные действия: {{.Actions}}"
+    "translation": "Добавить/удалить безопасные соединения. Доступные действия: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Для управления удалёнными кластерами требуется разрешение `{{.Permission}}`."
+    "translation": "Для управления безопасными соединениями требуется разрешение `{{.Permission}}`."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Отображаемое имя для удаленного кластера"
+    "translation": "Уникальное имя для безопасного соединения"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Имя удаленного кластера"
+    "translation": "Имя защищенного соединения"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "удалённый"
+    "translation": "безопасное-соединение"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8885,7 +8885,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Пригласить удалённый кластер"
+    "translation": "Создать защищенное соединение"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8893,11 +8893,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "Зашифрованное приглашение от удаленного кластера"
+    "translation": "Зашифрованное приглашение от защищенного соединения"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Приглашение от удаленного кластера"
+    "translation": "Приглашение от защищенного соединения"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -8909,7 +8909,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Не удалось получить удалённые кластеры: {{.Error}}"
+    "translation": "Не удалось получить безопасные соединения: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -8925,11 +8925,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Удалённый кластер {{.RemoteId}} {{.Result}}."
+    "translation": "Безопасное соединение {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Не удалось добавить удалённый кластер: {{.Error}}"
+    "translation": "Не удалось добавить безопасное соединение: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -9169,11 +9169,11 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Отображаемое имя удалённого кластера"
+    "translation": "Отображаемое имя безопасного соединения"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Отображаемое имя удалённого кластера"
+    "translation": "Отображаемое имя безопасного соединения"
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
