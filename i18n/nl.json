@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Fout bij het bijwerken van het huidige kanaal."
+    "translation": "Fout bij het wijzigen van de kanaalhoofding."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Fout bij het bijwerken van het huidige kanaal."
+    "translation": "Fout bij het wijzigen van het kanaaldoel."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -4100,11 +4100,11 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'"
+    "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'."
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Ongeldige URL. Een geldige URL begint met http:// of https://"
+    "translation": "Service Provider Login URL moet een geldige URl zijn, die begint met http:// of https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4136,7 +4136,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Ikoon URL moet een geldige URl zijn, die begint met http:// of https://"
+    "translation": "Site URL moet een geldige URl zijn, die begint met http:// of https://."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4148,7 +4148,7 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "Ongeldige maximale levensduur voor verbinding voor SQL-instellingen. Moet een niet-negatief getal zijn."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4156,7 +4156,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogramma bij SQL intellingen. Keuze uit mysql of postgres"
+    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4172,27 +4172,27 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Ongeldig teamgenoot-weergave. Moet 'full_name', 'nickname_full_name' of 'username' zijn."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
-    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
+    "translation": "Tijd tussen gebruiker die updates plaatst mag niet worden ingesteld op minder dan 1000 milliseconden."
   },
   {
     "id": "model.config.is_valid.tls_cert_file_missing.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Ongeldige waarde voor TLS-certificaatbestand - Gebruik LetsEncrypt of zet pad naar bestaand certificaatbestand."
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Ongeldige waarde voor TLS-sleutelbestand - Gebruik LetsEncrypt of zet pad naar bestaand sleutelbestand."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Ongeldige waarde doorgegeven voor TLS-codering overschrijven cipher -Raadpleeg de documentatie voor geldige waarden."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
+    "translation": "Ongeldige waarde voor beveiliging van de webserververbinding."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
@@ -4200,27 +4200,27 @@
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Invalid value for write timeout."
+    "translation": "Ongeldige waarde voor schrijftimeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Creata at moet een geldige tijd zijn."
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Ongeldig emoji id"
+    "translation": "Ongeldig emoji id."
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Naam moet 1 tot 64 kleine letters bevatten"
+    "translation": "Naam moet 1 tot 64 kleine letters bevatten."
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Bijgewerkt op moet een geldige tijd zijn"
+    "translation": "Update at op moet een geldige tijd zijn."
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig creator id."
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4228,27 +4228,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at."
+    "translation": "Ongeldige waarde voor create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Invalid value for id."
+    "translation": "Ongeldige waarde voor id."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "Invalid value for path."
+    "translation": "Ongeldige waarde voor pad."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Invalid value for post_id."
+    "translation": "Ongeldige waarde voor post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Invalid value for update_at."
+    "translation": "Ongeldige waarde voor update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Invalid value for user_id."
+    "translation": "Ongeldige waarde voor user_id."
   },
   {
     "id": "model.group.create_at.app_error",
@@ -8768,7 +8768,7 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Kon externe cluster niet toevoegen: {{.Error}}"
+    "translation": "Kon beveiligde verbinding niet toevoegen: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -9128,7 +9128,7 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Externe cluster {{.RemoteId}} {{.Result}}."
+    "translation": "Beveiligde verbinding {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -9265,5 +9265,21 @@
   {
     "id": "api.templates.cloud_trial_ended_email.start_subscription",
     "translation": "Start abonnement"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Ga naar **Systeem console > Site Configuratie > Customisatie om het [ondersteuningse-mailadres](https://docs.mattermost.com/administration/config-settings.html#support-email) in te stellen als het interne IT helpdesk e-mailadres van je organisatie voor feedback van eindgebruikers, e-mail notificaties en support verzoeken."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Stel je e-mailadres voor ondersteuning in"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. Het doel van het kanaal is beperkt tot {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. De hoofding van het kanaal is gelimiteerd tot {{.MaxLength}} tekens."
   }
 ]
