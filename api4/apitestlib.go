@@ -123,15 +123,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic(err)
 	}
 
-	ctx := &request.Context{}
-	s.FinalizeInit(ctx)
-
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           ctx,
+		Context:           &request.Context{},
 	}
 
 	// TODO-Context: investigate this black magic

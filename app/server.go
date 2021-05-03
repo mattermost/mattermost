@@ -76,10 +76,9 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
-	sqlStore           *sqlstore.SqlStore
-	Store              store.Store
-	WebSocketRouter    *WebSocketRouter
-	AppInitializedOnce sync.Once
+	sqlStore        *sqlstore.SqlStore
+	Store           store.Store
+	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -175,6 +174,7 @@ type Server struct {
 	joinCluster       bool
 	startMetrics      bool
 	startSearchEngine bool
+	skipPostInit      bool
 
 	SearchEngine *searchengine.Broker
 
@@ -636,6 +636,46 @@ func NewServer(options ...Option) (*Server, error) {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
+	}
+
+	if s.skipPostInit {
+		return s, nil
+	}
+
+	c := request.EmptyContext()
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	}
+
+	s.doAppMigrations()
+
+	s.initPostMetadata()
+
+	s.initPlugins(c, *s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+		} else {
+			s.ShutDownPlugins()
+		}
+	})
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(fakeApp, c)
+		})
+		s.runJobs()
 	}
 
 	return s, nil

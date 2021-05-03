@@ -124,8 +124,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.tempWorkspace = tempWorkspace
 	}
 
-	th.App.Srv().FinalizeInit(th.Context)
-
 	return th
 }
 

@@ -54,7 +54,6 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()
 	}
-	s.FinalizeInit(&request.Context{})
 
 	return a, nil
 }

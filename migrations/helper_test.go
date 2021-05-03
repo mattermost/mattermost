@@ -42,6 +42,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+	options = append(options, app.SkipPostInitializiation())
 
 	s, err := app.NewServer(options...)
 	if err != nil {

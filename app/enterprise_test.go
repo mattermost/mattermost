@@ -65,6 +65,7 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
+
 			defer th.TearDown()
 
 			mockStore := th.App.Srv().Store.(*storemocks.Store)
@@ -87,7 +88,6 @@ func TestSAMLSettings(t *testing.T) {
 				})
 			}
 
-			th.Server.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {

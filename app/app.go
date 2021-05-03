@@ -43,44 +43,6 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (s *Server) FinalizeInit(c *request.Context) {
-	a := New(ServerConnector(s))
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := a.DeactivateGuests(c); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-			}
-		}
-	})
-
-	// Disable active guest accounts on first run if guest accounts are disabled
-	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := a.DeactivateGuests(c); appErr != nil {
-			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-		}
-	}
-
-	s.doAppMigrations()
-
-	s.initPostMetadata()
-
-	s.initPlugins(c, *s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if *cfg.PluginSettings.Enable {
-			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-		} else {
-			s.ShutDownPlugins()
-		}
-	})
-	if s.runEssentialJobs {
-		s.Go(func() {
-			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(a, c)
-		})
-		s.runJobs()
-	}
-}
-
 func (a *App) TelemetryId() string {
 	return a.Srv().TelemetryId()
 }
