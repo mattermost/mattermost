@@ -158,6 +158,7 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
+	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
 	sharedChannelService SharedChannelServiceIFace
 
@@ -1903,12 +1904,16 @@ func (s *Server) GetStore() store.Store {
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.remoteClusterService
 }
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.sharedChannelService
 }
 
@@ -1921,12 +1926,16 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
 func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.remoteClusterService = remoteClusterService
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
 }
 

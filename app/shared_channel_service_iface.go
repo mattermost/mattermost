@@ -27,7 +27,7 @@ func MockOptionSharedChannelServiceWithActive(active bool) MockOptionSharedChann
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...MockOptionSharedChannelService) *mockSharedChannelService {
-	mrcs := &mockSharedChannelService{service, true, []string{}, 0}
+	mrcs := &mockSharedChannelService{service, true, []string{}, []string{}, 0}
 	for _, option := range options {
 		option(mrcs)
 	}
@@ -36,13 +36,18 @@ func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...M
 
 type mockSharedChannelService struct {
 	SharedChannelServiceIFace
-	active         bool
-	notifications  []string
-	numInvitations int
+	active                   bool
+	channelNotifications     []string
+	userProfileNotifications []string
+	numInvitations           int
 }
 
 func (mrcs *mockSharedChannelService) NotifyChannelChanged(channelId string) {
-	mrcs.notifications = append(mrcs.notifications, channelId)
+	mrcs.channelNotifications = append(mrcs.channelNotifications, channelId)
+}
+
+func (mrcs *mockSharedChannelService) NotifyUserProfileChanged(userId string) {
+	mrcs.userProfileNotifications = append(mrcs.userProfileNotifications, userId)
 }
 
 func (mrcs *mockSharedChannelService) Shutdown() error {

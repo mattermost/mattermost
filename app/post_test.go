@@ -2190,8 +2190,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
 
-		assert.Len(t, remoteClusterService.notifications, 1)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Len(t, remoteClusterService.channelNotifications, 1)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 	})
 
 	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -2217,9 +2217,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		assert.Len(t, remoteClusterService.notifications, 2)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Len(t, remoteClusterService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -2246,9 +2246,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		require.Nil(t, err, "Deleting a post should not error")
 
 		// one creation and two deletes
-		assert.Len(t, remoteClusterService.notifications, 3)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[2])
+		assert.Len(t, remoteClusterService.channelNotifications, 3)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])
 	})
 }
