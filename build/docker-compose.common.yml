@@ -67,7 +67,7 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
   inbucket:
-    image: "jhillyerd/inbucket:release-1.2.0"
+    image: "mattermost/inbucket:release-1.2.0"
     restart: always
     networks:
       - mm-test
