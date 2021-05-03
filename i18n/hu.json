@@ -1585,11 +1585,11 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Érvénytelen plugin azonosít, többnek kell lennie, mint {{.Min}}, és legfeljebb {{. .Max}} karakter hosszú lehet."
+    "translation": "Érvénytelen plugin azonosít, többnek kell lennie, mint {{.Min}}, és legfeljebb {{.Max}} karakter hosszú lehet."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Érvénytelen kulcs, többnek kell lennie, mint {{. .Min}}, és maximum {{. .Max}} karakter hosszú lehet."
+    "translation": "Érvénytelen kulcs, többnek kell lennie, mint {{.Min}}, és maximum {{.Max}} karakter hosszú lehet."
   },
   {
     "id": "model.plugin_command_error.error.app_error",
@@ -1597,7 +1597,7 @@
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Command}} paranccsal összeomlott a {{. .PluginId}} plugin. Kérjük, lépjen kapcsolatba a rendszergazdával"
+    "translation": "/{{.Command}} paranccsal összeomlott a {{.PluginId}} plugin. Kérjük, lépjen kapcsolatba a rendszergazdával"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -1617,7 +1617,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
-    "translation": "Érvénytelen visszahívási URL-ek. Mindegyiknek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "Érvénytelen visszahívási URL-ek. Mindegyiknek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -1677,11 +1677,11 @@
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
-    "translation": "Az ikon URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "Az ikon URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "A kezdőlapnak érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "A kezdőlapnak érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
@@ -1701,7 +1701,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "A visszahívási URL-nek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "A visszahívási URL-nek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -1917,7 +1917,7 @@
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "A Websocket URL-nek érvényes URL-nek kell lennie, és a ws: // vagy wss: // kell kezdődnie."
+    "translation": "A Websocket URL-nek érvényes URL-nek kell lennie, és a ws:// vagy wss:// kell kezdődnie."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -1981,7 +1981,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "A webhely URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "A webhely URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -2005,11 +2005,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "A SAML SSO URL-nek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "A SAML SSO URL-nek érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Az identitásszolgáltató kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "Az identitásszolgáltató kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2029,7 +2029,7 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "A szolgáltató bejelentkezési URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http: // vagy https: //."
+    "translation": "A szolgáltató bejelentkezési URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -3329,7 +3329,7 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "A jelszónak legalább {{. .Min}} karaktert kell tartalmaznia."
+    "translation": "A jelszónak legalább {{.Min}} karaktert kell tartalmaznia."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5157,7 +5157,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Nem sikerült hozzáadni a közvetlen csatorna-beállításokat a user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{.. Error}} felhasználóhoz"
+    "translation": "Nem sikerült hozzáadni a közvetlen csatorna-beállításokat a user_id = {{.UserId}}, team_id = {{.TeamId}}, err = {{.Error}} felhasználóhoz"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -5909,7 +5909,7 @@
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "A{{.SiteName}} csapat"
+    "translation": "A {{.SiteName}} csapat"
   },
   {
     "id": "api.templates.email_info2",
@@ -7387,7 +7387,7 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Ehhez a csatornához nem létezik {{.RemoteId}} megosztott csatorna távoli azonosító ."
+    "translation": "Ehhez a csatornához nem létezik {{.RemoteId}} megosztott csatorna távoli azonosító."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
