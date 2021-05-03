@@ -9044,7 +9044,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Lütfen ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi yazın."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9241,5 +9241,25 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Deneme süresi sonu bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süresi bugün {{.TodayDate}} sona eriyor. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "14 günlük Mattermost deneme süresi bugün sona eriyor"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost Cloud deneme süresi sona erdi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Aboneliği başlat"
   }
 ]
