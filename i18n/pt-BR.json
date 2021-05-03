@@ -6591,10 +6591,6 @@
     "translation": "Não foi possível obter a função."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Não é possível obter todos os papéis."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Não foi possível obter a função."
   },

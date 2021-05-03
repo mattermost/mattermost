@@ -6755,10 +6755,6 @@
     "translation": "No se pudo obtener el rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "No se pudo obtener todos los roles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "No se pudo obtener el rol."
   },

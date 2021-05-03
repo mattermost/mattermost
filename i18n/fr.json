@@ -6503,10 +6503,6 @@
     "translation": "Impossible de récupérer le rôle."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossible de récupérer tous les rôles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossible de récupérer le rôle."
   },

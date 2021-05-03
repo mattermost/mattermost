@@ -6752,10 +6752,6 @@
     "translation": "Невозможно получить роль."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Невозможно получить все роли."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Невозможно получить роль."
   },

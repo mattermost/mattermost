@@ -6760,10 +6760,6 @@
     "translation": "Imposibil de a primi rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Imposibil de obținut toate rolurile."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Imposibil de a primi rol."
   },

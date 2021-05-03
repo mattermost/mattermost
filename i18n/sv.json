@@ -2520,10 +2520,6 @@
     "translation": "Kunde inte hämta roll."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Kunde inte ta fram alla roller."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Kunde inte hämta roll."
   },

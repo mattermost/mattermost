@@ -6747,10 +6747,6 @@
     "translation": "Rol kan niet worden opgehaald."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Niet alle rollen kunnen worden opgehaald."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Rol kan niet worden opgehaald."
   },

@@ -6742,10 +6742,6 @@
     "translation": "役割を取得できませんでした。"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "全役割を取得できませんでした。"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "役割を取得できませんでした。"
   },

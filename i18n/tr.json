@@ -6747,10 +6747,6 @@
     "translation": "Rol alınamadı."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Rollerin tümü alınamadı."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Rol alınamadı."
   },
