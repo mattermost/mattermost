@@ -8555,10 +8555,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Bu özellik henüz geliştirme aşamasında olduğundan yalnız işaret olarak görüntülenir."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "İstek içeriği işlenemedi."
   },
@@ -8851,20 +8847,12 @@
     "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal güvenli bağlantısı bulunamadı."
   },
   {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Uzak kümelere iletilen kanal adı"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Güvenli bağlantı, kaynağı başka bir yerde bulunan bir paylaşılmış kanala çağrılamaz."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Uzak kopyalara iletilecek kanal görüntülenme adı"
   },
   {
     "id": "api.command_share.available_actions",

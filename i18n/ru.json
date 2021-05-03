@@ -8652,10 +8652,6 @@
     "translation": "Одно или несколько из разрешений, которые вы пытаетесь добавить или удалить, не предоставлено"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Эта функция находится в разработке и доступна только с включенным флагом функции."
-  },
-  {
     "id": "api.oauth.redirecting_back",
     "translation": "Перенаправление обратно в приложение."
   },
@@ -8768,10 +8764,6 @@
     "translation": "Ошибка при попытке получить из магазина статус первого посещения рынка администратором."
   },
   {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Описание приглашения"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Разделяет текущий канал с удалённым экземпляром Mattermost."
   },
@@ -8800,28 +8792,12 @@
     "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
   },
   {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Назначение канала, предоставляемого удалённым инсталляциям"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Имя канала, предоставляемое удалённым инсталляциям"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Невозможно пригласить удалённый кластер на общий канал, созданный где-то в другом месте."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Ошибка приглашения `{{.Name}}` в этот канал: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Заголовок канала для удалённых инсталляций"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Отображаемое имя канала для удалённых инсталляций"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9050,10 +9026,6 @@
   {
     "id": "api.context.invitation_expired.error",
     "translation": "Приглашение истекло."
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Вы уверены? Этот канал перестанет быть общим, и все удалённые инсталляции будут отключены"
   },
   {
     "id": "api.command_share.unshare_channel.help",

@@ -8599,10 +8599,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Este recurso está em desenvolvimento e só está disponível por meio de um sinalizador de recurso."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Não foi possível analisar o corpo da solicitação."
   },
@@ -8621,10 +8617,6 @@
   {
     "id": "api.command_share.fetch_remote.error",
     "translation": "Erro ao buscar clusters remotos: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descrição do convite"
   },
   {
     "id": "api.command_share.desc",
@@ -8655,28 +8647,12 @@
     "translation": "O id remoto do canal compartilhado `{{.RemoteId}}` não existe para este canal."
   },
   {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Propósito do canal fornecido para instâncias remotas"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Nome do canal fornecido para instâncias remotas"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Não é possível convidar cluster remoto para um canal compartilhado originado em outro lugar."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Erro ao convidar `{{.Name}}` para este canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Cabeçalho do canal fornecido para instâncias remotas"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Nome de exibição do canal fornecido para instâncias remotas"
   },
   {
     "id": "api.command_share.available_actions",

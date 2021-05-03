@@ -8599,10 +8599,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Deze functie is in ontwikkeling, en is alleen beschikbaar met een feature flag."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Fout bij het verwerken van request body."
   },
@@ -8803,10 +8799,6 @@
     "translation": "Uitnodiging is verlopen."
   },
   {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ben je zeker? Dit kanaal zal niet gedeeld worden en alle externe instanties zullen hun uitnodiging ongedaan zien worden"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Maakt het delen van het huidige kanaal ongedaan"
   },
@@ -8923,10 +8915,6 @@
     "translation": "Fout bij ophalen externe clusters: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Beschrijving voor uitnodiging"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Deelt het huidige kanaal met een externe Mattermost instantie."
   },
@@ -8955,28 +8943,12 @@
     "translation": "Gedeelde kanaal remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
   },
   {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[naam] - staat standaard op kanaalnaam"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Kanaalnaam verstrekt aan externe instanties"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Kan externe cluster niet uitnodigen voor een gedeeld kanaal dat ergens anders vandaan komt."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Fout bij het binnenhalen van `{{.Name}}` in dit kanaal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Kanaalhoofding verstrekt aan externe instanties"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Kanaal weergavenaam verstrekt aan externe instanties"
   },
   {
     "id": "api.command_share.available_actions",

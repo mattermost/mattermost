@@ -8599,10 +8599,6 @@
     "translation": "Mejla oss närsomhelst på "
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Funktionen är under utveckling och är endast tillgänglig med en funktionsflagga."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Kunde inte bearbeta förfrågan."
   },
@@ -8939,10 +8935,6 @@
     "translation": "Fel när annat kluster hämtades: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Beskriv inbjudan"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Delar denna kanal med en annan Mattermost-instans."
   },
@@ -8971,24 +8963,12 @@
     "translation": "Remote id för den delade kanalen `{{.RemoteId}}` finns inte för denna kanal."
   },
   {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Kanalens syfte till andra instanser"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Kanalnamn till andra instanser"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Kan inte bjuda in ett annat kluster till en delad kanal som kommer från annat ställe."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Fel när `{{.Name}}` blev inbjuden till kanalen: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Kanalens visningsnamn som visas i andra anslutna instanser"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9079,10 +9059,6 @@
     "translation": "Inbjudan är inte längre giltig."
   },
   {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Är du säker? Den aktuella kanalen kommer sluta delas och alla andra inbjudna instanser kommer sluta vara anslutna"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Slutar dela den aktuella kanalen"
   },
@@ -9149,10 +9125,6 @@
   {
     "id": "api.command_share.permission_required",
     "translation": "Du behöver ha behörigheten `{{.Permission}}` för att hantera delade kanaler."
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Kanalhuvud som tillhandahålls till andra instanser"
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",

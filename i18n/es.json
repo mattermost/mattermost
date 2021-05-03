@@ -8155,10 +8155,6 @@
     "translation": "Error al obtener la suscripción al cloud"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Esta funcionalidad esta en desarrollo, y solo está disponible usando una marca de funcionalidad."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "No fue posible analizar el cuerpo de la petición."
   },

@@ -7206,10 +7206,6 @@
     "translation": "Megjeleníti a billentyűparancsok listáját"
   },
   {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Visszavonja az aktuális csatorna megosztását"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Visszavonja az aktuális csatorna megosztását"
   },
@@ -7366,10 +7362,6 @@
     "translation": "Hiba történt a távoli fürtök lekérésekor: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.help",
-    "translation": "A meghívó leírása"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Megosztja az aktuális csatornát egy távoli Mattermost példánnyal."
   },
@@ -7398,28 +7390,12 @@
     "translation": "Ehhez a csatornához nem létezik {{.RemoteId}} megosztott csatorna távoli azonosító ."
   },
   {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Csatorna célja távoli példányok számára"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Csatorna név távoli példányok számára"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Nem lehet meghívni a távoli fürtöt máshonnan származó megosztott csatornára."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Hiba történt \"{{.Name}}\" meghívásakor erre a csatornára: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Csatornafejléc távoli példányok számára"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Csatorna megjelenítési név távoli példányok számára"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8224,10 +8200,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Nem lehet értelmezni a kérés törzsét."
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Ez a funkció fejlesztés alatt van, és csak a funkció zászló használatával elérhető."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",

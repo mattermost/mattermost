@@ -8534,10 +8534,6 @@
     "translation": "获取云订阅时出错"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "此功能正在开发中，仅可通过功能标志使用。"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "无法解析请求内容。"
   },
