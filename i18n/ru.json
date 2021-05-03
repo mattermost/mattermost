@@ -8768,10 +8768,6 @@
     "translation": "Ошибка при попытке получить из магазина статус первого посещения рынка администратором."
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - опционально"
-  },
-  {
     "id": "api.command_share.description_invite.help",
     "translation": "Описание приглашения"
   },
@@ -8804,16 +8800,8 @@
     "translation": "Удалённый id общего канала `{{.RemoteId}}` не существует для этого канала."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - назначение канала по умолчанию"
-  },
-  {
     "id": "api.command_share.channel_purpose.help",
     "translation": "Назначение канала, предоставляемого удалённым инсталляциям"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - имя канала по умолчанию"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -8828,16 +8816,8 @@
     "translation": "Ошибка приглашения `{{.Name}}` в этот канал: {{.Error}}"
   },
   {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - заголовок канала по умолчанию"
-  },
-  {
     "id": "api.command_share.channel_header.help",
     "translation": "Заголовок канала для удалённых инсталляций"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - по умолчанию отображаемое имя канала"
   },
   {
     "id": "api.command_share.channel_display_name.help",
@@ -9012,10 +8992,6 @@
     "translation": "Одно или несколько сообщений не могут быть доставлены на удалённый сайт {{.Remote}}, так как он в оффлайне. Сообщения будут доставлены, когда сайт будет онлайн."
   },
   {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Некорректное описание."
-  },
-  {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
     "translation": "Возникла ошибка при создании прямого общего канала."
   },
@@ -9076,10 +9052,6 @@
     "translation": "Приглашение истекло."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' или 'N'"
-  },
-  {
     "id": "api.command_share.unshare_confirmation.help",
     "translation": "Вы уверены? Этот канал перестанет быть общим, и все удалённые инсталляции будут отключены"
   },
@@ -9108,16 +9080,8 @@
     "translation": "Этот канал больше не общий."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Общий канал не был удален: `{{.Arg}}`должно быть `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Канал будет предоставлен в режиме только для чтения"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Поделиться текущим каналом"
   },
   {
     "id": "api.command_share.share_channel.error",

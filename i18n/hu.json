@@ -384,10 +384,6 @@
     "translation": "Érvénytelen megjelenítési név."
   },
   {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Érvénytelen leírás."
-  },
-  {
     "id": "model.channel.is_valid.creator_id.app_error",
     "translation": "Érvénytelen létrehozó azonosító."
   },
@@ -7210,10 +7206,6 @@
     "translation": "Megjeleníti a billentyűparancsok listáját"
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' vagy 'N'"
-  },
-  {
     "id": "api.command_share.unshare_confirmation.help",
     "translation": "Visszavonja az aktuális csatorna megosztását"
   },
@@ -7242,20 +7234,12 @@
     "translation": "Ez a csatorna már nincs megosztva."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "A megosztott csatornát nem törölték: az `{{.Arg}}` értéknek `{{.Expected}}` kell lennie."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' vagy 'N'. Alapértelmezés szerint 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "A csatorna írásvédett módban lesz megosztva"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Ez a csatorna nem osztható meg: {{.Error}}"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -7382,10 +7366,6 @@
     "translation": "Hiba történt a távoli fürtök lekérésekor: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - opcionális"
-  },
-  {
     "id": "api.command_share.description_invite.help",
     "translation": "A meghívó leírása"
   },
@@ -7418,16 +7398,8 @@
     "translation": "Ehhez a csatornához nem létezik {{.RemoteId}} megosztott csatorna távoli azonosító ."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - alapértelmezés szerint a csatorna célja"
-  },
-  {
     "id": "api.command_share.channel_purpose.help",
     "translation": "Csatorna célja távoli példányok számára"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[header] - alapértelmezés szerint a csatorna név"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -7442,16 +7414,8 @@
     "translation": "Hiba történt \"{{.Name}}\" meghívásakor erre a csatornára: {{.Error}}"
   },
   {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - alapértelmezés szerint a csatorna fejléc"
-  },
-  {
     "id": "api.command_share.channel_header.help",
     "translation": "Csatornafejléc távoli példányok számára"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - alapértelmezés szerint a csatorna megjelenítési név"
   },
   {
     "id": "api.command_share.channel_display_name.help",

@@ -8732,10 +8732,6 @@
     "translation": "Nu a reușit să codifice câmpul în JSON"
   },
   {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descriere invalidă."
-  },
-  {
     "id": "ent.cloud.subscription.error",
     "translation": "Eroare la obținerea abonamentului cloud"
   },
@@ -8940,10 +8936,6 @@
     "translation": "Invitația a expirat."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "\"Y\" sau \"N"
-  },
-  {
     "id": "api.command_share.unshare_confirmation.help",
     "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
   },
@@ -8972,20 +8964,12 @@
     "translation": "Acest canal nu mai este partajat."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Canalul va fi partajat în modul doar pentru citire"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Partajați canalul curent"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9068,10 +9052,6 @@
     "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[descriere] - opțional"
-  },
-  {
     "id": "api.command_share.description_invite.help",
     "translation": "Descriere pentru invitație"
   },
@@ -9104,16 +9084,8 @@
     "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[scop] - implicit scopul canalului"
-  },
-  {
     "id": "api.command_share.channel_purpose.help",
     "translation": "Scopul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - implicit la numele canalului"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -9128,16 +9100,8 @@
     "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
   },
   {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - implicit la antetul canalelor"
-  },
-  {
     "id": "api.command_share.channel_header.help",
     "translation": "Antetul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
   },
   {
     "id": "api.command_share.channel_display_name.help",

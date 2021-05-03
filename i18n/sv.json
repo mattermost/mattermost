@@ -8939,10 +8939,6 @@
     "translation": "Fel när annat kluster hämtades: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - valfri"
-  },
-  {
     "id": "api.command_share.description_invite.help",
     "translation": "Beskriv inbjudan"
   },
@@ -8975,16 +8971,8 @@
     "translation": "Remote id för den delade kanalen `{{.RemoteId}}` finns inte för denna kanal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - kanalens syfte som standard"
-  },
-  {
     "id": "api.command_share.channel_purpose.help",
     "translation": "Kanalens syfte till andra instanser"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - kanalens namn som standard"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -8997,10 +8985,6 @@
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Fel när `{{.Name}}` blev inbjuden till kanalen: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - kanalens visningsnamn som standard"
   },
   {
     "id": "api.command_share.channel_display_name.help",
@@ -9017,10 +9001,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "En eller flera meddelanden kunde inte bli levereras till den andra sajten {{.Remote}} eftersom den är offline. Meddelanden kommer levereras när sajten är online."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Ogiltig beskrivning."
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -9099,10 +9079,6 @@
     "translation": "Inbjudan är inte längre giltig."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' eller 'N'"
-  },
-  {
     "id": "api.command_share.unshare_confirmation.help",
     "translation": "Är du säker? Den aktuella kanalen kommer sluta delas och alla andra inbjudna instanser kommer sluta vara anslutna"
   },
@@ -9131,20 +9107,12 @@
     "translation": "Kanalen är inte längre delad."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Delad kanal blev inte delad: `{{.Arg}}` måste vara `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' eller 'N'.  'N' som standard"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanalen kommer delas i läsläge"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Dela den aktuella kanalen"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9181,10 +9149,6 @@
   {
     "id": "api.command_share.permission_required",
     "translation": "Du behöver ha behörigheten `{{.Permission}}` för att hantera delade kanaler."
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - kanalens huvud som standard"
   },
   {
     "id": "api.command_share.channel_header.help",

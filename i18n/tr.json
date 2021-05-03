@@ -8823,16 +8823,8 @@
     "translation": "Uzak kümeler alınırken sorun çıktı: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - isteğe bağlı"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Geçerli kanalı bir uzak Mattermost kopyası ile paylaşır."
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Çağrı açıklaması"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -8859,16 +8851,8 @@
     "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal uzak kodu bulunamadı."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - varsayılan kanal amacı"
-  },
-  {
     "id": "api.command_share.channel_purpose.help",
     "translation": "Uzak kopyalara iletilen kanal amacı"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - varsayılan kanal adı"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -8883,16 +8867,8 @@
     "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
   },
   {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - varsayılan kanal üst bilgileri"
-  },
-  {
     "id": "api.command_share.channel_header.help",
     "translation": "Uzak kopyalara iletilecek kanal üst bilgileri"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - varsayılan görüntülenecek kanal adı"
   },
   {
     "id": "api.command_share.channel_display_name.help",
@@ -9019,10 +8995,6 @@
     "translation": "Çevrimdışı olduğundan, bir ya da daha fazla ileti {{.Remote}} uzak kümesine aktarılamadı. İletiler site yeniden çevrimiçi olduğunda aktarılacak."
   },
   {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Açıklama geçersiz."
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "İlke geçersiz."
   },
@@ -9127,10 +9099,6 @@
     "translation": "Çağrının süresi dolmuş."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' ya da 'N'"
-  },
-  {
     "id": "api.command_share.shared_channel_unshare.error",
     "translation": "Bu kanal paylaşımdan kaldırılamadı: {{.Error}}."
   },
@@ -9139,20 +9107,12 @@
     "translation": "Bu kanal artık paylaşılmıyor."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Paylaşılmış kanal silinmedi: `{{.Arg}}`, `{{.Expected}}` olmalı."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' ya da 'N'.  Varsayılan 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanal salt okunur kipte paylaşılacak"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Geçerli kanalı paylaş"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9177,10 +9137,6 @@
   {
     "id": "api.command_share.unknown_action",
     "translation": "`{{.Action}}` işlemi bilinmiyor. Yapılabilecek işlemler: {{.Actions}}"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Emin misiniz? Bu kanal paylaşımdan kaldırılacak ve tüm uzak kopya çağrıları geri alınacak"
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",

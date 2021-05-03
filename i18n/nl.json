@@ -8803,10 +8803,6 @@
     "translation": "Uitnodiging is verlopen."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' of 'N'"
-  },
-  {
     "id": "api.command_share.unshare_confirmation.help",
     "translation": "Ben je zeker? Dit kanaal zal niet gedeeld worden en alle externe instanties zullen hun uitnodiging ongedaan zien worden"
   },
@@ -8835,20 +8831,12 @@
     "translation": "Dit kanaal wordt niet langer gedeeld."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Gedeelde kanaal is niet verwijderd: `{{.Arg}}` moet zijn `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' of 'N'.  Standaard is 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanaal zal worden gedeeld in alleen-lezen modus"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Deel het huidige kanaal"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8935,10 +8923,6 @@
     "translation": "Fout bij ophalen externe clusters: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[beschrijving] - optioneel"
-  },
-  {
     "id": "api.command_share.description_invite.help",
     "translation": "Beschrijving voor uitnodiging"
   },
@@ -8971,16 +8955,8 @@
     "translation": "Gedeelde kanaal remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[doel] - staat standaard op kanaaldoel"
-  },
-  {
     "id": "api.command_share.channel_name.hint",
     "translation": "[naam] - staat standaard op kanaalnaam"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Doel van het kanaal, verstrekt aan externe instanties"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -8995,16 +8971,8 @@
     "translation": "Fout bij het binnenhalen van `{{.Name}}` in dit kanaal: {{.Error}}"
   },
   {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[hoofding] - staat standaard op kanaalhoofding"
-  },
-  {
     "id": "api.command_share.channel_header.help",
     "translation": "Kanaalhoofding verstrekt aan externe instanties"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - standaard kanaal weergavenaam"
   },
   {
     "id": "api.command_share.channel_display_name.help",
@@ -9149,10 +9117,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Een of meer berichten konden niet worden afgeleverd op de externe site {{.Remote}} omdat deze offline is. De post(s) zullen worden afgeleverd als de site online is."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Ongeldige omschrijving."
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
