@@ -267,8 +267,8 @@ func (l *License) ToJson() string {
 	return string(b)
 }
 
-func (l *License) IsTrial() bool {
-	// TODO use IsTrial flag once https://github.com/mattermost/mattermost-server/pull/17359 is merged
+func (l *License) IsTrialLicense() bool {
+	// TODO use IsTrialLicense flag once https://github.com/mattermost/mattermost-server/pull/17359 is merged
 	return (l.ExpiresAt - l.StartsAt) <= trialDuration.Milliseconds()
 }
 
