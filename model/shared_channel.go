@@ -214,7 +214,6 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 type GetUsersForSyncFilter struct {
 	CheckProfileImage bool
 	ChannelID         string
-	ExcludeRemoteID   string
 	Limit             uint64
 }
 

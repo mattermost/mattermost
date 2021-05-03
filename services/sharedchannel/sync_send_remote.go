@@ -157,9 +157,8 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 // since the last sync.
 func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	filter := model.GetUsersForSyncFilter{
-		ChannelID:       sd.task.channelID,
-		ExcludeRemoteID: sd.rc.RemoteId,
-		Limit:           MaxUsersPerSync,
+		ChannelID: sd.task.channelID,
+		Limit:     MaxUsersPerSync,
 	}
 	users, err := scs.server.GetStore().SharedChannel().GetUsersForSync(filter)
 	if err != nil {
@@ -167,7 +166,7 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	}
 
 	for _, u := range users {
-		if _, ok := sd.users[u.Id]; !ok {
+		if u.GetRemoteID() != sd.rc.RemoteId {
 			sd.users[u.Id] = u
 		}
 	}
@@ -179,7 +178,7 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	}
 
 	for _, u := range usersImage {
-		if _, ok := sd.profileImages[u.Id]; !ok {
+		if u.GetRemoteID() != sd.rc.RemoteId {
 			sd.profileImages[u.Id] = u
 		}
 	}

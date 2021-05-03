@@ -972,24 +972,10 @@ func testGetSharedChannelUsersForSync(t *testing.T, ss store.Store) {
 		}
 	})
 
-	t.Run("Filter by excludeRemoteId", func(t *testing.T) {
-		filter := model.GetUsersForSyncFilter{
-			CheckProfileImage: false,
-			ExcludeRemoteID:   remoteID,
-		}
-		usersFound, err := ss.SharedChannel().GetUsersForSync(filter)
-		require.NoError(t, err, "shouldn't error getting users", err)
-		require.Len(t, usersFound, 2)
-		for _, user := range usersFound {
-			require.Contains(t, []string{users[1].Id, users[3].Id}, user.Id)
-		}
-	})
-
-	t.Run("Filter by all", func(t *testing.T) {
+	t.Run("Filter by channelId for profile image", func(t *testing.T) {
 		filter := model.GetUsersForSyncFilter{
 			CheckProfileImage: true,
 			ChannelID:         channelID,
-			ExcludeRemoteID:   remoteID,
 		}
 		usersFound, err := ss.SharedChannel().GetUsersForSync(filter)
 		require.NoError(t, err, "shouldn't error getting users", err)

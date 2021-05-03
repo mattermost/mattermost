@@ -631,9 +631,6 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 	if filter.ChannelID != "" {
 		query = query.Where(sq.Eq{"scu.ChannelId": filter.ChannelID})
 	}
-	if filter.ExcludeRemoteID != "" {
-		query = query.Where(sq.NotEq{"scu.RemoteId": filter.ExcludeRemoteID})
-	}
 
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
@@ -645,8 +642,8 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 		if err == sql.ErrNoRows {
 			return make([]*model.User, 0), nil
 		}
-		return nil, errors.Wrapf(err, "failed to fetch shared channel users with ChannelId=%s, RemoteId=%s",
-			filter.ChannelID, filter.ExcludeRemoteID)
+		return nil, errors.Wrapf(err, "failed to fetch shared channel users with ChannelId=%s",
+			filter.ChannelID)
 	}
 	return users, nil
 }
