@@ -167,10 +167,8 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	}
 
 	for _, u := range users {
-		if u.UpdateAt >= sd.nextSyncAt {
-			if _, ok := sd.users[u.Id]; !ok {
-				sd.users[u.Id] = u
-			}
+		if _, ok := sd.users[u.Id]; !ok {
+			sd.users[u.Id] = u
 		}
 	}
 
@@ -181,10 +179,8 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	}
 
 	for _, u := range usersImage {
-		if u.LastPictureUpdate >= sd.nextSyncAt {
-			if _, ok := sd.profileImages[u.Id]; !ok {
-				sd.profileImages[u.Id] = u
-			}
+		if _, ok := sd.profileImages[u.Id]; !ok {
+			sd.profileImages[u.Id] = u
 		}
 	}
 	return nil
