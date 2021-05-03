@@ -339,21 +339,34 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 	merr := merror.New()
 
 	// send users
-	if err := scs.sendUserSyncData(sd); err != nil {
-		merr.Append(fmt.Errorf("cannot send user sync data: %w", err))
+	if len(sd.users) != 0 {
+		if err := scs.sendUserSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send user sync data: %w", err))
+		}
 	}
 
 	// send attachments
-	scs.sendAttachmentSyncData(sd)
+	if len(sd.attachments) != 0 {
+		scs.sendAttachmentSyncData(sd)
+	}
 
 	// send posts
-	if err := scs.sendPostSyncData(sd); err != nil {
-		merr.Append(fmt.Errorf("cannot send post sync data: %w", err))
+	if len(sd.posts) != 0 {
+		if err := scs.sendPostSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send post sync data: %w", err))
+		}
 	}
 
 	// send reactions
-	if err := scs.sendReactionSyncData(sd); err != nil {
-		merr.Append(fmt.Errorf("cannot send reaction sync data: %w", err))
+	if len(sd.reactions) != 0 {
+		if err := scs.sendReactionSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send reaction sync data: %w", err))
+		}
+	}
+
+	// send user profile images
+	if len(sd.profileImages) != 0 {
+		scs.sendProfileImageSyncData(sd)
 	}
 
 	return merr.ErrorOrNil()
@@ -383,10 +396,6 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 			)
 		}
 	})
-
-	for _, user := range sd.profileImages {
-		scs.syncProfileImage(user, sd.task.channelID, sd.rc)
-	}
 	return err
 }
 
@@ -442,6 +451,13 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 			)
 		}
 	})
+}
+
+// sendProfileImageSyncData sends the collected user profile image updates to the remote cluster.
+func (scs *Service) sendProfileImageSyncData(sd *syncData) {
+	for _, user := range sd.profileImages {
+		scs.syncProfileImage(user, sd.task.channelID, sd.rc)
+	}
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to the remote cluster.
