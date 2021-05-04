@@ -1271,7 +1271,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	require.Equal(t, int64(0), unread.MsgCount)
 
 	t.Run("Unread but last one", func(t *testing.T) {
-		response, err := th.App.MarkChannelAsUnreadFromPost(p2.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(p2.Id, u1.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, response)
 		assert.Equal(t, int64(2), response.MsgCount)
@@ -1282,7 +1282,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread last one", func(t *testing.T) {
-		response, err := th.App.MarkChannelAsUnreadFromPost(p3.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(p3.Id, u1.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, response)
 		assert.Equal(t, int64(3), response.MsgCount)
@@ -1293,7 +1293,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread first one", func(t *testing.T) {
-		response, err := th.App.MarkChannelAsUnreadFromPost(p1.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(p1.Id, u1.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, response)
 		assert.Equal(t, int64(1), response.MsgCount)
@@ -1310,7 +1310,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
-		response, err := th.App.MarkChannelAsUnreadFromPost(pp1.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(pp1.Id, u1.Id, true)
 		require.Nil(t, err)
 		require.NotNil(t, response)
 		assert.Equal(t, int64(0), response.MsgCount)
@@ -1319,7 +1319,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.Equal(t, int64(2), unread.MsgCount)
 		assert.Equal(t, pp1.CreateAt-1, response.LastViewedAt)
 
-		response, err = th.App.MarkChannelAsUnreadFromPost(pp2.Id, u1.Id)
+		response, err = th.App.MarkChannelAsUnreadFromPost(pp2.Id, u1.Id, true)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), response.MsgCount)
 		unread, err = th.App.GetChannelUnread(pc1.Id, u1.Id)
@@ -1348,7 +1348,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 			Message:   "@" + u1.Username,
 		}, c2, false, true)
 
-		response, err := th.App.MarkChannelAsUnreadFromPost(p4.Id, u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(p4.Id, u1.Id, true)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), response.MsgCount)
 		assert.Equal(t, int64(2), response.MentionCount)
@@ -1371,7 +1371,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		_, err := th.App.CreatePost(&model.Post{ChannelId: dc.Id, UserId: th.BasicUser.Id, Message: "testReply", RootId: dm1.Id}, dc, false, false)
 		assert.Nil(t, err)
 
-		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u2.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost(dm1.Id, u2.Id, true)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), response.MsgCount)
 		assert.Equal(t, int64(4), response.MentionCount)
@@ -1385,7 +1385,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
-		response, err := th.App.MarkChannelAsUnreadFromPost("invalid4ofngungryquinj976y", u1.Id)
+		response, err := th.App.MarkChannelAsUnreadFromPost("invalid4ofngungryquinj976y", u1.Id, true)
 		assert.NotNil(t, err)
 		assert.Nil(t, response)
 	})

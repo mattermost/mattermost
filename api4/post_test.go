@@ -2565,7 +2565,7 @@ func TestMarkUnreadCausesAutofollow(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Zero(t, threads.Total)
 
-	_, appErr = th.App.MarkChannelAsUnreadFromPost(replyPost.Id, th.BasicUser.Id)
+	_, appErr = th.App.MarkChannelAsUnreadFromPost(replyPost.Id, th.BasicUser.Id, true)
 	require.Nil(t, appErr)
 
 	threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
