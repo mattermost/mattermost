@@ -578,7 +578,8 @@ func TestFileStoreSet(t *testing.T) {
 		defer fs.Close()
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -589,6 +590,77 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
+	})
+
+	t.Run("listeners notified, only env change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		newCfg := minimalConfig
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		_, err = fs.Set(newCfg)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed")
+	})
+
+	t.Run("listeners notified, feature flags change only", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		expectedOldConfig := minimalConfig
+		var expectedNewConfig *model.Config
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			require.Equal(t, expectedOldConfig, oldCfg)
+			require.Equal(t, expectedNewConfig, newCfg)
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		fs.PersistFeatures(false)
+
+		expectedNewConfig = minimalConfig.Clone()
+		expectedNewConfig.FeatureFlags.TestFeature = "test"
+		_, err = fs.Set(expectedNewConfig)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second))
+
+		fs.PersistFeatures(true)
+
+		expectedOldConfig.FeatureFlags.TestFeature = "test"
+		expectedNewConfig.FeatureFlags.TestFeature = "test2"
+		_, err = fs.Set(expectedNewConfig)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second))
 	})
 
 	t.Run("watcher restarted", func(t *testing.T) {
@@ -612,7 +684,7 @@ func TestFileStoreSet(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -887,7 +959,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer fs.Close()
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -917,7 +989,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -940,7 +1012,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		defer fs.Close()
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -971,7 +1043,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
@@ -980,6 +1052,37 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		require.NoError(t, err)
 
 		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since no change has happened")
+	})
+
+	t.Run("env only change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// Let the initial call to invokeConfigListeners finish.
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+		_, err = fs.Set(minimalConfig)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called since no change has happened")
 	})
 }
 
@@ -1324,7 +1427,7 @@ func TestFileStoreReadOnly(t *testing.T) {
 	defer fs.Close()
 
 	called := make(chan bool, 1)
-	callback := func(oldfg, newCfg *model.Config) {
+	callback := func(oldCfg, newCfg *model.Config) {
 		called <- true
 	}
 	fs.AddListener(callback)

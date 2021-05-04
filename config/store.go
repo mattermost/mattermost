@@ -175,6 +175,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, ErrReadOnlyStore
 	}
 
+	newCfg = newCfg.Clone()
 	oldCfg := s.config.Clone()
 	oldCfgNoEnv := s.configNoEnv.Clone()
 
@@ -194,26 +195,29 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	// Don't persist feature flags unless we are on MM cloud
 	// MM cloud uses config in the DB as a cache of the feature flag
 	// settings in case the management system is down when a pod starts.
+	newFeatureFlags := newCfg.FeatureFlags
+	newFeatureFlagsNoEnv := newCfgNoEnv.FeatureFlags
 	if !s.persistFeatureFlags {
 		newCfgNoEnv.FeatureFlags = nil
 		oldCfgNoEnv.FeatureFlags = nil
 	}
 
-	hasChanged, err := confsDiff(oldCfgNoEnv, newCfgNoEnv)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to compare configs")
-	}
-
-	if hasChanged {
-		if err := s.backingStore.Set(newCfgNoEnv); err != nil {
-			return nil, errors.Wrap(err, "failed to persist")
-		}
+	if err := s.backingStore.Set(newCfgNoEnv); err != nil {
+		return nil, errors.Wrap(err, "failed to persist")
 	}
 
 	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
 	fixConfig(newCfg)
 	if err := newCfg.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "new configuration is invalid")
+	}
+
+	newCfgNoEnv.FeatureFlags = newFeatureFlagsNoEnv
+	newCfg.FeatureFlags = newFeatureFlags
+
+	hasChanged, err := confsDiff(oldCfg, newCfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to compare configs")
 	}
 
 	s.configNoEnv = newCfgNoEnv
@@ -255,11 +259,6 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 
 	loadedConfig.SetDefaults()
 
-	if !s.persistFeatureFlags {
-		oldCfg.FeatureFlags = nil
-		loadedConfig.FeatureFlags = nil
-	}
-
 	loadedConfigNoEnv := loadedConfig.Clone()
 	fixConfig(loadedConfigNoEnv)
 
@@ -267,6 +266,15 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	fixConfig(loadedConfig)
 	if err := loadedConfig.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid config")
+	}
+
+	loadedFeatureFlagsNoEnv := loadedConfigNoEnv.FeatureFlags
+	loadedFeatureFlags := loadedConfig.FeatureFlags
+	oldCfgFeatureFlags := oldCfg.FeatureFlags
+	if !s.persistFeatureFlags {
+		oldCfg.FeatureFlags = nil
+		loadedConfig.FeatureFlags = nil
+		loadedConfigNoEnv.FeatureFlags = nil
 	}
 
 	// Apply changes that may have happened on load to the backing store.
@@ -283,6 +291,10 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 			return errors.Wrap(err, "failed to persist")
 		}
 	}
+
+	loadedConfig.FeatureFlags = loadedFeatureFlags
+	loadedConfigNoEnv.FeatureFlags = loadedFeatureFlagsNoEnv
+	oldCfg.FeatureFlags = oldCfgFeatureFlags
 
 	s.config = loadedConfig
 	s.configNoEnv = loadedConfigNoEnv
