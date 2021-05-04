@@ -176,8 +176,10 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	}
 
 	newCfg = newCfg.Clone()
-	oldCfg := s.config.Clone()
-	oldCfgNoEnv := s.configNoEnv.Clone()
+	// no need to clone these as cached configs are getting replaced
+	// with brand new objects.
+	oldCfg := s.config
+	oldCfgNoEnv := s.configNoEnv
 
 	// Setting defaults allows us to accept partial config objects.
 	newCfg.SetDefaults()
@@ -259,7 +261,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 
 	loadedConfig.SetDefaults()
 
-	loadedConfigNoEnv := loadedConfig.Clone()
+	loadedConfigNoEnv := loadedConfig
 	fixConfig(loadedConfigNoEnv)
 
 	loadedConfig = applyEnvironmentMap(loadedConfig, GetEnvironment())
@@ -277,7 +279,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		loadedConfigNoEnv.FeatureFlags = nil
 	}
 
-	// Apply changes that may have happened on load to the backing store.
+	// Check for changes that may have happened on load to the backing store.
 	hasChanged, err := confsDiff(oldCfg, loadedConfig)
 	if err != nil {
 		return errors.Wrap(err, "failed to compare configs")
