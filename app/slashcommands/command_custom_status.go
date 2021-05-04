@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -97,7 +98,8 @@ func GetCustomStatus(message string) *model.CustomStatus {
 				emojiString = emojiString[size:]
 			}
 
-			emoji, found := model.GetEmojiNameFromUnicode(strings.Join(unicode, "-"))
+			unicodeString := removeUnicodeSkinTone(strings.Join(unicode, "-"))
+			emoji, found := model.GetEmojiNameFromUnicode(unicodeString)
 			if found {
 				customStatus.Emoji = emoji
 				textString := strings.Join(spaceSeparatedMessage[1:], " ")
@@ -108,4 +110,21 @@ func GetCustomStatus(message string) *model.CustomStatus {
 
 	customStatus.TrimMessage()
 	return customStatus
+}
+
+func removeUnicodeSkinTone(unicodeString string) string {
+	skinToneDetectorRegex := regexp.MustCompile("-(1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)")
+	skinToneLocations := skinToneDetectorRegex.FindIndex([]byte(unicodeString))
+
+	if len(skinToneLocations) > 0 {
+		unicodeWithRemovedSkinTone := unicodeString[:skinToneLocations[0]] + unicodeString[skinToneLocations[1]:]
+		unicodeWithVariationSelector := unicodeString[:skinToneLocations[0]] + "-fe0f" + unicodeString[skinToneLocations[1]:]
+		if _, found := model.GetEmojiNameFromUnicode(unicodeWithRemovedSkinTone); found {
+			unicodeString = unicodeWithRemovedSkinTone
+		} else if _, found := model.GetEmojiNameFromUnicode(unicodeWithVariationSelector); found {
+			unicodeString = unicodeWithVariationSelector
+		}
+	}
+
+	return unicodeString
 }

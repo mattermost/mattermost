@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 )
 
 const (
@@ -22,6 +23,8 @@ var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
 // We kept a separate variable to avoid renaming help texts for custom emoji's.
 // TODO: Merge ALL_EMOJI_PATTERN with EMOJI_PATTERN after updating custom emoji help texts
 var ALL_EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
+
+var ReverseSystemEmojisMap = makeReverseEmojiMap()
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -42,11 +45,21 @@ func GetSystemEmojiId(emojiName string) (string, bool) {
 	return id, found
 }
 
-func GetEmojiNameFromUnicode(unicode string) (string, bool) {
+func makeReverseEmojiMap() map[string][]string {
+	reverseEmojiMap := make(map[string][]string)
 	for key, value := range SystemEmojis {
-		if unicode == value {
-			return key, true
-		}
+		emojiNames := reverseEmojiMap[value]
+		emojiNames = append(emojiNames, key)
+		sort.Strings(emojiNames)
+		reverseEmojiMap[value] = emojiNames
+	}
+
+	return reverseEmojiMap
+}
+
+func GetEmojiNameFromUnicode(unicode string) (string, bool) {
+	if temp, found := ReverseSystemEmojisMap[unicode]; found {
+		return temp[0], true
 	}
 
 	return "", false
