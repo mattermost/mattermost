@@ -135,6 +135,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.String("channel_id", task.channelID),
 			mlog.Bool("repeat", sd.resultRepeat),
 		)
+		if sd.isCursorChanged() {
+			scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		}
 		return nil
 	}
 
