@@ -1098,15 +1098,15 @@ func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 // RequestTrialLicense requests a trial license and installs it in the server
 func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.restricted_system_admin", nil, "", http.StatusForbidden)
+		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
 	if !termsAccepted {
-		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
 	}
 
 	if users == 0 {
-		return model.NewAppError("RequestTrialLicense", "plugin_api.request_trial_license.bad-request.no-users", nil, "", http.StatusBadRequest)
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
 	requester, err := api.app.GetUser(requesterID)
