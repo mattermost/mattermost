@@ -2573,10 +2573,10 @@ func (s *TimerLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 	return result, err
 }
 
-func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
+func (s *TimerLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 	start := timemodule.Now()
 
-	result, err := s.ComplianceStore.MessageExport(after, limit)
+	result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2586,7 +2586,7 @@ func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*mo
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ComplianceStore.MessageExport", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {

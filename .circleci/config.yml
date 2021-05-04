@@ -188,6 +188,20 @@ jobs:
             make plugin-checker
             make vet BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
 
+  # Dedicate job for sentry it does not need anything only the server code for that
+  # and to make more clear when the job fails
+  sentry:
+    docker:
+      - image: getsentry/sentry-cli:1.64.1
+    steps:
+      - checkout
+      - run:
+          command: apk add git
+      - run:
+          command: |
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -221,11 +235,6 @@ jobs:
             make config-reset
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            curl -sL https://sentry.io/get-cli/ | bash
-            echo Sentry will use version `git rev-parse HEAD`
-            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
-            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
-
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -501,7 +510,6 @@ workflows:
           requires:
             - setup
       - build:
-          context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
@@ -589,13 +597,26 @@ workflows:
       - check-migrations:
           requires:
             - setup
-      - build:
+      - check-mattermost-vet:
+          requires:
+            - setup
+      - sentry:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
             - check-mocks
             - check-migrations
+            - check-mattermost-vet
+            - check-golangci-lint
+            - build-api-spec
+      - build:
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - check-migrations
+            - check-mattermost-vet
             - build-api-spec
       - test:
           name: test-mysql

@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "更新当前频道错误。"
+    "translation": "更新频道标题错误。"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "更新当前频道错误。"
+    "translation": "更新频道用途错误。"
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -6658,10 +6658,6 @@
     "translation": "无法获取角色。"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "无法获取所有角色。"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "无法获取角色。"
   },
@@ -8538,10 +8534,6 @@
     "translation": "获取云订阅时出错"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "此功能正在开发中，仅可通过功能标志使用。"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "无法解析请求内容。"
   },
@@ -8740,5 +8732,165 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "清除缓存时出错"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "未设置站点网址。请在系统控制台设置。"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 上次 ping |"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "您需要 `{{.Permission}}` 权限才能管理安全连接。"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "安全连接的唯一名称"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "缺少或空 `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "来自安全连接的加密邀请"
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[操作]"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "未知操作 `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "显示所有安全连接的状态"
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "无法启用远程集群服务。"
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "远程集群服务已停用。"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "无法移除安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "移除安全连接"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "未找到安全连接。"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "添加或移除安全连接。可用操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "安全连接名"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "secure-connection"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "缺少命令。可用的操作：{{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "将以下加密的（AES256 + Base64）Blob 与密码一起发送给远程站点管理员。他们将使用 `{{.Command}}` 斜杠命令来接受邀请。\n\n```\n{{.Invitation}}\n```\n\n**确保远程站点可以通过 {{.SiteURL}} 访问您的集群**"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "用于加密邀请的密码"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "邀请密码"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "创建安全连接"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "已创建邀请。"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "来自安全连接的邀请"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "无法解密邀请。错误的密码或破损的邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[操作]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "无法获取安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "无法加密邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "安全连接的显示名"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "安全连接显示名"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "邀请远程 Mattermost 集群进行集群间通信。"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "接受来源远程集群的邀请"
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "无法解码邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "安全连接 {{.RemoteId}} {{.Result}}。"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "无法添加安全连接：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "无法接受邀请：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "邀请已接受并确认。\n站点网址：{{.SiteURL}}"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "输入的文本超出字符数限制。频道用途不得超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "输入的文本超出字符数限制。频道标题不得超过 {{.MaxLength}} 个字符。"
   }
 ]

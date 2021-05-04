@@ -37,12 +37,13 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
+
 		args := &model.CommandArgs{
 			T:         func(s string, args ...interface{}) string { return s },
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
-			Command:   "/share share_channel",
+			Command:   "/share-channel share",
 		}
 
 		response := commandProvider.DoCommand(th.App, args, "")
@@ -77,7 +78,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 			ChannelId: channel.Id,
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
-			Command:   "/share unshare_channel --are_you_sure Y",
+			Command:   "/share-channel unshare",
 		}
 
 		response := commandProvider.DoCommand(th.App, args, "")
