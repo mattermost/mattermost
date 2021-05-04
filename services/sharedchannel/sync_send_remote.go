@@ -135,6 +135,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Not sending sync data; everything filtered out",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("channel_id", task.channelID),
+			mlog.Bool("repeat", sd.resultRepeat),
 		)
 		return nil
 	}
