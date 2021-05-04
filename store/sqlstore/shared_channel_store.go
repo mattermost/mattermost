@@ -623,9 +623,9 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 		Limit(filter.Limit)
 
 	if filter.CheckProfileImage {
-		query = query.Where("scu.LastSyncAt <= u.LastPictureUpdate")
+		query = query.Where("scu.LastSyncAt < u.LastPictureUpdate")
 	} else {
-		query = query.Where("scu.LastSyncAt <= u.UpdateAt")
+		query = query.Where("scu.LastSyncAt < u.UpdateAt")
 	}
 
 	if filter.ChannelID != "" {
