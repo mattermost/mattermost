@@ -1017,7 +1017,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		From("Posts").
 		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
 		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		OrderBy("UpdateAt", "DeleteAt", "Id").
+		OrderBy("UpdateAt", "CreateAt", "DeleteAt", "Id").
 		Limit(uint64(options.Limit))
 
 	if !options.IncludeDeleted {
