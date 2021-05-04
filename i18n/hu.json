@@ -5709,7 +5709,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Pénzügyi intézménye elutasította a Mattermost felhő munkaterületéhez társított {{.CardBrand}} **** {{. LastFour}} kifizetését."
+    "translation": "Pénzügyi intézménye elutasította a Mattermost felhő munkaterületéhez társított {{.CardBrand}} **** {{.LastFour}} kifizetését."
   },
   {
     "id": "api.templates.password_change_subject",
