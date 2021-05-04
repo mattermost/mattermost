@@ -55,6 +55,10 @@ func (sd *syncData) hasMsgData() bool {
 	return len(sd.users) != 0 || len(sd.posts) != 0 || len(sd.reactions) != 0
 }
 
+func (sd *syncData) isCursorChanged() bool {
+	return sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostId != sd.resultNextCursor.LastPostId
+}
+
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
@@ -356,6 +360,8 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		if err := scs.sendPostSyncData(sd); err != nil {
 			merr.Append(fmt.Errorf("cannot send post sync data: %w", err))
 		}
+	} else if sd.isCursorChanged() {
+		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
 	}
 
 	// send reactions
