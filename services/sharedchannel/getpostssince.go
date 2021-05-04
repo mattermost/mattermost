@@ -5,7 +5,6 @@ package sharedchannel
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type sinceResult struct {
@@ -23,6 +22,7 @@ type sinceResult struct {
 // and the sync would never move forward.
 //
 // A boolean is also returned to indicate if there are more posts to be synchronized (true) or not (false).
+/*
 func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, since int64) (sinceResult, error) {
 	opts := model.GetPostsSinceForSyncOptions{
 		ChannelId:      channelId,
@@ -81,3 +81,4 @@ func countPostsAtMillisecond(posts []*model.Post, milli int64) int {
 	}
 	return count
 }
+*/

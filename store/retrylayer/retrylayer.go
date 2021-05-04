@@ -5824,21 +5824,21 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+		result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
@@ -8136,11 +8136,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 		if err == nil {
 			return nil
 		}

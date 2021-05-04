@@ -1004,54 +1004,46 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 	return exist > 0, nil
 }
 
-func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	if options.Limit < 0 || options.Limit > 1000 {
-		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
+		return nil, cursor, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
 	}
-
-	order := " ASC"
-	if options.SortDescending {
-		order = " DESC"
+	if options.ChannelId == "" {
+		return nil, cursor, store.NewErrInvalidInput("Post", "<options.ChannelID>", options.ChannelId)
 	}
 
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.GtOrEq{"UpdateAt": options.Since}).
+		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
 		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		Limit(uint64(options.Limit)).
-		OrderBy("CreateAt"+order, "DeleteAt", "Id")
-
-	if options.Until > 0 {
-		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
-	}
+		OrderBy("UpdateAt", "DeleteAt", "Id").
+		Limit(uint64(options.Limit))
 
 	if !options.IncludeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.NotEq{"DeleteAt": 0})
 	}
 
 	if options.ExcludeRemoteId != "" {
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
-	if options.Offset > 0 {
-		query = query.Offset(uint64(options.Offset))
-	}
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
 	}
 
 	var posts []*model.Post
-
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
-
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	return posts, nil
+	if len(posts) > 0 {
+		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+		cursor.LastPostId = posts[len(posts)-1].Id
+	}
+	return posts, cursor, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {

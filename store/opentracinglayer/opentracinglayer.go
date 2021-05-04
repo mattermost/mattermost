@@ -5394,7 +5394,7 @@ func (s *OpenTracingLayerPostStore) GetPostsSince(options model.GetPostsSinceOpt
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+func (s *OpenTracingLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostsSinceForSync")
 	s.Root.Store.SetContext(newCtx)
@@ -5403,13 +5403,13 @@ func (s *OpenTracingLayerPostStore) GetPostsSinceForSync(options model.GetPostsS
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+	result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
@@ -7490,16 +7490,16 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateRemote(remote *model.SharedCh
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateRemoteNextSyncAt")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateRemoteCursor")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

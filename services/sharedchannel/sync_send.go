@@ -301,7 +301,7 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		return
 	}
 
-	syncMsg := newSyncMsg(task.channelID, 0)
+	syncMsg := newSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
 
 	scs.addTask(newSyncTask(task.channelID, task.remoteID, syncMsg))
@@ -337,21 +337,19 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 	}
 }
 
-func (scs *Service) updateNextSyncForRemote(scrId string, rc *model.RemoteCluster, nextSyncAt int64) {
-	if nextSyncAt == 0 {
-		return
-	}
-	if err := scs.server.GetStore().SharedChannel().UpdateRemoteNextSyncAt(scrId, nextSyncAt); err != nil {
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error updating NextSyncAt for shared channel remote",
+func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster, cursor model.GetPostsSinceForSyncCursor) {
+	if err := scs.server.GetStore().SharedChannel().UpdateRemoteCursor(scrId, cursor); err != nil {
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error updating cursor for shared channel remote",
 			mlog.String("remote", rc.DisplayName),
 			mlog.Err(err),
 		)
 		return
 	}
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated NextSyncAt for remote",
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated cursor for remote",
 		mlog.String("remote_id", rc.RemoteId),
 		mlog.String("remote", rc.DisplayName),
-		mlog.Int64("next_update_at", nextSyncAt),
+		mlog.Int64("last_post_update_at", cursor.LastPostUpdateAt),
+		mlog.String("last_post_id", cursor.LastPostId),
 	)
 }
 

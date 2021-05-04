@@ -337,7 +337,7 @@ type PostStore interface {
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
-	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error)
+	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 }
 
 type UserStore interface {
@@ -844,7 +844,7 @@ type SharedChannelStore interface {
 	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
-	UpdateRemoteNextSyncAt(id string, syncTime int64) error
+	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 

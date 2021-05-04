@@ -524,13 +524,13 @@ func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*
 	return r0, r1
 }
 
-// UpdateRemoteNextSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
-	ret := _m.Called(id, syncTime)
+// UpdateRemoteCursor provides a mock function with given fields: id, cursor
+func (_m *SharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
+	ret := _m.Called(id, cursor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(id, syncTime)
+	if rf, ok := ret.Get(0).(func(string, model.GetPostsSinceForSyncCursor) error); ok {
+		r0 = rf(id, cursor)
 	} else {
 		r0 = ret.Error(0)
 	}

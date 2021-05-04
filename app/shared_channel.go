@@ -133,8 +133,8 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 	return rc, nil
 }
 
-func (a *App) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {
-	return a.Srv().Store.SharedChannel().UpdateRemoteNextSyncAt(id, syncTime)
+func (a *App) UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
+	return a.Srv().Store.SharedChannel().UpdateRemoteCursor(id, cursor)
 }
 
 func (a *App) DeleteSharedChannelRemote(id string) (bool, error) {

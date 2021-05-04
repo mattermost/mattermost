@@ -12,19 +12,17 @@ import (
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
-	Id         string                 `json:"id"`
-	ChannelId  string                 `json:"channel_id"`
-	nextSyncAt int64                  `json:"-"`
-	Users      map[string]*model.User `json:"users,omitempty"`
-	Posts      []*model.Post          `json:"posts,omitempty"`
-	Reactions  []*model.Reaction      `json:"reactions,omitempty"`
+	Id        string                 `json:"id"`
+	ChannelId string                 `json:"channel_id"`
+	Users     map[string]*model.User `json:"users,omitempty"`
+	Posts     []*model.Post          `json:"posts,omitempty"`
+	Reactions []*model.Reaction      `json:"reactions,omitempty"`
 }
 
-func newSyncMsg(channelID string, nextSyncAt int64) *syncMsg {
+func newSyncMsg(channelID string) *syncMsg {
 	return &syncMsg{
-		Id:         model.NewId(),
-		ChannelId:  channelID,
-		nextSyncAt: nextSyncAt,
+		Id:        model.NewId(),
+		ChannelId: channelID,
 	}
 }
 

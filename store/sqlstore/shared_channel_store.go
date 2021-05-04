@@ -44,6 +44,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("LastPostId").SetMaxSize(26)
 		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")
 
 		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
@@ -471,20 +472,21 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteNextSyncAt updates the NextSyncAt timestamp for the specified SharedChannelRemote.
-func (s SqlSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostId for the specified SharedChannelRemote.
+func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("NextSyncAt", syncTime).
+		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
+		Set("LastPostId", cursor.LastPostId).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_remote_next_sync_at_tosql")
+		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update NextSyncAt for SharedChannelRemote")
+		return errors.Wrap(err, "failed to update cursor for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()

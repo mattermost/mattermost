@@ -21,11 +21,10 @@ type attachment struct {
 }
 
 type syncData struct {
-	task       syncTask
-	rc         *model.RemoteCluster
-	scr        *model.SharedChannelRemote
-	nextSyncAt int64
-	teamID     string
+	task   syncTask
+	rc     *model.RemoteCluster
+	scr    *model.SharedChannelRemote
+	teamID string
 
 	users         map[string]*model.User
 	profileImages map[string]*model.User
@@ -34,7 +33,7 @@ type syncData struct {
 	attachments   []attachment
 
 	resultRepeat     bool
-	resultNextSyncAt int64
+	resultNextCursor model.GetPostsSinceForSyncCursor
 }
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
@@ -42,15 +41,10 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 		task:             task,
 		rc:               rc,
 		scr:              scr,
-		nextSyncAt:       scr.NextSyncAt,
 		users:            make(map[string]*model.User),
 		profileImages:    make(map[string]*model.User),
-		resultNextSyncAt: scr.NextSyncAt,
+		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostUpdateAt: scr.LastPostUpdateAt, LastPostId: scr.LastPostId},
 	}
-}
-
-func (sd *syncData) String() string {
-	return fmt.Sprintf("{rc:%s, ch:%s, nextSyncAt:%d, retry:%d}", sd.rc.Name, sd.task.channelID, sd.nextSyncAt, sd.task.retryCount)
 }
 
 func (sd *syncData) isEmpty() bool {
@@ -188,13 +182,24 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 
 // fetchPostsForSync populates the sync data with any new posts since the last sync.
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
-	result, err := scs.getPostsSince(sd.task.channelID, sd.rc, sd.nextSyncAt)
-	if err != nil {
-		return err
+	options := model.GetPostsSinceForSyncOptions{
+		ChannelId:      sd.task.channelID,
+		IncludeDeleted: true,
+		Limit:          MaxPostsPerSync,
 	}
-	sd.posts = append(sd.posts, result.posts...)
-	sd.resultRepeat = result.hasMore
-	sd.resultNextSyncAt = result.nextSince
+	cursor := model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
+		LastPostId:       sd.scr.LastPostId,
+	}
+
+	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor)
+	if err != nil {
+		return fmt.Errorf("could not fetch new posts for sync: %w", err)
+	}
+
+	sd.posts = append(sd.posts, posts...)
+	sd.resultNextCursor = nextCursor
+	sd.resultRepeat = len(posts) == MaxPostsPerSync
 	return nil
 }
 
@@ -203,7 +208,7 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any reactions originating from the remote cluster are filtered out
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, sd.nextSyncAt, sd.rc.RemoteId, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get reactions for post %s: %w", post.Id, err))
 			continue
@@ -304,9 +309,9 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)
-		//   - edited posts (EditAt >= nextSyncAt)
+		//   - edited posts (EditAt >= LastPostUpdateAt)
 		//   - deleted posts (DeleteAt > 0)
-		if p.EditAt > 0 && p.EditAt < sd.nextSyncAt && p.DeleteAt == 0 {
+		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 {
 			continue
 		}
 
@@ -370,7 +375,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
 func (scs *Service) sendUserSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID, sd.nextSyncAt)
+	msg := newSyncMsg(sd.task.channelID)
 	msg.Users = sd.users
 
 	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
@@ -412,7 +417,7 @@ func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 
 // sendPostSyncData sends the collected post updates to the remote cluster.
 func (scs *Service) sendPostSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID, sd.nextSyncAt)
+	msg := newSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
@@ -427,15 +432,13 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 				scs.handlePostError(postID, sd.task, sd.rc)
 			}
 		}
-		if sd.resultNextSyncAt > 0 {
-			scs.updateNextSyncForRemote(sd.scr.Id, sd.rc, sd.resultNextSyncAt)
-		}
+		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
 	})
 }
 
 // sendReactionSyncData sends the collected reaction updates to the remote cluster.
 func (scs *Service) sendReactionSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID, sd.nextSyncAt)
+	msg := newSyncMsg(sd.task.channelID)
 	msg.Reactions = sd.reactions
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {

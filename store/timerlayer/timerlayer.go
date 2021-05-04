@@ -4890,10 +4890,10 @@ func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+	result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4903,7 +4903,7 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsSinceForSync", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
@@ -6760,10 +6760,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6771,7 +6771,7 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTim
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteNextSyncAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteCursor", success, elapsed)
 	}
 	return err
 }
