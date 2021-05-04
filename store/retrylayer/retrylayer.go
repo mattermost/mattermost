@@ -2994,21 +2994,21 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
+func (s *RetryLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.MessageExport(after, limit)
+		result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
