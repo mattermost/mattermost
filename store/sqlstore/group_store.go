@@ -665,9 +665,9 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	case model.GroupSyncableTypeChannel:
 		// We need to get the TeamId so redux can manage channels when teams are unlinked
 		var channel *model.Channel
-		channel, err := s.Channel().Get(groupSyncable.SyncableId, false)
-		if err != nil {
-			return nil, err
+		channel, channelErr := s.Channel().Get(groupSyncable.SyncableId, false)
+		if channelErr != nil {
+			return nil, channelErr
 		}
 
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
