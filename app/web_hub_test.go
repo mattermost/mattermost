@@ -167,8 +167,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	defer s.Close()
 
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "testid")
-	hub := th.App.Srv().hubs[0]
-	hub.Register(wc1)
+	hub := th.App.GetHubForUserId(wc1.UserId)
 
 	done := make(chan bool)
 

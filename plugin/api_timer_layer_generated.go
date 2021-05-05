@@ -1113,3 +1113,10 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PublishPluginClusterEvent(ev, opts)
+	api.recordTime(startTime, "PublishPluginClusterEvent", _returnsA == nil)
+	return _returnsA
+}

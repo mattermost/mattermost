@@ -838,7 +838,8 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			patch.Message = &tc.Message
+			message := tc.Message
+			patch.Message = &message
 			patch.DisableMentionHighlights()
 			if tc.ExpectedProps == nil {
 				assert.Nil(t, patch.Props)

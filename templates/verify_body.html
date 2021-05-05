@@ -72,6 +72,12 @@
       }
     }
   </style>
+  <style media="screen and (min-width:480px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+  </style>
   <style type="text/css">
     @media only screen and (max-width:480px) {
       table.mj-full-width-mobile {
@@ -399,7 +405,9 @@
                   </tbody>
                 </table>
               </div>
-              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{if .Props.SupportEmail}}
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
               <div style="margin:0px auto;max-width:552px;">
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>
@@ -417,8 +425,7 @@
                               <tr>
                                 <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.QuestionInfo}}
-                                    <a href='mailto:{{.Props.SupportEmail}}'>
-                                      {{.Props.SupportEmail}}</a>
+                                    <a href="mailto:{{.Props.SupportEmail}}"> {{.Props.SupportEmail}}</a>
                                   </div>
                                 </td>
                               </tr>
@@ -431,7 +438,9 @@
                   </tbody>
                 </table>
               </div>
-              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{end}}
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
               <div style="margin:0px auto;max-width:552px;">
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>
