@@ -20,6 +20,18 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+func setupFileStore(t *testing.T, cfg *model.Config) (*Store, func()) {
+	path, tearDown := setupConfigFile(t, emptyConfig)
+	fsInner, err := NewFileStore(path, false)
+	require.NoError(t, err)
+	fs, err := NewStoreFromBacking(fsInner, nil, false)
+	require.NoError(t, err)
+	return fs, func() {
+		tearDown()
+		fs.Close()
+	}
+}
+
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
@@ -633,7 +645,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		expectedOldConfig := minimalConfig
+		expectedOldConfig := minimalConfig.Clone()
 		var expectedNewConfig *model.Config
 		called := make(chan bool, 1)
 		callback := func(oldCfg, newCfg *model.Config) {
@@ -644,18 +656,17 @@ func TestFileStoreSet(t *testing.T) {
 		}
 		fs.AddListener(callback)
 
-		fs.PersistFeatures(false)
+		fs.SetReadOnlyFF(true)
 
 		expectedNewConfig = minimalConfig.Clone()
 		expectedNewConfig.FeatureFlags.TestFeature = "test"
 		_, err = fs.Set(expectedNewConfig)
 		require.NoError(t, err)
 
-		require.True(t, wasCalled(called, 5*time.Second))
+		require.False(t, wasCalled(called, 5*time.Second))
 
-		fs.PersistFeatures(true)
+		fs.SetReadOnlyFF(false)
 
-		expectedOldConfig.FeatureFlags.TestFeature = "test"
 		expectedNewConfig.FeatureFlags.TestFeature = "test2"
 		_, err = fs.Set(expectedNewConfig)
 		require.NoError(t, err)
@@ -968,6 +979,60 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
+	})
+
+	t.Run("no change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		err = fs.Load()
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 5*time.Second), "callback should not have been called if nothing changed")
+	})
+
+	t.Run("listeners notified, only env change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		err = fs.Load()
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed")
 	})
 }
 
@@ -1437,4 +1502,40 @@ func TestFileStoreReadOnly(t *testing.T) {
 	require.Equal(t, ErrReadOnlyStore, err)
 
 	require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since config is read-only")
+}
+
+func TestFileStoreSetReadOnlyFF(t *testing.T) {
+	t.Run("read only true", func(t *testing.T) {
+		fs, tearDown := setupFileStore(t, minimalConfig)
+		defer tearDown()
+		config := fs.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+
+		newCfg := config.Clone()
+		newCfg.FeatureFlags.TestFeature = "test"
+
+		_, err := fs.Set(newCfg)
+		require.NoError(t, err)
+
+		config = fs.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+	})
+
+	t.Run("read only false", func(t *testing.T) {
+		fs, tearDown := setupFileStore(t, minimalConfig)
+		defer tearDown()
+		config := fs.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+
+		newCfg := config.Clone()
+		newCfg.FeatureFlags.TestFeature = "test"
+
+		fs.SetReadOnlyFF(false)
+
+		_, err := fs.Set(newCfg)
+		require.NoError(t, err)
+
+		config = fs.Get()
+		require.Equal(t, newCfg.FeatureFlags, config.FeatureFlags)
+	})
 }

@@ -615,7 +615,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		ds.PersistFeatures(false)
+		ds.SetReadOnlyFF(true)
 		_, err = ds.Set(minimalConfig)
 		require.NoError(t, err)
 
@@ -631,7 +631,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		ds.PersistFeatures(true)
+		ds.SetReadOnlyFF(false)
 
 		_, err = ds.Set(minimalConfig)
 		require.NoError(t, err)

@@ -31,8 +31,8 @@ type Store struct {
 	configNoEnv          *model.Config
 	configCustomDefaults *model.Config
 
-	persistFeatureFlags bool
-	readOnly            bool
+	readOnly   bool
+	readOnlyFF bool
 }
 
 type BackingStore interface {
@@ -71,6 +71,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 		backingStore:         backingStore,
 		configCustomDefaults: customDefaults,
 		readOnly:             readOnly,
+		readOnlyFF:           true,
 	}
 
 	if err := store.Load(); err != nil {
@@ -158,11 +159,12 @@ func (s *Store) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	return removeEnvOverrides(cfg, s.configNoEnv, s.GetEnvironmentOverrides())
 }
 
-// PersistFeatures sets if the store should persist feature flags.
-func (s *Store) PersistFeatures(persist bool) {
+// SetReadOnlyFF sets whether feature flags should be written out to
+// config or treated as read-only.
+func (s *Store) SetReadOnlyFF(readOnly bool) {
 	s.configLock.Lock()
 	defer s.configLock.Unlock()
-	s.persistFeatureFlags = persist
+	s.readOnlyFF = readOnly
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
@@ -194,14 +196,18 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 
 	newCfgNoEnv := removeEnvOverrides(newCfg, oldCfgNoEnv, s.GetEnvironmentOverrides())
 
-	// Don't persist feature flags unless we are on MM cloud
+	// Don't store feature flags unless we are on MM cloud
 	// MM cloud uses config in the DB as a cache of the feature flag
 	// settings in case the management system is down when a pod starts.
-	newFeatureFlags := newCfg.FeatureFlags
-	newFeatureFlagsNoEnv := newCfgNoEnv.FeatureFlags
-	if !s.persistFeatureFlags {
+
+	// Backing up feature flags section in case we need to restore them later on.
+	oldCfgFF := oldCfg.FeatureFlags
+	oldCfgNoEnvFF := oldCfgNoEnv.FeatureFlags
+	// Clearing FF sections to avoid both comparing and persisting them.
+	if s.readOnlyFF {
+		oldCfg.FeatureFlags = nil
+		newCfg.FeatureFlags = nil
 		newCfgNoEnv.FeatureFlags = nil
-		oldCfgNoEnv.FeatureFlags = nil
 	}
 
 	if err := s.backingStore.Set(newCfgNoEnv); err != nil {
@@ -214,12 +220,16 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
-	newCfgNoEnv.FeatureFlags = newFeatureFlagsNoEnv
-	newCfg.FeatureFlags = newFeatureFlags
-
 	hasChanged, err := confsDiff(oldCfg, newCfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compare configs")
+	}
+
+	// We restore the previously cleared feature flags sections back.
+	if s.readOnlyFF {
+		oldCfg.FeatureFlags = oldCfgFF
+		newCfg.FeatureFlags = oldCfgFF
+		newCfgNoEnv.FeatureFlags = oldCfgNoEnvFF
 	}
 
 	s.configNoEnv = newCfgNoEnv
@@ -228,13 +238,23 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	unlockOnce.Do(s.configLock.Unlock)
 
 	if hasChanged {
-		s.invokeConfigListeners(oldCfg, newCfg)
+		s.invokeConfigListeners(oldCfg, newCfg.Clone())
 	}
 
 	return oldCfg, nil
 }
 
-func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) error {
+// Load updates the current configuration from the backing store, possibly initializing.
+func (s *Store) Load() error {
+	s.configLock.Lock()
+	var unlockOnce sync.Once
+	defer unlockOnce.Do(s.configLock.Unlock)
+
+	oldCfg := &model.Config{}
+	if s.config != nil {
+		oldCfg = s.config
+	}
+
 	configBytes, err := s.backingStore.Load()
 	if err != nil {
 		return err
@@ -259,6 +279,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		s.configCustomDefaults = nil
 	}
 
+	// Setting defaults allows us to accept partial config objects.
 	loadedConfig.SetDefaults()
 
 	loadedConfigNoEnv := loadedConfig
@@ -270,10 +291,12 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		return errors.Wrap(err, "invalid config")
 	}
 
-	loadedFeatureFlagsNoEnv := loadedConfigNoEnv.FeatureFlags
-	loadedFeatureFlags := loadedConfig.FeatureFlags
-	oldCfgFeatureFlags := oldCfg.FeatureFlags
-	if !s.persistFeatureFlags {
+	// Backing up feature flags section in case we need to restore them later on.
+	oldCfgFF := oldCfg.FeatureFlags
+	loadedConfigFF := loadedConfig.FeatureFlags
+	loadedConfigNoEnvFF := loadedConfigNoEnv.FeatureFlags
+	// Clearing FF sections to avoid both comparing and persisting them.
+	if s.readOnlyFF {
 		oldCfg.FeatureFlags = nil
 		loadedConfig.FeatureFlags = nil
 		loadedConfigNoEnv.FeatureFlags = nil
@@ -294,9 +317,12 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		}
 	}
 
-	loadedConfig.FeatureFlags = loadedFeatureFlags
-	loadedConfigNoEnv.FeatureFlags = loadedFeatureFlagsNoEnv
-	oldCfg.FeatureFlags = oldCfgFeatureFlags
+	// We restore the previously cleared feature flags sections back.
+	if s.readOnlyFF {
+		oldCfg.FeatureFlags = oldCfgFF
+		loadedConfig.FeatureFlags = loadedConfigFF
+		loadedConfigNoEnv.FeatureFlags = loadedConfigNoEnvFF
+	}
 
 	s.config = loadedConfig
 	s.configNoEnv = loadedConfigNoEnv
@@ -304,21 +330,10 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	unlockOnce.Do(s.configLock.Unlock)
 
 	if hasChanged {
-		s.invokeConfigListeners(oldCfg, loadedConfig)
+		s.invokeConfigListeners(oldCfg, loadedConfig.Clone())
 	}
 
 	return nil
-}
-
-// Load updates the current configuration from the backing store, possibly initializing.
-func (s *Store) Load() error {
-	s.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(s.configLock.Unlock)
-
-	oldCfg := s.config.Clone()
-
-	return s.loadLockedWithOld(oldCfg, &unlockOnce)
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.

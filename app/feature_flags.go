@@ -20,7 +20,9 @@ func (s *Server) setupFeatureFlags() {
 	splitConfigured := splitKey != ""
 	syncFeatureFlags := splitConfigured && s.IsLeader()
 
-	s.configStore.PersistFeatures(splitConfigured)
+	if splitConfigured {
+		s.configStore.SetReadOnlyFF(false)
+	}
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
