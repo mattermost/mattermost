@@ -533,7 +533,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		os.Chmod(path, 0500)
+		fsInner.path = ""
 
 		newCfg := &model.Config{}
 

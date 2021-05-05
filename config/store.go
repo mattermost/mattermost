@@ -35,6 +35,8 @@ type Store struct {
 	readOnlyFF bool
 }
 
+// BackingStore defines the behaviour exposed by the underlying store
+// implementation (e.g. file, database).
 type BackingStore interface {
 	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) error
