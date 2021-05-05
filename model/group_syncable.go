@@ -60,20 +60,27 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+	var channelId string
+	var teamId string
 	for key, value := range kvp {
 		switch key {
 		case "team_id":
-			syncable.SyncableId = value.(string)
-			syncable.Type = GroupSyncableTypeTeam
+			teamId = value.(string)
 		case "channel_id":
-			syncable.SyncableId = value.(string)
-			syncable.Type = GroupSyncableTypeChannel
+			channelId = value.(string)
 		case "group_id":
 			syncable.GroupId = value.(string)
 		case "auto_add":
 			syncable.AutoAdd = value.(bool)
 		default:
 		}
+	}
+	if channelId != "" {
+		syncable.SyncableId = channelId
+		syncable.Type = GroupSyncableTypeChannel
+	} else {
+		syncable.SyncableId = teamId
+		syncable.Type = GroupSyncableTypeTeam
 	}
 	return nil
 }
