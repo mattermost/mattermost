@@ -6742,10 +6742,6 @@
     "translation": "役割を取得できませんでした。"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "全役割を取得できませんでした。"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "役割を取得できませんでした。"
   },
@@ -8606,10 +8602,6 @@
     "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "この機能は開発中であり、フィーチャーフラグを使用した場合のみ利用可能になります。"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "リクエストボディを解析できませんでした。"
   },
@@ -8644,10 +8636,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "フィールドをJSONにエンコードできませんでした"
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "不正な説明です。"
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -8842,14 +8830,6 @@
     "translation": "招待は有効期限切れです。"
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' または 'N'"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "本当に実行しますか? このチャンネルの共有が解除され、全てのリモートインスタンスの招待も解除されます"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "現在のチャンネルの共有を解除する"
   },
@@ -8874,20 +8854,12 @@
     "translation": "このチャンネルはもう共有されていません。"
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "共有チャンネルは削除されませんでした: `{{.Arg}}` は `{{.Expected}}` でなければなりません。"
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[読取専用] - 'Y' or 'N'。デフォルトは'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "チャンネルは読取専用モードで共有されます"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "現在のチャンネルを共有する"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8970,14 +8942,6 @@
     "translation": "リモートクラスター取得エラー: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[説明] - 任意"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "招待の説明"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "現在のチャンネルをリモートのMattermostインスタンスへ共有します。"
   },
@@ -9002,44 +8966,12 @@
     "translation": "共有チャネルのリモートID `{{.RemoteId}}`がこのチャネルには存在しません。"
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - デフォルトはチャンネルの目的"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "リモートインスタンスに提供されるチャンネルの目的"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - デフォルトはチャンネル名"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "リモートインスタンスに提供されるチャンネル名"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "他の場所から発信された共有チャネルに、リモートクラスタを招待できませんでした。"
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "`{{.Name}}` をこのチャンネルに招待する際にエラーが発生しました: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - デフォルトはチャンネルヘッダー"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "リモートインスタンスに提供されるチャンネルヘッダ"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - デフォルトはチャンネル表示名"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "リモートインスタンスに提供されるチャンネル表示名"
   },
   {
     "id": "api.command_share.available_actions",

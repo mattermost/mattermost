@@ -6503,10 +6503,6 @@
     "translation": "Impossible de récupérer le rôle."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossible de récupérer tous les rôles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossible de récupérer le rôle."
   },
@@ -7237,10 +7233,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Impossible d'analyser le corps de la demande."
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Cette fonctionnalité est en cours de développement. Elle n'est disponible qu'en activant la fonctionnalité."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
