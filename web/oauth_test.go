@@ -616,6 +616,10 @@ func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, 
 	return nil, nil
 }
 
+func (m *MattermostTestProvider) VerifySameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
+}
+
 func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
