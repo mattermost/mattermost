@@ -172,6 +172,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.Srv().Jobs.InitWorkers()
+		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
