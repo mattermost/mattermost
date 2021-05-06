@@ -110,6 +110,6 @@ func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error)
 	return nil, nil
 }
 
-func (m *GitLabProvider) VerifySameUser(dbUser, oauthUser *model.User) bool {
+func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }

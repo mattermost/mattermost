@@ -375,7 +375,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamID string,
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email, http.StatusBadRequest)
 		}
-		if provider.VerifySameUser(userByEmail, user) {
+		if provider.IsSameUser(userByEmail, user) {
 			return userByEmail, nil
 		}
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)

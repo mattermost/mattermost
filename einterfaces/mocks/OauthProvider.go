@@ -85,8 +85,8 @@ func (_m *OauthProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) 
 	return r0, r1
 }
 
-// VerifySameUser provides a mock function with given fields: dbUser, oAuthUser
-func (_m *OauthProvider) VerifySameUser(dbUser *model.User, oAuthUser *model.User) bool {
+// IsSameUser provides a mock function with given fields: dbUser, oAuthUser
+func (_m *OauthProvider) IsSameUser(dbUser *model.User, oAuthUser *model.User) bool {
 	ret := _m.Called(dbUser, oAuthUser)
 
 	var r0 bool
