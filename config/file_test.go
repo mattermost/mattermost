@@ -896,19 +896,31 @@ func TestFileStoreLoad(t *testing.T) {
 	})
 
 	t.Run("listeners notifed", func(t *testing.T) {
-		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
+		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
 
 		called := make(chan bool, 1)
 		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
-		configStore.AddListener(callback)
+		fs.AddListener(callback)
 
-		err := configStore.Load()
+		cfgData, err := marshalConfig(minimalConfig)
 		require.NoError(t, err)
 
-		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
+		err = ioutil.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
+
+		err = fs.Load()
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed on load")
 	})
 
 	t.Run("no change", func(t *testing.T) {

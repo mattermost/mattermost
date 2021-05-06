@@ -861,7 +861,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, "http://trailingslash", *ds.Get().ServiceSettings.SiteURL)
 	})
 
-	t.Run("listeners notifed", func(t *testing.T) {
+	t.Run("listeners notifed on change", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
@@ -875,10 +875,16 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		}
 		ds.AddListener(callback)
 
+		newCfg := minimalConfig.Clone()
+		dbStore, ok := ds.backingStore.(*DatabaseStore)
+		require.True(t, ok)
+		err = dbStore.persist(newCfg)
+		require.NoError(t, err)
+
 		err = ds.Load()
 		require.NoError(t, err)
 
-		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed on load")
 	})
 }
 

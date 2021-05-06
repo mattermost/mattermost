@@ -281,6 +281,13 @@ func (s *Store) Load() error {
 		s.configCustomDefaults = nil
 	}
 
+	// We set the SiteURL to empty (if nil) so that the following call to
+	// SetDefaults() will generate missing data. This avoids an additional write
+	// to the backing store.
+	if loadedConfig.ServiceSettings.SiteURL == nil {
+		loadedConfig.ServiceSettings.SiteURL = model.NewString("")
+	}
+
 	// Setting defaults allows us to accept partial config objects.
 	loadedConfig.SetDefaults()
 
