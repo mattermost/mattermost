@@ -1029,7 +1029,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 		RemoteId:  remoteID,
 		ChannelId: channelID,
 	}
-	scUser1, err = ss.SharedChannel().SaveUser(scUser1)
+	_, err = ss.SharedChannel().SaveUser(scUser1)
 	require.NoError(t, err, "couldn't save user", err)
 
 	scUser2 := &model.SharedChannelUser{
@@ -1037,7 +1037,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 		RemoteId:  remoteID,
 		ChannelId: channelID,
 	}
-	scUser2, err = ss.SharedChannel().SaveUser(scUser2)
+	_, err = ss.SharedChannel().SaveUser(scUser2)
 	require.NoError(t, err, "couldn't save user", err)
 
 	t.Run("Update LastSyncAt for user via UpdateAt", func(t *testing.T) {

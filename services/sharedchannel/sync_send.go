@@ -417,11 +417,11 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 				mlog.String("user_id", user.Id),
 			)
 
-			if err = scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(user.Id, channelID, rc.RemoteId); err != nil {
+			if err2 := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(user.Id, channelID, rc.RemoteId); err2 != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
 					mlog.String("remote_id", rc.RemoteId),
 					mlog.String("user_id", user.Id),
-					mlog.Err(err),
+					mlog.Err(err2),
 				)
 			}
 			return
@@ -430,7 +430,7 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image",
 			mlog.String("remote_id", rc.RemoteId),
 			mlog.String("user_id", user.Id),
-			mlog.String("Err", resp.Err),
+			mlog.Err(err),
 		)
 	})
 }

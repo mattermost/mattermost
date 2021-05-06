@@ -32,12 +32,12 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		)
 	}
 
-	var syncMsg syncMsg
+	var sm syncMsg
 
-	if err := json.Unmarshal(msg.Payload, &syncMsg); err != nil {
+	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
-	return scs.processSyncMessage(&syncMsg, rc, response)
+	return scs.processSyncMessage(&sm, rc, response)
 }
 
 func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
@@ -60,11 +60,9 @@ func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster
 		mlog.Int("reaction_count", len(syncMsg.Reactions)),
 	)
 
-	if channel == nil {
-		if channel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
-			// if the channel doesn't exist then none of these sync items are going to work.
-			return fmt.Errorf("channel not found processing sync message: %w", err)
-		}
+	if channel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
+		// if the channel doesn't exist then none of these sync items are going to work.
+		return fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
 	// add/update users before posts
@@ -89,7 +87,7 @@ func (scs *Service) processSyncMessage(syncMsg *syncMsg, rc *model.RemoteCluster
 	}
 
 	for _, post := range syncMsg.Posts {
-		if syncMsg.ChannelId != syncMsg.ChannelId {
+		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
 				mlog.String("sm.ChannelId", syncMsg.ChannelId),

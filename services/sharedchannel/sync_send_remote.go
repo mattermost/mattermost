@@ -21,10 +21,9 @@ type attachment struct {
 }
 
 type syncData struct {
-	task   syncTask
-	rc     *model.RemoteCluster
-	scr    *model.SharedChannelRemote
-	teamID string
+	task syncTask
+	rc   *model.RemoteCluster
+	scr  *model.SharedChannelRemote
 
 	users         map[string]*model.User
 	profileImages map[string]*model.User
@@ -49,10 +48,6 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 
 func (sd *syncData) isEmpty() bool {
 	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.attachments) == 0
-}
-
-func (sd *syncData) hasMsgData() bool {
-	return len(sd.users) != 0 || len(sd.posts) != 0 || len(sd.reactions) != 0
 }
 
 func (sd *syncData) isCursorChanged() bool {
@@ -491,11 +486,11 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 		defer wg.Done()
 
 		var syncResp SyncResponse
-		if err := json.Unmarshal(rcResp.Payload, &syncResp); err != nil {
+		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", msg.ChannelId),
-				mlog.Err(err),
+				mlog.Err(err2),
 			)
 			return
 		}
