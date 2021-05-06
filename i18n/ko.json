@@ -6702,10 +6702,6 @@
     "translation": "역할을 가져올 수 없습니다."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "모든 역할을 가져올 수 없습니다."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "역할을 가져올 수 없습니다."
   },
