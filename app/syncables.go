@@ -16,8 +16,10 @@ import (
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
 // configured to sync with channels for group members on or after the given timestamp. If a channelID is given
 // only that channel's members are created. If channelID is nil all channel memberships are created.
-func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, channelID *string) error {
-	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID)
+// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+// be re-added; otherwise, they will not be re-added.
+func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, channelID *string, includeRemovedMembers bool) error {
+	channelMembers, appErr := a.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
@@ -79,8 +81,10 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 // createDefaultTeamMemberships adds users to teams based on their group memberships and how those groups are
 // configured to sync with teams for group members on or after the given timestamp. If a teamID is given
 // only that team's members are created. If teamID is nil all team memberships are created.
-func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, teamID *string) error {
-	teamMembers, appErr := a.TeamMembersToAdd(since, teamID)
+// If includeRemovedMembers is true, then team members who left or were removed from the team will
+// be re-added; otherwise, they will not be re-added.
+func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, teamID *string, includeRemovedMembers bool) error {
+	teamMembers, appErr := a.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 	if appErr != nil {
 		return appErr
 	}
@@ -109,13 +113,15 @@ func (a *App) createDefaultTeamMemberships(c *request.Context, since int64, team
 
 // CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 // are configured to sync with teams and channels for group members on or after the given timestamp.
-func (a *App) CreateDefaultMemberships(c *request.Context, since int64) error {
-	err := a.createDefaultTeamMemberships(c, since, nil)
+// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// be re-added; otherwise, they will not be re-added.
+func (a *App) CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error {
+	err := a.createDefaultTeamMemberships(c, since, nil, includeRemovedMembers)
 	if err != nil {
 		return err
 	}
 
-	err = a.createDefaultChannelMemberships(c, since, nil)
+	err = a.createDefaultChannelMemberships(c, since, nil, includeRemovedMembers)
 	if err != nil {
 		return err
 	}
@@ -227,7 +233,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType) {
+func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
 	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)
@@ -238,11 +244,11 @@ func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, sync
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		a.createDefaultTeamMemberships(c, since, &syncableID)
+		a.createDefaultTeamMemberships(c, since, &syncableID, includeRemovedMembers)
 		a.deleteGroupConstrainedTeamMemberships(c, &syncableID)
 		a.ClearTeamMembersCache(syncableID)
 	case model.GroupSyncableTypeChannel:
-		a.createDefaultChannelMemberships(c, since, &syncableID)
+		a.createDefaultChannelMemberships(c, since, &syncableID, includeRemovedMembers)
 		a.deleteGroupConstrainedChannelMemberships(c, &syncableID)
 		a.ClearChannelMembersCache(syncableID)
 	}

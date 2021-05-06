@@ -1367,14 +1367,14 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Time before syncable was created
-	teamMembers, err := ss.Group().TeamMembersToAdd(syncable.CreateAt-1, nil)
+	teamMembers, err := ss.Group().TeamMembersToAdd(syncable.CreateAt-1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, user.Id, teamMembers[0].UserID)
 	require.Equal(t, team.Id, teamMembers[0].TeamID)
 
 	// Time after syncable was created
-	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt+1, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
@@ -1383,7 +1383,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt+1, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
@@ -1393,14 +1393,14 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Time before syncable was updated
-	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt-1, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt-1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, user.Id, teamMembers[0].UserID)
 	require.Equal(t, team.Id, teamMembers[0].TeamID)
 
 	// Time after syncable was updated
-	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt+1, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
@@ -1408,21 +1408,21 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	syncable.AutoAdd = false
 	_, err = ss.Group().UpdateGroupSyncable(syncable)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
 	// reset state of syncable and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
 	// No result if Group deleted
 	_, err = ss.Group().Delete(group.Id)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
@@ -1430,7 +1430,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	group.DeleteAt = 0
 	_, err = ss.Group().Update(group)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
@@ -1438,7 +1438,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	team.DeleteAt = model.GetMillis()
 	team, nErr = ss.Team().Update(team)
 	require.NoError(t, nErr)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
@@ -1446,35 +1446,35 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	team.DeleteAt = 0
 	team, nErr = ss.Team().Update(team)
 	require.NoError(t, nErr)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
 	// No result if GroupTeam deleted
 	_, err = ss.Group().DeleteGroupSyncable(group.Id, team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
 	// reset GroupTeam and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
 	// No result if GroupMember deleted
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
 
 	// restore group member and verify
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 
@@ -1484,9 +1484,25 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		UserId: user.Id,
 	}, 999)
 	require.NoError(t, nErr)
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, teamMembers)
+
+	// Leaving Team should still not return result
+	_, nErr = ss.Team().UpdateMember(&model.TeamMember{
+		TeamId:   team.Id,
+		UserId:   user.Id,
+		DeleteAt: model.GetMillis(),
+	})
+	require.NoError(t, nErr)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, false)
+	require.NoError(t, err)
+	require.Empty(t, teamMembers)
+
+	// If includeRemovedMembers is set to true, removed members should be added back in
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil, true)
+	require.NoError(t, err)
+	require.Len(t, teamMembers, 1)
 }
 
 func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
@@ -1566,15 +1582,15 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group2.Id, team2.Id, true))
 	require.NoError(t, err)
 
-	teamMembers, err := ss.Group().TeamMembersToAdd(0, nil)
+	teamMembers, err := ss.Group().TeamMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 3)
 
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, &team1.Id)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, &team1.Id, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 2)
 
-	teamMembers, err = ss.Group().TeamMembersToAdd(0, &team2.Id)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0, &team2.Id, false)
 	require.NoError(t, err)
 	require.Len(t, teamMembers, 1)
 }
@@ -1616,14 +1632,14 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Time before syncable was created
-	channelMembers, err := ss.Group().ChannelMembersToAdd(syncable.CreateAt-1, nil)
+	channelMembers, err := ss.Group().ChannelMembersToAdd(syncable.CreateAt-1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 	require.Equal(t, user.Id, channelMembers[0].UserID)
 	require.Equal(t, channel.Id, channelMembers[0].ChannelID)
 
 	// Time after syncable was created
-	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt+1, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
@@ -1632,7 +1648,7 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt+1, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
@@ -1642,14 +1658,14 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Time before syncable was updated
-	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt-1, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt-1, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 	require.Equal(t, user.Id, channelMembers[0].UserID)
 	require.Equal(t, channel.Id, channelMembers[0].ChannelID)
 
 	// Time after syncable was updated
-	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt+1, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt+1, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
@@ -1657,21 +1673,21 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	syncable.AutoAdd = false
 	_, err = ss.Group().UpdateGroupSyncable(syncable)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
 	// reset state of syncable and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
 	// No result if Group deleted
 	_, err = ss.Group().Delete(group.Id)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
@@ -1679,14 +1695,14 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	group.DeleteAt = 0
 	_, err = ss.Group().Update(group)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
 	// No result if Channel deleted
 	nErr = ss.Channel().Delete(channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
@@ -1694,56 +1710,63 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	channel.DeleteAt = 0
 	_, nErr = ss.Channel().Update(channel)
 	require.NoError(t, nErr)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
 	// No result if GroupChannel deleted
 	_, err = ss.Group().DeleteGroupSyncable(group.Id, channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
 	// reset GroupChannel and verify
 	_, err = ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
 	// No result if GroupMember deleted
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
 	// restore group member and verify
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 
 	// Adding Channel (ChannelMemberHistory) should stop returning result
 	nErr = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
 	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.Empty(t, channelMembers)
 
 	// Purging ChannelMemberHistory re-returns the result
 	_, nErr = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
 	require.NoError(t, nErr)
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
+	require.NoError(t, err)
+	require.Len(t, channelMembers, 1)
+
+	// If includeRemovedMembers is set to true, removed members should be added back in
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	require.NoError(t, nErr)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, true)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 }
@@ -1815,15 +1838,15 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group2.Id, channel2.Id, true))
 	require.NoError(t, err)
 
-	channelMembers, err := ss.Group().ChannelMembersToAdd(0, nil)
+	channelMembers, err := ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(channelMembers), 3)
 
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, &channel1.Id)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, &channel1.Id, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 2)
 
-	channelMembers, err = ss.Group().ChannelMembersToAdd(0, &channel2.Id)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0, &channel2.Id, false)
 	require.NoError(t, err)
 	require.Len(t, channelMembers, 1)
 }

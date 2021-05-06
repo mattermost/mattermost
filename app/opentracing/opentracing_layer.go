@@ -1046,7 +1046,7 @@ func (a *OpenTracingAppLayer) ChannelMembersMinusGroupMembers(channelID string, 
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ChannelMembersToAdd")
 
@@ -1058,7 +1058,7 @@ func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ChannelMembersToAdd(since, channelID)
+	resultVar0, resultVar1 := a.app.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1870,7 +1870,7 @@ func (a *OpenTracingAppLayer) CreateDefaultChannels(c *request.Context, teamID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, since int64) error {
+func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultMemberships")
 
@@ -1882,7 +1882,7 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, since
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CreateDefaultMemberships(c, since)
+	resultVar0 := a.app.CreateDefaultMemberships(c, since, includeRemovedMembers)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15184,7 +15184,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap() {
+func (a *OpenTracingAppLayer) SyncLdap(includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -15196,7 +15196,7 @@ func (a *OpenTracingAppLayer) SyncLdap() {
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap()
+	a.app.SyncLdap(includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
@@ -15236,7 +15236,7 @@ func (a *OpenTracingAppLayer) SyncPluginsActiveState() {
 	a.app.SyncPluginsActiveState()
 }
 
-func (a *OpenTracingAppLayer) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType) {
+func (a *OpenTracingAppLayer) SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
 
@@ -15248,7 +15248,7 @@ func (a *OpenTracingAppLayer) SyncRolesAndMembership(c *request.Context, syncabl
 	}()
 
 	defer span.Finish()
-	a.app.SyncRolesAndMembership(c, syncableID, syncableType)
+	a.app.SyncRolesAndMembership(c, syncableID, syncableType, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
@@ -15295,7 +15295,7 @@ func (a *OpenTracingAppLayer) TeamMembersMinusGroupMembers(teamID string, groupI
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersToAdd")
 
@@ -15307,7 +15307,7 @@ func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.TeamMembersToAdd(since, teamID)
+	resultVar0, resultVar1 := a.app.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
