@@ -1126,7 +1126,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 	}
 
 	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestTrialLicense", "plugin_api.license.request_trial_license.no-site-url", nil, "", http.StatusBadRequest)
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
