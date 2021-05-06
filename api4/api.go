@@ -300,7 +300,6 @@ func Init(a app.AppIface, root *mux.Router) *API {
 
 func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		// ConfigService: configservice,
 		app:        a,
 		BaseRoutes: &Routes{},
 	}
