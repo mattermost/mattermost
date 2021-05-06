@@ -341,24 +341,30 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	if rpost == nil {
 		// post doesn't exist; create new one
 		rpost, appErr = scs.app.CreatePost(post, channel, true, true)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-		)
+		if appErr == nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+			)
+		}
 	} else if post.DeleteAt > 0 {
 		// delete post
 		rpost, appErr = scs.app.DeletePost(post.Id, post.UserId)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Deleted sync post",
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-		)
+		if appErr == nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Deleted sync post",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+			)
+		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
 		// update post
 		rpost, appErr = scs.app.UpdatePost(post, false)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-		)
+		if appErr == nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+			)
+		}
 	} else {
 		// nothing to update
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Update to sync post ignored",
