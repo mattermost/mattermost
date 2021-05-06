@@ -13,12 +13,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-func (a *App) SyncLdap() {
+// SyncLdap starts an LDAP sync job.
+// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+// be re-added; otherwise, they will not be re-added.
+func (a *App) SyncLdap(includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap(); ldapI != nil {
-				ldapI.StartSynchronizeJob(false)
+				ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 			} else {
 				mlog.Error("Not executing ldap sync because ldap is not available")
 			}

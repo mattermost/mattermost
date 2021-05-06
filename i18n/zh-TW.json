@@ -6726,10 +6726,6 @@
     "translation": "無法取得角色"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "無法取得角色"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "無法取得角色"
   },
