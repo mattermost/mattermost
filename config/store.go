@@ -262,9 +262,9 @@ func (s *Store) Load() error {
 		return err
 	}
 
-	loadedConfig := &model.Config{}
+	loadedCfg := &model.Config{}
 	if len(configBytes) != 0 {
-		if err = json.Unmarshal(configBytes, &loadedConfig); err != nil {
+		if err = json.Unmarshal(configBytes, &loadedCfg); err != nil {
 			return jsonutils.HumanizeJSONError(err, configBytes)
 		}
 	}
@@ -274,7 +274,7 @@ func (s *Store) Load() error {
 	// configuration reloads
 	if s.configCustomDefaults != nil {
 		var mErr error
-		loadedConfig, mErr = Merge(s.configCustomDefaults, loadedConfig, nil)
+		loadedCfg, mErr = Merge(s.configCustomDefaults, loadedCfg, nil)
 		if mErr != nil {
 			return errors.Wrap(mErr, "failed to merge custom config defaults")
 		}
@@ -284,35 +284,35 @@ func (s *Store) Load() error {
 	// We set the SiteURL to empty (if nil) so that the following call to
 	// SetDefaults() will generate missing data. This avoids an additional write
 	// to the backing store.
-	if loadedConfig.ServiceSettings.SiteURL == nil {
-		loadedConfig.ServiceSettings.SiteURL = model.NewString("")
+	if loadedCfg.ServiceSettings.SiteURL == nil {
+		loadedCfg.ServiceSettings.SiteURL = model.NewString("")
 	}
 
 	// Setting defaults allows us to accept partial config objects.
-	loadedConfig.SetDefaults()
+	loadedCfg.SetDefaults()
 
-	loadedConfigNoEnv := loadedConfig
-	fixConfig(loadedConfigNoEnv)
+	loadedCfgNoEnv := loadedCfg
+	fixConfig(loadedCfgNoEnv)
 
-	loadedConfig = applyEnvironmentMap(loadedConfig, GetEnvironment())
-	fixConfig(loadedConfig)
-	if err := loadedConfig.IsValid(); err != nil {
+	loadedCfg = applyEnvironmentMap(loadedCfg, GetEnvironment())
+	fixConfig(loadedCfg)
+	if err := loadedCfg.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid config")
 	}
 
 	// Backing up feature flags section in case we need to restore them later on.
 	oldCfgFF := oldCfg.FeatureFlags
-	loadedConfigFF := loadedConfig.FeatureFlags
-	loadedConfigNoEnvFF := loadedConfigNoEnv.FeatureFlags
+	loadedCfgFF := loadedCfg.FeatureFlags
+	loadedCfgNoEnvFF := loadedCfgNoEnv.FeatureFlags
 	// Clearing FF sections to avoid both comparing and persisting them.
 	if s.readOnlyFF {
 		oldCfg.FeatureFlags = nil
-		loadedConfig.FeatureFlags = nil
-		loadedConfigNoEnv.FeatureFlags = nil
+		loadedCfg.FeatureFlags = nil
+		loadedCfgNoEnv.FeatureFlags = nil
 	}
 
 	// Check for changes that may have happened on load to the backing store.
-	hasChanged, err := confsDiff(oldCfg, loadedConfig)
+	hasChanged, err := confsDiff(oldCfg, loadedCfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to compare configs")
 	}
@@ -320,7 +320,7 @@ func (s *Store) Load() error {
 	// We write back to the backing store only if the store is not read-only
 	// and the config has either changed or is missing.
 	if !s.readOnly && (hasChanged || len(configBytes) == 0) {
-		err := s.backingStore.Set(loadedConfigNoEnv)
+		err := s.backingStore.Set(loadedCfgNoEnv)
 		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
 			return errors.Wrap(err, "failed to persist")
 		}
@@ -329,17 +329,17 @@ func (s *Store) Load() error {
 	// We restore the previously cleared feature flags sections back.
 	if s.readOnlyFF {
 		oldCfg.FeatureFlags = oldCfgFF
-		loadedConfig.FeatureFlags = loadedConfigFF
-		loadedConfigNoEnv.FeatureFlags = loadedConfigNoEnvFF
+		loadedCfg.FeatureFlags = loadedCfgFF
+		loadedCfgNoEnv.FeatureFlags = loadedCfgNoEnvFF
 	}
 
-	s.config = loadedConfig
-	s.configNoEnv = loadedConfigNoEnv
+	s.config = loadedCfg
+	s.configNoEnv = loadedCfgNoEnv
 
 	unlockOnce.Do(s.configLock.Unlock)
 
 	if hasChanged {
-		s.invokeConfigListeners(oldCfg, loadedConfig.Clone())
+		s.invokeConfigListeners(oldCfg, loadedCfg.Clone())
 	}
 
 	return nil
