@@ -98,9 +98,14 @@ func GetCustomStatus(message string) *model.CustomStatus {
 				emojiString = emojiString[size:]
 			}
 
-			unicodeString := removeUnicodeSkinTone(strings.Join(unicode, "-"))
+			unicodeString := strings.Join(unicode, "-")
 			emoji, found := model.GetEmojiNameFromUnicode(unicodeString)
 			if found {
+				customStatus.Emoji = emoji
+				textString := strings.Join(spaceSeparatedMessage[1:], " ")
+				customStatus.Text = strings.TrimSpace(textString)
+			} else if modifiedUnicodeString := removeUnicodeSkinTone(unicodeString); modifiedUnicodeString != unicodeString {
+				emoji, _ := model.GetEmojiNameFromUnicode(modifiedUnicodeString)
 				customStatus.Emoji = emoji
 				textString := strings.Join(spaceSeparatedMessage[1:], " ")
 				customStatus.Text = strings.TrimSpace(textString)
