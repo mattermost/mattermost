@@ -38,7 +38,6 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
 		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")
@@ -47,7 +46,8 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("RemoteId").SetMaxSize(26)
-		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteId")
+		tableSharedChannelUsers.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannelUsers.SetUniqueTogether("UserId", "ChannelId", "RemoteId")
 
 		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelAttachment{}, "SharedChannelAttachments").SetKeys(false, "Id")
 		tableSharedChannelFiles.ColMap("Id").SetMaxSize(26)
@@ -523,7 +523,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").
@@ -557,14 +557,15 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 }
 
 // GetUser fetches a shared channel user based on user_id and remoteId.
-func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+func (s SqlSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 	var scu model.SharedChannelUser
 
 	squery, args, err := s.getQueryBuilder().
 		Select("*").
 		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userId}).
-		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteId}).
+		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
+		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
+		Where(sq.Eq{"SharedChannelUsers.ChannelId": channelID}).
 		ToSql()
 
 	if err != nil {
@@ -573,9 +574,9 @@ func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.S
 
 	if err := s.GetReplica().SelectOne(&scu, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("SharedChannelUser", userId)
+			return nil, store.NewErrNotFound("SharedChannelUser", userID)
 		}
-		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, RemoteId=%s", userId, remoteId)
+		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, ChannelId=%s, RemoteId=%s", userID, channelID, remoteID)
 	}
 	return &scu, nil
 }

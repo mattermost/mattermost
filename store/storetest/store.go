@@ -20,6 +20,7 @@ type Store struct {
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
 	UserStore                 mocks.UserStore
+	RetentionPolicyStore      mocks.RetentionPolicyStore
 	BotStore                  mocks.BotStore
 	AuditStore                mocks.AuditStore
 	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
@@ -61,6 +62,7 @@ func (s *Store) Team() store.TeamStore                             { return &s.T
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
+func (s *Store) RetentionPolicy() store.RetentionPolicyStore       { return &s.RetentionPolicyStore }
 func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
 func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }

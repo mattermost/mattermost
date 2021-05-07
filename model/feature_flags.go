@@ -3,7 +3,10 @@
 
 package model
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 type FeatureFlags struct {
 	// Exists only for unit and manual testing.
@@ -32,11 +35,6 @@ type FeatureFlags struct {
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 
-	// Toggle on and off support for Files search
-	FilesSearch bool
-	// Feature flag to control setting the TCP_NO_DELAY setting for websockets.
-	WebSocketDelay bool
-
 	// Control support for custom data retention policies
 	CustomDataRetentionEnabled bool
 }
@@ -47,12 +45,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.EnableRemoteClusterService = false
-	f.FilesSearch = false
 	f.AppsEnabled = false
 
 	f.PluginIncidentManagement = "1.7.0"
 	f.PluginApps = ""
-	f.WebSocketDelay = false
 	f.CustomDataRetentionEnabled = false
 }
 
@@ -74,4 +70,27 @@ func (f *FeatureFlags) Plugins() map[string]string {
 	}
 
 	return pluginVersions
+}
+
+// ToMap returns the feature flags as a map[string]string
+// Supports boolean and string feature flags.
+func (f *FeatureFlags) ToMap() map[string]string {
+	refStructVal := reflect.ValueOf(*f)
+	refStructType := reflect.TypeOf(*f)
+	ret := make(map[string]string)
+	for i := 0; i < refStructVal.NumField(); i++ {
+		refFieldVal := refStructVal.Field(i)
+		if !refFieldVal.IsValid() {
+			continue
+		}
+		refFieldType := refStructType.Field(i)
+		switch refFieldType.Type.Kind() {
+		case reflect.Bool:
+			ret[refFieldType.Name] = strconv.FormatBool(refFieldVal.Bool())
+		default:
+			ret[refFieldType.Name] = refFieldVal.String()
+		}
+	}
+
+	return ret
 }

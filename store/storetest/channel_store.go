@@ -376,7 +376,6 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	_, nErr := ss.Channel().Save(&o1, -1)
 	require.NoError(t, nErr)
 
-	c1 := &model.Channel{}
 	c1, err := ss.Channel().Get(o1.Id, false)
 	require.NoError(t, err, err)
 	require.Equal(t, o1.ToJson(), c1.ToJson(), "invalid returned channel")
@@ -3375,6 +3374,33 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, nErr)
 	assert.Len(t, *list, 1)
 
+	// Exclude policy constrained
+	policy, nErr := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		ChannelIDs: []string{c1.Id},
+	})
+	require.NoError(t, nErr)
+	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludePolicyConstrained: true})
+	require.NoError(t, nErr)
+	assert.Len(t, *list, 1)
+	assert.Equal(t, c3.Id, (*list)[0].Id)
+
+	// Without the policy ID
+	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{})
+	require.NoError(t, nErr)
+	assert.Len(t, *list, 1)
+	assert.Equal(t, c1.Id, (*list)[0].Id)
+	assert.Nil(t, (*list)[0].PolicyID)
+	// With the policy ID
+	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludePolicyID: true})
+	require.NoError(t, nErr)
+	assert.Len(t, *list, 1)
+	assert.Equal(t, c1.Id, (*list)[0].Id)
+	assert.Equal(t, *(*list)[0].PolicyID, policy.ID)
+
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
 }
@@ -5459,6 +5485,16 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 	_, nErr = ss.Channel().Save(&o14, -1)
 	require.NoError(t, nErr)
+
+	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		ChannelIDs: []string{o14.Id},
+	})
+	require.NoError(t, nErr)
+
 	testCases := []struct {
 		Description     string
 		Term            string
@@ -5494,6 +5530,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o5}, 1},
 		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
 		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o8}, 2},
+		{"Exclude policy constrained", "", store.ChannelSearchOpts{ExcludePolicyConstrained: true}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12}, 0},
 		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o2, &o14}, 2},
 		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{}, 0},
 		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o5, &o8}, 3},

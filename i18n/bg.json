@@ -148,10 +148,6 @@
     "translation": "Система"
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Тази ел.поща вече е заета. Моля, изберете друга."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не може да се намери съществуващ профил, отговарящ на вашите идентификационни данни. Този екип може да изисква покана от собственика на екипа, за да се присъедините."
   },
@@ -2240,10 +2236,6 @@
     "translation": "Системната конзола е настроена само за четене, когато е активирана High Availability, освен ако ReadOnlyConfig не е забранен в конфигурационния файл."
   },
   {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Възникна грешка при свързването със сървъра."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Възникна грешка по време на заявка за JSON"
   },
@@ -2508,14 +2500,6 @@
     "translation": "Не може да се броят екипите."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Не могат да се броят публичните екипи."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Не могат да се броят частните екипи."
-  },
-  {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Неуспешна анализ на датата на инсталиране."
   },
@@ -2734,10 +2718,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Не можа да се получи роля."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Не могат да се получат всички роли."
   },
   {
     "id": "app.role.get.app_error",
@@ -4006,10 +3986,6 @@
   {
     "id": "app.team.get_all_team_listing.app_error",
     "translation": "Не успяхме да вземем всички екипи."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Не успяхме да вземем всички частни екипи в страницата."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -8577,10 +8553,6 @@
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Тази функция е в процес на разработка и е достъпна само с помощта на флаг за функция."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",

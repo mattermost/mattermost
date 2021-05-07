@@ -4843,10 +4843,6 @@
     "translation": "Impossible de trouver un compte existant correspondant à vos identifiants. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre."
-  },
-  {
     "id": "system.message.name",
     "translation": "Système"
   },
@@ -6503,10 +6499,6 @@
     "translation": "Impossible de récupérer le rôle."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossible de récupérer tous les rôles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossible de récupérer le rôle."
   },
@@ -6617,10 +6609,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Une erreur s'est produite lors de la connexion au serveur"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7031,10 +7019,6 @@
     "translation": "Impossible de récupérer toutes les équipes."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Impossible de récupérer toutes les équipes privées."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Impossible de récupérer toutes les équipes privées."
   },
@@ -7053,14 +7037,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Impossible de compter les équipes."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Impossible de compter les équipes publiques."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Impossible de compter les équipes privées."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -7253,10 +7229,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Impossible d'analyser le corps de la demande."
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Cette fonctionnalité est en cours de développement. Elle n'est disponible qu'en activant la fonctionnalité."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",

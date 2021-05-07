@@ -15,7 +15,7 @@ type LdapInterface interface {
 	CheckPasswordAuthData(authData string, password string) *model.AppError
 	CheckProviderAttributes(LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
 	SwitchToLdap(userID, ldapID, ldapPassword string) *model.AppError
-	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
+	StartSynchronizeJob(waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
@@ -24,5 +24,6 @@ type LdapInterface interface {
 	FirstLoginSync(user *model.User, userAuthService, userAuthData, email string) *model.AppError
 	UpdateProfilePictureIfNecessary(model.User, model.Session)
 	GetADLdapIdFromSAMLId(authData string) string
+	GetSAMLIdFromADLdapId(authData string) string
 	GetVendorNameAndVendorVersion() (string, string)
 }

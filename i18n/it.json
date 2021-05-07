@@ -4843,10 +4843,6 @@
     "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistema"
   },
@@ -6703,10 +6699,6 @@
     "translation": "Impossibile recuperare il ruolo"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossibile recuperare il ruolo"
   },
@@ -6885,10 +6877,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7275,10 +7263,6 @@
     "translation": "Non è stato possibile recuperare tutte le squadre"
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Non è stato possibile recuperare tutte le squadre private"
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Non è stato possibile recuperare tutte le squadre private"
   },
@@ -7297,14 +7281,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Impossibile contare le squadre"
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Impossibile contare le squadre pubbliche"
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Impossibile contare le squadre private"
   },
   {
     "id": "api.user.login_cws.license.error",

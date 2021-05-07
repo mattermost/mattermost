@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -473,7 +474,22 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
-	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = :RootId AND DeleteAt = 0", map[string]interface{}{"RootId": id})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+	return list, nil
 }
 
 func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
@@ -956,6 +972,36 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 
 	return list, nil
+}
+
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAt >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
+
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.POST_AUTO_RESPONDER,
+	})
+
+	if err != nil {
+		return false, errors.Wrapf(err,
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+	}
+
+	return exist > 0, nil
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {

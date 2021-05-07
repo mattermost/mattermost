@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Fout bij het bijwerken van het huidige kanaal."
+    "translation": "Fout bij het wijzigen van de kanaalhoofding."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Fout bij het bijwerken van het huidige kanaal."
+    "translation": "Fout bij het wijzigen van het kanaaldoel."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -3924,19 +3924,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "De instelling Elastisearch IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+    "translation": "Elasticsearch Live Indexing Batch Size moet ten minste 1 zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+    "translation": "De Elasticsearch PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Elasticsearch Timeout Aanvraag moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3948,11 +3948,11 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "Ongeldig e-mailmeldingeninhoudstype voor e-mailinstellingen. Moet of 'full' of 'generic' zijn."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Ongeldige beveiligings instelling bij e-mail. Moet '', 'TLS' of 'STARTTLS' zijn"
+    "translation": "Ongeldige beveiligingsinstelling bij e-mail. Moet '', 'TLS' of 'STARTTLS' zijn."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -3960,7 +3960,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Ongeldige stuurprogramma voor bestand instellingen. Deze moet 'lokaal' of 'amazons3' zijn"
+    "translation": "Ongeldige stuurprogramma voor bestandsinstellingen. Dit moet 'lokaal' of 'amazons3' zijn."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -3968,11 +3968,11 @@
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+    "translation": "Ongeldige groep ongelezen kanalen voor service-instellingen. Moet 'disabled', 'default_on' of 'default_off' zijn."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Ongeldig afbeeldingsproxy type. Moet 'local' of 'atmos/camo' zijn."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -3996,7 +3996,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ongeldige verbindings instelling bij AD/LDAP instellingen. Keuze uit; '', 'TLS' of 'STARTTLS'"
+    "translation": "Ongeldige verbindingsinstelling bij AD/LDAP instellingen. Keuze uit: '', 'TLS' of 'STARTTLS'."
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4016,7 +4016,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Available Languages must contain Default Client Language"
+    "translation": "Beschikbare talen moet de standaard clienttaal bevatten."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4024,7 +4024,7 @@
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Maximum burst size must be greater than zero."
+    "translation": "De maximale burstgrootte moet groter zijn dan nul."
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
@@ -4032,7 +4032,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
+    "translation": "Ongeldige maximale bestandsgrootte bij bestandsinstellingen. Moet een geheel getal groter dan nul zijn."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4044,67 +4044,67 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Message export job BatchSize must be a positive integer"
+    "translation": "Message export job BatchSize moet een positief geheel getal zijn."
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+    "translation": "Berichtenexport DagelijkeUitvoertijd moet een tijdsaanduiding van 24 uur zijn in de notatie UU:MM."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Message export job EnableExport setting must be either true or false"
+    "translation": "Message export job EnableExport instelling moet waar of onwaar zijn."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "Bericht Export job ExportFromTimestamp moet een tijdsaanduiding zijn (uitgedrukt in seconden sinds unix-epoch). Alleen berichten verzonden die na deze tijdsaanduiding, worden geëxporteerd."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'"
+    "translation": "Message export job ExportFormat moet of 'actiantie', of 'csv' of 'globalrelay' zijn."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "Message export job ExportFormat is ingesteld op 'globalrelay', maar GlobalRelaySettings ontbreken."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.EmailAddress moet worden ingesteld op een geldig e-mailadres."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpPassword moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpUsername moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "Wachtwoord moet een lengte hebben van minimaal {{.MinLength}} en/of maximaal {{.MaxLength}}"
+    "translation": "Wachtwoord moet een lengte hebben van minimaal {{.MinLength}} en/of maximaal {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Ongeldige 'geheugen opslag' bij frequentie beperings instellingen. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldige grootte geheugenruimte voor snelheidslimiet. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Ongeldige frequentie beperings instelling. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldig per sec voor instellingen voor snelheidslimiet. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
-    "translation": "Invalid value for read timeout."
+    "translation": "Ongeldige waarde voor lees-timeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'"
+    "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'."
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "Ongeldige URL. Een geldige URL begint met http:// of https://"
+    "translation": "Service Provider Login URL moet een geldige URl zijn, die begint met http:// of https://."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4136,7 +4136,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Ikoon URL moet een geldige URl zijn, die begint met http:// of https://"
+    "translation": "Site URL moet een geldige URl zijn, die begint met http:// of https://."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4148,7 +4148,7 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "Ongeldige maximale levensduur voor verbinding voor SQL-instellingen. Moet een niet-negatief getal zijn."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4156,7 +4156,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogramma bij SQL intellingen. Keuze uit mysql of postgres"
+    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4172,27 +4172,27 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Ongeldig teamgenoot-weergave. Moet 'full_name', 'nickname_full_name' of 'username' zijn."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
-    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
+    "translation": "Tijd tussen gebruiker die updates plaatst mag niet worden ingesteld op minder dan 1000 milliseconden."
   },
   {
     "id": "model.config.is_valid.tls_cert_file_missing.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Ongeldige waarde voor TLS-certificaatbestand - Gebruik LetsEncrypt of zet pad naar bestaand certificaatbestand."
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Ongeldige waarde voor TLS-sleutelbestand - Gebruik LetsEncrypt of zet pad naar bestaand sleutelbestand."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Ongeldige waarde doorgegeven voor TLS-codering overschrijven cipher -Raadpleeg de documentatie voor geldige waarden."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
+    "translation": "Ongeldige waarde voor beveiliging van de webserververbinding."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
@@ -4200,27 +4200,27 @@
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Invalid value for write timeout."
+    "translation": "Ongeldige waarde voor schrijftimeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Creata at moet een geldige tijd zijn."
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Ongeldig emoji id"
+    "translation": "Ongeldig emoji id."
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Naam moet 1 tot 64 kleine letters bevatten"
+    "translation": "Naam moet 1 tot 64 kleine letters bevatten."
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Bijgewerkt op moet een geldige tijd zijn"
+    "translation": "Update at op moet een geldige tijd zijn."
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig creator id."
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4228,27 +4228,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at."
+    "translation": "Ongeldige waarde voor create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Invalid value for id."
+    "translation": "Ongeldige waarde voor id."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "Invalid value for path."
+    "translation": "Ongeldige waarde voor pad."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Invalid value for post_id."
+    "translation": "Ongeldige waarde voor post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Invalid value for update_at."
+    "translation": "Ongeldige waarde voor update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Invalid value for user_id."
+    "translation": "Ongeldige waarde voor user_id."
   },
   {
     "id": "model.group.create_at.app_error",
@@ -4841,10 +4841,6 @@
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
   },
   {
     "id": "system.message.name",
@@ -6751,10 +6747,6 @@
     "translation": "Rol kan niet worden opgehaald."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Niet alle rollen kunnen worden opgehaald."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Rol kan niet worden opgehaald."
   },
@@ -6905,10 +6897,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Fout bij ontleden van bericht exporttaak BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het verbinden met de server."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7587,10 +7575,6 @@
     "translation": "We konden niet alle teams ophalen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "We kunnen niet alle private teams op de pagina krijgen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "We kunnen niet alle private teams ophalen."
   },
@@ -7613,14 +7597,6 @@
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fout bij het ophalen van de teamleden."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Fout bij het tellen van publieke teams."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Fout bij het tellen van private teams."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -8623,10 +8599,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Deze functie is in ontwikkeling, en is alleen beschikbaar met een feature flag."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Fout bij het verwerken van request body."
   },
@@ -8684,7 +8656,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Gefeliciteerd - jouw {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+    "translation": "Jouw 14-daagse proef van de {{.WorkSpace}} werkruimte is klaar voor gebruik!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8775,10 +8747,6 @@
     "translation": "Fout bij het genereren van het wachtwoord."
   },
   {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Aantal replica lag queries is meer dan het aantal geconfigureerde replica's. Moet kleiner zijn dan of gelijk aan het aantal replica's."
-  },
-  {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Fout bij het opslaan van de eerste-admin-bezoek-marktplaats-status in de winkel."
   },
@@ -8792,7 +8760,7 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Kon externe cluster niet toevoegen: {{.Error}}"
+    "translation": "Kon beveiligde verbinding niet toevoegen: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8831,14 +8799,6 @@
     "translation": "Uitnodiging is verlopen."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' of 'N'"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ben je zeker? Dit kanaal zal niet gedeeld worden en alle externe instanties zullen hun uitnodiging ongedaan zien worden"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Maakt het delen van het huidige kanaal ongedaan"
   },
@@ -8863,20 +8823,12 @@
     "translation": "Dit kanaal wordt niet langer gedeeld."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Gedeelde kanaal is niet verwijderd: `{{.Arg}}` moet zijn `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' of 'N'.  Standaard is 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanaal zal worden gedeeld in alleen-lezen modus"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Deel het huidige kanaal"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8963,14 +8915,6 @@
     "translation": "Fout bij ophalen externe clusters: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[beschrijving] - optioneel"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Beschrijving voor uitnodiging"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Deelt het huidige kanaal met een externe Mattermost instantie."
   },
@@ -8999,44 +8943,12 @@
     "translation": "Gedeelde kanaal remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[doel] - staat standaard op kanaaldoel"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[naam] - staat standaard op kanaalnaam"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Doel van het kanaal, verstrekt aan externe instanties"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Kanaalnaam verstrekt aan externe instanties"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Kan externe cluster niet uitnodigen voor een gedeeld kanaal dat ergens anders vandaan komt."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Fout bij het binnenhalen van `{{.Name}}` in dit kanaal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[hoofding] - staat standaard op kanaalhoofding"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Kanaalhoofding verstrekt aan externe instanties"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - standaard kanaal weergavenaam"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Kanaal weergavenaam verstrekt aan externe instanties"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9092,7 +9004,7 @@
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Een weergavenaam voor de externe cluster"
+    "translation": "Een unieke naam voor de externe cluster"
   },
   {
     "id": "api.command_remote.name.help",
@@ -9152,7 +9064,7 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Externe cluster {{.RemoteId}} {{.Result}}."
+    "translation": "Beveiligde verbinding {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -9177,10 +9089,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Een of meer berichten konden niet worden afgeleverd op de externe site {{.Remote}} omdat deze offline is. De post(s) zullen worden afgeleverd als de site online is."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Ongeldige omschrijving."
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -9225,5 +9133,85 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Fout bij het resetten van AuthData veld naar e-mail."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Het beleid is ongeldig."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Fout bij het verzenden van waarschuwingsmail over einde proefperiode"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost Cloud Professional loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud proefperiode eindigt"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Betalingsmethode toevoegen"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Een weergavenaam voor de externe cluster"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Externe cluster weergavenaam"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Kan geen automatisch antwoord van gebruiker sturen."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Fout bij het verzenden van e-mail einde proefperiode"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt vandaag"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigt vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud proefperiode is afgelopen"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Start abonnement"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Ga naar **Systeem console > Site Configuratie > Customisatie om het [ondersteuningse-mailadres](https://docs.mattermost.com/administration/config-settings.html#support-email) in te stellen als het interne IT helpdesk e-mailadres van je organisatie voor feedback van eindgebruikers, e-mail notificaties en support verzoeken."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Stel je e-mailadres voor ondersteuning in"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. Het doel van het kanaal is beperkt tot {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. De hoofding van het kanaal is gelimiteerd tot {{.MaxLength}} tekens."
   }
 ]

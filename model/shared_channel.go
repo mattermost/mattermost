@@ -106,7 +106,6 @@ func (sc *SharedChannel) PreUpdate() {
 type SharedChannelRemote struct {
 	Id                string `json:"id"`
 	ChannelId         string `json:"channel_id"`
-	Description       string `json:"description"`
 	CreatorId         string `json:"creator_id"`
 	CreateAt          int64  `json:"create_at"`
 	UpdateAt          int64  `json:"update_at"`
@@ -134,10 +133,6 @@ func (sc *SharedChannelRemote) IsValid() *AppError {
 
 	if !IsValidId(sc.ChannelId) {
 		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
-	}
-
-	if len(sc.Description) > 64 {
-		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.description.app_error", nil, "description="+sc.Description, http.StatusBadRequest)
 	}
 
 	if sc.CreateAt == 0 {
@@ -172,7 +167,6 @@ type SharedChannelRemoteStatus struct {
 	SiteURL          string `json:"site_url"`
 	LastPingAt       int64  `json:"last_ping_at"`
 	NextSyncAt       int64  `json:"next_sync_at"`
-	Description      string `json:"description"`
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
@@ -183,6 +177,7 @@ type SharedChannelRemoteStatus struct {
 type SharedChannelUser struct {
 	Id         string `json:"id"`
 	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
 	RemoteId   string `json:"remote_id"`
 	CreateAt   int64  `json:"create_at"`
 	LastSyncAt int64  `json:"last_sync_at"`
@@ -200,6 +195,10 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 
 	if !IsValidId(scu.UserId) {
 		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "UserId="+scu.UserId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scu.ChannelId) {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+scu.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidId(scu.RemoteId) {

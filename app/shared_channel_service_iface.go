@@ -13,7 +13,7 @@ type SharedChannelServiceIFace interface {
 	Shutdown() error
 	Start() error
 	NotifyChannelChanged(channelId string)
-	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
+	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
 }
 
@@ -56,7 +56,7 @@ func (mrcs *mockSharedChannelService) Active() bool {
 	return mrcs.active
 }
 
-func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
+func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
 	mrcs.numInvitations += 1
 	return nil
 }

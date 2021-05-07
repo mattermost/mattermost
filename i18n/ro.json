@@ -4848,10 +4848,6 @@
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
-  },
-  {
     "id": "system.message.name",
     "translation": "Sistem"
   },
@@ -6764,10 +6760,6 @@
     "translation": "Imposibil de a primi rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Imposibil de obținut toate rolurile."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Imposibil de a primi rol."
   },
@@ -6922,10 +6914,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Ar putea analiza mesaj export job BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Am întâmpinat o eroare la conectarea la server."
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -7134,14 +7122,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Imposibilitatea de a număra echipele."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Imposibil de numărat echipele publice."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Imposibil de numărat echipele private."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -7442,10 +7422,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nu pot posta şterse canal."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Nu am putut obține toate echipele private."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -8628,10 +8604,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -8754,14 +8726,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "model.config.is_valid.replica_mismatch.app_error",
-    "translation": "Numărul de interogări de întârziere a replicilor este mai mare decât numărul de replici configurate. Trebuie să fie mai mic sau egal cu numărul de replici."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descriere invalidă."
   },
   {
     "id": "ent.cloud.subscription.error",
@@ -8968,14 +8932,6 @@
     "translation": "Invitația a expirat."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "\"Y\" sau \"N"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Dezarhivează canalul curent"
   },
@@ -9000,20 +8956,12 @@
     "translation": "Acest canal nu mai este partajat."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Canalul va fi partajat în modul doar pentru citire"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Partajați canalul curent"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9096,14 +9044,6 @@
     "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[descriere] - opțional"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descriere pentru invitație"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Partajează canalul curent cu o instanță Mattermost de la distanță."
   },
@@ -9132,44 +9072,12 @@
     "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[scop] - implicit scopul canalului"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Scopul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - implicit la numele canalului"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Numele canalului furnizat instanțelor la distanță"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Nu se poate invita un cluster la distanță la un canal partajat care provine din altă parte."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - implicit la antetul canalelor"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Antetul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Numele de afișare a canalului furnizat instanțelor la distanță"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9222,5 +9130,45 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "Nu a reușit să trimită un e-mail de avertizare privind încheierea procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost cloud trial se încheie"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "Adăugați metoda de plată"
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Nu se poate conecta la S3. Verificați parametrii de autorizare a conexiunii Amazon S3 și setările de autentificare."
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Un nume de afișare pentru clusterul la distanță"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Numele de afișare al clusterului la distanță"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
   }
 ]
