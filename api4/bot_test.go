@@ -1439,6 +1439,7 @@ func TestConvertBotToUser(t *testing.T) {
 
 		user, resp := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
 		CheckBadRequestStatus(t, resp)
+		require.Nil(t, user)
 
 		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
 		CheckNoError(t, resp)

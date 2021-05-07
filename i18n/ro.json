@@ -6760,10 +6760,6 @@
     "translation": "Imposibil de a primi rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Imposibil de obținut toate rolurile."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Imposibil de a primi rol."
   },
@@ -8608,10 +8604,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -8734,10 +8726,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descriere invalidă."
   },
   {
     "id": "ent.cloud.subscription.error",
@@ -8944,14 +8932,6 @@
     "translation": "Invitația a expirat."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "\"Y\" sau \"N"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Dezarhivează canalul curent"
   },
@@ -8976,20 +8956,12 @@
     "translation": "Acest canal nu mai este partajat."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Canalul va fi partajat în modul doar pentru citire"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Partajați canalul curent"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9072,14 +9044,6 @@
     "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[descriere] - opțional"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descriere pentru invitație"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Partajează canalul curent cu o instanță Mattermost de la distanță."
   },
@@ -9108,44 +9072,12 @@
     "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[scop] - implicit scopul canalului"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Scopul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - implicit la numele canalului"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Numele canalului furnizat instanțelor la distanță"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Nu se poate invita un cluster la distanță la un canal partajat care provine din altă parte."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - implicit la antetul canalelor"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Antetul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Numele de afișare a canalului furnizat instanțelor la distanță"
   },
   {
     "id": "api.command_share.available_actions",

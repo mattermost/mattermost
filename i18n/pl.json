@@ -6520,10 +6520,6 @@
     "translation": "Nie można uzyskać roli"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Nie można uzyskać roli"
   },

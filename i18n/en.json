@@ -629,7 +629,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel header is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -661,7 +665,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Error updating the channel purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "The text entered exceeds the character limit. The channel purpose is limited to {{.MaxLength}} characters."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -1096,11 +1104,11 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Could not add remote cluster: {{.Error}}"
+    "translation": "Could not add secure connection: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Remote cluster {{.RemoteId}} {{.Result}}."
+    "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -1112,11 +1120,11 @@
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Remote cluster display name"
+    "translation": "Secure connection display name"
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "A display name for the remote cluster"
+    "translation": "A display name for the secure connection"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -1124,7 +1132,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Could not fetch remote clusters: {{.Error}}"
+    "translation": "Could not fetch secure connections: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -1136,11 +1144,11 @@
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Invitation from remote cluster"
+    "translation": "Invitation from secure connection"
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "The encrypted invitation from a remote cluster"
+    "translation": "The encrypted invitation from a secure connection"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -1148,7 +1156,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Invite a remote cluster"
+    "translation": "Create a secure connection"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -1172,43 +1180,43 @@
   },
   {
     "id": "api.command_remote.name",
-    "translation": "remote"
+    "translation": "secure-connection"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Remote cluster name"
+    "translation": "Secure connection name"
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "A unique name for the remote cluster"
+    "translation": "A unique name for the secure connection"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "You require `{{.Permission}}` permission to manage remote clusters."
+    "translation": "You require `{{.Permission}}` permission to manage secure connections."
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Add/remove remote clusters. Available actions: {{.Actions}}"
+    "translation": "Add/remove secure connections. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  |"
+    "translation": "| Secure Connection | Display name | ConnectionID | Site URL | Invite accepted | Online | Last ping  |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "No remote clusters found."
+    "translation": "No secure connections found."
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Removes a remote cluster"
+    "translation": "Removes a secure connection"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Could not remove remote cluster: {{.Error}}"
+    "translation": "Could not remove secure connection: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id of remote cluster remove"
+    "translation": "Id of secure connection remove"
   },
   {
     "id": "api.command_remote.service_disabled",
@@ -1224,7 +1232,7 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Displays status for all remote clusters"
+    "translation": "Displays status for all secure connections"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -1299,48 +1307,16 @@
     "translation": "Available actions: {{.Actions}}"
   },
   {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Channel display name provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - defaults to channel displayname"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Channel header provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - defaults to channels header"
-  },
-  {
     "id": "api.command_share.channel_invite.error",
     "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Cannot invite remote cluster to a shared channel originating somewhere else."
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Channel name provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - defaults to channel name"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Channel purpose provided to remote instances"
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - defaults to channel purpose"
+    "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Shared channel remote id `{{.RemoteId}}` does not exist for this channel."
+    "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
   {
     "id": "api.command_share.channel_shared",
@@ -1367,20 +1343,12 @@
     "translation": "Shares the current channel with a remote Mattermost instance."
   },
   {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Description for invite"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - optional"
-  },
-  {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Error fetching remote clusters: {{.Error}}"
+    "translation": "Error fetching shared connections: {{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Could not fetch status for remotes: {{.Error}}."
+    "translation": "Could not fetch status for secure connections: {{.Error}}."
   },
   {
     "id": "api.command_share.hint",
@@ -1404,15 +1372,15 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Must specify a valid remote cluster id to invite."
+    "translation": "Must specify a valid secure connection id to invite."
   },
   {
     "id": "api.command_share.name",
-    "translation": "share"
+    "translation": "share-channel"
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "No remotes have been invited to this shared channel."
+    "translation": "No secure connections have been invited to this shared channel."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -1424,27 +1392,27 @@
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "The remote cluster has already been invited."
+    "translation": "The secure connection has already been invited."
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id of an existing remote instance. See `remote` command to add a remote instance."
+    "translation": "Id of an existing secure connection. See `secure-connection` command to add a secure connection."
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Remote cluster id is invalid: {{.Error}}"
+    "translation": "Secure connection id is invalid: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Must specify a valid remote cluster to uninvite"
+    "translation": "Must specify a valid secure connection id to uninvite"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Last Sync |"
+    "translation": "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Remote `{{.RemoteId}}` uninvited."
+    "translation": "Secure connection `{{.RemoteId}}` uninvited."
   },
   {
     "id": "api.command_share.service_disabled",
@@ -1455,20 +1423,12 @@
     "translation": "Cannot share this channel: {{.Error}}"
   },
   {
-    "id": "api.command_share.share_current",
-    "translation": "Share the current channel"
-  },
-  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Channel will be shared in read-only mode"
   },
   {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'"
-  },
-  {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -1480,11 +1440,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Uninvites a remote instance from this shared channel"
+    "translation": "Uninvites a secure connection from this shared channel"
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id of remote instance to uninvite."
+    "translation": "Id of secure connection to uninvite."
   },
   {
     "id": "api.command_share.unknown_action",
@@ -1493,14 +1453,6 @@
   {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Unshares the current channel"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Are you sure? This channel will be unshared and all remote instances will be uninvited"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' or 'N'"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -1600,15 +1552,15 @@
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Unable to find remote cluster id {{.RemoteId}}."
+    "translation": "Unable to find secure connectionID {{.RemoteId}}."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Remote cluster id mismatch."
+    "translation": "Secure connection ID mismatch."
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Remote cluster id missing."
+    "translation": "Secure connection ID missing."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -2295,10 +2247,6 @@
     "translation": "Unable to parse the request body."
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "This feature is in development, and is only available using a feature flag."
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -2424,11 +2372,11 @@
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "We encountered an error deleting the remote cluster."
+    "translation": "We encountered an error deleting the secure connection."
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "We encountered an error retrieving a remote cluster."
+    "translation": "We encountered an error retrieving a secure connection."
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
@@ -2440,11 +2388,11 @@
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "We encountered an error saving the remote cluster."
+    "translation": "We encountered an error saving the secure connection."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Remote cluster has already been added."
+    "translation": "Secure connection has already been added."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -2452,11 +2400,11 @@
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "We encountered an error updating the remote cluster."
+    "translation": "We encountered an error updating the secure connection."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Remote cluster with the same url already exists."
+    "translation": "Secure connection with the same url already exists."
   },
   {
     "id": "api.restricted_system_admin",
@@ -2753,6 +2701,14 @@
   {
     "id": "api.server.warn_metric.starting_trial",
     "translation": "Getting Trial"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Set Your Support Email Address"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Please go to **System Console > Site Configuration > Customization** to set the [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) as your organization's internal IT Support Desk email address for end user feedback, email notifications, and support requests."
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -5923,10 +5879,6 @@
     "translation": "Unable to get role."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
     "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
@@ -7705,10 +7657,6 @@
   {
     "id": "model.channel.is_valid.creator_id.app_error",
     "translation": "Invalid creator id."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Invalid description."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",

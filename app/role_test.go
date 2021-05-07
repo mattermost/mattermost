@@ -51,6 +51,16 @@ func TestGetRoleByName(t *testing.T) {
 	})
 }
 
+func TestGetRoleByID(t *testing.T) {
+	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
+		actualRole, err := th.App.GetRole(testData.channelRole.Id)
+		require.Nil(t, err)
+		require.NotNil(t, actualRole)
+		require.Equal(t, testData.channelRole.Id, actualRole.Id)
+		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
+	})
+}
+
 // testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
 	th := Setup(t).InitBasic()
