@@ -5,6 +5,7 @@ package api4
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -41,6 +42,30 @@ func TestGetUserStatus(t *testing.T) {
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", userStatus.Status)
+	})
+
+	t.Run("dnd status timed", func(t *testing.T) {
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "dnd", userStatus.Status)
+	})
+
+	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
+		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
+		defer task.Cancel()
+		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "online", userStatus.Status)
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Unix())
+		userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "dnd", userStatus.Status)
+		time.Sleep(3 * time.Second)
+		userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "online", userStatus.Status)
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {
@@ -131,6 +156,16 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		}
 	})
 
+	t.Run("dnd status", func(t *testing.T) {
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(10*time.Minute).Unix())
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser2.Id, time.Now().Add(15*time.Minute).Unix())
+		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckNoError(t, resp)
+		for _, userStatus := range usersStatuses {
+			assert.Equal(t, "dnd", userStatus.Status)
+		}
+	})
+
 	t.Run("get statuses from logged out user", func(t *testing.T) {
 		Client.Logout()
 
@@ -158,8 +193,8 @@ func TestUpdateUserStatus(t *testing.T) {
 		assert.Equal(t, "away", updateUserStatus.Status)
 	})
 
-	t.Run("set dnd status", func(t *testing.T) {
-		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id}
+	t.Run("set dnd status timed", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id, DNDEndTime: time.Now().Add(10 * time.Minute).Unix()}
 		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 		CheckNoError(t, resp)
 		assert.Equal(t, "dnd", updateUserStatus.Status)

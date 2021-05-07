@@ -94,6 +94,8 @@ func (a *App) InitServer() {
 		if a.Srv().runEssentialJobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
+				runCheckWarnMetricStatusJob(a)
+				runDNDStatusExpireJob(a)
 				runCheckAdminSupportStatusJob(a)
 			})
 			a.srv.runJobs()
@@ -733,4 +735,8 @@ func (a *App) DBHealthCheckDelete() error {
 
 func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
+}
+
+func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }
