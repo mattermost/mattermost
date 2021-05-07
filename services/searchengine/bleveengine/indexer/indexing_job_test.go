@@ -45,9 +45,6 @@ func TestBleveIndexer(t *testing.T) {
 				EnableIndexing: model.NewBool(true),
 				IndexDir:       model.NewString(tempDir),
 			},
-			FeatureFlags: &model.FeatureFlags{
-				FilesSearch: false,
-			},
 		}
 
 		jobServer := &jobs.JobServer{
