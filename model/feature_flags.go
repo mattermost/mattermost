@@ -35,9 +35,6 @@ type FeatureFlags struct {
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 	PluginApps               string `plugin_id:"com.mattermost.apps"`
 
-	// Toggle on and off support for Files search
-	FilesSearch bool
-
 	// Control support for custom data retention policies
 	CustomDataRetentionEnabled bool
 }
@@ -48,7 +45,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.EnableRemoteClusterService = false
-	f.FilesSearch = false
 	f.AppsEnabled = false
 
 	f.PluginIncidentManagement = "1.7.0"

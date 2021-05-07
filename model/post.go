@@ -207,6 +207,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
+	dst.IsFollowing = o.IsFollowing
 	dst.RemoteId = o.RemoteId
 	return nil
 }

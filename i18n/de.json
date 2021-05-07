@@ -6523,10 +6523,6 @@
     "translation": "Konnte die Rolle nicht abrufen."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Konnte nicht alle Rollen abrufen."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Konnte die Rolle nicht abrufen."
   },

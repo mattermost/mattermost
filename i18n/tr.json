@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+    "translation": "Kanal başlığı güncellenirken sorun çıktı."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+    "translation": "Kanal amacı güncellenirken sorun çıktı."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -6747,10 +6747,6 @@
     "translation": "Rol alınamadı."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Rollerin tümü alınamadı."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Rol alınamadı."
   },
@@ -8559,10 +8555,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Bu özellik henüz geliştirme aşamasında olduğundan yalnız işaret olarak görüntülenir."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "İstek içeriği işlenemedi."
   },
@@ -8780,11 +8772,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Uzak küme {{.RemoteId}} {{.Result}}."
+    "translation": "Güvenli bağlantı {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Uzak küme eklenemedi: {{.Error}}"
+    "translation": "Güvenli bağlantı eklenemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8820,23 +8812,15 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Uzak durumlar alınamadı: {{.Error}}."
+    "translation": "Güvenli bağlantıların durumları alınamadı: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Uzak kümeler alınırken sorun çıktı: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - isteğe bağlı"
+    "translation": "Güvenli bağlantılar alınırken sorun çıktı: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
     "translation": "Geçerli kanalı bir uzak Mattermost kopyası ile paylaşır."
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Çağrı açıklaması"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -8860,47 +8844,15 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal uzak kodu bulunamadı."
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - varsayılan kanal amacı"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Uzak kopyalara iletilen kanal amacı"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - varsayılan kanal adı"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Uzak kümelere iletilen kanal adı"
+    "translation": "Bu kanal için `{{.RemoteId}}` paylaşılan kanal güvenli bağlantısı bulunamadı."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Uzak küme, kaynağüı başka bir yerde bulunan paylaşılmış bir kanala çağrılamaz."
+    "translation": "Güvenli bağlantı, kaynağı başka bir yerde bulunan bir paylaşılmış kanala çağrılamaz."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "`{{.Name}}` bu kanala çağrılırken sorun çıktı: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - varsayılan kanal üst bilgileri"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Uzak kopyalara iletilecek kanal üst bilgileri"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - varsayılan görüntülenecek kanal adı"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Uzak kopyalara iletilecek kanal görüntülenme adı"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8912,7 +8864,7 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Tüm uzak kümelerin durumunu görüntüler"
+    "translation": "Tüm güvenli bağlantıların durumunu görüntüler"
   },
   {
     "id": "api.command_remote.site_url_not_set",
@@ -8928,11 +8880,11 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Silinecek uzak kümenin kodu"
+    "translation": "Silinecek güvenli bağlantının kodu"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Uzak küme silinemedi: {{.Error}}"
+    "translation": "Güvenli bağlantı silinemedi: {{.Error}}"
   },
   {
     "id": "api.command_remote.invite_summary",
@@ -8940,35 +8892,35 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Uzak küme ekleme ve silme. Yapılabilecek işlemler: {{.Actions}}"
+    "translation": "Güvenli bağlantı ekleme ve silme. Yapılabilecek işlemler: {{.Actions}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Bir uzak kümeyi siler"
+    "translation": "Bir güvenli bağlantıyı siler"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Herhangi bir uzak küme bulunamadı."
+    "translation": "Herhangi bir güvenli bağlantı bulunamadı."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Ad| Site Adresi  | Uzak Kod   | Çağrı Onaylandı | Çevrimiçi | Son İletişim  |"
+    "translation": "| Güvenli Bağlantı | Görüntülenecek Ad | Bağlantı Kodu | Site Adresi | Çağrı Onaylandı | Çevrimiçi | Son İletişim |"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Uzak kümeleri yönetebilmek için `{{.Permission}}` izniniz bulunmalı."
+    "translation": "Güvenli bağlantıları yönetebilmek için `{{.Permission}}` izniniz bulunmalı."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Uzak küme için tekil ad"
+    "translation": "Güvenli bağlantı için tekil ad"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Uzak kümenin adı"
+    "translation": "Güvenli bağlantı adı"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "uzak"
+    "translation": "guvenli-baglanti"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -8988,7 +8940,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Bir uzak kümeyi çağır"
+    "translation": "Güvenli bir bağlantı ekle"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -8996,11 +8948,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "Uzak bir kümeden şifrelenmiş çağrı"
+    "translation": "Güvenli bir bağlantıdan şifrelenmiş çağrı"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Uzak kümeden çağrı"
+    "translation": "Güvenli bağlantıdan çağrı"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -9012,7 +8964,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Uzak kümeler alınamadı: {{.Error}}"
+    "translation": "Güvenli bağlantılar alınamadı: {{.Error}}"
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -9021,10 +8973,6 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "Çevrimdışı olduğundan, bir ya da daha fazla ileti {{.Remote}} uzak kümesine aktarılamadı. İletiler site yeniden çevrimiçi olduğunda aktarılacak."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Açıklama geçersiz."
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
@@ -9048,7 +8996,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Lütfen ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi yazın."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9060,11 +9008,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Aynı adresi kullanan bir uzak küme zaten var."
+    "translation": "Aynı adresi kullanan bir güvenli bağlantı zaten var."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Uzak küme güncellenirken bir sorun çıktı."
+    "translation": "Güvenli bağlantı güncellenirken bir sorun çıktı."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -9072,11 +9020,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Uzak küme zaten eklenmiş."
+    "translation": "Güvenli bağlantı zaten eklenmiş."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Uzak küme kaydedilirken bir sorun çıktı."
+    "translation": "Güvenli bağlantı kaydedilirken bir sorun çıktı."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -9088,11 +9036,11 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Bir uzak küme alınırken sorun çıktı."
+    "translation": "Bir güvenli bağlantı alınırken bir sorun çıktı."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Uzak küme silinirken bir sorun çıktı."
+    "translation": "Güvenli bağlantı silinirken bir sorun çıktı."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -9112,15 +9060,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Uzak küme kodu eksik."
+    "translation": "Güvenli bağlantı kodu eksik."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Uzak küme kodu eşleşmiyor."
+    "translation": "Güvenli bağlantı kodu eşleşmiyor."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "{{.RemoteId}} uzak küme kodu bulunamadı."
+    "translation": "{{.RemoteId}} güvenli bağlantı kodu bulunamadı."
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -9131,10 +9079,6 @@
     "translation": "Çağrının süresi dolmuş."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' ya da 'N'"
-  },
-  {
     "id": "api.command_share.shared_channel_unshare.error",
     "translation": "Bu kanal paylaşımdan kaldırılamadı: {{.Error}}."
   },
@@ -9143,20 +9087,12 @@
     "translation": "Bu kanal artık paylaşılmıyor."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Paylaşılmış kanal silinmedi: `{{.Arg}}`, `{{.Expected}}` olmalı."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - 'Y' ya da 'N'.  Varsayılan 'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Kanal salt okunur kipte paylaşılacak"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Geçerli kanalı paylaş"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9168,11 +9104,11 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Uzak | Site Adresi | Açıklama| Salt Okunur| Çağrı Onaylandı | Çevrimiçi | Son Eşitleme |"
+    "translation": "| Güvenli Bağlantı | Site Adresi | Salt Okunur| Çağrı Onaylandı | Çevrimiçi | Son Eşitleme |"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Uzak küme kodu geçersiz: {{.Error}}"
+    "translation": "Güvenli bağlantı kodu geçersiz: {{.Error}}"
   },
   {
     "id": "api.command_share.unshare_channel.help",
@@ -9183,32 +9119,28 @@
     "translation": "`{{.Action}}` işlemi bilinmiyor. Yapılabilecek işlemler: {{.Actions}}"
   },
   {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Emin misiniz? Bu kanal paylaşımdan kaldırılacak ve tüm uzak kopya çağrıları geri alınacak"
-  },
-  {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Çağrısı geri alınacak uzak kopyanın kodu."
+    "translation": "Çağırmaktan vazgeçilecek güvenli bağlantı kodu."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Bu paylaşılmış kanala çağrılmış bir uzak kopyanın çağrısını geri alır"
+    "translation": "Bu paylaşılmış kanalda bir güvenli bağlantıyı çağırmaktan vazgeçer"
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "`{{.RemoteId}}` uzak çağrısı geri alındı."
+    "translation": "`{{.RemoteId}}` güvenli bağlantı çağrısından vazgeçildi."
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Çağrısı geri alınacak geçerli bir uzak küme belirtilmelidir"
+    "translation": "Çağrılmaktan vazgeçilecek geçerli bir güvenli bağlantı belirtilmelidir"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Var olan bir uzak kopyanın kodu. Bir uzak kopya eklemek için `remote` komutuna bakın."
+    "translation": "Var olan bir güvenli bağlantının kodu. Bir güvenli bağlantı eklemek için `secure-connection` komutuna bakın."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "Uzak küme zaten çağrılmış."
+    "translation": "Güvenli bağlantı zaten çağrılmış."
   },
   {
     "id": "api.command_share.permission_required",
@@ -9220,23 +9152,23 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Bu paylaşılmış kanala herhangi bir uzak katılım çağrısı yapılmamış."
+    "translation": "Bu paylaşılmış kanala herhangi bir güvenli bağlantı çağrılmamış."
   },
   {
     "id": "api.command_share.name",
-    "translation": "paylaş"
+    "translation": "kanal-paylas"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Çağrılacak geçerli bir uzak küme kodu belirtilmelidir."
+    "translation": "Çağrılacak geçerli bir güvenli bağlantı kodu belirtilmelidir."
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Uzak küme için görüntülenecek ad"
+    "translation": "Güvenli bağlantı için görüntülenecek ad"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Uzak kümenin görüntülenecek adı"
+    "translation": "Güvenli bağlantının görüntülenecek adı"
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
@@ -9245,5 +9177,41 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Deneme süresi sonu bildirimi gönderilemedi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süresi bugün {{.TodayDate}} sona eriyor. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "14 günlük Mattermost deneme süresi bugün sona eriyor"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost Cloud deneme süresi sona erdi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Aboneliği başlat"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Destek E-posta Adresinizi Yazın"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal amacı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Yazılan metin karakter sayısı sınırını aşıyor. Kanal başlığı en fazla {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Lütfen **Sistem Panosu > Site Yapılandırması > Özelleştirme** bölümüne giderek [Destek E-posta Adresi](https://docs.mattermost.com/administration/config-settings.html#support-email) olarak kuruluşunuzun iç BT destek ekibi e-posta adresini yazın. Böylece son kullanıcı geri bildirimleri, e-posta bilgilerimleri ve destek istekleri alınabilir."
   }
 ]

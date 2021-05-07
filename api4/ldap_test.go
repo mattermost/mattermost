@@ -8,7 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 )
 
 var spPrivateKey = `-----BEGIN PRIVATE KEY-----
@@ -134,13 +136,37 @@ func TestSyncLdap(t *testing.T) {
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.SyncLdap()
-		CheckNoError(t, resp)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.EnableSync = true
 	})
 
-	_, resp := th.Client.SyncLdap()
+	ldapMock := &mocks.LdapInterface{}
+	mockCall := ldapMock.On(
+		"StartSynchronizeJob",
+		mock.AnythingOfType("bool"),
+		mock.AnythingOfType("bool"),
+	).Return(nil, nil)
+	ready := make(chan bool)
+	includeRemovedMembers := false
+	mockCall.RunFn = func(args mock.Arguments) {
+		includeRemovedMembers = args[1].(bool)
+		ready <- true
+	}
+	th.App.Srv().Ldap = ldapMock
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.SyncLdap(false)
+		<-ready
+		CheckNoError(t, resp)
+		require.Equal(t, false, includeRemovedMembers)
+
+		_, resp = client.SyncLdap(true)
+		<-ready
+		CheckNoError(t, resp)
+		require.Equal(t, true, includeRemovedMembers)
+	})
+
+	_, resp := th.Client.SyncLdap(false)
 	CheckForbiddenStatus(t, resp)
 }
 
