@@ -1092,7 +1092,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Accept an invitation from a remote cluster"
+    "translation": "Accept an invitation from an external Mattermost instance"
   },
   {
     "id": "api.command_remote.accept_invitation",
@@ -1116,7 +1116,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
+    "translation": "Invite secure connections for communication across Mattermost instances."
   },
   {
     "id": "api.command_remote.displayname.help",
@@ -1156,7 +1156,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Create a secure connection"
+    "translation": "Invite a secure connection"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -1168,7 +1168,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the remote site can access your cluster via** {{.SiteURL}}"
+    "translation": "Send the following AES 256-bit encrypted invitation to the external Mattermost System Admin along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the secure connection can access your Mattermost instance via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.missing_command",
@@ -1200,7 +1200,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure Connection | Display name | ConnectionID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Site URL  | Connection ID   | Invite accepted | Online | Last ping  |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -1216,19 +1216,19 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id of secure connection remove"
+    "translation": "ID of secure connection to remove."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Remote Cluster Service is disabled."
+    "translation": "Secure Connection Service is disabled."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Remote Cluster service not enabled."
+    "translation": "Secure Connection Service not enabled."
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL not set. Please set this via the system console."
+    "translation": "Site URL not set. Please set this in System Console > Environment > Web Server."
   },
   {
     "id": "api.command_remote.status.help",
