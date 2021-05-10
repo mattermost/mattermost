@@ -78,6 +78,7 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 }
 
 func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
+	var link = template.HTMLEscapeString(redirectURL)
 	RenderMobileMessage(w, `
 		<div class="icon text-success" style="font-size: 4em">
 			<i class="fa fa-check-circle" title="Success Icon"></i>
@@ -85,13 +86,13 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
 		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
 		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
-		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectURL)+`"></noscript>
+		<p> `+i18n.T("api.oauth.click_redirect", model.StringInterface{"Link": link})+` </p>
+		<meta http-equiv="refresh" content="2; url=`+link+`">
 		<script>
 			window.onload = function() {
 				setTimeout(function() {
 					document.getElementById('redirecting-message').style.display = 'none';
 					document.getElementById('close-tab-message').style.display = 'block';
-					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectURL))+`';
 				}, 2000);
 			}
 		</script>

@@ -2013,6 +2013,10 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.click_redirect",
+    "translation": "If you are not redirected automatically, please click the <a href='{{.Link}}'>link</a>"
+  },
+  {
     "id": "api.oauth.close_browser",
     "translation": "You can close this browser tab now."
   },
