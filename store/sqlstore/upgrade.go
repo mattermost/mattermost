@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5350
+	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
@@ -206,6 +207,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
 	upgradeDatabaseToVersion535(sqlStore)
+	upgradeDatabaseToVersion536(sqlStore)
 
 	return nil
 }
@@ -1274,5 +1276,32 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 		return true
 	}
 
+	return false
+}
+
+func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion536(sqlStore) {
+		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+
+		// timed dnd status support
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+	}
+
+	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+		saveSchemaVersion(sqlStore, Version5360)
+	}
+}
+
+func hasMissingMigrationsVersion536(sqlStore *SqlStore) bool {
+	if !sqlStore.DoesColumnExist("SharedChannelUsers", "ChannelId") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("Status", "DNDEndTime") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("Status", "PrevStatus") {
+		return true
+	}
 	return false
 }
