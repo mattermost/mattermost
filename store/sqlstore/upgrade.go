@@ -954,7 +954,9 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
 
-		saveSchemaVersion(sqlStore, Version5300)
+		if shouldPerformUpgrade(sqlStore, Version5290, Version5291) {
+			saveSchemaVersion(sqlStore, Version5300)
+		}
 	}
 }
 
