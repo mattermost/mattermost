@@ -204,6 +204,9 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
+
+	dndnTaskMut sync.Mutex
+	dndTask     *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -994,6 +997,12 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
+
+	s.dndnTaskMut.Lock()
+	if s.dndTask != nil {
+		s.dndTask.Cancel()
+	}
+	s.dndnTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -2175,4 +2184,27 @@ func (s *Server) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	return result, nil
+}
+
+func runDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		a.srv.dndnTaskMut.Lock()
+		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		a.srv.dndnTaskMut.Unlock()
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			a.srv.dndnTaskMut.Lock()
+			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.srv.dndnTaskMut.Unlock()
+		} else {
+			a.srv.dndnTaskMut.Lock()
+			if a.srv.dndTask != nil {
+				a.srv.dndTask.Cancel()
+				a.srv.dndTask = nil
+			}
+			a.srv.dndnTaskMut.Unlock()
+		}
+	})
 }

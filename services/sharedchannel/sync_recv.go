@@ -228,6 +228,9 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var userSaved *model.User
 	var suffix string
 
+	// ensure the new user is created with system_user role and random password.
+	user = sanitizeUserForSync(user)
+
 	// save the original username and email in props (if not already done by another remote)
 	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
 		user.SetProp(KeyRemoteUsername, user.Username)
@@ -290,6 +293,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	}
 
 	user.Patch(patch)
+	user = sanitizeUserForSync(user)
 	user.SetProp(KeyRemoteUsername, realUsername)
 	user.SetProp(KeyRemoteEmail, realEmail)
 
