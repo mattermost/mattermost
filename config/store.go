@@ -135,7 +135,7 @@ func (s *Store) Get() *model.Config {
 	return s.config
 }
 
-// Get fetches the current cached configuration without environment variable overrides.
+// GetNoEnv fetches the current cached configuration without environment variable overrides.
 func (s *Store) GetNoEnv() *model.Config {
 	s.configLock.RLock()
 	defer s.configLock.RUnlock()
