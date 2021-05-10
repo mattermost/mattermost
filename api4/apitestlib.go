@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -251,24 +252,42 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig)
+	statusMock := mocks.StatusStore{}
+	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
+	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().Store = &emptyMockStore
 	return th
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil)
+	statusMock := mocks.StatusStore{}
+	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
+	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().Store = &emptyMockStore
 	return th
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil)
+	statusMock := mocks.StatusStore{}
+	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
+	emptyMockStore.On("Status").Return(&statusMock)
 	th.App.Srv().Store = &emptyMockStore
 	return th
 }

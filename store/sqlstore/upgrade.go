@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5350
+	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
 	Version5330            = "5.33.0"
@@ -206,6 +207,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion533(sqlStore)
 	upgradeDatabaseToVersion534(sqlStore)
 	upgradeDatabaseToVersion535(sqlStore)
+	upgradeDatabaseToVersion536(sqlStore)
 
 	return nil
 }
@@ -951,6 +953,7 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -1053,12 +1056,24 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 		}
 		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
-		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
 
 		rootCountMigration(sqlStore)
 
 		saveSchemaVersion(sqlStore, Version5350)
 	}
+}
+
+func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+
+	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+
+	// timed dnd status support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+
+	//saveSchemaVersion(sqlStore, Version5360)
+	//}
 }
 
 func rootCountMigration(sqlStore *SqlStore) {

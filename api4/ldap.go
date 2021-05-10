@@ -47,6 +47,12 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type LdapSyncOptions struct {
+		IncludeRemovedMembers bool `json:"include_removed_members"`
+	}
+	var opts LdapSyncOptions
+	json.NewDecoder(r.Body).Decode(&opts)
+
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
@@ -55,7 +61,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SyncLdap()
+	c.App.SyncLdap(opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

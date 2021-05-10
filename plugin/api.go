@@ -229,6 +229,12 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateUserStatus(userID, status string) (*model.Status, *model.AppError)
 
+	// SetUserStatusTimedDND will set a user's status to dnd for given time until the user,
+	// or another integration/plugin, sets it back to online.
+	// @tag User
+	// Minimum server version: 5.35
+	SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
+
 	// UpdateUserActive deactivates or reactivates an user.
 	//
 	// @tag User
@@ -1050,6 +1056,16 @@ type API interface {
 	// @tag SlashCommand
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
+
+	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+	// the calling plugin that are present in the cluster.
+	//
+	// This method is used to allow plugin communication in a High-Availability cluster.
+	// The receiving side should implement the OnPluginClusterEvent hook
+	// to receive events sent through this method.
+	//
+	// Minimum server version: 5.36
+	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 }
 
 var handshake = plugin.HandshakeConfig{

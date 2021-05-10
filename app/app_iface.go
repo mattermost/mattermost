@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -61,6 +60,13 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a channel if the
 	// channel were group-constrained with the given groups.
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
+	//
+	// Typically since will be the last successful group sync time.
+	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// be included; otherwise, they will be excluded.
+	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
@@ -80,7 +86,9 @@ type AppIface interface {
 	CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
-	CreateDefaultMemberships(since int64) error
+	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+	// be re-added; otherwise, they will not be re-added.
+	CreateDefaultMemberships(since int64, includeRemovedMembers bool) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(user *model.User) (*model.User, *model.AppError)
@@ -243,7 +251,7 @@ type AppIface interface {
 	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
-	NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn
+	NewWebConn(cfg *WebConnConfig) *WebConn
 	// NewWebHub creates a new Hub.
 	NewWebHub() *Hub
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
@@ -261,6 +269,9 @@ type AppIface interface {
 	DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError)
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
 	PermanentDeleteBot(botUserId string) *model.AppError
+	// PopulateWebConnConfig checks if the connection id already exists in the hub,
+	// and if so, accordingly populates the other fields of the webconn.
+	PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConnConfig, error)
 	// PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(user *model.User, requestorId string) *model.AppError
@@ -299,16 +310,23 @@ type AppIface interface {
 	// relative to either the session creation date or the current time, depending
 	// on the `ExtendSessionOnActivity` config setting.
 	SetSessionExpireInDays(session *model.Session, days int)
+	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
+	// and sets status of given userId to dnd which will be restored back after endtime
+	SetStatusDoNotDisturbTimed(userId string, endtime int64)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
 	SetStatusLastActivityAt(userID string, activityAt int64)
+	// SyncLdap starts an LDAP sync job.
+	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
+	// be re-added; otherwise, they will not be re-added.
+	SyncLdap(includeRemovedMembers bool)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
-	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType)
+	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
@@ -319,6 +337,13 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a team if the team
 	// were group-constrained with the given groups.
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
+	// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
+	//
+	// Typically since will be the last successful group sync time.
+	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// be included; otherwise, they will be excluded.
+	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError)
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
 	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
@@ -334,6 +359,9 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
+	// which unsets dnd status of users if needed and saves and broadcasts it
+	UpdateDNDStatusOfUsers()
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
@@ -406,7 +434,6 @@ type AppIface interface {
 	BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
-	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
@@ -419,6 +446,7 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
 	CheckValidDomains(team *model.Team) *model.AppError
+	CheckWebConn(userID, connectionID string) *CheckConnResult
 	ClearChannelMembersCache(channelID string)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
@@ -538,7 +566,6 @@ type AppIface interface {
 	GetAllPrivateTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
-	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
@@ -1012,10 +1039,8 @@ type AppIface interface {
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(email, password, requesterId string) (string, *model.AppError)
-	SyncLdap()
 	SyncPluginsActiveState()
 	T(translationID string, args ...interface{}) string
-	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
@@ -1039,6 +1064,7 @@ type AppIface interface {
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
 	UpdateEphemeralPost(userID string, post *model.Post) *model.Post
+	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError

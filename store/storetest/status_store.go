@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -15,6 +16,7 @@ import (
 func TestStatusStore(t *testing.T, ss store.Store) {
 	t.Run("", func(t *testing.T) { testStatusStore(t, ss) })
 	t.Run("ActiveUserCount", func(t *testing.T) { testActiveUserCount(t, ss) })
+	t.Run("UpdateExpiredDNDStatuses", func(t *testing.T) { testUpdateExpiredDNDStatuses(t, ss) })
 }
 
 func testStatusStore(t *testing.T, ss store.Store) {
@@ -61,3 +63,32 @@ type ByUserId []*model.Status
 func (s ByUserId) Len() int           { return len(s) }
 func (s ByUserId) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s ByUserId) Less(i, j int) bool { return s[i].UserId < s[j].UserId }
+
+func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
+	userID := NewTestId()
+
+	status := &model.Status{UserId: userID, Status: model.STATUS_DND, Manual: true,
+		DNDEndTime: time.Now().Add(5 * time.Second).Unix(), PrevStatus: model.STATUS_ONLINE}
+	require.NoError(t, ss.Status().SaveOrUpdate(status))
+
+	time.Sleep(2 * time.Second)
+
+	// after 2 seconds no statuses should be expired
+	statuses, err := ss.Status().UpdateExpiredDNDStatuses()
+	require.NoError(t, err)
+	require.Len(t, statuses, 0)
+
+	time.Sleep(3 * time.Second)
+
+	// after 3 more seconds test status should be updated
+	statuses, err = ss.Status().UpdateExpiredDNDStatuses()
+	require.NoError(t, err)
+	require.Len(t, statuses, 1)
+
+	updatedStatus := *statuses[0]
+	require.Equal(t, updatedStatus.UserId, userID)
+	require.Equal(t, updatedStatus.Status, model.STATUS_ONLINE)
+	require.Equal(t, updatedStatus.DNDEndTime, int64(0))
+	require.Equal(t, updatedStatus.PrevStatus, model.STATUS_DND)
+	require.Equal(t, updatedStatus.Manual, false)
+}

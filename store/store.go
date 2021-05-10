@@ -272,6 +272,8 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
+	GetThreadFollowers(threadID string) ([]string, error)
+
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
@@ -469,7 +471,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
+	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -598,6 +600,7 @@ type StatusStore interface {
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
+	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 }
 
 type FileInfoStore interface {
@@ -766,13 +769,17 @@ type GroupStore interface {
 	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
 	//
 	// Typically since will be the last successful group sync time.
-	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error)
+	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// be included; otherwise, they will be excluded.
+	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error)
 
 	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 	//
 	// Typically since will be the last successful group sync time.
-	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error)
+	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// be included; otherwise, they will be excluded.
+	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error)
 
 	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error)

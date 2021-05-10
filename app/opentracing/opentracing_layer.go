@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -1055,7 +1054,7 @@ func (a *OpenTracingAppLayer) ChannelMembersMinusGroupMembers(channelID string, 
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ChannelMembersToAdd")
 
@@ -1067,7 +1066,7 @@ func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ChannelMembersToAdd(since, channelID)
+	resultVar0, resultVar1 := a.app.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1349,6 +1348,23 @@ func (a *OpenTracingAppLayer) CheckValidDomains(team *model.Team) *model.AppErro
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *app.CheckConnResult {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckWebConn(userID, connectionID)
 
 	return resultVar0
 }
@@ -1862,7 +1878,7 @@ func (a *OpenTracingAppLayer) CreateDefaultChannels(teamID string) ([]*model.Cha
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateDefaultMemberships(since int64) error {
+func (a *OpenTracingAppLayer) CreateDefaultMemberships(since int64, includeRemovedMembers bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultMemberships")
 
@@ -1874,7 +1890,7 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(since int64) error {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CreateDefaultMemberships(since)
+	resultVar0 := a.app.CreateDefaultMemberships(since, includeRemovedMembers)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4387,28 +4403,6 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQue
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(filter)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRoles")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRoles()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11477,7 +11471,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(cfg *app.WebConnConfig) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
@@ -11489,7 +11483,7 @@ func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Sessi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NewWebConn(ws, session, t, locale)
+	resultVar0 := a.app.NewWebConn(cfg)
 
 	return resultVar0
 }
@@ -11986,6 +11980,28 @@ func (a *OpenTracingAppLayer) PluginContext() *plugin.Context {
 	resultVar0 := a.app.PluginContext()
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) PopulateWebConnConfig(cfg *app.WebConnConfig, seqVal string) (*app.WebConnConfig, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PopulateWebConnConfig(cfg, seqVal)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) PostActionCookieSecret() []byte {
@@ -14943,6 +14959,21 @@ func (a *OpenTracingAppLayer) SetStatusDoNotDisturb(userID string) {
 	a.app.SetStatusDoNotDisturb(userID)
 }
 
+func (a *OpenTracingAppLayer) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturbTimed")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetStatusDoNotDisturbTimed(userId, endtime)
+}
+
 func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userID string, activityAt int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusLastActivityAt")
@@ -15223,7 +15254,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap() {
+func (a *OpenTracingAppLayer) SyncLdap(includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -15235,7 +15266,7 @@ func (a *OpenTracingAppLayer) SyncLdap() {
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap()
+	a.app.SyncLdap(includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
@@ -15275,7 +15306,7 @@ func (a *OpenTracingAppLayer) SyncPluginsActiveState() {
 	a.app.SyncPluginsActiveState()
 }
 
-func (a *OpenTracingAppLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType) {
+func (a *OpenTracingAppLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
 
@@ -15287,7 +15318,7 @@ func (a *OpenTracingAppLayer) SyncRolesAndMembership(syncableID string, syncable
 	}()
 
 	defer span.Finish()
-	a.app.SyncRolesAndMembership(syncableID, syncableType)
+	a.app.SyncRolesAndMembership(syncableID, syncableType, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
@@ -15334,7 +15365,7 @@ func (a *OpenTracingAppLayer) TeamMembersMinusGroupMembers(teamID string, groupI
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersToAdd")
 
@@ -15346,7 +15377,7 @@ func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.TeamMembersToAdd(since, teamID)
+	resultVar0, resultVar1 := a.app.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15868,6 +15899,21 @@ func (a *OpenTracingAppLayer) UpdateConfig(f func(*model.Config)) {
 	a.app.UpdateConfig(f)
 }
 
+func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDNDStatusOfUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UpdateDNDStatusOfUsers()
+}
+
 func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateEphemeralPost")
@@ -15883,6 +15929,28 @@ func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Pos
 	resultVar0 := a.app.UpdateEphemeralPost(userID, post)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateExpiredDNDStatuses")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateExpiredDNDStatuses()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {

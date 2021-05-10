@@ -5320,10 +5320,6 @@
     "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Найстаріший запис не може бути завантажений з бази даних."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6504,10 +6500,6 @@
     "translation": "Неможливо отримати роль"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Неможливо отримати всі канали"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Неможливо отримати роль"
   },
@@ -6614,10 +6606,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Ми виявили помилку при підключенні до сервера"
   },
   {
     "id": "ent.cluster.404.app_error",

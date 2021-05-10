@@ -5320,10 +5320,6 @@
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6520,10 +6516,6 @@
     "translation": "Nie można uzyskać roli"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Nie można uzyskać roli"
   },
@@ -6630,10 +6622,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Napotkano błąd podczas podłączania się do serwera"
   },
   {
     "id": "ent.cluster.404.app_error",

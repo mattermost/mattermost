@@ -5371,10 +5371,6 @@
     "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6523,10 +6519,6 @@
     "translation": "Konnte die Rolle nicht abrufen."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Konnte nicht alle Rollen abrufen."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Konnte die Rolle nicht abrufen."
   },
@@ -6637,10 +6629,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
   },
   {
     "id": "ent.cluster.404.app_error",

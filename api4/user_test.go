@@ -5964,6 +5964,47 @@ func TestReadThreads(t *testing.T) {
 	})
 }
 
+func TestMarkThreadUnreadMentionCount(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+	Client := th.Client
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	appErr := th.App.JoinChannel(channel, user.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(channel, user2.Id)
+	require.Nil(t, appErr)
+
+	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg @" + th.BasicUser2.Username})
+	time.Sleep(1)
+	reply, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply1", RootId: rpost.Id})
+	time.Sleep(1)
+	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
+
+	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
+
+	u, _ := th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.EqualValues(t, 0, u.TotalUnreadMentions)
+
+	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, rpost.CreateAt)
+
+	u, _ = th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.EqualValues(t, 1, u.TotalUnreadMentions)
+
+	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, reply.CreateAt)
+
+	u, _ = th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.EqualValues(t, 0, u.TotalUnreadMentions)
+}
+
 func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 	t.Run("LDAP user", func(t *testing.T) {
 		th := SetupEnterprise(t).InitBasic()
