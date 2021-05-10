@@ -3,6 +3,7 @@
 package jobs
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -99,6 +100,29 @@ func TestScheduler(t *testing.T) {
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
+	})
+
+	t.Run("ClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.Nil(t, element)
+		}
+		jobServer.StopSchedulers()
+	})
+
+	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.HandleClusterLeaderChange(true)
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.NotNil(t, element)
+		}
+		jobServer.StopSchedulers()
 	})
 
 	t.Run("ConfigChanged", func(t *testing.T) {

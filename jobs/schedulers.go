@@ -44,7 +44,7 @@ func (srv *JobServer) InitSchedulers() error {
 		stop:                 make(chan bool),
 		stopped:              make(chan bool),
 		configChanged:        make(chan *model.Config),
-		clusterLeaderChanged: make(chan bool),
+		clusterLeaderChanged: make(chan bool, 1),
 		jobs:                 srv,
 		isLeader:             true,
 	}
@@ -235,10 +235,20 @@ func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Con
 	schedulers.configChanged <- newConfig
 }
 
-func (schedulers *Schedulers) HandleClusterLeaderChange(isLeader bool) {
+func (schedulers *Schedulers) handleClusterLeaderChange(isLeader bool) {
 	select {
 	case schedulers.clusterLeaderChanged <- isLeader:
 	default:
-		mlog.Debug("Did not send cluster leader change message to schedulers as no schedulers listening to notification channel.")
+		mlog.Debug("Sending cluster leader change message to schedulers failed.")
+
+		// Drain the buffered channel to make room for the latest change.
+		select {
+		case <-schedulers.clusterLeaderChanged:
+		default:
+		}
+
+		// Enqueue the latest change. This operation is safe due to this method
+		// being called under lock.
+		schedulers.clusterLeaderChanged <- isLeader
 	}
 }
