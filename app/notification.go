@@ -176,7 +176,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 			if channel.Type != model.CHANNEL_DIRECT {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
-				rootMentions := getExplicitMentions(rootPost, keywords, groups)
+				rootMentions = getExplicitMentions(rootPost, keywords, groups)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
 				}
