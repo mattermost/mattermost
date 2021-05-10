@@ -89,7 +89,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 	return store, nil
 }
 
-// NewStore creates and returns a new config store backed by either a database or file store
+// NewStoreFromDSN creates and returns a new config store backed by either a database or file store
 // depending on the value of the given data source name string.
 func NewStoreFromDSN(dsn string, watch, readOnly bool, customDefaults *model.Config) (*Store, error) {
 	var err error
