@@ -1615,10 +1615,6 @@
     "translation": "Open Mattermost"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.date",
-    "translation": "{{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
     "translation": "View this message"
   },
