@@ -9170,5 +9170,53 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Politica nu este valabilă."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Am întâmpinat o eroare la efectuarea operațiunii solicitate."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nu se poate trimite un răspuns automat de la utilizator."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Nu a reușit să trimită e-mailul de încheiere a procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Procesul Mattermost cloud s-a încheiat"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Începeți abonamentul"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Vă rugăm să accesați **System Console > Site Configuration > Customization** pentru a seta [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) ca adresă de e-mail a biroului de asistență IT intern al organizației dumneavoastră pentru feedback-ul utilizatorului final, notificări prin e-mail și cereri de asistență."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Setați adresa de e-mail de asistență"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Scopul canalului este limitat la {{.MaxLength}} caractere."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   }
 ]
