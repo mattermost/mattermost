@@ -232,7 +232,10 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 
 func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
-	schedulers.configChanged <- newConfig
+	select {
+	case schedulers.configChanged <- newConfig:
+	case <-schedulers.stop:
+	}
 }
 
 func (schedulers *Schedulers) handleClusterLeaderChange(isLeader bool) {

@@ -137,4 +137,23 @@ func TestScheduler(t *testing.T) {
 			assert.Nil(t, element)
 		}
 	})
+
+	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			jobServer.StopSchedulers()
+		}()
+		go func() {
+			defer wg.Done()
+			jobServer.schedulers.handleConfigChange(nil, nil)
+		}()
+
+		wg.Wait()
+	})
 }
