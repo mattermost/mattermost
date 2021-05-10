@@ -1200,7 +1200,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Site URL  | Connection ID   | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -1408,7 +1408,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Secure connection | Site URL | Description | Read only | Invite accepted | Online | Last sync |"
+    "translation": "| Secure connection | Site URL | Read only | Invite accepted | Online | Last sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
