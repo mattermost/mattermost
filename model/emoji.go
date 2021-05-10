@@ -57,12 +57,12 @@ func makeReverseEmojiMap() map[string][]string {
 	return reverseEmojiMap
 }
 
-func GetEmojiNameFromUnicode(unicode string) (string, bool) {
-	if temp, found := ReverseSystemEmojisMap[unicode]; found {
-		return temp[0], true
+func GetEmojiNameFromUnicode(unicode string) (emojiName string, count int) {
+	if emojiNames, found := ReverseSystemEmojisMap[unicode]; found {
+		return emojiNames[0], len(emojiNames)
 	}
 
-	return "", false
+	return "", 0
 }
 
 func (emoji *Emoji) IsValid() *AppError {

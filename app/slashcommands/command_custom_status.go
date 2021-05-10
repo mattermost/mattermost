@@ -98,14 +98,9 @@ func GetCustomStatus(message string) *model.CustomStatus {
 				emojiString = emojiString[size:]
 			}
 
-			unicodeString := strings.Join(unicode, "-")
-			emoji, found := model.GetEmojiNameFromUnicode(unicodeString)
-			if found {
-				customStatus.Emoji = emoji
-				textString := strings.Join(spaceSeparatedMessage[1:], " ")
-				customStatus.Text = strings.TrimSpace(textString)
-			} else if modifiedUnicodeString := removeUnicodeSkinTone(unicodeString); modifiedUnicodeString != unicodeString {
-				emoji, _ := model.GetEmojiNameFromUnicode(modifiedUnicodeString)
+			unicodeString := removeUnicodeSkinTone(strings.Join(unicode, "-"))
+			emoji, count := model.GetEmojiNameFromUnicode(unicodeString)
+			if count > 0 {
 				customStatus.Emoji = emoji
 				textString := strings.Join(spaceSeparatedMessage[1:], " ")
 				customStatus.Text = strings.TrimSpace(textString)
@@ -122,11 +117,14 @@ func removeUnicodeSkinTone(unicodeString string) string {
 	skinToneLocations := skinToneDetectorRegex.FindIndex([]byte(unicodeString))
 
 	if len(skinToneLocations) > 0 {
+		if _, count := model.GetEmojiNameFromUnicode(unicodeString); count == 1 {
+			return unicodeString
+		}
 		unicodeWithRemovedSkinTone := unicodeString[:skinToneLocations[0]] + unicodeString[skinToneLocations[1]:]
 		unicodeWithVariationSelector := unicodeString[:skinToneLocations[0]] + "-fe0f" + unicodeString[skinToneLocations[1]:]
-		if _, found := model.GetEmojiNameFromUnicode(unicodeWithRemovedSkinTone); found {
+		if _, count := model.GetEmojiNameFromUnicode(unicodeWithRemovedSkinTone); count > 0 {
 			unicodeString = unicodeWithRemovedSkinTone
-		} else if _, found := model.GetEmojiNameFromUnicode(unicodeWithVariationSelector); found {
+		} else if _, count := model.GetEmojiNameFromUnicode(unicodeWithVariationSelector); count > 0 {
 			unicodeString = unicodeWithVariationSelector
 		}
 	}
