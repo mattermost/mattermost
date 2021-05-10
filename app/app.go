@@ -578,3 +578,7 @@ func (a *App) dbHealthCheckKey() string {
 func (a *App) SetServer(srv *Server) {
 	a.srv = srv
 }
+
+func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+}

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -203,6 +204,9 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
+
+	dndnTaskMut sync.Mutex
+	dndTask     *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -674,6 +678,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
 			runCheckAdminSupportStatusJob(fakeApp, c)
+			runCheckWarnMetricStatusJob(fakeApp, c)
+			runDNDStatusExpireJob(fakeApp)
 		})
 		s.runJobs()
 	}
@@ -1033,6 +1039,12 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
+
+	s.dndnTaskMut.Lock()
+	if s.dndTask != nil {
+		s.dndTask.Cancel()
+	}
+	s.dndnTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -2188,4 +2200,97 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 
 	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
 	return nil, warning
+}
+
+func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	if *s.Config().FileSettings.DriverName == "" {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		return img, false, nil
+	}
+
+	path := "users/" + user.Id + "/profile.png"
+
+	data, err := s.ReadFile(path)
+	if err != nil {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+
+		if user.LastPictureUpdate == 0 {
+			if _, err := s.writeFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, err
+			}
+		}
+		return img, true, nil
+	}
+
+	return data, false, nil
+}
+
+func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	var img []byte
+	var appErr *model.AppError
+
+	if user.IsBot {
+		img = model.BotDefaultImage
+		appErr = nil
+	} else {
+		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
+	}
+	if appErr != nil {
+		return nil, appErr
+	}
+	return img, nil
+}
+
+func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
+	backend, err := s.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
+}
+
+// func (s *Server) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+// 	backend, err := s.FileBackend()
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	result, nErr := backend.WriteFile(fr, path)
+// 	if nErr != nil {
+// 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+// 	}
+// 	return result, nil
+// }
+
+func runDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		a.srv.dndnTaskMut.Lock()
+		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		a.srv.dndnTaskMut.Unlock()
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			a.srv.dndnTaskMut.Lock()
+			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.srv.dndnTaskMut.Unlock()
+		} else {
+			a.srv.dndnTaskMut.Lock()
+			if a.srv.dndTask != nil {
+				a.srv.dndTask.Cancel()
+				a.srv.dndTask = nil
+			}
+			a.srv.dndnTaskMut.Unlock()
+		}
+	})
 }

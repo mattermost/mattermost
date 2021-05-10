@@ -1611,37 +1611,33 @@
     "translation": "Email batching has been disabled by the system administrator."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Open Mattermost"
   },
   {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message from "
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "View this message"
   },
   {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Go to Post"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification from "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
-    }
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "See below for a summary of your new messages."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} sent you new message",
+      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
     }
   },
   {
@@ -3488,7 +3484,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "View Message"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -5447,60 +5443,44 @@
     "translation": "No license present"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "You have a new Direct Message."
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
   {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from {{.SenderName}}"
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "You have a new Group Message."
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from {{.SenderName}}"
+    "id": "app.notification.body.group.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent a message to your group."
   },
   {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "While you were away, {{.SenderName}} mentioned you in the {{.ChannelName}} channel."
   },
   {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.info",
+    "translation": " and go to Account Settings > Notifications"
   },
   {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Login to Mattermost"
   },
   {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.title",
+    "translation": "Want to change your notifications settings?"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -6667,8 +6647,8 @@
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "The oldest entity (user, channel or post) could not be retrieved from the database."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
