@@ -8607,7 +8607,7 @@
   },
   {
     "id": "api.templates.questions_footer.title",
-    "translation": "疑问？"
+    "translation": "有什么疑问吗？"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8892,5 +8892,21 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "输入的文本超出字符数限制。频道标题不得超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "显示此共享频道的状态"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "现在已共享此频道。"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "邀请 `{{.Name}}` 到此频道出错：{{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "删除的安全连接 Id"
   }
 ]
