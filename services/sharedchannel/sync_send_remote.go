@@ -97,7 +97,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	if !rc.IsOnline() {
-		if len(sd.posts) > 0 {
+		if len(sd.posts) != 0 {
 			scs.notifyRemoteOffline(sd.posts, rc)
 		}
 		sd.resultRepeat = false
