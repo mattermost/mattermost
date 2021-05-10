@@ -106,7 +106,13 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":
-		c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
+		if status.Mode {
+			c.App.SetStatusDoNotDisturbCustom(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, 
+				status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd,
+				status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
+		} else {
+			c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
+		}
 	default:
 		c.SetInvalidParam("status")
 		return

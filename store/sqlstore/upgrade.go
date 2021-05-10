@@ -1071,6 +1071,23 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	// timed dnd status support
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+	
+	// custom dnd status support 
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "MondayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "MondayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "TuesdayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "TuesdayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "WednesdayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "WednesdayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "ThursdayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "ThursdayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "FridayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "FridayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SaturdayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SaturdayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SundayStart", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SundayEnd", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "Mode", "boolean", "boolean")
 
 	//saveSchemaVersion(sqlStore, Version5360)
 	//}
