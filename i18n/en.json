@@ -1307,12 +1307,44 @@
     "translation": "Available actions: {{.Actions}}"
   },
   {
+    "id": "api.command_share.channel_display_name.help",
+    "translation": "Channel display name provided to external Mattermost instances"
+  },
+  {
+    "id": "api.command_share.channel_display_name.hint",
+    "translation": "[displayname] - defaults to channel displayname"
+  },
+  {
+    "id": "api.command_share.channel_header.help",
+    "translation": "Channel header provided to external Mattermost instances"
+  },
+  {
+    "id": "api.command_share.channel_header.hint",
+    "translation": "[header] - defaults to channels header"
+  },
+  {
     "id": "api.command_share.channel_invite.error",
     "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
+  },
+  {
+    "id": "api.command_share.channel_name.help",
+    "translation": "Channel name provided to external Mattermost instances"
+  },
+  {
+    "id": "api.command_share.channel_name.hint",
+    "translation": "[name] - defaults to channel name"
+  },
+  {
+    "id": "api.command_share.channel_purpose.help",
+    "translation": "Channel purpose provided to external Mattermost instances"
+  },
+  {
+    "id": "api.command_share.channel_purpose.hint",
+    "translation": "[purpose] - defaults to channel purpose"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -1328,7 +1360,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Status for channel Id `{{.ChannelId}}`"
+    "translation": "Status for channel ID `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -1340,11 +1372,19 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Shares the current channel with a remote Mattermost instance."
+    "translation": "Shares the current channel with an external Mattermost instance."
+  },
+  {
+    "id": "api.command_share.description_invite.help",
+    "translation": "Description for invite"
+  },
+  {
+    "id": "api.command_share.description_invite.hint",
+    "translation": "[description] - optional"
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Error fetching shared connections: {{.Error}}"
+    "translation": "Error fetching secure connections: {{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
@@ -1360,11 +1400,11 @@
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
+    "translation": "Shared channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Invites a remote instance to the current shared channel"
+    "translation": "Invites an external Mattermost instance to the current shared channel"
   },
   {
     "id": "api.command_share.missing_action",
@@ -1372,7 +1412,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Must specify a valid secure connection id to invite."
+    "translation": "Must specify a valid secure connection ID to invite."
   },
   {
     "id": "api.command_share.name",
@@ -1380,7 +1420,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "No secure connections have been invited to this shared channel."
+    "translation": "No secure connections have been invited to this channel."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -1396,19 +1436,19 @@
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id of an existing secure connection. See `secure-connection` command to add a secure connection."
+    "translation": "ID of an existing secure connection. See `secure-connection` command to add a secure connection."
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Secure connection id is invalid: {{.Error}}"
+    "translation": "Secure connection ID is invalid: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Must specify a valid secure connection id to uninvite"
+    "translation": "Must specify a valid secure connection ID to uninvite"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
+    "translation": "| Secure connection | Site URL | Description | Read only | Invite accepted | Online | Last sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
@@ -1423,12 +1463,20 @@
     "translation": "Cannot share this channel: {{.Error}}"
   },
   {
+    "id": "api.command_share.share_current",
+    "translation": "Share the current channel"
+  },
+  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Channel will be shared in read-only mode"
   },
   {
     "id": "api.command_share.share_read_only.hint",
-    "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'"
+    "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'".
+  },
+  {
+    "id": "api.command_share.shared_channel_not_deleted",
+    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -1444,7 +1492,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id of secure connection to uninvite."
+    "translation": "ID of secure connection to uninvite."
   },
   {
     "id": "api.command_share.unknown_action",
