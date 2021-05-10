@@ -27,6 +27,7 @@ const (
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
+	ProfileImageSyncTimeout      = time.Second * 5
 	KeyRemoteUsername            = "RemoteUsername"
 	KeyRemoteEmail               = "RemoteEmail"
 )

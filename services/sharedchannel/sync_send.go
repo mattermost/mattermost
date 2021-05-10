@@ -407,7 +407,7 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), ProfileImageSyncTimeout)
 	defer cancel()
 
 	rcs.SendProfileImage(ctx, user.Id, rc, scs.app, func(userId string, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
