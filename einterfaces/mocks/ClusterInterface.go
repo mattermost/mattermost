@@ -191,9 +191,23 @@ func (_m *ClusterInterface) RegisterClusterMessageHandler(event string, crm eint
 	_m.Called(event, crm)
 }
 
-// SendClusterMessage provides a mock function with given fields: cluster
-func (_m *ClusterInterface) SendClusterMessage(cluster *model.ClusterMessage) {
-	_m.Called(cluster)
+// SendClusterMessage provides a mock function with given fields: msg
+func (_m *ClusterInterface) SendClusterMessage(msg *model.ClusterMessage) {
+	_m.Called(msg)
+}
+
+// SendClusterMessageToNode provides a mock function with given fields: nodeID, msg
+func (_m *ClusterInterface) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
+	ret := _m.Called(nodeID, msg)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.ClusterMessage) error); ok {
+		r0 = rf(nodeID, msg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // StartInterNodeCommunication provides a mock function with given fields:

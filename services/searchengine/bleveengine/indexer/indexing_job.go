@@ -148,10 +148,6 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		EndAtTime:    model.GetMillis(),
 	}
 
-	if !worker.jobServer.Config().FeatureFlags.FilesSearch {
-		progress.DoneFiles = true
-	}
-
 	// Extract the start and end times, if they are set.
 	if startString, ok := job.Data["start_time"]; ok {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
@@ -166,17 +162,18 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.StartAtTime = startInt
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
-		// Set start time to oldest post in the database.
-		oldestPost, err := worker.jobServer.Store.Post().GetOldest()
+		// Set start time to oldest entity in the database.
+		// A user or a channel may be created before any post.
+		oldestEntityCreationTime, err := worker.jobServer.Store.Post().GetOldestEntityCreationTime()
 		if err != nil {
-			mlog.Error("Worker: Failed to fetch oldest post for job.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("start_time", startString), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_post.error", nil, err.Error(), http.StatusInternalServerError)
+			mlog.Error("Worker: Failed to fetch oldest entity for job.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("start_time", startString), mlog.Err(err))
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, err.Error(), http.StatusInternalServerError)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
-		progress.StartAtTime = oldestPost.CreateAt
+		progress.StartAtTime = oldestEntityCreationTime
 		progress.LastEntityTime = progress.StartAtTime
 	}
 

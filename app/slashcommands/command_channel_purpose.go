@@ -79,8 +79,15 @@ func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 
 	_, err = a.PatchChannel(channel, patch, args.UserId)
 	if err != nil {
+		text := args.T("api.command_channel_purpose.update_channel.app_error")
+		if err.Id == "model.channel.is_valid.purpose.app_error" {
+			text = args.T("api.command_channel_purpose.update_channel.max_length", map[string]interface{}{
+				"MaxLength": model.CHANNEL_PURPOSE_MAX_RUNES,
+			})
+		}
+
 		return &model.CommandResponse{
-			Text:         args.T("api.command_channel_purpose.update_channel.app_error"),
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

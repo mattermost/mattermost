@@ -172,6 +172,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 			if channel.Type != model.CHANNEL_DIRECT {
@@ -191,7 +192,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			go func(userID string) {
 				defer close(mac)
 				_, incrementMentions := mentions.Mentions[userID]
+				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
+				if !incrementMentions {
+					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
+					var nfErr *store.ErrNotFound
+
+					if err != nil && !errors.As(err, &nfErr) {
+						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					if membership != nil && !membership.Following {
+						return
+					}
+				}
 				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
+
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
@@ -433,11 +449,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// If this is a reply in a thread, notify participants
 	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
-		thread, err := a.Srv().Store.Thread().Get(post.RootId)
+		followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId)
 		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
+			return nil, errors.Wrapf(err, "cannot get thread %q followers", post.RootId)
 		}
-		for _, uid := range thread.Participants {
+		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
 			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
@@ -445,9 +461,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, thread.PostId, true)
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, post.RootId, true)
 				if err != nil {
-					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", thread.PostId, uid)
+					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
 					a.sanitizeProfiles(userThread.Participants, false)
