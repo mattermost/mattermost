@@ -4,13 +4,15 @@
 package import_process
 
 import (
+	"archive/zip"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
+	"syscall"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/app/request"
@@ -18,7 +20,6 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func init() {
@@ -125,63 +126,62 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 	defer importFile.Close()
 
-	// TODO (MM-30187): improve this process by eliminating the need to unzip the import
-	// file locally and instead do the whole bulk import process in memory by
-	// streaming the import file.
-
-	// create a temporary dir to extract the zipped import file.
-	dir, err := ioutil.TempDir("", "import")
-	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
-	}
-	defer os.RemoveAll(dir)
-
 	// extract the contents of the zipped file.
-	paths, err := utils.UnzipToPath(importFile.(io.ReaderAt), importFileSize, dir)
+	zipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
+		panic(err)
 	}
 
-	// find JSONL import file.
-	var jsonFilePath string
-	for _, path := range paths {
-		if filepath.Ext(path) == ".jsonl" {
-			jsonFilePath = path
-			break
+	var jsonFile *os.File
+	var wg sync.WaitGroup
+	for _, zipFile := range zipReader.File {
+		if jsonFile == nil && filepath.Ext(zipFile.Name) == "jsonl" {
+			jsonFile, err = os.Open(zipFile.Name)
+			if err != nil {
+				panic(err)
+			}
+			continue
 		}
-	}
 
-	if jsonFilePath == "" {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "", http.StatusBadRequest)
-		w.setJobError(job, appError)
-		return
-	}
+		wg.Add(1)
+		err := syscall.Mknod(zipFile.Name, syscall.S_IFIFO|0666, 0)
+		if err != nil {
+			panic(err)
+		}
 
-	jsonFile, err := os.Open(jsonFilePath)
-	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
+		go func(wg *sync.WaitGroup, zipFile *zip.File) {
+			defer wg.Done()
+			namedPipe, err := os.OpenFile(zipFile.Name, os.O_WRONLY, 0666)
+			if err != nil {
+				panic(err)
+			}
+			defer namedPipe.Close()
+
+			fileAttachment, err := zipFile.Open()
+			if err != nil {
+				panic(err)
+			}
+
+			defer fileAttachment.Close()
+			defer os.Remove(zipFile.Name)
+
+			_, err = io.Copy(namedPipe, fileAttachment)
+			if err != nil {
+				panic(err)
+			}
+
+		}(&wg, zipFile)
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
+	appErr, lineNumber := w.app.BulkImport(w.appContext, jsonFile, false, runtime.NumCPU())
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)
 		return
 	}
 
-	// remove import file when done.
-	if appErr := w.app.RemoveFile(importFilePath); appErr != nil {
-		w.setJobError(job, appErr)
-		return
-	}
-
+	wg.Wait()
 	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
 	w.setJobSuccess(job)
 }
