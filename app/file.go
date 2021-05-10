@@ -128,15 +128,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
-	if nErr != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	return result, nil
+	return a.srv.ReadFile(path)
 }
 
 // Caller must close the first return value
@@ -202,16 +194,7 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return 0, err
-	}
-
-	result, nErr := backend.WriteFile(fr, path)
-	if nErr != nil {
-		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	return result, nil
+	return a.srv.WriteFile(fr, path)
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
