@@ -1307,44 +1307,12 @@
     "translation": "Available actions: {{.Actions}}"
   },
   {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Channel display name provided to external Mattermost instances"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - defaults to channel displayname"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Channel header provided to external Mattermost instances"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - defaults to channels header"
-  },
-  {
     "id": "api.command_share.channel_invite.error",
     "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Channel name provided to external Mattermost instances"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - defaults to channel name"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Channel purpose provided to external Mattermost instances"
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - defaults to channel purpose"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -1373,14 +1341,6 @@
   {
     "id": "api.command_share.desc",
     "translation": "Shares the current channel with an external Mattermost instance."
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Description for invite"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - optional"
   },
   {
     "id": "api.command_share.fetch_remote.error",
@@ -1463,20 +1423,12 @@
     "translation": "Cannot share this channel: {{.Error}}"
   },
   {
-    "id": "api.command_share.share_current",
-    "translation": "Share the current channel"
-  },
-  {
     "id": "api.command_share.share_read_only.help",
     "translation": "Channel will be shared in read-only mode"
   },
   {
     "id": "api.command_share.share_read_only.hint",
-    "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'".
-  },
-  {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
+    "translation": "[readonly] - 'Y' or 'N'.  Defaults to 'N'"
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
