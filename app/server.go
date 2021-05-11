@@ -840,7 +840,7 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return err
 	}
 
-	if err = s.remoteClusterService.Start(); err != nil {
+	if err = rcs.Start(); err != nil {
 		return err
 	}
 
@@ -863,7 +863,7 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return err
 	}
 
-	if err = s.sharedChannelService.Start(); err != nil {
+	if err = scs.Start(); err != nil {
 		return err
 	}
 
