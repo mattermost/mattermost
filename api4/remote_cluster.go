@@ -104,7 +104,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec.AddMeta("remoteCluster", rc)
 
 	// pass message to Remote Cluster Service and write response
-	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
+	resp := service.ReceiveIncomingMsg(c.AppContext, rc, frame.Msg)
 
 	b, errMarshall := json.Marshal(resp)
 	if errMarshall != nil {
