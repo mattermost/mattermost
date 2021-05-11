@@ -111,14 +111,14 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
 		s, er2 := th.App.Srv().Store.User().UpdateAuthData(dbUser.Id, model.SERVICE_OFFICE365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
-		assert.Nil(t, er2)
+		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
 		// data passed doesn't matter as return is mocked
 		_, err := th.App.CreateOAuthUser(model.SERVICE_OFFICE365, strings.NewReader("{}"), th.BasicTeam.Id, nil)
 		assert.Nil(t, err)
 		u, er := th.App.Srv().Store.User().GetByEmail(dbUser.Email)
-		assert.Nil(t, er)
+		assert.NoError(t, er)
 		// make sure authdata is updated
 		assert.Equal(t, "e7110007-64be-43d8-9840-4a7e9c26b710", *u.AuthData)
 	})
