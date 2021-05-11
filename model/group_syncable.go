@@ -76,6 +76,7 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 		}
 	}
 	if channelId != "" {
+		syncable.TeamID = teamId
 		syncable.SyncableId = channelId
 		syncable.Type = GroupSyncableTypeChannel
 	} else {
@@ -87,25 +88,27 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 
 func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	type Alias GroupSyncable
-
 	switch syncable.Type {
 	case GroupSyncableTypeTeam:
 		return json.Marshal(&struct {
-			TeamID          string `json:"team_id"`
-			TeamDisplayName string `json:"team_display_name,omitempty"`
-			TeamType        string `json:"team_type,omitempty"`
+			TeamID          string            `json:"team_id"`
+			TeamDisplayName string            `json:"team_display_name,omitempty"`
+			TeamType        string            `json:"team_type,omitempty"`
+			Type            GroupSyncableType `json:"type,omitempty"`
 			*Alias
 		}{
 			TeamDisplayName: syncable.TeamDisplayName,
 			TeamType:        syncable.TeamType,
 			TeamID:          syncable.SyncableId,
+			Type:            syncable.Type,
 			Alias:           (*Alias)(syncable),
 		})
 	case GroupSyncableTypeChannel:
 		return json.Marshal(&struct {
-			ChannelID          string `json:"channel_id"`
-			ChannelDisplayName string `json:"channel_display_name,omitempty"`
-			ChannelType        string `json:"channel_type,omitempty"`
+			ChannelID          string            `json:"channel_id"`
+			ChannelDisplayName string            `json:"channel_display_name,omitempty"`
+			ChannelType        string            `json:"channel_type,omitempty"`
+			Type               GroupSyncableType `json:"type,omitempty"`
 
 			TeamID          string `json:"team_id,omitempty"`
 			TeamDisplayName string `json:"team_display_name,omitempty"`
@@ -116,6 +119,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			ChannelID:          syncable.SyncableId,
 			ChannelDisplayName: syncable.ChannelDisplayName,
 			ChannelType:        syncable.ChannelType,
+			Type:               syncable.Type,
 
 			TeamID:          syncable.TeamID,
 			TeamDisplayName: syncable.TeamDisplayName,
