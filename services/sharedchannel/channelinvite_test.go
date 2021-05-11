@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -27,8 +26,6 @@ type mockLogger struct {
 func (ml *mockLogger) Log(level mlog.LogLevel, s string, flds ...mlog.Field) {}
 
 func TestOnReceiveChannelInvite(t *testing.T) {
-	c := request.EmptyContext()
-
 	t.Run("when msg payload is empty, it does nothing", func(t *testing.T) {
 		mockServer := &MockServerIface{}
 		mockLogger := &mockLogger{}
@@ -46,7 +43,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{}
 		msg := model.RemoteClusterMsg{}
 
-		err := scs.onReceiveChannelInvite(c, msg, remoteCluster, nil)
+		err := scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 		mockStore.AssertNotCalled(t, "Channel")
 	})
@@ -107,7 +104,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockApp.On("PatchChannelModerationsForChannel", channel, readonlyChannelModerations).Return(nil, nil)
 		defer mockApp.AssertExpectations(t)
 
-		err = scs.onReceiveChannelInvite(c, msg, remoteCluster, nil)
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 	})
 
@@ -148,7 +145,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockApp.On("PatchChannelModerationsForChannel", channel, mock.Anything).Return(nil, appErr)
 		defer mockApp.AssertExpectations(t)
 
-		err = scs.onReceiveChannelInvite(c, msg, remoteCluster, nil)
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.Error(t, err)
 		assert.Equal(t, fmt.Sprintf("cannot make channel readonly `%s`: foo: bar, boom", invitation.ChannelId), err.Error())
 	})
@@ -194,7 +191,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockApp.On("GetOrCreateDirectChannel", mock.AnythingOfType("*request.Context"), invitation.DirectParticipantIDs[0], invitation.DirectParticipantIDs[1], mock.AnythingOfType("model.ChannelOption")).Return(channel, nil)
 		defer mockApp.AssertExpectations(t)
 
-		err = scs.onReceiveChannelInvite(c, msg, remoteCluster, nil)
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 	})
 }
