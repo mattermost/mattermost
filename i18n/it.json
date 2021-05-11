@@ -5083,10 +5083,6 @@
     "translation": "Impossibile indicizzare gli utenti in batch."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
   },
@@ -6703,10 +6699,6 @@
     "translation": "Impossibile recuperare il ruolo"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "Impossibile recuperare il ruolo"
   },
@@ -6885,10 +6877,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "E' stato riscontrato un errore durante la connessione al server."
   },
   {
     "id": "ent.cluster.404.app_error",

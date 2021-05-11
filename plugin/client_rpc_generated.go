@@ -532,6 +532,40 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["OnPluginClusterEvent"] = OnPluginClusterEventID
+}
+
+type Z_OnPluginClusterEventArgs struct {
+	A *Context
+	B model.PluginClusterEvent
+}
+
+type Z_OnPluginClusterEventReturns struct {
+}
+
+func (g *hooksRPCClient) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	_args := &Z_OnPluginClusterEventArgs{c, ev}
+	_returns := &Z_OnPluginClusterEventReturns{}
+	if g.implemented[OnPluginClusterEventID] {
+		if err := g.client.Call("Plugin.OnPluginClusterEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginClusterEvent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, returns *Z_OnPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent)
+	}); ok {
+		hook.OnPluginClusterEvent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -1471,6 +1505,36 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 		returns.A, returns.B = hook.UpdateUserStatus(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserStatus called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetUserStatusTimedDNDArgs struct {
+	A string
+	B int64
+}
+
+type Z_SetUserStatusTimedDNDReturns struct {
+	A *model.Status
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	_args := &Z_SetUserStatusTimedDNDArgs{userId, endtime}
+	_returns := &Z_SetUserStatusTimedDNDReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusTimedDND", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusTimedDND API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SetUserStatusTimedDND(args *Z_SetUserStatusTimedDNDArgs, returns *Z_SetUserStatusTimedDNDReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SetUserStatusTimedDND(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetUserStatusTimedDND called but not implemented."))
 	}
 	return nil
 }
@@ -4903,6 +4967,36 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishPluginClusterEventArgs struct {
+	A model.PluginClusterEvent
+	B model.PluginClusterEventSendOptions
+}
+
+type Z_PublishPluginClusterEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	_args := &Z_PublishPluginClusterEventArgs{ev, opts}
+	_returns := &Z_PublishPluginClusterEventReturns{}
+	if err := g.client.Call("Plugin.PublishPluginClusterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishPluginClusterEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEventArgs, returns *Z_PublishPluginClusterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+	}); ok {
+		returns.A = hook.PublishPluginClusterEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }

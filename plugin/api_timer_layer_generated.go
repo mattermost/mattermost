@@ -266,6 +266,13 @@ func (api *apiTimerLayer) UpdateUserStatus(userID, status string) (*model.Status
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SetUserStatusTimedDND(userId, endtime)
+	api.recordTime(startTime, "SetUserStatusTimedDND", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UpdateUserActive(userID, active)
@@ -1111,5 +1118,12 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteCommand(commandID)
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PublishPluginClusterEvent(ev, opts)
+	api.recordTime(startTime, "PublishPluginClusterEvent", _returnsA == nil)
 	return _returnsA
 }

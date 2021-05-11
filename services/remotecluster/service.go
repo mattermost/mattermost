@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -63,18 +64,19 @@ type RemoteClusterServiceIFace interface {
 	RemoveConnectionStateListener(listenerId string)
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
+	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
 	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
-	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
+	ReceiveIncomingMsg(c *request.Context, rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
 // a specific topic.
-type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error
+type TopicListener func(c *request.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error
 
 // ConnectionStateListener is used to listen to remote cluster connection state changes.
 type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
-// Service provides inter-cluster communication via topic based messages.
+// Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
 	server     ServerIface
 	httpClient *http.Client
@@ -89,7 +91,7 @@ type Service struct {
 	done                     chan struct{}
 }
 
-// NewRemoteClusterService creates a RemoteClusterService instance.
+// NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
 func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,

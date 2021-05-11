@@ -148,7 +148,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
 
-		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
@@ -320,15 +320,22 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	})
 
 	var tests = []struct {
+		enabled bool
 		name    string
 		session *model.Session
 	}{
-		{name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
-		{name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
-		{name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: true, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: false, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
 	}
+
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt", test.name), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt based on feature enabled", test.name), func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = test.enabled })
+
 			session, err := th.App.CreateSession(test.session)
 			require.Nil(t, err)
 
@@ -336,6 +343,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			session.ExpiresAt = expires
 
 			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+
+			if !test.enabled {
+				require.False(t, ok)
+				require.Equal(t, expires, session.ExpiresAt)
+				return
+			}
 
 			require.True(t, ok)
 			require.Greater(t, session.ExpiresAt, expires)
@@ -353,7 +366,6 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}
-
 }
 
 const (

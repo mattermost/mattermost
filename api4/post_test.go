@@ -100,7 +100,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("with file uploaded by nouser", func(t *testing.T) {
-		fileInfo, err := th.App.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		fileInfo, err := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
 		require.Nil(t, err)
 		fileId := fileInfo.Id
 
@@ -460,7 +460,7 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
-	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
+	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_PUBLIC_ROLE_ID)
 	th.App.Srv().InvalidateAllCaches()
 
@@ -484,7 +484,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
 
-	directChannel, _ := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	directChannel, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
@@ -511,7 +511,7 @@ func TestCreatePostAll(t *testing.T) {
 	CheckNoError(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
-	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
+	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_ROLE_ID)
 	th.App.Srv().InvalidateAllCaches()
 
@@ -595,7 +595,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	api := Init(th.App, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
 	cli := th.CreateClient()
@@ -673,7 +673,7 @@ func TestUpdatePost(t *testing.T) {
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
-	rpost, appErr := th.App.CreatePost(&model.Post{
+	rpost, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
@@ -729,7 +729,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("join/leave post", func(t *testing.T) {
-		rpost2, err := th.App.CreatePost(&model.Post{
+		rpost2, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.POST_JOIN_LEAVE,
@@ -746,7 +746,7 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	rpost3, appErr := th.App.CreatePost(&model.Post{
+	rpost3, appErr := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
@@ -1317,7 +1317,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Len(t, rpl.Posts, 4, "should have returned 4 posts")
 	require.Equal(t, opl.Posts, rpl.Posts, "posts should have matched")
 
-	err := th.App.RemoveUserFromChannel(user.Id, "", channel4)
+	err := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel4)
 	assert.Nil(t, err, "unable to remove user from channel")
 
 	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -1726,6 +1726,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.context.invalid_url_param.app_error", resp.Error.Id)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Nil(t, posts)
 
 	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20, false)
@@ -2556,9 +2557,9 @@ func TestMarkUnreadCausesAutofollow(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
 
-	rootPost, appErr := th.App.CreatePost(&model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+	rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 	require.Nil(t, appErr)
-	replyPost, appErr := th.App.CreatePost(&model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+	replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 	require.Nil(t, appErr)
 	threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 	require.Nil(t, appErr)
