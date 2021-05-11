@@ -90,7 +90,7 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	channel.Type = privacy
 
-	updatedChannel, err := c.App.UpdateChannelPrivacy(channel, nil)
+	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -118,7 +118,7 @@ func localRestoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
 
-	channel, err = c.App.RestoreChannel(channel, "")
+	channel, err = c.App.RestoreChannel(c.AppContext, channel, "")
 	if err != nil {
 		c.Err = err
 		return
@@ -172,12 +172,12 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addChannelMember", audit.Fail)
+	auditRec := c.MakeAuditRecord("localAddChannelMember", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
 
 	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
-		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -187,19 +187,18 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			} else {
-				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			return
 		}
 		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 			return
 		}
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, app.ChannelMemberOpts{
-		UserRequestorID: c.App.Session().UserId,
-		PostRootID:      postRootId,
+	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
+		PostRootID: postRootId,
 	})
 	if err != nil {
 		c.Err = err

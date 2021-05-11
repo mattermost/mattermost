@@ -920,7 +920,7 @@ func TestGetSystemBot(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		require.Nil(t, th.App.PermanentDeleteAllUsers())
+		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
 		_, err := th.App.GetSystemBot()
 		require.NotNil(t, err)

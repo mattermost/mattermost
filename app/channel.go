@@ -799,7 +799,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 				},
 			}
 
-			if _, err := a.CreatePost(post, channel, false, true); err != nil {
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 				mlog.Error("Failed to post unarchive message", mlog.Err(err))
 			}
 		})
@@ -1345,7 +1345,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 				},
 			}
 
-			if _, err := a.CreatePost(post, channel, false, true); err != nil {
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 				mlog.Error("Failed to post archive message", mlog.Err(err))
 			}
 		})
