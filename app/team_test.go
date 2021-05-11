@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -1159,4 +1160,103 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore.On("Team").Return(&mockTeamStore)
 
 	th.App.ClearTeamMembersCache("teamID")
+}
+
+func TestStringSetDifference(t *testing.T) {
+
+}
+
+func TestAddTeamMember(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockTeamStore := mocks.TeamStore{}
+	mockUserStore := mocks.UserStore{}
+	mockStore.On("Team").Return(&mockTeamStore)
+	mockStore.On("User").Return(&mockUserStore)
+
+	team := &model.Team{
+		Id:          model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewId(),
+		Email:       model.NewId() + "@test.com",
+		Type:        model.TEAM_OPEN,
+	}
+	mockTeamStore.On("Get", team.Id).Return(team, nil)
+
+	t.Run("team is not found returns error", func(t *testing.T) {
+		mockTeamStore.On("Get", "nonexistent").Return(nil, errors.New(""))
+		err := th.App.AddTeamMembersBatched("nonexistent", []string{"abc"}, "")
+		require.NotNil(t, err)
+		require.ErrorIs(t, err, ErrTeamNotFound)
+	})
+
+	t.Run("If the max user count for the team will be exceeded then return with an error", func(t *testing.T) {
+		mockTeamStore.On("GetActiveMemberCount", team.Id, mock.Anything).Return(int64(49), nil)
+
+		users := []*model.User{&model.User{}}
+		userIDs := []string{"abc"}
+		mockUserStore.On("GetProfileByIds", mock.Anything, userIDs, mock.Anything, mock.Anything).Return(users, nil)
+		err := th.App.AddTeamMembersBatched(team.Id, userIDs, "")
+		require.Nil(t, err)
+
+		users2 := []*model.User{&model.User{}, &model.User{}}
+		userIDs2 := []string{"abc1", "def1"}
+		mockUserStore.On("GetProfileByIds", mock.Anything, userIDs2, mock.Anything, mock.Anything).Return(users2, nil)
+		err = th.App.AddTeamMembersBatched(team.Id, userIDs2, "")
+		require.NotNil(t, err)
+		require.ErrorIs(t, err, ErrTeamMemberLimit)
+	})
+
+	t.Run("Un-found users", func(t *testing.T) {
+		users := []*model.User{&model.User{Id: "abc2"}}
+		userIDs := []string{"abc2", "def2"}
+		mockUserStore.On("GetProfileByIds", mock.Anything, userIDs, mock.Anything, mock.Anything).Return(users, nil)
+		mockTeamStore.On("GetActiveMemberCount", team.Id, mock.Anything).Return(int64(49), nil)
+		err := th.App.AddTeamMembersBatched(team.Id, userIDs, "")
+
+		t.Run("don't count towards exceeding total team members count", func(t *testing.T) {
+			require.NotErrorIs(t, err, ErrTeamMemberLimit)
+		})
+
+		t.Run("are included in the response error", func(t *testing.T) {
+			var batchErr *AddTeamMembersBatchedError
+			fmt.Printf("err: %+v\n", err)
+			require.True(t, errors.As(err, &batchErr))
+			require.Contains(t, batchErr.NotFoundUserIDs, "def2")
+		})
+	})
+
+	t.Run("Restricted emails are included in the error response", func(t *testing.T) {
+
+	})
+
+	t.Run("SchemeUser, SchemeAdmin, and SchemeGuest values are correct", func(t *testing.T) {
+
+	})
+
+	t.Run("TeamMember records are persisted", func(t *testing.T) {
+
+	})
+
+	t.Run("Users.UpdateAt values are updated", func(t *testing.T) {
+
+	})
+
+	t.Run("The JoinUserToTeam plugin hook is invoked", func(t *testing.T) {
+
+	})
+
+	t.Run("Sidebar categories are created", func(t *testing.T) {
+
+	})
+
+	t.Run("Users are added to the default channels", func(t *testing.T) {
+
+	})
+
+	t.Run("Websocket event is fired", func(t *testing.T) {
+
+	})
 }

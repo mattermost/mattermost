@@ -1073,35 +1073,95 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 	return membersWithErrors, nil
 }
 
-func StringSetDifference(set1, set2 []string) []string {
+func stringSetDifference(set1, set2 []string) []string {
+	diff := []string{}
 
+	set2Map := make(map[string]bool, len(set2))
+	for _, set1Item := range set2 {
+		set2Map[set1Item] = true
+	}
+
+	for _, set1Item := range set2 {
+		if _, ok := set2Map[set1Item]; !ok {
+			diff = append(diff, set1Item)
+		}
+	}
+
+	return diff
+}
+
+func usersToUserIDs(users []*model.User) []string {
+	ids := []string{}
+	for _, u := range users {
+		ids = append(ids, u.Id)
+	}
+	return ids
+}
+
+var ErrTeamNotFound = errors.New("team not found")
+var ErrTeamMemberLimit = errors.New("team member limit reached")
+
+type AddTeamMembersBatchedError struct {
+	NotFoundUserIDs             []string
+	UsersRejectedByEmailAddress []*model.User
+}
+
+func (e AddTeamMembersBatchedError) Error() string {
+	return fmt.Sprintf("NotFoundUserIDs: %v", e.NotFoundUserIDs)
+}
+
+func (e *AddTeamMembersBatchedError) IsPristine() bool {
+	return len(e.NotFoundUserIDs) == 0 && len(e.UsersRejectedByEmailAddress) == 0
 }
 
 // AddTeamMembersBatched adds the users to the team, performing all of the same downstream operations as performed by (*App).AddTeamMember, but with a different signature and response errors.
-func (a *App) AddTeamMembersBatched(teamID string, userIDs []string, userRequestorId string) error {
+func (a *App) AddTeamMembersBatched(teamID string, requestedUserIDs []string, userRequestorId string) error {
 	// * SQL: If the team is not found return immediately with an error.
-	_, appErr := a.GetTeam(teamID)
+	team, appErr := a.GetTeam(teamID)
+	if appErr != nil {
+		return fmt.Errorf("%v: %w", appErr, ErrTeamNotFound)
+	}
+
+	customMethodErr := AddTeamMembersBatchedError{}
+
+	// * SQL: Get all requested users.
+	// * Error: If a user doesn't exist include that in the response error.
+	foundUsers, appErr := a.GetUsersByIds(requestedUserIDs, &store.UserGetByIdsOpts{})
 	if appErr != nil {
 		return appErr
 	}
+	foundLen := len(foundUsers)
+	for _, fu := range foundUsers {
+		fmt.Printf("DEBUG/fu: %+v\n", fu)
+	}
+	fmt.Printf("DEBUG/foundLen: %+v\n", foundLen)
+	fmt.Printf("DEBUG/requestedUserIDs: %+v\n", requestedUserIDs)
+	if foundLen != len(requestedUserIDs) {
+		foundUserIDs := usersToUserIDs(foundUsers)
+		notFoundUserIDs := stringSetDifference(requestedUserIDs, foundUserIDs)
+		fmt.Printf("DEBUG/notFoundUserIDs: %+v\n", notFoundUserIDs)
+		customMethodErr.NotFoundUserIDs = notFoundUserIDs
+	}
 
 	// * SQL: If the max user count for the team will be exceeded then return with an error.
-	teamCanAddNMembers, err := a.TeamCanAddNMembers(teamID, len(userIDs))
+	teamCanAddNMembers, err := a.TeamCanAddNMembers(teamID, foundLen)
 	if err != nil {
 		return err
 	}
 	if !teamCanAddNMembers {
-		return model.NewAppError("AddTeamMembersBatched", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+teamID, http.StatusBadRequest)
+		return ErrTeamMemberLimit
 	}
 
-	// * SQL: Get all requested users.
-	users, appErr := a.GetUsersByIds(userIDs, nil)
-	if len(users) != len(userIDs) {
-		// add the list
-	}
-
-	// * Error: If a user doesn't exist include that in the response error.
 	// * Error: Test that each user's email is allowed for each team, include rejections in the error response.
+	for _, u := range foundUsers {
+		if !a.isTeamEmailAllowed(u, team) {
+			if customMethodErr.NotFoundUserIDs == nil {
+				customMethodErr.UsersRejectedByEmailAddress = []*model.User{}
+			}
+			customMethodErr.UsersRejectedByEmailAddress = append(customMethodErr.UsersRejectedByEmailAddress, u)
+		}
+	}
+
 	// * Create the TeamMember records in memory.
 	// * Set each TeamMember's SchemeUser and SchemeGuest based on whether the user is a guest.
 	// * Set each TeamMember's SchemeAdmin based on (*App).UserIsInAdminRoleGroup or whether the Teams's email matches the user.
@@ -1121,31 +1181,35 @@ func (a *App) AddTeamMembersBatched(teamID string, userIDs []string, userRequest
 
 	// Ensure all old invocations of (*App).AddTeamMembers is doing a type switch on the error
 
-	for _, userID := range userIDs {
-		_, teamMember, err := a.AddUserToTeam(teamID, userID, userRequestorId)
-		if err != nil {
-			if graceful {
-				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
-					UserId: userID,
-					Error:  err,
-				})
-				continue
-			}
-			return nil, err
-		}
-
-		membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
-			UserId: userID,
-			Member: teamMember,
-		})
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
-		message.Add("team_id", teamID)
-		message.Add("user_id", userID)
-		a.Publish(message)
+	//for _, userID := range userIDs {
+	//	_, teamMember, err := a.AddUserToTeam(teamID, userID, userRequestorId)
+	//	if err != nil {
+	//		if graceful {
+	//			membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+	//				UserId: userID,
+	//				Error:  err,
+	//			})Did you get your permissions for
+	//			continue
+	//		}
+	//		return nil, err
+	//	}
+	//
+	//	membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+	//		UserId: userID,
+	//		Member: teamMember,
+	//	})
+	//
+	//	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
+	//	message.Add("team_id", teamID)
+	//	message.Add("user_id", userID)
+	//	a.Publish(message)
+	//}
+	//
+	if customMethodErr.IsPristine() {
+		return nil
 	}
-
-	return membersWithErrors, nil
+	fmt.Printf("DEBUG/customMethodErr: %+v\n", customMethodErr)
+	return customMethodErr
 }
 
 func (a *App) AddTeamMemberByToken(c *request.Context, userID, tokenID string) (*model.TeamMember, *model.AppError) {
