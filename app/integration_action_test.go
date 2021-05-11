@@ -57,14 +57,14 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
 }
@@ -157,7 +157,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+			post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 			require.Nil(t, err)
 
 			attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
@@ -194,7 +194,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post2, err := th.App.CreatePostAsUser(&menuPost, "", true)
+			post2, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
 			require.Nil(t, err)
 
 			attachments2, ok := post2.GetProp("attachments").([]*model.SlackAttachment)
@@ -203,16 +203,16 @@ func TestPostAction(t *testing.T) {
 			require.NotEmpty(t, attachments2[0].Actions)
 			require.NotEmpty(t, attachments2[0].Actions[0].Id)
 
-			clientTriggerId, err := th.App.DoPostAction(post.Id, "notavalidid", th.BasicUser.Id, "")
+			clientTriggerId, err := th.App.DoPostAction(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "")
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
 			assert.True(t, clientTriggerId == "")
 
-			clientTriggerId, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+			clientTriggerId, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
 			assert.True(t, len(clientTriggerId) == 26)
 
-			clientTriggerId, err = th.App.DoPostAction(post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected")
+			clientTriggerId, err = th.App.DoPostAction(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected")
 			require.Nil(t, err)
 			assert.True(t, len(clientTriggerId) == 26)
 
@@ -220,7 +220,7 @@ func TestPostAction(t *testing.T) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
 			})
 
-			_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.NotNil(t, err)
 			require.True(t, strings.Contains(err.Error(), "address forbidden"))
 
@@ -252,13 +252,13 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "", true)
+			postplugin, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
 			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -293,13 +293,13 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "", true)
+			postSiteURL, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
 			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostAction(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.NotNil(t, err)
 			require.False(t, strings.Contains(err.Error(), "address forbidden"))
 
@@ -335,13 +335,13 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "", true)
+			postSubpath, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
 			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostAction(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
 
 		})
@@ -410,12 +410,12 @@ func TestPostActionProps(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
 
-	clientTriggerId, err := th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	clientTriggerId, err := th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
@@ -506,7 +506,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -514,14 +514,14 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	resp, err := th.App.SubmitInteractiveDialog(submit)
+	resp, err := th.App.SubmitInteractiveDialog(th.Context, submit)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, "some generic error", resp.Error)
 	assert.Equal(t, "some error", resp.Errors["name1"])
 
 	submit.URL = ""
-	resp, err = th.App.SubmitInteractiveDialog(submit)
+	resp, err = th.App.SubmitInteractiveDialog(th.Context, submit)
 	assert.NotNil(t, err)
 	assert.Nil(t, resp)
 
@@ -531,18 +531,18 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	})
 
 	submit.URL = "/notvalid/myplugin/myaction"
-	resp, err = th.App.SubmitInteractiveDialog(submit)
+	resp, err = th.App.SubmitInteractiveDialog(th.Context, submit)
 	assert.NotNil(t, err)
 	require.Nil(t, resp)
 
 	submit.URL = "/plugins/myplugin/myaction"
-	resp, err = th.App.SubmitInteractiveDialog(submit)
+	resp, err = th.App.SubmitInteractiveDialog(th.Context, submit)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, "some error", resp.Errors["name1"])
 
 	submit.URL = "/plugins/myplugin/myaction?abc=xyz"
-	resp, err = th.App.SubmitInteractiveDialog(submit)
+	resp, err = th.App.SubmitInteractiveDialog(th.Context, submit)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, "some other error", resp.Errors["name1"])
@@ -588,14 +588,14 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 	})
 
@@ -628,14 +628,14 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 	})
 
@@ -668,14 +668,14 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 
 	})
@@ -709,14 +709,14 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 	})
 
@@ -749,14 +749,14 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 	})
 }
@@ -788,7 +788,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
@@ -823,14 +823,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
 	})
 
@@ -863,14 +863,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
 
@@ -903,14 +903,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
 
@@ -943,14 +943,14 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
 }
@@ -1007,53 +1007,53 @@ func TestDoPluginRequest(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
 	require.NoError(t, err2)
 	require.NotNil(t, hooks)
 
-	resp, err := th.App.doPluginRequest("GET", "/plugins/myplugin", nil, nil)
+	resp, err := th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "could not find param abc=xyz", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz", nil, nil)
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple should have 3 values", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin",
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin",
 		url.Values{"abc": []string{"xyz"}, "multiple": []string{"1 first", "2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz&multiple=1%20first",
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first",
 		url.Values{"multiple": []string{"2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz&multiple=1%20first&multiple=3%20third",
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	body, _ = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
-	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
+	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"4 fourth"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)

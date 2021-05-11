@@ -770,7 +770,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
 		team := th.CreateTeam()
-		_, _, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, err)
 
 		teamScheme := th.SetupTeamScheme()

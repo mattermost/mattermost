@@ -23,7 +23,7 @@ func TestMsgProvider(t *testing.T) {
 	th.removePermissionFromRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	// Check without permission to create a DM channel.
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
@@ -37,7 +37,7 @@ func TestMsgProvider(t *testing.T) {
 	th.addPermissionToRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	// Check with permission to create a DM channel.
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
@@ -48,7 +48,7 @@ func TestMsgProvider(t *testing.T) {
 	assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
 
 	// Check without permission to post to an existing DM channel.
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
@@ -66,7 +66,7 @@ func TestMsgProvider(t *testing.T) {
 	th.linkUserToTeam(guest, th.BasicTeam)
 	th.addUserToChannel(guest, th.BasicChannel)
 
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
@@ -80,7 +80,7 @@ func TestMsgProvider(t *testing.T) {
 	th.linkUserToTeam(user, th.BasicTeam)
 	th.addUserToChannel(user, th.BasicChannel)
 
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
