@@ -819,9 +819,6 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-
 	// Remote Cluster service
 
 	// License check
@@ -838,13 +835,12 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 
 	var err error
 
-	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	rcs, err := remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		return err
 	}
 
 	if err = s.remoteClusterService.Start(); err != nil {
-		s.remoteClusterService = nil
 		return err
 	}
 
@@ -862,15 +858,20 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
 
 	if err = s.sharedChannelService.Start(); err != nil {
-		s.remoteClusterService = nil
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.sharedChannelService = scs
+	defer s.serviceMux.Unlock()
+
 	return nil
 }
 
