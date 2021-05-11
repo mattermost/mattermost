@@ -67,7 +67,7 @@ type BackingStore interface {
 	Close() error
 }
 
-// NewStore creates and returns a new config store given a backing store.
+// NewStoreFromBacking creates and returns a new config store given a backing store.
 func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config, readOnly bool) (*Store, error) {
 	store := &Store{
 		backingStore:         backingStore,
