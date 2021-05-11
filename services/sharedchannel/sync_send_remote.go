@@ -201,10 +201,36 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
 
-	sd.posts = append(sd.posts, posts...)
+	// Append the posts individually, checking for root posts that might appear later in the list.
+	// This is due to the UpdateAt collision handling algorithm where the order of posts is not based
+	// on UpdateAt or CreateAt when the posts have the same UpdateAt value. Here we are guarding
+	// against a root post with the same UpdateAt (and probably the same CreateAt) appearing later
+	// in the list and must be sync'd before the child post. This is and edge case that likely only
+	// happens during load testing or bulk imports.
+	for _, p := range posts {
+		if p.RootId != "" {
+			root, err := scs.server.GetStore().Post().GetSingle(p.RootId, true)
+			if err == nil {
+				if (root.CreateAt >= cursor.LastPostUpdateAt || root.UpdateAt >= cursor.LastPostUpdateAt) && !containsPost(sd.posts, root) {
+					sd.posts = append(sd.posts, root)
+				}
+			}
+		}
+		sd.posts = append(sd.posts, p)
+	}
+
 	sd.resultNextCursor = nextCursor
 	sd.resultRepeat = len(posts) == MaxPostsPerSync
 	return nil
+}
+
+func containsPost(posts []*model.Post, post *model.Post) bool {
+	for _, p := range posts {
+		if p.Id == post.Id {
+			return true
+		}
+	}
+	return false
 }
 
 // fetchReactionsForSync populates the sync data with any new reactions since the last sync.
