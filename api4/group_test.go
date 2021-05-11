@@ -980,7 +980,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
 	user1.Password = "test-password-1"
 	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
@@ -1064,7 +1064,7 @@ func TestGetGroupStats(t *testing.T) {
 		assert.Equal(t, stats.TotalMemberCount, int64(0))
 	})
 
-	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
@@ -1106,7 +1106,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 		TeamId:           team.Id,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel, err := th.App.CreateChannel(channel, false)
+	channel, err := th.App.CreateChannel(th.Context, channel, false)
 	require.Nil(t, err)
 
 	// normal result of groups are returned if the team is not group-constrained

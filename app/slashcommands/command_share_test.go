@@ -46,7 +46,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 			Command:   "/share-channel share",
 		}
 
-		response := commandProvider.DoCommand(th.App, args, "")
+		response := commandProvider.DoCommand(th.App, th.Context, args, "")
 		require.Equal(t, "##### "+args.T("api.command_share.channel_shared"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -81,7 +81,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 			Command:   "/share-channel unshare",
 		}
 
-		response := commandProvider.DoCommand(th.App, args, "")
+		response := commandProvider.DoCommand(th.App, th.Context, args, "")
 		require.Equal(t, "##### "+args.T("api.command_share.shared_channel_unavailable"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
