@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -18,7 +19,7 @@ import (
 )
 
 // CreateBot creates the given bot and corresponding user.
-func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
 	user, nErr := a.Srv().Store.User().Save(model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
@@ -67,7 +68,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.getOrCreateDirectChannelWithUser(user, botOwner)
+		channel, err := a.getOrCreateDirectChannelWithUser(c, user, botOwner)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +81,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(botAddPost, a.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(c, botAddPost, c.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -298,7 +299,7 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (a *App) UpdateBotActive(c *request.Context, botUserId string, active bool) (*model.Bot, *model.AppError) {
 	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -310,7 +311,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		}
 	}
 
-	if _, err := a.UpdateActive(user, active); err != nil {
+	if _, err := a.UpdateActive(c, user, active); err != nil {
 		return nil, err
 	}
 
@@ -405,7 +406,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 }
 
 // disableUserBots disables all bots owned by the given user.
-func (a *App) disableUserBots(userID string) *model.AppError {
+func (a *App) disableUserBots(c *request.Context, userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
@@ -421,7 +422,7 @@ func (a *App) disableUserBots(userID string) *model.AppError {
 		}
 
 		for _, bot := range userBots {
-			_, err := a.UpdateBotActive(bot.UserId, false)
+			_, err := a.UpdateBotActive(c, bot.UserId, false)
 			if err != nil {
 				mlog.Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 			}
@@ -438,7 +439,7 @@ func (a *App) disableUserBots(userID string) *model.AppError {
 	return nil
 }
 
-func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError {
+func (a *App) notifySysadminsBotOwnerDeactivated(c *request.Context, userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
 		OwnerId:        userID,
@@ -500,7 +501,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError 
 
 	// for each sysadmin, notify user that owns bots was disabled
 	for _, sysAdmin := range sysAdmins {
-		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -512,7 +513,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError 
 			Type:      model.POST_SYSTEM_GENERIC,
 		}
 
-		_, appErr = a.CreatePost(post, channel, false, true)
+		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
 			return appErr
 		}

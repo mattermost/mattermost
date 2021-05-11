@@ -14,6 +14,7 @@ import (
 	"sync"
 	"unicode"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -27,7 +28,7 @@ const (
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
-	DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse
+	DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -46,7 +47,7 @@ func GetCommandProvider(name string) CommandProvider {
 }
 
 // @openTracingParams teamID, skipSlackParsing
-func (a *App) CreateCommandPost(post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
@@ -65,7 +66,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamID string, response *model
 	}
 
 	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-		return a.CreatePostMissingChannel(post, true)
+		return a.CreatePostMissingChannel(c, post, true)
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL) && (response.Text != "" || response.Attachments != nil) {
@@ -175,7 +176,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 }
 
 // @openTracingParams args
-func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	message := ""
 	index := strings.IndexFunc(args.Command, unicode.IsSpace)
@@ -199,12 +200,12 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	args.TriggerId = triggerId
 
 	// Plugins can override built in and custom commands
-	cmd, response, appErr := a.tryExecutePluginCommand(args)
+	cmd, response, appErr := a.tryExecutePluginCommand(c, args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(cmd, args, response, true)
+		return a.HandleCommandResponse(c, cmd, args, response, true)
 	}
 
 	// Custom commands can override built ins
@@ -213,12 +214,12 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(cmd, args, response, false)
+		return a.HandleCommandResponse(c, cmd, args, response, false)
 	}
 
-	cmd, response = a.tryExecuteBuiltInCommand(args, trigger, message)
+	cmd, response = a.tryExecuteBuiltInCommand(c, args, trigger, message)
 	if cmd != nil && response != nil {
-		return a.HandleCommandResponse(cmd, args, response, true)
+		return a.HandleCommandResponse(c, cmd, args, response, true)
 	}
 
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
@@ -338,7 +339,7 @@ func (a *App) MentionsToPublicChannels(message, teamID string) model.ChannelMent
 
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
+func (a *App) tryExecuteBuiltInCommand(c *request.Context, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
 	if provider == nil {
 		return nil, nil
@@ -349,7 +350,7 @@ func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, 
 		return nil, nil
 	}
 
-	return cmd, provider.DoCommand(a, args, message)
+	return cmd, provider.DoCommand(a, c, args, message)
 }
 
 // tryExecuteCustomCommand attempts to run a custom command based on the given arguments. If no such command can be
@@ -527,7 +528,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	return cmd, response, nil
 }
 
-func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+func (a *App) HandleCommandResponse(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
@@ -536,7 +537,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	}
 
 	var lastError *model.AppError
-	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
+	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
 
 	if err != nil {
 		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
@@ -545,7 +546,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 
 	if response.ExtraResponses != nil {
 		for _, resp := range response.ExtraResponses {
-			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
+			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
 
 			if err != nil {
 				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
@@ -561,7 +562,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	return response, nil
 }
 
-func (a *App) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+func (a *App) HandleCommandResponsePost(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
@@ -613,7 +614,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response, response.SkipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(c, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 

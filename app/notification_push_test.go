@@ -1283,7 +1283,7 @@ func TestAllPushNotifications(t *testing.T) {
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
-		_, err = th.App.AddTeamMember(th.BasicTeam.Id, u.Id)
+		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
 		th.AddUserToChannel(u, th.BasicChannel)
 		testData = append(testData, userSession{

@@ -4,13 +4,13 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -31,16 +31,6 @@ type App struct {
 	// to be registered in (h *MainHelper) setupStore, but that creates
 	// a cyclic dependency as bleve tests themselves import testlib.
 	searchEngine *searchengine.Broker
-
-	t              i18n.TranslateFunc
-	session        model.Session
-	requestId      string
-	ipAddress      string
-	path           string
-	userAgent      string
-	acceptLanguage string
-
-	context context.Context
 }
 
 func New(options ...AppOption) *App {
@@ -51,103 +41,6 @@ func New(options ...AppOption) *App {
 	}
 
 	return app
-}
-
-func (a *App) InitServer() {
-	a.srv.AppInitializedOnce.Do(func() {
-		a.initEnterprise()
-
-		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-				if appErr := a.DeactivateGuests(); appErr != nil {
-					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-				}
-			}
-		})
-
-		// Disable active guest accounts on first run if guest accounts are disabled
-		if !*a.Config().GuestAccountsSettings.Enable {
-			if appErr := a.DeactivateGuests(); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-			}
-		}
-
-		// Scheduler must be started before cluster.
-		a.initJobs()
-
-		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAppClusterMessageHandlers()
-		}
-
-		a.DoAppMigrations()
-
-		a.InitPostMetadata()
-
-		a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
-			if *cfg.PluginSettings.Enable {
-				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-			} else {
-				a.srv.ShutDownPlugins()
-			}
-		})
-		if a.Srv().runEssentialJobs {
-			a.Srv().Go(func() {
-				runLicenseExpirationCheckJob(a)
-				runCheckWarnMetricStatusJob(a)
-				runDNDStatusExpireJob(a)
-				runCheckAdminSupportStatusJob(a)
-			})
-			a.srv.runJobs()
-		}
-	})
-}
-
-func (a *App) initJobs() {
-	if jobsLdapSyncInterface != nil {
-		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
-	}
-	if jobsPluginsInterface != nil {
-		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
-	}
-	if jobsExpiryNotifyInterface != nil {
-		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
-	}
-	if productNoticesJobInterface != nil {
-		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
-	}
-	if jobsImportProcessInterface != nil {
-		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
-	}
-	if jobsImportDeleteInterface != nil {
-		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
-	}
-	if jobsExportDeleteInterface != nil {
-		a.srv.Jobs.ExportDelete = jobsExportDeleteInterface(a)
-	}
-
-	if jobsExportProcessInterface != nil {
-		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
-	}
-
-	if jobsExportProcessInterface != nil {
-		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
-	}
-
-	if jobsActiveUsersInterface != nil {
-		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
-	}
-
-	if jobsCloudInterface != nil {
-		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
-	}
-
-	if jobsResendInvitationEmailInterface != nil {
-		a.srv.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(a)
-	}
-
-	a.srv.Jobs.InitWorkers()
-	a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) TelemetryId() string {
@@ -343,7 +236,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 }
 
 //nolint:golint,unused,deadcode
-func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
+func (a *App) notifyAdminsOfWarnMetricStatus(c *request.Context, warnMetricId string, isE0Edition bool) *model.AppError {
 	// get warn metrics bot
 	warnMetricsBot, err := a.GetWarnMetricsBot()
 	if err != nil {
@@ -387,7 +280,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		warnMetricsBot.DisplayName = T("app.system.warn_metric.bot_displayname")
 		warnMetricsBot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(warnMetricsBot.UserId, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(c, warnMetricsBot.UserId, sysAdmin.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -455,7 +348,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
-		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
+		if _, err := a.CreatePostAsUser(c, botPost, c.Session().Id, true); err != nil {
 			return err
 		}
 	}
@@ -558,12 +451,12 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 	return nil
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	currentUser, appErr := a.GetUser(a.Session().UserId)
+	currentUser, appErr := a.GetUser(c.Session().UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -613,27 +506,7 @@ func (a *App) Log() *mlog.Logger {
 func (a *App) NotificationsLog() *mlog.Logger {
 	return a.srv.NotificationsLog
 }
-func (a *App) T(translationID string, args ...interface{}) string {
-	return a.t(translationID, args...)
-}
-func (a *App) Session() *model.Session {
-	return &a.session
-}
-func (a *App) RequestId() string {
-	return a.requestId
-}
-func (a *App) IpAddress() string {
-	return a.ipAddress
-}
-func (a *App) Path() string {
-	return a.path
-}
-func (a *App) UserAgent() string {
-	return a.userAgent
-}
-func (a *App) AcceptLanguage() string {
-	return a.acceptLanguage
-}
+
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
 }
@@ -676,41 +549,6 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.srv.timezones
 }
-func (a *App) Context() context.Context {
-	return a.context
-}
-
-func (a *App) SetSession(s *model.Session) {
-	a.session = *s
-}
-
-func (a *App) SetT(t i18n.TranslateFunc) {
-	a.t = t
-}
-func (a *App) SetRequestId(s string) {
-	a.requestId = s
-}
-func (a *App) SetIpAddress(s string) {
-	a.ipAddress = s
-}
-func (a *App) SetUserAgent(s string) {
-	a.userAgent = s
-}
-func (a *App) SetAcceptLanguage(s string) {
-	a.acceptLanguage = s
-}
-func (a *App) SetPath(s string) {
-	a.path = s
-}
-func (a *App) SetContext(c context.Context) {
-	a.context = c
-}
-func (a *App) SetServer(srv *Server) {
-	a.srv = srv
-}
-func (a *App) GetT() i18n.TranslateFunc {
-	return a.t
-}
 
 func (a *App) DBHealthCheckWrite() error {
 	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
@@ -728,6 +566,10 @@ func (a *App) DBHealthCheckDelete() error {
 
 func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
+}
+
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
