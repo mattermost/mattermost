@@ -1032,7 +1032,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	var posts []*model.Post
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
 	if err != nil {
-		return nil, cursor, errors.Wrapf(err, "error gettings Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
 	}
 
 	if len(posts) != 0 {
