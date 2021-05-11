@@ -12,7 +12,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{NewId(), STATUS_ONLINE, true, 0, "123", 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false}
+	status := Status{NewId(), STATUS_ONLINE, true, 0, "123", 0, "", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", false}
 	json := status.ToJson()
 	status2 := StatusFromJson(strings.NewReader(json))
 
@@ -29,7 +29,7 @@ func TestStatus(t *testing.T) {
 }
 
 func TestStatusListToJson(t *testing.T) {
-	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123", 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false}, {NewId(), STATUS_OFFLINE, true, 0, "", 0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false}}
+	statuses := []*Status{{NewId(), STATUS_ONLINE, true, 0, "123", 0, "", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", false}, {NewId(), STATUS_OFFLINE, true, 0, "", 0, "", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", false}}
 	jsonStatuses := StatusListToJson(statuses)
 
 	var dat []map[string]interface{}

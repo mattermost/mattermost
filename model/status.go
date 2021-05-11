@@ -27,21 +27,21 @@ type Status struct {
 	ActiveChannel  string `json:"active_channel,omitempty" db:"-"`
 	DNDEndTime     int64  `json:"dnd_end_time"`
 	PrevStatus     string `json:"-"`
-	MondayStart	   int64  `json:"monday_start"`
-	MondayEnd  	   int64  `json:"monday_end"`
-	TuesdayStart   int64  `json:"tuesday_start"`
-	TuesdayEnd	   int64  `json:"tuesday_end"`
-	WednesdayStart int64  `json:"wednesday_start"`
-	WednesdayEnd   int64  `json:"wednesday_end"`
-	ThursdayStart  int64  `json:"thursday_start"`
-	ThursdayEnd	   int64  `json:"thursday_end"`
-	FridayStart	   int64  `json:"friday_start"`
-	FridayEnd	   int64  `json:"friday_end"`
-	SaturdayStart  int64  `json:"saturday_start"`
-	SaturdayEnd	   int64  `json:"saturday_end"`
-	SundayStart	   int64  `json:"sunday_start"`
-	SundayEnd	   int64  `json:"sunday_end"`
-	Mode		   bool   `json:"mode"`
+	MondayStart	   string  `json:"monday_start"`
+	MondayEnd  	   string  `json:"monday_end"`
+	TuesdayStart   string  `json:"tuesday_start"`
+	TuesdayEnd	   string  `json:"tuesday_end"`
+	WednesdayStart string  `json:"wednesday_start"`
+	WednesdayEnd   string  `json:"wednesday_end"`
+	ThursdayStart  string  `json:"thursday_start"`
+	ThursdayEnd	   string  `json:"thursday_end"`
+	FridayStart	   string  `json:"friday_start"`
+	FridayEnd	   	 string  `json:"friday_end"`
+	SaturdayStart  string  `json:"saturday_start"`
+	SaturdayEnd	   string  `json:"saturday_end"`
+	SundayStart	   string  `json:"sunday_start"`
+	SundayEnd	     string  `json:"sunday_end"`
+	Mode		   		 bool   `json:"mode"`
 }
 
 func (o *Status) ToJson() string {
