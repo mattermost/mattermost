@@ -1035,7 +1035,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		return nil, cursor, errors.Wrapf(err, "error gettings Posts with channelId=%s", options.ChannelId)
 	}
 
-	if len(posts) > 0 {
+	if len(posts) != 0 {
 		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
 		cursor.LastPostId = posts[len(posts)-1].Id
 	}
