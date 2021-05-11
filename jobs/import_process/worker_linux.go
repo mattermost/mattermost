@@ -72,7 +72,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	var wg sync.WaitGroup
 	for _, zipFile := range zipReader.File {
 		if jsonFile == nil && filepath.Ext(zipFile.Name) == ".jsonl" {
-			mlog.Warn("XXX Found JSONL file")
+			mlog.Warn("XXX found JSONL file")
 			jsonFile, err = zipFile.Open()
 			if err != nil {
 				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
