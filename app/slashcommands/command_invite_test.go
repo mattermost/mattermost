@@ -26,34 +26,34 @@ func TestInviteProvider(t *testing.T) {
 	th.linkUserToTeam(basicUser3, th.BasicTeam)
 	basicUser4 := th.createUser()
 	deactivatedUser := th.createUser()
-	th.App.UpdateActive(deactivatedUser, false)
+	th.App.UpdateActive(th.Context, deactivatedUser, false)
 
 	var err *model.AppError
-	_, err = th.App.CreateBot(&model.Bot{
+	_, err = th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "bot1",
 		OwnerId:     basicUser3.Id,
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
 
-	bot2, err := th.App.CreateBot(&model.Bot{
+	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "bot2",
 		OwnerId:     basicUser3.Id,
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
 	require.Nil(t, err)
 
-	bot3, err := th.App.CreateBot(&model.Bot{
+	bot3, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "bot3",
 		OwnerId:     basicUser3.Id,
 		Description: "a test bot",
 	})
 	require.Nil(t, err)
-	_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
-	err = th.App.RemoveUserFromTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	err = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
 	require.Nil(t, err)
 
 	InviteP := InviteProvider{}
@@ -73,7 +73,7 @@ func TestInviteProvider(t *testing.T) {
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
 	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
-	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
+	_, err = th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
 	groupChannel, _ = th.App.UpdateChannel(groupChannel)
@@ -169,7 +169,7 @@ func TestInviteProvider(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			actual := InviteP.DoCommand(th.App, args, test.msg).Text
+			actual := InviteP.DoCommand(th.App, th.Context, args, test.msg).Text
 			assert.Equal(t, test.expected, actual)
 		})
 	}
@@ -181,8 +181,8 @@ func TestInviteGroup(t *testing.T) {
 
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	var err *model.AppError
-	_, _ = th.App.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	_, err = th.App.AddTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	_, _ = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser.Id)
+	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
 	require.Nil(t, err)
 	th.BasicTeam, _ = th.App.UpdateTeam(th.BasicTeam)
 
@@ -225,7 +225,7 @@ func TestInviteGroup(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			actual := InviteP.DoCommand(th.App, args, test.msg).Text
+			actual := InviteP.DoCommand(th.App, th.Context, args, test.msg).Text
 			assert.Equal(t, test.expected, actual)
 		})
 	}

@@ -30,10 +30,10 @@ func TestCreateTeam(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	_, err := th.App.CreateTeam(team)
+	_, err := th.App.CreateTeam(th.Context, team)
 	require.Nil(t, err, "Should create a new team")
 
-	_, err = th.App.CreateTeam(th.BasicTeam)
+	_, err = th.App.CreateTeam(th.Context, th.BasicTeam)
 	require.NotNil(t, err, "Should not create a new team - team already exist")
 }
 
@@ -49,10 +49,10 @@ func TestCreateTeamWithUser(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	_, err := th.App.CreateTeamWithUser(team, th.BasicUser.Id)
+	_, err := th.App.CreateTeamWithUser(th.Context, team, th.BasicUser.Id)
 	require.Nil(t, err, "Should create a new team with existing user")
 
-	_, err = th.App.CreateTeamWithUser(team, model.NewId())
+	_, err = th.App.CreateTeamWithUser(th.Context, team, model.NewId())
 	require.NotNil(t, err, "Should not create a new team - user does not exist")
 }
 
@@ -73,10 +73,10 @@ func TestAddUserToTeam(t *testing.T) {
 
 	t.Run("add user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err, "Should add user to the team")
 	})
 
@@ -86,10 +86,10 @@ func TestAddUserToTeam(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err, "Should have allowed whitelisted user")
 	})
 
@@ -99,31 +99,31 @@ func TestAddUserToTeam(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, err := th.App.CreateUser(&user)
+		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating user: %s", err)
-		defer th.App.PermanentDeleteUser(&user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 
 		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewString("notnil")}
-		ruser, err = th.App.CreateUser(&user)
+		ruser, err = th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating authservice user: %s", err)
-		defer th.App.PermanentDeleteUser(&user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.NotNil(t, err, "Should not add authservice user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 
-		bot, err := th.App.CreateBot(&model.Bot{
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "somebot",
 			Description: "a bot",
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot.UserId, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot.UserId, "")
 		assert.Nil(t, err, "should be able to add bot to domain restricted team")
 	})
 
@@ -133,10 +133,10 @@ func TestAddUserToTeam(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
@@ -147,25 +147,25 @@ func TestAddUserToTeam(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@foo.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(&user1)
+		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@bar.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(&user2)
+		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 
 		user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser3, _ := th.App.CreateUser(&user3)
+		ruser3, _ := th.App.CreateUser(th.Context, &user3)
 
-		defer th.App.PermanentDeleteUser(&user1)
-		defer th.App.PermanentDeleteUser(&user2)
-		defer th.App.PermanentDeleteUser(&user3)
+		defer th.App.PermanentDeleteUser(th.Context, &user1)
+		defer th.App.PermanentDeleteUser(th.Context, &user2)
+		defer th.App.PermanentDeleteUser(th.Context, &user3)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser1.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser1.Id, "")
 		require.Nil(t, err, "Should have allowed whitelisted user1")
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser2.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser2.Id, "")
 		require.Nil(t, err, "Should have allowed whitelisted user2")
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser3.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser3.Id, "")
 		require.NotNil(t, err, "Should not have allowed restricted user3")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
@@ -174,7 +174,7 @@ func TestAddUserToTeam(t *testing.T) {
 		user := th.CreateUser()
 		team := th.CreateTeam()
 
-		_, _, err := th.App.AddUserToTeam(team.Id, user.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
 
 		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
@@ -191,11 +191,11 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
+	ruser, _ := th.App.CreateUser(th.Context, &user)
 	rguest := th.CreateGuest()
 
 	t.Run("invalid token", func(t *testing.T) {
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, "123")
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, "123")
 		require.NotNil(t, err, "Should fail on unexisting token")
 	})
 
@@ -208,7 +208,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should fail on bad token type")
 	})
 
@@ -222,7 +222,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should fail on expired token")
 	})
 
@@ -234,7 +234,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should fail on bad team id")
 	})
 
@@ -246,7 +246,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
-		_, _, err := th.App.AddUserToTeamByToken(model.NewId(), token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, model.NewId(), token.Token)
 		require.NotNil(t, err, "Should fail on bad user id")
 	})
 
@@ -256,7 +256,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
@@ -273,7 +273,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		assert.NotNil(t, err)
 	})
 
@@ -283,7 +283,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		assert.NotNil(t, err)
 	})
 
@@ -298,7 +298,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.NotNil(t, err)
 		assert.Equal(t, "api.team.join_user_to_team.allowed_domains.app_error", err.Id)
 	})
@@ -319,7 +319,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		th.App.InvalidateCacheForUser(rguest.Id)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, appErr := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, appErr)
 		rguest.Email = guestEmail
 		_, err = th.App.Srv().Store.User().Update(rguest, false)
@@ -342,7 +342,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, err = th.App.Srv().Store.User().Update(rguest, false)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, _, appErr := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		_, _, appErr := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, appErr)
 		th.BasicTeam.AllowedDomains = ""
 		_, err = th.Server.Store.Team().Update(th.BasicTeam)
@@ -356,7 +356,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-		_, _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
@@ -379,7 +379,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-		_, _, err = th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err = th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should return an error when trying to join a group-constrained team.")
 		require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
 
@@ -394,8 +394,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
@@ -403,7 +403,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-		_, _, err = th.App.AddUserToTeamByToken(ruser.Id, token.Token)
+		_, _, err = th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
@@ -418,7 +418,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
 
-		_, _, err := th.App.AddUserToTeamByToken(user.Id, token.Token)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, user.Id, token.Token)
 		require.Nil(t, err)
 
 		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
@@ -436,9 +436,9 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 	t.Run("add user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
 
-		err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser)
+		err := th.App.AddUserToTeamByTeamId(th.Context, th.BasicTeam.Id, ruser)
 		require.Nil(t, err, "Should add user to the team")
 	})
 
@@ -448,10 +448,10 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		err = th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser)
+		err = th.App.AddUserToTeamByTeamId(th.Context, th.BasicTeam.Id, ruser)
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
@@ -462,7 +462,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	team, err := th.App.CreateTeam(&model.Team{
+	team, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "deletion-test",
 		Name:        "deletion-test",
 		Email:       "foo@foo.com",
@@ -724,7 +724,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	_, err := th.App.CreateTeam(team)
+	_, err := th.App.CreateTeam(th.Context, team)
 	require.Nil(t, err, "Should create a new team")
 
 	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
@@ -737,8 +737,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("new join", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
 		var alreadyAdded bool
 		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
@@ -748,8 +748,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("join when you are a member", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
 		th.App.joinUserToTeam(team, ruser)
 
@@ -761,11 +761,11 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("re-join after leaving", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
-		defer th.App.PermanentDeleteUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
 		th.App.joinUserToTeam(team, ruser)
-		th.App.LeaveTeam(team, ruser, ruser.Id)
+		th.App.LeaveTeam(th.Context, team, ruser, ruser.Id)
 
 		var alreadyAdded bool
 		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
@@ -775,12 +775,12 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("new join with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(&user1)
+		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(&user2)
+		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 
-		defer th.App.PermanentDeleteUser(&user1)
-		defer th.App.PermanentDeleteUser(&user2)
+		defer th.App.PermanentDeleteUser(th.Context, &user1)
+		defer th.App.PermanentDeleteUser(th.Context, &user2)
 		th.App.joinUserToTeam(team, ruser1)
 
 		_, _, err = th.App.joinUserToTeam(team, ruser2)
@@ -789,16 +789,16 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(&user1)
+		ruser1, _ := th.App.CreateUser(th.Context, &user1)
 
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(&user2)
+		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 
-		defer th.App.PermanentDeleteUser(&user1)
-		defer th.App.PermanentDeleteUser(&user2)
+		defer th.App.PermanentDeleteUser(th.Context, &user1)
+		defer th.App.PermanentDeleteUser(th.Context, &user2)
 
 		th.App.joinUserToTeam(team, ruser1)
-		th.App.LeaveTeam(team, ruser1, ruser1.Id)
+		th.App.LeaveTeam(th.Context, team, ruser1, ruser1.Id)
 		th.App.joinUserToTeam(team, ruser2)
 
 		_, _, err = th.App.joinUserToTeam(team, ruser1)
@@ -807,8 +807,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 	t.Run("new join with correct scheme_admin value from group syncable", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser1, _ := th.App.CreateUser(&user1)
-		defer th.App.PermanentDeleteUser(&user1)
+		ruser1, _ := th.App.CreateUser(th.Context, &user1)
+		defer th.App.PermanentDeleteUser(th.Context, &user1)
 
 		group := th.CreateGroup()
 
@@ -831,8 +831,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.False(t, tm1.SchemeAdmin)
 
 		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser2, _ := th.App.CreateUser(&user2)
-		defer th.App.PermanentDeleteUser(&user2)
+		ruser2, _ := th.App.CreateUser(th.Context, &user2)
+		defer th.App.PermanentDeleteUser(th.Context, &user2)
 
 		_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
 		require.Nil(t, err)
@@ -875,12 +875,12 @@ func TestGetTeamMembers(t *testing.T) {
 			Password: "passwd1",
 			DeleteAt: int64(rand.Intn(2)),
 		}
-		ruser, err := th.App.CreateUser(&user)
+		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err)
 		require.NotNil(t, ruser)
-		defer th.App.PermanentDeleteUser(&user)
+		defer th.App.PermanentDeleteUser(th.Context, &user)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		// Store the users for comparison later
@@ -1039,9 +1039,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 
 	t.Run("from guest to user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateGuest(&user)
+		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user")
@@ -1050,9 +1050,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 
 	t.Run("from user to guest", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest")
@@ -1061,9 +1061,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 
 	t.Run("from user to admin", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
+		ruser, _ := th.App.CreateUser(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user team_admin")
@@ -1072,9 +1072,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 
 	t.Run("from guest to guest plus custom", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateGuest(&user)
+		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
@@ -1086,9 +1086,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 
 	t.Run("a guest cant have user role", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateGuest(&user)
+		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
-		_, _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")

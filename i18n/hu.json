@@ -3836,10 +3836,6 @@
     "translation": "A Bleve indexelő munkás nem tudta elemezni a befejezési időt."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "A legrégebbi bejegyzést nem sikerült lekérni az adatbázisból."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Nem sikerült futtatni a Bleve index munkát: motor inaktív."
   },

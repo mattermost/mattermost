@@ -39,8 +39,8 @@ func TestReactionsOfPost(t *testing.T) {
 		CreateAt:  model.GetMillis(),
 	}
 
-	th.App.SaveReactionForPost(&reactionObject)
-	th.App.SaveReactionForPost(&reactionObjectDeleted)
+	th.App.SaveReactionForPost(th.Context, &reactionObject)
+	th.App.SaveReactionForPost(th.Context, &reactionObjectDeleted)
 	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
 	require.Nil(t, err)
 
@@ -174,7 +174,7 @@ func TestExportAllUsers(t *testing.T) {
 
 	// Adding a user and deactivating it to check whether it gets included in bulk export
 	user := th1.CreateUser()
-	_, err := th1.App.UpdateActive(user, false)
+	_, err := th1.App.UpdateActive(th1.Context, user, false)
 	require.Nil(t, err)
 
 	var b bytes.Buffer
@@ -183,7 +183,7 @@ func TestExportAllUsers(t *testing.T) {
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, i := th2.App.BulkImport(&b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -241,7 +241,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		err, i := th2.App.BulkImport(&b, false, 5)
+		err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 		require.Nil(t, err)
 		assert.Equal(t, 0, i)
 
@@ -263,8 +263,8 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		th1.App.PermanentDeleteUser(th1.BasicUser2)
-		th1.App.PermanentDeleteUser(th1.BasicUser)
+		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
 
 		var b bytes.Buffer
 		err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
@@ -274,7 +274,7 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(&b, true, 5)
+		err, _ = th2.App.BulkImport(th2.Context, &b, true, 5)
 		require.Nil(t, err)
 
 		channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -306,7 +306,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(&b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -378,7 +378,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(&b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -415,14 +415,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p1, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p1, dmChannel, false, true)
 
 	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p2, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p2, dmChannel, false, true)
 
 	// GM posts
 	p3 := &model.Post{
@@ -430,14 +430,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p3, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p3, gmChannel, false, true)
 
 	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p4, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p4, gmChannel, false, true)
 
 	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.NoError(t, err)
@@ -457,7 +457,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(&b, false, 5)
+	appErr, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -500,7 +500,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p1, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p1, dmChannel, false, true)
 
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
@@ -510,7 +510,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p2, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p2, gmChannel, false, true)
 
 	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.NoError(t, err)
@@ -532,7 +532,7 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 0)
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(&b, false, 5)
+	appErr, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -574,7 +574,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	err, i := th2.App.BulkImport(&b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -614,7 +614,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.BulkImportWithPath(jsonFile, false, 1, dir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, false, 1, dir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -635,6 +635,6 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.BulkImportWithPath(jsonFile, false, 1, filepath.Join(dir, "data"))
+	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
 }
