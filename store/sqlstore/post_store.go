@@ -1004,24 +1004,20 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 	return exist > 0, nil
 }
 
-func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
-	if options.Limit < 0 || options.Limit > 1000 {
-		return nil, cursor, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
-	}
-	if options.ChannelId == "" {
-		return nil, cursor, store.NewErrInvalidInput("Post", "<options.ChannelID>", options.ChannelId)
-	}
-
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
 		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		OrderBy("UpdateAt", "CreateAt", "DeleteAt", "Id").
-		Limit(uint64(options.Limit))
+		OrderBy("UpdateAt", "Id").
+		Limit(uint64(limit))
+
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
+	}
 
 	if !options.IncludeDeleted {
-		query = query.Where(sq.NotEq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
 	if options.ExcludeRemoteId != "" {
@@ -1036,7 +1032,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	var posts []*model.Post
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
 	if err != nil {
-		return nil, cursor, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "error gettings Posts with channelId=%s", options.ChannelId)
 	}
 
 	if len(posts) > 0 {

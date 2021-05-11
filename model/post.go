@@ -250,7 +250,6 @@ type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
-	Limit           int
 }
 
 type GetPostsOptions struct {

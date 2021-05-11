@@ -5824,11 +5824,11 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
+func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor)
+		result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor, limit)
 		if err == nil {
 			return result, resultVar1, nil
 		}

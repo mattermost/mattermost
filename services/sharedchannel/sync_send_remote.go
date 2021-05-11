@@ -190,14 +190,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
-		Limit:          MaxPostsPerSync,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
 		LastPostId:       sd.scr.LastPostId,
 	}
 
-	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor)
+	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
