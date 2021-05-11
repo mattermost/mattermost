@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -174,6 +175,7 @@ func stopTimer(timer *time.Timer) {
 // doSync checks the task queue for any tasks to be processed and processes all that are ready.
 // If any delayed tasks remain in queue then the duration until the next scheduled task is returned.
 func (scs *Service) doSync() time.Duration {
+	c := request.EmptyContext() // TODO: check this
 	var task syncTask
 	var ok bool
 	var shortestWait time.Duration
@@ -183,7 +185,7 @@ func (scs *Service) doSync() time.Duration {
 		if !ok {
 			break
 		}
-		if err := scs.processTask(task); err != nil {
+		if err := scs.processTask(c, task); err != nil {
 			// put task back into map so it will update again
 			if task.incRetry() {
 				scs.addTask(task)
@@ -234,7 +236,7 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 }
 
 // processTask updates one or more remote clusters with any new channel content.
-func (scs *Service) processTask(task syncTask) error {
+func (scs *Service) processTask(c *request.Context, task syncTask) error {
 	var err error
 	var remotes []*model.RemoteCluster
 

@@ -34,7 +34,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	)
 
 	cmd := &MuteProvider{}
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:      i18n.IdentityTfunc(),
 		UserId: th.BasicUser.Id,
 	}, "")
@@ -53,7 +53,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -62,7 +62,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 
 	// Now unmute the channel
 	time.Sleep(time.Millisecond)
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -80,7 +80,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -95,7 +95,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -105,7 +105,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	assert.Equal(t, model.CHANNEL_NOTIFY_MENTION, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	// Now unmute the channel
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -125,7 +125,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel2, _ := th.App.CreateChannel(&model.Channel{
+	channel2, _ := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "AA",
 		Name:        "aa" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
@@ -136,7 +136,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -157,7 +157,7 @@ func TestMuteCommandNotChannel(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
@@ -173,7 +173,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 		t.SkipNow()
 	}
 
-	channel2, _ := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	channel2, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	channel2M, _ := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
@@ -181,7 +181,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 	cmd := &MuteProvider{}
 
 	// First mute the channel
-	resp := cmd.DoCommand(th.App, &model.CommandArgs{
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -192,7 +192,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 	assert.Equal(t, model.CHANNEL_NOTIFY_MENTION, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
 	// Now unmute the channel
-	resp = cmd.DoCommand(th.App, &model.CommandArgs{
+	resp = cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,

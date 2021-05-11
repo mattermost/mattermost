@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
@@ -70,6 +71,6 @@ func (mrcs *mockRemoteClusterService) AcceptInvitation(invite *model.RemoteClust
 	return nil, nil
 }
 
-func (mrcs *mockRemoteClusterService) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {
+func (mrcs *mockRemoteClusterService) ReceiveIncomingMsg(_ *request.Context, rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {
 	return remotecluster.Response{}
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -88,16 +89,20 @@ func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
 }
 
 func (a *App) UnregisterPluginCommands(pluginID string) {
-	a.Srv().pluginCommandsLock.Lock()
-	defer a.Srv().pluginCommandsLock.Unlock()
+	a.Srv().unregisterPluginCommands(pluginID)
+}
+
+func (s *Server) unregisterPluginCommands(pluginID string) {
+	s.pluginCommandsLock.Lock()
+	defer s.pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv().pluginCommands {
+	for _, pc := range s.pluginCommands {
 		if pc.PluginId != pluginID {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv().pluginCommands = remaining
+	s.pluginCommands = remaining
 }
 
 func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
@@ -115,7 +120,7 @@ func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
 // command can be found, returns nil for all arguments.
-func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
@@ -156,7 +161,7 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		args.AddChannelMention(channelName, channelID)
 	}
 
-	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
+	response, appErr := pluginHooks.ExecuteCommand(pluginContext(c), args)
 
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {

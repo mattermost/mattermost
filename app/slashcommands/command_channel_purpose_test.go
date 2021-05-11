@@ -30,7 +30,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		"":      "api.command_channel_purpose.message.app_error",
 		"hello": "",
 	} {
-		actual := pp.DoCommand(th.App, args, msg).Text
+		actual := pp.DoCommand(th.App, th.Context, args, msg).Text
 		assert.Equal(t, expected, actual)
 	}
 
@@ -42,7 +42,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 	}
 
-	actual := pp.DoCommand(th.App, args, "hello").Text
+	actual := pp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_purpose.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
@@ -56,7 +56,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	actual = pp.DoCommand(th.App, args, "hello").Text
+	actual = pp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
@@ -67,7 +67,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		ChannelId: privateChannel.Id,
 	}
 
-	actual = pp.DoCommand(th.App, args, "hello").Text
+	actual = pp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_purpose.permission.app_error", actual)
 
 	// Try a group channel *with* being a member.
@@ -81,7 +81,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		ChannelId: groupChannel.Id,
 	}
 
-	actual = pp.DoCommand(th.App, args, "hello").Text
+	actual = pp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_purpose.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
@@ -92,6 +92,6 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 		ChannelId: directChannel.Id,
 	}
 
-	actual = pp.DoCommand(th.App, args, "hello").Text
+	actual = pp.DoCommand(th.App, th.Context, args, "hello").Text
 	assert.Equal(t, "api.command_channel_purpose.direct_group.app_error", actual)
 }

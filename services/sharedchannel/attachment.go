@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -141,7 +142,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is
 // created and the id returned in the response.
-func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+func (scs *Service) onReceiveUploadCreate(_ *request.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	var us model.UploadSession
 
 	if err := json.Unmarshal(msg.Payload, &us); err != nil {
