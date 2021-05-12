@@ -1092,7 +1092,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Accept an invitation from a remote cluster"
+    "translation": "Accept an invitation from an external Mattermost instance"
   },
   {
     "id": "api.command_remote.accept_invitation",
@@ -1116,7 +1116,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
+    "translation": "Invite secure connections for communication across Mattermost instances."
   },
   {
     "id": "api.command_remote.displayname.help",
@@ -1156,7 +1156,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Create a secure connection"
+    "translation": "Invite a secure connection"
   },
   {
     "id": "api.command_remote.invite_password.help",
@@ -1168,7 +1168,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the remote site can access your cluster via** {{.SiteURL}}"
+    "translation": "Send the following AES 256-bit encrypted invitation to the external Mattermost System Admin along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the secure connection can access your Mattermost instance via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.missing_command",
@@ -1200,7 +1200,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure Connection | Display name | ConnectionID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -1216,19 +1216,19 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id of secure connection remove"
+    "translation": "ID of secure connection to remove."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Remote Cluster Service is disabled."
+    "translation": "Secure Connection Service is disabled."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Remote Cluster service not enabled."
+    "translation": "Secure Connection Service not enabled."
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL not set. Please set this via the system console."
+    "translation": "Site URL not set. Please set this in System Console > Environment > Web Server."
   },
   {
     "id": "api.command_remote.status.help",
@@ -1328,7 +1328,7 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Status for channel Id `{{.ChannelId}}`"
+    "translation": "Status for channel ID `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -1340,11 +1340,11 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Shares the current channel with a remote Mattermost instance."
+    "translation": "Shares the current channel with an external Mattermost instance."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Error fetching shared connections: {{.Error}}"
+    "translation": "Error fetching secure connections: {{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
@@ -1360,11 +1360,11 @@
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
+    "translation": "Shared channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Invites a remote instance to the current shared channel"
+    "translation": "Invites an external Mattermost instance to the current shared channel"
   },
   {
     "id": "api.command_share.missing_action",
@@ -1372,7 +1372,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Must specify a valid secure connection id to invite."
+    "translation": "Must specify a valid secure connection ID to invite."
   },
   {
     "id": "api.command_share.name",
@@ -1380,7 +1380,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "No secure connections have been invited to this shared channel."
+    "translation": "No secure connections have been invited to this channel."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -1396,19 +1396,19 @@
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id of an existing secure connection. See `secure-connection` command to add a secure connection."
+    "translation": "ID of an existing secure connection. See `secure-connection` command to add a secure connection."
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Secure connection id is invalid: {{.Error}}"
+    "translation": "Secure connection ID is invalid: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Must specify a valid secure connection id to uninvite"
+    "translation": "Must specify a valid secure connection ID to uninvite"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Secure Connection | SiteURL | ReadOnly | InviteAccepted | Online | Last Sync |"
+    "translation": "| Secure connection | Site URL | Read only | Invite accepted | Online | Last sync |"
   },
   {
     "id": "api.command_share.remote_uninvited",
@@ -1444,7 +1444,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id of secure connection to uninvite."
+    "translation": "ID of secure connection to uninvite."
   },
   {
     "id": "api.command_share.unknown_action",
@@ -1611,37 +1611,33 @@
     "translation": "Email batching has been disabled by the system administrator."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Open Mattermost"
   },
   {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message from "
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "View this message"
   },
   {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Go to Post"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification from "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
-    }
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "See below for a summary of your new messages."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} sent you new message",
+      "other": "{{ .SenderName }} and {{.Count}} others sent you new messages"
     }
   },
   {
@@ -3096,11 +3092,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
+    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Professional has ended today, {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost ends today"
+    "translation": "Your free 14-day trial of Mattermost has ended today"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.add_payment_method",
@@ -3492,7 +3488,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "View Message"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -5451,60 +5447,44 @@
     "translation": "No license present"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "You have a new Direct Message."
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent you a new Direct Message."
   },
   {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from {{.SenderName}}"
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "You have a new Group Message."
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from {{.SenderName}}"
+    "id": "app.notification.body.group.subTitle",
+    "translation": "While you were away, {{.SenderName}} sent a message to your group."
   },
   {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} sent you a new message"
   },
   {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "While you were away, {{.SenderName}} mentioned you in the {{.ChannelName}} channel."
   },
   {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} mentioned you in a message"
   },
   {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.info",
+    "translation": " and go to Account Settings > Notifications"
   },
   {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Login to Mattermost"
   },
   {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "id": "app.notification.footer.title",
+    "translation": "Want to change your notifications settings?"
   },
   {
     "id": "app.notification.subject.direct.full",

@@ -61,7 +61,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("uploadBrandImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_EDIT_BRAND) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_EDIT_BRAND) {
 		c.SetPermissionError(model.PERMISSION_EDIT_BRAND)
 		return
 	}
@@ -82,7 +82,7 @@ func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteBrandImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_EDIT_BRAND) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_EDIT_BRAND) {
 		c.SetPermissionError(model.PERMISSION_EDIT_BRAND)
 		return
 	}
