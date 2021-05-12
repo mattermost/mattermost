@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -96,13 +97,18 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 			}
 			continue
 		}
-		zipFileNameCleaned, err := filepath.Abs(zipFile.Name)
+		zipFileName, err := filepath.Abs(zipFile.Name)
 		if err != nil {
 			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
 			w.setJobError(job, appError)
 			return
 		}
-		namedPipePath := filepath.Join(dir, zipFileNameCleaned)
+		if strings.Contains(zipFileName, "..") {
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, "illegal .. found in zipfile file path", http.StatusBadRequest)
+			w.setJobError(job, appError)
+			return
+		}
+		namedPipePath := filepath.Join(dir, zipFileName)
 		err = os.MkdirAll(filepath.Dir(namedPipePath), 0700)
 		if err != nil {
 			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
