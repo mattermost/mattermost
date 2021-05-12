@@ -7,6 +7,7 @@ package import_process
 import (
 	"archive/zip"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -31,6 +32,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	importFileName, ok := job.Data["import_file"]
+	mlog.Warn("XXX found import", mlog.String("file name", importFileName))
 	if !ok {
 		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
 		w.setJobError(job, appError)
@@ -53,6 +55,15 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 		return
 	}
 
+	// create a temporary dir to extract the zipped import file.
+	dir, err := ioutil.TempDir("", "import")
+	if err != nil {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusInternalServerError)
+		w.setJobError(job, appError)
+		return
+	}
+	defer os.RemoveAll(dir)
+
 	importFile, appErr := w.app.FileReader(importFilePath)
 	if appErr != nil {
 		w.setJobError(job, appErr)
@@ -61,6 +72,8 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	defer importFile.Close()
 
 	// extract the contents of the zipped file.
+	mlog.Warn("XXX  extract the contents of the zipped file.")
+	mlog.Warn("XXX  open the zip reader")
 	zipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 	if err != nil {
 		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
@@ -70,6 +83,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 
 	var jsonFile io.ReadCloser
 	var wg sync.WaitGroup
+	mlog.Warn("XXX iterate through all files")
 	for _, zipFile := range zipReader.File {
 		if jsonFile == nil && filepath.Ext(zipFile.Name) == ".jsonl" {
 			mlog.Warn("XXX found JSONL file")
@@ -84,15 +98,16 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 
 		mlog.Warn("XXX Opening pipe", mlog.String("file", zipFile.Name))
 		wg.Add(1)
-		err := syscall.Mknod(zipFile.Name, syscall.S_IFIFO|0666, 0)
-		if err != nil {
-			panic(err)
-		}
-
 		go func(wg *sync.WaitGroup, zipFile *zip.File) {
+			namedPipePath := filepath.Join(dir, zipFile.Name)
+			err := syscall.Mknod(namedPipePath, syscall.S_IFIFO|0666, 0)
+			if err != nil {
+				panic(err)
+			}
+
 			mlog.Warn("XXX waiting for file to be read", mlog.String("file", zipFile.Name))
 			defer wg.Done()
-			namedPipe, err := os.OpenFile(zipFile.Name, os.O_WRONLY, 0666)
+			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0666)
 			if err != nil {
 				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
 				w.setJobError(job, appError)
@@ -108,7 +123,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 			}
 
 			defer fileAttachment.Close()
-			defer os.Remove(zipFile.Name)
+			defer os.Remove(namedPipePath)
 
 			_, err = io.Copy(namedPipe, fileAttachment)
 			if err != nil {
@@ -122,7 +137,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImport(w.appContext, jsonFile, false, runtime.NumCPU())
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), dir)
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)
