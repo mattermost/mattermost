@@ -313,9 +313,9 @@ type AppIface interface {
 	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 	// and sets status of given userId to dnd which will be restored back after endtime
 	SetStatusDoNotDisturbTimed(userId string, endtime int64)
-	// SetStatusDoNotDisturbCustom takes weekdays information including start time and end time in unix epoch format in UTC
-	// and sets status of given userId to dnd if current time is between start time and end time
-	SetStatusDoNotDisturbCustom(userId string, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd int64, mode bool)
+	// SetStatusSchedule takes weekdays information including start time and end time in unix epoch format in UTC 
+	// and saves data
+	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -283,7 +282,7 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) SetStatusDoNotDisturbCustom(userId string, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd int64, mode bool) {
+func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -308,42 +307,6 @@ func (a *App) SetStatusDoNotDisturbCustom(userId string, mondayStart, mondayEnd,
 	status.SundayStart = sundayStart
 	status.SundayEnd = sundayEnd
 	status.Mode = mode
-
-	t := time.Now()
-	now := t.Weekday()
-	currUnixTime := t.UTC().Unix()
-	var startTime int64 = 0
-	var endTime int64 = 0
-	switch now {
-	case time.Monday :
-		startTime = status.MondayStart
-		endTime = status.MondayEnd
-	case time.Tuesday :
-		startTime = status.TuesdayStart
-		endTime = status.TuesdayEnd
-	case time.Wednesday :
-		startTime = status.WednesdayStart
-		endTime = status.WednesdayEnd
-	case time.Thursday :
-		startTime = status.ThursdayStart
-		endTime = status.ThursdayEnd
-	case time.Friday :
-		startTime = status.FridayStart
-		endTime = status.FridayEnd
-	case time.Saturday : 
-		startTime = status.SaturdayStart
-		endTime = status.SaturdayEnd
-	case time.Sunday :
-		startTime = status.SundayStart
-		endTime = status.SundayEnd
-	}
-
-	if startTime <= currUnixTime && currUnixTime < endTime {
-		status.Status = model.STATUS_DND
-	}
-
-	status.Manual = true
-	status.DNDEndTime = endTime
 
 	a.SaveAndBroadcastStatus(status)
 }

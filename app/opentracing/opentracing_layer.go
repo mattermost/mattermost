@@ -14974,9 +14974,9 @@ func (a *OpenTracingAppLayer) SetStatusDoNotDisturbTimed(userId string, endtime 
 	a.app.SetStatusDoNotDisturbTimed(userId, endtime)
 }
 
-func (a *OpenTracingAppLayer) SetStatusDoNotDisturbCustom(userId string, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd int64, mode bool) {
+func (a *OpenTracingAppLayer) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturbCustom")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusSchedule")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -14986,7 +14986,7 @@ func (a *OpenTracingAppLayer) SetStatusDoNotDisturbCustom(userId string, mondayS
 	}()
 
 	defer span.Finish()
-	a.app.SetStatusDoNotDisturbCustom(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd, mode)
+	a.app.SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd, mode)
 }
 
 func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userID string, activityAt int64) {

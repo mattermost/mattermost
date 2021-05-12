@@ -13,6 +13,8 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
+	// DND Schedule update 
+	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(updateStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
 
@@ -106,19 +108,44 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":
-		if status.Mode {
-			c.App.SetStatusDoNotDisturbCustom(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, 
-				status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd,
-				status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
-		} else {
-			c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
-		}
+		c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
 	default:
 		c.SetInvalidParam("status")
 		return
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	status := model.StatusFromJson(r.Body)
+	if status == nil {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	// The user being updated in the payload must be the same one as indicated in the URL.
+	if status.UserId != c.Params.UserId {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	// save working hours 
+	c.App.SetStatusSchedule(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, 
+		status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd,
+		status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
+	
+	ReturnStatusOK(w)
 }
 
 func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
