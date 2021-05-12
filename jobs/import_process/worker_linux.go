@@ -103,12 +103,20 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 			return
 		}
 		namedPipePath := filepath.Join(dir, zipFileNameCleaned)
+		err = os.MkdirAll(filepath.Dir(namedPipePath), 0666)
+		if err != nil {
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
+			w.setJobError(job, appError)
+			return
+		}
 		mlog.Warn("XXX Opening pipe", mlog.String("pipe", namedPipePath))
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, zipFile *zip.File) {
 			err := syscall.Mknod(namedPipePath, syscall.S_IFIFO|0666, 0)
 			if err != nil {
-				panic(err)
+				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
+				w.setJobError(job, appError)
+				return
 			}
 
 			mlog.Warn("XXX waiting for file to be read", mlog.String("file", zipFile.Name))
