@@ -47,7 +47,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
@@ -55,8 +55,8 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	us.Id = model.NewId()
-	if c.App.Session().UserId != "" {
-		us.UserId = c.App.Session().UserId
+	if c.AppContext.Session().UserId != "" {
+		us.UserId = c.AppContext.Session().UserId
 	}
 	us, err := c.App.CreateUploadSession(us)
 	if err != nil {
@@ -81,7 +81,7 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if us.UserId != c.App.Session().UserId && !c.IsSystemAdmin() {
+	if us.UserId != c.AppContext.Session().UserId && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("getUpload", "api.upload.get_upload.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -117,7 +117,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if us.UserId != c.App.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.App.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
@@ -163,5 +163,5 @@ func doUploadData(c *Context, us *model.UploadSession, r *http.Request) (*model.
 		rd = r.Body
 	}
 
-	return c.App.UploadData(us, rd)
+	return c.App.UploadData(c.AppContext, us, rd)
 }

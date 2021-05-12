@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -34,7 +35,7 @@ func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comm
 	}
 }
 
-func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -77,7 +78,7 @@ func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 	}
 	*patch.Purpose = message
 
-	_, err = a.PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(c, channel, patch, args.UserId)
 	if err != nil {
 		text := args.T("api.command_channel_purpose.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.purpose.app_error" {

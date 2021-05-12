@@ -15,6 +15,7 @@ import (
 
 	"github.com/avct/uasurfer"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -41,7 +42,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -111,7 +112,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 	}
 
 	// and then authenticate them
-	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
+	if user, err = a.authenticateUser(c, user, password, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -154,10 +155,10 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
+func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
 			return rejectionReason == ""
@@ -215,8 +216,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
-	a.SetSession(session)
-
+	c.SetSession(session)
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
@@ -227,7 +227,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)
 				return true
@@ -238,7 +238,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	return nil
 }
 
-func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
+func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
@@ -251,7 +251,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    a.Session().Token,
+		Value:    c.Session().Token,
 		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
@@ -262,7 +262,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
-		Value:   a.Session().UserId,
+		Value:   c.Session().UserId,
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
@@ -272,7 +272,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 
 	csrfCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_CSRF,
-		Value:   a.Session().GetCSRF(),
+		Value:   c.Session().GetCSRF(),
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
