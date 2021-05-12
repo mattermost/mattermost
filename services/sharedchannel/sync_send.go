@@ -64,7 +64,7 @@ func (scs *Service) NotifyUserProfileChanged(userID string) {
 		return
 	}
 
-	scusers, err := scs.server.GetStore().SharedChannel().GetUser(userID)
+	scusers, err := scs.server.GetStore().SharedChannel().GetUsersForUser(userID)
 	if err != nil {
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Failed to fetch shared channel users",
 			mlog.String("userID", userID),

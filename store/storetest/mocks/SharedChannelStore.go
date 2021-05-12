@@ -284,29 +284,6 @@ func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, rem
 	return r0, r1
 }
 
-// GetUser provides a mock function with given fields: userID
-func (_m *SharedChannelStore) GetUser(userID string) ([]*model.SharedChannelUser, error) {
-	ret := _m.Called(userID)
-
-	var r0 []*model.SharedChannelUser
-	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
-		r0 = rf(userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelUser)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetUsersForSync provides a mock function with given fields: filter
 func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	ret := _m.Called(filter)
@@ -323,6 +300,29 @@ func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter
 	var r1 error
 	if rf, ok := ret.Get(1).(func(model.GetUsersForSyncFilter) error); ok {
 		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUsersForUser provides a mock function with given fields: userID
+func (_m *SharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
+	ret := _m.Called(userID)
+
+	var r0 []*model.SharedChannelUser
+	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}

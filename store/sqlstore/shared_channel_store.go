@@ -587,8 +587,8 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 	return &scu, nil
 }
 
-// GetUser fetches all shared channel user records based on userID.
-func (s SqlSharedChannelStore) GetUser(userID string) ([]*model.SharedChannelUser, error) {
+// GetUsersForUser fetches all shared channel user records based on userID.
+func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
 		Select("*").
 		From("SharedChannelUsers").

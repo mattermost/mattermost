@@ -911,7 +911,7 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("Get existing shared channel user", func(t *testing.T) {
-		scus, err := ss.SharedChannel().GetUser(userId)
+		scus, err := ss.SharedChannel().GetUsersForUser(userId)
 		require.NoError(t, err, "couldn't get shared channel user", err)
 
 		require.Len(t, scus, 10, "should be 10 shared channel user records")
@@ -919,7 +919,7 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Get non-existent shared channel user", func(t *testing.T) {
-		scus, err := ss.SharedChannel().GetUser(model.NewId())
+		scus, err := ss.SharedChannel().GetUsersForUser(model.NewId())
 		require.NoError(t, err, "should not error when not found")
 		require.Empty(t, scus, "should be empty")
 	})

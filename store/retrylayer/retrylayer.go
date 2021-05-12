@@ -7916,11 +7916,11 @@ func (s *RetryLayerSharedChannelStore) GetSingleUser(userID string, channelID st
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUser(userID string) ([]*model.SharedChannelUser, error) {
+func (s *RetryLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetUser(userID)
+		result, err := s.SharedChannelStore.GetUsersForSync(filter)
 		if err == nil {
 			return result, nil
 		}
@@ -7936,11 +7936,11 @@ func (s *RetryLayerSharedChannelStore) GetUser(userID string) ([]*model.SharedCh
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
+func (s *RetryLayerSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetUsersForSync(filter)
+		result, err := s.SharedChannelStore.GetUsersForUser(userID)
 		if err == nil {
 			return result, nil
 		}
