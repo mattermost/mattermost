@@ -103,7 +103,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 			return
 		}
 		namedPipePath := filepath.Join(dir, zipFileNameCleaned)
-		err = os.MkdirAll(filepath.Dir(namedPipePath), 0666)
+		err = os.MkdirAll(filepath.Dir(namedPipePath), 0700)
 		if err != nil {
 			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
 			w.setJobError(job, appError)
