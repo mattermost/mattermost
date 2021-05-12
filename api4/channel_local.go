@@ -43,7 +43,7 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", channel)
 
-	sc, err := c.App.CreateChannel(channel, false)
+	sc, err := c.App.CreateChannel(c.AppContext, channel, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -154,7 +154,7 @@ func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("remove_user_id", user.Id)
 
-	if err = c.App.RemoveUserFromChannel(c.Params.UserId, "", channel); err != nil {
+	if err = c.App.RemoveUserFromChannel(c.AppContext, c.Params.UserId, "", channel); err != nil {
 		c.Err = err
 		return
 	}
@@ -258,14 +258,14 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if force {
-		err = c.App.RemoveUsersFromChannelNotMemberOfTeam(nil, channel, team)
+		err = c.App.RemoveUsersFromChannelNotMemberOfTeam(c.AppContext, nil, channel, team)
 		if err != nil {
 			c.Err = err
 			return
 		}
 	}
 
-	err = c.App.MoveChannel(team, channel, nil)
+	err = c.App.MoveChannel(c.AppContext, team, channel, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -302,7 +302,7 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Params.Permanent {
 		err = c.App.PermanentDeleteChannel(channel)
 	} else {
-		err = c.App.DeleteChannel(channel, "")
+		err = c.App.DeleteChannel(c.AppContext, channel, "")
 	}
 	if err != nil {
 		c.Err = err

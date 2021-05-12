@@ -35,7 +35,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), job.Type)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), job.Type)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("getJob", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
 		return
@@ -71,7 +71,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently, this endpoint only supports downloading the compliance report.
 	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
+	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
 		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
 		return
 	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
@@ -111,7 +111,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job", job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.App.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -142,7 +142,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var validJobTypes []string
 	for _, jobType := range model.ALL_JOB_TYPES {
-		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), jobType)
+		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
 		if permissionRequired == nil {
 			mlog.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))
 			continue
@@ -171,7 +171,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.App.Session(), c.Params.JobType)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), c.Params.JobType)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
 		return
@@ -207,7 +207,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if permission to create, permission to cancel, same permission
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.App.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
