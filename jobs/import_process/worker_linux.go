@@ -16,6 +16,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -95,11 +96,16 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 			}
 			continue
 		}
-
-		mlog.Warn("XXX Opening pipe", mlog.String("file", zipFile.Name))
+		zipFileNameCleaned, err := filepath.Abs(zipFile.Name)
+		if err != nil {
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
+			w.setJobError(job, appError)
+			return
+		}
+		namedPipePath := filepath.Join(dir, zipFileNameCleaned)
+		mlog.Warn("XXX Opening pipe", mlog.String("pipe", namedPipePath))
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, zipFile *zip.File) {
-			namedPipePath := filepath.Join(dir, zipFile.Name)
 			err := syscall.Mknod(namedPipePath, syscall.S_IFIFO|0666, 0)
 			if err != nil {
 				panic(err)
@@ -137,7 +143,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), dir)
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)
