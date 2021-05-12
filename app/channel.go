@@ -2377,17 +2377,94 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		return nil, err
 	}
 
+	threadId := post.RootId
+	if post.RootId == "" {
+		threadId = post.Id
+	}
+
+	if !collapsedThreadsSupported {
+		channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+		if nErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		// if root post we update channel entry bold/unbold and badge counts
+		if post.RootId == "" {
+			count, cErr := a.countMentionsInRootPostsFromPost(user, post)
+			if cErr != nil {
+				return nil, cErr
+			}
+			channelUnread, aErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, count, count, false)
+			if aErr != nil {
+				return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, aErr.Error(), http.StatusInternalServerError)
+			}
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
+			message.Add("msg_count", channelUnread.MsgCount)
+			message.Add("msg_count_root", channelUnread.MsgCountRoot)
+			message.Add("mention_count", channelUnread.MentionCount)
+			message.Add("mention_count_root", channelUnread.MentionCountRoot)
+			message.Add("last_viewed_at", channelUnread.LastViewedAt)
+			message.Add("post_id", postID)
+			a.Publish(message)
+			a.UpdateMobileAppBadge(userID)
+			return channelUnread, nil
+		}
+
+		// if reply post we update thread entry bold/unbold and badge counts
+		rootPost, aErr := a.GetSinglePost(post.RootId)
+		if aErr != nil {
+			return nil, aErr
+		}
+		threadMembership, tErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		var errNotFound *store.ErrNotFound
+		if tErr != nil && !errors.As(tErr, &errNotFound) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, tErr.Error(), http.StatusInternalServerError)
+		}
+		// Follow thread if we're not already following
+		if threadMembership == nil {
+			threadMembership, tErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, false, true, false, false)
+			if tErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, tErr.Error(), http.StatusInternalServerError)
+			}
+		}
+		// if threadmembership already existed but we had previously unfollowed the thread, then follow the thread again.
+		threadMembership.Following = true
+		threadMembership.LastViewed = post.UpdateAt - 1
+		threadMembership.LastUpdated = post.UpdateAt - 1
+		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+		if err != nil {
+			return nil, err
+		}
+		_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+		if nErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+		thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeProps()
+
+		payload := thread.ToJson()
+		sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+		if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+			sendEvent = preference.Value == "on"
+		}
+		if sendEvent {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+			message.Add("thread", payload)
+			a.Publish(message)
+		}
+		return &model.ChannelUnreadAt{}, nil
+	}
+
 	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
 	if err != nil {
 		return nil, err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow {
-		threadId := post.RootId
-		if post.RootId == "" {
-			threadId = post.Id
-		}
-
+	// if auto-follow is on
+	// if threadmembership does not exists we create one and update
+	if *a.Config().ServiceSettings.ThreadAutoFollow && collapsedThreadsSupported {
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
@@ -2421,45 +2498,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 					a.Publish(message)
 				}
 			}
-			// thread membership exists but we are marking as unread from client that does not
-			// support collapsed threads
-		} else if !collapsedThreadsSupported {
-			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
-			if nErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			}
-			rootPost, err := a.GetSinglePost(post.RootId)
-			if err != nil {
-				return nil, err
-			}
-
-			threadMembership.LastViewed = post.UpdateAt - 1
-			threadMembership.LastUpdated = post.UpdateAt - 1
-			threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
-			if err != nil {
-				return nil, err
-			}
-			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-			if nErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			}
-			thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
-			a.sanitizeProfiles(thread.Participants, false)
-			thread.Post.SanitizeProps()
-
-			payload := thread.ToJson()
-			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-			if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-				sendEvent = preference.Value == "on"
-			}
-			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
-				message.Add("thread", payload)
-				a.Publish(message)
-			}
-
 		}
-
 	}
 
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
