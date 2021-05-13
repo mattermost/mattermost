@@ -64,16 +64,14 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 			mlog.Debug("Waiting for file to be read", mlog.String("pipe", namedPipePath))
 			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0666)
 			if err != nil {
-				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
-				errors <- appError
+				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 				return
 			}
 			defer namedPipe.Close()
 
 			fileAttachment, err := zipFile.Open()
 			if err != nil {
-				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
-				errors <- appError
+				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 				return
 			}
 
@@ -82,8 +80,7 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 
 			_, err = io.Copy(namedPipe, fileAttachment)
 			if err != nil {
-				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.write_file", nil, err.Error(), http.StatusBadRequest)
-				errors <- appError
+				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.write_file", nil, err.Error(), http.StatusBadRequest)
 				return
 			}
 
