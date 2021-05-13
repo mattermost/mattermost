@@ -76,7 +76,6 @@ func (c *Context) LogAudit(extraInfo string) {
 }
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
-
 	if c.AppContext.Session().UserId != "" {
 		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.AppContext.Session().UserId)
 	}

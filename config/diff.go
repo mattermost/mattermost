@@ -10,6 +10,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+type ConfigDiffs []ConfigDiff
+
 type ConfigDiff struct {
 	Path      string      `json:"path"`
 	BaseVal   interface{} `json:"base_val"`
@@ -74,11 +76,15 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	return diffs, nil
 }
 
-func Diff(base, actual *model.Config) ([]ConfigDiff, error) {
+func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 	if base == nil || actual == nil {
 		return nil, fmt.Errorf("input configs should not be nil")
 	}
 	baseVal := reflect.Indirect(reflect.ValueOf(base))
 	actualVal := reflect.Indirect(reflect.ValueOf(actual))
 	return diff(baseVal, actualVal, "")
+}
+
+func (cd ConfigDiffs) String() string {
+	return fmt.Sprintf("%+v", []ConfigDiff(cd))
 }

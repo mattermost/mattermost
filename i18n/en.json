@@ -1491,12 +1491,20 @@
     "translation": "Failed to migrate config store."
   },
   {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Failed to diff configs"
+  },
+  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Failed to diff configs"
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",

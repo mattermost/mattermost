@@ -80,7 +80,7 @@ func TestDiff(t *testing.T) {
 		name   string
 		base   *model.Config
 		actual *model.Config
-		diffs  []ConfigDiff
+		diffs  ConfigDiffs
 		err    string
 	}{
 		{
@@ -108,7 +108,7 @@ func TestDiff(t *testing.T) {
 			"default base, actual empty",
 			defaultConfigGen(),
 			&model.Config{},
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					"",
 					*defaultConfigGen(),
@@ -121,7 +121,7 @@ func TestDiff(t *testing.T) {
 			"empty base, actual default",
 			&model.Config{},
 			defaultConfigGen(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					"",
 					model.Config{},
@@ -138,7 +138,7 @@ func TestDiff(t *testing.T) {
 				cfg.ServiceSettings.SiteURL = model.NewString("http://changed")
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:      "ServiceSettings.SiteURL",
 					BaseVal:   *defaultConfigGen().ServiceSettings.SiteURL,
@@ -155,7 +155,7 @@ func TestDiff(t *testing.T) {
 				cfg.ServiceSettings.SiteURL = nil
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "ServiceSettings.SiteURL",
 					BaseVal: defaultConfigGen().ServiceSettings.SiteURL,
@@ -174,7 +174,7 @@ func TestDiff(t *testing.T) {
 				cfg.PluginSettings.Enable = model.NewBool(!*cfg.PluginSettings.Enable)
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:      "PluginSettings.Enable",
 					BaseVal:   true,
@@ -191,7 +191,7 @@ func TestDiff(t *testing.T) {
 				cfg.PluginSettings.Enable = nil
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "PluginSettings.Enable",
 					BaseVal: defaultConfigGen().PluginSettings.Enable,
@@ -210,7 +210,7 @@ func TestDiff(t *testing.T) {
 				cfg.ServiceSettings.ReadTimeout = model.NewInt(0)
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:      "ServiceSettings.ReadTimeout",
 					BaseVal:   *defaultConfigGen().ServiceSettings.ReadTimeout,
@@ -227,7 +227,7 @@ func TestDiff(t *testing.T) {
 				cfg.ServiceSettings.ReadTimeout = nil
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "ServiceSettings.ReadTimeout",
 					BaseVal: defaultConfigGen().ServiceSettings.ReadTimeout,
@@ -249,7 +249,7 @@ func TestDiff(t *testing.T) {
 				}
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "SqlSettings.DataSourceReplicas",
 					BaseVal: defaultConfigGen().SqlSettings.DataSourceReplicas,
@@ -278,7 +278,7 @@ func TestDiff(t *testing.T) {
 				}
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path: "SqlSettings.DataSourceReplicas",
 					BaseVal: []string{
@@ -307,7 +307,7 @@ func TestDiff(t *testing.T) {
 				cfg.SqlSettings.DataSourceReplicas = nil
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path: "SqlSettings.DataSourceReplicas",
 					BaseVal: []string{
@@ -331,7 +331,7 @@ func TestDiff(t *testing.T) {
 				}
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
@@ -354,7 +354,7 @@ func TestDiff(t *testing.T) {
 				}
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
@@ -378,7 +378,7 @@ func TestDiff(t *testing.T) {
 				delete(cfg.PluginSettings.PluginStates, "com.mattermost.nps")
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
@@ -397,7 +397,7 @@ func TestDiff(t *testing.T) {
 				cfg.PluginSettings.PluginStates = nil
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path:    "PluginSettings.PluginStates",
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
@@ -428,7 +428,7 @@ func TestDiff(t *testing.T) {
 				}
 				return cfg
 			}(),
-			[]ConfigDiff{
+			ConfigDiffs{
 				{
 					Path: "PluginSettings.Plugins",
 					BaseVal: func() interface{} {
