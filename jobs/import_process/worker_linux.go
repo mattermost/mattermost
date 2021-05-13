@@ -55,7 +55,7 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusBadRequest)
 		}
 		mlog.Debug("Opening pipe", mlog.String("pipe", namedPipePath))
-		err = syscall.Mknod(namedPipePath, syscall.S_IFIFO|0666, 0)
+		err = syscall.Mkfifo(namedPipePath, 0666)
 		if err != nil {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 		}
