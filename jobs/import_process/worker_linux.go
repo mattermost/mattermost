@@ -61,7 +61,6 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 		}
 
 		go func(zipFile *zip.File, namedPipePath string, errors chan<- *model.AppError) {
-			mlog.Debug("Waiting for file to be read", mlog.String("pipe", namedPipePath))
 			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0666)
 			if err != nil {
 				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
@@ -78,6 +77,7 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 			defer fileAttachment.Close()
 			defer os.Remove(namedPipePath)
 
+			mlog.Debug("Waiting for file to be read", mlog.String("pipe", namedPipePath))
 			_, err = io.Copy(namedPipe, fileAttachment)
 			if err != nil {
 				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.write_file", nil, err.Error(), http.StatusBadRequest)
