@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -38,7 +39,7 @@ func (*groupmsgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	targetUsers := map[string]*model.User{}
 	targetUsersSlice := []string{args.UserId}
 	invalidUsernames := []string{}
@@ -82,7 +83,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 	}
 
 	if len(targetUsersSlice) == 2 {
-		return app.GetCommandProvider("msg").DoCommand(a, args, fmt.Sprintf("%s %s", targetUsers[targetUsersSlice[1]].Username, parsedMessage))
+		return app.GetCommandProvider("msg").DoCommand(a, c, args, fmt.Sprintf("%s %s", targetUsers[targetUsersSlice[1]].Username, parsedMessage))
 	}
 
 	if len(targetUsersSlice) < model.CHANNEL_GROUP_MIN_USERS {
@@ -126,7 +127,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		post.Message = parsedMessage
 		post.ChannelId = groupChannel.Id
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

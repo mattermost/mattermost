@@ -254,8 +254,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				err := a.sendNotificationEmail(notification, profileMap[id], team)
+				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
+					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+				}
+				if err := a.sendNotificationEmail(notification, profileMap[id], team, senderProfileImage); err != nil {
 					mlog.Warn("Unable to send notification email.", mlog.Err(err))
 				}
 			}

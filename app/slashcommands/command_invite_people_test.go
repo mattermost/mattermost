@@ -32,11 +32,11 @@ func TestInvitePeopleProvider(t *testing.T) {
 		UserId:    notTeamUser.Id,
 	}
 
-	actual := cmd.DoCommand(th.App, args, model.NewId()+"@simulator.amazonses.com")
+	actual := cmd.DoCommand(th.App, th.Context, args, model.NewId()+"@simulator.amazonses.com")
 	assert.Equal(t, "api.command_invite_people.permission.app_error", actual.Text)
 
 	// Test with required permissions.
 	args.UserId = th.BasicUser.Id
-	actual = cmd.DoCommand(th.App, args, model.NewId()+"@simulator.amazonses.com")
+	actual = cmd.DoCommand(th.App, th.Context, args, model.NewId()+"@simulator.amazonses.com")
 	assert.Equal(t, "api.command.invite_people.sent", actual.Text)
 }
