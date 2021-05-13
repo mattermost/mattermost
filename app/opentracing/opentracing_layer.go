@@ -13370,7 +13370,7 @@ func (a *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+func (a *OpenTracingAppLayer) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveConfig")
 
@@ -13382,14 +13382,14 @@ func (a *OpenTracingAppLayer) SaveConfig(newCfg *model.Config, sendConfigChangeC
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	resultVar0, resultVar1, resultVar2 := a.app.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (a *OpenTracingAppLayer) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {

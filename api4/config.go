@@ -143,13 +143,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(cfg, true)
+	_, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	cfg, mergeErr := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+	newCfg.Sanitize()
+
+	cfg, mergeErr := config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
@@ -253,15 +255,17 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(updatedCfg, true)
+	_, newCfg, err := c.App.SaveConfig(updatedCfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	newCfg.Sanitize()
+
 	auditRec.Success()
 
-	cfg, mergeErr = config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+	cfg, mergeErr = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},

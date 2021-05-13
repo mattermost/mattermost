@@ -57,19 +57,19 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(cfg, true)
+	_, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	cfg = c.App.GetSanitizedConfig()
+	newCfg.Sanitize()
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	w.Write([]byte(newCfg.ToJson()))
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,7 +106,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(updatedCfg, true)
+	_, _, err = c.App.SaveConfig(updatedCfg, true)
 	if err != nil {
 		c.Err = err
 		return
