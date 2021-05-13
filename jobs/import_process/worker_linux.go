@@ -53,14 +53,14 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 		if err != nil {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
 		}
-		mlog.Warn("Opening pipe", mlog.String("pipe", namedPipePath))
+		mlog.Debug("Opening pipe", mlog.String("pipe", namedPipePath))
 		err = syscall.Mknod(namedPipePath, syscall.S_IFIFO|0666, 0)
 		if err != nil {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		go func(zipFile *zip.File, namedPipePath string, errors chan<- *model.AppError) {
-			mlog.Warn("Waiting for file to be read", mlog.String("pipe", namedPipePath))
+			mlog.Debug("Waiting for file to be read", mlog.String("pipe", namedPipePath))
 			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0666)
 			if err != nil {
 				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, err.Error(), http.StatusBadRequest)
@@ -87,7 +87,7 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 			}
 
 			errors <- nil
-			mlog.Warn("Done with pipe", mlog.String("pipe", namedPipePath))
+			mlog.Debug("Done with pipe", mlog.String("pipe", namedPipePath))
 		}(zipFile, namedPipePath, errors)
 	}
 
