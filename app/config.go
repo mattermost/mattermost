@@ -423,11 +423,9 @@ func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage
 		s.StopMetricsServer()
 	}
 
-	newCfg = s.configStore.RemoveEnvironmentOverrides(newCfg)
-	oldCfg = s.configStore.RemoveEnvironmentOverrides(oldCfg)
-
 	if s.Cluster != nil {
-		err := s.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+		err := s.Cluster.ConfigChanged(s.configStore.RemoveEnvironmentOverrides(oldCfg),
+			s.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
 		if err != nil {
 			return nil, nil, err
 		}
