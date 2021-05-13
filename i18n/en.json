@@ -7460,7 +7460,7 @@
   },
   {
     "id": "import_process.worker.do_job.file_exists",
-    "translation": "Unable to process import: file does not exists."
+    "translation": "Unable to process import: file does not exist."
   },
   {
     "id": "import_process.worker.do_job.missing_file",
@@ -7481,6 +7481,10 @@
   {
     "id": "import_process.worker.do_job.unzip",
     "translation": "Unable to process import: failed to unzip file."
+  },
+  {
+    "id": "import_process.worker.do_job.write_file",
+    "translation": "Unable to process import: failed to write file."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
