@@ -1359,7 +1359,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		uid := model.NewId()
-		newTeam, err := th.App.CreateTeam(&model.Team{
+		newTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 			DisplayName: fmt.Sprintf("%s %d %s", commonRandom, i, uid),
 			Name:        fmt.Sprintf("%s-%d-%s", commonRandom, i, uid),
 			Type:        model.TEAM_OPEN,
@@ -1369,7 +1369,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		teams[i] = newTeam
 	}
 
-	foobarTeam, err := th.App.CreateTeam(&model.Team{
+	foobarTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.TEAM_OPEN,
@@ -1865,7 +1865,7 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
 	CheckNoError(t, resp)
 
-	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	err := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	if err != nil {
 		require.FailNow(t, err.Error())
 	}
@@ -2242,7 +2242,7 @@ func TestAddTeamMembers(t *testing.T) {
 	})
 	bot := th.CreateBotWithSystemAdminClient()
 
-	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	err := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
 	// Regular user can't add a member to a team they don't belong to.
@@ -3339,9 +3339,9 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	team, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
-	_, err = th.App.AddTeamMember(team.Id, user1.Id)
+	_, err = th.App.AddTeamMember(th.Context, team.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.AddTeamMember(team.Id, user2.Id)
+	_, err = th.App.AddTeamMember(th.Context, team.Id, user2.Id)
 	require.Nil(t, err)
 
 	group1 := th.CreateGroup()

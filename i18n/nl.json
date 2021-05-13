@@ -393,7 +393,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Stel uw status in naar afwezig"
+    "translation": "Stel je status in naar afwezig"
   },
   {
     "id": "api.command_away.name",
@@ -4252,71 +4252,71 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "ongeldige create at eigenschap voor groep."
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "ongeldige description eigenschap voor group."
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "ongeldige eigenschap voor weergavenaam voor groep."
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "ongeldige naameigenschap voor groep."
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "ongeldige eigenschap voor extern ID voor groep."
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "ongeldige broneigenschap voor groep."
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "ongeldige update eigenschap voor groep."
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "ongeldige groepsideigenschap voor groepslid."
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "ongeldige gebruikersid-eigenschap voor groepslid."
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "ongeldige groepsid-eigenschap voor groepssyncable."
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "ongeldig syncable id voor groepssyncable."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldig kanaalid."
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
-    "translation": "Aangemaakt op, moet een geldige tijd zijn"
+    "translation": "Aangemaakt op, moet een geldige tijd zijn."
   },
   {
     "id": "model.incoming_hook.description.app_error",
-    "translation": "Ongeldige omschrijving"
+    "translation": "Ongeldige omschrijving."
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig postpictogram."
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4920,7 +4920,7 @@
   },
   {
     "id": "model.group.name.invalid_length.app_error",
-    "translation": "Naam moet 1 tot 64 kleine letters bevatten"
+    "translation": "Naam moet 1 tot 64 kleine letters of cijfers bevatten."
   },
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
@@ -5116,7 +5116,7 @@
   },
   {
     "id": "model.guest.is_valid.email.app_error",
-    "translation": "Ongeldige e-mail"
+    "translation": "Ongeldige e-mail."
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
@@ -8776,19 +8776,19 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "De gecodeerde uitnodiging van een externe cluster"
+    "translation": "De gecodeerde uitnodiging van een beveiligde verbinding"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Uitnodiging van externe cluster"
+    "translation": "Uitnodiging van beveiligde verbinding"
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Externe cluster verschilt."
+    "translation": "beveiligde verbinding-id verschilt."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Kan externe cluster id {{.RemoteId}} niet vinden."
+    "translation": "Kan beveiligde verbinding-id {{.RemoteId}} niet vinden."
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -8808,11 +8808,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id van externe instantie om uitnodiging ongedaan te maken."
+    "translation": "Id van beveiligde verbinding om uitnodiging ongedaan te maken."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Verwijdert de uitnodiging van een externe instantie uit dit gedeelde kanaal"
+    "translation": "Verwijdert de uitnodiging van een beveiligde verbinding uit dit gedeelde kanaal"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -8840,27 +8840,27 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Externe `{{.RemoteId}}` niet langer uitgenodigd."
+    "translation": "Beveiligde verbinding `{{.RemoteId}}` niet langer uitgenodigd."
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "Extern | SiteURL | Omschrijving |Alleen Lezen | Uitnodiging Aanvaard | Online | Laatste Sync |"
+    "translation": "Beveiligde Verbinding | SiteURL |Alleen Lezen | Uitnodiging Aanvaard | Online | Laatste Sync |"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Moet een geldig externe cluster specificeren om het uitnodigen ongedaan te maken"
+    "translation": "Moet een geldige beveiligde verbinding specificeren om het uitnodigen ongedaan te maken"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Externe cluster id is ongeldig: {{.Error}}"
+    "translation": "Beveiligde verbinding-id is ongeldig: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id van een externe bestaande instantie. Zie `remote`opdracht om een externe instantie toe te voegen."
+    "translation": "Id van een bestaande beveiligde verbinding. Zie `secure-connection` commando om een beveiligde verbinding toe te voegen."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "De externe cluster is reeds uitgenodigd."
+    "translation": "De beveiligde verbinding is reeds uitgenodigd."
   },
   {
     "id": "api.command_share.permission_required",
@@ -8872,15 +8872,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Er zijn geen externen uitgenodigd voor dit gedeelde kanaal."
+    "translation": "Er zijn geen beveiligde verbindingen uitgenodigd voor dit gedeelde kanaal."
   },
   {
     "id": "api.command_share.name",
-    "translation": "delen"
+    "translation": "gedeeld-kanaal"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Moet een geldig externe cluster-id specificeren om uit te nodigen."
+    "translation": "Moet een geldig beveiligde verbindingsid specificeren om uit te nodigen."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8908,11 +8908,11 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Kon de status voor externe servers niet ophalen: {{.Error}}."
+    "translation": "Kon de status voor beveiligde verbindingen niet ophalen: {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Fout bij ophalen externe clusters: {{.Error}}"
+    "translation": "Fout bij ophalen beveiligde verbindingen: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
@@ -8940,11 +8940,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Gedeelde kanaal remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
+    "translation": "Beveiligde verbinding remote id `{{.RemoteId}}` bestaat niet voor dit kanaal."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Kan externe cluster niet uitnodigen voor een gedeeld kanaal dat ergens anders vandaan komt."
+    "translation": "Kan beveiligde verbinding niet uitnodigen voor een gedeeld kanaal dat ergens anders vandaan komt."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8960,7 +8960,7 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Toont de status voor alle externe clusters"
+    "translation": "Toont de status voor alle beveiligde verbindingen"
   },
   {
     "id": "api.command_remote.site_url_not_set",
@@ -8976,43 +8976,43 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id van externe cluster verwijderen"
+    "translation": "Id van beveiligde verbinding verwijderen"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Kon externe cluster niet verwijderen: {{.Error}}"
+    "translation": "Kon beveiligde verbinding niet verwijderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Verwijdert een externe cluster"
+    "translation": "Verwijdert een beveiligde verbinding"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Geen externe clusters gevonden."
+    "translation": "Geen beveiligde verbindingen gevonden."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Naam | SiteURL  | RemoteId   | Uitnodiging aanvaard | Online | Laatste Ping  |"
+    "translation": "|Beveiligde Verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Externe clusters toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Je hebt `{{.Permission}} toestemming nodig om externe clusters te beheren."
+    "translation": "Je hebt `{{.Permission}} toestemming nodig om beveiligde verbinding te beheren."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Een unieke naam voor de externe cluster"
+    "translation": "Een unieke naam voor de beveiligde verbinding"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Naam externe cluster"
+    "translation": "Naam beveiligde verbinding"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "extern"
+    "translation": "beveiligde verbinding"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -9036,7 +9036,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Een externe cluster uitnodigen"
+    "translation": "Een beveiligde verbinding aanmaken"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9048,7 +9048,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Kon externe clusters niet ophalen: {{.Error}}"
+    "translation": "Kon beveiligde verbindingen niet ophalen: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -9072,15 +9072,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Externe cluster id ontbreekt."
+    "translation": "beveiligde verbinding-id ontbreekt."
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Er is een fout opgetreden bij het ophalen van een externe cluster."
+    "translation": "Er is een fout opgetreden bij het ophalen van een beveiligde verbinding."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "We zijn een fout tegengekomen bij het bijwerken van de externe cluster."
+    "translation": "We zijn een fout tegengekomen bij het bijwerken van de beveiligde verbinding."
   },
   {
     "id": "sharedchannel.permalink.not_found",
@@ -9096,7 +9096,7 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Externe cluster met dezelfde url bestaat al."
+    "translation": "Beveiligde verbinding met dezelfde url bestaat al."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -9104,11 +9104,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "Er is al een externe cluster toegevoegd."
+    "translation": "Er is al een beveiligde verbinding toegevoegd."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Er is een fout opgetreden bij het bewaren van de externe cluster."
+    "translation": "Er is een fout opgetreden bij het bewaren van de beveiligde verbinding."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -9120,7 +9120,7 @@
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Er is een fout opgetreden bij het verwijderen van het externe cluster."
+    "translation": "Er is een fout opgetreden bij het verwijderen van de beveiligde verbinding."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -9168,11 +9168,11 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Een weergavenaam voor de externe cluster"
+    "translation": "Een weergavenaam voor de beveiligde verbinding"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Externe cluster weergavenaam"
+    "translation": "Beveiligde verbinding weergavenaam"
   },
   {
     "id": "app.user.send_auto_response.app_error",

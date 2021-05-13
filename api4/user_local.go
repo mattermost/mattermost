@@ -231,9 +231,9 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteUser(user)
+		err = c.App.PermanentDeleteUser(c.AppContext, user)
 	} else {
-		_, err = c.App.UpdateActive(user, false)
+		_, err = c.App.UpdateActive(c.AppContext, user, false)
 	}
 	if err != nil {
 		c.Err = err
@@ -248,7 +248,7 @@ func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.PermanentDeleteAllUsers(); err != nil {
+	if err := c.App.PermanentDeleteAllUsers(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -299,7 +299,7 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
-		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session().UserId, http.StatusForbidden)
+		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 
