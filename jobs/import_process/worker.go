@@ -4,6 +4,11 @@
 package import_process
 
 import (
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/jobs"
@@ -86,4 +91,70 @@ func (w *ImportProcessWorker) setJobError(job *model.Job, appError *model.AppErr
 	if err := w.app.Srv().Jobs.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", w.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
+}
+
+func (w *ImportProcessWorker) doJob(job *model.Job) {
+	if claimed, err := w.jobServer.ClaimJob(job); err != nil {
+		mlog.Warn("Worker experienced an error while trying to claim job",
+			mlog.String("worker", w.name),
+			mlog.String("job_id", job.Id),
+			mlog.String("error", err.Error()))
+		return
+	} else if !claimed {
+		return
+	}
+
+	importFileName, ok := job.Data["import_file"]
+	if !ok {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
+		w.setJobError(job, appError)
+		return
+	}
+
+	importFilePath := filepath.Join(*w.app.Config().ImportSettings.Directory, importFileName)
+	if ok, err := w.app.FileExists(importFilePath); err != nil {
+		w.setJobError(job, err)
+		return
+	} else if !ok {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.file_exists", nil, "", http.StatusBadRequest)
+		w.setJobError(job, appError)
+		return
+	}
+
+	importFileSize, appErr := w.app.FileSize(importFilePath)
+	if appErr != nil {
+		w.setJobError(job, appErr)
+		return
+	}
+
+	importFile, appErr := w.app.FileReader(importFilePath)
+	if appErr != nil {
+		w.setJobError(job, appErr)
+		return
+	}
+	defer importFile.Close()
+
+	// create a temporary dir to extract the zipped import file.
+	dir, err := ioutil.TempDir("", "import")
+	if err != nil {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusInternalServerError)
+		w.setJobError(job, appError)
+		return
+	}
+	defer os.RemoveAll(dir)
+
+	appErr = w.unzipAndImport(job, dir, importFile, importFileSize, importFilePath)
+	if appErr != nil {
+		w.setJobError(job, appErr)
+		return
+	}
+
+	// remove import file when done.
+	if appErr := w.app.RemoveFile(importFilePath); appErr != nil {
+		w.setJobError(job, appErr)
+		return
+	}
+
+	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
+	w.setJobSuccess(job)
 }
