@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/web"
 )
 
@@ -136,16 +135,14 @@ type Routes struct {
 }
 
 type API struct {
-	ConfigService       configservice.ConfigService
-	GetGlobalAppOptions app.AppOptionCreator
-	BaseRoutes          *Routes
+	app        app.AppIface
+	BaseRoutes *Routes
 }
 
-func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func Init(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -301,11 +298,10 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	return api
 }
 
-func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -396,7 +392,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.ConfigService, w, r)
+	web.Handle404(api.app, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK

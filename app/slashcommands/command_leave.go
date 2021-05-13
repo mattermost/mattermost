@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -33,7 +34,7 @@ func (*LeaveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*LeaveProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LeaveProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
@@ -45,7 +46,7 @@ func (*LeaveProvider) DoCommand(a *app.App, args *model.CommandArgs, message str
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	err = a.LeaveChannel(args.ChannelId, args.UserId)
+	err = a.LeaveChannel(c, args.ChannelId, args.UserId)
 	if err != nil {
 		if channel.Name == model.DEFAULT_CHANNEL {
 			return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

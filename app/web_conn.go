@@ -104,14 +104,14 @@ type CheckConnResult struct {
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
 // and if so, accordingly populates the other fields of the webconn.
-func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConnConfig, error) {
+func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal string) (*WebConnConfig, error) {
 	if !model.IsValidId(cfg.ConnectionID) {
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
 	// TODO: the method should internally forward the request
 	// to the cluster if it does not have it.
-	res := a.CheckWebConn(a.Session().UserId, cfg.ConnectionID)
+	res := a.CheckWebConn(s.UserId, cfg.ConnectionID)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
 		// or server restart. In that case, we set a new one.
