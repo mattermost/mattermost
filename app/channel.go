@@ -2711,16 +2711,10 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 
-			teamIDs := make(map[string]struct{}, len(channelIDs))
+			timestamp := model.GetMillis()
 			for _, channelID := range channelIDs {
-				c, err := a.GetChannel(channelID)
-				if err != nil {
-					return nil, err
-				}
-				teamIDs[c.TeamId] = struct{}{}
-			}
-			for teamID := range teamIDs {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", channelID, userID, nil)
+				message.Add("timestamp", timestamp)
 				a.Publish(message)
 			}
 		}
