@@ -134,7 +134,7 @@ const (
 	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
 	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
-	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = ""
 	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE         = ""
@@ -827,22 +827,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `access:"environment_high_availability,write_restrictable"`
-	ClusterName                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	OverrideHostname                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	NetworkInterface                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	BindAddress                        *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	AdvertiseAddress                   *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseIpAddress                       *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	UseExperimentalGossip              *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableGossipCompression            *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	EnableExperimentalGossipEncryption *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	ReadOnlyConfig                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	StreamingPort                      *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConns                       *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	MaxIdleConnsPerHost                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
-	IdleConnTimeoutMilliseconds        *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	Enable                                      *bool   `access:"environment_high_availability,write_restrictable"`
+	ClusterName                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	NetworkInterface                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	BindAddress                                 *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	AdvertiseAddress                            *string `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	UseIpAddress                                *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	DEPRECATED_DO_NOT_USE_UseExperimentalGossip *bool   `json:"UseExperimentalGossip" access:"environment_high_availability,write_restrictable,cloud_restrictable"` // Deprecated: do not use
+	EnableGossipCompression                     *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	EnableExperimentalGossipEncryption          *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	ReadOnlyConfig                              *bool   `access:"environment_high_availability,write_restrictable,cloud_restrictable"`
+	GossipPort                                  *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	StreamingPort                               *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConns                                *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConnsPerHost                         *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
+	IdleConnTimeoutMilliseconds                 *int    `access:"environment_high_availability,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -874,8 +874,8 @@ func (s *ClusterSettings) SetDefaults() {
 		s.UseIpAddress = NewBool(true)
 	}
 
-	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(true)
+	if s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip == nil {
+		s.DEPRECATED_DO_NOT_USE_UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -2301,6 +2301,7 @@ type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance_compliance_monitoring"`
 	Directory   *string `access:"compliance_compliance_monitoring"` // telemetry: none
 	EnableDaily *bool   `access:"compliance_compliance_monitoring"`
+	BatchSize   *int    `access:"compliance_compliance_monitoring"` // telemetry: none
 }
 
 func (s *ComplianceSettings) SetDefaults() {
@@ -2314,6 +2315,10 @@ func (s *ComplianceSettings) SetDefaults() {
 
 	if s.EnableDaily == nil {
 		s.EnableDaily = NewBool(false)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(30000)
 	}
 }
 
@@ -3138,7 +3143,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"` // telemetry: none
+	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
 }

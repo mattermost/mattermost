@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -41,7 +42,8 @@ func TestCloudKeyRequired(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 	c := &Context{
-		App: th.App,
+		App:        th.App,
+		AppContext: &request.Context{},
 	}
 
 	c.CloudKeyRequired()
@@ -69,7 +71,7 @@ func TestMfaRequired(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 
-	th.App.SetSession(&model.Session{Id: "abc", UserId: "userid"})
+	th.Context.SetSession(&model.Session{Id: "abc", UserId: "userid"})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = false
@@ -79,7 +81,8 @@ func TestMfaRequired(t *testing.T) {
 	})
 
 	c := &Context{
-		App: th.App,
+		App:        th.App,
+		AppContext: th.Context,
 	}
 
 	c.MfaRequired()

@@ -5310,8 +5310,8 @@
     "translation": "Bleve 索引工作者解析中止時間時失敗。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "無法從資料庫取得最老的訊息。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "無法從資料庫取得最老的實體 (使用者、頻道或訊息)。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6726,10 +6726,6 @@
     "translation": "無法取得角色"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "無法取得角色"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "無法取得角色"
   },
@@ -6836,10 +6832,6 @@
   {
     "id": "ent.jobs.do_job.batch_size.parse_error",
     "translation": "無法解析訊息匯出工作 BatchSize。"
-  },
-  {
-    "id": "ent.cluster.model.client.connecting.app_error",
-    "translation": "連接伺服器時遇到錯誤"
   },
   {
     "id": "ent.cluster.404.app_error",

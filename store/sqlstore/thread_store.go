@@ -142,9 +142,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	threadsChan := make(chan store.StoreResult, 1)
 	go func() {
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(Posts.Id)").
+			Select("COUNT(DISTINCT(Posts.RootId))").
 			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
 			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
@@ -306,6 +306,21 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	return result, nil
 }
+
+func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
+	var users []string
+	query, args, _ := s.getQueryBuilder().
+		Select("ThreadMemberships.UserId").
+		From("ThreadMemberships").
+		Where(sq.Eq{"PostId": threadID}).ToSql()
+	_, err := s.GetReplica().Select(&users, query, args...)
+
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
 	type JoinedThread struct {
 		PostId         string
@@ -472,7 +487,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) (*model.ThreadMembership, error) {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error) {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if memebership exists, update it if:
@@ -518,13 +533,15 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 		return nil, err
 	}
 
-	thread, err := s.Get(postId)
-	if err != nil {
-		return nil, err
-	}
-	if !thread.Participants.Contains(userId) {
-		thread.Participants = append(thread.Participants, userId)
-		_, err = s.Update(thread)
+	if updateParticipants {
+		thread, err2 := s.Get(postId)
+		if err2 != nil {
+			return nil, err2
+		}
+		if !thread.Participants.Contains(userId) {
+			thread.Participants = append(thread.Participants, userId)
+			_, err = s.Update(thread)
+		}
 	}
 	return membership, err
 }

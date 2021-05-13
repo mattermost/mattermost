@@ -23,6 +23,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	RetentionPolicy() RetentionPolicyStore
 	Thread() ThreadStore
 	User() UserStore
 	Bot() BotStore
@@ -74,29 +75,45 @@ type Store interface {
 	Context() context.Context
 }
 
+type RetentionPolicyStore interface {
+	Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	Get(id string) (*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error)
+	GetCount() (int64, error)
+	Delete(id string) error
+	GetChannels(policyId string, offset, limit int) (model.ChannelListWithTeamData, error)
+	GetChannelsCount(policyId string) (int64, error)
+	AddChannels(policyId string, channelIds []string) error
+	RemoveChannels(policyId string, channelIds []string) error
+	GetTeams(policyId string, offset, limit int) ([]*model.Team, error)
+	GetTeamsCount(policyId string) (int64, error)
+	AddTeams(policyId string, teamIds []string) error
+	RemoveTeams(policyId string, teamIds []string) error
+	GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error)
+	GetTeamPoliciesCountForUser(userID string) (int64, error)
+	GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error)
+	GetChannelPoliciesCountForUser(userID string) (int64, error)
+}
+
 type TeamStore interface {
 	Save(team *model.Team) (*model.Team, error)
 	Update(team *model.Team) (*model.Team, error)
 	Get(id string) (*model.Team, error)
 	GetByName(name string) (*model.Team, error)
 	GetByNames(name []string) ([]*model.Team, error)
-	SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error)
-	SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error)
-	SearchOpen(term string) ([]*model.Team, error)
-	SearchPrivate(term string) ([]*model.Team, error)
+	SearchAll(opts *model.TeamSearch) ([]*model.Team, error)
+	SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error)
+	SearchOpen(opts *model.TeamSearch) ([]*model.Team, error)
+	SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error)
 	GetAll() ([]*model.Team, error)
-	GetAllPage(offset int, limit int) ([]*model.Team, error)
+	GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error)
 	GetAllPrivateTeamListing() ([]*model.Team, error)
-	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error)
-	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
-	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	PermanentDelete(teamID string) error
-	AnalyticsTeamCount(includeDeleted bool) (int64, error)
-	AnalyticsPublicTeamCount() (int64, error)
-	AnalyticsPrivateTeamCount() (int64, error)
+	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
@@ -255,6 +272,8 @@ type ChannelMemberHistoryStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 type ThreadStore interface {
+	GetThreadFollowers(threadID string) ([]string, error)
+
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
@@ -272,7 +291,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp bool) (*model.ThreadMembership, error)
+	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
@@ -317,6 +336,7 @@ type PostStore interface {
 	GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error)
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
+	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error)
 }
 
@@ -450,8 +470,8 @@ type ComplianceStore interface {
 	Update(compliance *model.Compliance) (*model.Compliance, error)
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
-	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error)
-	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
+	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
+	MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -580,12 +600,14 @@ type StatusStore interface {
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
+	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 }
 
 type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, error)
 	Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
+	GetFromMaster(id string) (*model.FileInfo, error)
 	GetByIds(ids []string) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
@@ -668,7 +690,7 @@ type RoleStore interface {
 	Save(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
-	GetByName(name string) (*model.Role, error)
+	GetByName(ctx context.Context, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
@@ -747,13 +769,17 @@ type GroupStore interface {
 	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
 	//
 	// Typically since will be the last successful group sync time.
-	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error)
+	// If includeRemovedMembers is true, then team members who left or were removed from the team will
+	// be included; otherwise, they will be excluded.
+	TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error)
 
 	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 	//
 	// Typically since will be the last successful group sync time.
-	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error)
+	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
+	// be included; otherwise, they will be excluded.
+	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error)
 
 	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error)
@@ -847,17 +873,23 @@ type SharedChannelStore interface {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup    string
-	IncludeDeleted          bool
-	Deleted                 bool
-	ExcludeChannelNames     []string
-	TeamIds                 []string
-	GroupConstrained        bool
-	ExcludeGroupConstrained bool
-	Public                  bool
-	Private                 bool
-	Page                    *int
-	PerPage                 *int
+	Term                     string
+	NotAssociatedToGroup     string
+	IncludeDeleted           bool
+	Deleted                  bool
+	ExcludeChannelNames      []string
+	TeamIds                  []string
+	GroupConstrained         bool
+	ExcludeGroupConstrained  bool
+	PolicyID                 string
+	ExcludePolicyConstrained bool
+	IncludePolicyID          bool
+	IncludeTeamInfo          bool
+	CountOnly                bool
+	Public                   bool
+	Private                  bool
+	Page                     *int
+	PerPage                  *int
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {
