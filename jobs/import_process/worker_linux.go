@@ -29,35 +29,59 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 		return appError
 	}
 
-	var jsonFile io.ReadCloser
-	countFiles := len(zipReader.File)
+	countFiles := len(zipReader.File) - 1 // -1 because the JSONL file is handled differently
 	errors := make(chan *model.AppError, countFiles)
+
+	jsonFile, appErr := w.unzipToPipes(zipReader, unpackDirectory, errors)
+	if appErr != nil {
+		return appErr
+	}
+
+	// do the actual import.
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(unpackDirectory, app.ExportDataDir))
+	if appErr != nil {
+		job.Data["line_number"] = strconv.Itoa(lineNumber)
+		return appErr
+	}
+
+	for completed := 0; completed < countFiles; completed++ {
+		appErr := <-errors
+		if appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
+func (w *ImportProcessWorker) unzipToPipes(zipReader *zip.Reader, unpackDirectory string, errors chan *model.AppError) (io.ReadCloser, *model.AppError) {
+	var jsonFile io.ReadCloser
+	var err error
 	for _, zipFile := range zipReader.File {
 		if jsonFile == nil && filepath.Ext(zipFile.Name) == ".jsonl" {
 			jsonFile, err = zipFile.Open()
 			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusBadRequest)
 			}
 			continue
 		}
 		zipFileName, err := filepath.Abs(zipFile.Name)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, err.Error(), http.StatusBadRequest)
 		}
 		if strings.Contains(zipFileName, "..") {
 			// this check is required to avoid a "zip slip" vulnerability
 			// https://cwe.mitre.org/data/definitions/22.html
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, "illegal .. found in zipfile file path", http.StatusBadRequest)
+			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.unzip", nil, "illegal .. found in zipfile file path", http.StatusBadRequest)
 		}
 		namedPipePath := filepath.Join(unpackDirectory, zipFileName)
 		err = os.MkdirAll(filepath.Dir(namedPipePath), 0700)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusBadRequest)
 		}
 		mlog.Debug("Opening pipe", mlog.String("pipe", namedPipePath))
 		err = syscall.Mkfifo(namedPipePath, 0666)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		go func(zipFile *zip.File, namedPipePath string, errors chan<- *model.AppError) {
@@ -88,19 +112,5 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 			mlog.Debug("Done with pipe", mlog.String("pipe", namedPipePath))
 		}(zipFile, namedPipePath, errors)
 	}
-
-	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(unpackDirectory, app.ExportDataDir))
-	if appErr != nil {
-		job.Data["line_number"] = strconv.Itoa(lineNumber)
-		return appErr
-	}
-
-	for completed := 0; completed < countFiles; completed++ {
-		appErr := <-errors
-		if appErr != nil {
-			return appErr
-		}
-	}
-	return nil
+	return jsonFile, nil
 }
