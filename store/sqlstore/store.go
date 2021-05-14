@@ -351,7 +351,17 @@ func (ss *SqlStore) Context() context.Context {
 }
 
 func (ss *SqlStore) initConnection() {
-	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	dataSource := *ss.settings.DataSource
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		var err error
+		dataSource, err = ss.resetReadTimeout(*ss.settings.DataSource)
+		if err != nil {
+			mlog.Critical("Failed to reset read timeout from datasource.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
+	ss.master = setupConnection("master", dataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
@@ -1487,6 +1497,15 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 	}
 
 	return dataSource, nil
+}
+
+func (ss *SqlStore) resetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }
 
 type mattermConverter struct{}
