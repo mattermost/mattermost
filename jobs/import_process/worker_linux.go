@@ -91,6 +91,7 @@ func (w *ImportProcessWorker) unzipToPipes(zipReader *zip.Reader, unpackDirector
 				return
 			}
 			defer namedPipe.Close()
+			defer os.Remove(namedPipePath)
 
 			fileAttachment, err := zipFile.Open()
 			if err != nil {
@@ -99,7 +100,6 @@ func (w *ImportProcessWorker) unzipToPipes(zipReader *zip.Reader, unpackDirector
 			}
 
 			defer fileAttachment.Close()
-			defer os.Remove(namedPipePath)
 
 			mlog.Debug("Waiting for file to be read", mlog.String("pipe", namedPipePath))
 			_, err = io.Copy(namedPipe, fileAttachment)
