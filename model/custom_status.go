@@ -12,14 +12,12 @@ import (
 const (
 	UserPropsKeyCustomStatus = "customStatus"
 
-	CustomStatusTextMaxRunes    = 100
-	MaxRecentCustomStatuses     = 5
-	DefaultCustomStatusEmoji    = "speech_balloon"
-	DefaultCustomStatusDuration = "dont_clear"
+	CustomStatusTextMaxRunes = 100
+	MaxRecentCustomStatuses  = 5
+	DefaultCustomStatusEmoji = "speech_balloon"
 )
 
 var validCustomStatusDuration = map[string]bool{
-	"dont_clear":     true,
 	"thirty_minutes": true,
 	"one_hour":       true,
 	"four_hours":     true,
@@ -40,8 +38,8 @@ func (cs *CustomStatus) PreSave() {
 		cs.Emoji = DefaultCustomStatusEmoji
 	}
 
-	if cs.Duration == "" {
-		cs.Duration = DefaultCustomStatusDuration
+	if cs.Duration == "" && !cs.ExpiresAt.Before(time.Now()) {
+		cs.Duration = "date_and_time"
 	}
 
 	runes := []rune(cs.Text)
@@ -56,14 +54,16 @@ func (cs *CustomStatus) ToJson() string {
 	return string(b)
 }
 
-func (cs *CustomStatus) IsDurationValid() bool {
-	return cs.Duration == "" || validCustomStatusDuration[cs.Duration]
-}
+func (cs *CustomStatus) AreDurationAndExpirationTimeValid() bool {
+	if cs.Duration == "" && (cs.ExpiresAt.IsZero() || !cs.ExpiresAt.Before(time.Now())) {
+		return true
+	}
 
-func (cs *CustomStatus) IsExpirationTimeValid() bool {
-	isStatusDurationEmpty := cs.Duration == "" || cs.Duration == "dont_clear"
-	isStatusAlreadyExpired := cs.ExpiresAt.IsZero() || cs.ExpiresAt.Before(time.Now())
-	return isStatusDurationEmpty || !isStatusAlreadyExpired
+	if validCustomStatusDuration[cs.Duration] && !cs.ExpiresAt.Before(time.Now()) {
+		return true
+	}
+
+	return false
 }
 
 func CustomStatusFromJson(data io.Reader) *CustomStatus {

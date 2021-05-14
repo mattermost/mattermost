@@ -58,9 +58,8 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 	}
 
 	customStatus := &model.CustomStatus{
-		Emoji:    model.DefaultCustomStatusEmoji,
-		Text:     message,
-		Duration: model.DefaultCustomStatusDuration,
+		Emoji: model.DefaultCustomStatusEmoji,
+		Text:  message,
 	}
 	firstEmojiLocations := model.ALL_EMOJI_PATTERN.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
