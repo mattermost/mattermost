@@ -2804,6 +2804,22 @@ func (_m *API) RemoveTeamIcon(teamID string) *model.AppError {
 	return r0
 }
 
+// RequestTrialLicense provides a mock function with given fields: requesterID, users, termsAccepted, receiveEmailsAccepted
+func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	ret := _m.Called(requesterID, users, termsAccepted, receiveEmailsAccepted)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int, bool, bool) *model.AppError); ok {
+		r0 = rf(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SaveConfig provides a mock function with given fields: config
 func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	ret := _m.Called(config)
