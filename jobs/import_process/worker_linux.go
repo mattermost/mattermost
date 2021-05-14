@@ -29,7 +29,7 @@ func (w *ImportProcessWorker) unzipAndImport(job *model.Job, unpackDirectory str
 		return appError
 	}
 
-	countFiles := len(zipReader.File)
+	countFiles := len(zipReader.File) - 1 // -1 because the JSONL file is handled differently
 	errors := make(chan *model.AppError, countFiles)
 
 	jsonFile, appErr := w.unzipToPipes(zipReader, unpackDirectory, errors)
