@@ -13,8 +13,9 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
-	// DND Schedule update 
-	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(updateStatusSchedule)).Methods("PUT")
+	// DND Schedule update
+	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(getStatusSchedule)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/schedule/periods", api.ApiSessionRequired(updateStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
 
@@ -78,6 +79,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 유저아이디, 요일, 시간 등등
 	status := model.StatusFromJson(r.Body)
 	if status == nil {
 		c.SetInvalidParam("status")
@@ -115,6 +117,32 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	status := model.StatusFromJson(r.Body)
+	if status == nil {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	// The user being updated in the payload must be the same one as indicated in the URL.
+	if status.UserId != c.Params.UserId {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	
+	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.Time, status.DayOfTheWeek)
 }
 
 func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
