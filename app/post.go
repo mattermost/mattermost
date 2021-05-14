@@ -1578,10 +1578,18 @@ func (a *App) countMentionsInRootPostsFromPost(user *model.User, post *model.Pos
 		true, // Assume channel mentions are always allowed for simplicity
 	)
 
+	otherPosts := make(map[string]*model.Post)
+
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
-	otherPosts := make(map[string]*model.Post)
+
 	count := 0
+	if post.RootId == "" {
+		if isPostMention(user, post, keywords, otherPosts, mentionedByThread, false) {
+			count += 1
+		}
+	}
+
 	page := 0
 	perPage := 200
 	for {
