@@ -125,7 +125,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true, false)
+	rp = c.App.PreparePostForClient(rp, true, false, c.AppContext.Session().UserId)
 	w.Write([]byte(rp.ToJson()))
 }
 
@@ -211,7 +211,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
-	clientPostList := c.App.PreparePostListForClient(list)
+	clientPostList := c.App.PreparePostListForClient(list, c.AppContext.Session().UserId)
 
 	w.Write([]byte(clientPostList.ToJson()))
 }
@@ -267,7 +267,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList, collapsedThreads)
 	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
 
-	clientPostList := c.App.PreparePostListForClient(postList)
+	clientPostList := c.App.PreparePostListForClient(postList, c.AppContext.Session().UserId)
 
 	if etag != "" {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
@@ -329,7 +329,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(pl, c.AppContext.Session().UserId).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -362,7 +362,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	post = c.App.PreparePostForClient(post, false, false)
+	post = c.App.PreparePostForClient(post, false, false, c.AppContext.Session().UserId)
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
@@ -452,7 +452,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(list)
+	clientPostList := c.App.PreparePostListForClient(list, c.AppContext.Session().UserId)
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
 
@@ -523,7 +523,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(results.PostList)
+	clientPostList := c.App.PreparePostListForClient(results.PostList, c.AppContext.Session().UserId)
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
