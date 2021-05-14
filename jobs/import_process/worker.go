@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,7 +22,8 @@ import (
 )
 
 func init() {
-	app.RegisterJobsImportProcessInterface(func(a *app.App) tjobs.ImportProcessInterface {
+	app.RegisterJobsImportProcessInterface(func(s *app.Server) tjobs.ImportProcessInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ImportProcessInterfaceImpl{a}
 	})
 }
@@ -37,6 +39,7 @@ type ImportProcessWorker struct {
 	jobsChan    chan model.Job
 	jobServer   *jobs.JobServer
 	app         *app.App
+	appContext  *request.Context
 }
 
 func (i *ImportProcessInterfaceImpl) MakeWorker() model.Worker {
@@ -47,6 +50,7 @@ func (i *ImportProcessInterfaceImpl) MakeWorker() model.Worker {
 		jobsChan:    make(chan model.Job),
 		jobServer:   i.app.Srv().Jobs,
 		app:         i.app,
+		appContext:  &request.Context{},
 	}
 }
 
@@ -165,7 +169,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
+	appErr, lineNumber := w.app.BulkImportWithPath(w.appContext, jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)

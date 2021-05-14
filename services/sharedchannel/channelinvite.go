@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -196,7 +197,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	}
 
 	// check user perms?
-	channel, appErr := scs.app.CreateChannelWithUser(channelNew, rc.CreatorId)
+	channel, appErr := scs.app.CreateChannelWithUser(request.EmptyContext(), channelNew, rc.CreatorId)
 	if appErr != nil {
 		return nil, fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
 	}
@@ -209,7 +210,7 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel
 		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
 
-	channel, err := scs.app.GetOrCreateDirectChannel(invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
+	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(), invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
 	if err != nil {
 		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, err)
 	}
