@@ -79,13 +79,13 @@ func (w *ImportProcessWorker) unzipToPipes(zipReader *zip.Reader, unpackDirector
 			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.tmp_dir", nil, err.Error(), http.StatusBadRequest)
 		}
 		mlog.Debug("Opening pipe", mlog.String("pipe", namedPipePath))
-		err = syscall.Mkfifo(namedPipePath, 0666)
+		err = syscall.Mkfifo(namedPipePath, 0600)
 		if err != nil {
 			return nil, model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		go func(zipFile *zip.File, namedPipePath string, errors chan<- *model.AppError) {
-			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0666)
+			namedPipe, err := os.OpenFile(namedPipePath, os.O_WRONLY, 0600)
 			if err != nil {
 				errors <- model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusBadRequest)
 				return
