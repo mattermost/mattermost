@@ -33,6 +33,20 @@ func (m *MockLogger) EXPECT() *MockLoggerMockRecorder {
 	return m.recorder
 }
 
+// Context mocks base method
+func (m *MockLogger) Context() logger.LogContext {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Context")
+	ret0, _ := ret[0].(logger.LogContext)
+	return ret0
+}
+
+// Context indicates an expected call of Context
+func (mr *MockLoggerMockRecorder) Context() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Context", reflect.TypeOf((*MockLogger)(nil).Context))
+}
+
 // Debugf mocks base method
 func (m *MockLogger) Debugf(arg0 string, arg1 ...interface{}) {
 	m.ctrl.T.Helper()
@@ -127,4 +141,18 @@ func (m *MockLogger) With(arg0 logger.LogContext) logger.Logger {
 func (mr *MockLoggerMockRecorder) With(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockLogger)(nil).With), arg0)
+}
+
+// WithError mocks base method
+func (m *MockLogger) WithError(arg0 error) logger.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithError", arg0)
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+// WithError indicates an expected call of WithError
+func (mr *MockLoggerMockRecorder) WithError(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithError", reflect.TypeOf((*MockLogger)(nil).WithError), arg0)
 }

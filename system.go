@@ -3,6 +3,7 @@ package pluginapi
 import (
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
@@ -68,4 +69,20 @@ func (s *SystemService) GetSystemInstallDate() (time.Time, error) {
 func (s *SystemService) GetDiagnosticID() string {
 	// TODO: Consider deprecating/rewriting in favor of just using GetUnsanitizedConfig().
 	return s.api.GetDiagnosticId()
+}
+
+// RequestTrialLicense requests a trial license and installs it in the server.
+// If the server version is lower than 5.36.0, an error is returned.
+//
+// Minimum server version: 5.36
+func (s *SystemService) RequestTrialLicense(requesterID string, users int, termsAccepted, receiveEmailsAccepted bool) error {
+	currentVersion := semver.MustParse(s.api.GetServerVersion())
+	requiredVersion := semver.MustParse("5.36.0")
+
+	if currentVersion.LT(requiredVersion) {
+		return errors.Errorf("current server version is lower than 5.36")
+	}
+
+	err := s.api.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	return normalizeAppErr(err)
 }

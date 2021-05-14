@@ -76,3 +76,30 @@ func TestGetManifest(t *testing.T) {
 		require.Nil(t, m)
 	})
 }
+
+func TestRequestTrialLicense(t *testing.T) {
+	t.Run("Server version incompatible", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		api.On("GetServerVersion").Return("5.35.0")
+		err := client.System.RequestTrialLicense("requesterID", 10, true, true)
+
+		require.Error(t, err)
+		require.Equal(t, "current server version is lower than 5.36", err.Error())
+	})
+
+	t.Run("Server version compatible", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		api.On("GetServerVersion").Return("5.36.0")
+		api.On("RequestTrialLicense", "requesterID", 10, true, true).Return(nil)
+
+		err := client.System.RequestTrialLicense("requesterID", 10, true, true)
+
+		require.NoError(t, err)
+	})
+}
