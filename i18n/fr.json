@@ -987,33 +987,6 @@
     "translation": "L'envoi d'e-mails par lot a été désactivé par l'administrateur système."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Message personnel de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Aller au message"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Message de groupe de "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification de "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Vous avez une nouvelle notification.",
-      "other": "Vous avez {{.Count}} nouvelles notifications."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
@@ -2941,62 +2914,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Le nom d'équipe est manquant de la liste des canaux de l'utilisateur."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Vous avez reçu un nouveau message personnel."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Vous avez reçu un nouveau message personnel de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Vous avez reçu un nouveau message de groupe."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Vous avez reçu un nouveau message de groupe de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Vous avez une nouvelle notification."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Vous avez reçu une nouvelle notification de @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canal : {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Day}} {{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.subject.direct.full",

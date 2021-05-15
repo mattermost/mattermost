@@ -2152,60 +2152,8 @@
     "translation": "[{{.SiteName}}] Új értesítés {{.Year}}. {{.Month}} {{.Day}}. óta"
   },
   {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Csatorna: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Csatorna: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
     "id": "app.notification.body.text.direct.full",
     "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Új értesítése van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Önnek új értesítése van."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Új csoport üzenete van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Új csoport üzenete van."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Új közvetlen üzenete van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Új közvetlen üzenete van."
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
@@ -7017,33 +6965,6 @@
       "one": "[{{.SiteName}}] Új értesítés {{.Year}}. {{.Month}} {{.Day}}. óta",
       "other": "[{{.SiteName}}] Új értesítések {{.Year}}. {{.Month}} {{.Day}}. óta"
     }
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Önnek új értesítése van.",
-      "other": "Önnek {{.Count}} új értesítése van."
-    }
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Értesítés innen "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Csoport üzenet tőle: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Ugrás a bejegyzésre"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Közvetlen üzenet tőle: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
