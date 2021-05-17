@@ -341,7 +341,7 @@ func (a *App) InTimeSpan(start, end, check time.Time) bool {
 	return check.Before(start)
 }
 
-func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool) {
+func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode int64) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}

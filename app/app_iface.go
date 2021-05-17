@@ -316,7 +316,7 @@ type AppIface interface {
 	SetStatusDoNotDisturbTimed(userId string, endtime int64)
 	// SetStatusSchedule takes weekdays information including start time and end time in unix epoch format in UTC 
 	// and saves data
-	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool)
+	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode int64)
 	// SetStatusDoNotDisturbSchedule set dnd by current time, current day of the week and notification schedule
 	SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string)	
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates

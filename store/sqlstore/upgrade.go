@@ -1087,7 +1087,7 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SaturdayEnd", "VARCHAR(32)", "VARCHAR(32)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SundayStart", "VARCHAR(32)", "VARCHAR(32)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "SundayEnd", "VARCHAR(32)", "VARCHAR(32)")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "Mode", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "Mode", "BIGINT", "BIGINT")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "CurrentTime", "VARCHAR(16)", "VARCHAR(16)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DayOfTheWeek", "VARCHAR(16)", "VARCHAR(16)")
 	//saveSchemaVersion(sqlStore, Version5360)

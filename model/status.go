@@ -41,7 +41,7 @@ type Status struct {
 	SaturdayEnd	   string `json:"saturday_end"`
 	SundayStart	   string `json:"sunday_start"`
 	SundayEnd	   string `json:"sunday_end"`
-	Mode		   bool   `json:"mode"`
+	Mode		   int64   `json:"mode"`
 	CurrentTime    string `json:"current_time"`
 	DayOfTheWeek   string `json:"day_of_the_week"`
 }
