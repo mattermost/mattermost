@@ -2613,18 +2613,18 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		require.Equal(t, channelUnread.MentionCount, int64(3))
+		require.Equal(t, int64(3), channelUnread.MentionCount)
 		//  MentionCountRoot should be zero so that supported clients don't show a mention badge for the channel
-		require.Equal(t, channelUnread.MentionCountRoot, int64(0))
+		require.Equal(t, int64(0), channelUnread.MentionCountRoot)
 
-		require.Equal(t, channelUnread.MsgCount, int64(5))
+		require.Equal(t, int64(5), channelUnread.MsgCount)
 		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
 
 		thread, err := th.App.GetThreadForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost1.Id, false)
 		require.Nil(t, err)
-		require.Equal(t, thread.UnreadMentions, int64(2))
-		require.Equal(t, thread.UnreadReplies, int64(3))
+		require.Equal(t, int64(2), thread.UnreadMentions)
+		require.Equal(t, int64(3), thread.UnreadReplies)
 	})
 
 	t.Run("Mark root post as unread", func(t *testing.T) {
@@ -2633,10 +2633,10 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		require.Equal(t, channelUnread.MentionCount, int64(4))
-		require.Equal(t, channelUnread.MentionCountRoot, int64(2))
+		require.Equal(t, int64(4), channelUnread.MentionCount)
+		require.Equal(t, int64(2), channelUnread.MentionCountRoot)
 
-		require.Equal(t, channelUnread.MsgCount, int64(7))
-		require.Equal(t, channelUnread.MsgCountRoot, int64(3))
+		require.Equal(t, int64(7), channelUnread.MsgCount)
+		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
 }
