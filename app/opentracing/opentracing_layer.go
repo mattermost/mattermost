@@ -14934,6 +14934,21 @@ func (a *OpenTracingAppLayer) SetStatusSchedule(userId, mondayStart, mondayEnd, 
 	a.app.SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd, mode)
 }
 
+func (a *OpenTracingAppLayer) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturbSchedule")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime)
+}
+
 func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userID string, activityAt int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusLastActivityAt")

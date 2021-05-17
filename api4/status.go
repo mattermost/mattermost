@@ -14,7 +14,7 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
 	// DND Schedule update
-	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(getStatusSchedule)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/schedule", api.ApiSessionRequired(getUserStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/schedule/periods", api.ApiSessionRequired(updateStatusSchedule)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
@@ -79,7 +79,6 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 유저아이디, 요일, 시간 등등
 	status := model.StatusFromJson(r.Body)
 	if status == nil {
 		c.SetInvalidParam("status")
@@ -137,12 +136,12 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 	
-	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.Time, status.DayOfTheWeek)
+	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.CurrentTime, status.DayOfTheWeek)
 }
 
 func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -163,7 +162,7 @@ func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

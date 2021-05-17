@@ -285,32 +285,32 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 }
 
 func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string) {
-	currentStatus, err := a.GetStatus(userId)
+	currentStatus, _ := a.GetStatus(userId)
 	startTime := ""
 	endTime := ""
 	
 	switch currentDayOfTheWeek {
 	case "mon":
-		startTime = currrentStatus.MondayStart
+		startTime = currentStatus.MondayStart
 		endTime 	= currentStatus.MondayEnd
 	case "tue":
-		startTime = currrentStatus.TuesdayStart
-		endTime 	= currrentStatus.TuesdayEnd
+		startTime = currentStatus.TuesdayStart
+		endTime 	= currentStatus.TuesdayEnd
 	case "wed":
-		startTime = currrentStatus.WendayStart
-		endTime 	= currrentStatus.MondayEnd
+		startTime = currentStatus.WednesdayStart
+		endTime 	= currentStatus.WednesdayEnd
 	case "thu":
-		startTime = currrentStatus.ThursdayStart
-		endTime 	= currrentStatus.ThursdayEnd
+		startTime = currentStatus.ThursdayStart
+		endTime 	= currentStatus.ThursdayEnd
 	case "fri":
-		startTime = currrentStatus.FridayStart
-		endTime 	= currrentStatus.FridayEnd
+		startTime = currentStatus.FridayStart
+		endTime 	= currentStatus.FridayEnd
 	case "sat":
-		startTime = currrentStatus.SaturdayStart
-		endTime 	= currrentStatus.SaturdayEnd
+		startTime = currentStatus.SaturdayStart
+		endTime 	= currentStatus.SaturdayEnd
 	case "sun":
-		startTime = currrentStatus.SundayStart
-		endTime 	= currrentStatus.SundayEnd
+		startTime = currentStatus.SundayStart
+		endTime 	= currentStatus.SundayEnd
 	}
 	
 	if startTime == "" && endTime == "" {
@@ -318,13 +318,13 @@ func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, current
 	}
 
 	newLayout := "15:04"
-	check, _ := time.Parse(newLayout, checkTime)
+	check, _ := time.Parse(newLayout, currentTime)
 	start, _ := time.Parse(newLayout, startTime)
 	end, _ := time.Parse(newLayout, endTime)
 
 	if currentStatus.Manual {
 		return
-	} else a.InTimeSpan(start, end, check) {
+	} else if a.InTimeSpan(start, end, check) {
 		a.SetStatusOnline(userId, true)
 	} else {
 		a.SetStatusDoNotDisturbScheduled(userId)

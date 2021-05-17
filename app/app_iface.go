@@ -317,6 +317,8 @@ type AppIface interface {
 	// SetStatusSchedule takes weekdays information including start time and end time in unix epoch format in UTC 
 	// and saves data
 	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode bool)
+	// SetStatusDoNotDisturbSchedule set dnd by current time, current day of the week and notification schedule
+	SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string)	
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
