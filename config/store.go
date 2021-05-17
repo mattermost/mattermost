@@ -292,6 +292,8 @@ func (s *Store) Load() error {
 	// Setting defaults allows us to accept partial config objects.
 	loadedCfg.SetDefaults()
 
+	// No need to clone here since the below call to applyEnvironmentMap
+	// already does that internally.
 	loadedCfgNoEnv := loadedCfg
 	fixConfig(loadedCfgNoEnv)
 
