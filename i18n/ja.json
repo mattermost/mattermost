@@ -986,32 +986,6 @@
     "translation": "電子メールバッチ処理はシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "ダイレクトメッセージ from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "投稿へ行く"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "グループメッセージ from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "通知 from "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "{{.Count}} 件の新しい通知があります。"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
@@ -2936,62 +2910,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "ユーザーのチームメンバーシップにチーム名が存在しません。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "新しいダイレクトメッセージがあります。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}} からの新しいダイレクトメッセージがあります"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "新しいグループメッセージがあります。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}} からの新しいグループメッセージがあります"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "新しい通知があります。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}} からの新しい通知があります"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "チャンネル: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "チャンネル: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.direct.full",
