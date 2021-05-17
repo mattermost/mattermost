@@ -986,32 +986,6 @@
     "translation": "系统管理员禁用了批量电子邮件。"
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "私信来自 "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "转至发文"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "群组消息来自 "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "通知来自 "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "您有新通知。您有 {{.Count}} 条新通知。"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知"
@@ -2936,62 +2910,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "用户的团队成员资格中缺少团队名称。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "你有一条新私信。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新私信"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "你有一条新团体消息。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新团体消息"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "您有新通知。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有来自 @{{.SenderName}} 的新通知"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "频道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "频道：{{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.direct.full",
