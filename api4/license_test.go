@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -115,6 +117,10 @@ func TestRemoveLicenseFile(t *testing.T) {
 func TestRequestTrialLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
+
+	licenseManagerMock := &mocks.LicenseInterface{}
+	licenseManagerMock.On("CanStartTrial").Return(true, nil)
+	th.App.Srv().LicenseManager = licenseManagerMock
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
