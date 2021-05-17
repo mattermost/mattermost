@@ -172,8 +172,7 @@ func (s *Store) SetReadOnlyFF(readOnly bool) {
 // Set replaces the current configuration in its entirety and updates the backing store.
 func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	s.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(s.configLock.Unlock)
+	defer s.configLock.Unlock()
 
 	if s.readOnly {
 		return nil, ErrReadOnlyStore
@@ -237,10 +236,10 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	s.configNoEnv = newCfgNoEnv
 	s.config = newCfg
 
-	unlockOnce.Do(s.configLock.Unlock)
-
 	if hasChanged {
+		s.configLock.Unlock()
 		s.invokeConfigListeners(oldCfg, newCfg.Clone())
+		s.configLock.Lock()
 	}
 
 	return oldCfg, nil
@@ -249,8 +248,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 // Load updates the current configuration from the backing store, possibly initializing.
 func (s *Store) Load() error {
 	s.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(s.configLock.Unlock)
+	defer s.configLock.Unlock()
 
 	oldCfg := &model.Config{}
 	if s.config != nil {
@@ -336,10 +334,10 @@ func (s *Store) Load() error {
 	s.config = loadedCfg
 	s.configNoEnv = loadedCfgNoEnv
 
-	unlockOnce.Do(s.configLock.Unlock)
-
 	if hasChanged {
+		s.configLock.Unlock()
 		s.invokeConfigListeners(oldCfg, loadedCfg.Clone())
+		s.configLock.Lock()
 	}
 
 	return nil
