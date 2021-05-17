@@ -2500,7 +2500,7 @@ func TestSetChannelUnread(t *testing.T) {
 	require.Equal(t, int64(0), unread.MsgCount)
 
 	t.Run("Unread last one", func(t *testing.T) {
-		r := th.Client.SetPostUnread(u1.Id, p2.Id)
+		r := th.Client.SetPostUnread(u1.Id, p2.Id, true)
 		checkHTTPStatus(t, r, 200, false)
 		unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
 		require.Nil(t, err)
@@ -2508,12 +2508,12 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
-		r := th.Client.SetPostUnread(u1.Id, pp2.Id)
+		r := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
 		assert.Equal(t, int64(1), unread.MsgCount)
-		r = th.Client.SetPostUnread(u1.Id, pp1.Id)
+		r = th.Client.SetPostUnread(u1.Id, pp1.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, err)
@@ -2521,7 +2521,7 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
-		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y")
+		r := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y", true)
 		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
@@ -2531,18 +2531,18 @@ func TestSetChannelUnread(t *testing.T) {
 	c3.Login(u3.Email, u3.Password)
 
 	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
-		r := c3.SetPostUnread(u3.Id, pp1.Id)
+		r := c3.SetPostUnread(u3.Id, pp1.Id, true)
 		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	t.Run("Can't unread users you don't have permission to edit", func(t *testing.T) {
-		r := c3.SetPostUnread(u1.Id, pp1.Id)
+		r := c3.SetPostUnread(u1.Id, pp1.Id, true)
 		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
 		th.Client.Logout()
-		response := th.Client.SetPostUnread(u1.Id, p2.Id)
+		response := th.Client.SetPostUnread(u1.Id, p2.Id, true)
 		checkHTTPStatus(t, response, http.StatusUnauthorized, true)
 	})
 }

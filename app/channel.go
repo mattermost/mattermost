@@ -2383,19 +2383,17 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		threadId = post.Id
 	}
 
-	if !collapsedThreadsSupported {
-		channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
-		if nErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
 
-		// if root post we update channel entry bold/unbold and badge counts
+	if !collapsedThreadsSupported {
+		// if root post,
+		// In CRT Supported Client: badge on channel only sums mentions in root posts including and below the post that was marked.
+		// In CRT Unsupported Client: badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
 		if post.RootId == "" {
-			count, cErr := a.countMentionsInRootPostsFromPost(user, post)
-			if cErr != nil {
-				return nil, cErr
-			}
-			channelUnread, aErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, count, count, false)
+			channelUnread, aErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, false, true)
 			if aErr != nil {
 				return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, aErr.Error(), http.StatusInternalServerError)
 			}
@@ -2412,27 +2410,36 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 			return channelUnread, nil
 		}
 
-		// if reply post we update thread entry bold/unbold and badge counts
+		// if reply post, autofollow thread and
+		// In CRT Supported Client: Mark the specific thread as unread but not the channel where the thread exists.
+		//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
+		// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
+		//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
 		rootPost, aErr := a.GetSinglePost(post.RootId)
 		if aErr != nil {
 			return nil, aErr
 		}
+
+		channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+		if nErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
 		threadMembership, tErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		var errNotFound *store.ErrNotFound
 		if tErr != nil && !errors.As(tErr, &errNotFound) {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, tErr.Error(), http.StatusInternalServerError)
 		}
-		// Follow thread if we're not already following
+		// Follow thread if we're not already following it
 		if threadMembership == nil {
 			threadMembership, tErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, false, true, false, false)
 			if tErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, tErr.Error(), http.StatusInternalServerError)
 			}
 		}
-		// if threadmembership already existed but we had previously unfollowed the thread, then follow the thread again.
+		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
 		threadMembership.LastViewed = post.UpdateAt - 1
-		threadMembership.LastUpdated = post.UpdateAt - 1
 		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
 		if err != nil {
 			return nil, err
@@ -2455,12 +2462,11 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 			message.Add("thread", payload)
 			a.Publish(message)
 		}
-		return &model.ChannelUnreadAt{}, nil
-	}
-
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
-	if err != nil {
-		return nil, err
+		channelUnread, err := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false, false)
+		if err != nil {
+			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, aErr.Error(), http.StatusInternalServerError)
+		}
+		return channelUnread, nil
 	}
 
 	// if auto-follow is on
@@ -2502,7 +2508,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow, true)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
