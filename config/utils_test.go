@@ -278,9 +278,9 @@ func TestIsJSONMap(t *testing.T) {
 	}
 }
 
-func TestConfsDiff(t *testing.T) {
+func TestEqual(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		diff, err := confsDiff(nil, nil)
+		diff, err := equal(nil, nil)
 		require.NoError(t, err)
 		require.False(t, diff)
 	})
@@ -288,7 +288,7 @@ func TestConfsDiff(t *testing.T) {
 	t.Run("no diff", func(t *testing.T) {
 		old := minimalConfig.Clone()
 		new := minimalConfig.Clone()
-		diff, err := confsDiff(old, new)
+		diff, err := equal(old, new)
 		require.NoError(t, err)
 		require.False(t, diff)
 	})
@@ -297,7 +297,7 @@ func TestConfsDiff(t *testing.T) {
 		old := minimalConfig.Clone()
 		new := minimalConfig.Clone()
 		new.SqlSettings = model.SqlSettings{}
-		diff, err := confsDiff(old, new)
+		diff, err := equal(old, new)
 		require.NoError(t, err)
 		require.True(t, diff)
 	})

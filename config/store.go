@@ -224,7 +224,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
-	hasChanged, err := confsDiff(oldCfg, newCfg)
+	hasChanged, err := equal(oldCfg, newCfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compare configs")
 	}
@@ -313,7 +313,7 @@ func (s *Store) Load() error {
 	}
 
 	// Check for changes that may have happened on load to the backing store.
-	hasChanged, err := confsDiff(oldCfg, loadedCfg)
+	hasChanged, err := equal(oldCfg, loadedCfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to compare configs")
 	}
