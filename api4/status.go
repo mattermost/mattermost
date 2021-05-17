@@ -5,7 +5,7 @@ package api4
 
 import (
 	"net/http"
-	"fmt"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -84,7 +84,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("status")
 		return
 	}
-	fmt.Println(status.UserId)
+
 	// The user being updated in the payload must be the same one as indicated in the URL.
 	if status.UserId != c.Params.UserId {
 		c.SetInvalidParam("user_id")
@@ -145,39 +145,33 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Println("1")
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
-	fmt.Println("2")
-	fmt.Println(r.Body)
+
 	status := model.StatusFromJson(r.Body)
 	if status == nil {
 		c.SetInvalidParam("status")
 		return
 	}
-	fmt.Println("3")
+
 	// The user being updated in the payload must be the same one as indicated in the URL.
-	fmt.Println(status.WednesdayEnd)
-	fmt.Println("-------------")
-	fmt.Println(status.UserId)
-	fmt.Println(c.Params.UserId)
 	if status.UserId != c.Params.UserId {
 		c.SetInvalidParam("user_id")
 		return
 	}
-	fmt.Println("4")
+
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
-	fmt.Println("5")
+
 	// save working hours 
 	c.App.SetStatusSchedule(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, 
 		status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd,
 		status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
-	fmt.Println("6")
+
 	ReturnStatusOK(w)
 }
 
