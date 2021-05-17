@@ -16,14 +16,14 @@ import (
 // If "home" is false, then the shared channel is homed remotely, and "RemoteId"
 // field points to the remote cluster connection in "RemoteClusters" table.
 type SharedChannel struct {
-	ChannelId        string `json:"channel_id"`
+	ChannelId        string `json:"id"`
 	TeamId           string `json:"team_id"`
 	Home             bool   `json:"home"`
 	ReadOnly         bool   `json:"readonly"`
-	ShareName        string `json:"share_name"`
-	ShareDisplayName string `json:"share_displayname"`
-	SharePurpose     string `json:"share_purpose"`
-	ShareHeader      string `json:"share_header"`
+	ShareName        string `json:"name"`
+	ShareDisplayName string `json:"display_name"`
+	SharePurpose     string `json:"purpose"`
+	ShareHeader      string `json:"header"`
 	CreatorId        string `json:"creator_id"`
 	CreateAt         int64  `json:"create_at"`
 	UpdateAt         int64  `json:"update_at"`
