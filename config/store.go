@@ -195,6 +195,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
+	// We attempt to remove any environment override that may be present in the input config.
 	newCfgNoEnv := removeEnvOverrides(newCfg, oldCfgNoEnv, s.GetEnvironmentOverrides())
 
 	// Don't store feature flags unless we are on MM cloud
@@ -215,6 +216,8 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, errors.Wrap(err, "failed to persist")
 	}
 
+	// We apply back environment overrides since the input config may or
+	// may not have them applied.
 	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
 	fixConfig(newCfg)
 	if err := newCfg.IsValid(); err != nil {
