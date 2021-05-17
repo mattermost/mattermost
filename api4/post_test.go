@@ -2573,3 +2573,70 @@ func TestMarkUnreadCausesAutofollow(t *testing.T) {
 	require.NotZero(t, threads.Total)
 
 }
+
+func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	// user2: first root mention @user1
+	//   - user1: hello
+	//   - user2: mention @u1
+	//   - user1: another repoy
+	//   - user2: another mention @u1
+	// user1: a root post
+	// user2: Another root mention @u1
+	user1Mention := " @" + th.BasicUser.Username
+	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, false, false)
+	require.Nil(t, appErr)
+
+	t.Run("Mark reply post as unread", func(t *testing.T) {
+		resp := th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
+		CheckNoError(t, resp)
+		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		require.Equal(t, channelUnread.MentionCount, int64(3))
+		//  MentionCountRoot should be zero so that supported clients don't show a mention badge for the channel
+		require.Equal(t, channelUnread.MentionCountRoot, int64(0))
+
+		require.Equal(t, channelUnread.MsgCount, int64(5))
+		//  MentionCountRoot should be zero so that supported clients don't show the channel as unread
+		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
+
+		thread, err := th.App.GetThreadForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost1.Id, false)
+		require.Nil(t, err)
+		require.Equal(t, thread.UnreadMentions, int64(2))
+		require.Equal(t, thread.UnreadReplies, int64(3))
+	})
+
+	t.Run("Mark root post as unread", func(t *testing.T) {
+		resp := th.Client.SetPostUnread(th.BasicUser.Id, rootPost1.Id, false)
+		CheckNoError(t, resp)
+		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		require.Equal(t, channelUnread.MentionCount, int64(4))
+		require.Equal(t, channelUnread.MentionCountRoot, int64(2))
+
+		require.Equal(t, channelUnread.MsgCount, int64(7))
+		require.Equal(t, channelUnread.MsgCountRoot, int64(3))
+	})
+}
