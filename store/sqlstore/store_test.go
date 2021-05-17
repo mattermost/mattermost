@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -673,4 +674,24 @@ func TestExecNoTimeout(t *testing.T) {
 		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
 		require.NoError(t, err)
 	})
+}
+
+func TestMySQLReadTimeout(t *testing.T) {
+	settings := makeSqlSettings(model.DATABASE_DRIVER_MYSQL)
+	dataSource := *settings.DataSource
+	config, err := mysql.ParseDSN(dataSource)
+	require.NoError(t, err)
+
+	config.ReadTimeout = 1 * time.Second
+	dataSource = config.FormatDSN()
+	settings.DataSource = &dataSource
+
+	store := &SqlStore{
+		settings: settings,
+	}
+	store.initConnection()
+	defer store.Close()
+
+	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
+	require.NoError(t, err)
 }
