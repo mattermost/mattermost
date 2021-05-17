@@ -353,8 +353,11 @@ func (ss *SqlStore) Context() context.Context {
 func (ss *SqlStore) initConnection() {
 	dataSource := *ss.settings.DataSource
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
+		// covers that already. Ideally we'd like to do this only for the upgrade
+		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = ss.resetReadTimeout(*ss.settings.DataSource)
+		dataSource, err = resetReadTimeout(dataSource)
 		if err != nil {
 			mlog.Critical("Failed to reset read timeout from datasource.", mlog.Err(err))
 			os.Exit(ExitGenericFailure)
@@ -1499,7 +1502,7 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 	return dataSource, nil
 }
 
-func (ss *SqlStore) resetReadTimeout(dataSource string) (string, error) {
+func resetReadTimeout(dataSource string) (string, error) {
 	config, err := mysql.ParseDSN(dataSource)
 	if err != nil {
 		return "", err
