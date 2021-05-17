@@ -150,7 +150,8 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImportWithPath(&request.Context{}, fileReader, !apply, workers, importPath); err != nil {
+	// XXX TODO ISW don't leave that zipReader nil! or do something so it's okay?
+	if err, lineNumber := a.BulkImportWithPath(&request.Context{}, fileReader, nil, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))

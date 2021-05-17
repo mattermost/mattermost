@@ -1118,7 +1118,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 }
 
 func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
-	file, err := os.Open(*data.Path)
+	file, err := data.Data.Open()
 	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	}
@@ -1138,7 +1138,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
 		for _, oldFile := range oldFiles {
-			if oldFile.Name != path.Base(file.Name()) || oldFile.Size != int64(len(fileData)) {
+			if oldFile.Name != path.Base(data.Data.Name) || oldFile.Size != int64(len(fileData)) {
 				continue
 			}
 			// check md5
@@ -1150,15 +1150,15 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", file.Name()))
+				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", data.Data.Name))
 				return oldFile, nil
 			}
 		}
 	}
 
-	mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
+	mlog.Info("Uploading file with name", mlog.String("file_name", data.Data.Name))
 
-	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, file.Name(), fileData)
+	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, data.Data.Name, fileData)
 	if appErr != nil {
 		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr

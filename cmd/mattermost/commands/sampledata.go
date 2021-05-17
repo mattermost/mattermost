@@ -374,7 +374,9 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		}
 
 		var importErr *model.AppError
-		importErr, lineNumber := a.BulkImport(&request.Context{}, bulkFile, false, workers)
+
+		// TODO ISW make sure it's fine that the zip reader is nil here?
+		importErr, lineNumber := a.BulkImport(&request.Context{}, bulkFile, nil, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
