@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -20,7 +21,7 @@ func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (
 	)
 }
 
-func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *App) SendAutoResponseIfNecessary(c *request.Context, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	if channel.Type != model.CHANNEL_DIRECT {
 		return false, nil
 	}
@@ -48,10 +49,10 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, nil
 	}
 
-	return a.SendAutoResponse(channel, receiver, post)
+	return a.SendAutoResponse(c, channel, receiver, post)
 }
 
-func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *App) SendAutoResponse(c *request.Context, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	if receiver == nil || receiver.NotifyProps == nil {
 		return false, nil
 	}
@@ -76,7 +77,7 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, pos
 		UserId:    receiver.Id,
 	}
 
-	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
+	if _, err := a.CreatePost(c, autoResponderPost, channel, false, false); err != nil {
 		return false, err
 	}
 

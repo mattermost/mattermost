@@ -21,7 +21,7 @@ func (api *API) InitOpenGraph() {
 	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
-	api.ConfigService.AddConfigListener(func(before, after *model.Config) {
+	api.app.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||

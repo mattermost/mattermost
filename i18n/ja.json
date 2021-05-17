@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "現在のチャンネルを更新する際にエラーが発生しました。"
+    "translation": "チャンネルを更新する際にエラーが発生しました。"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "現在のチャンネルを更新する際にエラーが発生しました。"
+    "translation": "チャンネルの目的を更新する際にエラーが発生しました。"
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -5310,8 +5310,8 @@
     "translation": "Bleveインデックス付与ワーカーが終了時刻を解析できませんでした。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "最も古い投稿をデータベースから取り出せませんでした。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "最も古いエンティティ(ユーザー、チャンネル、投稿)をデータベースから取得できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6742,10 +6742,6 @@
     "translation": "役割を取得できませんでした。"
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "全役割を取得できませんでした。"
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "役割を取得できませんでした。"
   },
@@ -7579,7 +7575,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをよりセキュアにすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7587,7 +7583,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをよりセキュアにすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
@@ -8606,10 +8602,6 @@
     "translation": "クラウドサブスクリプションを取得する際にエラーが発生しました"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "この機能は開発中であり、フィーチャーフラグを使用した場合のみ利用可能になります。"
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "リクエストボディを解析できませんでした。"
   },
@@ -8644,10 +8636,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "フィールドをJSONにエンコードできませんでした"
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "不正な説明です。"
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -8699,7 +8687,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "おめでとう- ワークスペース{{.WorkSpace}} の準備が整いました!"
+    "translation": "ワークスペース{{.WorkSpace}} の14日間のトライアルの準備が整いました!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8771,11 +8759,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "同じURLのリモートクラスタがすでに存在しています。"
+    "translation": "同じURLの安全な接続がすでに存在しています。"
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "リモートクラスターを更新する際にエラーが発生しました。"
+    "translation": "安全な接続を更新する際にエラーが発生しました。"
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -8783,11 +8771,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "リモートクラスターはすでに追加されています。"
+    "translation": "安全な接続はすでに追加されています。"
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "リモートクラスターを保存する際にエラーが発生しました。"
+    "translation": "安全な接続を保存する際にエラーが発生しました。"
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -8799,11 +8787,11 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "リモートクラスターを取得する際にエラーが発生しました。"
+    "translation": "安全な接続を取得する際にエラーが発生しました。"
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "リモートクラスターを削除する際にエラーが発生しました。"
+    "translation": "安全な接続を削除する際にエラーが発生しました。"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -8823,15 +8811,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "リモートクラスターIDが存在しません。"
+    "translation": "安全な接続IDが存在しません。"
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "リモートクラスターIDが一致しません。"
+    "translation": "安全な接続IDが一致しません。"
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "リモートクラスターID {{.RemoteId}} が見つかりませんでした。"
+    "translation": "安全な接続ID {{.RemoteId}} が見つかりませんでした。"
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -8840,14 +8828,6 @@
   {
     "id": "api.context.invitation_expired.error",
     "translation": "招待は有効期限切れです。"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'Y' または 'N'"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "本当に実行しますか? このチャンネルの共有が解除され、全てのリモートインスタンスの招待も解除されます"
   },
   {
     "id": "api.command_share.unshare_channel.help",
@@ -8859,11 +8839,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "招待を解除するリモートインスタンスのIDです。"
+    "translation": "招待を解除する安全な接続のIDです。"
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "この共有チャンネルからリモートインスタンスの共有を解除する"
+    "translation": "この共有チャンネルから安全な接続の共有を解除する"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -8874,20 +8854,12 @@
     "translation": "このチャンネルはもう共有されていません。"
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "共有チャンネルは削除されませんでした: `{{.Arg}}` は `{{.Expected}}` でなければなりません。"
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[読取専用] - 'Y' or 'N'。デフォルトは'N'"
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "チャンネルは読取専用モードで共有されます"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "現在のチャンネルを共有する"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -8899,27 +8871,27 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "リモート `{{.RemoteId}}` の招待が解除されました。"
+    "translation": "安全な接続 `{{.RemoteId}}` の招待が解除されました。"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| リモート | SiteURL | 説明 | 読取専用 | 招待承認済み | オンライン | 最終同期時刻 |"
+    "translation": "| 安全な接続 | SiteURL | 読取専用 | 招待承認済み | オンライン | 最終同期時刻 |"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "招待を解除するには有効なリモートクラスターを指定する必要があります"
+    "translation": "招待を解除するには有効な安全な接続を指定する必要があります"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "リモートクラスターIDが不正です: {{.Error}}"
+    "translation": "安全な接続IDが不正です: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "既存のリモートインスタンスのIDです。リモートインスタンスを追加するには `remote` コマンドを参照してください。"
+    "translation": "既存の安全な接続IDです。安全な接続を追加するには `secure-connection` コマンドを参照してください。"
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "リモートクラスターはすでに招待されています。"
+    "translation": "安全な接続はすでに招待されています。"
   },
   {
     "id": "api.command_share.permission_required",
@@ -8931,15 +8903,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "この共有チャンネルには、どのリモートも招待されていません。"
+    "translation": "この共有チャンネルには、どの安全な接続も招待されていません。"
   },
   {
     "id": "api.command_share.name",
-    "translation": "共有"
+    "translation": "share-channel"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "招待するには有効なリモートクラスターIDを指定する必要があります。"
+    "translation": "招待するには有効な安全な接続を指定する必要があります。"
   },
   {
     "id": "api.command_share.missing_action",
@@ -8963,19 +8935,11 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "リモートにおける状態を取得できませんでした: {{.Error}}。"
+    "translation": "安全な接続の状態を取得できませんでした: {{.Error}}。"
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "リモートクラスター取得エラー: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[説明] - 任意"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "招待の説明"
+    "translation": "安全な接続取得エラー: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
@@ -8999,47 +8963,15 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "共有チャネルのリモートID `{{.RemoteId}}`がこのチャネルには存在しません。"
-  },
-  {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - デフォルトはチャンネルの目的"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "リモートインスタンスに提供されるチャンネルの目的"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - デフォルトはチャンネル名"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "リモートインスタンスに提供されるチャンネル名"
+    "translation": "共有チャネルの安全な接続 `{{.RemoteId}}`がこのチャネルには存在しません。"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "他の場所から発信された共有チャネルに、リモートクラスタを招待できませんでした。"
+    "translation": "他の場所から発信された共有チャネルに、安全な接続を招待できませんでした。"
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "`{{.Name}}` をこのチャンネルに招待する際にエラーが発生しました: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - デフォルトはチャンネルヘッダー"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "リモートインスタンスに提供されるチャンネルヘッダ"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - デフォルトはチャンネル表示名"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "リモートインスタンスに提供されるチャンネル表示名"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9051,7 +8983,7 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "すべてのリモートクラスターの状態を表示"
+    "translation": "すべての安全な接続の状態を表示"
   },
   {
     "id": "api.command_remote.site_url_not_set",
@@ -9067,43 +8999,43 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "リモートクラスタのIDを削除する"
+    "translation": "安全な接続のIDを削除する"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "リモートクラスタを削除できませんでした: {{.Error}}"
+    "translation": "安全な接続を削除できませんでした: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "リモートクラスタを削除する"
+    "translation": "安全な接続を削除する"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "リモートクラスタが見つかりませんでした。"
+    "translation": "安全な接続が見つかりませんでした。"
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 名前 | SiteURL | リモートID | 招待承認済み | オンライン | 最後のPing |"
+    "translation": "| 安全な接続 | 表示名 | 接続ID | SiteURL | 招待承認済み | オンライン | 最後のPing |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "リモートクラスタを追加/削除します。利用可能なアクション: {{.Actions}}"
+    "translation": "安全な接続を追加/削除します。利用可能なアクション: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "リモートクラスターを管理するには、`{{.Permission}}`の権限が必要です。"
+    "translation": "安全な接続を管理するには、`{{.Permission}}`の権限が必要です。"
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "リモートクラスターの表示名"
+    "translation": "安全な接続の一意名"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "リモートクラスター名"
+    "translation": "安全な接続の名前"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "リモート"
+    "translation": "secure-connection"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -9127,7 +9059,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "リモートクラスターを招待する"
+    "translation": "安全な接続を作成する"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9135,11 +9067,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "リモートクラスターからの暗号化された招待"
+    "translation": "安全な接続からの暗号化された招待"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "リモートクラスターからの招待"
+    "translation": "安全な接続からの招待"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -9151,7 +9083,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "リモートクラスタを取得できませんでした: {{.Error}}"
+    "translation": "安全な接続を取得できませんでした: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -9167,11 +9099,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "リモートクラスター {{.RemoteId}} {{.Result}}。"
+    "translation": "安全な接続 {{.RemoteId}} {{.Result}}。"
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "リモードクラスターを追加できませんでした: {{.Error}}"
+    "translation": "安全な接続を追加できませんでした: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -9196,5 +9128,85 @@
   {
     "id": "api.file.test_connection_s3_auth.app_error",
     "translation": "S3へ接続できませんでした。Amazon S3接続の認証パラメーターと認証設定を確認してください。"
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "ポリシーが不正です。"
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "要求されたオペレーションの実行中にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "ユーザーからの自動返信を送信できませんでした。"
+  },
+  {
+    "id": "api.user.cloud_trial_ending_email.error",
+    "translation": "トライアル終了警告の電子メールを送信できませんでした"
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "トライアル終了の電子メールを送信できませんでした"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.title",
+    "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subtitle",
+    "translation": "{{.Name}} さん、あなたのMattermost Cloud Professionalの14日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きCloud Professionalのメリットを享受できるよう、お支払い情報を追加してください。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}、Mattermost Cloud Professionalの14日間の無料トライアルが本日 {{.TodayDate}} 終了します。引き続きCloud Professionalを利用するには、支払い情報を追加してください。"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.subject",
+    "translation": "Mattermost Cloudトライアルが終了しました"
+  },
+  {
+    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
+    "translation": "支払い方法を追加する"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Mattermostの14日間のトライアルは本日で終了です"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost Cloudのトライアルは終了しました"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "サブスクリプションを開始する"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "利用者のフィードバック、電子メール通知、サポートリクエストを受け付けるために、**システムコンソール > サイト設定 > カスタマイズ**に移動し、あなたの組織の内部ITサポートデスクの電子メールアドレスを [サポート電子メールアドレス](https://docs.mattermost.com/administration/config-settings.html#support-email)として設定してください。"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "サポート電子メールアドレスを設定してください"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "安全な接続のための表示名"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "安全な接続の表示名"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "入力されたテキストが文字数制限を超えています。チャンネルの目的は {{.MaxLength}} 文字に制限されています。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "入力されたテキストが文字数制限を超えています。チャンネルヘッダーは {{.MaxLength}} 文字に制限されています。"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "AuthDataフィールドを電子メールアドレスにリセットできませんでした。"
   }
 ]

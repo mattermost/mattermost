@@ -5310,8 +5310,8 @@
     "translation": "Bleve 索引工作者解析中止時間時失敗。"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "無法從資料庫取得最老的訊息。"
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "無法從資料庫取得最老的實體 (使用者、頻道或訊息)。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6723,10 +6723,6 @@
   },
   {
     "id": "app.role.get_by_name.app_error",
-    "translation": "無法取得角色"
-  },
-  {
-    "id": "app.role.get_all.app_error",
     "translation": "無法取得角色"
   },
   {

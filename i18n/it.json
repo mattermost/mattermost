@@ -5083,10 +5083,6 @@
     "translation": "Impossibile indicizzare gli utenti in batch."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
-  },
-  {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Bleve non è riuscito a calcolare l'ora d'inizio."
   },
@@ -6701,10 +6697,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Impossibile recuperare il ruolo"
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i ruoli"
   },
   {
     "id": "app.role.get.app_error",

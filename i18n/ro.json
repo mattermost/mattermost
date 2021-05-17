@@ -5320,8 +5320,8 @@
     "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6758,10 +6758,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Imposibil de a primi rol."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Imposibil de obținut toate rolurile."
   },
   {
     "id": "app.role.get.app_error",
@@ -8608,10 +8604,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Această caracteristică este în curs de dezvoltare și este disponibilă numai utilizând un semnalizator de caracteristici."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -8734,10 +8726,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descriere invalidă."
   },
   {
     "id": "ent.cloud.subscription.error",
@@ -8944,14 +8932,6 @@
     "translation": "Invitația a expirat."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "\"Y\" sau \"N"
-  },
-  {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Ești sigur? Acest canal va fi neîmpărtășit și toate instanțele de la distanță vor fi neinvitate"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Dezarhivează canalul curent"
   },
@@ -8976,20 +8956,12 @@
     "translation": "Acest canal nu mai este partajat."
   },
   {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Canalul partajat nu a fost șters: `{{.Arg}}` trebuie să fie `{{.Expected}}`."
-  },
-  {
     "id": "api.command_share.share_read_only.hint",
     "translation": "[readonly] - \"Y\" sau \"N\".  Valoarea implicită este \"N\""
   },
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "Canalul va fi partajat în modul doar pentru citire"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Partajați canalul curent"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -9072,14 +9044,6 @@
     "translation": "Eroare la preluarea clusterelor de la distanță: {{.Error}}"
   },
   {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[descriere] - opțional"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descriere pentru invitație"
-  },
-  {
     "id": "api.command_share.desc",
     "translation": "Partajează canalul curent cu o instanță Mattermost de la distanță."
   },
@@ -9108,44 +9072,12 @@
     "translation": "ID-ul de la distanță al canalului partajat `{{.RemoteId}}` nu există pentru acest canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[scop] - implicit scopul canalului"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Scopul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - implicit la numele canalului"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Numele canalului furnizat instanțelor la distanță"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Nu se poate invita un cluster la distanță la un canal partajat care provine din altă parte."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Eroare la invitarea lui `{{.Name}}` pe acest canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - implicit la antetul canalelor"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Antetul canalului furnizat instanțelor la distanță"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[nume de afișare] - implicit la numele de afișare al canalului"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Numele de afișare a canalului furnizat instanțelor la distanță"
   },
   {
     "id": "api.command_share.available_actions",
@@ -9238,5 +9170,53 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Politica nu este valabilă."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Am întâmpinat o eroare la efectuarea operațiunii solicitate."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nu se poate trimite un răspuns automat de la utilizator."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Nu a reușit să trimită e-mailul de încheiere a procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Procesul Mattermost cloud s-a încheiat"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Începeți abonamentul"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Vă rugăm să accesați **System Console > Site Configuration > Customization** pentru a seta [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) ca adresă de e-mail a biroului de asistență IT intern al organizației dumneavoastră pentru feedback-ul utilizatorului final, notificări prin e-mail și cereri de asistență."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Setați adresa de e-mail de asistență"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Scopul canalului este limitat la {{.MaxLength}} caractere."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   }
 ]

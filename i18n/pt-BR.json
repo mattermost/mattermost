@@ -5315,8 +5315,8 @@
     "translation": "Agregador do Bleve falhou em transformar a data de término."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "A publicação mais antiga não pode ser obtida do banco de dados."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "A entidade mais antiga (usuário, canal ou publicação) não pôde ser recuperada do banco de dados."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6589,10 +6589,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Não foi possível obter a função."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Não é possível obter todos os papéis."
   },
   {
     "id": "app.role.get.app_error",
@@ -8603,10 +8599,6 @@
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Este recurso está em desenvolvimento e só está disponível por meio de um sinalizador de recurso."
-  },
-  {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Não foi possível analisar o corpo da solicitação."
   },
@@ -8625,14 +8617,6 @@
   {
     "id": "api.command_share.fetch_remote.error",
     "translation": "Erro ao buscar clusters remotos: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.description_invite.hint",
-    "translation": "[description] - opcional"
-  },
-  {
-    "id": "api.command_share.description_invite.help",
-    "translation": "Descrição do convite"
   },
   {
     "id": "api.command_share.desc",
@@ -8663,44 +8647,12 @@
     "translation": "O id remoto do canal compartilhado `{{.RemoteId}}` não existe para este canal."
   },
   {
-    "id": "api.command_share.channel_purpose.hint",
-    "translation": "[purpose] - padrão do propósito do canal"
-  },
-  {
-    "id": "api.command_share.channel_purpose.help",
-    "translation": "Propósito do canal fornecido para instâncias remotas"
-  },
-  {
-    "id": "api.command_share.channel_name.hint",
-    "translation": "[name] - padrão do nome do canal"
-  },
-  {
-    "id": "api.command_share.channel_name.help",
-    "translation": "Nome do canal fornecido para instâncias remotas"
-  },
-  {
     "id": "api.command_share.channel_invite_not_home.error",
     "translation": "Não é possível convidar cluster remoto para um canal compartilhado originado em outro lugar."
   },
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Erro ao convidar `{{.Name}}` para este canal: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.channel_header.hint",
-    "translation": "[header] - padrão do cabeçalho dos canais"
-  },
-  {
-    "id": "api.command_share.channel_header.help",
-    "translation": "Cabeçalho do canal fornecido para instâncias remotas"
-  },
-  {
-    "id": "api.command_share.channel_display_name.hint",
-    "translation": "[displayname] - padrão para nome de exibição do canal"
-  },
-  {
-    "id": "api.command_share.channel_display_name.help",
-    "translation": "Nome de exibição do canal fornecido para instâncias remotas"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8871,20 +8823,12 @@
     "translation": "Erro ao codificar JSON."
   },
   {
-    "id": "api.command_share.unshare_confirmation.hint",
-    "translation": "'S' ou 'N'"
-  },
-  {
     "id": "api.command_share.unknown_action",
     "translation": "Ação desconhecida `{{.Action}}`. Ações disponíveis: {{.Actions}}"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
     "translation": "Não é possível cancelar o compartilhamento deste canal: {{.Error}}."
-  },
-  {
-    "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "O canal compartilhado não foi excluído: `{{.Arg}}` deve ser `{{.Expected}}`."
   },
   {
     "id": "api.command_share.share_read_only.hint",
@@ -8913,10 +8857,6 @@
   {
     "id": "sharedchannel.permalink.not_found",
     "translation": "Esta publicação contém links permanentes para outros canais que podem não ser visíveis para os usuários em outros sites."
-  },
-  {
-    "id": "model.channel.is_valid.description.app_error",
-    "translation": "Descrição inválida."
   },
   {
     "id": "ent.cloud.subscription.error",
@@ -9095,10 +9035,6 @@
     "translation": "O convite expirou."
   },
   {
-    "id": "api.command_share.unshare_confirmation.help",
-    "translation": "Tem certeza? Este canal não será compartilhado e todas as instâncias remotas não serão convidadas"
-  },
-  {
     "id": "api.command_share.unshare_channel.help",
     "translation": "Cancela o compartilhamento do canal atual"
   },
@@ -9117,10 +9053,6 @@
   {
     "id": "api.command_share.share_read_only.help",
     "translation": "O canal será compartilhado em modo somente leitura"
-  },
-  {
-    "id": "api.command_share.share_current",
-    "translation": "Compartilhe o canal atual"
   },
   {
     "id": "api.command_share.service_disabled",

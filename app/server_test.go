@@ -709,12 +709,12 @@ func TestAdminAdvisor(t *testing.T) {
 		AuthService: "",
 		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
 	}
-	ruser, err := th.App.CreateUser(&user)
+	ruser, err := th.App.CreateUser(th.Context, &user)
 	assert.Nil(t, err, "User should be created")
-	defer th.App.PermanentDeleteUser(&user)
+	defer th.App.PermanentDeleteUser(th.Context, &user)
 
 	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
-		doCheckAdminSupportStatus(th.App)
+		doCheckAdminSupportStatus(th.App, th.Context)
 
 		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
 		assert.NotNil(t, bot, "Bot should have been created now")
@@ -742,7 +742,7 @@ func TestAdminAdvisor(t *testing.T) {
 		err = th.App.PermanentDeleteChannel(channel)
 		assert.Nil(t, err, "No error should be generated")
 
-		doCheckAdminSupportStatus(th.App)
+		doCheckAdminSupportStatus(th.App, th.Context)
 
 		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
 		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")

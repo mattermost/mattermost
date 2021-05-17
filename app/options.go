@@ -95,6 +95,14 @@ func SetLogger(logger *mlog.Logger) Option {
 	}
 }
 
+func SkipPostInitializiation() Option {
+	return func(s *Server) error {
+		s.skipPostInit = true
+
+		return nil
+	}
+}
+
 type AppOption func(a *App)
 type AppOptionCreator func() []AppOption
 

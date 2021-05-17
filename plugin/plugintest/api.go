@@ -2804,6 +2804,22 @@ func (_m *API) RemoveTeamIcon(teamID string) *model.AppError {
 	return r0
 }
 
+// RequestTrialLicense provides a mock function with given fields: requesterID, users, termsAccepted, receiveEmailsAccepted
+func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	ret := _m.Called(requesterID, users, termsAccepted, receiveEmailsAccepted)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int, bool, bool) *model.AppError); ok {
+		r0 = rf(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SaveConfig provides a mock function with given fields: config
 func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	ret := _m.Called(config)
@@ -3039,6 +3055,31 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	}
 
 	return r0
+}
+
+// SetUserStatusTimedDND provides a mock function with given fields: userId, endtime
+func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	ret := _m.Called(userId, endtime)
+
+	var r0 *model.Status
+	if rf, ok := ret.Get(0).(func(string, int64) *model.Status); ok {
+		r0 = rf(userId, endtime)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Status)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+		r1 = rf(userId, endtime)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UnregisterCommand provides a mock function with given fields: teamID, trigger

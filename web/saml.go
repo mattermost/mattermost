@@ -112,7 +112,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
-			err.Translate(c.App.T)
+			err.Translate(c.AppContext.T)
 			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 		} else {
 			c.Err = err
@@ -120,7 +120,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
+	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
 		mlog.Error(err.Error())
@@ -137,7 +137,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
 		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
+			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
 				c.LogErrorByCode(err)
 				break
 			}
@@ -162,7 +162,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
+	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
 		mlog.Error(err.Error())
 		handleError(err)
@@ -172,14 +172,14 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 
-	c.App.AttachSessionCookies(w, r)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
-				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
+				model.SESSION_COOKIE_TOKEN: c.AppContext.Session().Token,
+				model.SESSION_COOKIE_CSRF:  c.AppContext.Session().GetCSRF(),
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {

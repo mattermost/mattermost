@@ -2356,8 +2356,8 @@
     "translation": "Работника по индексиране на Bleve не успя да анализира крайния час."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Най-старата публикация не може да бъде извлечена от базата данни."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Най-стария обект (потребител, канал или публикация) не може да бъде извлечен от базата данни."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -2718,10 +2718,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Не можа да се получи роля."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Не могат да се получат всички роли."
   },
   {
     "id": "app.role.get.app_error",
@@ -8557,10 +8553,6 @@
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Тази функция е в процес на разработка и е достъпна само с помощта на флаг за функция."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",

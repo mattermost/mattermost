@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	request "github.com/mattermost/mattermost-server/v5/app/request"
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -67,13 +68,13 @@ func (_m *SamlInterface) ConfigureSP() error {
 	return r0
 }
 
-// DoLogin provides a mock function with given fields: encodedXML, relayState
-func (_m *SamlInterface) DoLogin(encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
-	ret := _m.Called(encodedXML, relayState)
+// DoLogin provides a mock function with given fields: c, encodedXML, relayState
+func (_m *SamlInterface) DoLogin(c *request.Context, encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
+	ret := _m.Called(c, encodedXML, relayState)
 
 	var r0 *model.User
-	if rf, ok := ret.Get(0).(func(string, map[string]string) *model.User); ok {
-		r0 = rf(encodedXML, relayState)
+	if rf, ok := ret.Get(0).(func(*request.Context, string, map[string]string) *model.User); ok {
+		r0 = rf(c, encodedXML, relayState)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
@@ -81,8 +82,8 @@ func (_m *SamlInterface) DoLogin(encodedXML string, relayState map[string]string
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, map[string]string) *model.AppError); ok {
-		r1 = rf(encodedXML, relayState)
+	if rf, ok := ret.Get(1).(func(*request.Context, string, map[string]string) *model.AppError); ok {
+		r1 = rf(c, encodedXML, relayState)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

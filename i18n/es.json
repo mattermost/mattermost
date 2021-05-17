@@ -5271,8 +5271,8 @@
     "translation": "El trabajo de Bleve falló al analizar la hora de finalización."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "El mensaje más antiguo no pudo ser recuperado de la base de datos."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "La entidad más vieja (usuario, canal o poste), no podría ser recuperado de la base de datos."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -6755,10 +6755,6 @@
     "translation": "No se pudo obtener el rol."
   },
   {
-    "id": "app.role.get_all.app_error",
-    "translation": "No se pudo obtener todos los roles."
-  },
-  {
     "id": "app.role.get.app_error",
     "translation": "No se pudo obtener el rol."
   },
@@ -8157,10 +8153,6 @@
   {
     "id": "api.team.cloud.subscription.error",
     "translation": "Error al obtener la suscripción al cloud"
-  },
-  {
-    "id": "api.post.search_files.not_implemented.app_error",
-    "translation": "Esta funcionalidad esta en desarrollo, y solo está disponible usando una marca de funcionalidad."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",

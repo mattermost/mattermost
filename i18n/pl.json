@@ -5320,10 +5320,6 @@
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Najstarszego postu nie można było pobrać z bazy danych."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6518,10 +6514,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Nie można uzyskać roli"
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Nie udało się pobrać wszystkich ról"
   },
   {
     "id": "app.role.get.app_error",
