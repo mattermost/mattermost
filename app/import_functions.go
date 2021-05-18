@@ -1124,6 +1124,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		file io.Reader
 	)
 	if data.Data != nil {
+		mlog.Warn("XXX opening zip file")
 		zipFile, err := data.Data.Open()
 		if zipFile == nil || err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1132,6 +1133,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 	} else {
+		mlog.Warn("XXX opening real file")
 		realFile, err := os.Open(*data.Path)
 		if realFile == nil || err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1458,6 +1460,8 @@ func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImp
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
+		at := fmt.Sprintf("%+v", attachment)
+		mlog.Warn("XXX", mlog.String("attachment", at))
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
 			return nil, err
