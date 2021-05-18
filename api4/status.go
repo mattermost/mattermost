@@ -142,6 +142,8 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.CurrentTime, status.DayOfTheWeek)
+
+	ReturnStatusOK(w)
 }
 
 func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
