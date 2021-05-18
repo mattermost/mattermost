@@ -155,5 +155,5 @@ services:
 
 networks:
   schemamysql:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_schemamysql
+    external:
+      name: ${COMPOSE_PROJECT_NAME}_schemamysql
