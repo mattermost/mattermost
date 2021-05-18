@@ -628,6 +628,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			embeddedFiles := make(map[string]io.Reader)
 			if message != "" {
 				if senderProfileImage != nil {
+					data.Props["SenderPhoto"] = "user-avatar.png"
 					embeddedFiles = map[string]io.Reader{
 						"user-avatar.png": bytes.NewReader(senderProfileImage),
 					}
