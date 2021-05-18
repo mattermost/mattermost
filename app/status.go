@@ -288,31 +288,31 @@ func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, current
 	currentStatus, _ := a.GetStatus(userId)
 	startTime := ""
 	endTime := ""
-	
+
 	switch currentDayOfTheWeek {
 	case "mon":
 		startTime = currentStatus.MondayStart
-		endTime 	= currentStatus.MondayEnd
+		endTime = currentStatus.MondayEnd
 	case "tue":
 		startTime = currentStatus.TuesdayStart
-		endTime 	= currentStatus.TuesdayEnd
+		endTime = currentStatus.TuesdayEnd
 	case "wed":
 		startTime = currentStatus.WednesdayStart
-		endTime 	= currentStatus.WednesdayEnd
+		endTime = currentStatus.WednesdayEnd
 	case "thu":
 		startTime = currentStatus.ThursdayStart
-		endTime 	= currentStatus.ThursdayEnd
+		endTime = currentStatus.ThursdayEnd
 	case "fri":
 		startTime = currentStatus.FridayStart
-		endTime 	= currentStatus.FridayEnd
+		endTime = currentStatus.FridayEnd
 	case "sat":
 		startTime = currentStatus.SaturdayStart
-		endTime 	= currentStatus.SaturdayEnd
+		endTime = currentStatus.SaturdayEnd
 	case "sun":
 		startTime = currentStatus.SundayStart
-		endTime 	= currentStatus.SundayEnd
+		endTime = currentStatus.SundayEnd
 	}
-	
+
 	if startTime == "" && endTime == "" {
 		return
 	}

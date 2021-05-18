@@ -140,7 +140,7 @@ func getUserStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
-	
+
 	c.App.SetStatusDoNotDisturbSchedule(status.UserId, status.CurrentTime, status.DayOfTheWeek)
 }
 
@@ -167,10 +167,7 @@ func updateStatusSchedule(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// save working hours 
-	c.App.SetStatusSchedule(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, 
-		status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd,
-		status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
+	c.App.SetStatusSchedule(c.Params.UserId, status.MondayStart, status.MondayEnd, status.TuesdayStart, status.TuesdayEnd, status.WednesdayStart, status.WednesdayEnd, status.ThursdayStart, status.ThursdayEnd, status.FridayStart, status.FridayEnd, status.SaturdayStart, status.SaturdayEnd, status.SundayStart, status.SundayEnd, status.Mode)
 
 	ReturnStatusOK(w)
 }

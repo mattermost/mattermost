@@ -1071,8 +1071,7 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	// timed dnd status support
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
-	
-	// custom dnd status support 
+	// custom dnd status support
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "MondayStart", "VARCHAR(32)", "VARCHAR(32)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "MondayEnd", "VARCHAR(32)", "VARCHAR(32)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "TuesdayStart", "VARCHAR(32)", "VARCHAR(32)")
