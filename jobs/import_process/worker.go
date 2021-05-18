@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/app/request"
@@ -148,6 +149,12 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	mlog.Warn("XXX opening json file", mlog.String("file", jsonFilePath))
+	// avoid "zip slip"
+	if strings.Contains(jsonFilePath, "..") {
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusInternalServerError)
+		w.setJobError(job, appError)
+		return
+	}
 	jsonFile, err := os.Open(jsonFilePath)
 	if err != nil {
 		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
