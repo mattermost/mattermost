@@ -133,5 +133,5 @@ services:
 
 networks:
   default:
-    external: true
-    name: ${CI_PIPELINE_IID}_schemapostgres
+    external:
+      name: ${CI_PIPELINE_IID}_schemapostgres
