@@ -134,6 +134,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	// find JSONL import file.
 	var jsonFilePath string
 	for _, path := range importZipReader.File {
+		mlog.Warn("XXX didnt find jsonl", mlog.String("file", path.Name))
 		if filepath.Ext(path.Name) == ".jsonl" {
 			jsonFilePath = path.Name
 			break
@@ -146,6 +147,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 		return
 	}
 
+	mlog.Warn("XXX opening json file", mlog.String("file", jsonFilePath))
 	jsonFile, err := os.Open(jsonFilePath)
 	if err != nil {
 		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)

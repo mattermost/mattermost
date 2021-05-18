@@ -9,6 +9,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -1118,11 +1119,27 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 }
 
 func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
-	file, err := data.Data.Open()
-	if file == nil || err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+	var (
+		name string
+		file io.Reader
+	)
+	if data.Data != nil {
+		zipFile, err := data.Data.Open()
+		if zipFile == nil || err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		}
+		defer zipFile.Close()
+		name = data.Data.Name
+		file = zipFile.(io.Reader)
+	} else {
+		realFile, err := os.Open(*data.Path)
+		if realFile == nil || err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		}
+		defer realFile.Close()
+		name = realFile.Name()
+		file = realFile
 	}
-	defer file.Close()
 
 	timestamp := utils.TimeFromMillis(post.CreateAt)
 
@@ -1138,7 +1155,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
 		for _, oldFile := range oldFiles {
-			if oldFile.Name != path.Base(data.Data.Name) || oldFile.Size != int64(len(fileData)) {
+			if oldFile.Name != path.Base(name) || oldFile.Size != int64(len(fileData)) {
 				continue
 			}
 			// check md5
@@ -1156,9 +1173,9 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		}
 	}
 
-	mlog.Info("Uploading file with name", mlog.String("file_name", data.Data.Name))
+	mlog.Info("Uploading file with name", mlog.String("file_name", name))
 
-	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, data.Data.Name, fileData)
+	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
 	if appErr != nil {
 		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr

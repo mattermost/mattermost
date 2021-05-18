@@ -149,8 +149,10 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 	lastLineType := ""
 
 	attachedFiles := make(map[string]*zip.File)
-	for _, fi := range attachmentsReader.File {
-		attachedFiles[fi.Name] = fi
+	if attachmentsReader != nil {
+		for _, fi := range attachmentsReader.File {
+			attachedFiles[fi.Name] = fi
+		}
 	}
 
 	for scanner.Scan() {
@@ -162,8 +164,10 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
-		for _, attachment := range *line.Post.Attachments {
-			attachment.Data = attachedFiles[*attachment.Path]
+		if len(attachedFiles) > 0 {
+			for _, attachment := range *line.Post.Attachments {
+				attachment.Data = attachedFiles[*attachment.Path]
+			}
 		}
 
 		if importPath != "" {
