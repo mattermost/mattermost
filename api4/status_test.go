@@ -69,7 +69,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("update scheduls", func(t *testing.T) {
-		th.App.updateStatusSchedule(th.BasicUser.Id, "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", true)
+		th.App.SetStatusSchedule(th.BasicUser.Id, "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", "09:00", "18:00", 1)
 		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "9:00", userStatus.MondayStart)
