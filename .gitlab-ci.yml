@@ -64,7 +64,7 @@ empty:
 #  rules:
 #    - if: '$TEST == "yes"'
 #
-test-schema-postgres:
+.test-schema-postgres:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
