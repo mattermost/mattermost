@@ -66,9 +66,9 @@ empty:
 #
 test-schema-postgres:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:20.10.6-1
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:20.10.6-1
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -83,9 +83,9 @@ test-schema-postgres:
 
 test-schema-mysql:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:20.10.6-1
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:20.10.6-1
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
