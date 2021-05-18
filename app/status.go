@@ -322,9 +322,7 @@ func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, current
 	start, _ := time.Parse(newLayout, startTime)
 	end, _ := time.Parse(newLayout, endTime)
 
-	if currentStatus.Manual {
-		return
-	} else if a.InTimeSpan(start, end, check) {
+	if a.InTimeSpan(start, end, check) {
 		a.SetStatusOnline(userId, true)
 	} else {
 		a.SetStatusDoNotDisturbScheduled(userId)
@@ -378,7 +376,7 @@ func (a *App) SetStatusDoNotDisturbScheduled(userID string) {
 	status, err := a.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: 0, ActiveChannel: ""}
+		status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	status.Status = model.STATUS_DND
