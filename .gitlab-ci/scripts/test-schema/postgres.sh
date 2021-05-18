@@ -2,7 +2,7 @@
 set -xe
 
 echo $DOCKER_HOST
-DOCKER_NETWORK="${CI_PIPELINE_IID}-schema-postgres"
+DOCKER_NETWORK="${CI_PIPELINE_IID}-${CI_JOB_NAME}"
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
