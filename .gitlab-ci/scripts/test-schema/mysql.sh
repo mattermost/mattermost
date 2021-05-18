@@ -3,7 +3,8 @@ set -xe
 
 echo $DOCKER_HOST
 docker ps
-DOCKER_NETWORK="${CI_PIPELINE_IID}-${CI_JOB_NAME}"
+export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}-${CI_JOB_NAME}"
+DOCKER_NETWORK="${CI_PIPELINE_IID}-${CI_JOB_NAME}"_schemamysql
 DOCKER_COMPOSE_FILE="gitlab-dc.mysql.yml"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096

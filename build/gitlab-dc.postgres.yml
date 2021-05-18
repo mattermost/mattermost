@@ -16,7 +16,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      default:
+      schemapostgres:
         aliases:
           - postgres
   ## START SAME CONFIG(extends does not work with some docker-compose versions unfortunately)
@@ -29,7 +29,7 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
     networks:
-      default:
+      schemapostgres:
         aliases:
           - minio
   inbucket:
@@ -37,7 +37,7 @@ services:
     container_name: inbucket
     restart: always
     networks:
-      default:
+      schemapostgres:
         aliases:
           - inbucket
   openldap:
@@ -50,9 +50,9 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
     networks:
-     default:
-       aliases:
-         - openldap
+      schemapostgres:
+        aliases:
+          - openldap
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     container_name: elasticsearch
@@ -66,16 +66,16 @@ services:
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     networks:
-     default:
-       aliases:
-         - elasticsearch
+      schemapostgres:
+        aliases:
+          - elasticsearch
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     container_name: dejavu
     networks:
-     default:
-       aliases:
-         - dejavu
+      schemapostgres:
+        aliases:
+          - dejavu
   keycloak:
     image: "jboss/keycloak:10.0.2"
     container_name: keycloak
@@ -88,18 +88,18 @@ services:
     volumes:
      - "./docker/keycloak:/setup"
     networks:
-     default:
-       aliases:
-         - keycloak
+      schemapostgres:
+        aliases:
+          - keycloak
   prometheus:
     image: "prom/prometheus"
     container_name: prometheus
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
     networks:
-     default:
-       aliases:
-         - prometheus
+      schemapostgres:
+        aliases:
+          - prometheus
   grafana:
     image: "grafana/grafana"
     container_name: grafana
@@ -108,9 +108,9 @@ services:
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
     networks:
-     default:
-       aliases:
-         - grafana
+      schemapostgres:
+        aliases:
+          - grafana
   ## END SAME CONFIG
 
   start_dependencies:
@@ -126,6 +126,5 @@ services:
     command: postgres:5432 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
 
 networks:
-  default:
-    external:
-      name: ${CI_PIPELINE_IID}-${CI_JOB_NAME}
+  schemapostgres:
+    external: true
