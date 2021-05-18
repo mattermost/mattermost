@@ -1458,7 +1458,6 @@ func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImp
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
-		attachment := attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
 			return nil, err
