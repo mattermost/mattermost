@@ -959,7 +959,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reader, attachmentZipReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *OpenTracingAppLayer) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImport")
 
@@ -971,7 +971,7 @@ func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reade
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BulkImport(c, fileReader, attachmentZipReader, dryRun, workers)
+	resultVar0, resultVar1 := a.app.BulkImport(c, jsonlReader, attachmentsReader, dryRun, workers)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -981,7 +981,7 @@ func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reade
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, fileReader io.Reader, importZipReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImportWithPath")
 
@@ -993,7 +993,7 @@ func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, fileReader 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, fileReader, importZipReader, dryRun, workers, importPath)
+	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
