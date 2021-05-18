@@ -7,7 +7,6 @@ import (
 	"archive/zip"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -133,33 +132,25 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// find JSONL import file.
-	var jsonFilePath string
-	for _, path := range importZipReader.File {
-		mlog.Warn("XXX didnt find jsonl", mlog.String("file", path.Name))
-		if filepath.Ext(path.Name) == ".jsonl" {
-			jsonFilePath = path.Name
-			break
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if filepath.Ext(f.Name) == ".jsonl" {
+			// avoid "zip slip"
+			if strings.Contains(f.Name, "..") {
+				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusInternalServerError)
+				w.setJobError(job, appError)
+				return
+			}
+
+			jsonFile, err = f.Open()
+			if err != nil {
+				appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+				w.setJobError(job, appError)
+				return
+			}
+
+			defer jsonFile.Close()
 		}
-	}
-
-	if jsonFilePath == "" {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "", http.StatusBadRequest)
-		w.setJobError(job, appError)
-		return
-	}
-
-	mlog.Warn("XXX opening json file", mlog.String("file", jsonFilePath))
-	// avoid "zip slip"
-	if strings.Contains(jsonFilePath, "..") {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
-	}
-	jsonFile, err := os.Open(jsonFilePath)
-	if err != nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
 	}
 
 	// do the actual import.
