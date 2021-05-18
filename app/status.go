@@ -285,7 +285,12 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 }
 
 func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string) {
-	currentStatus, _ := a.GetStatus(userId)
+	currentStatus, err := a.GetStatus(userId)
+
+	if err != nil {
+		return
+	}
+
 	startTime := ""
 	endTime := ""
 
@@ -346,7 +351,7 @@ func (a *App) SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tu
 	status, err := a.GetStatus(userId)
 
 	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		return
 	}
 
 	status.MondayStart = mondayStart
@@ -376,7 +381,7 @@ func (a *App) SetStatusDoNotDisturbScheduled(userID string) {
 	status, err := a.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		return
 	}
 
 	status.Status = model.STATUS_DND
