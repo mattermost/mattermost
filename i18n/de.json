@@ -987,33 +987,6 @@
     "translation": "E-Mail-Stapelverarbeitung wurde vom Systemadministrator deaktiviert."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direktnachricht von "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Gehe zum Beitrag"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Gruppennachricht von "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Benachrichtigung von "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Sie haben eine neue Benachrichtigung.",
-      "other": "Sie haben {{.Count}} neue Benachrichtigungen."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Neue Benachrichtigung für {{.Day}}. {{.Month}} {{.Year}}",
@@ -2941,62 +2914,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Teamname fehlt in Teammitgliedschaft des Benutzers."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Sie haben eine neue Direktnachricht."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Sie haben eine neue Direktnachricht von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Sie haben eine neue Gruppennachricht."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Sie haben eine neue Gruppennachricht von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Sie haben eine neue Benachrichtigung."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Sie haben eine neue Benachrichtigung von @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5371,10 +5288,6 @@
     "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
-  },
-  {
     "id": "bleveengine.indexer.do_job.engine_inactive",
     "translation": "Failed to run Bleve index job: engine is inactive."
   },
@@ -6521,10 +6434,6 @@
   {
     "id": "app.role.get_by_name.app_error",
     "translation": "Konnte die Rolle nicht abrufen."
-  },
-  {
-    "id": "app.role.get_all.app_error",
-    "translation": "Konnte nicht alle Rollen abrufen."
   },
   {
     "id": "app.role.get.app_error",

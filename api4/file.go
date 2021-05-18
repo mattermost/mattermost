@@ -162,7 +162,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
@@ -170,9 +170,9 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	clientId := r.Form.Get("client_id")
 	auditRec.AddMeta("client_id", clientId)
 
-	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
+	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FileTeamId),
-		app.UploadFileSetUserId(c.App.Session().UserId),
+		app.UploadFileSetUserId(c.AppContext.Session().UserId),
 		app.UploadFileSetTimestamp(timestamp),
 		app.UploadFileSetContentLength(r.ContentLength),
 		app.UploadFileSetClientId(clientId))
@@ -307,7 +307,7 @@ NEXT_PART:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return nil
 		}
@@ -333,9 +333,9 @@ NEXT_PART:
 		auditRec.AddMeta("channel_id", c.Params.ChannelId)
 		auditRec.AddMeta("client_id", clientId)
 
-		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
 			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.App.Session().UserId),
+			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -396,7 +396,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
@@ -436,9 +436,9 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		auditRec.AddMeta("channel_id", channelId)
 		auditRec.AddMeta("client_id", clientId)
 
-		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
 			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.App.Session().UserId),
+			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -481,7 +481,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -512,7 +512,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -554,7 +554,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -587,7 +587,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -620,7 +620,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -734,12 +734,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.FilesSearch {
-		c.Err = model.NewAppError("searchFiles", "api.post.search_files.not_implemented.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -783,7 +778,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchFilesInTeamForUser(terms, c.App.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

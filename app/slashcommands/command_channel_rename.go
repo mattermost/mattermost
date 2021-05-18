@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -37,7 +38,7 @@ func (*RenameProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -91,7 +92,7 @@ func (*RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 	}
 	*patch.DisplayName = message
 
-	_, err = a.PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(c, channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.update_channel.app_error"),

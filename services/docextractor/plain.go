@@ -42,11 +42,11 @@ func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker) (string, err
 		count += size
 
 		// subtract the max rune size to prevent accidentally splitted runes at the end of first 1024 bytes
-		if count > total-utf8.UTFMax || count > len(runes)-utf8.UTFMax {
+		if count > total-utf8.UTFMax {
 			break
 		}
 	}
 
 	text, _ := ioutil.ReadAll(r)
-	return string(runes) + string(text), nil
+	return string(runes[0:total]) + string(text), nil
 }

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -212,7 +213,7 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 	// Instead of undoing what succeeded on any failure we simply do all steps each
 	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user was already
 	// added and exit quickly.
-	if err := scs.app.AddUserToTeamByTeamId(channel.TeamId, userSaved); err != nil {
+	if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(), channel.TeamId, userSaved); err != nil {
 		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 	}
 
@@ -227,6 +228,9 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	var err error
 	var userSaved *model.User
 	var suffix string
+
+	// ensure the new user is created with system_user role and random password.
+	user = sanitizeUserForSync(user)
 
 	// save the original username and email in props (if not already done by another remote)
 	if _, ok := user.GetProp(KeyRemoteUsername); !ok {
@@ -290,6 +294,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 	}
 
 	user.Patch(patch)
+	user = sanitizeUserForSync(user)
 	user.SetProp(KeyRemoteUsername, realUsername)
 	user.SetProp(KeyRemoteEmail, realEmail)
 
@@ -339,7 +344,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 
 	if rpost == nil {
 		// post doesn't exist; create new one
-		rpost, appErr = scs.app.CreatePost(post, channel, true, true)
+		rpost, appErr = scs.app.CreatePost(request.EmptyContext(), post, channel, true, true)
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
@@ -353,7 +358,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 		)
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message {
 		// update post
-		rpost, appErr = scs.app.UpdatePost(post, false)
+		rpost, appErr = scs.app.UpdatePost(request.EmptyContext(), post, false)
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
@@ -380,9 +385,9 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.Remot
 	reaction.RemoteId = model.NewString(rc.RemoteId)
 
 	if reaction.DeleteAt == 0 {
-		savedReaction, appErr = scs.app.SaveReactionForPost(reaction)
+		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(), reaction)
 	} else {
-		appErr = scs.app.DeleteReactionForPost(reaction)
+		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(), reaction)
 	}
 
 	var err error
