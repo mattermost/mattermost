@@ -3,8 +3,7 @@ set -xe
 
 echo $DOCKER_HOST
 docker ps
-export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}-${CI_JOB_NAME}"
-DOCKER_NETWORK="${CI_PIPELINE_IID}-${CI_JOB_NAME}"_schemapostgres
+DOCKER_NETWORK="${CI_PIPELINE_IID}_schemapostgres"
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096

@@ -160,4 +160,4 @@ services:
 networks:
   default:
     external:
-      name: ${COMPOSE_PROJECT_NAME}_schemamysql
+      name: ${CI_PIPELINE_IID}_schemamysql

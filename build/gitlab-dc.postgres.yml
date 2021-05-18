@@ -16,7 +16,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      schemapostgres:
+      default:
         aliases:
           - postgres
   ## START SAME CONFIG(extends does not work with some docker-compose versions unfortunately)
@@ -29,7 +29,7 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - minio
   inbucket:
@@ -41,7 +41,7 @@ services:
       INBUCKET_POP3_ADDR: "0.0.0.0:10110"
       INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - inbucket
   openldap:
@@ -54,7 +54,7 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - openldap
   elasticsearch:
@@ -70,14 +70,14 @@ services:
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - elasticsearch
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     container_name: dejavu
     networks:
-      schemapostgres:
+      default:
         aliases:
           - dejavu
   keycloak:
@@ -92,7 +92,7 @@ services:
     volumes:
      - "./docker/keycloak:/setup"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - keycloak
   prometheus:
@@ -101,7 +101,7 @@ services:
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - prometheus
   grafana:
@@ -112,7 +112,7 @@ services:
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
     networks:
-      schemapostgres:
+      default:
         aliases:
           - grafana
   ## END SAME CONFIG
@@ -129,9 +129,9 @@ services:
       - grafana
     command: postgres:5432 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
     networks:
-      schemapostgres:
+      default:
 
 networks:
-  schemapostgres:
+  default:
     external: true
-    name: ${COMPOSE_PROJECT_NAME}_schemapostgres
+    name: ${CI_PIPELINE_IID}_schemapostgres
