@@ -314,11 +314,6 @@ type AppIface interface {
 	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 	// and sets status of given userId to dnd which will be restored back after endtime
 	SetStatusDoNotDisturbTimed(userId string, endtime int64)
-	// SetStatusSchedule takes weekdays information including start time and end time in unix epoch format in UTC 
-	// and saves data
-	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode int64)
-	// SetStatusDoNotDisturbSchedule set dnd by current time, current day of the week and notification schedule
-	SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string)	
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
@@ -824,6 +819,7 @@ type AppIface interface {
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
+	InTimeSpan(start, end, check time.Time) bool
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 	InstallPluginFromData(data model.PluginEventData)
 	InvalidateAllEmailInvites() *model.AppError
@@ -1013,9 +1009,12 @@ type AppIface interface {
 	SetServer(srv *Server)
 	SetStatusAwayIfNeeded(userID string, manual bool)
 	SetStatusDoNotDisturb(userID string)
+	SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, currentTime string)
+	SetStatusDoNotDisturbScheduled(userID string)
 	SetStatusOffline(userID string, manual bool)
 	SetStatusOnline(userID string, manual bool)
 	SetStatusOutOfOffice(userID string)
+	SetStatusSchedule(userId, mondayStart, mondayEnd, tuesdayStart, tuesdayEnd, wednesdayStart, wednesdayEnd, thursdayStart, thursdayEnd, fridayStart, fridayEnd, saturdayStart, saturdayEnd, sundayStart, sundayEnd string, mode int64)
 	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
