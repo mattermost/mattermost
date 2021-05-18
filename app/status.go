@@ -378,11 +378,11 @@ func (a *App) SetStatusDoNotDisturbScheduled(userID string) {
 	status, err := a.GetStatus(userID)
 
 	if err != nil {
-		status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+		status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	status.Status = model.STATUS_DND
-	status.Manual = false
+	status.Manual = true
 
 	a.SaveAndBroadcastStatus(status)
 }
