@@ -150,7 +150,10 @@ services:
       - prometheus
       - grafana
     command: mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    networks:
+     schemamysql:
 
 networks:
   schemamysql:
     external: true
+    name: ${COMPOSE_PROJECT_NAME}_schemamysql
