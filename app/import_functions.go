@@ -1462,6 +1462,9 @@ func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImp
 	for _, attachment := range *attachments {
 		at := fmt.Sprintf("%+v", attachment)
 		mlog.Warn("XXX", mlog.String("attachment", at))
+		attachment := attachment
+		at = fmt.Sprintf("%+v after copy??", attachment)
+		mlog.Warn("XXX", mlog.String("attachment", at))
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
 			return nil, err
