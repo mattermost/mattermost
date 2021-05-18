@@ -173,8 +173,7 @@ func (s *Store) SetReadOnlyFF(readOnly bool) {
 // It returns both old and new versions of the config.
 func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) {
 	s.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(s.configLock.Unlock)
+	defer s.configLock.Unlock()
 
 	if s.readOnly {
 		return nil, nil, ErrReadOnlyStore
@@ -197,6 +196,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
+	// We attempt to remove any environment override that may be present in the input config.
 	newCfgNoEnv := removeEnvOverrides(newCfg, oldCfgNoEnv, s.GetEnvironmentOverrides())
 
 	// Don't store feature flags unless we are on MM cloud
@@ -217,13 +217,15 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 		return nil, nil, errors.Wrap(err, "failed to persist")
 	}
 
+	// We apply back environment overrides since the input config may or
+	// may not have them applied.
 	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
 	fixConfig(newCfg)
 	if err := newCfg.IsValid(); err != nil {
 		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
-	hasChanged, err := confsDiff(oldCfg, newCfg)
+	hasChanged, err := equal(oldCfg, newCfg)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to compare configs")
 	}
@@ -240,10 +242,10 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 
 	newCfgCopy := newCfg.Clone()
 
-	unlockOnce.Do(s.configLock.Unlock)
-
 	if hasChanged {
-		s.invokeConfigListeners(oldCfg, newCfgCopy)
+		s.configLock.Unlock()
+		s.invokeConfigListeners(oldCfg, newCfgCopy.Clone())
+		s.configLock.Lock()
 	}
 
 	return oldCfg, newCfgCopy, nil
@@ -252,8 +254,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 // Load updates the current configuration from the backing store, possibly initializing.
 func (s *Store) Load() error {
 	s.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(s.configLock.Unlock)
+	defer s.configLock.Unlock()
 
 	oldCfg := &model.Config{}
 	if s.config != nil {
@@ -294,6 +295,8 @@ func (s *Store) Load() error {
 	// Setting defaults allows us to accept partial config objects.
 	loadedCfg.SetDefaults()
 
+	// No need to clone here since the below call to applyEnvironmentMap
+	// already does that internally.
 	loadedCfgNoEnv := loadedCfg
 	fixConfig(loadedCfgNoEnv)
 
@@ -315,7 +318,7 @@ func (s *Store) Load() error {
 	}
 
 	// Check for changes that may have happened on load to the backing store.
-	hasChanged, err := confsDiff(oldCfg, loadedCfg)
+	hasChanged, err := equal(oldCfg, loadedCfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to compare configs")
 	}
@@ -341,10 +344,10 @@ func (s *Store) Load() error {
 
 	loadedCfgCopy := loadedCfg.Clone()
 
-	unlockOnce.Do(s.configLock.Unlock)
-
 	if hasChanged {
+		s.configLock.Unlock()
 		s.invokeConfigListeners(oldCfg, loadedCfgCopy)
+		s.configLock.Lock()
 	}
 
 	return nil

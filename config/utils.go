@@ -248,7 +248,7 @@ func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-func confsDiff(oldCfg, newCfg *model.Config) (bool, error) {
+func equal(oldCfg, newCfg *model.Config) (bool, error) {
 	oldCfgBytes, err := json.Marshal(oldCfg)
 	if err != nil {
 		return false, fmt.Errorf("failed to marshal old config: %w", err)
