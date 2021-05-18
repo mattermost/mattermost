@@ -662,6 +662,16 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(fakeApp, c)
+			runCheckWarnMetricStatusJob(fakeApp, c)
+			runDNDStatusExpireJob(fakeApp)
+		})
+		s.runJobs()
+	}
+
 	s.doAppMigrations()
 
 	s.initPostMetadata()
@@ -674,15 +684,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
-	if s.runEssentialJobs {
-		s.Go(func() {
-			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(fakeApp, c)
-			runCheckWarnMetricStatusJob(fakeApp, c)
-			runDNDStatusExpireJob(fakeApp)
-		})
-		s.runJobs()
-	}
 
 	return s, nil
 }
