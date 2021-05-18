@@ -12,6 +12,7 @@ docker-compose -f $DOCKER_COMPOSE_FILE --no-ansi run --rm start_dependencies
 cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
 docker-compose -f $DOCKER_COMPOSE_FILE --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
 sleep 5
+docker network ls
 #docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
 #docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
 #
