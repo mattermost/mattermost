@@ -54,14 +54,18 @@ services:
       MINIO_ACCESS_KEY: minioaccesskey
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+    networks:
+      default:
+        aliases:
+          - minio
   inbucket:
     image: "inbucket/inbucket:stable"
     container_name: inbucket
     restart: always
-    environment:
-      INBUCKET_WEB_ADDR: "0.0.0.0:10080"
-      INBUCKET_POP3_ADDR: "0.0.0.0:10110"
-      INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
+  networks:
+    default:
+      aliases:
+        - inbucket
   openldap:
     image: "osixia/openldap:1.4.0"
     container_name: openldap
@@ -71,6 +75,10 @@ services:
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
+    networks:
+     default:
+       aliases:
+         - openldap
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     container_name: elasticsearch
@@ -83,9 +91,17 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    networks:
+     default:
+       aliases:
+         - elasticsearch
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     container_name: dejavu
+    networks:
+     default:
+       aliases:
+         - dejavu
   keycloak:
     image: "jboss/keycloak:10.0.2"
     container_name: keycloak
@@ -97,11 +113,19 @@ services:
       KEYCLOAK_IMPORT: /setup/realm.json
     volumes:
      - "./docker/keycloak:/setup"
+    networks:
+     default:
+       aliases:
+         - keycloak
   prometheus:
     image: "prom/prometheus"
     container_name: prometheus
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+    networks:
+     default:
+       aliases:
+         - prometheus
   grafana:
     image: "grafana/grafana"
     container_name: grafana
@@ -109,6 +133,10 @@ services:
      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+     default:
+       aliases:
+         - grafana
   ## END SAME CONFIG
 
   start_dependencies:
