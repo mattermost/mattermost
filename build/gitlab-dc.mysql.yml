@@ -1,4 +1,4 @@
-version: '3'
+version: '2.4'
 services:
   mysql:
     image: "mysql:5.6"
@@ -134,9 +134,9 @@ services:
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
     networks:
-     default:
-       aliases:
-         - grafana
+      default:
+        aliases:
+          - grafana
   ## END SAME CONFIG
 
   start_dependencies:
@@ -151,7 +151,7 @@ services:
       - grafana
     command: mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
     networks:
-     default:
+      default:
 
 networks:
   default:
