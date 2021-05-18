@@ -44,3 +44,6 @@ echo "Removing databases created for db comparison"
 docker-compose -f $DOCKER_COMPOSE_FILE --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Generating diff"
 diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
+
+docker-compose -f $DOCKER_COMPOSE_FILE down
+docker network remove ${DOCKER_NETWORK}
