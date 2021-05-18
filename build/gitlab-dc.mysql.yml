@@ -19,7 +19,7 @@ services:
     volumes:
       - "./docker/mysql.conf.d:/etc/mysql/conf.d"
     networks:
-      schemamysql:
+      default:
         aliases:
           - mysql
   mysql-read-replica:
@@ -42,7 +42,7 @@ services:
     volumes:
       - "./docker/mysql.conf.d:/etc/mysql/conf.d"
     networks:
-      schemamysql:
+      default:
         aliases:
           - mysql-replica-ro
   ## START SAME CONFIG(extends does not work with some docker-compose versions unfortunately)
@@ -55,7 +55,7 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
     networks:
-      schemamysql:
+      default:
         aliases:
           - minio
   inbucket:
@@ -63,7 +63,7 @@ services:
     container_name: inbucket
     restart: always
     networks:
-      schemamysql:
+      default:
         aliases:
           - inbucket
   openldap:
@@ -76,7 +76,7 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
     networks:
-      schemamysql:
+      default:
         aliases:
           - openldap
   elasticsearch:
@@ -92,14 +92,14 @@ services:
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     networks:
-      schemamysql:
+      default:
         aliases:
           - elasticsearch
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     container_name: dejavu
     networks:
-      schemamysql:
+      default:
         aliases:
           - dejavu
   keycloak:
@@ -114,7 +114,7 @@ services:
     volumes:
      - "./docker/keycloak:/setup"
     networks:
-      schemamysql:
+      default:
         aliases:
           - keycloak
   prometheus:
@@ -123,7 +123,7 @@ services:
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
     networks:
-      schemamysql:
+      default:
         aliases:
           - prometheus
   grafana:
@@ -134,7 +134,7 @@ services:
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
     networks:
-     schemamysql:
+     default:
        aliases:
          - grafana
   ## END SAME CONFIG
@@ -151,9 +151,9 @@ services:
       - grafana
     command: mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
     networks:
-     schemamysql:
+     default:
 
 networks:
-  schemamysql:
+  default:
     external:
       name: ${COMPOSE_PROJECT_NAME}_schemamysql
