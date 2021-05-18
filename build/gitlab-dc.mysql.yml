@@ -126,4 +126,4 @@ services:
 networks:
   default:
     external:
-      name: ${CI_PIPELINE_IID}-schema-mysql
+      name: ${CI_PIPELINE_IID}-${CI_JOB_STAGE}
