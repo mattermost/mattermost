@@ -1169,7 +1169,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", data.Data.Name))
+				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
 				return oldFile, nil
 			}
 		}
