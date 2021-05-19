@@ -155,6 +155,7 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			attachedFiles[fi.Name] = fi
 		}
 	}
+	mlog.Warn("XXX found files", mlog.String("files", fmt.Sprintf("%+v", attachedFiles)))
 
 	for scanner.Scan() {
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
@@ -167,7 +168,10 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 
 		if len(attachedFiles) > 0 && line.Post != nil && len(*line.Post.Attachments) > 0 {
 			for _, attachment := range *line.Post.Attachments {
-				attachment.Data = attachedFiles[*attachment.Path]
+				var ok bool
+				if attachment.Data, ok = attachedFiles[*attachment.Path]; !ok {
+					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "attachment not found in map", http.StatusBadRequest), 0
+				}
 				address := fmt.Sprintf("%+v", attachment.Data)
 				mlog.Warn("XXX adding data to attachedfiles map", mlog.String("data", address))
 			}
