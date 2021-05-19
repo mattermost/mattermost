@@ -1016,7 +1016,6 @@ func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions 
 	return teamMembers, nil
 }
 
-
 func (a *App) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError) {
 	teamIDs, err := a.Srv().Store.Team().GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 	if err != nil {
@@ -1024,7 +1023,6 @@ func (a *App) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string,
 	}
 	return teamIDs, nil
 }
-
 
 func (a *App) AddTeamMember(c *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	_, teamMember, err := a.AddUserToTeam(c, teamID, userID, "")
