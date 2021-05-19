@@ -4025,7 +4025,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		AssertFileIdsInPost(attachments, th, t)
 	})
 
-	t.Run("Reply with Attachments in Direct Pos", func(t *testing.T) {
+	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
 		directImportData := LineImportWorkerData{
 			LineImportData{
 				DirectPost: &DirectPostImportData{
