@@ -5,6 +5,7 @@ echo $DOCKER_HOST
 docker ps
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
+CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
@@ -18,7 +19,7 @@ echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Importing postgres dump from version 5.0"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres psql -U mmuser -d migrated < ${CI_PROJECT_DIR}/scripts/mattermost-postgresql-5.0.sql
-docker run -d -it --name server --net ${DOCKER_NETWORK} \
+docker run -d -it --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
   --env MM_SQLSETTINGS_DRIVERNAME=postgres \
@@ -26,7 +27,7 @@ docker run -d -it --name server --net ${DOCKER_NETWORK} \
   -w /mattermost-server \
   mattermost/mattermost-build-server:20201119_golang-1.15.5 \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
-docker logs -f server
+docker logs -f "${CONTAINER_SERVER}"
 
 echo "Ignoring known mismatch: ChannelMembers.MentionCountRoot"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "ALTER TABLE ChannelMembers DROP COLUMN MentionCountRoot;" | exec psql -U mmuser -d migrated'
