@@ -19,7 +19,7 @@ echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 echo "Importing postgres dump from version 5.0"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres psql -U mmuser -d migrated < ${CI_PROJECT_DIR}/scripts/mattermost-postgresql-5.0.sql
-docker run -d -it --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
+docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
   --env MM_SQLSETTINGS_DRIVERNAME=postgres \
