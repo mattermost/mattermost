@@ -19,7 +19,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -38,6 +37,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/featureflag"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -200,7 +200,7 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
@@ -805,15 +805,8 @@ func (s *Server) initLogging() error {
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
 		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
-		isJson := config.IsJsonMap(dsn)
 
-		// If this is a file based config we need the full path so it can be watched.
-		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
-			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
-			dsn = filepath.Join(filepath.Dir(configPath), dsn)
-		}
-
-		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
+		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
@@ -822,9 +815,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
-		if !isJson {
-			mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-		}
+		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {

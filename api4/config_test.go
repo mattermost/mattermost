@@ -721,11 +721,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStore("from.json", false, false, nil)
+		f, err := config.NewStoreFromDSN("from.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStore("to.json", false, false, nil)
+		_, err = config.NewStoreFromDSN("to.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
