@@ -8,9 +8,7 @@ DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
-docker-compose -f $DOCKER_COMPOSE_FILE up -d
-docker run --net ${DOCKER_NETWORK} --rm mattermost/mattermost-wait-for-dep:latest "postgres:5432 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000"
-#docker-compose -f $DOCKER_COMPOSE_FILE run --rm start_dependencies
+docker-compose -f $DOCKER_COMPOSE_FILE run --rm start_dependencies
 cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
 docker-compose -f $DOCKER_COMPOSE_FILE exec -T minio sh -c 'mkdir -p /data/mattermost-test'
 sleep 5
