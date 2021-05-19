@@ -64,7 +64,7 @@ empty:
 #  rules:
 #    - if: '$TEST == "yes"'
 #
-.test-schema-mysql:
+test-schema-mysql:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -84,7 +84,7 @@ empty:
   after_script:
     - docker logout
 
-test-schema-postgres-a:
+test-schema-postgres:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -99,27 +99,7 @@ test-schema-postgres-a:
   before_script:
     - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
-    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgresa"
-    - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
-  after_script:
-    - docker logout
-
-test-schema-postgres-b:
-  stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
-  services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
-      alias: docker
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_CONTENT_TRUST: 0
-    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
-  script:
-    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgresb"
+    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgres"
     - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
   after_script:
     - docker logout
