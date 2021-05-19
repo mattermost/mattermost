@@ -179,9 +179,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 	}
 
 	newCfg = newCfg.Clone()
-	// no need to clone these as cached configs are getting replaced
-	// with brand new objects.
-	oldCfg := s.config
+	oldCfg := s.config.Clone()
 	oldCfgNoEnv := s.configNoEnv
 
 	// Setting defaults allows us to accept partial config objects.
@@ -255,7 +253,7 @@ func (s *Store) Load() error {
 
 	oldCfg := &model.Config{}
 	if s.config != nil {
-		oldCfg = s.config
+		oldCfg = s.config.Clone()
 	}
 
 	configBytes, err := s.backingStore.Load()
