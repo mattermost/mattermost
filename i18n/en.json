@@ -272,6 +272,10 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "A direct channel cannot be created between these users because they do not share a team in common."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
@@ -2007,6 +2011,10 @@
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "If you are not redirected automatically, please click the <a href='{{.Link}}'>link</a>"
   },
   {
     "id": "api.oauth.close_browser",
@@ -6065,6 +6073,10 @@
   {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Unable to get the common team IDs."
   },
   {
     "id": "app.team.get_member.app_error",

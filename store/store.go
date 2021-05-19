@@ -150,6 +150,10 @@ type TeamStore interface {
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
+
+	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+	// users belong.
+	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 }
 
 type ChannelStore interface {
