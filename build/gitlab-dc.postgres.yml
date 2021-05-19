@@ -126,4 +126,4 @@ services:
 networks:
   default:
     external:
-      name: ${CI_PIPELINE_IID}schemapostgres
+      name: ${COMPOSE_PROJECT_NAME}
