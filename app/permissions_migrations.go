@@ -784,6 +784,12 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		Add: []string{model.PERMISSION_TEST_S3.Id},
 	})
 
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_SMTP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id),
+		Add: []string{model.PERMISSION_TEST_EMAIL.Id},
+	})
+
 	return transformations, nil
 }
 
