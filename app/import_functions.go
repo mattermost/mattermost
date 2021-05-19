@@ -1070,6 +1070,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
+		mlog.Warn("XXX in importReplies")
 		fileIDs, err := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		if err != nil {
 			return err
@@ -1352,6 +1353,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			post.Props = *line.Post.Props
 		}
 
+		mlog.Warn("XXX in importMultiplePostLines")
 		fileIDs, appErr := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		if appErr != nil {
 			return line.LineNumber, appErr
@@ -1652,6 +1654,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 
+		mlog.Warn("XXX importMultipleDirectPostLines")
 		fileIDs, err := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
 		if err != nil {
 			return line.LineNumber, err
