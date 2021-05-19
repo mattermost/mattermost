@@ -77,9 +77,11 @@ test-schema-postgres:
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    - docker info
+    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
+  after_script:
+    - docker logout
 
 test-schema-mysql:
   stage: test
@@ -94,6 +96,8 @@ test-schema-mysql:
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    - docker info
+    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
+  after_script:
+    - docker logout
