@@ -170,8 +170,8 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			for _, attachment := range *line.Post.Attachments {
 				var ok bool
 				path := *attachment.Path
-				if !strings.HasPrefix(path, "/data/") {
-					path = "/data/" + path
+				if !strings.HasPrefix(path, "/data") {
+					path = "/data" + path
 				}
 				if attachment.Data, ok = attachedFiles[path]; !ok {
 					return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, fmt.Sprintf("attachment '%s' not found in map", path), http.StatusBadRequest), 0
