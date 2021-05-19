@@ -32,11 +32,25 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
+func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	store, err := config.NewStoreFromBacking(configStore, nil, false)
+	require.NoError(t, err)
+	cfg := store.Get()
+	f(cfg)
+
+	store.Set(cfg)
+
+	return NewServer(ConfigStore(store))
+}
+
 func TestStartServerSuccess(t *testing.T) {
-	s, err := NewServer()
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+	})
 	require.NoError(t, err)
 
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 
 	client := &http.Client{}
@@ -173,23 +187,23 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	require.NoError(t, err)
 
 	// ensure that a new bucket was created
-	backend, err := s.FileBackend()
-	require.Nil(t, err)
+	backend, appErr := s.FileBackend()
+	require.Nil(t, appErr)
 	err = backend.(*filestore.S3FileBackend).TestConnection()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
-	s, err := NewServer()
-	require.NoError(t, err)
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		testDir, _ := fileutils.FindDir("tests")
 
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
+	require.NoError(t, err)
+
 	serverErr := s.Start()
 
 	tr := &http.Transport{
@@ -387,17 +401,22 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
-	s, err := NewServer()
+	configStore, _ := config.NewMemoryStore()
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+	cfg := store.Get()
+	testDir, _ := fileutils.FindDir("tests")
+
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+	*cfg.ServiceSettings.TLSMinVer = "1.2"
+	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	store.Set(cfg)
+
+	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	testDir, _ := fileutils.FindDir("tests")
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSMinVer = "1.2"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-	})
 	serverErr := s.Start()
 
 	tr := &http.Transport{
@@ -431,23 +450,18 @@ func TestStartServerTLSVersion(t *testing.T) {
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
-	configStore, _ := config.NewMemoryStore()
-	store, _ := config.NewStoreFromBacking(configStore, nil, false)
-	cfg := store.Get()
-	testDir, _ := fileutils.FindDir("tests")
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		testDir, _ := fileutils.FindDir("tests")
 
-	*cfg.ServiceSettings.ListenAddress = ":0"
-	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-	cfg.ServiceSettings.TLSOverwriteCiphers = []string{
-		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-	}
-	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-
-	store.Set(cfg)
-
-	s, err := NewServer(ConfigStore(store))
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		cfg.ServiceSettings.TLSOverwriteCiphers = []string{
+			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+			"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+		}
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+	})
 	require.NoError(t, err)
 
 	err = s.Start()
@@ -606,22 +620,16 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		configStore, _ := config.NewMemoryStore()
-		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		cfg := store.Get()
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.LogSettings.EnableSentry = false
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-		*cfg.LogSettings.EnableDiagnostics = true
-
-		store.Set(cfg)
-
-		s, err := NewServer(ConfigStore(store))
+		s, err := newServerWithConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.LogSettings.EnableSentry = false
+			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+			*cfg.LogSettings.EnableDiagnostics = true
+		})
 		require.NoError(t, err)
 
-		// Route for just panicing
 		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 			panic("log this panic")
 		})
@@ -656,19 +664,14 @@ func TestSentry(t *testing.T) {
 		require.NoError(t, err)
 		SentryDSN = dsn.String()
 
-		configStore, _ := config.NewMemoryStore()
-		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		cfg := store.Get()
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-		*cfg.LogSettings.EnableSentry = true
-		*cfg.LogSettings.EnableDiagnostics = true
-
-		store.Set(cfg)
-
-		s, err := NewServer(ConfigStore(store))
+		s, err := newServerWithConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+			*cfg.LogSettings.EnableSentry = true
+			*cfg.LogSettings.EnableDiagnostics = true
+		})
 		require.NoError(t, err)
 
 		// Route for just panicing
@@ -690,5 +693,63 @@ func TestSentry(t *testing.T) {
 		case <-time.After(time.Second * 10):
 			require.Fail(t, "Sentry report didn't arrive")
 		}
+	})
+}
+
+func TestAdminAdvisor(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// creating a system user to whole admin advisor will send post
+	user := model.User{
+		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
+		Nickname:    "Darth Vader",
+		Username:    "vader" + model.NewId(),
+		Password:    "passwd1",
+		AuthService: "",
+		Roles:       model.SYSTEM_ADMIN_ROLE_ID,
+	}
+	ruser, err := th.App.CreateUser(th.Context, &user)
+	assert.Nil(t, err, "User should be created")
+	defer th.App.PermanentDeleteUser(th.Context, &user)
+
+	t.Run("Should notify admin of un-configured support email", func(t *testing.T) {
+		doCheckAdminSupportStatus(th.App, th.Context)
+
+		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		assert.NotNil(t, bot, "Bot should have been created now")
+		assert.Nil(t, err, "No error should be generated")
+
+		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+		assert.Nil(t, err, "No error should be generated")
+	})
+
+	t.Run("Should NOT notify admin when support email is configured", func(t *testing.T) {
+		th.App.UpdateConfig(func(m *model.Config) {
+			email := "success+test@example.com"
+			m.SupportSettings.SupportEmail = &email
+		})
+
+		bot, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		assert.NotNil(t, bot, "Bot should be already created")
+		assert.Nil(t, err, "No error should be generated")
+
+		channel, err := th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should already exist")
+		assert.Nil(t, err, "No error should be generated")
+
+		err = th.App.PermanentDeleteChannel(channel)
+		assert.Nil(t, err, "No error should be generated")
+
+		doCheckAdminSupportStatus(th.App, th.Context)
+
+		channel, err = th.App.getDirectChannel(bot.Id, ruser.Id)
+		assert.NotNil(t, channel, "DM channel should exist between Admin Advisor and system admin")
+		assert.Nil(t, err, "No error should be generated")
+
+		posts, err := th.App.GetPosts(channel.Id, 0, 100)
+		assert.Nil(t, err, "No error should be generated")
+		assert.Equal(t, 0, len(posts.Posts))
 	})
 }

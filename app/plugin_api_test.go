@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -68,7 +69,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, app *App) string {
+func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, app *App, c *request.Context) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -87,7 +88,11 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 		}
 	})
 
-	env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return app.NewPluginAPI(c, manifest)
+	}
+
+	env, err := plugin.NewEnvironment(newPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	require.Equal(t, len(pluginCodes), len(pluginIDs))
@@ -115,8 +120,8 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) string {
-	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginID}, app)
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
+	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginID}, app, c)
 }
 
 func TestPublicFilesPathConfiguration(t *testing.T) {
@@ -141,7 +146,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`,
-		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App, th.Context)
 
 	publicFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
 	publicFilesPath, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
@@ -154,13 +159,13 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
@@ -177,13 +182,13 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
@@ -195,13 +200,13 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(preferences))
 
-	user2, err := th.App.CreateUser(&model.User{
+	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user2)
+	defer th.App.PermanentDeleteUser(th.Context, user2)
 
 	preference := model.Preference{
 		Name:     user2.Id,
@@ -229,13 +234,13 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
@@ -278,37 +283,37 @@ func TestPluginAPIGetUsers(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
-	user2, err := th.App.CreateUser(&model.User{
+	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user2)
+	defer th.App.PermanentDeleteUser(th.Context, user2)
 
-	user3, err := th.App.CreateUser(&model.User{
+	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user3)
+	defer th.App.PermanentDeleteUser(th.Context, user3)
 
-	user4, err := th.App.CreateUser(&model.User{
+	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user4)
+	defer th.App.PermanentDeleteUser(th.Context, user4)
 
 	testCases := []struct {
 		Description   string
@@ -368,37 +373,37 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
 
-	user1, err := th.App.CreateUser(&model.User{
+	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
+	defer th.App.PermanentDeleteUser(th.Context, user1)
 
-	user2, err := th.App.CreateUser(&model.User{
+	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user2)
+	defer th.App.PermanentDeleteUser(th.Context, user2)
 
-	user3, err := th.App.CreateUser(&model.User{
+	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user3)
+	defer th.App.PermanentDeleteUser(th.Context, user3)
 
-	user4, err := th.App.CreateUser(&model.User{
+	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Password: "password",
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user4)
+	defer th.App.PermanentDeleteUser(th.Context, user4)
 
 	// Add all users to team 1
 	_, _, err = th.App.joinUserToTeam(team1, user1)
@@ -478,7 +483,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	uploadTime := time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local)
 	filename := "testGetFile"
 	fileData := []byte("Hello World")
-	info, err := th.App.DoUploadFile(uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
+	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
@@ -500,7 +505,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	fileInfo1, err := th.App.DoUploadFile(
+	fileInfo1, err := th.App.DoUploadFile(th.Context,
 		time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -514,7 +519,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
-	fileInfo2, err := th.App.DoUploadFile(
+	fileInfo2, err := th.App.DoUploadFile(th.Context,
 		time.Date(2020, 1, 2, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -528,7 +533,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
-	fileInfo3, err := th.App.DoUploadFile(
+	fileInfo3, err := th.App.DoUploadFile(th.Context,
 		time.Date(2020, 1, 3, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
@@ -598,7 +603,7 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 		},
 	}
 
-	api := NewPluginAPI(th.App, manifest)
+	api := NewPluginAPI(th.App, th.Context, manifest)
 
 	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
 
@@ -641,7 +646,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 		},
 	}
 
-	api := NewPluginAPI(th.App, manifest)
+	api := NewPluginAPI(th.App, th.Context, manifest)
 
 	pluginConfigJsonString := `{"mystringsetting": "str", "myintsetting": 32, "myboolsetting": true}`
 	var pluginConfig map[string]interface{}
@@ -761,7 +766,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginIDs := []string{"pluginid1", "pluginid2", "pluginid3"}
@@ -834,7 +839,7 @@ func TestInstallPlugin(t *testing.T) {
 	// we need a modified version of setupPluginApiTest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
 		pluginDir, err := ioutil.TempDir("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := ioutil.TempDir("", "")
@@ -845,7 +850,11 @@ func TestInstallPlugin(t *testing.T) {
 			*cfg.PluginSettings.ClientDirectory = webappPluginDir
 		})
 
-		env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
+		newPluginAPI := func(manifest *model.Manifest) plugin.API {
+			return app.NewPluginAPI(c, manifest)
+		}
+
+		env, err := plugin.NewEnvironment(newPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
 		require.NoError(t, err)
 
 		app.SetPluginsEnvironment(env)
@@ -935,7 +944,7 @@ func TestInstallPlugin(t *testing.T) {
 				"type": "text"
 			}
 		]
-	}}`, "testinstallplugin", th.App)
+	}}`, "testinstallplugin", th.App, th.Context)
 	defer tearDown()
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testinstallplugin")
@@ -1046,7 +1055,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	}
 	setupPluginApiTest(t, code,
 		fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
-		id, th.App)
+		id, th.App, th.Context)
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
 	require.NoError(t, err)
 	require.NotNil(t, hooks)
@@ -1404,6 +1413,10 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return
 			}
 
+			if r.Header.Get("Mattermost-Plugin-ID") != "testplugininterclient" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()
@@ -1469,6 +1482,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			"testplugininterclient",
 		},
 		th.App,
+		th.Context,
 	)
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugininterclient")
@@ -1491,7 +1505,7 @@ func TestApiMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
 		th.App.SetPluginsEnvironment(env)
@@ -1543,7 +1557,7 @@ func TestApiMetrics(t *testing.T) {
 			Password:    "passwd1",
 			AuthService: "",
 		}
-		_, appErr := th.App.CreateUser(user1)
+		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
 		user1, appErr = th.App.GetUser(user1.Id)
@@ -1613,7 +1627,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, pluginCode)
 
-	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.NewPluginAPI)
 	defer tearDown()
 	require.NoError(t, errors[0])
 	require.Len(t, ids, 1)
@@ -1648,7 +1662,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, pluginCode)
 
-	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.NewPluginAPI)
 	defer tearDown()
 	require.NoError(t, errors[0])
 	require.Len(t, ids, 1)
@@ -1698,7 +1712,7 @@ func (*MockSlashCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model
 		DisplayName:      "mock",
 	}
 }
-func (mscp *MockSlashCommandProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (mscp *MockSlashCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	mscp.Args = args
 	mscp.Message = message
 	return &model.CommandResponse{

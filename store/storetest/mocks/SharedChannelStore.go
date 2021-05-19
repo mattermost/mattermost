@@ -261,13 +261,13 @@ func (_m *SharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Share
 	return r0, r1
 }
 
-// GetUser provides a mock function with given fields: userId, remoteId
-func (_m *SharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
-	ret := _m.Called(userId, remoteId)
+// GetUser provides a mock function with given fields: userID, channelID, remoteID
+func (_m *SharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
+	ret := _m.Called(userID, channelID, remoteID)
 
 	var r0 *model.SharedChannelUser
-	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelUser); ok {
-		r0 = rf(userId, remoteId)
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.SharedChannelUser); ok {
+		r0 = rf(userID, channelID, remoteID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SharedChannelUser)
@@ -275,8 +275,8 @@ func (_m *SharedChannelStore) GetUser(userId string, remoteId string) (*model.Sh
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, remoteId)
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userID, channelID, remoteID)
 	} else {
 		r1 = ret.Error(1)
 	}

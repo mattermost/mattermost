@@ -32,6 +32,7 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M         = "warn_metric_number_of_posts_2M"
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
+	SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED    = "warn_metric_support_email_not_configured"
 	SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE          = "FirstAdminVisitMarketplace"
 	AWS_METERING_REPORT_INTERVAL                  = 1
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
@@ -170,13 +171,21 @@ var WarnMetricsTable = map[string]WarnMetric{
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},
+	SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED: {
+		Id:         SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED,
+		Limit:      -1,
+		IsBotOnly:  true,
+		IsRunOnce:  false,
+		SkipAction: true,
+	},
 }
 
 type WarnMetric struct {
-	Id        string
-	Limit     int64
-	IsBotOnly bool
-	IsRunOnce bool
+	Id         string
+	Limit      int64
+	IsBotOnly  bool
+	IsRunOnce  bool
+	SkipAction bool
 }
 
 type WarnMetricDisplayTexts struct {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -49,4 +50,24 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, http.StatusUnauthorized, resp.StatusCode)
 	defer resp.Body.Close()
+}
+
+func TestSamlResetId(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().Saml = &mocks.SamlInterface{}
+
+	user := th.BasicUser
+	_, appErr := th.App.UpdateUserAuth(user.Id, &model.UserAuth{
+		AuthData:    model.NewString(model.NewId()),
+		AuthService: model.USER_AUTH_SERVICE_SAML,
+	})
+	require.Nil(t, appErr)
+
+	_, resp := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
+	CheckForbiddenStatus(t, resp)
+
+	numAffected, resp := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	CheckOKStatus(t, resp)
+	require.Equal(t, int64(1), numAffected)
 }

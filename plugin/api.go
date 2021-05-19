@@ -229,6 +229,12 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateUserStatus(userID, status string) (*model.Status, *model.AppError)
 
+	// SetUserStatusTimedDND will set a user's status to dnd for given time until the user,
+	// or another integration/plugin, sets it back to online.
+	// @tag User
+	// Minimum server version: 5.35
+	SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
+
 	// UpdateUserActive deactivates or reactivates an user.
 	//
 	// @tag User
@@ -532,6 +538,18 @@ type API interface {
 	// @tag Group
 	// Minimum server version: 5.18
 	GetGroupByName(name string) (*model.Group, *model.AppError)
+
+	// GetGroupMemberUsers gets a page of users belonging to the given group.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
+
+	// GetGroupsBySource gets a list of all groups for the given source.
+	//
+	// @tag Group
+	// Minimum server version: 5.35
+	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
 
 	// GetGroupsForUser gets the groups a user is in.
 	//
@@ -1038,6 +1056,21 @@ type API interface {
 	// @tag SlashCommand
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
+
+	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+	// the calling plugin that are present in the cluster.
+	//
+	// This method is used to allow plugin communication in a High-Availability cluster.
+	// The receiving side should implement the OnPluginClusterEvent hook
+	// to receive events sent through this method.
+	//
+	// Minimum server version: 5.36
+	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+
+	// RequestTrialLicense requests a trial license and installs it in the server
+	//
+	// Minimum server version: 5.36
+	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{
