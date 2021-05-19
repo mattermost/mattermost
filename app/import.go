@@ -226,12 +226,6 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
-			if line.Post != nil && len(*line.Post.Attachments) > 0 {
-				mlog.Warn("XXX Post attachments", mlog.String("list", fmt.Sprintf("%+v", line.Post.Attachments)))
-			}
-			if line.DirectPost != nil && len(*line.DirectPost.Attachments) > 0 {
-				mlog.Warn("XXX DirectPost attachments", mlog.String("list", fmt.Sprintf("%+v", line.Post.Attachments)))
-			}
 		case err := <-errorsChan:
 			if stopOnError(err) {
 				close(linesChan)
