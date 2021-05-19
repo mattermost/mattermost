@@ -127,6 +127,29 @@ func (_m *JobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*
 	return r0, r1
 }
 
+// GetAllByTypesPage provides a mock function with given fields: jobTypes, offset, limit
+func (_m *JobStore) GetAllByTypesPage(jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+	ret := _m.Called(jobTypes, offset, limit)
+
+	var r0 []*model.Job
+	if rf, ok := ret.Get(0).(func([]string, int, int) []*model.Job); ok {
+		r0 = rf(jobTypes, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Job)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, int, int) error); ok {
+		r1 = rf(jobTypes, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllPage provides a mock function with given fields: offset, limit
 func (_m *JobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(offset, limit)

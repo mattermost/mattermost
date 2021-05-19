@@ -888,8 +888,7 @@ type channelzData struct {
 // buffer files to ensure compatibility with the gRPC version used.  The latest
 // support package version is 7.
 //
-// Older versions are kept for compatibility. They may be removed if
-// compatibility cannot be maintained.
+// Older versions are kept for compatibility.
 //
 // These constants should not be referenced from any other code.
 const (

@@ -17,10 +17,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -30,9 +31,10 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    app.AppIface
-	Server *app.Server
-	Web    *Web
+	App     app.AppIface
+	Context *request.Context
+	Server  *app.Server
+	Web     *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
@@ -108,10 +110,10 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
+	ctx := &request.Context{}
 	a := app.New(app.ServerConnector(s))
-	a.InitServer()
 
-	web := New(s, s.AppOptions, s.Router)
+	web := New(a, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
@@ -123,6 +125,7 @@ func setupTestHelper(includeCacheLayer bool) *TestHelper {
 
 	th := &TestHelper{
 		App:               a,
+		Context:           ctx,
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
@@ -135,21 +138,25 @@ func (th *TestHelper) InitPlugins() *TestHelper {
 	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
 	webappDir := filepath.Join(th.tempWorkspace, "webapp")
 
-	th.App.InitPlugins(pluginDir, webappDir)
+	th.App.InitPlugins(th.Context, pluginDir, webappDir)
 
 	return th
 }
 
+func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
+	return th.App.NewPluginAPI(th.Context, manifest)
+}
+
 func (th *TestHelper) InitBasic() *TestHelper {
-	th.SystemAdminUser, _ = th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
 
-	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
+	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
 
-	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
 
-	th.App.JoinUserToTeam(team, user, "")
+	th.App.JoinUserToTeam(th.Context, team, user, "")
 
-	channel, _ := th.App.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
+	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
 
 	th.BasicUser = user
 	th.BasicChannel = channel
@@ -211,7 +218,7 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
-	require.Nil(t, reterr)
+	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
@@ -263,7 +270,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -306,7 +313,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	assert.NoError(t, htmlFileErr)
 
 	manifest, activated, reterr := env.Activate(pluginID)
-	require.Nil(t, reterr)
+	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 

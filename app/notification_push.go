@@ -11,12 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type notificationType string
@@ -42,7 +41,7 @@ type PushNotification struct {
 	notificationType   notificationType
 	currentSessionId   string
 	userID             string
-	channelId          string
+	channelID          string
 	post               *model.Post
 	user               *model.User
 	channel            *model.Channel
@@ -201,11 +200,11 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) clearPushNotificationSync(currentSessionId, userID, channelId string) *model.AppError {
+func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID string) *model.AppError {
 	msg := &model.PushNotification{
 		Type:             model.PUSH_TYPE_CLEAR,
 		Version:          model.PUSH_MESSAGE_V2,
-		ChannelId:        channelId,
+		ChannelId:        channelID,
 		ContentAvailable: 1,
 	}
 
@@ -219,13 +218,13 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelId stri
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
 
-func (a *App) clearPushNotification(currentSessionId, userID, channelId string) {
+func (a *App) clearPushNotification(currentSessionId, userID, channelID string) {
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
 		userID:           userID,
-		channelId:        channelId,
+		channelID:        channelID,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
 		return
@@ -307,7 +306,7 @@ func (hub *PushNotificationsHub) start() {
 				var err *model.AppError
 				switch notification.notificationType {
 				case notificationTypeClear:
-					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelId)
+					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelID)
 				case notificationTypeMessage:
 					err = hub.app.sendPushNotificationSync(
 						notification.post,
@@ -485,14 +484,14 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	return true
 }
 
-func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelId string) bool {
+func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string) bool {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.STATUS_DND || status.Status == model.STATUS_OUT_OF_OFFICE {
 		return false
 	}
 
 	pushStatus, ok := userNotifyProps[model.PUSH_STATUS_NOTIFY_PROP]
-	if (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
+	if (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelID || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
 		return true
 	}
 
@@ -533,7 +532,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) *model.PushNotification {
-	userLocale := utils.GetUserTranslations(user.Locale)
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	msg := &model.PushNotification{
 		PostId:     post.Id,
 		ChannelId:  post.ChannelId,
@@ -588,7 +587,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		}
 	}
 
-	userLocale := utils.GetUserTranslations(user.Locale)
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
 	msg.Message = a.getPushNotificationMessage(

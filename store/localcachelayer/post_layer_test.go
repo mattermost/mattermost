@@ -92,12 +92,12 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		expectedResult := model.NewPostList()
 
 		list, err := cachedStore.Post().GetPostsSince(fakeOptions, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, list, expectedResult)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPostsSince", 1)
 
 		list, err = cachedStore.Post().GetPostsSince(fakeOptions, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, list, expectedResult)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPostsSince", 1)
 	})
@@ -152,7 +152,7 @@ func TestPostStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotPosts, err := cachedStore.Post().GetPosts(fakeOptions, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakePosts, gotPosts)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
 
@@ -167,7 +167,7 @@ func TestPostStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotPosts, err := cachedStore.Post().GetPosts(fakeOptions, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakePosts, gotPosts)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
 
@@ -182,7 +182,7 @@ func TestPostStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotPosts, err := cachedStore.Post().GetPosts(fakeOptions, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakePosts, gotPosts)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetPosts", 1)
 

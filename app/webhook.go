@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -11,8 +12,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -24,7 +26,7 @@ const (
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
 
-func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) handleWebhookEvents(c *request.Context, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil
 	}
@@ -82,7 +84,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 		}
 		a.Srv().Go(func(hook *model.OutgoingWebhook) func() {
 			return func() {
-				a.TriggerWebhook(payload, hook, post, channel)
+				a.TriggerWebhook(c, payload, hook, post, channel)
 			}
 		}(hook))
 	}
@@ -90,7 +92,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 	return nil
 }
 
-func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+func (a *App) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 	var body io.Reader
 	var contentType string
 	if hook.ContentType == "application/json" {
@@ -138,7 +140,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
-				if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId); err != nil {
 					mlog.Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
@@ -246,7 +248,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(c *request.Context, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\n>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
@@ -298,7 +300,7 @@ func (a *App) CreateWebhookPost(userID string, channel *model.Channel, text, ove
 	}
 
 	for _, split := range splits {
-		if _, err := a.CreatePostMissingChannel(split, false); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, split, false); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 	}
@@ -584,12 +586,12 @@ func (a *App) GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelID string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelId, userID, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelID, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "app.webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -641,7 +643,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
-func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookRequest) *model.AppError {
+func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -674,7 +676,7 @@ func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookReq
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(hook.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), hook.UserId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -702,7 +704,7 @@ func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookReq
 			if nErr != nil {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			}
-			ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Id)
+			ch, err := a.GetOrCreateDirectChannel(c, hook.UserId, result.Id)
 			if err != nil {
 				return err
 			}
@@ -780,7 +782,7 @@ func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookReq
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
+	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
 	return err
 }
 
@@ -810,7 +812,7 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(hookID string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}
@@ -855,6 +857,6 @@ func (a *App) HandleCommandWebhook(hookID string, response *model.CommandRespons
 		}
 	}
 
-	_, err := a.HandleCommandResponse(cmd, args, response, false)
+	_, err := a.HandleCommandResponse(c, cmd, args, response, false)
 	return err
 }

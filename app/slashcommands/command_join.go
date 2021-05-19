@@ -6,10 +6,10 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type JoinProvider struct {
@@ -27,7 +27,7 @@ func (*JoinProvider) GetTrigger() string {
 	return CmdJoin
 }
 
-func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdJoin,
 		AutoComplete:     true,
@@ -37,8 +37,8 @@ func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	channelName := message
+func (*JoinProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+	channelName := strings.ToLower(message)
 
 	if strings.HasPrefix(message, "~") {
 		channelName = message[1:]
@@ -66,7 +66,7 @@ func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if appErr := a.JoinChannel(channel, args.UserId); appErr != nil {
+	if appErr := a.JoinChannel(c, channel, args.UserId); appErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

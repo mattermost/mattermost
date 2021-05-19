@@ -11,13 +11,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func init() {
-	app.RegisterJobsImportDeleteInterface(func(a *app.App) tjobs.ImportDeleteInterface {
+	app.RegisterJobsImportDeleteInterface(func(s *app.Server) tjobs.ImportDeleteInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ImportDeleteInterfaceImpl{a}
 	})
 }

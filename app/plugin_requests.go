@@ -14,9 +14,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -74,6 +74,8 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		SourcePluginId: sourcePluginId,
 	}
 
+	r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
+
 	hooks.ServeHTTP(context, w, r)
 }
 
@@ -89,7 +91,15 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	pluginsEnv := a.GetPluginsEnvironment()
+
+	// Check if someone has nullified the pluginsEnv in the meantime
+	if pluginsEnv == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	publicFilesPath, err := pluginsEnv.PublicFilesPath(pluginID)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -109,7 +119,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
+		IpAddress:      utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}
@@ -126,6 +136,9 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	} else {
 		token = r.URL.Query().Get("access_token")
 	}
+
+	// Mattermost-Plugin-ID can only be set by inter-plugin requests
+	r.Header.Del("Mattermost-Plugin-ID")
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {

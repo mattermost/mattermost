@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
 	"io/ioutil"
@@ -12,9 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+type cleanUpFn func(store *Store)
 
 func TestMigrate(t *testing.T) {
 	files := []string{
@@ -47,11 +48,12 @@ func TestMigrate(t *testing.T) {
 		truncateTables(t)
 	}
 
-	setupSource := func(t *testing.T, source *config.Store) {
+	setupSource := func(t *testing.T, source *Store) cleanUpFn {
 		t.Helper()
 
 		cfg := source.Get()
-		cfg.ServiceSettings.SiteURL = sToP("http://example.com")
+		originalCfg := cfg.Clone()
+		cfg.ServiceSettings.SiteURL = model.NewString("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
 		cfg.SamlSettings.PrivateKeyFile = &files[2]
@@ -73,9 +75,14 @@ func TestMigrate(t *testing.T) {
 			err = source.SetFile(file, []byte(filesData[i]))
 			require.NoError(t, err)
 		}
+
+		return func(store *Store) {
+			_, err := store.Set(originalCfg)
+			require.NoError(t, err)
+		}
 	}
 
-	assertDestination := func(t *testing.T, destination *config.Store, source *config.Store) {
+	assertDestination := func(t *testing.T, destination *Store, source *Store) {
 		t.Helper()
 
 		for i, file := range files {
@@ -101,21 +108,22 @@ func TestMigrate(t *testing.T) {
 		destinationDSN := path.Join(pwd, "config-custom.json")
 		sourceDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcedb, err := config.NewDatabaseStore(sourceDSN)
+		sourcedb, err := NewDatabaseStore(sourceDSN)
 		require.NoError(t, err)
-		source, err := config.NewStoreFromBacking(sourcedb, nil, false)
+		source, err := NewStoreFromBacking(sourcedb, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
-		err = config.Migrate(sourceDSN, destinationDSN)
+		cleanUp := setupSource(t, source)
+		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destinationfile, err := config.NewFileStore(destinationDSN, false)
+		destinationfile, err := NewFileStore(destinationDSN, false)
 		require.NoError(t, err)
-		destination, err := config.NewStoreFromBacking(destinationfile, nil, false)
+		destination, err := NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})
@@ -130,21 +138,22 @@ func TestMigrate(t *testing.T) {
 		sourceDSN := path.Join(pwd, "config-custom.json")
 		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 
-		sourcefile, err := config.NewFileStore(sourceDSN, false)
+		sourcefile, err := NewFileStore(sourceDSN, false)
 		require.NoError(t, err)
-		source, err := config.NewStoreFromBacking(sourcefile, nil, false)
+		source, err := NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
-		setupSource(t, source)
-		err = config.Migrate(sourceDSN, destinationDSN)
+		cleanUp := setupSource(t, source)
+		err = Migrate(sourceDSN, destinationDSN)
 		require.NoError(t, err)
 
-		destinationdb, err := config.NewDatabaseStore(destinationDSN)
+		destinationdb, err := NewDatabaseStore(destinationDSN)
 		require.NoError(t, err)
-		destination, err := config.NewStoreFromBacking(destinationdb, nil, false)
+		destination, err := NewStoreFromBacking(destinationdb, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
+		defer cleanUp(destination)
 
 		assertDestination(t, destination, source)
 	})

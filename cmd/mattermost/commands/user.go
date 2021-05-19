@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -305,7 +306,7 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	updatedUser, err := a.UpdateActive(user, activate)
+	updatedUser, err := a.UpdateActive(&request.Context{}, user, activate)
 	if err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
@@ -371,19 +372,19 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := a.CreateUser(user)
+	ruser, err := a.CreateUser(&request.Context{}, user)
 	if ruser == nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user system_admin", false); err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
 		// created as a system admin unless explicitly specified.
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
 	}
@@ -775,7 +776,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 				return err
 			}
 		} else {
-			if err := a.PermanentDeleteUser(user); err != nil {
+			if err := a.PermanentDeleteUser(&request.Context{}, user); err != nil {
 				return err
 			}
 		}
@@ -816,7 +817,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := a.PermanentDeleteAllUsers(); err != nil {
+	if err := a.PermanentDeleteAllUsers(&request.Context{}); err != nil {
 		return err
 	}
 	CommandPrettyPrintln("All user accounts successfully deleted.")

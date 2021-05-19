@@ -26,7 +26,7 @@ func TestCreateJob(t *testing.T) {
 	}
 
 	_, resp := th.SystemManagerClient.CreateJob(job)
-	require.Nil(t, resp.Error)
+	CheckForbiddenStatus(t, resp)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
@@ -40,6 +40,7 @@ func TestCreateJob(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateJob(job)
 	CheckBadRequestStatus(t, resp)
 
+	job.Type = model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING
 	_, resp = th.Client.CreateJob(job)
 	CheckForbiddenStatus(t, resp)
 }
@@ -51,9 +52,10 @@ func TestGetJob(t *testing.T) {
 	job := &model.Job{
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
+		Type:   model.JOB_TYPE_MESSAGE_EXPORT,
 	}
 	_, err := th.App.Srv().Store.Job().Save(job)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 
@@ -77,7 +79,7 @@ func TestGetJobs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JOB_TYPE_DATA_RETENTION
 
 	t0 := model.GetMillis()
 	jobs := []*model.Job{
@@ -100,7 +102,7 @@ func TestGetJobs(t *testing.T) {
 
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store.Job().Save(job)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
@@ -124,7 +126,7 @@ func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	jobType := model.NewId()
+	jobType := model.JOB_TYPE_DATA_RETENTION
 
 	jobs := []*model.Job{
 		{
@@ -151,7 +153,7 @@ func TestGetJobsByType(t *testing.T) {
 
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store.Job().Save(job)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
@@ -177,7 +179,7 @@ func TestGetJobsByType(t *testing.T) {
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING, 0, 60)
 	require.Nil(t, resp.Error)
 }
 
@@ -213,12 +215,12 @@ func TestDownloadJob(t *testing.T) {
 	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
 	// as a system admin, we should get a not found status.
 	_, err := th.App.Srv().Store.Job().Save(job)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
-	require.Nil(t, mkdirAllErr)
+	require.NoError(t, mkdirAllErr)
 	os.Create(filePath)
 
 	// Normal user cannot download the results of these job (not the right permission)
@@ -235,7 +237,7 @@ func TestDownloadJob(t *testing.T) {
 	job.Data["is_downloadable"] = "true"
 	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
 	require.True(t, updateStatus)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckNotFoundStatus(t, resp)
@@ -244,7 +246,7 @@ func TestDownloadJob(t *testing.T) {
 	// This time we should successfully retrieve the results without any error
 	filePath = "./data/export/" + job.Id + ".zip"
 	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
-	require.Nil(t, mkdirAllErr)
+	require.NoError(t, mkdirAllErr)
 	os.Create(filePath)
 
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
@@ -261,7 +263,7 @@ func TestDownloadJob(t *testing.T) {
 		Status: model.JOB_STATUS_SUCCESS,
 	}
 	_, err = th.App.Srv().Store.Job().Save(job)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(job.Id)
 
 	// System admin shouldn't be able to download since the job type is not message export
@@ -273,27 +275,28 @@ func TestCancelJob(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	jobType := model.JOB_TYPE_MESSAGE_EXPORT
 	jobs := []*model.Job{
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_PENDING,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_IN_PROGRESS,
 		},
 		{
 			Id:     model.NewId(),
-			Type:   model.NewId(),
+			Type:   jobType,
 			Status: model.JOB_STATUS_SUCCESS,
 		},
 	}
 
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store.Job().Save(job)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
@@ -310,5 +313,5 @@ func TestCancelJob(t *testing.T) {
 	CheckInternalErrorStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CancelJob(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }

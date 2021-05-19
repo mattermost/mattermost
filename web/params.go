@@ -32,6 +32,7 @@ type Params struct {
 	Timestamp                 int64
 	ChannelId                 string
 	PostId                    string
+	PolicyId                  string
 	FileId                    string
 	Filename                  string
 	UploadId                  string
@@ -83,6 +84,8 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+	ExportName                string
+	ExcludePolicyConstrained  bool
 
 	// Cloud
 	InvoiceId string
@@ -126,6 +129,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["post_id"]; ok {
 		params.PostId = val
+	}
+
+	if val, ok := props["policy_id"]; ok {
+		params.PolicyId = val
 	}
 
 	if val, ok := props["file_id"]; ok {
@@ -344,6 +351,14 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["warn_metric_id"]; ok {
 		params.WarnMetricId = val
+	}
+
+	if val, ok := props["export_name"]; ok {
+		params.ExportName = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("exclude_policy_constrained")); err == nil {
+		params.ExcludePolicyConstrained = val
 	}
 
 	return params

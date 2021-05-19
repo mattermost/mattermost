@@ -19,7 +19,7 @@ import (
 func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
@@ -76,8 +76,9 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should fail on bad key", func(t *testing.T) {
 		_, triggerId, err := GenerateTriggerId(NewId(), key)
+		require.Nil(t, err)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		require.Nil(t, keyErr)
+		require.NoError(t, keyErr)
 		_, _, err = DecodeAndVerifyTriggerId(triggerId, newKey)
 		require.NotNil(t, err)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", err.Id)

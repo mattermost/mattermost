@@ -28,7 +28,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		fileInfos, err := cachedStore.FileInfo().GetForPost("123", true, true, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})

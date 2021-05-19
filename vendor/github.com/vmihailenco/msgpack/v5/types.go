@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/vmihailenco/tagparser"
+	"github.com/vmihailenco/tagparser/v2"
 )
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
@@ -313,7 +313,14 @@ func shouldInline(fs *fields, typ reflect.Type, f *field, tag string) bool {
 	return true
 }
 
+type isZeroer interface {
+	IsZero() bool
+}
+
 func isEmptyValue(v reflect.Value) bool {
+	if z, ok := v.Interface().(isZeroer); ok {
+		return z.IsZero()
+	}
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0

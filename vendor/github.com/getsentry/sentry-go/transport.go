@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -16,6 +18,17 @@ import (
 const defaultBufferSize = 30
 const defaultRetryAfter = time.Second * 60
 const defaultTimeout = time.Second * 30
+
+// maxDrainResponseBytes is the maximum number of bytes that transport
+// implementations will read from response bodies when draining them.
+//
+// Sentry's ingestion API responses are typically short and the SDK doesn't need
+// the contents of the response body. However, the net/http HTTP client requires
+// response bodies to be fully drained (and closed) for TCP keep-alive to work.
+//
+// maxDrainResponseBytes strikes a balance between reading too much data (if the
+// server is misbehaving) and reusing TCP connections.
+const maxDrainResponseBytes = 16 << 10
 
 // Transport is used by the Client to deliver events to remote server.
 type Transport interface {
@@ -371,18 +384,21 @@ func (t *HTTPTransport) worker() {
 			}
 
 			response, err := t.client.Do(request)
-
 			if err != nil {
 				Logger.Printf("There was an issue with sending an event: %v", err)
+				continue
 			}
-
-			if response != nil && response.StatusCode == http.StatusTooManyRequests {
+			if response.StatusCode == http.StatusTooManyRequests {
 				deadline := time.Now().Add(retryAfter(time.Now(), response))
 				t.mu.Lock()
 				t.disabledUntil = deadline
 				t.mu.Unlock()
 				Logger.Printf("Too many requests, backing off till: %s\n", deadline)
 			}
+			// Drain body up to a limit and close it, allowing the
+			// transport to reuse TCP connections.
+			_, _ = io.CopyN(ioutil.Discard, response.Body, maxDrainResponseBytes)
+			response.Body.Close()
 		}
 
 		// Signal that processing of the batch is done.
@@ -472,15 +488,18 @@ func (t *HTTPSyncTransport) SendEvent(event *Event) {
 	)
 
 	response, err := t.client.Do(request)
-
 	if err != nil {
 		Logger.Printf("There was an issue with sending an event: %v", err)
+		return
 	}
-
-	if response != nil && response.StatusCode == http.StatusTooManyRequests {
+	if response.StatusCode == http.StatusTooManyRequests {
 		t.disabledUntil = time.Now().Add(retryAfter(time.Now(), response))
 		Logger.Printf("Too many requests, backing off till: %s\n", t.disabledUntil)
 	}
+	// Drain body up to a limit and close it, allowing the
+	// transport to reuse TCP connections.
+	_, _ = io.CopyN(ioutil.Discard, response.Body, maxDrainResponseBytes)
+	response.Body.Close()
 }
 
 // Flush is a no-op for HTTPSyncTransport. It always returns true immediately.

@@ -34,7 +34,7 @@ func TestUploadBrandImage(t *testing.T) {
 	Client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp := Client.UploadBrandImage(data)
 	CheckForbiddenStatus(t, resp)
@@ -60,7 +60,7 @@ func TestDeleteBrandImage(t *testing.T) {
 	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp := th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)

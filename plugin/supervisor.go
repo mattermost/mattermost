@@ -15,15 +15,15 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type supervisor struct {
 	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
-	implemented [TotalHooksId]bool
+	implemented [TotalHooksID]bool
 	pid         int
 }
 
@@ -122,8 +122,7 @@ func (sup *supervisor) PerformHealthCheck() error {
 			}
 		}
 		if pingErr != nil {
-			mlog.Debug("Error pinging plugin", mlog.Err(pingErr))
-			return fmt.Errorf("Plugin RPC connection is not responding")
+			return fmt.Errorf("plugin RPC connection is not responding")
 		}
 	}
 

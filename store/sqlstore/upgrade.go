@@ -13,16 +13,21 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5350
+	Version5360            = "5.36.0"
+	Version5350            = "5.35.0"
+	Version5340            = "5.34.0"
+	Version5330            = "5.33.0"
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
+	Version5291            = "5.29.1"
 	Version5290            = "5.29.0"
 	Version5281            = "5.28.1"
 	Version5280            = "5.28.0"
@@ -195,9 +200,14 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion5291(sqlStore)
 	upgradeDatabaseToVersion530(sqlStore)
 	upgradeDatabaseToVersion531(sqlStore)
 	upgradeDatabaseToVersion532(sqlStore)
+	upgradeDatabaseToVersion533(sqlStore)
+	upgradeDatabaseToVersion534(sqlStore)
+	upgradeDatabaseToVersion535(sqlStore)
+	upgradeDatabaseToVersion536(sqlStore)
 
 	return nil
 }
@@ -231,8 +241,6 @@ func upgradeDatabaseToVersion31(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion32(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version310, Version320) {
-		sqlStore.CreateColumnIfNotExists("TeamMembers", "DeleteAt", "bigint(20)", "bigint", "0")
-
 		saveSchemaVersion(sqlStore, Version320)
 	}
 }
@@ -259,19 +267,19 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
+				if _, err := transaction.ExecNoTimeout("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
 					return
 				}
 			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
+				if _, err := transaction.ExecNoTimeout("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
 					return
 				}
 			}
 
 			// copy data across
-			if _, err := transaction.Exec(
+			if _, err := transaction.ExecNoTimeout(
 				`INSERT INTO
 					Preferences(UserId, Category, Name, Value)
 				SELECT
@@ -285,7 +293,7 @@ func upgradeDatabaseToVersion33(sqlStore *SqlStore) {
 			}
 
 			// delete old data
-			if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
+			if _, err := transaction.ExecNoTimeout("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
 				themeMigrationFailed(err)
 				return
 			}
@@ -337,12 +345,12 @@ func upgradeDatabaseToVersion34(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version340, Version350) {
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
 		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
 		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
@@ -361,9 +369,6 @@ func upgradeDatabaseToVersion35(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion36(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version350, Version360) {
 		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
-
-		// Create Team Description column
-		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
 
 		// Add a Position column to users.
 		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
@@ -508,7 +513,6 @@ func upgradeDatabaseToVersion49(sqlStore *SqlStore) {
 	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
 
 	if shouldPerformUpgrade(sqlStore, Version481, Version490) {
-		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
@@ -528,7 +532,7 @@ func upgradeDatabaseToVersion410(sqlStore *SqlStore) {
 		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 		saveSchemaVersion(sqlStore, Version4100)
-		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	}
 }
 
@@ -551,18 +555,14 @@ func upgradeDatabaseToVersion50(sqlStore *SqlStore) {
 	//    DELETE from Systems WHERE Name = 'migration_advanced_permissions_phase_2';
 
 	if shouldPerformUpgrade(sqlStore, Version4100, Version500) {
-
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
 
 		sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
-		sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Roles SET BuiltIn=true")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "ChannelLocked", "boolean", "boolean", "0")
 
 		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
@@ -615,7 +615,7 @@ func upgradeDatabaseToVersion56(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
 
 		// migrating user's accepted terms of service data into the new table
-		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
+		sqlStore.GetMaster().ExecNoTimeout("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
@@ -665,7 +665,6 @@ func upgradeDatabaseToVersion59(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion510(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version590, Version5100) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
 
 		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
@@ -695,15 +694,14 @@ func upgradeDatabaseToVersion511(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5110, Version5120) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
 
-		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
 		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
-		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
+		sqlStore.GetMaster().ExecNoTimeout("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
 
 		saveSchemaVersion(sqlStore, Version5120)
 	}
@@ -712,7 +710,7 @@ func upgradeDatabaseToVersion512(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion513(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5120, Version5130) {
 		// The previous jobs ran once per minute, cluttering the Jobs table with somewhat useless entries. Clean that up.
-		sqlStore.GetMaster().Exec("DELETE FROM Jobs WHERE Type = 'plugins'")
+		sqlStore.GetMaster().ExecNoTimeout("DELETE FROM Jobs WHERE Type = 'plugins'")
 
 		saveSchemaVersion(sqlStore, Version5130)
 	}
@@ -733,14 +731,13 @@ func upgradeDatabaseToVersion515(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion516(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5150, Version5160) {
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Tokens ALTER COLUMN Extra TYPE varchar(2048)")
 		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			sqlStore.GetMaster().Exec("ALTER TABLE Tokens MODIFY Extra text")
+			sqlStore.GetMaster().ExecNoTimeout("ALTER TABLE Tokens MODIFY Extra text")
 		}
 		saveSchemaVersion(sqlStore, Version5160)
 
 		// Fix mismatches between the canonical and migrated schemas.
-		sqlStore.AlterColumnTypeIfExists("TeamMembers", "SchemeGuest", "tinyint(4)", "boolean")
 		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultTeamGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Schemes", "DefaultChannelGuestRole", "varchar(64)", "VARCHAR(64)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "AllowedDomains", "text", "VARCHAR(1000)")
@@ -817,7 +814,7 @@ func upgradeDatabaseToVersion523(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion524(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5230, Version5240) {
 		sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
-		sqlStore.GetMaster().Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE UserGroups SET Name = null, AllowReference = false")
 		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 		saveSchemaVersion(sqlStore, Version5240)
@@ -852,7 +849,7 @@ func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 		}
 
 		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+		sqlStore.GetMaster().ExecNoTimeout("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
 
 		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
 		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
@@ -937,7 +934,7 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
 		}
-		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadChannelsQuery); err != nil {
 			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 		}
 
@@ -945,11 +942,18 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	}
 }
 
+func upgradeDatabaseToVersion5291(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5290, Version5291) {
+		saveSchemaVersion(sqlStore, Version5291)
+	}
+}
+
 func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
+	if shouldPerformUpgrade(sqlStore, Version5291, Version5300) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -960,15 +964,205 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 
-	// saveSchemaVersion(sqlStore, Version5320)
-	// }
+func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	}
+
+	if !sqlStore.DoesColumnExist("Channels", "Shared") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("ThreadMemberships", "UnreadMentions") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("Reactions", "UpdateAt") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("Reactions", "DeleteAt") {
+		return true
+	}
+
+	return false
+}
+
+func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion532(sqlStore) {
+		// this migration was reverted on MySQL due to performance reasons. Doing
+		// it only on PostgreSQL for the time being.
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			// allow 10 files per post
+			sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+		}
+
+		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		// Shared channels support
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+	}
+
+	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
+		saveSchemaVersion(sqlStore, Version5320)
+	}
+}
+
+func upgradeDatabaseToVersion533(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5320, Version5330) {
+		saveSchemaVersion(sqlStore, Version5330)
+	}
+}
+
+func upgradeDatabaseToVersion534(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5330, Version5340) {
+		saveSchemaVersion(sqlStore, Version5340)
+	}
+}
+
+func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, Version5340, Version5350) {
+		sqlStore.AlterColumnTypeIfExists("Roles", "Permissions", "longtext", "text")
+
+		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Collapsed", "tinyint(1)", "boolean", "0")
+
+		// Shared channels support
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
+		sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
+		if _, err := sqlStore.GetMaster().ExecNoTimeout("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
+			mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
+		}
+		uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
+		}
+		sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
+
+		rootCountMigration(sqlStore)
+
+		saveSchemaVersion(sqlStore, Version5350)
+	}
+}
+
+func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+
+	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+
+	// timed dnd status support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
+
+	//saveSchemaVersion(sqlStore, Version5360)
+	//}
+}
+
+func rootCountMigration(sqlStore *SqlStore) {
+	totalMsgCountRootExists := sqlStore.DoesColumnExist("Channels", "TotalMsgCountRoot")
+	msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
+
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+
+	mentionCountRootCTE := `
+		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
+		FROM ThreadMemberships
+		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		GROUP BY Threads.ChannelId, ThreadMemberships.UserId
+	`
+	updateMentionCountRootQuery := `
+		UPDATE ChannelMembers INNER JOIN (` + mentionCountRootCTE + `) AS q ON
+			q.ChannelId = ChannelMembers.ChannelId AND
+			q.UserId=ChannelMembers.UserId AND
+			ChannelMembers.MentionCount > 0
+		SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateMentionCountRootQuery = `
+			WITH q AS (` + mentionCountRootCTE + `)
+			UPDATE channelmembers
+			SET MentionCountRoot = ChannelMembers.MentionCount - q.UnreadMentions
+			FROM q
+			WHERE
+				q.ChannelId = ChannelMembers.ChannelId AND
+				q.UserId = ChannelMembers.UserId AND
+				ChannelMembers.MentionCount > 0
+		`
+	}
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateMentionCountRootQuery); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
+	sqlStore.CreateColumnIfNotExists("Channels", "TotalMsgCountRoot", "bigint", "bigint", "0")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "LastRootPostAt", "bigint", "bigint")
+	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
+
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
+	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
+
+	forceIndex := ""
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
+	}
+	totalMsgCountRootCTE := `
+		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
+		FROM Channels
+		LEFT JOIN Posts ` + forceIndex + ` ON Channels.Id = Posts.ChannelId
+		WHERE Posts.RootId = ''
+		GROUP BY Channels.Id
+	`
+	channelsCTE := "SELECT TotalMsgCountRoot, Id, LastRootPostAt from Channels"
+	updateChannels := `
+		WITH q AS (` + totalMsgCountRootCTE + `)
+		UPDATE Channels SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost
+		FROM q where q.channelid=Channels.Id;
+	`
+	updateChannelMembers := `
+		WITH q as (` + channelsCTE + `)
+		UPDATE ChannelMembers CM SET MsgCountRoot=TotalMsgCountRoot
+		FROM q WHERE q.id=CM.ChannelId AND LastViewedAt >= q.lastrootpostat;
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateChannels = `
+			UPDATE Channels
+			INNER Join (` + totalMsgCountRootCTE + `) as q
+			ON q.channelid=Channels.Id
+			SET TotalMsgCountRoot = q.newcount, LastRootPostAt=q.lastpost;
+		`
+		updateChannelMembers = `
+			UPDATE ChannelMembers CM
+			INNER JOIN (` + channelsCTE + `) as q
+			ON q.id=CM.ChannelId and LastViewedAt >= q.lastrootpostat
+			SET MsgCountRoot=TotalMsgCountRoot
+			`
+	}
+
+	if !totalMsgCountRootExists {
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannels); err != nil {
+			mlog.Error("Error updating Channels table", mlog.Err(err))
+		}
+	}
+	if !msgCountRootExists {
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(updateChannelMembers); err != nil {
+			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
+		}
+	}
 }

@@ -56,13 +56,13 @@ func (_m *PluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []by
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: pluginId, key
-func (_m *PluginStore) Delete(pluginId string, key string) error {
-	ret := _m.Called(pluginId, key)
+// Delete provides a mock function with given fields: pluginID, key
+func (_m *PluginStore) Delete(pluginID string, key string) error {
+	ret := _m.Called(pluginID, key)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(pluginId, key)
+		r0 = rf(pluginID, key)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -84,13 +84,13 @@ func (_m *PluginStore) DeleteAllExpired() error {
 	return r0
 }
 
-// DeleteAllForPlugin provides a mock function with given fields: PluginId
-func (_m *PluginStore) DeleteAllForPlugin(PluginId string) error {
-	ret := _m.Called(PluginId)
+// DeleteAllForPlugin provides a mock function with given fields: PluginID
+func (_m *PluginStore) DeleteAllForPlugin(PluginID string) error {
+	ret := _m.Called(PluginID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(PluginId)
+		r0 = rf(PluginID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -98,13 +98,13 @@ func (_m *PluginStore) DeleteAllForPlugin(PluginId string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: pluginId, key
-func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
-	ret := _m.Called(pluginId, key)
+// Get provides a mock function with given fields: pluginID, key
+func (_m *PluginStore) Get(pluginID string, key string) (*model.PluginKeyValue, error) {
+	ret := _m.Called(pluginID, key)
 
 	var r0 *model.PluginKeyValue
 	if rf, ok := ret.Get(0).(func(string, string) *model.PluginKeyValue); ok {
-		r0 = rf(pluginId, key)
+		r0 = rf(pluginID, key)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PluginKeyValue)
@@ -113,7 +113,7 @@ func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(pluginId, key)
+		r1 = rf(pluginID, key)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -121,13 +121,13 @@ func (_m *PluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, 
 	return r0, r1
 }
 
-// List provides a mock function with given fields: pluginId, page, perPage
-func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
-	ret := _m.Called(pluginId, page, perPage)
+// List provides a mock function with given fields: pluginID, page, perPage
+func (_m *PluginStore) List(pluginID string, page int, perPage int) ([]string, error) {
+	ret := _m.Called(pluginID, page, perPage)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(string, int, int) []string); ok {
-		r0 = rf(pluginId, page, perPage)
+		r0 = rf(pluginID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -136,7 +136,7 @@ func (_m *PluginStore) List(pluginId string, page int, perPage int) ([]string, e
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(pluginId, page, perPage)
+		r1 = rf(pluginID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -167,20 +167,20 @@ func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.Plugin
 	return r0, r1
 }
 
-// SetWithOptions provides a mock function with given fields: pluginId, key, value, options
-func (_m *PluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
-	ret := _m.Called(pluginId, key, value, options)
+// SetWithOptions provides a mock function with given fields: pluginID, key, value, options
+func (_m *PluginStore) SetWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
+	ret := _m.Called(pluginID, key, value, options)
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, string, []byte, model.PluginKVSetOptions) bool); ok {
-		r0 = rf(pluginId, key, value, options)
+		r0 = rf(pluginID, key, value, options)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, []byte, model.PluginKVSetOptions) error); ok {
-		r1 = rf(pluginId, key, value, options)
+		r1 = rf(pluginID, key, value, options)
 	} else {
 		r1 = ret.Error(1)
 	}

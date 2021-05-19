@@ -706,23 +706,29 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
+func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 	builder := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupTeams.TeamId").
 		From("GroupMembers").
 		Join("GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Join("Teams ON Teams.Id = GroupTeams.TeamId").
-		JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
 		Where(sq.Eq{
-			"TeamMembers.UserId":    nil,
 			"UserGroups.DeleteAt":   0,
 			"GroupTeams.DeleteAt":   0,
 			"GroupTeams.AutoAdd":    true,
 			"GroupMembers.DeleteAt": 0,
 			"Teams.DeleteAt":        0,
-		}).
-		Where("(GroupMembers.CreateAt >= ? OR GroupTeams.UpdateAt >= ?)", since, since)
+		})
 
+	if !includeRemovedMembers {
+		builder = builder.
+			JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
+			Where(sq.Eq{"TeamMembers.UserId": nil}).
+			Where(sq.Or{
+				sq.GtOrEq{"GroupMembers.CreateAt": since},
+				sq.GtOrEq{"GroupTeams.UpdateAt": since},
+			})
+	}
 	if teamID != nil {
 		builder = builder.Where(sq.Eq{"Teams.Id": *teamID})
 	}
@@ -734,7 +740,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.
 
 	var teamMembers []*model.UserTeamIDPair
 
-	_, err = s.GetReplica().Select(&teamMembers, query, params...)
+	_, err = s.GetMaster().Select(&teamMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserTeamIDPairs")
 	}
@@ -742,24 +748,32 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.
 	return teamMembers, nil
 }
 
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 	builder := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupChannels.ChannelId").
 		From("GroupMembers").
 		Join("GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId").
 		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
 		Join("Channels ON Channels.Id = GroupChannels.ChannelId").
-		JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
 		Where(sq.Eq{
-			"ChannelMemberHistory.UserId":    nil,
-			"ChannelMemberHistory.LeaveTime": nil,
-			"UserGroups.DeleteAt":            0,
-			"GroupChannels.DeleteAt":         0,
-			"GroupChannels.AutoAdd":          true,
-			"GroupMembers.DeleteAt":          0,
-			"Channels.DeleteAt":              0,
-		}).
-		Where("(GroupMembers.CreateAt >= ? OR GroupChannels.UpdateAt >= ?)", since, since)
+			"UserGroups.DeleteAt":    0,
+			"GroupChannels.DeleteAt": 0,
+			"GroupChannels.AutoAdd":  true,
+			"GroupMembers.DeleteAt":  0,
+			"Channels.DeleteAt":      0,
+		})
 
+	if !includeRemovedMembers {
+		builder = builder.
+			JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
+			Where(sq.Eq{
+				"ChannelMemberHistory.UserId":    nil,
+				"ChannelMemberHistory.LeaveTime": nil,
+			}).
+			Where(sq.Or{
+				sq.GtOrEq{"GroupMembers.CreateAt": since},
+				sq.GtOrEq{"GroupChannels.UpdateAt": since},
+			})
+	}
 	if channelID != nil {
 		builder = builder.Where(sq.Eq{"Channels.Id": *channelID})
 	}
@@ -771,7 +785,7 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*
 
 	var channelMembers []*model.UserChannelIDPair
 
-	_, err = s.GetReplica().Select(&channelMembers, query, params...)
+	_, err = s.GetMaster().Select(&channelMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserChannelIDPairs")
 	}
@@ -917,7 +931,9 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 		"ChannelMembers.UserId",
 		"ChannelMembers.LastViewedAt",
 		"ChannelMembers.MsgCount",
+		"ChannelMembers.MsgCountRoot",
 		"ChannelMembers.MentionCount",
+		"ChannelMembers.MentionCountRoot",
 		"ChannelMembers.NotifyProps",
 		"ChannelMembers.LastUpdateAt",
 		"ChannelMembers.LastUpdateAt",
@@ -1447,7 +1463,7 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 	}
 
 	var userIDs []string
-	if _, err = s.GetReplica().Select(&userIDs, query, args...); err != nil {
+	if _, err = s.GetMaster().Select(&userIDs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find User ids")
 	}
 

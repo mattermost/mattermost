@@ -7,11 +7,12 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return nil, err
@@ -54,11 +55,11 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenAdded(pluginContext, reaction)
 				return true
-			}, plugin.ReactionHasBeenAddedId)
+			}, plugin.ReactionHasBeenAddedID)
 		})
 	}
 
@@ -69,18 +70,18 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	return reaction, nil
 }
 
-func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	reactions, err := a.Srv().Store.Reaction().GetForPost(postId, true)
+func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppError) {
+	reactions, err := a.Srv().Store.Reaction().GetForPost(postID, true)
 	if err != nil {
 		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return reactions, nil
 }
 
-func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
-	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIds)
+	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -92,20 +93,20 @@ func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Re
 		reactions[reaction.PostId] = reactionsForPost
 	}
 
-	reactions = populateEmptyReactions(postIds, reactions)
+	reactions = populateEmptyReactions(postIDs, reactions)
 	return reactions, nil
 }
 
-func populateEmptyReactions(postIds []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
-	for _, postId := range postIds {
-		if _, present := reactions[postId]; !present {
-			reactions[postId] = []*model.Reaction{}
+func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
+	for _, postID := range postIDs {
+		if _, present := reactions[postID]; !present {
+			reactions[postID] = []*model.Reaction{}
 		}
 	}
 	return reactions
 }
 
-func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return err
@@ -140,11 +141,11 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
-			pluginContext := a.PluginContext()
+			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
 				return true
-			}, plugin.ReactionHasBeenRemovedId)
+			}, plugin.ReactionHasBeenRemovedID)
 		})
 	}
 

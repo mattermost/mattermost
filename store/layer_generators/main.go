@@ -153,7 +153,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 
 	file, err := os.Open("store.go")
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open store/store.go file: %w", err)
+		return nil, fmt.Errorf("unable to open store/store.go file: %w", err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {
@@ -270,18 +270,23 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParams": func(params []methodParam) string {
 			paramsNames := make([]string, 0, len(params))
 			for _, param := range params {
-				paramsNames = append(paramsNames, param.Name)
+				tParams := ""
+				if strings.HasPrefix(param.Type, "...") {
+					tParams = "..."
+				}
+				paramsNames = append(paramsNames, param.Name+tParams)
 			}
 			return strings.Join(paramsNames, ", ")
 		},
 		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+				switch param.Type {
+				case "ChannelSearchOpts", "UserGetByIdsOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				} else if param.Type == "*UserGetByIdsOpts" {
+				case "*UserGetByIdsOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
-				} else {
+				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}
 			}
@@ -290,11 +295,12 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParamsWithTypeOutsideStore": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+				switch param.Type {
+				case "ChannelSearchOpts", "UserGetByIdsOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				} else if param.Type == "*UserGetByIdsOpts" {
+				case "*UserGetByIdsOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
-				} else {
+				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}
 			}

@@ -4,18 +4,19 @@
 package app
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -194,35 +195,69 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (es *EmailService) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userID)
+	user, err := es.srv.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 	displayNameFormat := *es.srv.Config().TeamSettings.TeammateNameDisplay
+	siteURL := *es.srv.Config().ServiceSettings.SiteURL
 
-	var contents string
-	for _, notification := range notifications {
-		sender, err := es.srv.Store.User().Get(notification.post.UserId)
-		if err != nil {
-			mlog.Warn("Unable to find sender of post for batched email notification")
-			continue
+	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
+	embeddedFiles := make(map[string]io.Reader)
+
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	if license := es.srv.License(); license != nil && *license.Features.EmailNotificationContents {
+		emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
+	}
+
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+		for i, notification := range notifications {
+			sender, errSender := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
+			if errSender != nil {
+				mlog.Warn("Unable to find sender of post for batched email notification")
+			}
+
+			channel, errCh := es.srv.Store.Channel().Get(notification.post.ChannelId, true)
+			if errCh != nil {
+				mlog.Warn("Unable to find channel of post for batched email notification")
+			}
+
+			senderProfileImage, _, errProfileImage := es.srv.GetProfileImage(sender)
+			if errProfileImage != nil {
+				mlog.Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(errProfileImage))
+			}
+
+			senderPhoto := fmt.Sprintf("user-avatar-%d.png", i)
+			if senderProfileImage != nil {
+				embeddedFiles[senderPhoto] = bytes.NewReader(senderProfileImage)
+			}
+
+			tm := time.Unix(notification.post.CreateAt/1000, 0)
+			timezone, _ := tm.Zone()
+
+			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
+				"Hour":     tm.Hour(),
+				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
+				"Month":    translateFunc(tm.Month().String()),
+				"Day":      tm.Day(),
+				"Year":     tm.Year(),
+				"Timezone": timezone,
+			})
+
+			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
+
+			postsData = append(postsData, &postData{
+				SenderPhoto: senderPhoto,
+				SenderName:  sender.GetDisplayName(displayNameFormat),
+				Time:        t,
+				ChannelName: channel.DisplayName,
+				Message:     template.HTML(es.srv.GetMessageForNotification(notification.post, translateFunc)),
+				MessageURL:  MessageURL,
+			})
 		}
-
-		channel, errCh := es.srv.Store.Channel().Get(notification.post.ChannelId, true)
-		if errCh != nil {
-			mlog.Warn("Unable to find channel of post for batched email notification")
-			continue
-		}
-
-		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-		if license := es.srv.License(); license != nil && *license.Features.EmailNotificationContents {
-			emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
-		}
-
-		contents += es.renderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
@@ -234,54 +269,31 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 		"Day":      tm.Day(),
 	})
 
-	body := es.newEmailTemplate("post_batched_body", user.Locale)
-	body.Props["SiteURL"] = *es.srv.Config().ServiceSettings.SiteURL
-	body.Props["Posts"] = template.HTML(contents)
-	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
-
-	if err := es.sendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
-	}
-}
-
-func (es *EmailService) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
-	// don't include message contents if email notification contents type is set to generic
-	var template *utils.HTMLTemplate
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		template = es.newEmailTemplate("post_batched_post_full", userLocale)
-	} else {
-		template = es.newEmailTemplate("post_batched_post_generic", userLocale)
+	firstSender, err := es.srv.Store.User().Get(context.Background(), notifications[0].post.UserId)
+	if err != nil {
+		mlog.Warn("Unable to find sender of post for batched email notification")
 	}
 
-	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
-	template.Props["PostMessage"] = es.srv.GetMessageForNotification(notification.post, translateFunc)
-	template.Props["PostLink"] = siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
-	template.Props["SenderName"] = sender.GetDisplayName(displayNameFormat)
-
-	tm := time.Unix(notification.post.CreateAt/1000, 0)
-	timezone, _ := tm.Zone()
-
-	template.Props["Date"] = translateFunc("api.email_batching.render_batched_post.date", map[string]interface{}{
-		"Year":     tm.Year(),
-		"Month":    translateFunc(tm.Month().String()),
-		"Day":      tm.Day(),
-		"Hour":     tm.Hour(),
-		"Minute":   fmt.Sprintf("%02d", tm.Minute()),
-		"Timezone": timezone,
+	data := es.newEmailTemplateData(user.Locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1, map[string]interface{}{
+		"SenderName": firstSender.GetDisplayName(displayNameFormat),
 	})
+	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
+	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
+	data.Props["ButtonURL"] = siteURL
+	data.Props["Posts"] = postsData
+	data.Props["MessageButton"] = translateFunc("api.email_batching.send_batched_email_notification.messageButton")
+	data.Props["NotificationFooterTitle"] = translateFunc("app.notification.footer.title")
+	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
+	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if channel.Type == model.CHANNEL_DIRECT {
-		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.direct_message")
-	} else if channel.Type == model.CHANNEL_GROUP {
-		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.group_message")
-	} else {
-		// don't include channel name if email notification contents type is set to generic
-		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-			template.Props["ChannelName"] = channel.DisplayName
-		} else {
-			template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.notification")
-		}
+	renderedPage, renderErr := es.srv.TemplatesContainer().RenderToString("messages_notification", data)
+	if renderErr != nil {
+		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	return template.Render()
+	if nErr := es.sendNotificationMail(user.Email, subject, renderedPage); nErr != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
+	}
 }

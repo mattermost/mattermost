@@ -6,9 +6,10 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -281,6 +282,28 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
+// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
+// and sets status of given userId to dnd which will be restored back after endtime
+func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	status.PrevStatus = status.Status
+	status.Status = model.STATUS_DND
+	status.Manual = true
+
+	status.DNDEndTime = endtime
+
+	a.SaveAndBroadcastStatus(status)
+}
+
 func (a *App) SetStatusDoNotDisturb(userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
@@ -362,4 +385,101 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
+}
+
+// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
+// which unsets dnd status of users if needed and saves and broadcasts it
+func (a *App) UpdateDNDStatusOfUsers() {
+	statuses, err := a.UpdateExpiredDNDStatuses()
+	if err != nil {
+		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
+		return
+	}
+	for i := range statuses {
+		a.AddStatusCache(statuses[i])
+		a.BroadcastStatus(statuses[i])
+	}
+}
+
+func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.SetCustomStatus(cs)
+	_, updateErr := a.UpdateUser(user, true)
+	if updateErr != nil {
+		return err
+	}
+
+	if err := a.addRecentCustomStatus(userID, cs); err != nil {
+		a.Log().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+	}
+
+	return nil
+}
+
+func (a *App) RemoveCustomStatus(userID string) *model.AppError {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.ClearCustomStatus()
+	_, updateErr := a.UpdateUser(user, true)
+	if updateErr != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+	var newRCS *model.RecentCustomStatuses
+
+	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PREFERENCE_CATEGORY_CUSTOM_STATUS, model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES)
+	if err != nil || pref.Value == "" {
+		newRCS = &model.RecentCustomStatuses{*status}
+	} else {
+		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+		newRCS = existingRCS.Add(status)
+	}
+
+	pref = &model.Preference{
+		UserId:   userID,
+		Category: model.PREFERENCE_CATEGORY_CUSTOM_STATUS,
+		Name:     model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES,
+		Value:    newRCS.ToJson(),
+	}
+	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PREFERENCE_CATEGORY_CUSTOM_STATUS, model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES)
+	if err != nil {
+		return err
+	}
+
+	if pref.Value == "" {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+	if !existingRCS.Contains(status) {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	newRCS := existingRCS.Remove(status)
+	pref.Value = newRCS.ToJson()
+
+	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
+		return err
+	}
+
+	return nil
 }

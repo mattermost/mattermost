@@ -4,13 +4,14 @@
 package searchlayer
 
 import (
+	"context"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -54,7 +55,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				continue
 			}
 
-			users, nErr := s.UserStore.GetProfileByIds(usersIds, nil, false)
+			users, nErr := s.UserStore.GetProfileByIds(context.Background(), usersIds, nil, false)
 			if nErr != nil {
 				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
@@ -89,7 +90,7 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 }
 
 func (s *SearchUserStore) PermanentDelete(userId string) error {
-	user, userErr := s.UserStore.Get(userId)
+	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
 		mlog.Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
@@ -116,14 +117,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(uchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
 		uchan <- store.StoreResult{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
 	nuchan := make(chan store.StoreResult, 1)
 	go func() {
-		users, nErr := s.UserStore.GetProfileByIds(nuchanIds, nil, false)
+		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
 		nuchan <- store.StoreResult{Data: users, NErr: nErr}
 		close(nuchan)
 	}()

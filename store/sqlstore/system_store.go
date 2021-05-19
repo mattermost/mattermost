@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -99,6 +100,9 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
 	if err := s.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
+		}
 		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 

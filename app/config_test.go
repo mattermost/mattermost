@@ -151,7 +151,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 				assert.NoError(t, err)
 
 				data, err := th.App.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}

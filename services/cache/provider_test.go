@@ -178,8 +178,8 @@ func TestConnectClose(t *testing.T) {
 	p := NewProvider()
 
 	err := p.Connect()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = p.Close()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
