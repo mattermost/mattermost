@@ -79,6 +79,7 @@ test-schema-postgres:
   before_script:
     - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
+    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgres"
     - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
   after_script:
     - docker logout
@@ -98,6 +99,7 @@ test-schema-mysql:
   before_script:
     - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
+    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemamysql"
     - cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
   after_script:
     - docker logout

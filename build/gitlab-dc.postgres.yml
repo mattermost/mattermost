@@ -22,7 +22,6 @@ services:
   ## START SAME CONFIG(extends does not work with some docker-compose versions unfortunately)
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
-    container_name: minio
     command: "server /data"
     environment:
       MINIO_ACCESS_KEY: minioaccesskey
@@ -34,7 +33,6 @@ services:
           - minio
   inbucket:
     image: "inbucket/inbucket:stable"
-    container_name: inbucket
     restart: always
     environment:
       INBUCKET_WEB_ADDR: "0.0.0.0:10080"
@@ -46,7 +44,6 @@ services:
           - inbucket
   openldap:
     image: "osixia/openldap:1.4.0"
-    container_name: openldap
     restart: always
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
@@ -59,7 +56,6 @@ services:
           - openldap
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
-    container_name: elasticsearch
     environment:
       http.host: "0.0.0.0"
       http.port: 9200
@@ -75,14 +71,12 @@ services:
           - elasticsearch
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
-    container_name: dejavu
     networks:
       default:
         aliases:
           - dejavu
   keycloak:
     image: "jboss/keycloak:10.0.2"
-    container_name: keycloak
     restart: always
     environment:
       KEYCLOAK_USER: mmuser
@@ -97,16 +91,14 @@ services:
           - keycloak
   prometheus:
     image: "prom/prometheus"
-    container_name: prometheus
     volumes:
-      - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+      - "./docker/prometheus-linux.yml:/etc/prometheus/prometheus.yml"
     networks:
       default:
         aliases:
           - prometheus
   grafana:
     image: "grafana/grafana"
-    container_name: grafana
     volumes:
      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
@@ -134,4 +126,4 @@ services:
 networks:
   default:
     external:
-      name: ${CI_PIPELINE_IID}_schemapostgres
+      name: ${CI_PIPELINE_IID}schemapostgres
