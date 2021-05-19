@@ -333,7 +333,7 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 	}
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM &&
-		!a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		!a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 		if err != nil {
 			return nil, err
