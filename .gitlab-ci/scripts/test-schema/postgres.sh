@@ -4,16 +4,14 @@ set -xe
 echo $DOCKER_HOST
 docker ps
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
-DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
+DOCKER_COMPOSE_FILE="gitlab-dc.schemapostgres.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
-cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T minio sh -c 'mkdir -p /data/mattermost-test'
-
-docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+#cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+#docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T minio sh -c 'mkdir -p /data/mattermost-test'
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'

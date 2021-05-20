@@ -4,18 +4,16 @@ set -xe
 echo $DOCKER_HOST
 docker ps
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
-DOCKER_COMPOSE_FILE="gitlab-dc.mysql.yml"
+DOCKER_COMPOSE_FILE="gitlab-dc.schemamysql.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
-cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T minio sh -c 'mkdir -p /data/mattermost-test'
+#cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+#docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T minio sh -c 'mkdir -p /data/mattermost-test'
 sleep 5
 docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-#docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql-replica-ro:3307; do echo waiting for mysql-replica-ro; sleep 5; done;"
-docker run --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"

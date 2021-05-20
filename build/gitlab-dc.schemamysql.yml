@@ -1,0 +1,57 @@
+version: '2.4'
+services:
+  mysql:
+    image: "mysql:5.6"
+    restart: always
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    tmpfs: /var/lib/mysql
+    volumes:
+      - "./docker/mysql.conf.d:/etc/mysql/conf.d"
+    networks:
+      default:
+        aliases:
+          - mysql
+#  # START SAME AS POSTGRES
+#  minio:
+#    extends:
+#      file: gitlab-dc.common.yml
+#      service: minio
+#    networks:
+#      default:
+#        aliases:
+#          - minio
+#  openldap:
+#    extends:
+#      file: gitlab-dc.common.yml
+#      service: openldap
+#    networks:
+#      default:
+#        aliases:
+#          - openldap
+#  # END SAME AS POSTGRES
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    depends_on:
+      - mysql
+#      - minio
+#      - openldap
+#    command: mysql:3306 minio:9000 openldap:389
+    command: mysql:3306
+    networks:
+      default:
+
+networks:
+  default:
+    external:
+      name: ${COMPOSE_PROJECT_NAME}
