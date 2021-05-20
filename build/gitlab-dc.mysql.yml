@@ -121,7 +121,7 @@ services:
       - prometheus
       - grafana
 #    command: mysql:3306 mysql-replica-ro:3007 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
-    command: mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
+    command: mysql:3306 minio:9000 inbucket:10080 openldap:389 prometheus:9090 grafana:3000
     networks:
       default:
 
