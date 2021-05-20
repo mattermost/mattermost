@@ -132,9 +132,9 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		password   string
 		invite     RemoteClusterInvite
 	}{
-		{name: "empty password", badDecrypt: false, password: "", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
-		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
-		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
+		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065")},
+		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: makeInvite("https://example.com:8065")},
+		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: makeInvite("https://example.com:8065")},
 	}
 
 	for _, tt := range testData {
@@ -154,5 +154,14 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.invite, invite)
 		}
+	}
+}
+
+func makeInvite(url string) RemoteClusterInvite {
+	return RemoteClusterInvite{
+		RemoteId:     NewId(),
+		RemoteTeamId: NewId(),
+		SiteURL:      url,
+		Token:        NewId(),
 	}
 }

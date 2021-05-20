@@ -197,8 +197,6 @@ github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
-# github.com/getkin/kin-openapi v0.49.0
-## explicit
 # github.com/getsentry/sentry-go v0.10.0
 ## explicit
 github.com/getsentry/sentry-go
@@ -401,8 +399,6 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-govet v0.0.0-20210226164958-a9556728767b
-## explicit
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
@@ -746,6 +742,8 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/scrypt
 # golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
 ## explicit
 golang.org/x/image/bmp
