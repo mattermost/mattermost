@@ -4,7 +4,9 @@
 package app
 
 import (
+	"archive/zip"
 	"context"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -4175,5 +4177,183 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 
 		attachments := GetAttachments(user1.Id, th, t)
 		require.Len(t, attachments, 3)
+	})
+}
+
+func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Create a Team.
+	teamName := model.NewRandomTeamName()
+	th.App.importTeam(th.Context, &TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
+
+	// Create a Channel.
+	channelName := model.NewId()
+	th.App.importChannel(th.Context, &ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database.")
+
+	// Create a user3.
+	username := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, appErr := th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+	require.NotNil(t, user3)
+
+	username2 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user2, appErr := th.App.GetUserByUsername(username2)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	// Create direct post users.
+	username3 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username3,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, appErr = th.App.GetUserByUsername(username3)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	username4 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username4,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+
+	user4, appErr := th.App.GetUserByUsername(username4)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	// Post with attachments
+	time := model.GetMillis()
+	attachmentsPostTime := time
+	attachmentsReplyTime := time + 1
+	testsDir, _ := fileutils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	testImageFile, _ := os.Open(testImage)
+	testImageZipFile, _ := os.Create(testImage + ".zip")
+	testImageZipFileWriter := zip.NewWriter(testImageZipFile)
+	testImageInZipFile, err := testImageZipFileWriter.Create("test.png")
+	require.NoError(t, err, "failed to create zip file")
+	_, err = io.Copy(testImageInZipFile, testImageFile)
+	require.NoError(t, err, "failed to copy data to zip file")
+	testImageZipFileWriter.Close()
+	testImageFile.Close()
+	testImageZipFile.Close()
+	testImageZipFile, err = os.Open(testImage + ".zip")
+	require.NoError(t, err, "failed to reopen zip")
+	fi, err := testImageZipFile.Stat()
+	require.NoError(t, err, "failed to get file info")
+
+	testImageZipFileReader, err := zip.NewReader(testImageZipFile, fi.Size())
+	require.NoError(t, err, "failed to create zip reader")
+	require.NotNil(t, testImageZipFileReader)
+	require.NotEmpty(t, testImageZipFileReader.File)
+	imageData := testImageZipFileReader.File[0]
+
+	require.NoError(t, err, "failed to copy test Image file into zip")
+
+	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
+	data := LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:        &teamName,
+				Channel:     &channelName,
+				User:        &username3,
+				Message:     ptrStr("Message with reply"),
+				CreateAt:    &attachmentsPostTime,
+				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Replies: &[]ReplyImportData{{
+					User:        &user4.Username,
+					Message:     ptrStr("Message reply"),
+					CreateAt:    &attachmentsReplyTime,
+					Attachments: &[]AttachmentImportData{{Path: &testImage, Data: imageData}},
+				}},
+			},
+		},
+		19,
+	}
+
+	t.Run("import with attachment", func(t *testing.T) {
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("import existing post with new attachment", func(t *testing.T) {
+		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
+
+	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
+		directImportData := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						user3.Username,
+						user2.Username,
+					},
+					User:     &user3.Username,
+					Message:  ptrStr("Message with Replies"),
+					CreateAt: ptrInt64(model.GetMillis()),
+					Replies: &[]ReplyImportData{{
+						User:        &user2.Username,
+						Message:     ptrStr("Message reply with attachment"),
+						CreateAt:    ptrInt64(model.GetMillis()),
+						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+					}},
+				},
+			},
+			7,
+		}
+
+		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []LineImportWorkerData{directImportData}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		attachments := GetAttachments(user2.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, "noteam")
+		AssertFileIdsInPost(attachments, th, t)
 	})
 }
