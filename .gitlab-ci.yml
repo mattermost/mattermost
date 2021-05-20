@@ -83,6 +83,8 @@ test-schema-mysql:
     - cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
   after_script:
     - docker logout
+  tags:
+    - k8s-memory
 
 test-schema-postgres:
   stage: test
@@ -103,3 +105,5 @@ test-schema-postgres:
     - cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
   after_script:
     - docker logout
+  tags:
+    - k8s-memory
