@@ -21,7 +21,7 @@ services:
       default:
         aliases:
           - mysql
-#  mysql-read-replica:
+#  mysql-replica-ro:
 #    image: "mysql:5.7"
 #    restart: always
 #    ports:
