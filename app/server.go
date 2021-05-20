@@ -2265,6 +2265,9 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // }
 
 func runDNDStatusExpireJob(a *App) {
+	if a.Config().FeatureFlags.TimedDND {
+		return
+	}
 	if a.IsLeader() {
 		a.srv.dndnTaskMut.Lock()
 		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
