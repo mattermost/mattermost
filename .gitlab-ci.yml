@@ -66,6 +66,7 @@ empty:
 #
 test-schema-mysql:
   stage: test
+  resource_group: high
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
@@ -102,6 +103,7 @@ test-schema-mysql:
 
 test-schema-postgres:
   stage: test
+  resource_group: high
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
@@ -116,8 +118,8 @@ test-schema-postgres:
     # https://docs.gitlab.com/runner/executors/kubernetes.html#overwriting-container-resources
     KUBERNETES_CPU_REQUEST: 6
     KUBERNETES_CPU_LIMIT: 8
-    KUBERNETES_MEMORY_REQUEST: 16Gi
-    KUBERNETES_MEMORY_LIMIT: 32Gi
+    KUBERNETES_MEMORY_REQUEST: 14Gi
+    KUBERNETES_MEMORY_LIMIT: 15Gi
     KUBERNETES_HELPER_CPU_REQUEST: 6
     KUBERNETES_HELPER_CPU_LIMIT: 8
     KUBERNETES_HELPER_MEMORY_REQUEST: 16Gi
