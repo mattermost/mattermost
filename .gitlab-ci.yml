@@ -66,6 +66,7 @@ empty:
 #
 test-schema-mysql:
   stage: test
+  resource_group: high-memory-consumption
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
@@ -88,6 +89,7 @@ test-schema-mysql:
 
 test-schema-postgres:
   stage: test
+  resource_group: high-memory-consumption
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
