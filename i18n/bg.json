@@ -3108,62 +3108,6 @@
     "translation": "[{{.SiteName}}] Ново директно съобщение от {{.SenderDisplayName}} на {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Имате ново известие от {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Имате ново известие."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Имате ново групово съобщение от {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Имате ново групово съобщение."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Имате ново директно съобщение от {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Имате ново директно съобщение."
-  },
-  {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "Няма наличен лиценз"
   },
@@ -4125,7 +4069,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Отидете на публикация"
+    "translation": "Преглед на съобщението"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -4405,7 +4349,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -5991,33 +5935,6 @@
       "one": "[{{.SiteName}}] Ново известие към {{.Day}}.{{.Month}}.{{.Year}}",
       "other": "[{{.SiteName}}] Нови известия към {{.Day}}.{{.Month}}.{{.Year}}"
     }
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Имате ново известие.",
-      "other": "Имате {{.Count}} нови известия."
-    }
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Известие от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групово съобщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Иди на публикация"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Директно съобщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -7628,7 +7545,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Грешка при обновяване на текущия канал."
+    "translation": "Грешка при актуализиране предназначението на канала."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -7660,7 +7577,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Грешка при обновяване на текущия канал."
+    "translation": "Грешка при актуализиране заглавката на канала."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -8476,7 +8393,7 @@
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Като алтернатива можете да деактивирате потребителите в Admin Console, за да отворите места за потребители и да останете под безплатния потребителски лимит."
+    "translation": "Като алтернатива можете да деактивирате потребителите в системната конзола, за да отворите места за потребители и да останете под безплатния потребителски лимит."
   },
   {
     "id": "mfa.deactivate.app_error",
@@ -8552,7 +8469,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8656,7 +8573,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Поздравления - вашето работно пространство {{.WorkSpace}} е готово за работа!"
+    "translation": "Вашата 14-дневна пробна версия на работното пространство {{.WorkSpace}} е готова за работа!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8728,7 +8645,7 @@
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Неуспешно добавяне на отдалечен клъстер: {{.Error}}"
+    "translation": "Не може да се добави сигурна връзка: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -8745,5 +8662,189 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Грешка при анулиране на кеша"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Споделя текущия канал с отдалечена инстанция на Mattermost."
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Не може да се отзове `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Грешка при проверката за съществуване на споделен канал: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Състояние на канал с ИН `{{.ChannelId}}"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Показва състоянието на този споделен канал"
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Този канал сега е споделен."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Защитената връзка на споделения канал `{{.RemoteId}}` не съществува за този канал."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Не може да покани защитена връзка към споделен канал, който произхожда от друго място."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Грешка при поканването на `{{.Name}}` към този канал: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Налични действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Неизвестно действие `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Показва състоянието на всички защитени връзки"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "URL на сайта не е зададен. Моля, задайте го чрез системната конзола."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Услугата Remote Cluster не е разрешена."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Отдалечената клъстерна услуга е забранена."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Премахване ИН на защитена връзка"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Неуспешно премахване на защитената връзка: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Премахва защитена връзка"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Не са намерени сигурни връзки."
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Сигурна връзка | Име | URL на сайт | ИН на връзка | Приета покана | На линия | Последен пинг |"
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Добавяне/премахване на защитени връзки. Налични действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "За да управлявате сигурни връзки е необходимо разрешение `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Уникално име за защитената връзка"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Име на защитена връзка"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "защитена-връзка"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Липсващ или празен `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Липсваща команда. Налични действия: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Изпратете следния криптиран (AES256 + Base64) блок на администратора на отдалечения сайт заедно с паролата. Той ще използва командата `{{.Command}}` с наклонена черта, за да приеме поканата.\n\n```\n{{.Invitation}}\n```\n\n**Осигурете достъп на отдалечения сайт до вашия клъстер чрез** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Парола, която да се използва за шифриране на поканата"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Парола за поканата"
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Създаване на защитена връзка"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Поканата е създадена."
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Шифрираната покана от защитена връзка"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Покана от защитена връзка"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Не може да дешифрира поканата. Неправилна парола или повредена покана: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[действие]"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Неуспешно извличане на сигурни връзки: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Неуспешно шифроване на поканата: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Показвано име за защитената връзка"
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Показвано име на защитената връзка"
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Поканете отдалечени Mattermost клъстери за междуклъстерна комуникация."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Не може да декодира поканата: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Сигурната връзка {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Въведеният текст надхвърля ограничението за символи. Предназначението на канала е ограничено до {{.MaxLength}} символи."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Въведеният текст надхвърля ограничението за символи. Заглавието на канала е ограничено до {{.MaxLength}} символи."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Неуспешно нулиране полето AuthData на Email."
   }
 ]
