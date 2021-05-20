@@ -10,8 +10,7 @@ docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
-#cat ${CI_PROJECT_DIR}/tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-#docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T minio sh -c 'mkdir -p /data/mattermost-test'
+timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isready ; do sleep 5 ; done"
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'

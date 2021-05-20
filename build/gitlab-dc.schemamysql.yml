@@ -21,32 +21,11 @@ services:
       default:
         aliases:
           - mysql
-#  # START SAME AS POSTGRES
-#  minio:
-#    extends:
-#      file: gitlab-dc.common.yml
-#      service: minio
-#    networks:
-#      default:
-#        aliases:
-#          - minio
-#  openldap:
-#    extends:
-#      file: gitlab-dc.common.yml
-#      service: openldap
-#    networks:
-#      default:
-#        aliases:
-#          - openldap
-#  # END SAME AS POSTGRES
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     depends_on:
       - mysql
-#      - minio
-#      - openldap
-#    command: mysql:3306 minio:9000 openldap:389
     command: mysql:3306
     networks:
       default:
