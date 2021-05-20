@@ -57,6 +57,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
