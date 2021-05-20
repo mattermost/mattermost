@@ -4539,6 +4539,10 @@
     "translation": "Unable to delete the channel."
   },
   {
+    "id": "app.channel.permanent_delete_member.app_error",
+    "translation": "Unable delete channel member."
+  },
+  {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Unable to remove the channel member."
   },
@@ -4613,6 +4617,10 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": ""
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",

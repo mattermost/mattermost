@@ -1804,7 +1804,22 @@ func (a *App) GetChannelMember(ctx context.Context, channelID string, userID str
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelMember", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return channelMember, nil
+}
+
+func (a *App) UpdateChannelMember(channelMember *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	_, err := a.Srv().Store.Channel().UpdateMember(channelMember)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("UpdateChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("UpdateChannelMember", "app.channel.update_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -3074,4 +3089,22 @@ func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *mod
 	}
 
 	return channel, nil
+}
+
+func (a *App) ClearChannelCaches() {
+	a.Srv().Store.Channel().ClearCaches()
+}
+
+func (a *App) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
+	err := a.Srv().Store.Channel().PermanentDeleteMembersByChannel(channelId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError("PermanentDeleteMembersByChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		}
+
+		return model.NewAppError("PermanentDeleteMembersByChannel", "app.channel.permanent_delete_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
