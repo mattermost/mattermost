@@ -1070,7 +1070,6 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		mlog.Warn("XXX in importReplies")
 		fileIDs, err := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
 		if err != nil {
 			return err
@@ -1125,7 +1124,6 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		file io.Reader
 	)
 	if data.Data != nil {
-		mlog.Warn("XXX opening zip file")
 		zipFile, err := data.Data.Open()
 		if zipFile == nil || err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1134,7 +1132,6 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 	} else {
-		mlog.Warn("XXX opening real file")
 		realFile, err := os.Open(*data.Path)
 		if realFile == nil || err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1353,7 +1350,6 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			post.Props = *line.Post.Props
 		}
 
-		mlog.Warn("XXX in importMultiplePostLines")
 		fileIDs, appErr := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
 		if appErr != nil {
 			return line.LineNumber, appErr
@@ -1462,11 +1458,7 @@ func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImp
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
-		at := fmt.Sprintf("%+v", attachment)
-		mlog.Warn("XXX", mlog.String("attachment", at))
 		attachment := attachment
-		at = fmt.Sprintf("%+v after copy??", attachment)
-		mlog.Warn("XXX", mlog.String("attachment", at))
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
 			return nil, err
@@ -1654,7 +1646,6 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 
-		mlog.Warn("XXX importMultipleDirectPostLines")
 		fileIDs, err := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
 		if err != nil {
 			return line.LineNumber, err
