@@ -688,6 +688,14 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
+	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
+			runDNDStatusExpireJob(app)
+		}
+		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
+			stopDNDStatusExpireJob(app)
+		}
+	})
 
 	return s, nil
 }
@@ -2291,6 +2299,9 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // }
 
 func runDNDStatusExpireJob(a *App) {
+	if !a.Config().FeatureFlags.TimedDND {
+		return
+	}
 	if a.IsLeader() {
 		a.srv.dndnTaskMut.Lock()
 		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
@@ -2311,4 +2322,12 @@ func runDNDStatusExpireJob(a *App) {
 			a.srv.dndnTaskMut.Unlock()
 		}
 	})
+}
+
+func stopDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		a.srv.dndnTaskMut.Lock()
+		a.srv.dndTask.Cancel()
+		a.srv.dndnTaskMut.Unlock()
+	}
 }
