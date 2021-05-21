@@ -104,6 +104,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// skip the restrictions if license is a sanctioned trial
 	if !license.IsSanctionedTrial() && license.IsTrialLicense() {
 		canStartTrialLicense, err := c.App.Srv().LicenseManager.CanStartTrial()
 		if err != nil {

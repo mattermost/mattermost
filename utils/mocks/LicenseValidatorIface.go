@@ -38,3 +38,24 @@ func (_m *LicenseValidatorIface) LicenseFromBytes(licenseBytes []byte) (*model.L
 
 	return r0, r1
 }
+
+// ValidateLicense provides a mock function with given fields: signed
+func (_m *LicenseValidatorIface) ValidateLicense(signed []byte) (bool, string) {
+	ret := _m.Called(signed)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func([]byte) bool); ok {
+		r0 = rf(signed)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 string
+	if rf, ok := ret.Get(1).(func([]byte) string); ok {
+		r1 = rf(signed)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}

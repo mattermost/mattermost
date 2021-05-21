@@ -18,8 +18,12 @@ const (
 )
 
 var (
-	trialDuration           = 30*(time.Hour*24) + (time.Hour * 8) // 720 hours (30 days) + 8 hours is trial license duration
-	sanctionedTrialDuration = 31*(time.Hour*24) + (time.Hour * 8) // 744 hours (31 days) + 8 hours is trial license duration
+	trialDuration = 30*(time.Hour*24) + (time.Hour * 8) // 720 hours (30 days) + 8 hours is trial license duration
+
+	// a sanctioned trial's duration is either more than the upper bound,
+	// or less than the lower bound
+	sanctionedTrialDurationLowerBound = 31*(time.Hour*24) + (time.Hour * 8) // 744 hours (31 days) + 8 hours
+	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 8) // 696 hours (29 days) + 8 hours is trial license duration
 )
 
 type LicenseRecord struct {
@@ -270,12 +274,14 @@ func (l *License) ToJson() string {
 }
 
 func (l *License) IsTrialLicense() bool {
-	// TODO use IsTrialLicense flag once https://github.com/mattermost/mattermost-server/pull/17359 is merged
-	return (l.ExpiresAt - l.StartsAt) <= trialDuration.Milliseconds()
+	return l.IsTrial || (l.ExpiresAt-l.StartsAt) <= trialDuration.Milliseconds()
 }
 
 func (l *License) IsSanctionedTrial() bool {
-	return (l.ExpiresAt - l.StartsAt) == sanctionedTrialDuration.Milliseconds()
+	duration := l.ExpiresAt - l.StartsAt
+
+	return l.IsTrialLicense() &&
+		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.

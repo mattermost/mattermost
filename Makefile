@@ -316,7 +316,7 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir utils --name LicenseValidatorIface -output utils/mock -note 'Regenerate this file using `make misc-mocks`.'
+	$(GOPATH)/bin/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin

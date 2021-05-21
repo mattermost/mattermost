@@ -44,6 +44,7 @@ func (s *Server) LoadLicense() {
 			return
 		}
 
+		// skip the restrictions if license is a sanctioned trial
 		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
 			canStartTrialLicense, err := s.LicenseManager.CanStartTrial()
 			if err != nil {
@@ -94,7 +95,7 @@ func (s *Server) LoadLicense() {
 }
 
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := utils.ValidateLicense(licenseBytes)
+	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
@@ -193,7 +194,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 }
 
 func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
-	if success, licenseStr := utils.ValidateLicense(b); success {
+	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		s.SetLicense(license)
 		return true

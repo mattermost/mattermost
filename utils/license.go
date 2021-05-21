@@ -42,13 +42,14 @@ func init() {
 
 type LicenseValidatorIface interface {
 	LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError)
+	ValidateLicense(signed []byte) (bool, string)
 }
 
 type LicenseValidatorImpl struct {
 }
 
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := ValidateLicense(licenseBytes)
+	success, licenseStr := l.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
@@ -57,7 +58,7 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 	return license, nil
 }
 
-func ValidateLicense(signed []byte) (bool, string) {
+func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
@@ -113,7 +114,7 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
-	success, licenseStr := ValidateLicense(licenseBytes)
+	success, licenseStr := LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
