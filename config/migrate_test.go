@@ -68,7 +68,7 @@ func TestMigrate(t *testing.T) {
 			"mysql://mmuser:password@tcp(searchreplicahost:3306)/mattermost",
 		}
 
-		_, err := source.Set(cfg)
+		_, _, err := source.Set(cfg)
 		require.NoError(t, err)
 
 		for i, file := range files {
@@ -77,7 +77,7 @@ func TestMigrate(t *testing.T) {
 		}
 
 		return func(store *Store) {
-			_, err := store.Set(originalCfg)
+			_, _, err := store.Set(originalCfg)
 			require.NoError(t, err)
 		}
 	}
