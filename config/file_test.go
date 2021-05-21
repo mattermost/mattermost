@@ -273,7 +273,7 @@ func TestFileStoreGet(t *testing.T) {
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
 	newCfg := &model.Config{}
-	_, err := configStore.Set(newCfg)
+	_, _, err := configStore.Set(newCfg)
 	require.NoError(t, err)
 
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
@@ -472,9 +472,10 @@ func TestFileStoreSet(t *testing.T) {
 		oldCfg := configStore.Get().Clone()
 		newCfg := &model.Config{}
 
-		retCfg, err := configStore.Set(newCfg)
+		retCfg, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
 		require.Equal(t, oldCfg, retCfg)
+		require.NotEqual(t, newCfg, newConfig)
 
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
@@ -486,8 +487,9 @@ func TestFileStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
 
-		_, err := configStore.Set(newCfg)
+		_, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
+		require.NotEqual(t, newCfg, newConfig)
 
 		assert.Equal(t, "password", *configStore.Get().LdapSettings.BindPassword)
 	})
@@ -499,7 +501,7 @@ func TestFileStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
 
-		_, err := configStore.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
@@ -515,7 +517,7 @@ func TestFileStoreSet(t *testing.T) {
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
 			SiteURL: model.NewString("http://test"),
 		}
-		_, err := configStore.Set(newReadOnlyConfig)
+		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
 			assert.Equal(t, ErrReadOnlyConfiguration, errors.Cause(err))
 		}
@@ -537,7 +539,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		_, err = fs.Set(newCfg)
+		_, _, err = fs.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write file"))
 		}
@@ -558,7 +560,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := minimalConfig
 
-		_, err := configStore.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
@@ -583,7 +585,7 @@ func TestFileStoreSet(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		_, err := configStore.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed")
@@ -608,7 +610,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		expectedNewConfig = minimalConfig.Clone()
 		expectedNewConfig.FeatureFlags.TestFeature = "test"
-		_, err := configStore.Set(expectedNewConfig)
+		_, _, err := configStore.Set(expectedNewConfig)
 		require.NoError(t, err)
 
 		require.False(t, wasCalled(called, 5*time.Second))
@@ -616,7 +618,7 @@ func TestFileStoreSet(t *testing.T) {
 		configStore.SetReadOnlyFF(false)
 
 		expectedNewConfig.FeatureFlags.TestFeature = "test2"
-		_, err = configStore.Set(expectedNewConfig)
+		_, _, err = configStore.Set(expectedNewConfig)
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second))
@@ -636,7 +638,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(minimalConfig)
+		_, _, err = fs.Set(minimalConfig)
 		require.NoError(t, err)
 
 		// Let the initial call to invokeConfigListeners finish.
@@ -705,7 +707,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
@@ -730,7 +732,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
@@ -755,7 +757,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
@@ -780,7 +782,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
@@ -805,7 +807,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -832,7 +834,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -871,7 +873,7 @@ func TestFileStoreLoad(t *testing.T) {
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
 		newCfg := minimalConfig
-		_, err := configStore.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		require.Error(t, err)
 		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 	})
@@ -1043,7 +1045,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		}
 		fs.AddListener(callback)
 
-		_, err = fs.Set(minimalConfig)
+		_, _, err = fs.Set(minimalConfig)
 		require.NoError(t, err)
 
 		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since no change has happened")
@@ -1074,7 +1076,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-		_, err = fs.Set(minimalConfig)
+		_, _, err = fs.Set(minimalConfig)
 		require.NoError(t, err)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called since no change has happened")
@@ -1092,7 +1094,7 @@ func TestFileStoreSave(t *testing.T) {
 	}
 
 	t.Run("set with automatic save", func(t *testing.T) {
-		_, err := store.Set(newCfg)
+		_, _, err := store.Set(newCfg)
 		require.NoError(t, err)
 
 		err = store.Load()
@@ -1421,7 +1423,7 @@ func TestFileStoreReadOnly(t *testing.T) {
 	}
 	fs.AddListener(callback)
 
-	cfg, err := fs.Set(minimalConfig)
+	cfg, _, err := fs.Set(minimalConfig)
 	require.Nil(t, cfg)
 	require.Equal(t, ErrReadOnlyStore, err)
 
@@ -1439,7 +1441,7 @@ func TestFileStoreSetReadOnlyFF(t *testing.T) {
 		newCfg.FeatureFlags.TestFeature = "test"
 
 		// store has read-only FF by default.
-		_, err := store.Set(newCfg)
+		_, _, err := store.Set(newCfg)
 		require.NoError(t, err)
 
 		config = store.Get()
@@ -1457,7 +1459,7 @@ func TestFileStoreSetReadOnlyFF(t *testing.T) {
 
 		store.SetReadOnlyFF(false)
 
-		_, err := store.Set(newCfg)
+		_, _, err := store.Set(newCfg)
 		require.NoError(t, err)
 
 		config = store.Get()

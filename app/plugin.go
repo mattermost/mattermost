@@ -402,7 +402,7 @@ func (s *Server) enablePlugin(id string) *model.AppError {
 	})
 
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
-	if err := s.SaveConfig(s.Config(), true); err != nil {
+	if _, _, err := s.SaveConfig(s.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -449,7 +449,7 @@ func (s *Server) disablePlugin(id string) *model.AppError {
 	s.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
-	if err := s.SaveConfig(s.Config(), true); err != nil {
+	if _, _, err := s.SaveConfig(s.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

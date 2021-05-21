@@ -70,8 +70,9 @@ func TestNewStoreReadOnly(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("Set", func(t *testing.T) {
-			cfg, err := ds.Set(emptyConfig)
-			require.Nil(t, cfg)
+			oldCfg, newCfg, err := ds.Set(emptyConfig)
+			require.Nil(t, oldCfg)
+			require.Nil(t, newCfg)
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 
@@ -93,8 +94,9 @@ func TestNewStoreReadOnly(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("Set", func(t *testing.T) {
-			cfg, err := fs.Set(emptyConfig)
-			require.Nil(t, cfg)
+			oldCfg, newCfg, err := fs.Set(emptyConfig)
+			require.Nil(t, oldCfg)
+			require.Nil(t, newCfg)
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 
