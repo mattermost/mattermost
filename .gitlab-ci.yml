@@ -67,15 +67,15 @@ empty:
 test-schema-mysql:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
-#  services:
-#    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
-#      alias: docker
-#  variables:
-#    DOCKER_TLS_CERTDIR: ""
-#    DOCKER_HOST: tcp://docker:2375
-#    DOCKER_DRIVER: overlay2
-#    DOCKER_CONTENT_TRUST: 0
-#    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_CONTENT_TRUST: 0
+    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
 
     # https://docs.gitlab.com/runner/executors/kubernetes.html#overwriting-container-resources
 #    KUBERNETES_CPU_REQUEST: 500m
@@ -103,15 +103,15 @@ test-schema-mysql:
 test-schema-postgres:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
-#  services:
-#    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
-#      alias: docker
-#  variables:
-#    DOCKER_TLS_CERTDIR: ""
-#    DOCKER_HOST: tcp://docker:2375
-#    DOCKER_DRIVER: overlay2
-#    DOCKER_CONTENT_TRUST: 0
-#    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_CONTENT_TRUST: 0
+    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
 
     # https://docs.gitlab.com/runner/executors/kubernetes.html#overwriting-container-resources
 #    KUBERNETES_CPU_REQUEST: 500m
