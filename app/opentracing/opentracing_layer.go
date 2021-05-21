@@ -14272,36 +14272,6 @@ func (a *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *
 	a.app.ServeInterPluginRequest(w, r, sourcePluginId, destinationPluginId)
 }
 
-func (a *OpenTracingAppLayer) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServePluginPublicRequest")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ServePluginPublicRequest(w, r)
-}
-
-func (a *OpenTracingAppLayer) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServePluginRequest")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ServePluginRequest(w, r)
-}
-
 func (a *OpenTracingAppLayer) SessionCacheLength() int {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionCacheLength")

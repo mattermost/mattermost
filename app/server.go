@@ -251,8 +251,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	fakeApp := New(ServerConnector(s))
-	fakeApp.HubStart()
+	app := New(ServerConnector(s))
+	app.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -492,11 +492,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("", s.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -508,7 +507,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      fakeApp,
+		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -637,7 +636,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := fakeApp.UpdateProductNotices(); err != nil {
+			if err := app.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -650,7 +649,7 @@ func NewServer(options ...Option) (*Server, error) {
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+			if appErr := app.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -658,7 +657,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+		if appErr := app.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
@@ -666,9 +665,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.runEssentialJobs {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(fakeApp, c)
-			runCheckWarnMetricStatusJob(fakeApp, c)
-			runDNDStatusExpireJob(fakeApp)
+			runCheckAdminSupportStatusJob(app, c)
+			runCheckWarnMetricStatusJob(app, c)
+			runDNDStatusExpireJob(app)
 		})
 		s.runJobs()
 	}
