@@ -160,7 +160,7 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 	})
 
 	t.Run("setting config should respect environment variable overrides", func(t *testing.T) {
-		_, err := base.Set(originalConfig)
+		_, _, err := base.Set(originalConfig)
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)

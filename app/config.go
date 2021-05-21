@@ -54,7 +54,7 @@ func (s *Server) UpdateConfig(f func(*model.Config)) {
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)
-	if _, err := s.configStore.Set(updated); err != nil {
+	if _, _, err := s.configStore.Set(updated); err != nil {
 		mlog.Error("Failed to update config", mlog.Err(err))
 	}
 }
@@ -405,12 +405,13 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg, err := s.configStore.Set(newCfg)
+// It returns both the previous and current configs.
+func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
+	oldCfg, newCfg, err := s.configStore.Set(newCfg)
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {
-		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if s.startMetrics && *s.Config().MetricsSettings.Enable {
@@ -423,19 +424,18 @@ func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage
 	}
 
 	if s.Cluster != nil {
-		newCfg = s.configStore.RemoveEnvironmentOverrides(newCfg)
-		oldCfg = s.configStore.RemoveEnvironmentOverrides(oldCfg)
-		err := s.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+		err := s.Cluster.ConfigChanged(s.configStore.RemoveEnvironmentOverrides(oldCfg),
+			s.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 	}
 
-	return nil
+	return oldCfg, newCfg, nil
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
