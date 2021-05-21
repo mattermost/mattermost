@@ -4627,10 +4627,6 @@
     "translation": "Unable to mark channel as unread."
   },
   {
-    "id": "app.channel.update_member.app_error",
-    "translation": "Unable to update channel member."
-  },
-  {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
   },

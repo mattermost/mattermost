@@ -1139,7 +1139,7 @@ func (a *App) UpdateChannelMemberRoles(channelID string, userID string, newRoles
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	return a.updateChannelMember(member)
+	return a.UpdateChannelMember(member)
 }
 
 func (a *App) UpdateChannelMemberSchemeRoles(channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
@@ -1161,7 +1161,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelID string, userID string, is
 		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
-	return a.updateChannelMember(member)
+	return a.UpdateChannelMember(member)
 }
 
 func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
@@ -1192,7 +1192,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 		member.NotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] = ignoreChannelMentions
 	}
 
-	member, err = a.updateChannelMember(member)
+	member, err = a.UpdateChannelMember(member)
 	if err != nil {
 		return nil, err
 	}
@@ -1202,7 +1202,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 	return member, nil
 }
 
-func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1805,21 +1805,6 @@ func (a *App) GetChannelMember(ctx context.Context, channelID string, userID str
 			return nil, model.NewAppError("GetChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelMember", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	return channelMember, nil
-}
-
-func (a *App) UpdateChannelMember(channelMember *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	_, err := a.Srv().Store.Channel().UpdateMember(channelMember)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("UpdateChannelMember", "app.channel.update_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -2901,7 +2886,7 @@ func (a *App) ToggleMuteChannel(channelID, userID string) (*model.ChannelMember,
 
 	member.SetChannelMuted(!member.IsChannelMuted())
 
-	member, err := a.updateChannelMember(member)
+	member, err := a.UpdateChannelMember(member)
 	if err != nil {
 		return nil, err
 	}

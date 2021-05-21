@@ -15756,7 +15756,7 @@ func (a *OpenTracingAppLayer) UpdateChannelLastViewedAt(channelIDs []string, use
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelMember(channelMember *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMember")
 
@@ -15768,7 +15768,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMember(channelMember *model.ChannelMe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannelMember(channelMember)
+	resultVar0, resultVar1 := a.app.UpdateChannelMember(member)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
