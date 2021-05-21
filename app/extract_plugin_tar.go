@@ -72,8 +72,12 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 			if err != nil {
 				return err
 			}
-			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
+			_, err = io.Copy(outFile, tarReader)
+
+			// Close file regardless of error.
+			outFile.Close()
+
+			if err != nil {
 				return err
 			}
 		}
