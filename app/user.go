@@ -249,32 +249,29 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
-		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	if count <= 0 {
-		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
-	}
-
-	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
-		user.Locale = *a.Config().LocalizationSettings.DefaultClientLocale
-	}
-
-	ruser, appErr := a.createUser(user)
+	ruser, appErr := a.srv.userService.CreateUser(user)
 	if appErr != nil {
 		return nil, appErr
 	}
+
+	if user.EmailVerified {
+		a.InvalidateCacheForUser(ruser.Id)
+
+		nUser, err := a.srv.userService.GetUser(ruser.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		a.sendUpdatedUserEvent(*nUser)
+	}
+
+	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+	}
+
+	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
+
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 	message.Add("user_id", ruser.Id)
@@ -290,53 +287,6 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		})
 	}
 
-	return ruser, nil
-}
-
-func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
-	user.MakeNonNil()
-
-	if err := a.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
-		return nil, err
-	}
-
-	ruser, nErr := a.Srv().Store.User().Save(user)
-	if nErr != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		case errors.As(nErr, &invErr):
-			switch invErr.Field {
-			case "email":
-				return nil, model.NewAppError("createUser", "app.user.save.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			case "username":
-				return nil, model.NewAppError("createUser", "app.user.save.username_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			default:
-				return nil, model.NewAppError("createUser", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			}
-		default:
-			return nil, model.NewAppError("createUser", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	if user.EmailVerified {
-		if err := a.VerifyUserEmail(ruser.Id, user.Email); err != nil {
-			mlog.Warn("Failed to set email verified", mlog.Err(err))
-		}
-	}
-
-	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
-		mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
-	}
-
-	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
-	ruser.Sanitize(map[string]bool{})
-
-	// Determine whether to send the created user a welcome email
-	ruser.DisableWelcomeEmail = user.DisableWelcomeEmail
 	return ruser, nil
 }
 
@@ -437,18 +387,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().Get(context.Background(), userID)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("GetUser", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	return user, nil
+	return a.srv.userService.GetUser(userID)
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {

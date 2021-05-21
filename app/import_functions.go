@@ -483,9 +483,15 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	var savedUser *model.User
 	var err *model.AppError
 	if user.Id == "" {
-		if savedUser, err = a.createUser(user); err != nil {
+		if savedUser, err = a.srv.userService.CreateUser(user); err != nil {
 			return err
 		}
+
+		pref := model.Preference{UserId: savedUser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: savedUser.Id, Value: "0"}
+		if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+		}
+
 	} else {
 		if hasUserChanged {
 			if savedUser, err = a.UpdateUser(user, false); err != nil {
