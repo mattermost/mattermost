@@ -10,6 +10,41 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// fixMention replaces any mentions in a post for the user with the user's real username.
+func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.User) {
+	if post == nil || len(mentionMap) == 0 {
+		return
+	}
+
+	realUsername, ok := user.GetProp(KeyRemoteUsername)
+	if !ok {
+		return
+	}
+
+	// there may be more than one mention for each user so we have to walk the whole map.
+	for mention, id := range mentionMap {
+		if id == user.Id && strings.Contains(mention, ":") {
+			post.Message = strings.ReplaceAll(post.Message, "@"+mention, "@"+realUsername)
+		}
+	}
+}
+
+func sanitizeUserForSync(user *model.User) *model.User {
+	user.Password = model.NewId()
+	user.AuthData = nil
+	user.AuthService = ""
+	user.Roles = "system_user"
+	user.AllowMarketing = false
+	user.NotifyProps = model.StringMap{}
+	user.LastPasswordUpdate = 0
+	user.LastPictureUpdate = 0
+	user.FailedAttempts = 0
+	user.MfaActive = false
+	user.MfaSecret = ""
+
+	return user
+}
+
 // mungUsername creates a new username by combining username and remote cluster name, plus
 // a suffix to create uniqueness. If the resulting username exceeds the max length then
 // it is truncated and ellipses added.

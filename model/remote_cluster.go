@@ -7,12 +7,14 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha512"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/scrypt"
 )
 
 const (
@@ -272,8 +274,17 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	// create random salt to be prepended to the blob.
+	salt := make([]byte, 16)
+	if _, err = io.ReadFull(rand.Reader, salt); err != nil {
+		return nil, err
+	}
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return nil, err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return nil, err
@@ -291,12 +302,25 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	}
 
 	// prefix the nonce to the cyphertext so we don't need to keep track of it.
-	return gcm.Seal(nonce, nonce, raw, nil), nil
+	sealed := gcm.Seal(nonce, nonce, raw, nil)
+
+	return append(salt, sealed...), nil
 }
 
 func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error {
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	if len(encrypted) <= 16 {
+		return errors.New("invalid length")
+	}
+
+	// first 16 bytes is the salt that was used to derive a key
+	salt := encrypted[:16]
+	encrypted = encrypted[16:]
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return err

@@ -5313,6 +5313,28 @@ func (a *OpenTracingAppLayer) GetCommand(commandID string) (*model.Command, *mod
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetCommonTeamIDsForTwoUsers(userID string, otherUserID string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCommonTeamIDsForTwoUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetComplianceFile")
@@ -16405,9 +16427,9 @@ func (a *OpenTracingAppLayer) UpdateSharedChannel(sc *model.SharedChannel) (*mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {
+func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelRemoteNextSyncAt")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelRemoteCursor")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -16417,7 +16439,7 @@ func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteNextSyncAt(id string, syn
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateSharedChannelRemoteNextSyncAt(id, syncTime)
+	resultVar0 := a.app.UpdateSharedChannelRemoteCursor(id, cursor)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

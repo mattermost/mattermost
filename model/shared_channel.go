@@ -16,14 +16,14 @@ import (
 // If "home" is false, then the shared channel is homed remotely, and "RemoteId"
 // field points to the remote cluster connection in "RemoteClusters" table.
 type SharedChannel struct {
-	ChannelId        string `json:"channel_id"`
+	ChannelId        string `json:"id"`
 	TeamId           string `json:"team_id"`
 	Home             bool   `json:"home"`
 	ReadOnly         bool   `json:"readonly"`
-	ShareName        string `json:"share_name"`
-	ShareDisplayName string `json:"share_displayname"`
-	SharePurpose     string `json:"share_purpose"`
-	ShareHeader      string `json:"share_header"`
+	ShareName        string `json:"name"`
+	ShareDisplayName string `json:"display_name"`
+	SharePurpose     string `json:"purpose"`
+	ShareHeader      string `json:"header"`
 	CreatorId        string `json:"creator_id"`
 	CreateAt         int64  `json:"create_at"`
 	UpdateAt         int64  `json:"update_at"`
@@ -112,7 +112,8 @@ type SharedChannelRemote struct {
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
-	NextSyncAt        int64  `json:"next_sync_at"`
+	LastPostUpdateAt  int64  `json:"last_post_update_at"`
+	LastPostId        string `json:"last_post_id"`
 }
 
 func (sc *SharedChannelRemote) ToJson() string {
@@ -209,6 +210,12 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
+}
+
+type GetUsersForSyncFilter struct {
+	CheckProfileImage bool
+	ChannelID         string
+	Limit             uint64
 }
 
 // SharedChannelAttachment stores a lastSyncAt timestamp on behalf of a remote cluster for

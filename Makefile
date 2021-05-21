@@ -553,7 +553,7 @@ config-ldap: ## Configures LDAP.
 config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) generate $(GOFLAGS) ./config
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) $(GOFLAGS) run ./scripts/config_generator
 
 diff-config: ## Compares default configuration between two mattermost versions
 	@./scripts/diff-config.sh
