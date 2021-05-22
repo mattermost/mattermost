@@ -9197,5 +9197,21 @@
   {
     "id": "api.email_batching.send_batched_email_notification.button",
     "translation": "Mattermost openen"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Kan de gemeenschappelijke team ID's niet verkrijgen."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Tussen deze gebruikers kan geen direct kanaal worden gecreëerd omdat zij geen gemeenschappelijk team hebben."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Fout bij het vergelijken van de configuraties"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Fout bij het vergelijken van de configuraties"
   }
 ]
