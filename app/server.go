@@ -19,7 +19,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -38,6 +37,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/featureflag"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -159,6 +159,7 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
+	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
 	sharedChannelService SharedChannelServiceIFace
 
@@ -200,13 +201,10 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
-
-	dndnTaskMut sync.Mutex
-	dndTask     *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -662,6 +660,15 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(fakeApp, c)
+			runCheckWarnMetricStatusJob(fakeApp, c)
+		})
+		s.runJobs()
+	}
+
 	s.doAppMigrations()
 
 	s.initPostMetadata()
@@ -674,15 +681,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.ShutDownPlugins()
 		}
 	})
-	if s.runEssentialJobs {
-		s.Go(func() {
-			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(fakeApp, c)
-			runCheckWarnMetricStatusJob(fakeApp, c)
-			runDNDStatusExpireJob(fakeApp)
-		})
-		s.runJobs()
-	}
 
 	return s, nil
 }
@@ -804,15 +802,8 @@ func (s *Server) initLogging() error {
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
 		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
-		isJson := config.IsJsonMap(dsn)
 
-		// If this is a file based config we need the full path so it can be watched.
-		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
-			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
-			dsn = filepath.Join(filepath.Dir(configPath), dsn)
-		}
-
-		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
+		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
@@ -821,9 +812,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
-		if !isJson {
-			mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-		}
+		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
@@ -881,15 +870,18 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 
 	var err error
 
-	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	rcs, err := remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		return err
 	}
 
-	if err = s.remoteClusterService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = rcs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.serviceMux.Unlock()
 
 	// Shared Channels service
 
@@ -905,15 +897,19 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
 
-	if err = s.sharedChannelService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = scs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.sharedChannelService = scs
+	s.serviceMux.Unlock()
+
 	return nil
 }
 
@@ -975,11 +971,18 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
+	s.serviceMux.RLock()
+	if s.sharedChannelService != nil {
+		if err = s.sharedChannelService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+		}
+	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
 			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
+	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
@@ -1039,12 +1042,6 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
-
-	s.dndnTaskMut.Lock()
-	if s.dndTask != nil {
-		s.dndTask.Cancel()
-	}
-	s.dndnTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -2000,12 +1997,16 @@ func (s *Server) GetStore() store.Store {
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.remoteClusterService
 }
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.sharedChannelService
 }
 
@@ -2018,12 +2019,16 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
 func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.remoteClusterService = remoteClusterService
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
 }
 
@@ -2271,26 +2276,3 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	}
 // 	return result, nil
 // }
-
-func runDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		a.srv.dndnTaskMut.Lock()
-		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-		a.srv.dndnTaskMut.Unlock()
-	}
-	a.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
-		if a.IsLeader() {
-			a.srv.dndnTaskMut.Lock()
-			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-			a.srv.dndnTaskMut.Unlock()
-		} else {
-			a.srv.dndnTaskMut.Lock()
-			if a.srv.dndTask != nil {
-				a.srv.dndTask.Cancel()
-				a.srv.dndTask = nil
-			}
-			a.srv.dndnTaskMut.Unlock()
-		}
-	})
-}
