@@ -14,7 +14,7 @@ import (
 func TestStoreUpgradeDotRelease(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
-		saveSchemaVersion(sqlStore, "5.33.1")
+		saveSchemaVersion(sqlStore, "5.32.1")
 		err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 		require.NoError(t, err)
 		require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
