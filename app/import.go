@@ -197,20 +197,18 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 					err := <-errorsChan
 					if !dryRun && stopOnError(err) {
 						return err.Error, err.LineNumber
-					} else {
-						mlog.Warn("Large image import error", mlog.Err(err.Error))
 					}
+					mlog.Warn("Large image import error", mlog.Err(err.Error))
 				}
 			}
 		}
 
-			// Set up the workers and channel for this type.
-			lastLineType = line.Type
-			linesChan = make(chan LineImportWorkerData, workers)
-			for i := 0; i < workers; i++ {
-				wg.Add(1)
-				go a.bulkImportWorker(c, dryRun, &wg, linesChan, errorsChan)
-			}
+		// Set up the workers and channel for this type.
+		lastLineType = line.Type
+		linesChan = make(chan LineImportWorkerData, workers)
+		for i := 0; i < workers; i++ {
+			wg.Add(1)
+			go a.bulkImportWorker(c, dryRun, &wg, linesChan, errorsChan)
 		}
 
 		select {
@@ -220,33 +218,31 @@ func (a *App) bulkImport(c *request.Context, fileReader io.Reader, dryRun bool, 
 				close(linesChan)
 				wg.Wait()
 				return err.Error, err.LineNumber
-			} else {
-				mlog.Warn("Large image import error", mlog.Err(err.Error))
 			}
-		}
-	}
-
-	// No more lines. Clear out the worker queue before continuing.
-	if linesChan != nil {
-		close(linesChan)
-	}
-	wg.Wait()
-
-	// Check no errors occurred while waiting for the queue to empty.
-	if len(errorsChan) != 0 {
-		err := <-errorsChan
-		if !dryRun && stopOnError(err) {
-			return err.Error, err.LineNumber
-		} else {
 			mlog.Warn("Large image import error", mlog.Err(err.Error))
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		appErr := model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError)
-		if dryRun {
-			mlog.Warn(appErr.Where, mlog.Err(appErr))
-		} else {
-			return appErr, 0
+
+		// No more lines. Clear out the worker queue before continuing.
+		if linesChan != nil {
+			close(linesChan)
+		}
+		wg.Wait()
+
+		// Check no errors occurred while waiting for the queue to empty.
+		if len(errorsChan) != 0 {
+			err := <-errorsChan
+			if !dryRun && stopOnError(err) {
+				return err.Error, err.LineNumber
+			}
+			mlog.Warn("Large image import error", mlog.Err(err.Error))
+		}
+		if err := scanner.Err(); err != nil {
+			appErr := model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError)
+			if dryRun {
+				mlog.Warn(appErr.Where, mlog.Err(appErr))
+			} else {
+				return appErr, 0
+			}
 		}
 	}
 	return nil, 0
