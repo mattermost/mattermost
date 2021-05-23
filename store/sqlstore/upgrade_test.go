@@ -13,6 +13,16 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+func TestStoreUpgradeDotRelease(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+		saveSchemaVersion(sqlStore, "5.33.1")
+		err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
+		require.NoError(t, err)
+		require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
+	})
+}
+
 func TestStoreUpgrade(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
