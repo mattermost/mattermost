@@ -11,19 +11,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
-
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
 	date_constraints "github.com/reflog/dateconstraints"
+
+	"github.com/mattermost/mattermost-server/v5/app/request"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const MAX_REPEAT_VIEWINGS = 3
-const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
+const MaxRepeatViewings = 3
+const MinSecondsBetweenRepeatViewings = 60 * 60
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -31,6 +32,8 @@ var noticesCache = utils.RequestCache{}
 // cached counts that are used during notice condition validation
 var cachedPostCount int64
 var cachedUserCount int64
+
+var cachedDBMSVersion string
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
@@ -50,7 +53,10 @@ func cleanupVersion(originalVersion string) string {
 	return strings.Join(versionPartsOut, ".")
 }
 
-func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
+	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
+	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer, searchEngineName, searchEngineVer string,
+	notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -83,18 +89,19 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC().Truncate(time.Hour * 24)
+		y, m, d := time.Now().UTC().Date()
+		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&now) {
+		if !c.Check(&trunc) {
 			return false, nil
 		}
 	}
 
 	// check if current server version is notice range
-	if cnd.ServerVersion != nil {
+	if !isCloud && cnd.ServerVersion != nil {
 		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
@@ -141,6 +148,36 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		}
 	}
 
+	if cnd.DeprecatingDependency != nil {
+		extDepVersion, err := semver.NewVersion(cnd.DeprecatingDependency.MinimumVersion)
+		if err != nil {
+			return false, errors.Wrapf(err, "Cannot parse external dependency version %s", cnd.DeprecatingDependency.MinimumVersion)
+		}
+
+		switch cnd.DeprecatingDependency.Name {
+		case model.DATABASE_DRIVER_MYSQL, model.DATABASE_DRIVER_POSTGRES:
+			if dbName != cnd.DeprecatingDependency.Name {
+				return false, nil
+			}
+			serverDBMSVersion, err := semver.NewVersion(dbVer)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse DBMS version %s", dbVer)
+			}
+			return extDepVersion.GreaterThan(serverDBMSVersion), nil
+		case model.SEARCHENGINE_ELASTICSEARCH:
+			if searchEngineName != model.SEARCHENGINE_ELASTICSEARCH {
+				return false, nil
+			}
+			semverESVersion, err := semver.NewVersion(searchEngineVer)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse search engine version %s", searchEngineVer)
+			}
+			return extDepVersion.GreaterThan(semverESVersion), nil
+		default:
+			return false, nil
+		}
+	}
+
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
 		if !validateConfigEntry(config, k, v) {
@@ -150,7 +187,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if user's config matches the notice
 	for k, v := range cnd.UserConfig {
-		res, err := validateUserConfigEntry(preferences, userId, k, v)
+		res, err := validateUserConfigEntry(preferences, userID, k, v)
 		if err != nil {
 			return false, err
 		}
@@ -169,7 +206,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	return true, nil
 }
 
-func validateUserConfigEntry(preferences store.PreferenceStore, userId string, key string, expectedValue interface{}) (bool, error) {
+func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue interface{}) (bool, error) {
 	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
 		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
@@ -177,7 +214,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userId string, k
 	if _, ok := expectedValue.(string); !ok {
 		return false, errors.New("Invalid format of user config. Value should be string")
 	}
-	pref, err := preferences.Get(userId, parts[0], parts[1])
+	pref, err := preferences.Get(userID, parts[0], parts[1])
 	if err != nil {
 		return false, nil
 	}
@@ -201,9 +238,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
+func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PERMISSION_MANAGE_TEAM)
 
 	// check if notices for regular users are disabled
 	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
@@ -215,13 +252,20 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		return []model.NoticeMessage{}, nil
 	}
 
-	views, err := a.Srv().Store.ProductNotices().GetViews(userId)
+	views, err := a.Srv().Store.ProductNotices().GetViews(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+	dbName := *a.Srv().Config().SqlSettings.DriverName
+
+	var searchEngineName, searchEngineVersion string
+	if engine := a.Srv().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
+		searchEngineName = engine.ElasticsearchEngine.GetName()
+		searchEngineVersion = engine.ElasticsearchEngine.GetFullVersion()
+	}
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
@@ -237,27 +281,32 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
 			if repeatable {
-				if view.Viewed > MAX_REPEAT_VIEWINGS {
+				if view.Viewed > MaxRepeatViewings {
 					continue
 				}
-				if (time.Now().UTC().Unix() - view.Timestamp) < MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS {
+				if (time.Now().UTC().Unix() - view.Timestamp) < MinSecondsBetweenRepeatViewings {
 					continue
 				}
 			} else if view.Viewed > 0 {
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a.Config(), a.Srv().Store.Preference(),
-			userId,
+		result, err := noticeMatchesConditions(
+			a.Config(),
+			a.Srv().Store.Preference(),
+			userID,
 			client,
 			clientVersion,
-			locale,
 			cachedPostCount,
 			cachedUserCount,
 			isSystemAdmin,
 			isTeamAdmin,
 			isCloud,
 			sku,
+			dbName,
+			cachedDBMSVersion,
+			searchEngineName,
+			searchEngineVersion,
 			&cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
@@ -277,8 +326,8 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 }
 
 // UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
-func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
-	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
+func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError {
+	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
@@ -286,13 +335,13 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 
 // UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
 // user as viewed in order to avoid showing them imminently on first login
-func (a *App) UpdateViewedProductNoticesForNewUser(userId string) {
+func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 	var noticeIds []string
 	for _, notice := range cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)
 	}
-	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
-		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userId))
+	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
 	}
 }
 
@@ -304,15 +353,22 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
-	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
+	cachedDBMSVersion, err = a.Srv().Store.GetDbVersion(false)
+	if err != nil {
+		mlog.Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
+	}
+
+	cachedDBMSVersion = strings.Split(cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
+
+	data, err := utils.GetURLWithCache(url, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
 	}

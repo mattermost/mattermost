@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // LRU is a thread-safe fixed size LRU cache.
@@ -209,11 +209,6 @@ func (l *LRU) get(key string, value interface{}) error {
 		var u model.User
 		_, err := u.UnmarshalMsg(val)
 		*v = &u
-		return err
-	case **model.Session:
-		var s model.Session
-		_, err := s.UnmarshalMsg(val)
-		*v = &s
 		return err
 	case *map[string]*model.User:
 		var u model.UserMap

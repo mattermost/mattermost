@@ -4,23 +4,23 @@
 package app
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"html/template"
+	"io"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"net/http"
-
-	"github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	EMAIL_BATCHING_TASK_NAME = "Email Batching"
+	EmailBatchingTaskName = "Email Batching"
 )
 
 func (es *EmailService) InitEmailBatching() {
@@ -49,7 +49,7 @@ func (es *EmailService) AddNotificationEmailToBatch(user *model.User, post *mode
 }
 
 type batchedNotification struct {
-	userId   string
+	userID   string
 	post     *model.Post
 	teamName string
 }
@@ -72,7 +72,7 @@ func NewEmailBatchingJob(es *EmailService, bufferSize int) *EmailBatchingJob {
 
 func (job *EmailBatchingJob) Start() {
 	mlog.Debug("Email batching job starting. Checking for pending emails periodically.", mlog.Int("interval_in_seconds", *job.server.Config().EmailSettings.EmailBatchingInterval))
-	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
+	newTask := model.CreateRecurringTask(EmailBatchingTaskName, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
 
 	job.taskMutex.Lock()
 	oldTask := job.task
@@ -86,7 +86,7 @@ func (job *EmailBatchingJob) Start() {
 
 func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team) bool {
 	notification := &batchedNotification{
-		userId:   user.Id,
+		userID:   user.Id,
 		post:     post,
 		teamName: team.Name,
 	}
@@ -117,12 +117,12 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 	for receiving {
 		select {
 		case notification := <-job.newNotifications:
-			userId := notification.userId
+			userID := notification.userID
 
-			if _, ok := job.pendingNotifications[userId]; !ok {
-				job.pendingNotifications[userId] = []*batchedNotification{notification}
+			if _, ok := job.pendingNotifications[userID]; !ok {
+				job.pendingNotifications[userID] = []*batchedNotification{notification}
 			} else {
-				job.pendingNotifications[userId] = append(job.pendingNotifications[userId], notification)
+				job.pendingNotifications[userID] = append(job.pendingNotifications[userID], notification)
 			}
 		default:
 			receiving = false
@@ -131,7 +131,7 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 }
 
 func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
-	for userId, notifications := range job.pendingNotifications {
+	for userID, notifications := range job.pendingNotifications {
 		batchStartTime := notifications[0].post.CreateAt
 		inspectedTeamNames := make(map[string]string)
 		for _, notification := range notifications {
@@ -152,7 +152,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userID)
 			if err != nil {
 				mlog.Error("Unable to find ChannelMembers for user", mlog.Err(err))
 				continue
@@ -160,8 +160,8 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			for _, channelMember := range *channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
-					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userId))
-					delete(job.pendingNotifications, userId)
+					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
+					delete(job.pendingNotifications, userID)
 					break
 				}
 			}
@@ -169,7 +169,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		preference, err := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		preference, err := job.server.Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		if err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
@@ -183,47 +183,81 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		}
 
 		// send the email notification if there are notifications to send AND it's been long enough
-		if len(job.pendingNotifications[userId]) > 0 && now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
-			job.server.Go(func(userId string, notifications []*batchedNotification) func() {
+		if len(job.pendingNotifications[userID]) > 0 && now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
+			job.server.Go(func(userID string, notifications []*batchedNotification) func() {
 				return func() {
-					handler(userId, notifications)
+					handler(userID, notifications)
 				}
-			}(userId, job.pendingNotifications[userId]))
-			delete(job.pendingNotifications, userId)
+			}(userID, job.pendingNotifications[userID]))
+			delete(job.pendingNotifications, userID)
 		}
 	}
 }
 
-func (es *EmailService) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userId)
+func (es *EmailService) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
+	user, err := es.srv.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	}
 
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	translateFunc := i18n.GetUserTranslations(user.Locale)
 	displayNameFormat := *es.srv.Config().TeamSettings.TeammateNameDisplay
+	siteURL := *es.srv.Config().ServiceSettings.SiteURL
 
-	var contents string
-	for _, notification := range notifications {
-		sender, err := es.srv.Store.User().Get(notification.post.UserId)
-		if err != nil {
-			mlog.Warn("Unable to find sender of post for batched email notification")
-			continue
+	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
+	embeddedFiles := make(map[string]io.Reader)
+
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	if license := es.srv.License(); license != nil && *license.Features.EmailNotificationContents {
+		emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
+	}
+
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+		for i, notification := range notifications {
+			sender, errSender := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
+			if errSender != nil {
+				mlog.Warn("Unable to find sender of post for batched email notification")
+			}
+
+			channel, errCh := es.srv.Store.Channel().Get(notification.post.ChannelId, true)
+			if errCh != nil {
+				mlog.Warn("Unable to find channel of post for batched email notification")
+			}
+
+			senderProfileImage, _, errProfileImage := es.srv.GetProfileImage(sender)
+			if errProfileImage != nil {
+				mlog.Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(errProfileImage))
+			}
+
+			senderPhoto := fmt.Sprintf("user-avatar-%d.png", i)
+			if senderProfileImage != nil {
+				embeddedFiles[senderPhoto] = bytes.NewReader(senderProfileImage)
+			}
+
+			tm := time.Unix(notification.post.CreateAt/1000, 0)
+			timezone, _ := tm.Zone()
+
+			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
+				"Hour":     tm.Hour(),
+				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
+				"Month":    translateFunc(tm.Month().String()),
+				"Day":      tm.Day(),
+				"Year":     tm.Year(),
+				"Timezone": timezone,
+			})
+
+			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
+
+			postsData = append(postsData, &postData{
+				SenderPhoto: senderPhoto,
+				SenderName:  sender.GetDisplayName(displayNameFormat),
+				Time:        t,
+				ChannelName: channel.DisplayName,
+				Message:     template.HTML(es.srv.GetMessageForNotification(notification.post, translateFunc)),
+				MessageURL:  MessageURL,
+			})
 		}
-
-		channel, errCh := es.srv.Store.Channel().Get(notification.post.ChannelId, true)
-		if errCh != nil {
-			mlog.Warn("Unable to find channel of post for batched email notification")
-			continue
-		}
-
-		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-		if license := es.srv.License(); license != nil && *license.Features.EmailNotificationContents {
-			emailNotificationContentsType = *es.srv.Config().EmailSettings.EmailNotificationContentsType
-		}
-
-		contents += es.renderBatchedPost(notification, channel, sender, *es.srv.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
@@ -235,54 +269,31 @@ func (es *EmailService) sendBatchedEmailNotification(userId string, notification
 		"Day":      tm.Day(),
 	})
 
-	body := es.newEmailTemplate("post_batched_body", user.Locale)
-	body.Props["SiteURL"] = *es.srv.Config().ServiceSettings.SiteURL
-	body.Props["Posts"] = template.HTML(contents)
-	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
-
-	if err := es.sendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
-	}
-}
-
-func (es *EmailService) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
-	// don't include message contents if email notification contents type is set to generic
-	var template *utils.HTMLTemplate
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		template = es.newEmailTemplate("post_batched_post_full", userLocale)
-	} else {
-		template = es.newEmailTemplate("post_batched_post_generic", userLocale)
+	firstSender, err := es.srv.Store.User().Get(context.Background(), notifications[0].post.UserId)
+	if err != nil {
+		mlog.Warn("Unable to find sender of post for batched email notification")
 	}
 
-	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
-	template.Props["PostMessage"] = es.srv.GetMessageForNotification(notification.post, translateFunc)
-	template.Props["PostLink"] = siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
-	template.Props["SenderName"] = sender.GetDisplayName(displayNameFormat)
-
-	tm := time.Unix(notification.post.CreateAt/1000, 0)
-	timezone, _ := tm.Zone()
-
-	template.Props["Date"] = translateFunc("api.email_batching.render_batched_post.date", map[string]interface{}{
-		"Year":     tm.Year(),
-		"Month":    translateFunc(tm.Month().String()),
-		"Day":      tm.Day(),
-		"Hour":     tm.Hour(),
-		"Minute":   fmt.Sprintf("%02d", tm.Minute()),
-		"Timezone": timezone,
+	data := es.newEmailTemplateData(user.Locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = translateFunc("api.email_batching.send_batched_email_notification.title", len(notifications)-1, map[string]interface{}{
+		"SenderName": firstSender.GetDisplayName(displayNameFormat),
 	})
+	data.Props["SubTitle"] = translateFunc("api.email_batching.send_batched_email_notification.subTitle")
+	data.Props["Button"] = translateFunc("api.email_batching.send_batched_email_notification.button")
+	data.Props["ButtonURL"] = siteURL
+	data.Props["Posts"] = postsData
+	data.Props["MessageButton"] = translateFunc("api.email_batching.send_batched_email_notification.messageButton")
+	data.Props["NotificationFooterTitle"] = translateFunc("app.notification.footer.title")
+	data.Props["NotificationFooterInfoLogin"] = translateFunc("app.notification.footer.infoLogin")
+	data.Props["NotificationFooterInfo"] = translateFunc("app.notification.footer.info")
 
-	if channel.Type == model.CHANNEL_DIRECT {
-		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.direct_message")
-	} else if channel.Type == model.CHANNEL_GROUP {
-		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.group_message")
-	} else {
-		// don't include channel name if email notification contents type is set to generic
-		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-			template.Props["ChannelName"] = channel.DisplayName
-		} else {
-			template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.notification")
-		}
+	renderedPage, renderErr := es.srv.TemplatesContainer().RenderToString("messages_notification", data)
+	if renderErr != nil {
+		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	return template.Render()
+	if nErr := es.sendNotificationMail(user.Email, subject, renderedPage); nErr != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
+	}
 }

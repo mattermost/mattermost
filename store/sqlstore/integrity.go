@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	sq "github.com/Masterminds/squirrel"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type relationalCheckConfig struct {
@@ -66,7 +66,7 @@ func checkParentChildIntegrity(ss *SqlStore, config relationalCheckConfig) model
 	config.sortRecords = true
 	data.Records, result.Err = getOrphanedRecords(ss, config)
 	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+		mlog.Error("Error while getting orphaned records", mlog.Err(result.Err))
 		return result
 	}
 	data.ParentName = config.parentName

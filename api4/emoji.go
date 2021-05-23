@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	EMOJI_MAX_AUTOCOMPLETE_ITEMS = 100
+	EmojiMaxAutocompleteItems = 100
 )
 
 func (api *API) InitEmoji() {
@@ -52,17 +52,17 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -89,7 +89,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddMeta("emoji", emoji)
 
-	newEmoji, err := c.App.CreateEmoji(c.App.Session().UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -138,17 +138,17 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emoji", emoji)
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DELETE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -159,11 +159,11 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.Session().UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+	if c.AppContext.Session().UserId != emoji.CreatorId {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DELETE_OTHERS_EMOJIS) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
 					hasPermission = true
 					break
 				}
@@ -240,7 +240,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/"+imageType)
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Write(image)
 }
 
@@ -256,7 +256,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PER_PAGE_MAXIMUM)
+	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PerPageMaximum)
 	if err != nil {
 		c.Err = err
 		return
@@ -273,7 +273,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(name, true, EMOJI_MAX_AUTOCOMPLETE_ITEMS)
+	emojis, err := c.App.SearchEmoji(name, true, EmojiMaxAutocompleteItems)
 	if err != nil {
 		c.Err = err
 		return

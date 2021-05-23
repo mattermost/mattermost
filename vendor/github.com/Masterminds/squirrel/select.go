@@ -304,6 +304,16 @@ func (b SelectBuilder) RightJoin(join string, rest ...interface{}) SelectBuilder
 	return b.JoinClause("RIGHT JOIN "+join, rest...)
 }
 
+// InnerJoin adds a INNER JOIN clause to the query.
+func (b SelectBuilder) InnerJoin(join string, rest ...interface{}) SelectBuilder {
+	return b.JoinClause("INNER JOIN "+join, rest...)
+}
+
+// CrossJoin adds a CROSS JOIN clause to the query.
+func (b SelectBuilder) CrossJoin(join string, rest ...interface{}) SelectBuilder {
+	return b.JoinClause("CROSS JOIN "+join, rest...)
+}
+
 // Where adds an expression to the WHERE clause of the query.
 //
 // Expressions are ANDed together in the generated SQL.

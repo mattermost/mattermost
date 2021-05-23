@@ -14,6 +14,7 @@ const (
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
+	SYSTEM_LICENSE_RENEWAL_TOKEN                  = "LicenseRenewalToken"
 	SYSTEM_LAST_COMPLIANCE_TIME                   = "LastComplianceTime"
 	SYSTEM_ASYMMETRIC_SIGNING_KEY                 = "AsymmetricSigningKey"
 	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
@@ -31,6 +32,8 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M         = "warn_metric_number_of_posts_2M"
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
+	SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED    = "warn_metric_support_email_not_configured"
+	SYSTEM_FIRST_ADMIN_VISIT_MARKETPLACE          = "FirstAdminVisitMarketplace"
 	AWS_METERING_REPORT_INTERVAL                  = 1
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
 	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"
@@ -84,6 +87,22 @@ type ServerBusyState struct {
 	Busy       bool   `json:"busy"`
 	Expires    int64  `json:"expires"`
 	Expires_ts string `json:"expires_ts,omitempty"`
+}
+
+type SupportPacket struct {
+	ServerOS             string   `yaml:"server_os"`
+	ServerArchitecture   string   `yaml:"server_architecture"`
+	DatabaseType         string   `yaml:"database_type"`
+	DatabaseVersion      string   `yaml:"database_version"`
+	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+}
+
+type FileData struct {
+	Filename string
+	Body     []byte
 }
 
 func (sbs *ServerBusyState) ToJson() string {
@@ -152,13 +171,21 @@ var WarnMetricsTable = map[string]WarnMetric{
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},
+	SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED: {
+		Id:         SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED,
+		Limit:      -1,
+		IsBotOnly:  true,
+		IsRunOnce:  false,
+		SkipAction: true,
+	},
 }
 
 type WarnMetric struct {
-	Id        string
-	Limit     int64
-	IsBotOnly bool
-	IsRunOnce bool
+	Id         string
+	Limit      int64
+	IsBotOnly  bool
+	IsRunOnce  bool
+	SkipAction bool
 }
 
 type WarnMetricDisplayTexts struct {
@@ -183,9 +210,8 @@ func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
 	var o WarnMetricStatus
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
 		return nil
-	} else {
-		return &o
 	}
+	return &o
 }
 
 func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {

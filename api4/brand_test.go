@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestGetBrandImage(t *testing.T) {
@@ -33,7 +34,7 @@ func TestUploadBrandImage(t *testing.T) {
 	Client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp := Client.UploadBrandImage(data)
 	CheckForbiddenStatus(t, resp)
@@ -59,7 +60,7 @@ func TestDeleteBrandImage(t *testing.T) {
 	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp := th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)

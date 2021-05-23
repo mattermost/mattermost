@@ -17,7 +17,7 @@
 readonly PROGNAME=$(basename "$0")
 readonly PROGDIR=$(readlink -m "$(dirname "$0")")
 
-readonly EXCLUDE_PACKAGES="tools"
+readonly EXCLUDE_PACKAGES="internal/tools"
 readonly SEMVER_REGEX="v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?"
 
 usage() {

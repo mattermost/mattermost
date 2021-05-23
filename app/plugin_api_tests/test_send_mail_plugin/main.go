@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app/plugin_api_tests"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 )
 
 type MyPlugin struct {
@@ -25,7 +25,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	to := p.configuration.BasicUserEmail
 	subject := "testing plugin api sending email"
 	body := "this is a test."
@@ -35,10 +35,10 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	}
 
 	// Check if we received the email
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	if errMail := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	if errMail := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(to)
+		resultsMailbox, err = mail.GetMailBox(to)
 		return err
 	}); errMail != nil {
 		return nil, errMail.Error()
@@ -50,7 +50,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return nil, "Result doesn't contain recipient"
 	}
 
-	resultsEmail, err1 := mailservice.GetMessageFromMailbox(to, resultsMailbox[len(resultsMailbox)-1].ID)
+	resultsEmail, err1 := mail.GetMessageFromMailbox(to, resultsMailbox[len(resultsMailbox)-1].ID)
 	if err1 != nil {
 		return nil, err1.Error()
 	}

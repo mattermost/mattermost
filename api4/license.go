@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.ApiRoot.Handle("/trial-license", api.ApiSessionRequired(requestTrialLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
+	api.BaseRoutes.ApiRoot.Handle("/license/renewal", api.ApiSessionRequired(requestRenewalLink)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/license/client", api.ApiHandler(getClientLicense)).Methods("GET")
 }
 
@@ -36,7 +38,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var clientLicense map[string]string
 
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ABOUT) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_LICENSE_INFORMATION) {
 		clientLicense = c.App.Srv().ClientLicense()
 	} else {
 		clientLicense = c.App.Srv().GetSanitizedClientLicense()
@@ -50,8 +52,8 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ABOUT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
 
@@ -105,11 +107,6 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().JobSettings.RunJobs {
-		c.App.Srv().Jobs.Workers = c.App.Srv().Jobs.InitWorkers()
-		c.App.Srv().Jobs.StartWorkers()
-	}
-
 	auditRec.Success()
 	c.LogAudit("success")
 
@@ -121,8 +118,8 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ABOUT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
 
@@ -147,8 +144,8 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ABOUT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
 
@@ -178,7 +175,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentUser, err := c.App.GetUser(c.App.Session().UserId)
+	currentUser, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -209,4 +206,35 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	ReturnStatusOK(w)
+}
+
+func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("requestRenewalLink", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("requestRenewalLink", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	renewalLink, err := c.App.Srv().GenerateLicenseRenewalLink()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("success")
+
+	_, werr := w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
+	if werr != nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, werr.Error(), http.StatusForbidden)
+		return
+	}
 }

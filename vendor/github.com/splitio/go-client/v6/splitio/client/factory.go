@@ -15,24 +15,24 @@ import (
 	"github.com/splitio/go-client/v6/splitio/engine"
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator"
 	impressionlistener "github.com/splitio/go-client/v6/splitio/impressionListener"
-	config "github.com/splitio/go-split-commons/v2/conf"
-	"github.com/splitio/go-split-commons/v2/dtos"
-	"github.com/splitio/go-split-commons/v2/provisional"
-	"github.com/splitio/go-split-commons/v2/service"
-	"github.com/splitio/go-split-commons/v2/service/local"
-	"github.com/splitio/go-split-commons/v2/storage"
-	"github.com/splitio/go-split-commons/v2/storage/mutexmap"
-	"github.com/splitio/go-split-commons/v2/storage/mutexqueue"
-	"github.com/splitio/go-split-commons/v2/storage/redis"
-	"github.com/splitio/go-split-commons/v2/synchronizer"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/event"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/impression"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/impressionscount"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/metric"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/segment"
-	"github.com/splitio/go-split-commons/v2/synchronizer/worker/split"
-	"github.com/splitio/go-split-commons/v2/tasks"
-	"github.com/splitio/go-toolkit/v3/logging"
+	config "github.com/splitio/go-split-commons/v3/conf"
+	"github.com/splitio/go-split-commons/v3/dtos"
+	"github.com/splitio/go-split-commons/v3/provisional"
+	"github.com/splitio/go-split-commons/v3/service"
+	"github.com/splitio/go-split-commons/v3/service/local"
+	"github.com/splitio/go-split-commons/v3/storage"
+	"github.com/splitio/go-split-commons/v3/storage/mutexmap"
+	"github.com/splitio/go-split-commons/v3/storage/mutexqueue"
+	"github.com/splitio/go-split-commons/v3/storage/redis"
+	"github.com/splitio/go-split-commons/v3/synchronizer"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/event"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/impression"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/impressionscount"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/metric"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/segment"
+	"github.com/splitio/go-split-commons/v3/synchronizer/worker/split"
+	"github.com/splitio/go-split-commons/v3/tasks"
+	"github.com/splitio/go-toolkit/v4/logging"
 )
 
 const (
@@ -63,7 +63,7 @@ type SplitFactory struct {
 	cfg                   *conf.SplitSdkConfig
 	impressionListener    *impressionlistener.WrapperImpressionListener
 	logger                logging.LoggerInterface
-	syncManager           *synchronizer.Manager
+	syncManager           synchronizer.Manager
 	impressionManager     provisional.ImpressionManager
 }
 
@@ -372,17 +372,11 @@ func setupLocalhostFactory(
 	splitPeriod := cfg.TaskPeriods.SplitSync
 	readyChannel := make(chan int, 1)
 
+	splitAPI := &service.SplitAPI{SplitFetcher: local.NewFileSplitFetcher(cfg.SplitFile, logger)}
 	syncManager, err := synchronizer.NewSynchronizerManager(
-		synchronizer.NewLocal(
-			splitPeriod,
-			&service.SplitAPI{
-				SplitFetcher: local.NewFileSplitFetcher(cfg.SplitFile, logger),
-			},
-			splitStorage,
-			logger,
-		),
+		synchronizer.NewLocal(splitPeriod, splitAPI, splitStorage, logger),
 		logger,
-		config.AdvancedConfig{},
+		config.AdvancedConfig{StreamingEnabled: false},
 		nil,
 		splitStorage,
 		readyChannel,

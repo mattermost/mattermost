@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBusySet(t *testing.T) {
@@ -117,6 +118,10 @@ type ClusterMock struct {
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	sbs := model.ServerBusyStateFromJson(strings.NewReader(msg.Data))
 	c.Busy.ClusterEventChanged(sbs)
+}
+
+func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
+	return nil
 }
 
 func (c *ClusterMock) StartInterNodeCommunication() {}

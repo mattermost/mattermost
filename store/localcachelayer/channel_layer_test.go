@@ -6,17 +6,16 @@ package localcachelayer
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestChannelStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTestWithSqlStore(t, storetest.TestReactionStore)
 }
 
 func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
@@ -29,11 +28,11 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetMemberCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMemberCount", 1)
 		count, err = cachedStore.Channel().GetMemberCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMemberCount", 1)
 	})
@@ -115,11 +114,11 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetPinnedPostCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 1)
 		count, err = cachedStore.Channel().GetPinnedPostCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetPinnedPostCount", 1)
 	})
@@ -187,11 +186,11 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetGuestCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 1)
 		count, err = cachedStore.Channel().GetGuestCount("id", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, count, countResult)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetGuestCount", 1)
 	})
@@ -259,11 +258,11 @@ func TestChannelStoreChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		channel, err := cachedStore.Channel().Get(channelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, channel, &fakeChannel)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
 		channel, err = cachedStore.Channel().Get(channelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, channel, &fakeChannel)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
 	})

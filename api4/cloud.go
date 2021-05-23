@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -35,6 +36,9 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
@@ -46,15 +50,14 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription()
-
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -67,20 +70,50 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	subscription, appErr := c.App.Cloud().GetSubscription("")
+
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+
+	s := cloudUserLimit - count
+
+	stats, _ := json.Marshal(model.SubscriptionStats{
+		RemainingSeats: int(s),
+		IsPaidTier:     subscription.IsPaidTier,
+	})
+
+	w.Write([]byte(string(stats)))
+}
+
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
-	products, appErr := c.App.Cloud().GetCloudProducts()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	products, err := c.App.Cloud().GetCloudProducts(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -99,14 +132,14 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
-	customer, appErr := c.App.Cloud().GetCloudCustomer()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	customer, err := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -125,7 +158,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
@@ -142,7 +175,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomer(customerInfo)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomer(c.AppContext.Session().UserId, customerInfo)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -163,7 +196,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
@@ -180,7 +213,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(address)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(c.AppContext.Session().UserId, address)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -201,7 +234,7 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
@@ -209,9 +242,9 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createCustomerPayment", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	intent, appErr := c.App.Cloud().CreateCustomerPayment()
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	intent, err := c.App.Cloud().CreateCustomerPayment(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -232,7 +265,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
@@ -252,9 +285,9 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr := c.App.Cloud().ConfirmCustomerPayment(confirmRequest)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	err = c.App.Cloud().ConfirmCustomerPayment(c.AppContext.Session().UserId, confirmRequest)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -269,12 +302,12 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
-	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription()
+	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -300,18 +333,18 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
-	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
+	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.AppContext.Session().UserId, c.Params.InvoiceId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err := writeFileResponse(
+	writeFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),
@@ -322,10 +355,6 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		w,
 		r,
 	)
-	if err != nil {
-		c.Err = err
-		return
-	}
 }
 
 func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -358,6 +387,95 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = nErr
 			return
 		}
+	case model.EventTypeSendAdminWelcomeEmail:
+		user, appErr := c.App.GetUserByUsername(event.CloudWorkspaceOwner.UserName)
+		if appErr != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			return
+		}
+
+		teams, appErr := c.App.GetAllTeams()
+		if appErr != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+			return
+		}
+
+		team := teams[0]
+
+		subscription, err := c.App.Cloud().GetSubscription(user.Id)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if appErr := c.App.Srv().EmailService.SendCloudWelcomeEmail(user.Email, user.Locale, team.InviteId, subscription.GetWorkSpaceNameFromDNS(), subscription.DNS, *c.App.Config().ServiceSettings.SiteURL); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	case model.EventTypeTrialWillEnd:
+		endTimeStamp := event.SubscriptionTrialEndUnixTimeStamp
+		t := time.Unix(endTimeStamp, 0)
+		trialEndDate := fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
+
+		if appErr := c.App.SendCloudTrialEndWarningEmail(trialEndDate, *c.App.Config().ServiceSettings.SiteURL); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	case model.EventTypeTrialEnded:
+		if appErr := c.App.SendCloudTrialEndedEmail(); appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+	default:
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
+	sub, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if appErr = c.App.SendAdminUpgradeRequestEmail(user.Username, sub, model.InviteLimitation); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func sendAdminUpgradeRequestEmailOnJoin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	sub, err := c.App.Cloud().GetSubscription("")
+	if err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmailOnJoin", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if appErr := c.App.SendAdminUpgradeRequestEmail("", sub, model.JoinLimitation); appErr != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", appErr.Id, nil, appErr.Error(), appErr.StatusCode)
+		return
 	}
 
 	ReturnStatusOK(w)

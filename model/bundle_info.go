@@ -3,7 +3,9 @@
 
 package model
 
-import "github.com/mattermost/mattermost-server/v5/mlog"
+import (
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+)
 
 type BundleInfo struct {
 	Path string

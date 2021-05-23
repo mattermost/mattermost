@@ -4,51 +4,64 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"hash/maphash"
+	"html/template"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/featureflag"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/shared/filestore"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
@@ -61,13 +74,12 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
-	sqlStore           *sqlstore.SqlStore
-	Store              store.Store
-	WebSocketRouter    *WebSocketRouter
-	AppInitializedOnce sync.Once
+	sqlStore        *sqlstore.SqlStore
+	Store           store.Store
+	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -87,6 +99,10 @@ type Server struct {
 
 	localModeServer *http.Server
 
+	metricsServer *http.Server
+	metricsRouter *mux.Router
+	metricsLock   sync.Mutex
+
 	didFinishListen chan struct{}
 
 	goroutineCount      int32
@@ -104,8 +120,8 @@ type Server struct {
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
 
-	runjobs bool
-	Jobs    *jobs.JobServer
+	runEssentialJobs bool
+	Jobs             *jobs.JobServer
 
 	clusterLeaderListeners sync.Map
 
@@ -117,7 +133,7 @@ type Server struct {
 
 	newStore func() (store.Store, error)
 
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	htmlTemplateWatcher     *templates.Container
 	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
@@ -143,6 +159,10 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
+	serviceMux           sync.RWMutex
+	remoteClusterService remotecluster.RemoteClusterServiceIFace
+	sharedChannelService SharedChannelServiceIFace
+
 	phase2PermissionsMigrationComplete bool
 
 	HTTPService httpservice.HTTPService
@@ -156,6 +176,7 @@ type Server struct {
 	joinCluster       bool
 	startMetrics      bool
 	startSearchEngine bool
+	skipPostInit      bool
 
 	SearchEngine *searchengine.Broker
 
@@ -180,7 +201,7 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
@@ -210,7 +231,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-		configStore, err := config.NewStoreFromBacking(innerStore, nil)
+		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -219,11 +240,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -231,11 +252,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -270,7 +291,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
@@ -296,7 +317,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
+		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
@@ -310,7 +331,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub()
 
-	if err2 := utils.InitTranslations(s.Config().LocalizationSettings); err2 != nil {
+	if err2 := i18n.InitTranslations(*s.Config().LocalizationSettings.DefaultServerLocale, *s.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
@@ -319,6 +340,19 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				ver, err2 := s.sqlStore.GetDbVersion(true)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot get DB version")
+				}
+				intVer, err2 := strconv.Atoi(ver)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot parse DB version")
+				}
+				if intVer < sqlstore.MinimumRequiredPostgresVersion {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
+				}
+			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -352,9 +386,19 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if htmlTemplateWatcher, err2 := utils.NewHTMLTemplateWatcher("templates"); err2 != nil {
-		mlog.Error("Failed to parse server templates", mlog.Err(err2))
+	templatesDir, ok := templates.GetTemplateDirectory()
+	if !ok {
+		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
+		htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+		if err2 != nil {
+			return nil, errors.Wrap(err2, "cannot initialize server templates")
+		}
+		s.Go(func() {
+			for err2 := range errorsChan {
+				mlog.Warn("Server templates error", mlog.Err(err2))
+			}
+		})
 		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
@@ -384,6 +428,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
+	// This enterprise init should happen after the store is set
+	// but we don't want to move the s.initEnterprise() call because
+	// we had side-effects with that in the past and needs further
+	// investigation
+	if cloudInterface != nil {
+		s.Cloud = cloudInterface(s)
+	}
+
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	emailService, err := NewEmailService(s)
@@ -402,13 +454,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
-		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		if s.Jobs != nil {
+			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
 		s.setupFeatureFlags()
 	})
 
 	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
@@ -451,13 +504,14 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.WebSocketRouter = &WebSocketRouter{
-		server:   s,
 		handlers: make(map[string]webSocketHandler),
+		app:      fakeApp,
 	}
-	s.WebSocketRouter.app = fakeApp
 
-	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
-		mlog.Error("Mail server connection test is failed: " + appErr.Message)
+	mailConfig := s.MailServiceConfig()
+
+	if nErr := mail.TestConnection(mailConfig); nErr != nil {
+		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
@@ -465,11 +519,18 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	backend, appErr := s.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			if _, ok := nErr.(*filestore.S3FileBackendNoBucketError); ok {
+				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
+			}
+			if nErr != nil {
+				mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+			}
+		}
 	}
 
 	s.timezones = timezones.New()
@@ -484,7 +545,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -547,9 +610,21 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	if s.startMetrics && s.Metrics != nil {
-		s.Metrics.StartServer()
+	if s.startMetrics {
+		s.SetupMetricsServer()
 	}
+
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
+			return
+		}
+
+		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+			return
+		}
+
+		s.SetupMetricsServer()
+	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
 	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
@@ -558,10 +633,74 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
-		go fakeApp.UpdateProductNotices()
+		go func() {
+			if err := fakeApp.UpdateProductNotices(); err != nil {
+				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
+			}
+		}()
 	}
 
+	if s.skipPostInit {
+		return s, nil
+	}
+
+	c := request.EmptyContext()
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	}
+
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(fakeApp, c)
+			runCheckWarnMetricStatusJob(fakeApp, c)
+		})
+		s.runJobs()
+	}
+
+	s.doAppMigrations()
+
+	s.initPostMetadata()
+
+	s.initPlugins(c, *s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+		} else {
+			s.ShutDownPlugins()
+		}
+	})
+
 	return s, nil
+}
+
+func (s *Server) SetupMetricsServer() {
+	if !*s.Config().MetricsSettings.Enable {
+		return
+	}
+
+	s.StopMetricsServer()
+
+	if err := s.InitMetricsRouter(); err != nil {
+		mlog.Error("Error initiating metrics router.", mlog.Err(err))
+	}
+
+	if s.Metrics != nil {
+		s.Metrics.Register()
+	}
+
+	s.startMetricsServer()
 }
 
 func maxInt(a, b int) int {
@@ -571,44 +710,46 @@ func maxInt(a, b int) int {
 	return b
 }
 
-func (s *Server) RunJobs() {
-	if s.runjobs {
-		s.Go(func() {
-			runSecurityJob(s)
-		})
-		s.Go(func() {
-			firstRun, err := s.getFirstServerRunTimestamp()
-			if err != nil {
-				mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-				s.ensureFirstServerRunTimestamp()
-				firstRun = utils.MillisFromTime(time.Now())
-			}
-			s.telemetryService.RunTelemetryJob(firstRun)
-		})
-		s.Go(func() {
-			runSessionCleanupJob(s)
-		})
-		s.Go(func() {
-			runTokenCleanupJob(s)
-		})
-		s.Go(func() {
-			runCommandWebhookCleanupJob(s)
-		})
+func (s *Server) runJobs() {
+	s.Go(func() {
+		runSecurityJob(s)
+	})
+	s.Go(func() {
+		firstRun, err := s.getFirstServerRunTimestamp()
+		if err != nil {
+			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+			s.ensureFirstServerRunTimestamp()
+			firstRun = utils.MillisFromTime(time.Now())
+		}
+		s.telemetryService.RunTelemetryJob(firstRun)
+	})
+	s.Go(func() {
+		runSessionCleanupJob(s)
+	})
+	s.Go(func() {
+		runTokenCleanupJob(s)
+	})
+	s.Go(func() {
+		runCommandWebhookCleanupJob(s)
+	})
 
-		if complianceI := s.Compliance; complianceI != nil {
-			complianceI.StartComplianceDailyJob()
-		}
+	if complianceI := s.Compliance; complianceI != nil {
+		complianceI.StartComplianceDailyJob()
+	}
 
-		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-			s.Jobs.StartWorkers()
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Failed to start job server workers", mlog.Err(err))
 		}
-		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-			s.Jobs.StartSchedulers()
+	}
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if err := s.Jobs.StartSchedulers(); err != nil {
+			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
 		}
+	}
 
-		if *s.Config().ServiceSettings.EnableAWSMetering {
-			runReportToAWSMeterJob(s)
-		}
+	if *s.Config().ServiceSettings.EnableAWSMetering {
+		runReportToAWSMeterJob(s)
 	}
 }
 
@@ -617,6 +758,12 @@ func (s *Server) AppOptions() []AppOption {
 	return []AppOption{
 		ServerConnector(s),
 	}
+}
+
+// Return Database type (postgres or mysql) and current version of Mattermost
+func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
+	mattermostVersion, _ := s.Store.System().GetByName("Version")
+	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
 }
 
 // initLogging initializes and configures the logger. This may be called more than once.
@@ -655,15 +802,8 @@ func (s *Server) initLogging() error {
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
 		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
-		isJson := config.IsJsonMap(dsn)
 
-		// If this is a file based config we need the full path so it can be watched.
-		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
-			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
-			dsn = filepath.Join(filepath.Dir(configPath), dsn)
-		}
-
-		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
+		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
@@ -672,9 +812,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
-		if !isJson {
-			mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-		}
+		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
@@ -710,6 +848,71 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+	if license == nil {
+		mlog.Debug("No license provided; Remote Cluster services disabled")
+		return nil
+	}
+
+	// Remote Cluster service
+
+	// License check
+	if !*license.Features.RemoteClusterService {
+		mlog.Debug("License does not have Remote Cluster services enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return nil
+	}
+
+	var err error
+
+	rcs, err := remotecluster.NewRemoteClusterService(s)
+	if err != nil {
+		return err
+	}
+
+	if err = rcs.Start(); err != nil {
+		return err
+	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.serviceMux.Unlock()
+
+	// Shared Channels service
+
+	// License check
+	if !*license.Features.SharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Shared Channels Service disabled via config")
+		return nil
+	}
+
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
+	if err != nil {
+		return err
+	}
+
+	if err = scs.Start(); err != nil {
+		return err
+	}
+
+	s.serviceMux.Lock()
+	s.sharedChannelService = scs
+	s.serviceMux.Unlock()
+
+	return nil
+}
+
 func (s *Server) enableLoggingMetrics() {
 	if s.Metrics == nil {
 		return
@@ -722,11 +925,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -746,7 +949,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() error {
+func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -759,26 +962,36 @@ func (s *Server) Shutdown() error {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
+
+	s.serviceMux.RLock()
+	if s.sharedChannelService != nil {
+		if err = s.sharedChannelService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+		}
+	}
+	if s.remoteClusterService != nil {
+		if err = s.remoteClusterService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+		}
+	}
+	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
+	s.htmlTemplateWatcher.Close()
 
 	s.WaitForGoroutines()
-
-	if s.htmlTemplateWatcher != nil {
-		s.htmlTemplateWatcher.Close()
-	}
 
 	if s.advancedLogListenerCleanup != nil {
 		s.advancedLogListenerCleanup()
@@ -799,14 +1012,19 @@ func (s *Server) Shutdown() error {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	if s.Metrics != nil {
-		s.Metrics.StopServer()
-	}
+	s.StopMetricsServer()
 
 	// This must be done after the cluster is stopped.
-	if s.Jobs != nil && s.runjobs {
-		s.Jobs.StopWorkers()
-		s.Jobs.StopSchedulers()
+	if s.Jobs != nil {
+		// For simplicity we don't check if workers and schedulers are active
+		// before stopping them as both calls essentially become no-ops
+		// if nothing is running.
+		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
+			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+		}
+		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
+			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+		}
 	}
 
 	if s.Store != nil {
@@ -815,14 +1033,14 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Error("Error flushing logs", mlog.Err(err))
+		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
@@ -831,8 +1049,6 @@ func (s *Server) Shutdown() error {
 	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer timeoutCancel2()
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
 }
 
 func (s *Server) Restart() error {
@@ -936,7 +1152,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
@@ -1003,8 +1219,7 @@ func (s *Server) Start() error {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
-		return err
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -1020,7 +1235,7 @@ func (s *Server) Start() error {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
 			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
-			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
+			return fmt.Errorf(i18n.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
@@ -1049,7 +1264,7 @@ func (s *Server) Start() error {
 			}
 		}
 	} else if *s.Config().ServiceSettings.UseLetsEncrypt {
-		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
+		return errors.New(i18n.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	s.didFinishListen = make(chan struct{})
@@ -1134,6 +1349,10 @@ func (s *Server) Start() error {
 		}
 	}
 
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
 	return nil
 }
 
@@ -1143,12 +1362,16 @@ func (s *Server) startLocalModeServer() error {
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	if err := os.RemoveAll(socket); err != nil {
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
+	}
+
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
-		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 	if err = os.Chmod(socket, 0600); err != nil {
-		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 
 	go func() {
@@ -1216,10 +1439,10 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-func runLicenseExpirationCheckJob(a *App) {
-	doLicenseExpirationCheck(a)
+func (s *Server) runLicenseExpirationCheckJob() {
+	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
-		doLicenseExpirationCheck(a)
+		s.doLicenseExpirationCheck()
 	}, time.Hour*24)
 }
 
@@ -1241,10 +1464,18 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-func runCheckWarnMetricStatusJob(a *App) {
-	doCheckWarnMetricStatus(a)
+//nolint:golint,unused,deadcode
+func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
+	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
-		doCheckWarnMetricStatus(a)
+		doCheckWarnMetricStatus(a, c)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+}
+
+func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
+	doCheckAdminSupportStatus(a, c)
+	model.CreateRecurringTask("Check Admin Support Status Job", func() {
+		doCheckAdminSupportStatus(a, c)
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
@@ -1261,14 +1492,15 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
-func doCheckWarnMetricStatus(a *App) {
+//nolint:golint,unused,deadcode
+func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1311,17 +1543,17 @@ func doCheckWarnMetricStatus(a *App) {
 
 	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err0 != nil {
-		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
 	if err1 != nil {
-		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
 	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
-		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
 	// If an account is created with a different email domain
@@ -1330,7 +1562,7 @@ func doCheckWarnMetricStatus(a *App) {
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err3 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1364,7 +1596,7 @@ func doCheckWarnMetricStatus(a *App) {
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 			if err4 != nil {
-				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
@@ -1399,7 +1631,7 @@ func doCheckWarnMetricStatus(a *App) {
 			}
 		}
 
-		if nerr := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); nerr != nil {
+		if nerr := a.notifyAdminsOfWarnMetricStatus(c, warnMetric.Id, isE0Edition); nerr != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 
@@ -1411,9 +1643,119 @@ func doCheckWarnMetricStatus(a *App) {
 	}
 }
 
-func doLicenseExpirationCheck(a *App) {
-	a.Srv().LoadLicense()
-	license := a.Srv().License()
+func doCheckAdminSupportStatus(a *App, c *request.Context) {
+	isE0Edition := model.BuildEnterpriseReady == "true"
+
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		}
+	}
+}
+
+func (s *Server) StopMetricsServer() {
+	s.metricsLock.Lock()
+	defer s.metricsLock.Unlock()
+
+	if s.metricsServer != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
+		defer cancel()
+
+		s.metricsServer.Shutdown(ctx)
+		s.Log.Info("Metrics and profiling server is stopping")
+	}
+}
+
+func (s *Server) HandleMetrics(route string, h http.Handler) {
+	if s.metricsRouter != nil {
+		s.metricsRouter.Handle(route, h)
+	}
+}
+
+func (s *Server) InitMetricsRouter() error {
+	s.metricsRouter = mux.NewRouter()
+	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
+
+	metricsPage := `
+			<html>
+				<body>{{if .}}
+					<div><a href="/metrics">Metrics</a></div>{{end}}
+					<div><a href="/debug/pprof/">Profiling Root</a></div>
+					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+				</body>
+			</html>
+		`
+	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
+	if err != nil {
+		return errors.Wrap(err, "failed to create template")
+	}
+
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		metricsPageTmpl.Execute(w, s.Metrics != nil)
+	}
+
+	s.metricsRouter.HandleFunc("/", rootHandler)
+	s.metricsRouter.StrictSlash(true)
+
+	s.metricsRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	s.metricsRouter.HandleFunc("/debug/pprof/", pprof.Index)
+	s.metricsRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	s.metricsRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	s.metricsRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	s.metricsRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	s.metricsRouter.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
+
+	return nil
+}
+
+func (s *Server) startMetricsServer() {
+	var notify chan struct{}
+	s.metricsLock.Lock()
+	defer func() {
+		if notify != nil {
+			<-notify
+		}
+		s.metricsLock.Unlock()
+	}()
+
+	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
+	if err != nil {
+		mlog.Error(err.Error())
+		return
+	}
+
+	notify = make(chan struct{})
+	s.metricsServer = &http.Server{
+		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
+		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
+	}
+
+	go func() {
+		close(notify)
+		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
+			mlog.Critical(err.Error())
+		}
+	}()
+
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+}
+
+func (s *Server) doLicenseExpirationCheck() {
+	s.LoadLicense()
+	license := s.License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -1425,7 +1767,7 @@ func doLicenseExpirationCheck(a *App) {
 		return
 	}
 
-	users, err := a.Srv().Store.User().GetSystemAdminProfiles()
+	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -1440,15 +1782,15 @@ func doLicenseExpirationCheck(a *App) {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+		s.Go(func() {
+			if err := s.EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	a.Srv().RemoveLicense()
+	s.RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -1529,9 +1871,13 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
+func (s *Server) FileBackend() (filestore.FileBackend, *model.AppError) {
 	license := s.License()
-	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	if err != nil {
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return backend, nil
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1558,7 +1904,7 @@ func (s *Server) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
 	if jobsDataRetentionJobInterface != nil {
 		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}
@@ -1577,6 +1923,50 @@ func (s *Server) initJobs() {
 	if jobsMigrationsInterface != nil {
 		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
+	if jobsLdapSyncInterface != nil {
+		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
+	}
+	if jobsPluginsInterface != nil {
+		s.Jobs.Plugins = jobsPluginsInterface(s)
+	}
+	if jobsExpiryNotifyInterface != nil {
+		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
+	}
+	if productNoticesJobInterface != nil {
+		s.Jobs.ProductNotices = productNoticesJobInterface(s)
+	}
+	if jobsImportProcessInterface != nil {
+		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
+	}
+	if jobsImportDeleteInterface != nil {
+		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
+	}
+	if jobsExportDeleteInterface != nil {
+		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
+	}
+
+	if jobsExportProcessInterface != nil {
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
+	}
+
+	if jobsExportProcessInterface != nil {
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
+	}
+
+	if jobsActiveUsersInterface != nil {
+		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
+	}
+
+	if jobsCloudInterface != nil {
+		s.Jobs.Cloud = jobsCloudInterface(s)
+	}
+
+	if jobsResendInvitationEmailInterface != nil {
+		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
+	}
+
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
 }
 
 func (s *Server) TelemetryId() string {
@@ -1593,3 +1983,296 @@ func (s *Server) HttpService() httpservice.HTTPService {
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
 }
+
+func (s *Server) GetLogger() mlog.LoggerIFace {
+	return s.Log
+}
+
+// GetStore returns the server's Store. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetStore() store.Store {
+	return s.Store
+}
+
+// GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
+	return s.remoteClusterService
+}
+
+// GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
+	return s.sharedChannelService
+}
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
+}
+
+// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
+// For testing only.
+func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
+	s.remoteClusterService = remoteClusterService
+}
+
+// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// For testing only.
+func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
+	s.sharedChannelService = sharedChannelService
+}
+
+func (a *App) GenerateSupportPacket() []model.FileData {
+	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+	var warnings []string
+
+	// Creating an array of files that we are going to be adding to our zip file
+	fileDatas := []model.FileData{}
+
+	// A array of the functions that we can iterate through since they all have the same return value
+	functions := []func() (*model.FileData, string){
+		a.generateSupportPacketYaml,
+		a.createPluginsFile,
+		a.createSanitizedConfigFile,
+		a.getMattermostLog,
+		a.getNotificationsLog,
+	}
+
+	for _, fn := range functions {
+		fileData, warning := fn()
+
+		if fileData != nil {
+			fileDatas = append(fileDatas, *fileData)
+		} else {
+			warnings = append(warnings, warning)
+		}
+	}
+
+	// Adding a warning.txt file to the fileDatas if any warning
+	if len(warnings) > 0 {
+		finalWarning := strings.Join(warnings, "\n")
+		fileDatas = append(fileDatas, model.FileData{
+			Filename: "warning.txt",
+			Body:     []byte(finalWarning),
+		})
+	}
+
+	return fileDatas
+}
+
+func (a *App) getNotificationsLog() (*model.FileData, string) {
+	var warning string
+
+	// Getting notifications.log
+	if *a.Srv().Config().NotificationLogSettings.EnableFile {
+		// notifications.log
+		notificationsLog := utils.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
+
+		if notificationsLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "notifications.log",
+				Body:     notificationsLogFileData,
+			}
+			return &fileData, ""
+		}
+
+		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
+
+	} else {
+		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
+	}
+
+	return nil, warning
+}
+
+func (a *App) getMattermostLog() (*model.FileData, string) {
+	var warning string
+
+	// Getting mattermost.log
+	if *a.Srv().Config().LogSettings.EnableFile {
+		// mattermost.log
+		mattermostLog := utils.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
+
+		if mattermostLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "mattermost.log",
+				Body:     mattermostLogFileData,
+			}
+			return &fileData, ""
+		}
+		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
+
+	} else {
+		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
+	}
+
+	return nil, warning
+}
+
+func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
+	// Getting sanitized config, prettifying it, and then adding it to our file data array
+	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "sanitized_config.json",
+			Body:     sanitizedConfigPrettyJSON,
+		}
+		return &fileData, ""
+	}
+
+	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
+	return nil, warning
+}
+
+func (a *App) createPluginsFile() (*model.FileData, string) {
+	var warning string
+
+	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
+	pluginsResponse, appErr := a.GetPlugins()
+	if appErr == nil {
+		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+		if err == nil {
+			fileData := model.FileData{
+				Filename: "plugins.json",
+				Body:     pluginsPrettyJSON,
+			}
+
+			return &fileData, ""
+		}
+
+		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
+	} else {
+		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
+	}
+
+	return nil, warning
+}
+
+func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
+	// Here we are getting information regarding Elastic Search
+	var elasticServerVersion string
+	var elasticServerPlugins []string
+	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
+		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
+		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
+	}
+
+	// Here we are getting information regarding LDAP
+	ldapInterface := a.Srv().Ldap
+	var vendorName, vendorVersion string
+	if ldapInterface != nil {
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	}
+
+	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+
+	// Creating the struct for support packet yaml file
+	supportPacket := model.SupportPacket{
+		ServerOS:             runtime.GOOS,
+		ServerArchitecture:   runtime.GOARCH,
+		DatabaseType:         databaseType,
+		DatabaseVersion:      databaseVersion,
+		LdapVendorName:       vendorName,
+		LdapVendorVersion:    vendorVersion,
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+	}
+
+	// Marshal to a Yaml File
+	supportPacketYaml, err := yaml.Marshal(&supportPacket)
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "support_packet.yaml",
+			Body:     supportPacketYaml,
+		}
+		return &fileData, ""
+	}
+
+	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
+	return nil, warning
+}
+
+func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	if *s.Config().FileSettings.DriverName == "" {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		return img, false, nil
+	}
+
+	path := "users/" + user.Id + "/profile.png"
+
+	data, err := s.ReadFile(path)
+	if err != nil {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+
+		if user.LastPictureUpdate == 0 {
+			if _, err := s.writeFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, err
+			}
+		}
+		return img, true, nil
+	}
+
+	return data, false, nil
+}
+
+func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	var img []byte
+	var appErr *model.AppError
+
+	if user.IsBot {
+		img = model.BotDefaultImage
+		appErr = nil
+	} else {
+		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
+	}
+	if appErr != nil {
+		return nil, appErr
+	}
+	return img, nil
+}
+
+func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
+	backend, err := s.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
+}
+
+// func (s *Server) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+// 	backend, err := s.FileBackend()
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	result, nErr := backend.WriteFile(fr, path)
+// 	if nErr != nil {
+// 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+// 	}
+// 	return result, nil
+// }

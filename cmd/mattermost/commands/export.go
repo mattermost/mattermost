@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -73,6 +76,8 @@ func init() {
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
+	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
+	BulkExportCmd.Flags().Bool("archive", false, "Outputs a single archive file.")
 
 	ExportCmd.AddCommand(ScheduleExportCmd)
 	ExportCmd.AddCommand(CsvExportCmd)
@@ -201,25 +206,31 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Nothing to export. Please specify the --all-teams flag to export all teams.")
 	}
 
+	attachments, err := command.Flags().GetBool("attachments")
+	if err != nil {
+		return errors.Wrap(err, "attachments flag error")
+	}
+
+	archive, err := command.Flags().GetBool("archive")
+	if err != nil {
+		return errors.Wrap(err, "archive flag error")
+	}
+
 	fileWriter, err := os.Create(args[0])
 	if err != nil {
 		return err
 	}
 	defer fileWriter.Close()
 
-	// Path to directory of custom emoji
-	pathToEmojiDir := "data/emoji/"
-
-	customDataDir := a.Config().FileSettings.Directory
-	if customDataDir != nil && *customDataDir != "" {
-		pathToEmojiDir = *customDataDir + "emoji/"
+	outPath, err := filepath.Abs(args[0])
+	if err != nil {
+		return err
 	}
 
-	// Name of the directory to export custom emoji
-	dirNameToExportEmoji := "exported_emoji"
-
-	// args[0] points to the filename/filepath passed with export bulk command
-	if err := a.BulkExport(fileWriter, args[0], pathToEmojiDir, dirNameToExportEmoji); err != nil {
+	var opts app.BulkExportOpts
+	opts.IncludeAttachments = attachments
+	opts.CreateArchive = archive
+	if err := a.BulkExport(fileWriter, filepath.Dir(outPath), opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}

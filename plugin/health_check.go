@@ -7,15 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	HEALTH_CHECK_INTERVAL            = 30 * time.Second // How often the health check should run
-	HEALTH_CHECK_DEACTIVATION_WINDOW = 60 * time.Minute // How long we wait for num fails to occur before deactivating the plugin
-	HEALTH_CHECK_PING_FAIL_LIMIT     = 3                // How many times we call RPC ping in a row before it is considered a failure
-	HEALTH_CHECK_NUM_RESTARTS_LIMIT  = 3                // How many times we restart a plugin before we deactivate it
+	HealthCheckInterval           = 30 * time.Second // How often the health check should run
+	HealthCheckDeactivationWindow = 60 * time.Minute // How long we wait for num fails to occur before deactivating the plugin
+	HealthCheckPingFailLimit      = 3                // How many times we call RPC ping in a row before it is considered a failure
+	HealthCheckNumRestartsLimit   = 3                // How many times we restart a plugin before we deactivate it
 )
 
 type PluginHealthCheckJob struct {
@@ -31,7 +31,7 @@ func (job *PluginHealthCheckJob) run() {
 	mlog.Debug("Plugin health check job starting.")
 	defer close(job.cancelled)
 
-	ticker := time.NewTicker(HEALTH_CHECK_INTERVAL)
+	ticker := time.NewTicker(HealthCheckInterval)
 	defer ticker.Stop()
 
 	for {
@@ -56,7 +56,7 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 		return
 	}
 
-	mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
+	mlog.Warn("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
 	timestamps := job.getStoredTimestamps(id)
 	timestamps = append(timestamps, time.Now())
 
@@ -103,21 +103,21 @@ func (job *PluginHealthCheckJob) Cancel() {
 	<-job.cancelled
 }
 
-// shouldDeactivatePlugin determines if a plugin needs to be deactivated after the plugin has failed (HEALTH_CHECK_NUM_RESTARTS_LIMIT) times,
-// within the configured time window (HEALTH_CHECK_DEACTIVATION_WINDOW).
+// shouldDeactivatePlugin determines if a plugin needs to be deactivated after the plugin has failed (HealthCheckNumRestartsLimit) times,
+// within the configured time window (HealthCheckDeactivationWindow).
 func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
-	if len(failedTimestamps) < HEALTH_CHECK_NUM_RESTARTS_LIMIT {
+	if len(failedTimestamps) < HealthCheckNumRestartsLimit {
 		return false
 	}
 
-	index := len(failedTimestamps) - HEALTH_CHECK_NUM_RESTARTS_LIMIT
-	return time.Since(failedTimestamps[index]) <= HEALTH_CHECK_DEACTIVATION_WINDOW
+	index := len(failedTimestamps) - HealthCheckNumRestartsLimit
+	return time.Since(failedTimestamps[index]) <= HealthCheckDeactivationWindow
 }
 
-// removeStaleTimestamps only keeps the last HEALTH_CHECK_NUM_RESTARTS_LIMIT items in timestamps.
+// removeStaleTimestamps only keeps the last HealthCheckNumRestartsLimit items in timestamps.
 func removeStaleTimestamps(timestamps []time.Time) []time.Time {
-	if len(timestamps) > HEALTH_CHECK_NUM_RESTARTS_LIMIT {
-		timestamps = timestamps[len(timestamps)-HEALTH_CHECK_NUM_RESTARTS_LIMIT:]
+	if len(timestamps) > HealthCheckNumRestartsLimit {
+		timestamps = timestamps[len(timestamps)-HealthCheckNumRestartsLimit:]
 	}
 
 	return timestamps

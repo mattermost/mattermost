@@ -20,57 +20,58 @@ type permissionTransformation struct {
 type permissionsMap []permissionTransformation
 
 const (
-	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
-	PERMISSION_MANAGE_TEAM                       = "manage_team"
-	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
-	PERMISSION_MANAGE_OTHERS_EMOJIS              = "manage_others_emojis"
-	PERMISSION_CREATE_EMOJIS                     = "create_emojis"
-	PERMISSION_DELETE_EMOJIS                     = "delete_emojis"
-	PERMISSION_DELETE_OTHERS_EMOJIS              = "delete_others_emojis"
-	PERMISSION_MANAGE_WEBHOOKS                   = "manage_webhooks"
-	PERMISSION_MANAGE_OTHERS_WEBHOOKS            = "manage_others_webhooks"
-	PERMISSION_MANAGE_INCOMING_WEBHOOKS          = "manage_incoming_webhooks"
-	PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS   = "manage_others_incoming_webhooks"
-	PERMISSION_MANAGE_OUTGOING_WEBHOOKS          = "manage_outgoing_webhooks"
-	PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS   = "manage_others_outgoing_webhooks"
-	PERMISSION_LIST_PUBLIC_TEAMS                 = "list_public_teams"
-	PERMISSION_LIST_PRIVATE_TEAMS                = "list_private_teams"
-	PERMISSION_JOIN_PUBLIC_TEAMS                 = "join_public_teams"
-	PERMISSION_JOIN_PRIVATE_TEAMS                = "join_private_teams"
-	PERMISSION_PERMANENT_DELETE_USER             = "permanent_delete_user"
-	PERMISSION_CREATE_BOT                        = "create_bot"
-	PERMISSION_READ_BOTS                         = "read_bots"
-	PERMISSION_READ_OTHERS_BOTS                  = "read_others_bots"
-	PERMISSION_MANAGE_BOTS                       = "manage_bots"
-	PERMISSION_MANAGE_OTHERS_BOTS                = "manage_others_bots"
-	PERMISSION_DELETE_PUBLIC_CHANNEL             = "delete_public_channel"
-	PERMISSION_DELETE_PRIVATE_CHANNEL            = "delete_private_channel"
-	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES  = "manage_public_channel_properties"
-	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES = "manage_private_channel_properties"
-	PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE = "convert_public_channel_to_private"
-	PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC = "convert_private_channel_to_public"
-	PERMISSION_VIEW_MEMBERS                      = "view_members"
-	PERMISSION_INVITE_USER                       = "invite_user"
-	PERMISSION_INVITE_GUEST                      = "invite_guest"
-	PERMISSION_PROMOTE_GUEST                     = "promote_guest"
-	PERMISSION_DEMOTE_TO_GUEST                   = "demote_to_guest"
-	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
-	PERMISSION_CREATE_POST                       = "create_post"
-	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
-	PERMISSION_USE_GROUP_MENTIONS                = "use_group_mentions"
-	PERMISSION_ADD_REACTION                      = "add_reaction"
-	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
-	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
-	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
-	PERMISSION_READ_JOBS                         = "read_jobs"
-	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
-	PERMISSION_READ_OTHER_USERS_TEAMS            = "read_other_users_teams"
-	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
-	PERMISSION_READ_PUBLIC_CHANNEL_GROUPS        = "read_public_channel_groups"
-	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS       = "read_private_channel_groups"
-	PERMISSION_EDIT_BRAND                        = "edit_brand"
-	PERMISSION_MANAGE_SHARED_CHANNELS            = "manage_shared_channels"
-	PERMISSION_MANAGE_REMOTE_CLUSTERS            = "manage_remote_clusters"
+	PermissionManageSystem                   = "manage_system"
+	PermissionManageTeam                     = "manage_team"
+	PermissionManageEmojis                   = "manage_emojis"
+	PermissionManageOthersEmojis             = "manage_others_emojis"
+	PermissionCreateEmojis                   = "create_emojis"
+	PermissionDeleteEmojis                   = "delete_emojis"
+	PermissionDeleteOthersEmojis             = "delete_others_emojis"
+	PermissionManageWebhooks                 = "manage_webhooks"
+	PermissionManageOthersWebhooks           = "manage_others_webhooks"
+	PermissionManageIncomingWebhooks         = "manage_incoming_webhooks"
+	PermissionManageOthersIncomingWebhooks   = "manage_others_incoming_webhooks"
+	PermissionManageOutgoingWebhooks         = "manage_outgoing_webhooks"
+	PermissionManageOthersOutgoingWebhooks   = "manage_others_outgoing_webhooks"
+	PermissionListPublicTeams                = "list_public_teams"
+	PermissionListPrivateTeams               = "list_private_teams"
+	PermissionJoinPublicTeams                = "join_public_teams"
+	PermissionJoinPrivateTeams               = "join_private_teams"
+	PermissionPermanentDeleteUser            = "permanent_delete_user"
+	PermissionCreateBot                      = "create_bot"
+	PermissionReadBots                       = "read_bots"
+	PermissionReadOthersBots                 = "read_others_bots"
+	PermissionManageBots                     = "manage_bots"
+	PermissionManageOthersBots               = "manage_others_bots"
+	PermissionDeletePublicChannel            = "delete_public_channel"
+	PermissionDeletePrivateChannel           = "delete_private_channel"
+	PermissionManagePublicChannelProperties  = "manage_public_channel_properties"
+	PermissionManagePrivateChannelProperties = "manage_private_channel_properties"
+	PermissionConvertPublicChannelToPrivate  = "convert_public_channel_to_private"
+	PermissionConvertPrivateChannelToPublic  = "convert_private_channel_to_public"
+	PermissionViewMembers                    = "view_members"
+	PermissionInviteUser                     = "invite_user"
+	PermissionInviteGuest                    = "invite_guest"
+	PermissionPromoteGuest                   = "promote_guest"
+	PermissionDemoteToGuest                  = "demote_to_guest"
+	PermissionUseChannelMentions             = "use_channel_mentions"
+	PermissionCreatePost                     = "create_post"
+	PermissionCreatePost_PUBLIC              = "create_post_public"
+	PermissionUseGroupMentions               = "use_group_mentions"
+	PermissionAddReaction                    = "add_reaction"
+	PermissionRemoveReaction                 = "remove_reaction"
+	PermissionManagePublicChannelMembers     = "manage_public_channel_members"
+	PermissionManagePrivateChannelMembers    = "manage_private_channel_members"
+	PermissionReadJobs                       = "read_jobs"
+	PermissionManageJobs                     = "manage_jobs"
+	PermissionReadOtherUsersTeams            = "read_other_users_teams"
+	PermissionEditOtherUsers                 = "edit_other_users"
+	PermissionReadPublicChannelGroups        = "read_public_channel_groups"
+	PermissionReadPrivateChannelGroups       = "read_private_channel_groups"
+	PermissionEditBrand                      = "edit_brand"
+	PermissionManageSharedChannels           = "manage_shared_channels"
+	PermissionManageSecureConnections        = "manage_secure_connections"
+	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -156,8 +157,8 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
-	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
+func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
+	if _, err := s.Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -171,7 +172,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := a.Srv().Store.Role().Save(role); err != nil {
+		if _, err := s.Store.Role().Save(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -182,7 +183,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 		}
 	}
 
-	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := s.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
 		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -191,14 +192,14 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 func (a *App) getEmojisPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionExists(PERMISSION_MANAGE_EMOJIS),
-			Add:    []string{PERMISSION_CREATE_EMOJIS, PERMISSION_DELETE_EMOJIS},
-			Remove: []string{PERMISSION_MANAGE_EMOJIS},
+			On:     permissionExists(PermissionManageEmojis),
+			Add:    []string{PermissionCreateEmojis, PermissionDeleteEmojis},
+			Remove: []string{PermissionManageEmojis},
 		},
 		permissionTransformation{
-			On:     permissionExists(PERMISSION_MANAGE_OTHERS_EMOJIS),
-			Add:    []string{PERMISSION_DELETE_OTHERS_EMOJIS},
-			Remove: []string{PERMISSION_MANAGE_OTHERS_EMOJIS},
+			On:     permissionExists(PermissionManageOthersEmojis),
+			Add:    []string{PermissionDeleteOthersEmojis},
+			Remove: []string{PermissionManageOthersEmojis},
 		},
 	}, nil
 }
@@ -206,14 +207,14 @@ func (a *App) getEmojisPermissionsSplitMigration() (permissionsMap, error) {
 func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionExists(PERMISSION_MANAGE_WEBHOOKS),
-			Add:    []string{PERMISSION_MANAGE_INCOMING_WEBHOOKS, PERMISSION_MANAGE_OUTGOING_WEBHOOKS},
-			Remove: []string{PERMISSION_MANAGE_WEBHOOKS},
+			On:     permissionExists(PermissionManageWebhooks),
+			Add:    []string{PermissionManageIncomingWebhooks, PermissionManageOutgoingWebhooks},
+			Remove: []string{PermissionManageWebhooks},
 		},
 		permissionTransformation{
-			On:     permissionExists(PERMISSION_MANAGE_OTHERS_WEBHOOKS),
-			Add:    []string{PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS, PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS},
-			Remove: []string{PERMISSION_MANAGE_OTHERS_WEBHOOKS},
+			On:     permissionExists(PermissionManageOthersWebhooks),
+			Add:    []string{PermissionManageOthersIncomingWebhooks, PermissionManageOthersOutgoingWebhooks},
+			Remove: []string{PermissionManageOthersWebhooks},
 		},
 	}, nil
 }
@@ -222,12 +223,12 @@ func (a *App) getListJoinPublicPrivateTeamsPermissionsMigration() (permissionsMa
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add:    []string{PERMISSION_LIST_PRIVATE_TEAMS, PERMISSION_JOIN_PRIVATE_TEAMS},
+			Add:    []string{PermissionListPrivateTeams, PermissionJoinPrivateTeams},
 			Remove: []string{},
 		},
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_USER_ROLE_ID),
-			Add:    []string{PERMISSION_LIST_PUBLIC_TEAMS, PERMISSION_JOIN_PUBLIC_TEAMS},
+			Add:    []string{PermissionListPublicTeams, PermissionJoinPublicTeams},
 			Remove: []string{},
 		},
 	}, nil
@@ -236,8 +237,8 @@ func (a *App) getListJoinPublicPrivateTeamsPermissionsMigration() (permissionsMa
 func (a *App) removePermanentDeleteUserMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionExists(PERMISSION_PERMANENT_DELETE_USER),
-			Remove: []string{PERMISSION_PERMANENT_DELETE_USER},
+			On:     permissionExists(PermissionPermanentDeleteUser),
+			Remove: []string{PermissionPermanentDeleteUser},
 		},
 	}, nil
 }
@@ -246,7 +247,7 @@ func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add:    []string{PERMISSION_CREATE_BOT, PERMISSION_READ_BOTS, PERMISSION_READ_OTHERS_BOTS, PERMISSION_MANAGE_BOTS, PERMISSION_MANAGE_OTHERS_BOTS},
+			Add:    []string{PermissionCreateBot, PermissionReadBots, PermissionReadOthersBots, PermissionManageBots, PermissionManageOthersBots},
 			Remove: []string{},
 		},
 	}, nil
@@ -255,20 +256,20 @@ func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES))),
-			Add: []string{PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PermissionManagePrivateChannelProperties))),
+			Add: []string{PermissionManagePrivateChannelProperties},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_DELETE_PRIVATE_CHANNEL))),
-			Add: []string{PERMISSION_DELETE_PRIVATE_CHANNEL},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PermissionDeletePrivateChannel))),
+			Add: []string{PermissionDeletePrivateChannel},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES))),
-			Add: []string{PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PermissionManagePublicChannelProperties))),
+			Add: []string{PermissionManagePublicChannelProperties},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL))),
-			Add: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PermissionDeletePublicChannel))),
+			Add: []string{PermissionDeletePublicChannel},
 		},
 	}, nil
 }
@@ -276,20 +277,20 @@ func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 func (a *App) removeChannelManageDeleteFromTeamUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)),
-			Remove: []string{PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PermissionManagePrivateChannelProperties)),
+			Remove: []string{PermissionManagePrivateChannelProperties},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_DELETE_PRIVATE_CHANNEL)),
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PermissionDeletePrivateChannel)),
 			Remove: []string{model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)),
-			Remove: []string{PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PermissionManagePublicChannelProperties)),
+			Remove: []string{PermissionManagePublicChannelProperties},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL)),
-			Remove: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PermissionDeletePublicChannel)),
+			Remove: []string{PermissionDeletePublicChannel},
 		},
 	}, nil
 }
@@ -298,11 +299,11 @@ func (a *App) getViewMembersPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_USER_ROLE_ID),
-			Add: []string{PERMISSION_VIEW_MEMBERS},
+			Add: []string{PermissionViewMembers},
 		},
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_VIEW_MEMBERS},
+			Add: []string{PermissionViewMembers},
 		},
 	}, nil
 }
@@ -311,7 +312,7 @@ func (a *App) getAddManageGuestsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST, PERMISSION_INVITE_GUEST},
+			Add: []string{PermissionPromoteGuest, PermissionDemoteToGuest, PermissionInviteGuest},
 		},
 	}, nil
 }
@@ -327,11 +328,11 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	}
 
 	moderatedPermissionsMinusCreatePost := []string{
-		PERMISSION_ADD_REACTION,
-		PERMISSION_REMOVE_REACTION,
-		PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS,
-		PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS,
-		PERMISSION_USE_CHANNEL_MENTIONS,
+		PermissionAddReaction,
+		PermissionRemoveReaction,
+		PermissionManagePublicChannelMembers,
+		PermissionManagePrivateChannelMembers,
+		PermissionUseChannelMentions,
 	}
 
 	teamAndChannelAdminConditionalTransformations := func(teamAdminID, channelAdminID, channelUserID, channelGuestID string) []permissionTransformation {
@@ -373,14 +374,14 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 		// ensure all team scheme channel admins have create_post because it's not exposed via the UI
 		trans := permissionTransformation{
 			On:  isRole(ts.DefaultChannelAdminRole),
-			Add: []string{PERMISSION_CREATE_POST},
+			Add: []string{PermissionCreatePost},
 		}
 		transformations = append(transformations, trans)
 
 		// ensure all team scheme team admins have create_post because it's not exposed via the UI
 		trans = permissionTransformation{
 			On:  isRole(ts.DefaultTeamAdminRole),
-			Add: []string{PERMISSION_CREATE_POST},
+			Add: []string{PermissionCreatePost},
 		}
 		transformations = append(transformations, trans)
 
@@ -396,13 +397,13 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	// ensure team admins have create_post
 	transformations = append(transformations, permissionTransformation{
 		On:  isRole(model.TEAM_ADMIN_ROLE_ID),
-		Add: []string{PERMISSION_CREATE_POST},
+		Add: []string{PermissionCreatePost},
 	})
 
 	// ensure channel admins have create_post
 	transformations = append(transformations, permissionTransformation{
 		On:  isRole(model.CHANNEL_ADMIN_ROLE_ID),
-		Add: []string{PERMISSION_CREATE_POST},
+		Add: []string{PermissionCreatePost},
 	})
 
 	// conditionally add all other moderated permissions to team and channel admins
@@ -416,13 +417,13 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	// ensure system admin has all of the moderated permissions
 	transformations = append(transformations, permissionTransformation{
 		On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-		Add: append(moderatedPermissionsMinusCreatePost, PERMISSION_CREATE_POST),
+		Add: append(moderatedPermissionsMinusCreatePost, PermissionCreatePost),
 	})
 
 	// add the new use_channel_mentions permission to everyone who has create_post
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
-		Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+		On:  permissionOr(permissionExists(PermissionCreatePost), permissionExists(PermissionCreatePost_PUBLIC)),
+		Add: []string{PermissionUseChannelMentions},
 	})
 
 	return transformations, nil
@@ -434,9 +435,9 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 			On: permissionAnd(
 				isNotRole(model.CHANNEL_GUEST_ROLE_ID),
 				isNotSchemeRole("Channel Guest Role for Scheme"),
-				permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+				permissionOr(permissionExists(PermissionCreatePost), permissionExists(PermissionCreatePost_PUBLIC)),
 			),
-			Add: []string{PERMISSION_USE_GROUP_MENTIONS},
+			Add: []string{PermissionUseGroupMentions},
 		},
 	}, nil
 }
@@ -458,32 +459,32 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 
 	// add read_jobs to all roles with manage_jobs
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(PERMISSION_MANAGE_JOBS),
-		Add: []string{PERMISSION_READ_JOBS},
+		On:  permissionExists(PermissionManageJobs),
+		Add: []string{PermissionReadJobs},
 	})
 
 	// add read_other_users_teams to all roles with edit_other_users
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(PERMISSION_EDIT_OTHER_USERS),
-		Add: []string{PERMISSION_READ_OTHER_USERS_TEAMS},
+		On:  permissionExists(PermissionEditOtherUsers),
+		Add: []string{PermissionReadOtherUsersTeams},
 	})
 
 	// add read_public_channel_groups to all roles with manage_public_channel_members
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS),
-		Add: []string{PERMISSION_READ_PUBLIC_CHANNEL_GROUPS},
+		On:  permissionExists(PermissionManagePublicChannelMembers),
+		Add: []string{PermissionReadPublicChannelGroups},
 	})
 
 	// add read_private_channel_groups to all roles with manage_private_channel_members
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS),
-		Add: []string{PERMISSION_READ_PRIVATE_CHANNEL_GROUPS},
+		On:  permissionExists(PermissionManagePrivateChannelMembers),
+		Add: []string{PermissionReadPrivateChannelGroups},
 	})
 
 	// add edit_brand to all roles with manage_system
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(PERMISSION_MANAGE_SYSTEM),
-		Add: []string{PERMISSION_EDIT_BRAND},
+		On:  permissionExists(PermissionManageSystem),
+		Add: []string{PermissionEditBrand},
 	})
 
 	return transformations, nil
@@ -492,8 +493,8 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 func (a *App) getAddConvertChannelPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionExists(PERMISSION_MANAGE_TEAM),
-			Add: []string{PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE, PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC},
+			On:  permissionExists(PermissionManageTeam),
+			Add: []string{PermissionConvertPublicChannelToPrivate, PermissionConvertPrivateChannelToPublic},
 		},
 	}, nil
 }
@@ -511,7 +512,7 @@ func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, 
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_MANAGE_SHARED_CHANNELS},
+			Add: []string{PermissionManageSharedChannels},
 		},
 	}, nil
 }
@@ -525,17 +526,402 @@ func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
-func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
+func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// add the new permission to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{PERMISSION_MANAGE_REMOTE_CLUSTERS},
+			Add: []string{PermissionManageSecureConnections},
+		})
+
+	// remote the decprecated permission from system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Remove: []string{PermissionManageRemoteClusters},
+		})
+
+	return transformations, nil
+}
+
+func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_DATA_RETENTION_JOB.Id}
+	permissionsToAddComplianceWrite := []string{model.PERMISSION_MANAGE_JOBS.Id}
+
+	// add the new permissions to system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+		})
+
+	// add Download Compliance Export Result and Read Jobs to all roles with sysconsole_read_compliance
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add: permissionsToAddComplianceRead,
+	})
+
+	// add manage_jobs to all roles with sysconsole_write_compliance
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add: permissionsToAddComplianceWrite,
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsExperimentalRead := []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE.Id, model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES.Id, model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS.Id}
+	permissionsExperimentalWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE.Id, model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES.Id, model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS.Id}
+
+	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
+		Add: permissionsExperimentalWrite,
+	})
+
+	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE.Id),
+		Add: []string{model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB.Id, model.PERMISSION_PURGE_BLEVE_INDEXES.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddIntegrationsSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsIntegrationsRead := []string{model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_BOT_ACCOUNTS.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_GIF.Id, model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS.Id}
+	permissionsIntegrationsWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_INTEGRATION_MANAGEMENT.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_BOT_ACCOUNTS.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_GIF.Id, model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS.Id}
+
+	// Give the new subsection READ permissions to any user with READ_INTEGRATIONS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id),
+		Add: permissionsIntegrationsWrite,
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddSiteSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsSiteRead := []string{model.PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_READ_SITE_NOTICES.Id}
+	permissionsSiteWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS.Id, model.PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES.Id}
+
+	// Give the new subsection READ permissions to any user with READ_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_SITE.Id),
+		Add: permissionsSiteRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_SITE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE.Id),
+		Add: permissionsSiteWrite,
+	})
+
+	// Give the ancillary permissions EDIT_BRAND to anyone with WRITE_SITE_CUSTOMIZATION
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION.Id),
+		Add: []string{model.PERMISSION_EDIT_BRAND.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsComplianceRead := []string{model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+	permissionsComplianceWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING.Id, model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id}
+
+	// Give the new subsection READ permissions to any user with READ_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add: permissionsComplianceRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_COMPLIANCE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add: permissionsComplianceWrite,
+	})
+
+	// Ancilary permissions
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_CREATE_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY.Id),
+		Add: []string{model.PERMISSION_READ_DATA_RETENTION_JOB.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT.Id),
+		Add: []string{model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB.Id, model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE.Id),
+		Add: []string{model.PERMISSION_READ_AUDITS.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsEnvironmentRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER.Id,
+	}
+	permissionsEnvironmentWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_ENVIRONMENT
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id),
+		Add: permissionsEnvironmentWrite,
+	})
+
+	// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_READ_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_READ_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
 		},
-	}, nil
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_WEB_SERVER
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER.Id),
+		Add: []string{
+			model.PERMISSION_TEST_SITE_URL.Id,
+			model.PERMISSION_RELOAD_CONFIG.Id,
+			model.PERMISSION_INVALIDATE_CACHES.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_DATABASE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE.Id),
+		Add: []string{model.PERMISSION_RECYCLE_DATABASE_CONNECTIONS.Id},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_ELASTICSEARCH
+	transformations = append(transformations, permissionTransformation{
+		On: permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH.Id),
+		Add: []string{
+			model.PERMISSION_TEST_ELASTICSEARCH.Id,
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_INDEXING_JOB.Id,
+			model.PERMISSION_CREATE_ELASTICSEARCH_POST_AGGREGATION_JOB.Id,
+			model.PERMISSION_PURGE_ELASTICSEARCH_INDEXES.Id,
+		},
+	})
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_FILE_STORAGE
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE.Id),
+		Add: []string{model.PERMISSION_TEST_S3.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddAboutSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsAboutRead := []string{model.PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id}
+	permissionsAboutWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id}
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT.Id),
+		Add: permissionsAboutRead,
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id),
+		Add: permissionsAboutWrite,
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE.Id),
+		Add: []string{model.PERMISSION_READ_LICENSE_INFORMATION.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE.Id),
+		Add: []string{model.PERMISSION_MANAGE_LICENSE_INFORMATION.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddReportingSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsReportingRead := []string{
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id,
+	}
+	permissionsReportingWrite := []string{
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS.Id,
+		model.PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS.Id,
+	}
+
+	// Give the new subsection READ permissions to any user with READ_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING.Id),
+		Add: permissionsReportingRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_REPORTING
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_REPORTING.Id),
+		Add: permissionsReportingWrite,
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_ANALYTICS to anyone with PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS or PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id), permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS.Id)),
+		Add: []string{model.PERMISSION_GET_ANALYTICS.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_GET_LOGS to anyone with PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS.Id),
+		Add: []string{model.PERMISSION_GET_LOGS.Id},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsAuthenticationRead := []string{model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID.Id, model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS.Id}
+	permissionsAuthenticationWrite := []string{model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID.Id, model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS.Id}
+
+	// Give the new subsection READ permissions to any user with READ_AUTHENTICATION
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with WRITE_AUTHENTICATION
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id),
+		Add: permissionsAuthenticationWrite,
+	})
+
+	// Give the ancillary permissions for LDAP to anyone with WRITE_AUTHENTICATION_LDAP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_LDAP.Id),
+		Add: []string{model.PERMISSION_CREATE_LDAP_SYNC_JOB.Id, model.PERMISSION_TEST_LDAP.Id, model.PERMISSION_ADD_LDAP_PUBLIC_CERT.Id, model.PERMISSION_ADD_LDAP_PRIVATE_CERT.Id, model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT.Id, model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_TEST_LDAP to anyone with READ_AUTHENTICATION_LDAP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_LDAP.Id),
+		Add: []string{model.PERMISSION_READ_LDAP_SYNC_JOB.Id},
+	})
+
+	// Give the ancillary permissions PERMISSION_INVALIDATE_EMAIL_INVITE to anyone with WRITE_AUTHENTICATION_EMAIL
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL.Id),
+		Add: []string{model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id},
+	})
+
+	// Give the ancillary permissions for SAML to anyone with WRITE_AUTHENTICATION_SAML
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML.Id),
+		Add: []string{model.PERMISSION_GET_SAML_METADATA_FROM_IDP.Id, model.PERMISSION_ADD_SAML_PUBLIC_CERT.Id, model.PERMISSION_ADD_SAML_PRIVATE_CERT.Id, model.PERMISSION_ADD_SAML_IDP_CERT.Id, model.PERMISSION_REMOVE_SAML_PUBLIC_CERT.Id, model.PERMISSION_REMOVE_SAML_PRIVATE_CERT.Id, model.PERMISSION_REMOVE_SAML_IDP_CERT.Id, model.PERMISSION_GET_SAML_CERT_STATUS.Id},
+	})
+
+	return transformations, nil
+}
+
+// This migration fixes https://github.com/mattermost/mattermost-server/issues/17642 where this particular ancillary permission was forgotten during the initial migrations
+func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_SMTP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id),
+		Add: []string{model.PERMISSION_TEST_EMAIL.Id},
+	})
+
+	return transformations, nil
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
+	return a.Srv().doPermissionsMigrations()
+}
+
+func (s *Server) doPermissionsMigrations() error {
+	a := New(ServerConnector(s))
 	PermissionsMigrations := []struct {
 		Key       string
 		Migration func() (permissionsMap, error)
@@ -554,12 +940,22 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Migration: a.getAddConvertChannelPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Migration: a.getAddManageSecureConnectionsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Migration: a.getAddDownloadComplianceExportResult},
+		{Key: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Migration: a.getAddExperimentalSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_AUTHENTICATION_SUBSECTION_PERMISSIONS, Migration: a.getAddAuthenticationSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Migration: a.getAddIntegrationsSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS, Migration: a.getAddSiteSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS, Migration: a.getAddComplianceSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION, Migration: a.getAddTestEmailAncillaryPermission},
 	}
 
-	roles, err := a.GetAllRoles()
+	roles, err := s.Store.Role().GetAll()
 	if err != nil {
 		return err
 	}
@@ -569,7 +965,7 @@ func (a *App) DoPermissionsMigrations() error {
 		if err != nil {
 			return err
 		}
-		if err := a.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
 			return err
 		}
 	}

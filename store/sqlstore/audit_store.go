@@ -57,7 +57,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	if len(userId) != 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
 	}
 

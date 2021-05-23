@@ -38,12 +38,16 @@ func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, err
 		path := filepath.Join(outPath, filePath)
 		paths[i] = path
 		if f.FileInfo().IsDir() {
-			if err := os.Mkdir(path, 0744); err != nil {
+			if err := os.Mkdir(path, 0700); err != nil {
 				return nil, fmt.Errorf("failed to create directory: %w", err)
 			}
 			continue
 		}
-
+		if _, err := os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
+			if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+				return nil, fmt.Errorf("failed to create directory: %w", err)
+			}
+		}
 		outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create file: %w", err)

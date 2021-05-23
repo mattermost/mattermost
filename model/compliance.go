@@ -37,6 +37,19 @@ type Compliance struct {
 
 type Compliances []Compliance
 
+// ComplianceExportCursor is used for paginated iteration of posts
+// for compliance export.
+// We need to keep track of the last post ID in addition to the last post
+// CreateAt to break ties when two posts have the same CreateAt.
+type ComplianceExportCursor struct {
+	LastChannelsQueryPostCreateAt       int64
+	LastChannelsQueryPostID             string
+	ChannelsQueryCompleted              bool
+	LastDirectMessagesQueryPostCreateAt int64
+	LastDirectMessagesQueryPostID       string
+	DirectMessagesQueryCompleted        bool
+}
+
 func (c *Compliance) ToJson() string {
 	b, _ := json.Marshal(c)
 	return string(b)
@@ -84,7 +97,7 @@ func (c *Compliance) IsValid() *AppError {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(c.Desc) > 512 || len(c.Desc) == 0 {
+	if len(c.Desc) > 512 || c.Desc == "" {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -110,11 +123,11 @@ func ComplianceFromJson(data io.Reader) *Compliance {
 }
 
 func (c Compliances) ToJson() string {
-	if b, err := json.Marshal(c); err != nil {
+	b, err := json.Marshal(c)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func CompliancesFromJson(data io.Reader) Compliances {

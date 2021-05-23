@@ -4,18 +4,17 @@
 package tracing
 
 import (
+	"context"
 	"io"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-lib/metrics"
-
-	"context"
-
 	"github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-client-go/zipkin"
+	"github.com/uber/jaeger-lib/metrics"
+
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // Tracer is a wrapper around Jaeger OpenTracing client, used to properly de-initialize jaeger on exit

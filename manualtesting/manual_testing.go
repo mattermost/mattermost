@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/app/slashcommands"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
@@ -94,7 +94,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
-		if _, err := c.App.CreateChannel(channel, false); err != nil {
+		if _, err := c.App.CreateChannel(c.AppContext, channel, false); err != nil {
 			c.Err = err
 			return
 		}
@@ -105,7 +105,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
-			Password: slashcommands.USER_PASSWORD}
+			Password: slashcommands.UserPassword}
 
 		user, resp := client.CreateUser(user)
 		if resp.Error != nil {
@@ -119,7 +119,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, slashcommands.USER_PASSWORD)
+		_, resp = client.LoginById(user.Id, slashcommands.UserPassword)
 		if resp.Error != nil {
 			c.Err = resp.Error
 			return

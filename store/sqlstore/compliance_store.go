@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlComplianceStore struct {
@@ -81,50 +81,49 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	return obj.(*model.Compliance), nil
 }
 
-func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, error) {
-	props := map[string]interface{}{"StartTime": job.StartAt, "EndTime": job.EndAt}
+func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
+	props := map[string]interface{}{"EndTime": job.EndAt, "Limit": limit}
 
 	keywordQuery := ""
 	keywords := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Keywords, ",", " ", -1))))
 	if len(keywords) > 0 {
+		clauses := make([]string, len(keywords))
 
-		keywordQuery = "AND ("
-
-		for index, keyword := range keywords {
+		for i, keyword := range keywords {
 			keyword = sanitizeSearchTerm(keyword, "\\")
-			if index >= 1 {
-				keywordQuery += " OR LOWER(Posts.Message) LIKE :Keyword" + strconv.Itoa(index)
-			} else {
-				keywordQuery += "LOWER(Posts.Message) LIKE :Keyword" + strconv.Itoa(index)
-			}
-
-			props["Keyword"+strconv.Itoa(index)] = "%" + keyword + "%"
+			clauses[i] = "LOWER(Posts.Message) LIKE :Keyword" + strconv.Itoa(i)
+			props["Keyword"+strconv.Itoa(i)] = "%" + keyword + "%"
 		}
 
-		keywordQuery += ")"
+		keywordQuery = "AND (" + strings.Join(clauses, " OR ") + ")"
 	}
 
 	emailQuery := ""
 	emails := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Emails, ",", " ", -1))))
 	if len(emails) > 0 {
+		clauses := make([]string, len(emails))
 
-		emailQuery = "AND ("
-
-		for index, email := range emails {
-			if index >= 1 {
-				emailQuery += " OR Users.Email = :Email" + strconv.Itoa(index)
-			} else {
-				emailQuery += "Users.Email = :Email" + strconv.Itoa(index)
-			}
-
-			props["Email"+strconv.Itoa(index)] = email
+		for i, email := range emails {
+			clauses[i] = "Users.Email = :Email" + strconv.Itoa(i)
+			props["Email"+strconv.Itoa(i)] = email
 		}
 
-		emailQuery += ")"
+		emailQuery = "AND (" + strings.Join(clauses, " OR ") + ")"
 	}
 
-	query :=
-		`(SELECT
+	// The idea is to first iterate over the channel posts, and then when we run out of those,
+	// start iterating over the direct message posts.
+
+	var channelPosts []*model.CompliancePost
+	channelsQuery := ""
+	if !cursor.ChannelsQueryCompleted {
+		if cursor.LastChannelsQueryPostCreateAt == 0 {
+			cursor.LastChannelsQueryPostCreateAt = job.StartAt
+		}
+		props["LastPostCreateAt"] = cursor.LastChannelsQueryPostCreateAt
+		props["LastPostId"] = cursor.LastChannelsQueryPostID
+		channelsQuery = `
+		SELECT
 			Teams.Name AS TeamName,
 			Teams.DisplayName AS TeamDisplayName,
 			Channels.Name AS ChannelName,
@@ -151,17 +150,43 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 			Channels,
 			Users,
 			Posts
-        LEFT JOIN Bots ON Bots.UserId = Posts.UserId
+		LEFT JOIN
+			Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Teams.Id = Channels.TeamId
 				AND Posts.ChannelId = Channels.Id
 				AND Posts.UserId = Users.Id
-				AND Posts.CreateAt > :StartTime
-				AND Posts.CreateAt <= :EndTime
+				AND (
+					Posts.CreateAt > :LastPostCreateAt
+					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
+				)
+				AND Posts.CreateAt < :EndTime
 				` + emailQuery + `
-				` + keywordQuery + `)
-		UNION ALL
-		(SELECT
+				` + keywordQuery + `
+		ORDER BY Posts.CreateAt, Posts.Id
+		LIMIT :Limit`
+		if _, err := s.GetReplica().Select(&channelPosts, channelsQuery, props); err != nil {
+			return nil, cursor, errors.Wrap(err, "unable to export compliance")
+		}
+		if len(channelPosts) < limit {
+			cursor.ChannelsQueryCompleted = true
+		} else {
+			cursor.LastChannelsQueryPostCreateAt = channelPosts[len(channelPosts)-1].PostCreateAt
+			cursor.LastChannelsQueryPostID = channelPosts[len(channelPosts)-1].PostId
+		}
+	}
+
+	var directMessagePosts []*model.CompliancePost
+	directMessagesQuery := ""
+	if !cursor.DirectMessagesQueryCompleted && len(channelPosts) < limit {
+		if cursor.LastDirectMessagesQueryPostCreateAt == 0 {
+			cursor.LastDirectMessagesQueryPostCreateAt = job.StartAt
+		}
+		props["LastPostCreateAt"] = cursor.LastDirectMessagesQueryPostCreateAt
+		props["LastPostId"] = cursor.LastDirectMessagesQueryPostID
+		props["Limit"] = limit - len(channelPosts)
+		directMessagesQuery = `
+		SELECT
 			'direct-messages' AS TeamName,
 			'Direct Messages' AS TeamDisplayName,
 			Channels.Name AS ChannelName,
@@ -187,28 +212,42 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 			Channels,
 			Users,
 			Posts
-		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
+		LEFT JOIN
+			Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Channels.TeamId = ''
 				AND Posts.ChannelId = Channels.Id
 				AND Posts.UserId = Users.Id
-				AND Posts.CreateAt > :StartTime
-				AND Posts.CreateAt <= :EndTime
+				AND (
+					Posts.CreateAt > :LastPostCreateAt
+					OR (Posts.CreateAt = :LastPostCreateAt AND Posts.Id > :LastPostId)
+				)
+				AND Posts.CreateAt < :EndTime
 				` + emailQuery + `
-				` + keywordQuery + `)
-		ORDER BY PostCreateAt
-		LIMIT 30000`
+				` + keywordQuery + `
+		ORDER BY Posts.CreateAt, Posts.Id
+		LIMIT :Limit`
 
-	var cposts []*model.CompliancePost
-
-	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-		return nil, errors.Wrap(err, "unable to export compliance")
+		if _, err := s.GetReplica().Select(&directMessagePosts, directMessagesQuery, props); err != nil {
+			return nil, cursor, errors.Wrap(err, "unable to export compliance")
+		}
+		if len(directMessagePosts) < limit {
+			cursor.DirectMessagesQueryCompleted = true
+		} else {
+			cursor.LastDirectMessagesQueryPostCreateAt = directMessagePosts[len(directMessagePosts)-1].PostCreateAt
+			cursor.LastDirectMessagesQueryPostID = directMessagePosts[len(directMessagePosts)-1].PostId
+		}
 	}
-	return cposts, nil
+
+	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "Limit": limit}
+func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+	props := map[string]interface{}{
+		"LastPostUpdateAt": cursor.LastPostUpdateAt,
+		"LastPostId":       cursor.LastPostId,
+		"Limit":            limit,
+	}
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -242,15 +281,23 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
-		WHERE
-			Posts.UpdateAt > :StartTime AND
-			Posts.Type NOT LIKE 'system_%'
-		ORDER BY PostUpdateAt
+		WHERE (
+			Posts.UpdateAt > :LastPostUpdateAt
+			OR (
+				Posts.UpdateAt = :LastPostUpdateAt
+				AND Posts.Id > :LastPostId
+			)
+		) AND Posts.Type NOT LIKE 'system_%'
+		ORDER BY PostUpdateAt, PostId
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-		return nil, errors.Wrap(err, "unable to export messages")
+		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
-	return cposts, nil
+	if len(cposts) > 0 {
+		cursor.LastPostUpdateAt = *cposts[len(cposts)-1].PostUpdateAt
+		cursor.LastPostId = *cposts[len(cposts)-1].PostId
+	}
+	return cposts, cursor, nil
 }

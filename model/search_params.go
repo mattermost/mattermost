@@ -25,6 +25,8 @@ type SearchParams struct {
 	ExcludedAfterDate      string
 	BeforeDate             string
 	ExcludedBeforeDate     string
+	Extensions             []string
+	ExcludedExtensions     []string
 	OnDate                 string
 	ExcludedDate           string
 	OrTerms                bool
@@ -106,7 +108,7 @@ func (p *SearchParams) GetExcludedDateMillis() (int64, int64) {
 	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
 }
 
-var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on"}
+var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on", "ext"}
 
 type flag struct {
 	name    string
@@ -214,7 +216,7 @@ func parseSearchFlags(input []string) ([]searchWord, []flag) {
 			// and remove extra pound #s
 			word = hashtagStart.ReplaceAllString(word, "#")
 
-			if len(word) != 0 {
+			if word != "" {
 				words = append(words, searchWord{
 					word,
 					exclude,
@@ -265,6 +267,8 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	excludedBeforeDate := ""
 	onDate := ""
 	excludedDate := ""
+	excludedExtensions := []string{}
+	extensions := []string{}
 
 	for _, flag := range flags {
 		if flag.name == "in" || flag.name == "channel" {
@@ -297,12 +301,18 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			} else {
 				onDate = flag.value
 			}
+		} else if flag.name == "ext" {
+			if flag.exclude {
+				excludedExtensions = append(excludedExtensions, flag.value)
+			} else {
+				extensions = append(extensions, flag.value)
+			}
 		}
 	}
 
 	paramsList := []*SearchParams{}
 
-	if len(plainTerms) > 0 || len(excludedPlainTerms) > 0 {
+	if plainTerms != "" || excludedPlainTerms != "" {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              plainTerms,
 			ExcludedTerms:      excludedPlainTerms,
@@ -315,13 +325,15 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedAfterDate:  excludedAfterDate,
 			BeforeDate:         beforeDate,
 			ExcludedBeforeDate: excludedBeforeDate,
+			Extensions:         extensions,
+			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
 			TimeZoneOffset:     timeZoneOffset,
 		})
 	}
 
-	if len(hashtagTerms) > 0 || len(excludedHashtagTerms) > 0 {
+	if hashtagTerms != "" || excludedHashtagTerms != "" {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              hashtagTerms,
 			ExcludedTerms:      excludedHashtagTerms,
@@ -334,6 +346,8 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedAfterDate:  excludedAfterDate,
 			BeforeDate:         beforeDate,
 			ExcludedBeforeDate: excludedBeforeDate,
+			Extensions:         extensions,
+			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
 			TimeZoneOffset:     timeZoneOffset,
@@ -341,13 +355,14 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	}
 
 	// special case for when no terms are specified but we still have a filter
-	if len(plainTerms) == 0 && len(hashtagTerms) == 0 &&
-		len(excludedPlainTerms) == 0 && len(excludedHashtagTerms) == 0 &&
+	if plainTerms == "" && hashtagTerms == "" &&
+		excludedPlainTerms == "" && excludedHashtagTerms == "" &&
 		(len(inChannels) != 0 || len(fromUsers) != 0 ||
 			len(excludedChannels) != 0 || len(excludedUsers) != 0 ||
-			len(afterDate) != 0 || len(excludedAfterDate) != 0 ||
-			len(beforeDate) != 0 || len(excludedBeforeDate) != 0 ||
-			len(onDate) != 0 || len(excludedDate) != 0) {
+			len(extensions) != 0 || len(excludedExtensions) != 0 ||
+			afterDate != "" || excludedAfterDate != "" ||
+			beforeDate != "" || excludedBeforeDate != "" ||
+			onDate != "" || excludedDate != "") {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              "",
 			ExcludedTerms:      "",
@@ -360,6 +375,8 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 			ExcludedAfterDate:  excludedAfterDate,
 			BeforeDate:         beforeDate,
 			ExcludedBeforeDate: excludedBeforeDate,
+			Extensions:         extensions,
+			ExcludedExtensions: excludedExtensions,
 			OnDate:             onDate,
 			ExcludedDate:       excludedDate,
 			TimeZoneOffset:     timeZoneOffset,

@@ -4,14 +4,16 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCache(t *testing.T) {
@@ -34,20 +36,20 @@ func TestCache(t *testing.T) {
 	th.App.Srv().sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
 
 	keys, err := th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, keys)
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
 	rkeys, err := th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 
 	th.App.ClearSessionCacheForAllUsers()
 
 	rkeys, err = th.App.Srv().sessionCache.Keys()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, rkeys)
 }
 
@@ -72,7 +74,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
 	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
@@ -90,7 +92,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -105,7 +107,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -123,7 +125,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -146,7 +148,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
 
-		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
@@ -318,15 +320,22 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	})
 
 	var tests = []struct {
+		enabled bool
 		name    string
 		session *model.Session
 	}{
-		{name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
-		{name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
-		{name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: true, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: false, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
 	}
+
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt", test.name), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt based on feature enabled", test.name), func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = test.enabled })
+
 			session, err := th.App.CreateSession(test.session)
 			require.Nil(t, err)
 
@@ -335,6 +344,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 
 			ok := th.App.ExtendSessionExpiryIfNeeded(session)
 
+			if !test.enabled {
+				require.False(t, ok)
+				require.Equal(t, expires, session.ExpiresAt)
+				return
+			}
+
 			require.True(t, ok)
 			require.Greater(t, session.ExpiresAt, expires)
 			require.False(t, session.IsExpired())
@@ -342,16 +357,15 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			// check cache was updated
 			var cachedSession *model.Session
 			errGet := th.App.Srv().sessionCache.Get(session.Token, &cachedSession)
-			require.Nil(t, errGet)
+			require.NoError(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
-			require.Nil(t, nErr)
+			storedSession, nErr := th.App.Srv().Store.Session().Get(context.Background(), session.Token)
+			require.NoError(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}
-
 }
 
 const (
@@ -435,5 +449,41 @@ func TestGetCloudSession(t *testing.T) {
 		require.Nil(t, session)
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
+	})
+}
+
+func TestGetRemoteClusterSession(t *testing.T) {
+	th := Setup(t)
+	token := model.NewId()
+	remoteId := model.NewId()
+
+	rc := model.RemoteCluster{
+		RemoteId:     remoteId,
+		RemoteTeamId: model.NewId(),
+		Name:         "test",
+		Token:        token,
+		CreatorId:    model.NewId(),
+	}
+
+	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)
+	require.NoError(t, err)
+
+	t.Run("Valid remote token should return session", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		require.Nil(t, err)
+		require.NotNil(t, session)
+		require.Equal(t, token, session.Token)
+	})
+
+	t.Run("Invalid remote token should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		require.NotNil(t, err)
+		require.Nil(t, session)
+	})
+
+	t.Run("Invalid remote id should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
+		require.NotNil(t, err)
+		require.Nil(t, session)
 	})
 }

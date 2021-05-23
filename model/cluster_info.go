@@ -38,7 +38,6 @@ func ClusterInfosFromJson(data io.Reader) []*ClusterInfo {
 	var objmap []*ClusterInfo
 	if err := decoder.Decode(&objmap); err != nil {
 		return make([]*ClusterInfo, 0)
-	} else {
-		return objmap
 	}
+	return objmap
 }

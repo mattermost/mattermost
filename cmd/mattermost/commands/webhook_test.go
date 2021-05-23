@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
@@ -506,7 +505,7 @@ func TestMoveOutgoingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Name)
 
 	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)
-	assert.Error(t, webhookErr)
+	assert.NotNil(t, webhookErr)
 
 	output := th.CheckCommand(t, "webhook", "list", newTeam.Name)
 	assert.True(t, strings.Contains(output, displayName))

@@ -4,16 +4,17 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type HelpProvider struct {
 }
 
 const (
-	CMD_HELP = "help"
+	CmdHelp = "help"
 )
 
 func init() {
@@ -21,19 +22,19 @@ func init() {
 }
 
 func (h *HelpProvider) GetTrigger() string {
-	return CMD_HELP
+	return CmdHelp
 }
 
-func (h *HelpProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (h *HelpProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_HELP,
+		Trigger:          CmdHelp,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_help.desc"),
 		DisplayName:      T("api.command_help.name"),
 	}
 }
 
-func (h *HelpProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (h *HelpProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {

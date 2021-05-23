@@ -10,12 +10,12 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	TIME_BETWEEN_BATCHES = 100
+	TimeBetweenBatches = 100
 )
 
 type Worker struct {
@@ -99,8 +99,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 			worker.setJobCanceled(job)
 			return
 
-		case <-time.After(TIME_BETWEEN_BATCHES * time.Millisecond):
-			done, progress, err := worker.runMigration(job.Data[JOB_DATA_KEY_MIGRATION], job.Data[JOB_DATA_KEY_MIGRATION_LAST_DONE])
+		case <-time.After(TimeBetweenBatches * time.Millisecond):
+			done, progress, err := worker.runMigration(job.Data[JobDataKeyMigration], job.Data[JobDataKeyMigration_LAST_DONE])
 			if err != nil {
 				mlog.Error("Worker: Failed to run migration", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				worker.setJobError(job, err)
@@ -110,7 +110,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 				worker.setJobSuccess(job)
 				return
 			} else {
-				job.Data[JOB_DATA_KEY_MIGRATION_LAST_DONE] = progress
+				job.Data[JobDataKeyMigration_LAST_DONE] = progress
 				if err := worker.srv.Jobs.UpdateInProgressJobData(job); err != nil {
 					mlog.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 					worker.setJobError(job, err)

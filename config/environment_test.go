@@ -6,8 +6,9 @@ package config
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func modifiedDefault(modify func(*model.Config)) *model.Config {

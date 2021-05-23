@@ -14,7 +14,7 @@ type LocalCacheFileInfoStore struct {
 }
 
 func (s *LocalCacheFileInfoStore) handleClusterInvalidateFileInfo(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.fileInfoCache.Purge()
 		return
 	}

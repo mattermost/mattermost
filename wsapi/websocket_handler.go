@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
@@ -29,13 +29,15 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		return
 	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
+	defer app.ReturnSessionToPool(session)
+
 	if sessionErr != nil {
 		mlog.Error(
 			"websocket session error",
 			mlog.String("action", r.Action),
 			mlog.Int64("seq", r.Seq),
 			mlog.String("user_id", conn.UserId),
-			mlog.String("error_message", sessionErr.SystemMessage(utils.T)),
+			mlog.String("error_message", sessionErr.SystemMessage(i18n.T)),
 			mlog.Err(sessionErr),
 		)
 		sessionErr.DetailedError = ""
@@ -57,7 +59,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 			mlog.String("action", r.Action),
 			mlog.Int64("seq", r.Seq),
 			mlog.String("user_id", conn.UserId),
-			mlog.String("error_message", err.SystemMessage(utils.T)),
+			mlog.String("error_message", err.SystemMessage(i18n.T)),
 			mlog.Err(err),
 		)
 		err.DetailedError = ""

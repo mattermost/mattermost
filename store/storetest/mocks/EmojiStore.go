@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -28,13 +30,13 @@ func (_m *EmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: id, allowFromCache
-func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(id, allowFromCache)
+// Get provides a mock function with given fields: ctx, id, allowFromCache
+func (_m *EmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(ctx, id, allowFromCache)
 
 	var r0 *model.Emoji
-	if rf, ok := ret.Get(0).(func(string, bool) *model.Emoji); ok {
-		r0 = rf(id, allowFromCache)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *model.Emoji); ok {
+		r0 = rf(ctx, id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -42,8 +44,8 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(id, allowFromCache)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, id, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -51,13 +53,13 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) 
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: name, allowFromCache
-func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(name, allowFromCache)
+// GetByName provides a mock function with given fields: ctx, name, allowFromCache
+func (_m *EmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(ctx, name, allowFromCache)
 
 	var r0 *model.Emoji
-	if rf, ok := ret.Get(0).(func(string, bool) *model.Emoji); ok {
-		r0 = rf(name, allowFromCache)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *model.Emoji); ok {
+		r0 = rf(ctx, name, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -65,8 +67,8 @@ func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(name, allowFromCache)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, name, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -39,9 +39,9 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	data := map[string]string{}
 
-	if job, err := scheduler.App.Srv().Jobs.CreateJob(model.JOB_TYPE_PRODUCT_NOTICES, data); err != nil {
+	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JOB_TYPE_PRODUCT_NOTICES, data)
+	if err != nil {
 		return nil, err
-	} else {
-		return job, nil
 	}
+	return job, nil
 }

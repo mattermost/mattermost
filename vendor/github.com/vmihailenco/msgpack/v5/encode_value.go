@@ -12,12 +12,12 @@ var valueEncoders []encoderFunc
 func init() {
 	valueEncoders = []encoderFunc{
 		reflect.Bool:          encodeBoolValue,
-		reflect.Int:           encodeInt64CondValue,
+		reflect.Int:           encodeIntValue,
 		reflect.Int8:          encodeInt8CondValue,
 		reflect.Int16:         encodeInt16CondValue,
 		reflect.Int32:         encodeInt32CondValue,
 		reflect.Int64:         encodeInt64CondValue,
-		reflect.Uint:          encodeUint64CondValue,
+		reflect.Uint:          encodeUintValue,
 		reflect.Uint8:         encodeUint8CondValue,
 		reflect.Uint16:        encodeUint16CondValue,
 		reflect.Uint32:        encodeUint32CondValue,
@@ -66,6 +66,9 @@ func _getEncoder(typ reflect.Type) encoderFunc {
 	if typ.Implements(binaryMarshalerType) {
 		return marshalBinaryValue
 	}
+	if typ.Implements(textMarshalerType) {
+		return marshalTextValue
+	}
 
 	// Addressable struct field value.
 	if kind != reflect.Ptr {
@@ -77,7 +80,10 @@ func _getEncoder(typ reflect.Type) encoderFunc {
 			return marshalValuePtr
 		}
 		if ptr.Implements(binaryMarshalerType) {
-			return marshalBinaryValuePtr
+			return marshalBinaryValueAddr
+		}
+		if ptr.Implements(textMarshalerType) {
+			return marshalTextValueAddr
 		}
 	}
 
@@ -133,7 +139,7 @@ func encodeCustomValuePtr(e *Encoder, v reflect.Value) error {
 }
 
 func encodeCustomValue(e *Encoder, v reflect.Value) error {
-	if nilable(v) && v.IsNil() {
+	if nilable(v.Kind()) && v.IsNil() {
 		return e.EncodeNil()
 	}
 
@@ -149,7 +155,7 @@ func marshalValuePtr(e *Encoder, v reflect.Value) error {
 }
 
 func marshalValue(e *Encoder, v reflect.Value) error {
-	if nilable(v) && v.IsNil() {
+	if nilable(v.Kind()) && v.IsNil() {
 		return e.EncodeNil()
 	}
 
@@ -184,8 +190,8 @@ func encodeUnsupportedValue(e *Encoder, v reflect.Value) error {
 	return fmt.Errorf("msgpack: Encode(unsupported %s)", v.Type())
 }
 
-func nilable(v reflect.Value) bool {
-	switch v.Kind() {
+func nilable(kind reflect.Kind) bool {
+	switch kind {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
 		return true
 	}
@@ -194,7 +200,7 @@ func nilable(v reflect.Value) bool {
 
 //------------------------------------------------------------------------------
 
-func marshalBinaryValuePtr(e *Encoder, v reflect.Value) error {
+func marshalBinaryValueAddr(e *Encoder, v reflect.Value) error {
 	if !v.CanAddr() {
 		return fmt.Errorf("msgpack: Encode(non-addressable %T)", v.Interface())
 	}
@@ -202,12 +208,35 @@ func marshalBinaryValuePtr(e *Encoder, v reflect.Value) error {
 }
 
 func marshalBinaryValue(e *Encoder, v reflect.Value) error {
-	if nilable(v) && v.IsNil() {
+	if nilable(v.Kind()) && v.IsNil() {
 		return e.EncodeNil()
 	}
 
 	marshaler := v.Interface().(encoding.BinaryMarshaler)
 	data, err := marshaler.MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	return e.EncodeBytes(data)
+}
+
+//------------------------------------------------------------------------------
+
+func marshalTextValueAddr(e *Encoder, v reflect.Value) error {
+	if !v.CanAddr() {
+		return fmt.Errorf("msgpack: Encode(non-addressable %T)", v.Interface())
+	}
+	return marshalTextValue(e, v.Addr())
+}
+
+func marshalTextValue(e *Encoder, v reflect.Value) error {
+	if nilable(v.Kind()) && v.IsNil() {
+		return e.EncodeNil()
+	}
+
+	marshaler := v.Interface().(encoding.TextMarshaler)
+	data, err := marshaler.MarshalText()
 	if err != nil {
 		return err
 	}

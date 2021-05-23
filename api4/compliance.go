@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/avct/uasurfer"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -29,12 +30,12 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB) {
+		c.SetPermissionError(model.PERMISSION_CREATE_COMPLIANCE_EXPORT_JOB)
 		return
 	}
 
-	job.UserId = c.App.Session().UserId
+	job.UserId = c.AppContext.Session().UserId
 
 	rjob, err := c.App.SaveComplianceReport(job)
 	if err != nil {
@@ -52,8 +53,8 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB) {
+		c.SetPermissionError(model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB)
 		return
 	}
 
@@ -79,8 +80,8 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB) {
+		c.SetPermissionError(model.PERMISSION_READ_COMPLIANCE_EXPORT_JOB)
 		return
 	}
 
@@ -107,8 +108,8 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("compliance_id", c.Params.ReportId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
+		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
 		return
 	}
 
@@ -129,7 +130,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 
 	c.LogAudit("downloaded " + job.Desc)
 
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set("Content-Length", strconv.Itoa(len(reportBytes)))
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 

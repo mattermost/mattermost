@@ -4,14 +4,15 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -91,7 +92,7 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
 		table.ColMap("DisplayName").SetMaxSize(128)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("Permissions").SetMaxSize(4096)
+		table.ColMap("Permissions")
 	}
 	return s
 }
@@ -102,7 +103,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")
@@ -175,10 +176,9 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	return roles, nil
 }
 
-func (s *SqlRoleStore) GetByName(name string) (*model.Role, error) {
+func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var dbRole Role
-
-	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	if err := s.DBFromContext(ctx).SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}

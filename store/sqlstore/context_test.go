@@ -13,6 +13,6 @@ import (
 func TestContextMaster(t *testing.T) {
 	ctx := context.Background()
 
-	m := withMaster(ctx)
+	m := WithMaster(ctx)
 	assert.True(t, hasMaster(m))
 }

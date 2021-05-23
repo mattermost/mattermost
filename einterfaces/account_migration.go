@@ -3,7 +3,9 @@
 
 package einterfaces
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import (
+	"github.com/mattermost/mattermost-server/v5/model"
+)
 
 type AccountMigrationInterface interface {
 	MigrateToLdap(fromAuthService string, forignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError

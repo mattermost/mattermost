@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestKVGetJSON(t *testing.T) {
@@ -437,7 +438,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions()
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Basic Success, one page", func(t *testing.T) {
@@ -451,7 +452,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions()
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, []string{"key1", "key2"})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Basic Success, two page", func(t *testing.T) {
@@ -466,7 +467,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions()
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, getKeys(101))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error on second page", func(t *testing.T) {
@@ -496,7 +497,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithPrefix("key99"))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, []string{"key99"})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("success, two page, filter prefix, all", func(t *testing.T) {
@@ -511,7 +512,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithPrefix("notkey"))
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("success, two page, filter prefix, none", func(t *testing.T) {
@@ -526,7 +527,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithPrefix("key"))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, getKeys(101))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("success, two page, checker func, one", func(t *testing.T) {
@@ -548,7 +549,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, []string{"key1"})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("success, two page, checker func, all", func(t *testing.T) {
@@ -567,7 +568,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.Empty(t, keys)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("success, two page, checker func, none", func(t *testing.T) {
@@ -586,7 +587,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, getKeys(101))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("error, checker func", func(t *testing.T) {
@@ -625,7 +626,7 @@ func TestKVListWithOptions(t *testing.T) {
 		keys, err := p.KVListWithOptions(plugin.WithPrefix("key"), plugin.WithChecker(check))
 		api.AssertExpectations(t)
 		assert.ElementsMatch(t, keys, []string{"key2", "key4"})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 }
 

@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 func (api *API) InitTeamLocal() {
@@ -193,7 +193,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team", team)
 
-	rteam, err := c.App.CreateTeam(team)
+	rteam, err := c.App.CreateTeam(c.AppContext, team)
 	if err != nil {
 		c.Err = err
 		return

@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
-	u, err := a.Srv().Store.UserTermsOfService().GetByUser(userId)
+func (a *App) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
+	u, err := a.Srv().Store.UserTermsOfService().GetByUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -26,10 +26,10 @@ func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *
 	return u, nil
 }
 
-func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError {
+func (a *App) SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError {
 	if accepted {
 		userTermsOfService := &model.UserTermsOfService{
-			UserId:           userId,
+			UserId:           userID,
 			TermsOfServiceId: termsOfServiceId,
 		}
 
@@ -43,7 +43,7 @@ func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted b
 			}
 		}
 	} else {
-		if err := a.Srv().Store.UserTermsOfService().Delete(userId, termsOfServiceId); err != nil {
+		if err := a.Srv().Store.UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {
 			return model.NewAppError("SaveUserTermsOfService", "app.user_terms_of_service.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}

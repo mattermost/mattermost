@@ -58,9 +58,10 @@ type goCollector struct {
 // collector will use the memstats from a previous collection if
 // runtime.ReadMemStats takes more than 1s. However, if there are no previously
 // collected memstats, or their collection is more than 5m ago, the collection
-// will block until runtime.ReadMemStats succeeds. (The problem might be solved
-// in Go1.13, see https://github.com/golang/go/issues/19812 for the related Go
-// issue.)
+// will block until runtime.ReadMemStats succeeds.
+//
+// NOTE: The problem is solved in Go 1.15, see
+// https://github.com/golang/go/issues/19812 for the related Go issue.
 func NewGoCollector() Collector {
 	return &goCollector{
 		goroutinesDesc: NewDesc(
@@ -383,7 +384,12 @@ type memStatsMetrics []struct {
 // https://github.com/povilasv/prommod for an example of a collector for the
 // module dependencies.
 func NewBuildInfoCollector() Collector {
-	path, version, sum := readBuildInfo()
+	path, version, sum := "unknown", "unknown", "unknown"
+	if bi, ok := debug.ReadBuildInfo(); ok {
+		path = bi.Main.Path
+		version = bi.Main.Version
+		sum = bi.Main.Sum
+	}
 	c := &selfCollector{MustNewConstMetric(
 		NewDesc(
 			"go_build_info",

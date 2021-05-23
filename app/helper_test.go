@@ -5,29 +5,33 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
-	"testing"
+	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
 	App          *App
+	Context      *request.Context
 	Server       *Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -42,7 +46,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -51,11 +55,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	configStore := config.NewTestMemoryStore()
 
 	config := configStore.Get()
-	if configSet != nil {
-		configSet(config)
-	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	*config.PluginSettings.AutomaticPrepackagedPlugins = false
 	*config.LogSettings.EnableSentry = false // disable error reporting during tests
 	*config.AnnouncementSettings.AdminNoticesEnabled = false
 	*config.AnnouncementSettings.UserNoticesEnabled = false
@@ -86,6 +88,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               New(ServerConnector(s)),
+		Context:           &request.Context{},
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,
@@ -119,6 +122,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.Srv().Jobs.InitWorkers()
+		th.App.Srv().Jobs.InitSchedulers()
 	} else {
 		th.App.Srv().SetLicense(nil)
 	}
@@ -127,21 +132,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.tempWorkspace = tempWorkspace
 	}
 
-	th.App.InitServer()
-
 	return th
-}
-
-func SetupEnterprise(tb testing.TB) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-
-	return setupTestHelper(dbStore, true, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -153,7 +144,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb, nil)
+	return setupTestHelper(dbStore, false, true, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -164,12 +155,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, true, tb, nil)
+	return setupTestHelper(dbStore, false, true, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, tb, nil)
+	th := setupTestHelper(mockStore, false, false, tb)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -178,7 +169,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, false, tb, nil)
+	th := setupTestHelper(mockStore, true, false, tb)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -238,10 +229,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = th.App.CreateTeam(team); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if team, err = th.App.CreateTeam(th.Context, team); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -270,17 +258,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if guest {
-		if user, err = th.App.CreateGuest(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
+		if user, err = th.App.CreateGuest(th.Context, user); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.App.CreateUser(user); err != nil {
-			mlog.Error(err.Error())
-
-			time.Sleep(time.Second)
+		if user, err = th.App.CreateUser(th.Context, user); err != nil {
 			panic(err)
 		}
 	}
@@ -298,27 +280,30 @@ func (th *TestHelper) CreateBot() *model.Bot {
 		OwnerId:     th.BasicUser.Id,
 	}
 
-	th.App.Log().SetConsoleLevel(mlog.LevelError)
-	bot, err := th.App.CreateBot(bot)
+	bot, err := th.App.CreateBot(th.Context, bot)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
-	th.App.Log().SetConsoleLevel(mlog.LevelDebug)
 	return bot
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN, options...)
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
 	return th.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -329,13 +314,31 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
+	for _, option := range options {
+		option(channel)
+	}
 
-		time.Sleep(time.Second)
-		panic(err)
+	utils.DisableDebugLogForTest()
+	var appErr *model.AppError
+	if channel, appErr = th.App.CreateChannel(th.Context, channel, true); appErr != nil {
+		panic(appErr)
+	}
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return channel
@@ -345,10 +348,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if channel, err = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -360,9 +360,6 @@ func (th *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -381,10 +378,7 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -401,10 +395,7 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
+	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -414,11 +405,8 @@ func (th *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.JoinUserToTeam(team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -428,11 +416,8 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := th.App.RemoveUserFromTeam(team.Id, user.Id, "")
+	err := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -442,11 +427,8 @@ func (th *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := th.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel, false)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -484,7 +466,7 @@ func (th *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 
 	var roles []*model.Role
 	for _, roleName := range roleNames {
-		role, err := th.App.GetRoleByName(roleName)
+		role, err := th.App.GetRoleByName(context.Background(), roleName)
 		if err != nil {
 			panic(err)
 		}
@@ -509,9 +491,6 @@ func (th *TestHelper) CreateGroup() *model.Group {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if group, err = th.App.CreateGroup(group); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -537,7 +516,7 @@ func (th *TestHelper) CreateEmoji() *model.Emoji {
 func (th *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
 	utils.DisableDebugLogForTest()
 
-	reaction, err := th.App.SaveReactionForPost(&model.Reaction{
+	reaction, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
 		UserId:    user.Id,
 		PostId:    post.Id,
 		EmojiName: emojiName,
@@ -582,6 +561,21 @@ func (*TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return mainHelper.GetSQLStore()
 }
 
+func (th *TestHelper) ConfigureInbucketMail() {
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "localhost"
+	}
+	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "10025"
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SMTPServer = inbucket_host
+		*cfg.EmailSettings.SMTPPort = inbucket_port
+	})
+}
+
 func (*TestHelper) ResetRoleMigration() {
 	sqlStore := mainHelper.GetSQLStore()
 	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
@@ -611,49 +605,45 @@ func (*TestHelper) ResetEmojisMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EmojisPermissionsMigrationKey}); err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(false)
-	require.Nil(t, err, "Failed to get team count.")
+	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
+	require.NoError(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
 	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	require.Nilf(t, err, "Failed to get channel count.")
+	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
 
 func (th *TestHelper) SetupTeamScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupChannelScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupPluginAPI() *PluginAPI {
@@ -661,13 +651,13 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 		Id: "pluginid",
 	}
 
-	return NewPluginAPI(th.App, manifest)
+	return NewPluginAPI(th.App, th.Context, manifest)
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
@@ -699,7 +689,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)
@@ -721,4 +711,21 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	}
 
 	utils.EnableDebugLogForTest()
+}
+
+// This function is copy of storetest/NewTestId
+// NewTestId is used for testing as a replacement for model.NewId(). It is a [A-Z0-9] string 26
+// characters long. It replaces every odd character with a digit.
+func NewTestId() string {
+	newId := []byte(model.NewId())
+
+	for i := 1; i < len(newId); i = i + 2 {
+		newId[i] = 48 + newId[i-1]%10
+	}
+
+	return string(newId)
+}
+
+func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
+	return th.App.NewPluginAPI(th.Context, manifest)
 }

@@ -528,7 +528,7 @@ func (c *PubSub) initMsgChan(size int) {
 					return
 				}
 				if errCount > 0 {
-					time.Sleep(c.retryBackoff(errCount))
+					time.Sleep(100 * time.Millisecond)
 				}
 				errCount++
 				continue
@@ -586,7 +586,7 @@ func (c *PubSub) initAllChan(size int) {
 					return
 				}
 				if errCount > 0 {
-					time.Sleep(c.retryBackoff(errCount))
+					time.Sleep(100 * time.Millisecond)
 				}
 				errCount++
 				continue
@@ -626,8 +626,4 @@ func (c *PubSub) sendMessage(msg interface{}, timer *time.Timer) {
 			c.getContext(),
 			"redis: %s channel is full for %s (message is dropped)", c, pingTimeout)
 	}
-}
-
-func (c *PubSub) retryBackoff(attempt int) time.Duration {
-	return internal.RetryBackoff(attempt, c.opt.MinRetryBackoff, c.opt.MaxRetryBackoff)
 }

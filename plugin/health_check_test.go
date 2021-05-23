@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
@@ -59,12 +60,12 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 	})
 
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testPluginHealthCheckPanic(t *testing.T) {
@@ -106,17 +107,17 @@ func testPluginHealthCheckPanic(t *testing.T) {
 	})
 
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, supervisor)
 	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	supervisor.hooks.MessageWillBePosted(&Context{}, &model.Post{})
 
 	err = supervisor.PerformHealthCheck()
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {
@@ -129,8 +130,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are recent enough to restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -138,8 +139,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are too spaced out to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*1))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*1))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -147,7 +148,7 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Not enough failures are present to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)

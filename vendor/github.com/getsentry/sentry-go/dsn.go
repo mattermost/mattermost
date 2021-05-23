@@ -48,8 +48,9 @@ type Dsn struct {
 	projectID int
 }
 
-// NewDsn creates an instance of Dsn by parsing provided url in a string format.
-// If Dsn is not set the client is effectively disabled.
+// NewDsn creates a Dsn by parsing rawURL. Most users will never call this
+// function directly. It is provided for use in custom Transport
+// implementations.
 func NewDsn(rawURL string) (*Dsn, error) {
 	// Parse
 	parsedURL, err := url.Parse(rawURL)

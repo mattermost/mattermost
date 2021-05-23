@@ -9,24 +9,24 @@ import (
 )
 
 const (
-	USER_PASSWORD           = "passwd"
-	CHANNEL_TYPE            = model.CHANNEL_OPEN
-	BTEST_TEAM_DISPLAY_NAME = "TestTeam"
-	BTEST_TEAM_NAME         = "z-z-testdomaina"
-	BTEST_TEAM_EMAIL        = "test@nowhere.com"
-	BTEST_TEAM_TYPE         = model.TEAM_OPEN
-	BTEST_USER_NAME         = "Mr. Testing Tester"
-	BTEST_USER_EMAIL        = "success+ttester@simulator.amazonses.com"
-	BTEST_USER_PASSWORD     = "passwd"
+	UserPassword         = "Usr@MMTest123"
+	ChannelType          = model.CHANNEL_OPEN
+	BTestTeamDisplayName = "TestTeam"
+	BTestTeamName        = "z-z-testdomaina"
+	BTestTeamEmail       = "test@nowhere.com"
+	BTestTeamType        = model.TEAM_OPEN
+	BTestUserName        = "Mr. Testing Tester"
+	BTestUserEmail       = "success+ttester@simulator.amazonses.com"
+	BTestUserPassword    = "passwd"
 )
 
 var (
-	TEAM_NAME_LEN            = utils.Range{Begin: 10, End: 20}
-	TEAM_DOMAIN_NAME_LEN     = utils.Range{Begin: 10, End: 20}
-	TEAM_EMAIL_LEN           = utils.Range{Begin: 15, End: 30}
-	USER_NAME_LEN            = utils.Range{Begin: 5, End: 20}
-	USER_EMAIL_LEN           = utils.Range{Begin: 15, End: 30}
-	CHANNEL_DISPLAY_NAME_LEN = utils.Range{Begin: 10, End: 20}
-	CHANNEL_NAME_LEN         = utils.Range{Begin: 5, End: 20}
-	TEST_IMAGE_FILENAMES     = []string{"test.png", "testjpg.jpg", "testgif.gif"}
+	TeamNameLen           = utils.Range{Begin: 10, End: 20}
+	TeamDomainNameLen     = utils.Range{Begin: 10, End: 20}
+	TeamEmailLen          = utils.Range{Begin: 15, End: 30}
+	UserNameLen           = utils.Range{Begin: 5, End: 20}
+	UserEmailLen          = utils.Range{Begin: 15, End: 30}
+	ChannelDisplayNameLen = utils.Range{Begin: 10, End: 20}
+	ChannelNameLen        = utils.Range{Begin: 5, End: 20}
+	TestImageFileNames    = []string{"test.png", "testjpg.jpg", "testgif.gif"}
 )

@@ -11,8 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // extractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and

@@ -8,11 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
@@ -20,6 +15,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type AwsMeter struct {
@@ -53,7 +53,7 @@ func New(store store.Store, config *model.Config) *AwsMeter {
 
 	service, err := newAWSMarketplaceMeteringService()
 	if err != nil {
-		mlog.Error("newAWSMeterService", mlog.String("error", err.Error()))
+		mlog.Debug("Could not create AWS metering service", mlog.String("error", err.Error()))
 		return nil
 	}
 
@@ -81,8 +81,7 @@ func newAWSMarketplaceMeteringService() (*marketplacemetering.MarketplaceMeterin
 
 	_, err = creds.Get()
 	if err != nil {
-		mlog.Error("session is invalid", mlog.String("error", err.Error()))
-		return nil, errors.New("cannot obtain credentials")
+		return nil, errors.Wrap(err, "cannot obtain credentials")
 	}
 
 	return marketplacemetering.New(session.Must(session.NewSession(&aws.Config{
@@ -102,11 +101,11 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 		case model.AWS_METERING_DIMENSION_USAGE_HRS:
 			userCount, err = awsm.store.User().AnalyticsActiveCountForPeriod(model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), model.UserCountOptions{})
 			if err != nil {
-				mlog.Error("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.String("start", startTime.String()), mlog.Int64("count", userCount), mlog.Err(err))
+				mlog.Warn("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.String("start", startTime.String()), mlog.Int64("count", userCount), mlog.Err(err))
 				continue
 			}
 		default:
-			mlog.Error("Dimension does not exist!", mlog.String("dimension", dimension))
+			mlog.Debug("Dimension does not exist!", mlog.String("dimension", dimension))
 			continue
 		}
 

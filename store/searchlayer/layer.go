@@ -4,11 +4,12 @@
 package searchlayer
 
 import (
+	"context"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -19,6 +20,7 @@ type SearchStore struct {
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
+	fileInfo     *SearchFileInfoStore
 	configValue  atomic.Value
 }
 
@@ -32,6 +34,7 @@ func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cf
 	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: searchStore}
 	searchStore.team = &SearchTeamStore{TeamStore: baseStore.Team(), rootStore: searchStore}
 	searchStore.user = &SearchUserStore{UserStore: baseStore.User(), rootStore: searchStore}
+	searchStore.fileInfo = &SearchFileInfoStore{FileInfoStore: baseStore.FileInfo(), rootStore: searchStore}
 
 	return searchStore
 }
@@ -52,6 +55,10 @@ func (s *SearchStore) Post() store.PostStore {
 	return s.post
 }
 
+func (s *SearchStore) FileInfo() store.FileInfoStore {
+	return s.fileInfo
+}
+
 func (s *SearchStore) Team() store.TeamStore {
 	return s.team
 }
@@ -61,7 +68,7 @@ func (s *SearchStore) User() store.UserStore {
 }
 
 func (s *SearchStore) indexUserFromID(userId string) {
-	user, err := s.User().Get(userId)
+	user, err := s.User().Get(context.Background(), userId)
 	if err != nil {
 		return
 	}

@@ -28,9 +28,8 @@ func ReadTestFile(name string) ([]byte, error) {
 	data := &bytes.Buffer{}
 	if _, err := io.Copy(data, file); err != nil {
 		return nil, err
-	} else {
-		return data.Bytes(), nil
 	}
+	return data.Bytes(), nil
 }
 
 // GetInterface returns the best match of an interface that might be listening on a given port.

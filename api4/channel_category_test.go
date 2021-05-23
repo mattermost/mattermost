@@ -6,9 +6,10 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
@@ -437,7 +438,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {
 	password := "password"
-	user, err := th.App.CreateUser(&model.User{
+	user, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    th.GenerateTestEmail(),
 		Username: "user_" + model.NewId(),
 		Password: password,

@@ -12,16 +12,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
-const incompleteUploadSuffix = ".tmp"
+const IncompleteUploadSuffix = ".tmp"
 
-func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
+func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil
@@ -39,7 +40,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		defer close(errChan)
 		var rejErr *model.AppError
 		var once sync.Once
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
@@ -54,7 +55,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 				info = newInfo
 			}
 			return true
-		}, plugin.FileWillBeUploadedId)
+		}, plugin.FileWillBeUploadedID)
 		if rejErr != nil {
 			errChan <- rejErr
 		}
@@ -69,17 +70,17 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
 
 	if err = <-errChan; err != nil {
 		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
@@ -87,13 +88,12 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	if written > 0 {
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
-			mlog.Error("Failed to move file", mlog.Err(fileErr))
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
 				nil, fileErr.Error(), http.StatusInternalServerError)
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
@@ -112,7 +112,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	if us.Type == model.UploadTypeAttachment {
 		us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
 	} else if us.Type == model.UploadTypeImport {
-		us.Path = *a.Config().ImportSettings.Directory + "/" + us.Id + "_" + filepath.Base(us.Filename)
+		us.Path = filepath.Clean(*a.Config().ImportSettings.Directory) + "/" + us.Id + "_" + filepath.Base(us.Filename)
 	}
 	if err := us.IsValid(); err != nil {
 		return nil, err
@@ -154,8 +154,8 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 	return us, nil
 }
 
-func (a *App) GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError) {
-	uss, err := a.Srv().Store.UploadSession().GetForUser(userId)
+func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError) {
+	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
 			nil, err.Error(), http.StatusInternalServerError)
@@ -163,7 +163,7 @@ func (a *App) GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.Srv().uploadLockMapMut.Lock()
@@ -195,7 +195,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	uploadPath := us.Path
 	if us.Type == model.UploadTypeImport {
-		uploadPath += incompleteUploadSuffix
+		uploadPath += IncompleteUploadSuffix
 	}
 
 	// make sure it's not possible to upload more data than what is expected.
@@ -253,9 +253,13 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	info.CreatorId = us.UserId
 	info.Path = us.Path
+	info.RemoteId = model.NewString(us.RemoteId)
+	if us.ReqFileId != "" {
+		info.Id = us.ReqFileId
+	}
 
 	// run plugins upload hook
-	if err := a.runPluginsHook(info, file); err != nil {
+	if err := a.runPluginsHook(c, info, file); err != nil {
 		return nil, err
 	}
 
@@ -296,9 +300,19 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		}
 	}
 
+	if *a.Config().FileSettings.ExtractContent {
+		infoCopy := *info
+		a.Srv().Go(func() {
+			err := a.ExtractContentFromFileInfo(&infoCopy)
+			if err != nil {
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+			}
+		})
+	}
+
 	// delete upload session
 	if storeErr := a.Srv().Store.UploadSession().Delete(us.Id); storeErr != nil {
-		mlog.Error("Failed to delete UploadSession", mlog.Err(storeErr))
+		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil

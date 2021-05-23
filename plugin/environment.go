@@ -12,11 +12,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var ErrNotFound = errors.New("Item not found")
@@ -504,7 +505,7 @@ func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
-		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HEALTH_CHECK_INTERVAL))
+		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HealthCheckInterval))
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job

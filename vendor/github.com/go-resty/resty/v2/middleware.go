@@ -162,6 +162,8 @@ func createHTTPRequest(c *Client, r *Request) (err error) {
 	if r.bodyBuf == nil {
 		if reader, ok := r.Body.(io.Reader); ok {
 			r.RawRequest, err = http.NewRequest(r.Method, r.URL, reader)
+		} else if c.setContentLength || r.setContentLength {
+			r.RawRequest, err = http.NewRequest(r.Method, r.URL, http.NoBody)
 		} else {
 			r.RawRequest, err = http.NewRequest(r.Method, r.URL, nil)
 		}
@@ -206,29 +208,16 @@ func createHTTPRequest(c *Client, r *Request) (err error) {
 		r.RawRequest = r.RawRequest.WithContext(r.ctx)
 	}
 
+	bodyCopy, err := getBodyCopy(r)
+	if err != nil {
+		return err
+	}
+
 	// assign get body func for the underlying raw request instance
 	r.RawRequest.GetBody = func() (io.ReadCloser, error) {
-		// If r.bodyBuf present, return the copy
-		if r.bodyBuf != nil {
-			return ioutil.NopCloser(bytes.NewReader(r.bodyBuf.Bytes())), nil
+		if bodyCopy != nil {
+			return ioutil.NopCloser(bytes.NewReader(bodyCopy.Bytes())), nil
 		}
-
-		// Maybe body is `io.Reader`.
-		// Note: Resty user have to watchout for large body size of `io.Reader`
-		if r.RawRequest.Body != nil {
-			b, err := ioutil.ReadAll(r.RawRequest.Body)
-			if err != nil {
-				return nil, err
-			}
-
-			// Restore the Body
-			closeq(r.RawRequest.Body)
-			r.RawRequest.Body = ioutil.NopCloser(bytes.NewBuffer(b))
-
-			// Return the Body bytes
-			return ioutil.NopCloser(bytes.NewBuffer(b)), nil
-		}
-
 		return nil, nil
 	}
 
@@ -264,9 +253,9 @@ func addCredentials(c *Client, r *Request) error {
 
 	// Build the Token Auth header
 	if !IsStringEmpty(r.Token) { // takes precedence
-		r.RawRequest.Header.Set(hdrAuthorizationKey, authScheme+" "+r.Token)
+		r.RawRequest.Header.Set(c.HeaderAuthorizationKey, authScheme+" "+r.Token)
 	} else if !IsStringEmpty(c.Token) {
-		r.RawRequest.Header.Set(hdrAuthorizationKey, authScheme+" "+c.Token)
+		r.RawRequest.Header.Set(c.HeaderAuthorizationKey, authScheme+" "+c.Token)
 	}
 
 	return nil
@@ -320,7 +309,7 @@ func responseLogger(c *Client, res *Response) error {
 			"HEADERS      :\n" +
 			composeHeaders(c, res.Request, rl.Header) + "\n"
 		if res.Request.isSaveResponse {
-			debugLog += fmt.Sprintf("BODY         :\n***** RESPONSE WRITTEN INTO FILE *****\n")
+			debugLog += "BODY         :\n***** RESPONSE WRITTEN INTO FILE *****\n"
 		} else {
 			debugLog += fmt.Sprintf("BODY         :\n%v\n", rl.Body)
 		}
@@ -470,8 +459,14 @@ func handleRequestBody(c *Client, r *Request) (err error) {
 	} else if IsJSONType(contentType) &&
 		(kind == reflect.Struct || kind == reflect.Map || kind == reflect.Slice) {
 		bodyBytes, err = jsonMarshal(c, r, r.Body)
+		if err != nil {
+			return
+		}
 	} else if IsXMLType(contentType) && (kind == reflect.Struct) {
 		bodyBytes, err = xml.Marshal(r.Body)
+		if err != nil {
+			return
+		}
 	}
 
 	if bodyBytes == nil && r.bodyBuf == nil {
@@ -523,4 +518,28 @@ func saveResponseIntoFile(c *Client, res *Response) error {
 	}
 
 	return nil
+}
+
+func getBodyCopy(r *Request) (*bytes.Buffer, error) {
+	// If r.bodyBuf present, return the copy
+	if r.bodyBuf != nil {
+		return bytes.NewBuffer(r.bodyBuf.Bytes()), nil
+	}
+
+	// Maybe body is `io.Reader`.
+	// Note: Resty user have to watchout for large body size of `io.Reader`
+	if r.RawRequest.Body != nil {
+		b, err := ioutil.ReadAll(r.RawRequest.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		// Restore the Body
+		closeq(r.RawRequest.Body)
+		r.RawRequest.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+
+		// Return the Body bytes
+		return bytes.NewBuffer(b), nil
+	}
+	return nil, nil
 }

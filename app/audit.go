@@ -10,10 +10,11 @@ import (
 	"os/user"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -31,8 +32,8 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userId, 0, limit)
+func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+	audits, err := a.Srv().Store.Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -45,8 +46,8 @@ func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError
 	return audits, nil
 }
 
-func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+	audits, err := a.Srv().Store.Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -142,15 +143,12 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	if !bAllowAdvancedLogging || dsn == "" {
 		return errs
 	}
-	isJson := config.IsJsonMap(dsn)
-	cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
+	cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 	if err != nil {
 		errs = multierror.Append(fmt.Errorf("invalid config for audit, %w", err))
 		return errs
 	}
-	if !isJson {
-		mlog.Debug("Loaded audit configuration", mlog.String("filename", dsn))
-	}
+	mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
 
 	for name, t := range cfg.Get() {
 		if len(t.Levels) == 0 {

@@ -82,7 +82,7 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if len(b.OwnerId) == 0 || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
+	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 

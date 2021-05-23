@@ -54,7 +54,7 @@ if [[ ${TAG_FOUND} = ${TAG} ]] ; then
         exit -1
 fi
 
-# Get version for sdk/opentelemetry.go
+# Get version for version.go
 OTEL_VERSION=$(echo "${TAG}" | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+')
 # Strip leading v
 OTEL_VERSION="${OTEL_VERSION#v}"
@@ -68,13 +68,13 @@ if ! git diff --quiet; then \
 	exit 1
 fi
 
-# Update sdk/opentelemetry.go
-cp ./sdk/opentelemetry.go ./sdk/opentelemetry.go.bak
-sed "s/\(return \"\)[0-9]*\.[0-9]*\.[0-9]*\"/\1${OTEL_VERSION}\"/" ./sdk/opentelemetry.go.bak >./sdk/opentelemetry.go
-rm -f ./sdk/opentelemetry.go.bak
+# Update version.go
+cp ./version.go ./version.go.bak
+sed "s/\(return \"\)[0-9]*\.[0-9]*\.[0-9]*\"/\1${OTEL_VERSION}\"/" ./version.go.bak >./version.go
+rm -f ./version.go.bak
 
 # Update go.mod
-git checkout -b pre_release_${TAG} master
+git checkout -b pre_release_${TAG} main
 PACKAGE_DIRS=$(find . -mindepth 2 -type f -name 'go.mod' -exec dirname {} \; | egrep -v 'tools' | sed 's/^\.\///' | sort)
 
 for dir in $PACKAGE_DIRS; do
@@ -91,5 +91,5 @@ git add .
 make ci
 git commit -m "Prepare for releasing $TAG"
 
-printf "Now run following to verify the changes.\ngit diff master\n"
+printf "Now run following to verify the changes.\ngit diff main\n"
 printf "\nThen push the changes to upstream\n"

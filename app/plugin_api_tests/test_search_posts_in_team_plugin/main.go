@@ -23,7 +23,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	testCases := []struct {
 		description      string
 		teamID           string
@@ -32,25 +32,25 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 	}{
 		{
 			"nil params",
-			p.configuration.BasicTeamId,
+			p.configuration.BasicTeamID,
 			nil,
 			0,
 		},
 		{
 			"empty params",
-			p.configuration.BasicTeamId,
+			p.configuration.BasicTeamID,
 			[]*model.SearchParams{},
 			0,
 		},
 		{
 			"doesn't match any posts",
-			p.configuration.BasicTeamId,
+			p.configuration.BasicTeamID,
 			model.ParseSearchParams("bad message", 0),
 			0,
 		},
 		{
 			"matched posts",
-			p.configuration.BasicTeamId,
+			p.configuration.BasicTeamID,
 			model.ParseSearchParams(p.configuration.BasicPostMessage, 0),
 			1,
 		},

@@ -14,13 +14,13 @@ type UserAccessTokenStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: tokenId
-func (_m *UserAccessTokenStore) Delete(tokenId string) error {
-	ret := _m.Called(tokenId)
+// Delete provides a mock function with given fields: tokenID
+func (_m *UserAccessTokenStore) Delete(tokenID string) error {
+	ret := _m.Called(tokenID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(tokenId)
+		r0 = rf(tokenID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -28,13 +28,13 @@ func (_m *UserAccessTokenStore) Delete(tokenId string) error {
 	return r0
 }
 
-// DeleteAllForUser provides a mock function with given fields: userId
-func (_m *UserAccessTokenStore) DeleteAllForUser(userId string) error {
-	ret := _m.Called(userId)
+// DeleteAllForUser provides a mock function with given fields: userID
+func (_m *UserAccessTokenStore) DeleteAllForUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -42,13 +42,13 @@ func (_m *UserAccessTokenStore) DeleteAllForUser(userId string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: tokenId
-func (_m *UserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, error) {
-	ret := _m.Called(tokenId)
+// Get provides a mock function with given fields: tokenID
+func (_m *UserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
+	ret := _m.Called(tokenID)
 
 	var r0 *model.UserAccessToken
 	if rf, ok := ret.Get(0).(func(string) *model.UserAccessToken); ok {
-		r0 = rf(tokenId)
+		r0 = rf(tokenID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserAccessToken)
@@ -57,7 +57,7 @@ func (_m *UserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, err
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(tokenId)
+		r1 = rf(tokenID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -111,13 +111,13 @@ func (_m *UserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcces
 	return r0, r1
 }
 
-// GetByUser provides a mock function with given fields: userId, page, perPage
-func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(userId, page, perPage)
+// GetByUser provides a mock function with given fields: userID, page, perPage
+func (_m *UserAccessTokenStore) GetByUser(userID string, page int, perPage int) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(userID, page, perPage)
 
 	var r0 []*model.UserAccessToken
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.UserAccessToken); ok {
-		r0 = rf(userId, page, perPage)
+		r0 = rf(userID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserAccessToken)
@@ -126,7 +126,7 @@ func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) 
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(userId, page, perPage)
+		r1 = rf(userID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -180,13 +180,13 @@ func (_m *UserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, e
 	return r0, r1
 }
 
-// UpdateTokenDisable provides a mock function with given fields: tokenId
-func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenId string) error {
-	ret := _m.Called(tokenId)
+// UpdateTokenDisable provides a mock function with given fields: tokenID
+func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
+	ret := _m.Called(tokenID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(tokenId)
+		r0 = rf(tokenID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -194,13 +194,13 @@ func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenId string) error {
 	return r0
 }
 
-// UpdateTokenEnable provides a mock function with given fields: tokenId
-func (_m *UserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
-	ret := _m.Called(tokenId)
+// UpdateTokenEnable provides a mock function with given fields: tokenID
+func (_m *UserAccessTokenStore) UpdateTokenEnable(tokenID string) error {
+	ret := _m.Called(tokenID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(tokenId)
+		r0 = rf(tokenID)
 	} else {
 		r0 = ret.Error(0)
 	}

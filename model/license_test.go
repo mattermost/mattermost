@@ -33,8 +33,8 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["custom_permissions_schemes"].(bool))
 	CheckTrue(t, m["id_loaded"].(bool))
 	CheckTrue(t, m["future"].(bool))
-	CheckFalse(t, m["shared_channels"].(bool))
-	CheckFalse(t, m["remote_cluster_service"].(bool))
+	CheckTrue(t, m["shared_channels"].(bool))
+	CheckTrue(t, m["remote_cluster_service"].(bool))
 }
 
 func TestLicenseFeaturesSetDefaults(t *testing.T) {
@@ -59,8 +59,8 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.IDLoadedPushNotifications)
-	CheckFalse(t, *f.SharedChannels)
-	CheckFalse(t, *f.RemoteClusterService)
+	CheckTrue(t, *f.SharedChannels)
+	CheckTrue(t, *f.RemoteClusterService)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}

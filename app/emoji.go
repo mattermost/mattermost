@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -19,8 +20,9 @@ import (
 	"path"
 
 	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -38,7 +40,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -56,7 +58,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if existingEmoji, err := a.Srv().Store.Emoji().GetByName(emoji.Name, true); err == nil && existingEmoji != nil {
+	if existingEmoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emoji.Name, true); err == nil && existingEmoji != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -95,13 +97,13 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("UploadEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	file, err := imageData.Open()
 	if err != nil {
-		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
 
@@ -111,7 +113,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	// make sure the file is an image and is within the required dimensions
 	config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes()))
 	if err != nil {
-		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if config.Width > MaxEmojiOriginalWidth || config.Height > MaxEmojiOriginalHeight {
@@ -132,24 +134,24 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 		if info.MimeType == "image/gif" {
 			gif_data, err := gif.DecodeAll(bytes.NewReader(data))
 			if err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
 			resized_gif := resizeEmojiGif(gif_data)
 			if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
 			buf = newbuf
 		} else {
 			img, _, err := image.Decode(bytes.NewReader(data))
 			if err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
 			resized_image := resizeEmoji(img, config.Width, config.Height)
 			if err := png.Encode(newbuf, resized_image); err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, err.Error(), http.StatusBadRequest)
 			}
 			buf = newbuf
 		}
@@ -180,11 +182,11 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	emoji, err := a.Srv().Store.Emoji().Get(emojiId, false)
+	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -203,11 +205,11 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true)
+	emoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emojiName, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -235,7 +237,7 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 }
 
 func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	_, storeErr := a.Srv().Store.Emoji().Get(emojiId, true)
+	_, storeErr := a.Srv().Store.Emoji().Get(context.Background(), emojiId, true)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -281,16 +283,16 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 		return path.Join(subPath, "/static/emoji", id+".png"), nil
 	}
 
-	if emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true); err == nil {
+	emoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emojiName, true)
+	if err == nil {
 		return path.Join(subPath, "/api/v4/emoji", emoji.Id, "image"), nil
-	} else {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
-		default:
-			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	}
+	var nfErr *store.ErrNotFound
+	switch {
+	case errors.As(err, &nfErr):
+		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
+	default:
+		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -337,7 +339,7 @@ func imageToPaletted(img image.Image) *image.Paletted {
 
 func (a *App) deleteEmojiImage(id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		mlog.Error("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
+		mlog.Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }
 

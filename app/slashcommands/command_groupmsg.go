@@ -7,17 +7,18 @@ import (
 	"fmt"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type groupmsgProvider struct {
 }
 
 const (
-	CMD_GROUPMSG = "groupmsg"
+	CmdGroupMsg = "groupmsg"
 )
 
 func init() {
@@ -25,12 +26,12 @@ func init() {
 }
 
 func (*groupmsgProvider) GetTrigger() string {
-	return CMD_GROUPMSG
+	return CmdGroupMsg
 }
 
-func (*groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*groupmsgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_GROUPMSG,
+		Trigger:          CmdGroupMsg,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_groupmsg.desc"),
 		AutoCompleteHint: T("api.command_groupmsg.hint"),
@@ -38,7 +39,7 @@ func (*groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 	}
 }
 
-func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	targetUsers := map[string]*model.User{}
 	targetUsersSlice := []string{args.UserId}
 	invalidUsernames := []string{}
@@ -82,7 +83,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 	}
 
 	if len(targetUsersSlice) == 2 {
-		return app.GetCommandProvider("msg").DoCommand(a, args, fmt.Sprintf("%s %s", targetUsers[targetUsersSlice[1]].Username, parsedMessage))
+		return app.GetCommandProvider("msg").DoCommand(a, c, args, fmt.Sprintf("%s %s", targetUsers[targetUsersSlice[1]].Username, parsedMessage))
 	}
 
 	if len(targetUsersSlice) < model.CHANNEL_GROUP_MIN_USERS {
@@ -121,12 +122,12 @@ func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		}
 	}
 
-	if len(parsedMessage) > 0 {
+	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = groupChannel.Id
 		post.UserId = args.UserId
-		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(c, post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

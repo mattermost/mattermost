@@ -14,7 +14,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v5/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/shared/markdown"
 )
 
 const (
@@ -45,7 +45,6 @@ const (
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
-	POST_MAX_FILES              = 10
 	POST_FILEIDS_MAX_RUNES      = 300
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
@@ -97,10 +96,14 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount int64         `json:"reply_count" db:"-"`
-	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount   int64         `json:"reply_count" db:"-"`
+	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
+	Participants []*User       `json:"participants" db:"-"`
+	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -164,6 +167,12 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type FileForIndexing struct {
+	FileInfo
+	ChannelId string `json:"channel_id"`
+	Content   string `json:"content"`
+}
+
 // ShallowCopy is an utility function to shallow copy a Post to the given
 // destination without touching the internal RWMutex.
 func (o *Post) ShallowCopy(dst *Post) error {
@@ -195,7 +204,11 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.PendingPostId = o.PendingPostId
 	dst.HasReactions = o.HasReactions
 	dst.ReplyCount = o.ReplyCount
+	dst.Participants = o.Participants
+	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
+	dst.IsFollowing = o.IsFollowing
+	dst.RemoteId = o.RemoteId
 	return nil
 }
 
@@ -219,17 +232,35 @@ func (o *Post) ToUnsanitizedJson() string {
 }
 
 type GetPostsSinceOptions struct {
-	ChannelId        string
-	Time             int64
-	SkipFetchThreads bool
+	UserId                   string
+	ChannelId                string
+	Time                     int64
+	SkipFetchThreads         bool
+	CollapsedThreads         bool
+	CollapsedThreadsExtended bool
+	SortAscending            bool
+}
+
+type GetPostsSinceForSyncCursor struct {
+	LastPostUpdateAt int64
+	LastPostId       string
+}
+
+type GetPostsSinceForSyncOptions struct {
+	ChannelId       string
+	ExcludeRemoteId string
+	IncludeDeleted  bool
 }
 
 type GetPostsOptions struct {
-	ChannelId        string
-	PostId           string
-	Page             int
-	PerPage          int
-	SkipFetchThreads bool
+	UserId                   string
+	ChannelId                string
+	PostId                   string
+	Page                     int
+	PerPage                  int
+	SkipFetchThreads         bool
+	CollapsedThreads         bool
+	CollapsedThreadsExtended bool
 }
 
 func PostFromJson(data io.Reader) *Post {
@@ -263,19 +294,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || o.ParentId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
+	if len(o.ParentId) == 26 && o.RootId == "" {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
+	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -326,12 +357,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.FileIds) > POST_MAX_FILES {
-		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-	}
-
 	if utf8.RuneCountInString(ArrayToJson(o.FileIds)) > POST_FILEIDS_MAX_RUNES {
-		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusInternalServerError)
+		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
@@ -350,6 +377,9 @@ func (o *Post) SanitizeProps() {
 		if _, ok := o.GetProps()[member]; ok {
 			o.DelProp(member)
 		}
+	}
+	for _, p := range o.Participants {
+		p.Sanitize(map[string]bool{})
 	}
 }
 
@@ -435,6 +465,19 @@ func (o *Post) GetProp(key string) interface{} {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
+}
+
+// IsRemote returns true if the post originated on a remote cluster.
+func (o *Post) IsRemote() bool {
+	return o.RemoteId != nil && *o.RemoteId != ""
+}
+
+// GetRemoteID safely returns the remoteID or empty string if not remote.
+func (o *Post) GetRemoteID() string {
+	if o.RemoteId != nil {
+		return *o.RemoteId
+	}
+	return ""
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {
@@ -557,6 +600,14 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					i := 0
+					for _, action := range decoded.Actions {
+						if action != nil {
+							decoded.Actions[i] = action
+							i++
+						}
+					}
+					decoded.Actions = decoded.Actions[:i]
 					ret = append(ret, &decoded)
 				}
 			}
@@ -669,4 +720,9 @@ func RewriteImageURLs(message string, f func(string) string) string {
 	copy(result[offset:], message[ranges[len(ranges)-1].End:])
 
 	return string(result)
+}
+
+func (o *Post) IsFromOAuthBot() bool {
+	props := o.GetProps()
+	return props["from_webhook"] == "true" && props["override_username"] != ""
 }

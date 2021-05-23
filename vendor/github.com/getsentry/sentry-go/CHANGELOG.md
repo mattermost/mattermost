@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.10.0
+
+- feat: Debug connection reuse (#323)
+- fix: Send root span data as `Event.Extra` (#329)
+- fix: Do not double sample transactions (#328)
+- fix: Do not override trace context of transactions (#327)
+- fix: Drain and close API response bodies (#322)
+- ci: Run tests against Go tip (#319)
+- ci: Move away from Travis in favor of GitHub Actions (#314) (#321)
+
+## v0.9.0
+
+- feat: Initial tracing and performance monitoring support (#285)
+- doc: Revamp sentryhttp documentation (#304)
+- fix: Hub.PopScope never empties the scope stack (#300)
+- ref: Report Event.Timestamp in local time (#299)
+- ref: Report Breadcrumb.Timestamp in local time (#299)
+
+_NOTE:_
+This version introduces support for [Sentry's Performance Monitoring](https://docs.sentry.io/platforms/go/performance/).
+The new tracing capabilities are beta, and we plan to expand them on future versions. Feedback is welcome, please open new issues on GitHub.
+The `sentryhttp` package got better API docs, an [updated usage example](https://github.com/getsentry/sentry-go/tree/master/example/http) and support for creating automatic transactions as part of Performance Monitoring.
+
+## v0.8.0
+
+- build: Bump required version of Iris (#296)
+- fix: avoid unnecessary allocation in Client.processEvent (#293)
+- doc: Remove deprecation of sentryhttp.HandleFunc (#284)
+- ref: Update sentryhttp example (#283)
+- doc: Improve documentation of sentryhttp package (#282)
+- doc: Clarify SampleRate documentation (#279)
+- fix: Remove RawStacktrace (#278)
+- docs: Add example of custom HTTP transport
+- ci: Test against go1.15, drop go1.12 support (#271)
+
+_NOTE:_
+This version comes with a few updates. Some examples and documentation have been
+improved. We've bumped the supported version of the Iris framework to avoid
+LGPL-licensed modules in the module dependency graph.
+The `Exception.RawStacktrace` and `Thread.RawStacktrace` fields have been
+removed to conform to Sentry's ingestion protocol, only `Exception.Stacktrace`
+and `Thread.Stacktrace` should appear in user code.
+
 ## v0.7.0
 
 - feat: Include original error when event cannot be encoded as JSON (#258)
@@ -48,11 +91,11 @@ allocated.
   Before the SDK accepted a concrete value of type `*http.Transport` in
   `ClientOptions`, now it accepts any value implementing the `http.RoundTripper`
   interface. Note that `*http.Transport` implements `http.RoundTripper`, so most
-  code bases will continue to work unchanged.  
+  code bases will continue to work unchanged.
   Users of custom transport gain the ability to pass in other implementations of
   `http.RoundTripper` and may be able to simplify their code bases.
 - fix: Do not panic when scope event processor drops event (#192)
-- **[breaking]** fix: Use time.Time for timestamps (#191)  
+- **[breaking]** fix: Use time.Time for timestamps (#191)
   Users of sentry-go typically do not need to manipulate timestamps manually.
   For those who do, the field type changed from `int64` to `time.Time`, which
   should be more convenient to use. The recommended way to get the current time
@@ -61,7 +104,7 @@ allocated.
 - feat: Add Exception.ThreadID field (#183)
 - ci: Test against Go 1.14, drop 1.11 (#170)
 - feat: Limit reading bytes from request bodies (#168)
-- **[breaking]** fix: Rename fasthttp integration package sentryhttp => sentryfasthttp  
+- **[breaking]** fix: Rename fasthttp integration package sentryhttp => sentryfasthttp
   The current recommendation is to use a named import, in which case existing
   code should not require any change:
   ```go
@@ -131,7 +174,7 @@ Please verify the usage of `sentry.Flush` in your code base.
 
 ## v0.3.0
 
-- feat: Retry event marshalling without contextual data if the first pass fails
+- feat: Retry event marshaling without contextual data if the first pass fails
 - fix: Include `url.Parse` error in `DsnParseError`
 - fix: Make more `Scope` methods safe for concurrency
 - fix: Synchronize concurrent access to `Hub.client`

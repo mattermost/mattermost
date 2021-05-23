@@ -63,7 +63,7 @@ func NewScope() *Scope {
 // and optionally throws the old one if limit is reached.
 func (scope *Scope) AddBreadcrumb(breadcrumb *Breadcrumb, limit int) {
 	if breadcrumb.Timestamp.IsZero() {
-		breadcrumb.Timestamp = time.Now().UTC()
+		breadcrumb.Timestamp = time.Now()
 	}
 
 	scope.mu.Lock()
@@ -278,12 +278,20 @@ func (scope *Scope) SetLevel(level Level) {
 	scope.level = level
 }
 
-// SetTransaction sets new transaction name for the current transaction.
-func (scope *Scope) SetTransaction(transactionName string) {
+// SetTransaction sets the transaction name for the current transaction.
+func (scope *Scope) SetTransaction(name string) {
 	scope.mu.Lock()
 	defer scope.mu.Unlock()
 
-	scope.transaction = transactionName
+	scope.transaction = name
+}
+
+// Transaction returns the transaction name for the current transaction.
+func (scope *Scope) Transaction() (name string) {
+	scope.mu.RLock()
+	defer scope.mu.RUnlock()
+
+	return scope.transaction
 }
 
 // Clone returns a copy of the current scope with all data copied over.
@@ -356,6 +364,14 @@ func (scope *Scope) ApplyToEvent(event *Event, hint *EventHint) *Event {
 		}
 
 		for key, value := range scope.contexts {
+			if key == "trace" && event.Type == transactionType {
+				// Do not override trace context of
+				// transactions, otherwise it breaks the
+				// transaction event representation.
+				// For error events, the trace context is used
+				// to link errors and traces/spans in Sentry.
+				continue
+			}
 			event.Contexts[key] = value
 		}
 	}

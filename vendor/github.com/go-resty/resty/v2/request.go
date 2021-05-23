@@ -43,6 +43,12 @@ type Request struct {
 	UserInfo   *User
 	Cookies    []*http.Cookie
 
+	// Attempt is to represent the request attempt made during a Resty
+	// request execution flow, including retry count.
+	//
+	// Since v2.4.0
+	Attempt int
+
 	isMultiPart         bool
 	isFormData          bool
 	setContentLength    bool
@@ -375,7 +381,7 @@ func (r *Request) SetMultipartFields(fields ...*MultipartField) *Request {
 // See `Client.SetContentLength`
 // 		client.R().SetContentLength(true)
 func (r *Request) SetContentLength(l bool) *Request {
-	r.setContentLength = true
+	r.setContentLength = l
 	return r
 }
 
@@ -463,6 +469,20 @@ func (r *Request) SetDoNotParseResponse(parse bool) *Request {
 	return r
 }
 
+// SetPathParam method sets single URL path key-value pair in the
+// Resty current request instance.
+// 		client.R().SetPathParam("userId", "sample@sample.com")
+//
+// 		Result:
+// 		   URL - /v1/users/{userId}/details
+// 		   Composed URL - /v1/users/sample@sample.com/details
+// It replaces the value of the key while composing the request URL. Also you can
+// override Path Params value, which was set at client instance level.
+func (r *Request) SetPathParam(param, value string) *Request {
+	r.pathParams[param] = value
+	return r
+}
+
 // SetPathParams method sets multiple URL path key-value pairs at one go in the
 // Resty current request instance.
 // 		client.R().SetPathParams(map[string]string{
@@ -473,11 +493,11 @@ func (r *Request) SetDoNotParseResponse(parse bool) *Request {
 // 		Result:
 // 		   URL - /v1/users/{userId}/{subAccountId}/details
 // 		   Composed URL - /v1/users/sample@sample.com/100002/details
-// It replace the value of the key while composing request URL. Also you can
+// It replaces the value of the key while composing request URL. Also you can
 // override Path Params value, which was set at client instance level.
 func (r *Request) SetPathParams(params map[string]string) *Request {
 	for p, v := range params {
-		r.pathParams[p] = v
+		r.SetPathParam(p, v)
 	}
 	return r
 }
@@ -490,7 +510,8 @@ func (r *Request) ExpectContentType(contentType string) *Request {
 }
 
 // ForceContentType method provides a strong sense of response `Content-Type` for automatic unmarshalling.
-// Resty will respect it with higher priority; even response `Content-Type` response header value is available.
+// Resty gives this a higher priority than the `Content-Type` response header.  This means that if both
+// `Request.ForceContentType` is set and the response `Content-Type` is available, `ForceContentType` will win.
 func (r *Request) ForceContentType(contentType string) *Request {
 	r.forceContentType = contentType
 	return r
@@ -575,28 +596,41 @@ func (r *Request) TraceInfo() TraceInfo {
 	}
 
 	ti := TraceInfo{
-		DNSLookup:     ct.dnsDone.Sub(ct.dnsStart),
-		TLSHandshake:  ct.tlsHandshakeDone.Sub(ct.tlsHandshakeStart),
-		ServerTime:    ct.gotFirstResponseByte.Sub(ct.gotConn),
-		TotalTime:     ct.endTime.Sub(ct.dnsStart),
-		IsConnReused:  ct.gotConnInfo.Reused,
-		IsConnWasIdle: ct.gotConnInfo.WasIdle,
-		ConnIdleTime:  ct.gotConnInfo.IdleTime,
+		DNSLookup:      ct.dnsDone.Sub(ct.dnsStart),
+		TLSHandshake:   ct.tlsHandshakeDone.Sub(ct.tlsHandshakeStart),
+		ServerTime:     ct.gotFirstResponseByte.Sub(ct.gotConn),
+		IsConnReused:   ct.gotConnInfo.Reused,
+		IsConnWasIdle:  ct.gotConnInfo.WasIdle,
+		ConnIdleTime:   ct.gotConnInfo.IdleTime,
+		RequestAttempt: r.Attempt,
 	}
 
-	// Only calcuate on successful connections
+	// Calculate the total time accordingly,
+	// when connection is reused
+	if ct.gotConnInfo.Reused {
+		ti.TotalTime = ct.endTime.Sub(ct.getConn)
+	} else {
+		ti.TotalTime = ct.endTime.Sub(ct.dnsStart)
+	}
+
+	// Only calculate on successful connections
 	if !ct.connectDone.IsZero() {
 		ti.TCPConnTime = ct.connectDone.Sub(ct.dnsDone)
 	}
 
-	// Only calcuate on successful connections
+	// Only calculate on successful connections
 	if !ct.gotConn.IsZero() {
 		ti.ConnTime = ct.gotConn.Sub(ct.getConn)
 	}
 
-	// Only calcuate on successful connections
+	// Only calculate on successful connections
 	if !ct.gotFirstResponseByte.IsZero() {
 		ti.ResponseTime = ct.endTime.Sub(ct.gotFirstResponseByte)
+	}
+
+	// Capture remote address info when connection is non-nil
+	if ct.gotConnInfo.Conn != nil {
+		ti.RemoteAddr = ct.gotConnInfo.Conn.RemoteAddr()
 	}
 
 	return ti
@@ -660,12 +694,14 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 	var err error
 
 	if r.isMultiPart && !(method == MethodPost || method == MethodPut || method == MethodPatch) {
+		// No OnError hook here since this is a request validation error
 		return nil, fmt.Errorf("multipart content is not allowed in HTTP verb [%v]", method)
 	}
 
 	if r.SRV != nil {
 		_, addrs, err = net.LookupSRV(r.SRV.Service, "tcp", r.SRV.Domain)
 		if err != nil {
+			r.client.onErrorHooks(r, nil, err)
 			return nil, err
 		}
 	}
@@ -674,20 +710,21 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 	r.URL = r.selectAddr(addrs, url, 0)
 
 	if r.client.RetryCount == 0 {
+		r.Attempt = 1
 		resp, err = r.client.execute(r)
+		r.client.onErrorHooks(r, resp, unwrapNoRetryErr(err))
 		return resp, unwrapNoRetryErr(err)
 	}
 
-	attempt := 0
 	err = Backoff(
 		func() (*Response, error) {
-			attempt++
+			r.Attempt++
 
-			r.URL = r.selectAddr(addrs, url, attempt)
+			r.URL = r.selectAddr(addrs, url, r.Attempt)
 
 			resp, err = r.client.execute(r)
 			if err != nil {
-				r.client.log.Errorf("%v, Attempt %v", err, attempt)
+				r.client.log.Errorf("%v, Attempt %v", err, r.Attempt)
 			}
 
 			return resp, err
@@ -697,6 +734,8 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 		MaxWaitTime(r.client.RetryMaxWaitTime),
 		RetryConditions(r.client.RetryConditions),
 	)
+
+	r.client.onErrorHooks(r, resp, unwrapNoRetryErr(err))
 
 	return resp, unwrapNoRetryErr(err)
 }

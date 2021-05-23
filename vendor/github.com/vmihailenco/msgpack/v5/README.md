@@ -1,47 +1,57 @@
 # MessagePack encoding for Golang
 
 [![Build Status](https://travis-ci.org/vmihailenco/msgpack.svg)](https://travis-ci.org/vmihailenco/msgpack)
-[![GoDoc](https://godoc.org/github.com/vmihailenco/msgpack?status.svg)](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/vmihailenco/msgpack/v5)](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5)
+[![Documentation](https://img.shields.io/badge/msgpack-documentation-informational)](https://msgpack.uptrace.dev/)
+[![Chat](https://discordapp.com/api/guilds/752070105847955518/widget.png)](https://discord.gg/rWtp5Aj)
 
-## Sponsors
+> :heart:
+> [**Uptrace.dev** - All-in-one tool to optimize performance and monitor errors & logs](https://uptrace.dev/?utm_source=gh-msgpack&utm_campaign=gh-msgpack-var2)
 
-- [**Uptrace.dev** - distributed traces and metrics](https://uptrace.dev)
+- Join [Discord](https://discord.gg/rWtp5Aj) to ask questions.
+- [Documentation](https://msgpack.uptrace.dev)
+- [Reference](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5)
+- [Examples](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#pkg-examples)
 
 ## Features
 
 - Primitives, arrays, maps, structs, time.Time and interface{}.
 - Appengine \*datastore.Key and datastore.Cursor.
-- [CustomEncoder](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#example-CustomEncoder)/CustomDecoder
-  interfaces for custom encoding.
-- [Extensions](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#example-RegisterExt)
-  to encode type information.
-- Renaming fields via `msgpack:"my_field_name"` and alias via
-  `msgpack:"alias:another_name"`.
+- [CustomEncoder]/[CustomDecoder] interfaces for custom encoding.
+- [Extensions](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#example-RegisterExt) to encode
+  type information.
+- Renaming fields via `msgpack:"my_field_name"` and alias via `msgpack:"alias:another_name"`.
 - Omitting individual empty fields via `msgpack:",omitempty"` tag or all
-  [empty fields in a struct](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#example-Marshal--OmitEmpty).
-- [Map keys sorting](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#Encoder.SortMapKeys).
+  [empty fields in a struct](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#example-Marshal-OmitEmpty).
+- [Map keys sorting](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#Encoder.SetSortMapKeys).
 - Encoding/decoding all
-  [structs as arrays](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#Encoder.UseArrayForStructs)
+  [structs as arrays](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#Encoder.UseArrayEncodedStructs)
   or
-  [individual structs](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#example-Marshal--AsArray).
-- [Encoder.UseJSONTag](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#Encoder.UseJSONTag)
-  with
-  [Decoder.UseJSONTag](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#Decoder.UseJSONTag)
-  can turn msgpack into drop-in replacement for JSON.
+  [individual structs](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#example-Marshal-AsArray).
+- [Encoder.SetCustomStructTag] with [Decoder.SetCustomStructTag] can turn msgpack into drop-in
+  replacement for any tag.
 - Simple but very fast and efficient
-  [queries](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#example-Decoder-Query).
+  [queries](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#example-Decoder.Query).
 
-API docs: https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc.
-Examples:
-https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#pkg-examples.
+[customencoder]: https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#CustomEncoder
+[customdecoder]: https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#CustomDecoder
+[encoder.setcustomstructtag]:
+  https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#Encoder.SetCustomStructTag
+[decoder.setcustomstructtag]:
+  https://pkg.go.dev/github.com/vmihailenco/msgpack/v5#Decoder.SetCustomStructTag
 
 ## Installation
 
-This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) and
-semantic import versioning since v4:
+msgpack supports 2 last Go versions and requires support for
+[Go modules](https://github.com/golang/go/wiki/Modules). So make sure to initialize a Go module:
 
 ```shell
 go mod init github.com/my/repo
+```
+
+And then install msgpack/v5 (note _v5_ in the import; omitting it is a popular mistake):
+
+```shell
 go get github.com/vmihailenco/msgpack/v5
 ```
 
@@ -70,23 +80,8 @@ func ExampleMarshal() {
 }
 ```
 
-## Benchmark
-
-```
-BenchmarkStructVmihailencoMsgpack-4   	  200000	     12814 ns/op	    2128 B/op	      26 allocs/op
-BenchmarkStructUgorjiGoMsgpack-4      	  100000	     17678 ns/op	    3616 B/op	      70 allocs/op
-BenchmarkStructUgorjiGoCodec-4        	  100000	     19053 ns/op	    7346 B/op	      23 allocs/op
-BenchmarkStructJSON-4                 	   20000	     69438 ns/op	    7864 B/op	      26 allocs/op
-BenchmarkStructGOB-4                  	   10000	    104331 ns/op	   14664 B/op	     278 allocs/op
-```
-
-## Howto
-
-Please go through
-[examples](https://pkg.go.dev/github.com/vmihailenco/msgpack/v5?tab=doc#pkg-examples)
-to get an idea how to use this package.
-
 ## See also
 
+- [Fast and flexible HTTP router](https://github.com/vmihailenco/treemux)
 - [Golang PostgreSQL ORM](https://github.com/go-pg/pg)
 - [Golang message task queue](https://github.com/vmihailenco/taskq)

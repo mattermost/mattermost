@@ -8,12 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -24,7 +25,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPErrors)
 
 	var flagtests = []struct {
@@ -83,7 +84,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
 	request := httptest.NewRequest("GET", "/api/v4/test", nil)
@@ -135,15 +136,15 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+	web := New(th.App, th.Server.Router)
 
 	handler := Handler{
-		GetGlobalAppOptions: web.GetGlobalAppOptions,
-		HandleFunc:          handlerForCSRFToken,
-		RequireSession:      true,
-		TrustRequester:      false,
-		RequireMfa:          false,
-		IsStatic:            false,
+		App:            web.app,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
 	}
 
 	cookie := &http.Cookie{
@@ -218,12 +219,12 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	// Handler with RequireSession set to false
 
 	handlerNoSession := Handler{
-		GetGlobalAppOptions: web.GetGlobalAppOptions,
-		HandleFunc:          handlerForCSRFToken,
-		RequireSession:      false,
-		TrustRequester:      false,
-		RequireMfa:          false,
-		IsStatic:            false,
+		App:            th.App,
+		HandleFunc:     handlerForCSRFToken,
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
 	}
 
 	// CSRF Token Used - Success Expected
@@ -262,15 +263,15 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
-			GetGlobalAppOptions: web.GetGlobalAppOptions,
-			HandleFunc:          handlerForCSPHeader,
-			RequireSession:      false,
-			TrustRequester:      false,
-			RequireMfa:          false,
-			IsStatic:            false,
+			App:            web.app,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       false,
 		}
 
 		request := httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -284,15 +285,15 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
-			GetGlobalAppOptions: web.GetGlobalAppOptions,
-			HandleFunc:          handlerForCSPHeader,
-			RequireSession:      false,
-			TrustRequester:      false,
-			RequireMfa:          false,
-			IsStatic:            true,
+			App:            web.app,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -324,15 +325,15 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
 		})
 
-		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+		web := New(th.App, th.Server.Router)
 
 		handler := Handler{
-			GetGlobalAppOptions: web.GetGlobalAppOptions,
-			HandleFunc:          handlerForCSPHeader,
-			RequireSession:      false,
-			TrustRequester:      false,
-			RequireMfa:          false,
-			IsStatic:            true,
+			App:            web.app,
+			HandleFunc:     handlerForCSPHeader,
+			RequireSession: false,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       true,
 		}
 
 		request := httptest.NewRequest("POST", "/", nil)
@@ -379,15 +380,15 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
 			})
 
-			web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+			web := New(th.App, th.Server.Router)
 
 			handler := Handler{
-				GetGlobalAppOptions: web.GetGlobalAppOptions,
-				HandleFunc:          handlerForCSRFToken,
-				RequireSession:      true,
-				TrustRequester:      false,
-				RequireMfa:          false,
-				IsStatic:            false,
+				App:            web.app,
+				HandleFunc:     handlerForCSRFToken,
+				RequireSession: true,
+				TrustRequester: false,
+				RequireMfa:     false,
+				IsStatic:       false,
 			}
 
 			cookie := &http.Cookie{
@@ -421,7 +422,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
@@ -451,8 +453,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
-			Log: th.App.Log(),
+			App:        th.App,
+			Logger:     th.App.Log(),
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -500,8 +503,9 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
-			Log: th.App.Log(),
+			App:        th.App,
+			Logger:     th.App.Log(),
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -531,7 +535,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		session := &model.Session{
@@ -560,7 +565,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodGet, "", nil)
 		session := &model.Session{
@@ -589,7 +595,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationHeader
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		session := &model.Session{
@@ -618,7 +625,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)
@@ -643,7 +651,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		tokenLocation := app.TokenLocationCookie
 
 		c := &Context{
-			App: th.App,
+			App:        th.App,
+			AppContext: th.Context,
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_CSRF_TOKEN, token)

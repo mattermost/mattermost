@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -36,9 +36,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 
@@ -46,7 +46,13 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	cfg := &WebConnConfig{
+		WebSocket: c,
+		Session:   *session,
+		TFunc:     i18n.IdentityTfunc(),
+		Locale:    "en",
+	}
+	wc := a.NewWebConn(cfg)
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -138,7 +144,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
 	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", "id1").Return(sess1, nil)
+	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}
@@ -161,8 +167,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	defer s.Close()
 
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "testid")
-	hub := th.App.Srv().hubs[0]
-	hub.Register(wc1)
+	hub := th.App.GetHubForUserId(wc1.UserId)
 
 	done := make(chan bool)
 
@@ -173,7 +178,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamId", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
 		}
 		close(done)
 	}()
@@ -199,7 +204,7 @@ func TestHubConnIndex(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
@@ -270,6 +275,56 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexInactive(t *testing.T) {
+	connIndex := newHubConnectionIndex(2 * time.Second)
+
+	// User1
+	wc1 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc1.SetConnectionID("conn1")
+
+	// User2
+	wc2 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc2.SetConnectionID("conn2")
+	wc3 := &WebConn{
+		UserId: wc2.UserId,
+		active: false,
+	}
+	wc3.SetConnectionID("conn3")
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc1.UserId, "conn3"))
+
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc1.UserId, "conn3"))
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+
+	wc3.lastUserActivityAt = model.GetMillis()
+	connIndex.Add(wc3)
+	connIndex.RemoveInactiveConnections()
+	assert.True(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
+	assert.Len(t, connIndex.All(), 3)
+
+	wc3.lastUserActivityAt = model.GetMillis() - (time.Minute).Milliseconds()
+	connIndex.RemoveInactiveConnections()
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+	assert.Len(t, connIndex.All(), 2)
+}
+
 func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -303,7 +358,7 @@ func TestHubIsRegistered(t *testing.T) {
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{

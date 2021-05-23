@@ -15,16 +15,19 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/mattermost/mattermost-server/v5/app"
-	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/tracing"
-	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
+
+	"github.com/mattermost/mattermost-server/v5/app"
+	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
+	"github.com/mattermost/mattermost-server/v5/app/request"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -38,46 +41,47 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      false,
-		RequireMfa:          false,
-		IsStatic:            false,
-		IsLocal:             false,
+		App:            w.app,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsLocal:        false,
 	}
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
 
 	return &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      false,
-		RequireMfa:          false,
-		IsStatic:            true,
+		App:            w.app,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       true,
 
 		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
 }
 
 type Handler struct {
-	GetGlobalAppOptions app.AppOptionCreator
-	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
-	HandlerName         string
-	RequireSession      bool
-	RequireCloudKey     bool
-	TrustRequester      bool
-	RequireMfa          bool
-	IsStatic            bool
-	IsLocal             bool
-	DisableWhenBusy     bool
+	App                       app.AppIface
+	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
+	HandlerName               string
+	RequireSession            bool
+	RequireCloudKey           bool
+	RequireRemoteClusterToken bool
+	TrustRequester            bool
+	RequireMfa                bool
+	IsStatic                  bool
+	IsLocal                   bool
+	DisableWhenBusy           bool
 
 	cspShaDirective string
 }
@@ -101,31 +105,30 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.Debug("Received HTTP request", responseLogFields...)
 	}()
 
-	c := &Context{}
-	c.App = app.New(
-		h.GetGlobalAppOptions()...,
-	)
-	c.App.InitServer()
+	c := &Context{
+		AppContext: &request.Context{},
+		App:        h.App,
+	}
 
-	t, _ := utils.GetTranslationsAndLocale(w, r)
-	c.App.SetT(t)
-	c.App.SetRequestId(requestID)
-	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
-	c.App.SetUserAgent(r.UserAgent())
-	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.App.SetPath(r.URL.Path)
+	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
+	c.AppContext.SetT(t)
+	c.AppContext.SetRequestId(requestID)
+	c.AppContext.SetIpAddress(utils.GetIPAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.AppContext.SetUserAgent(r.UserAgent())
+	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
+	c.AppContext.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
-	c.Log = c.App.Log()
+	c.Logger = c.App.Log()
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
 		carrier := opentracing.HTTPHeadersCarrier(r.Header)
 		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
 		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, c.App.Path())
-		ext.PeerAddress.Set(span, c.App.IpAddress())
-		span.SetTag("request_id", c.App.RequestId())
-		span.SetTag("user_agent", c.App.UserAgent())
+		ext.HTTPUrl.Set(span, c.AppContext.Path())
+		ext.PeerAddress.Set(span, c.AppContext.IpAddress())
+		span.SetTag("request_id", c.AppContext.RequestId())
+		span.SetTag("user_agent", c.AppContext.UserAgent())
 
 		defer func() {
 			if c.Err != nil {
@@ -135,10 +138,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			span.Finish()
 		}()
-		c.App.SetContext(ctx)
+		c.AppContext.SetContext(ctx)
 
-		tmpSrv := app.Server{}
-		tmpSrv = *c.App.Srv()
+		tmpSrv := *c.App.Srv()
 		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
@@ -156,7 +158,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
+	w.Header().Set(model.HEADER_REQUEST_ID, c.AppContext.RequestId())
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
@@ -171,11 +173,25 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+
+		// Add unsafe-eval to the content security policy for faster source maps in development mode
+		devCSP := ""
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-eval'"
+		}
+
+		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+		// see https://github.com/reduxjs/redux-devtools/issues/380
+		if model.BuildNumber == "dev" {
+			devCSP += " 'unsafe-inline'"
+		}
+
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
 			cloudCSP,
 			h.cspShaDirective,
+			devCSP,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
@@ -188,10 +204,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
+		defer app.ReturnSessionToPool(session)
+
 		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
+			c.Logger.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
@@ -201,31 +219,46 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.App.SetSession(session)
+			c.AppContext.SetSession(session)
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.App.Session().UserId, w) {
+		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w) {
 			return
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if len(token) != 0 && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Log.Warn("Invalid CWS token", mlog.Err(err))
+			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
-			c.App.SetSession(session)
+			c.AppContext.SetSession(session)
+		}
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+		// Get the remote cluster
+		if remoteId := c.GetRemoteID(r); remoteId == "" {
+			c.Logger.Warn("Missing remote cluster id") //
+			c.Err = model.NewAppError("ServeHTTP", "api.context.remote_id_missing.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			// Check the token is correct for the remote cluster id.
+			session, err := c.App.GetRemoteClusterSession(token, remoteId)
+			if err != nil {
+				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Err = err
+			} else {
+				c.AppContext.SetSession(session)
+			}
 		}
 	}
 
-	c.Log = c.App.Log().With(
-		mlog.String("path", c.App.Path()),
-		mlog.String("request_id", c.App.RequestId()),
-		mlog.String("ip_addr", c.App.IpAddress()),
-		mlog.String("user_id", c.App.Session().UserId),
+	c.Logger = c.App.Log().With(
+		mlog.String("path", c.AppContext.Path()),
+		mlog.String("request_id", c.AppContext.RequestId()),
+		mlog.String("ip_addr", c.AppContext.IpAddress()),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
 
@@ -245,12 +278,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.CloudKeyRequired()
 	}
 
+	if c.Err == nil && h.RequireRemoteClusterToken {
+		c.RemoteClusterTokenRequired()
+	}
+
 	if c.Err == nil && h.IsLocal {
 		// if the connection is local, RemoteAddr shouldn't have the
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.App.SetSession(&model.Session{Local: true})
+			c.AppContext.SetSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
@@ -262,14 +299,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.App.T)
-		c.Err.RequestId = c.App.RequestId()
-
-		if c.Err.Id == "api.context.session_expired.app_error" {
-			c.LogInfo(c.Err)
-		} else {
-			c.LogError(c.Err)
-		}
+		c.Err.Translate(c.AppContext.T)
+		c.Err.RequestId = c.AppContext.RequestId()
+		c.LogErrorByCode(c.Err)
 
 		c.Err.Where = r.URL.Path
 
@@ -288,7 +320,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
+		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -342,15 +374,15 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-				c.Log.Warn(csrfErrorMessage, fields...)
+				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
-				c.Log.Debug(csrfErrorMessage, fields...)
+				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
 		}
 
 		if !csrfCheckPassed {
-			c.App.SetSession(&model.Session{})
+			c.AppContext.SetSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}
@@ -362,16 +394,16 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 // granted.
 func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      false,
-		RequireMfa:          false,
-		IsStatic:            false,
-		IsLocal:             false,
+		App:            w.app,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -382,16 +414,16 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 // websocket.
 func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      true,
-		RequireMfa:          false,
-		IsStatic:            false,
-		IsLocal:             false,
+		App:            w.app,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: true,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -401,16 +433,16 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 // be granted.
 func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      true,
-		TrustRequester:      false,
-		RequireMfa:          true,
-		IsStatic:            false,
-		IsLocal:             false,
+		App:            w.app,
+		HandleFunc:     h,
+		HandlerName:    GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
 	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

@@ -16,8 +16,30 @@ services:
       interval: 5s
       timeout: 10s
       retries: 3
+    volumes:
+      - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
+  mysql-read-replica:
+    image: "mysql:5.7"
+    restart: always
+    networks:
+      - mm-test
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
-    image: "postgres:9.4"
+    image: "postgres:10"
     restart: always
     networks:
       - mm-test
@@ -43,12 +65,16 @@ services:
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
   inbucket:
-    image: "jhillyerd/inbucket:release-1.2.0"
+    image: "inbucket/inbucket:stable"
     restart: always
+    environment:
+      INBUCKET_WEB_ADDR: "0.0.0.0:10080"
+      INBUCKET_POP3_ADDR: "0.0.0.0:10110"
+      INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
     networks:
       - mm-test
   openldap:
-    image: "osixia/openldap:1.2.2"
+    image: "osixia/openldap:1.4.0"
     restart: always
     networks:
       - mm-test
@@ -86,3 +112,17 @@ services:
       - mm-test
     volumes:
      - "./docker/keycloak:/setup"
+  prometheus:
+    image: "prom/prometheus"
+    volumes:
+      - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+    networks:
+      - mm-test
+  grafana:
+    image: "grafana/grafana"
+    volumes:
+     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test

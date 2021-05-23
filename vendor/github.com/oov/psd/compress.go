@@ -20,6 +20,10 @@ const (
 	CompressionMethodZIPWithPrediction    = CompressionMethod(3)
 )
 
+var (
+	errBrokenPackBits = errors.New("psd: compressed image data seems broken")
+)
+
 // Decode decodes the compressed image data from r.
 //
 // You can pass 0 to sizeHint if unknown, but in this case may read more data than necessary from r.

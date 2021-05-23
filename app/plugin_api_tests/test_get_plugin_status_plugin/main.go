@@ -21,7 +21,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	status, err := p.API.GetPluginStatus("test_get_plugin_status_plugin")
 	if err != nil {
 		return nil, err.Error()

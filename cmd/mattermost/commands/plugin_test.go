@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestPlugin(t *testing.T) {
@@ -24,9 +25,9 @@ func TestPlugin(t *testing.T) {
 	th.SetConfig(cfg)
 
 	err := os.MkdirAll("./test-plugins", os.ModePerm)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.MkdirAll("./test-client-plugins", os.ModePerm)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	path, _ := fileutils.FindDir("tests")
 
@@ -36,9 +37,9 @@ func TestPlugin(t *testing.T) {
 	assert.Contains(t, output, "Enabled plugin: testplugin")
 
 	fs, err := config.NewFileStore(th.ConfigPath(), false)
-	require.Nil(t, err)
-	cfsStore, err := config.NewStoreFromBacking(fs, nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
+	cfsStore, err := config.NewStoreFromBacking(fs, nil, false)
+	require.NoError(t, err)
 	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
 	assert.True(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	cfsStore.Close()
@@ -46,9 +47,9 @@ func TestPlugin(t *testing.T) {
 	output = th.CheckCommand(t, "plugin", "disable", "testplugin")
 	assert.Contains(t, output, "Disabled plugin: testplugin")
 	fs, err = config.NewFileStore(th.ConfigPath(), false)
-	require.Nil(t, err)
-	cfsStore, err = config.NewStoreFromBacking(fs, nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
+	cfsStore, err = config.NewStoreFromBacking(fs, nil, false)
+	require.NoError(t, err)
 	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
 	assert.False(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	cfsStore.Close()
@@ -95,7 +96,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	th.SetConfig(cfg)
 
 	err := th.RunCommand(t, "plugin", "keys", "add", "pk1")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestDeletePluginPublicKeys(t *testing.T) {

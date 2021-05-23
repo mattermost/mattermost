@@ -9,7 +9,7 @@ See the [public meeting
 notes](https://docs.google.com/document/d/1A63zSWX0x2CyCK_LoNhmQC4rqhLpYXJzXbEPDUQ2n6w/edit#heading=h.9tngw7jdwd6b)
 for a summary description of past meetings. To request edit access,
 join the meeting or get in touch on
-[Gitter](https://gitter.im/open-telemetry/opentelemetry-go).
+[Slack](https://cloud-native.slack.com/archives/C01NPAXACKT).
 
 ## Development
 
@@ -18,6 +18,8 @@ You can view and edit the source code by cloning this repository:
 ```bash
 git clone https://github.com/open-telemetry/opentelemetry-go.git
 ```
+
+Run `make test` to run the tests instead of `go test`. 
 
 There are some generated files checked into the repo. To make sure
 that the generated files are up-to-date, run `make` (or `make
@@ -95,19 +97,26 @@ request ID to the entry you added to `CHANGELOG.md`.
 A PR is considered to be **ready to merge** when:
 
 * It has received two approvals from Collaborators/Maintainers (at
-  different companies).
-* Major feedbacks are resolved.
+  different companies). This is not enforced through technical means
+  and a PR may be **ready to merge** with a single approval if the change
+  and its approach have been discussed and consensus reached.
+* Feedback has been addressed.
+* Any substantive changes to your PR will require that you clear any prior
+  Approval reviews, this includes changes resulting from other feedback. Unless
+  the approver explicitly stated that their approval will persist across
+  changes it should be assumed that the PR needs their review again. Other
+  project members (e.g. approvers, maintainers) can help with this if there are
+  any questions or if you forget to clear reviews.
 * It has been open for review for at least one working day. This gives
   people reasonable time to review.
-* Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for
-  one day.
+* Trivial changes (typo, cosmetic, doc, etc.) do not have to wait for
+  one day and may be merged with a single Maintainer's approval.
 * `CHANGELOG.md` has been updated to reflect what has been
   added, changed, removed, or fixed.
 * Urgent fix can take exception as long as it has been actively
   communicated.
 
-Any Collaborator/Maintainer can merge the PR once it is **ready to
-merge**.
+Any Maintainer can merge the PR once it is **ready to merge**.
 
 ## Design Choices
 
@@ -115,7 +124,7 @@ As with other OpenTelemetry clients, opentelemetry-go follows the
 [opentelemetry-specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 It's especially valuable to read through the [library
-guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/library-guidelines.md).
+guidelines](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/library-guidelines.md).
 
 ### Focus on Capabilities, Not Structure Compliance
 
@@ -184,13 +193,13 @@ how the user can extend the configuration.
 It is important that `config` are not shared across package boundaries.
 Meaning a `config` from one package should not be directly used by another.
 
-Optionally, it is common to include a `configure` function (with the same
+Optionally, it is common to include a `newConfig` function (with the same
 naming scheme). This function wraps any defaults setting and looping over
 all options to create a configured `config`.
 
 ```go
-// configure returns an appropriately configured config.
-func configure([]Option) config {
+// newConfig returns an appropriately configured config.
+func newConfig([]Option) config {
     // Set default values for config.
     config := config{/* […] */}
     for _, option := range options {
@@ -206,7 +215,7 @@ error as well that is expected to be handled by the instantiation function
 or propagated to the user.
 
 Given the design goal of not having the user need to work with the `config`,
-the `configure` function should also be unexported.
+the `newConfig` function should also be unexported.
 
 #### `Option`
 
@@ -215,7 +224,7 @@ To set the value of the options a `config` contains, a corresponding
 
 ```go
 type Option interface {
-  Apply(*Config)
+  Apply(*config)
 }
 ```
 
@@ -241,7 +250,7 @@ func With*(…) Option { … }
 ```go
 type defaultFalseOption bool
 
-func (o defaultFalseOption) Apply(c *Config) {
+func (o defaultFalseOption) Apply(c *config) {
     c.Bool = bool(o)
 }
 
@@ -254,7 +263,7 @@ func WithOption() Option {
 ```go
 type defaultTrueOption bool
 
-func (o defaultTrueOption) Apply(c *Config) {
+func (o defaultTrueOption) Apply(c *config) {
     c.Bool = bool(o)
 }
 
@@ -271,7 +280,7 @@ type myTypeOption struct {
     MyType MyType
 }
 
-func (o myTypeOption) Apply(c *Config) {
+func (o myTypeOption) Apply(c *config) {
     c.MyType = o.MyType
 }
 
@@ -342,6 +351,14 @@ func NewDog(name string, o ...DogOption) Dog    {…}
 func NewBird(name string, o ...BirdOption) Bird {…}
 ```
 
+### Interface Type
+
+To allow other developers to better comprehend the code, it is important
+to ensure it is sufficiently documented. One simple measure that contributes
+to this aim is self-documenting by naming method parameters. Therefore,
+where appropriate, methods of every exported interface type should have
+their parameters appropriately named.
+
 ## Approvers and Maintainers
 
 Approvers:
@@ -349,13 +366,15 @@ Approvers:
 - [Liz Fong-Jones](https://github.com/lizthegrey), Honeycomb
 - [Evan Torrie](https://github.com/evantorrie), Verizon Media
 - [Josh MacDonald](https://github.com/jmacd), LightStep
+- [Sam Xie](https://github.com/XSAM)
+- [David Ashpole](https://github.com/dashpole), Google
 
 Maintainers:
 
-- [Anthony Mirabella](https://github.com/Aneurysm9), Centene
-- [Tyler Yahn](https://github.com/MrAlias), New Relic
+- [Anthony Mirabella](https://github.com/Aneurysm9), AWS
+- [Tyler Yahn](https://github.com/MrAlias), Splunk
 
 ### Become an Approver or a Maintainer
 
 See the [community membership document in OpenTelemetry community
-repo](https://github.com/open-telemetry/community/blob/master/community-membership.md).
+repo](https://github.com/open-telemetry/community/blob/main/community-membership.md).

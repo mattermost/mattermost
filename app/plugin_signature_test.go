@@ -9,11 +9,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPluginPublicKeys(t *testing.T) {
@@ -37,28 +38,28 @@ func TestPluginPublicKeys(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	publicKeyFilename := "test-public-key.plugin.gpg"
 	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer fileReader.Close()
 	th.App.AddPublicKey(publicKeyFilename, fileReader)
-	file, err := th.App.GetPublicKey(publicKeyFilename)
-	require.Nil(t, err)
+	file, appErr := th.App.GetPublicKey(publicKeyFilename)
+	require.Nil(t, appErr)
 	require.Equal(t, publicKey, file)
-	_, err = th.App.GetPublicKey("wrong file name")
-	require.NotNil(t, err)
-	_, err = th.App.GetPublicKey("wrong-file-name.plugin.gpg")
-	require.NotNil(t, err)
+	_, appErr = th.App.GetPublicKey("wrong file name")
+	require.NotNil(t, appErr)
+	_, appErr = th.App.GetPublicKey("wrong-file-name.plugin.gpg")
+	require.NotNil(t, appErr)
 
-	err = th.App.DeletePublicKey("wrong file name")
-	require.Nil(t, err)
-	err = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
-	require.Nil(t, err)
+	appErr = th.App.DeletePublicKey("wrong file name")
+	require.Nil(t, appErr)
+	appErr = th.App.DeletePublicKey("wrong-file-name.plugin.gpg")
+	require.Nil(t, appErr)
 
-	err = th.App.DeletePublicKey(publicKeyFilename)
-	require.Nil(t, err)
-	_, err = th.App.GetPublicKey(publicKeyFilename)
-	require.NotNil(t, err)
+	appErr = th.App.DeletePublicKey(publicKeyFilename)
+	require.Nil(t, appErr)
+	_, appErr = th.App.GetPublicKey(publicKeyFilename)
+	require.NotNil(t, appErr)
 }
 
 func TestVerifySignature(t *testing.T) {
@@ -70,50 +71,50 @@ func TestVerifySignature(t *testing.T) {
 	armoredPublicKeyFilename := "development-public-key.asc"
 	t.Run("verify armored signature and armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, armoredPublicKeyFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer publicKeyFileReader.Close()
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer pluginFileReader.Close()
 		signatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 	t.Run("verify non armored signature and armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, armoredPublicKeyFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer publicKeyFileReader.Close()
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer pluginFileReader.Close()
 		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 	t.Run("verify armored signature and non armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer publicKeyFileReader.Close()
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer pluginFileReader.Close()
 		armoredSignatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer armoredSignatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, armoredSignatureFileReader))
+		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, armoredSignatureFileReader))
 	})
 	t.Run("verify non armored signature and non armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer publicKeyFileReader.Close()
 		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer pluginFileReader.Close()
 		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 }

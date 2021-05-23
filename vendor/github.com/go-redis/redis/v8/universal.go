@@ -181,6 +181,7 @@ type UniversalClient interface {
 	Subscribe(ctx context.Context, channels ...string) *PubSub
 	PSubscribe(ctx context.Context, channels ...string) *PubSub
 	Close() error
+	PoolStats() *PoolStats
 }
 
 var (

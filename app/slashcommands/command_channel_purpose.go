@@ -4,17 +4,17 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type PurposeProvider struct {
 }
 
 const (
-	CMD_PURPOSE = "purpose"
+	CmdPurpose = "purpose"
 )
 
 func init() {
@@ -22,12 +22,12 @@ func init() {
 }
 
 func (*PurposeProvider) GetTrigger() string {
-	return CMD_PURPOSE
+	return CmdPurpose
 }
 
-func (*PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_PURPOSE,
+		Trigger:          CmdPurpose,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_purpose.desc"),
 		AutoCompleteHint: T("api.command_channel_purpose.hint"),
@@ -35,7 +35,7 @@ func (*PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -66,7 +66,7 @@ func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
@@ -78,10 +78,17 @@ func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 	}
 	*patch.Purpose = message
 
-	_, err = a.PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(c, channel, patch, args.UserId)
 	if err != nil {
+		text := args.T("api.command_channel_purpose.update_channel.app_error")
+		if err.Id == "model.channel.is_valid.purpose.app_error" {
+			text = args.T("api.command_channel_purpose.update_channel.max_length", map[string]interface{}{
+				"MaxLength": model.CHANNEL_PURPOSE_MAX_RUNES,
+			})
+		}
+
 		return &model.CommandResponse{
-			Text:         args.T("api.command_channel_purpose.update_channel.app_error"),
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"context"
 	"sort"
 	"strings"
 
@@ -17,7 +18,7 @@ type LocalCacheRoleStore struct {
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.roleCache.Purge()
 	} else {
 		s.rootStore.roleCache.Remove(msg.Data)
@@ -25,7 +26,7 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMess
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.rolePermissionsCache.Purge()
 	} else {
 		s.rootStore.rolePermissionsCache.Remove(msg.Data)
@@ -33,20 +34,20 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.
 }
 
 func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
-	if len(role.Name) != 0 {
+	if role.Name != "" {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
 		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	}
 	return s.RoleStore.Save(role)
 }
 
-func (s LocalCacheRoleStore) GetByName(name string) (*model.Role, error) {
+func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
-	role, err := s.RoleStore.GetByName(name)
+	role, err := s.RoleStore.GetByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}

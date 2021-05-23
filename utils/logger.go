@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
-	LOG_ROTATE_SIZE           = 10000
-	LOG_FILENAME              = "mattermost.log"
-	LOG_NOTIFICATION_FILENAME = "notifications.log"
+	LogRotateSize           = 10000
+	LogFilename             = "mattermost.log"
+	LogNotificationFilename = "notifications.log"
 )
 
 type fileLocationFunc func(string) string
@@ -29,6 +29,7 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocatio
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
 		FileLocation:  getFileFunc(*s.FileLocation),
+		EnableColor:   *s.EnableColor,
 	}
 }
 
@@ -37,7 +38,7 @@ func GetLogFileLocation(fileLocation string) string {
 		fileLocation, _ = fileutils.FindDir("logs")
 	}
 
-	return filepath.Join(fileLocation, LOG_FILENAME)
+	return filepath.Join(fileLocation, LogFilename)
 }
 
 func GetNotificationsLogFileLocation(fileLocation string) string {
@@ -45,7 +46,7 @@ func GetNotificationsLogFileLocation(fileLocation string) string {
 		fileLocation, _ = fileutils.FindDir("logs")
 	}
 
-	return filepath.Join(fileLocation, LOG_NOTIFICATION_FILENAME)
+	return filepath.Join(fileLocation, LogNotificationFilename)
 }
 
 func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
@@ -58,6 +59,7 @@ func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.N
 		FileLevel:             notificationLogSettings.FileLevel,
 		FileLocation:          notificationLogSettings.FileLocation,
 		AdvancedLoggingConfig: notificationLogSettings.AdvancedLoggingConfig,
+		EnableColor:           notificationLogSettings.EnableColor,
 	}
 }
 

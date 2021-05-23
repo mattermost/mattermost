@@ -6,15 +6,16 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/pkg/errors"
 )
 
 type SqlSystemStore struct {
@@ -99,6 +100,9 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
 	if err := s.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
+		}
 		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 

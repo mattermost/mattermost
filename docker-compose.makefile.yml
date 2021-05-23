@@ -8,6 +8,14 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: mysql
+  mysql-read-replica:
+    restart: 'no'
+    container_name: mattermost-mysql-read-replica
+    ports:
+      - "3307:3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql-read-replica
   postgres:
     restart: 'no'
     container_name: mattermost-postgres
@@ -68,6 +76,22 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: keycloak
+  prometheus:
+    restart: 'no'
+    container_name: mattermost-prometheus
+    ports:
+      - "9090:9090"
+    extends:
+        file: build/docker-compose.common.yml
+        service: prometheus
+  grafana:
+    restart: 'no'
+    container_name: mattermost-grafana
+    ports:
+      - "3000:3000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: grafana
 
 networks:
   mm-test:

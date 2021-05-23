@@ -9,10 +9,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/spf13/cobra"
 )
 
 var TeamCmd = &cobra.Command{
@@ -170,7 +172,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	createdTeam, errCreate := a.CreateTeam(team)
+	createdTeam, errCreate := a.CreateTeam(&request.Context{}, team)
 	if errCreate != nil {
 		return errors.New("Team creation failed: " + errCreate.Error())
 	}
@@ -207,7 +209,7 @@ func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg 
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := a.LeaveTeam(team, user, ""); err != nil {
+	if err := a.LeaveTeam(&request.Context{}, team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 		return
 	}
@@ -242,7 +244,7 @@ func addUserToTeam(a *app.App, team *model.Team, user *model.User, userArg strin
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := a.JoinUserToTeam(team, user, ""); err != nil {
+	if _, err := a.JoinUserToTeam(&request.Context{}, team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
 		return
 	}

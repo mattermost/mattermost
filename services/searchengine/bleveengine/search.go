@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-const DELETE_POSTS_BATCH_SIZE = 500
+const DeletePostsBatchSize = 500
+const DeleteFilesBatchSize = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -158,7 +159,7 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 				notTermQueries = append(notTermQueries, hashtagQ)
 			}
 		} else {
-			if len(params.Terms) > 0 {
+			if params.Terms != "" {
 				terms := []string{}
 				for _, term := range strings.Split(params.Terms, " ") {
 					if strings.HasSuffix(term, "*") {
@@ -178,7 +179,7 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 				}
 			}
 
-			if len(params.ExcludedTerms) > 0 {
+			if params.ExcludedTerms != "" {
 				messageQ := bleve.NewMatchQuery(params.ExcludedTerms)
 				messageQ.SetField("Message")
 				messageQ.SetOperator(termOperator)
@@ -261,7 +262,7 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 	query := bleve.NewTermQuery(channelID)
 	query.SetField("ChannelId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DeletePostsBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteChannelPosts",
 			"bleveengine.delete_channel_posts.error", nil,
@@ -280,7 +281,7 @@ func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
 	query := bleve.NewTermQuery(userID)
 	query.SetField("UserId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DeletePostsBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteUserPosts",
 			"bleveengine.delete_user_posts.error", nil,
@@ -505,5 +506,322 @@ func (b *BleveEngine) DeleteUser(user *model.User) *model.AppError {
 	if err := b.UserIndex.Delete(user.Id); err != nil {
 		return model.NewAppError("Bleveengine.DeleteUser", "bleveengine.delete_user.error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	return nil
+}
+
+func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	blvFile := BLVFileFromFileInfo(file, channelId)
+	if err := b.FileIndex.Index(blvFile.Id, blvFile); err != nil {
+		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_file.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError) {
+	channelQueries := []query.Query{}
+	for _, channel := range *channels {
+		channelIdQ := bleve.NewTermQuery(channel.Id)
+		channelIdQ.SetField("ChannelId")
+		channelQueries = append(channelQueries, channelIdQ)
+	}
+	channelDisjunctionQ := bleve.NewDisjunctionQuery(channelQueries...)
+
+	var termQueries []query.Query
+	var notTermQueries []query.Query
+	var filters []query.Query
+	var notFilters []query.Query
+
+	for i, params := range searchParams {
+		var termOperator query.MatchQueryOperator = query.MatchQueryOperatorAnd
+		if searchParams[0].OrTerms {
+			termOperator = query.MatchQueryOperatorOr
+		}
+
+		// Date, channels and FromUsers filters come in all
+		// searchParams iteration, and as they are global to the
+		// query, we only need to process them once
+		if i == 0 {
+			if len(params.InChannels) > 0 {
+				inChannels := []query.Query{}
+				for _, channelId := range params.InChannels {
+					channelQ := bleve.NewTermQuery(channelId)
+					channelQ.SetField("ChannelId")
+					inChannels = append(inChannels, channelQ)
+				}
+				filters = append(filters, bleve.NewDisjunctionQuery(inChannels...))
+			}
+
+			if len(params.ExcludedChannels) > 0 {
+				excludedChannels := []query.Query{}
+				for _, channelId := range params.ExcludedChannels {
+					channelQ := bleve.NewTermQuery(channelId)
+					channelQ.SetField("ChannelId")
+					excludedChannels = append(excludedChannels, channelQ)
+				}
+				notFilters = append(notFilters, bleve.NewDisjunctionQuery(excludedChannels...))
+			}
+
+			if len(params.FromUsers) > 0 {
+				fromUsers := []query.Query{}
+				for _, userId := range params.FromUsers {
+					userQ := bleve.NewTermQuery(userId)
+					userQ.SetField("CreatorId")
+					fromUsers = append(fromUsers, userQ)
+				}
+				filters = append(filters, bleve.NewDisjunctionQuery(fromUsers...))
+			}
+
+			if len(params.ExcludedUsers) > 0 {
+				excludedUsers := []query.Query{}
+				for _, userId := range params.ExcludedUsers {
+					userQ := bleve.NewTermQuery(userId)
+					userQ.SetField("CreatorId")
+					excludedUsers = append(excludedUsers, userQ)
+				}
+				notFilters = append(notFilters, bleve.NewDisjunctionQuery(excludedUsers...))
+			}
+
+			if len(params.Extensions) > 0 {
+				extensions := []query.Query{}
+				for _, extension := range params.Extensions {
+					extensionQ := bleve.NewTermQuery(extension)
+					extensionQ.SetField("Extension")
+					extensions = append(extensions, extensionQ)
+				}
+				filters = append(filters, bleve.NewDisjunctionQuery(extensions...))
+			}
+
+			if len(params.ExcludedExtensions) > 0 {
+				excludedExtensions := []query.Query{}
+				for _, extension := range params.ExcludedExtensions {
+					extensionQ := bleve.NewTermQuery(extension)
+					extensionQ.SetField("Extension")
+					excludedExtensions = append(excludedExtensions, extensionQ)
+				}
+				notFilters = append(notFilters, bleve.NewDisjunctionQuery(excludedExtensions...))
+			}
+
+			if params.OnDate != "" {
+				before, after := params.GetOnDateMillis()
+				beforeFloat64 := float64(before)
+				afterFloat64 := float64(after)
+				onDateQ := bleve.NewNumericRangeQuery(&beforeFloat64, &afterFloat64)
+				onDateQ.SetField("CreateAt")
+				filters = append(filters, onDateQ)
+			} else {
+				if params.AfterDate != "" || params.BeforeDate != "" {
+					var min, max *float64
+					if params.AfterDate != "" {
+						minf := float64(params.GetAfterDateMillis())
+						min = &minf
+					}
+
+					if params.BeforeDate != "" {
+						maxf := float64(params.GetBeforeDateMillis())
+						max = &maxf
+					}
+
+					dateQ := bleve.NewNumericRangeQuery(min, max)
+					dateQ.SetField("CreateAt")
+					filters = append(filters, dateQ)
+				}
+
+				if params.ExcludedAfterDate != "" {
+					minf := float64(params.GetExcludedAfterDateMillis())
+					dateQ := bleve.NewNumericRangeQuery(&minf, nil)
+					dateQ.SetField("CreateAt")
+					notFilters = append(notFilters, dateQ)
+				}
+
+				if params.ExcludedBeforeDate != "" {
+					maxf := float64(params.GetExcludedBeforeDateMillis())
+					dateQ := bleve.NewNumericRangeQuery(nil, &maxf)
+					dateQ.SetField("CreateAt")
+					notFilters = append(notFilters, dateQ)
+				}
+
+				if params.ExcludedDate != "" {
+					before, after := params.GetExcludedDateMillis()
+					beforef := float64(before)
+					afterf := float64(after)
+					onDateQ := bleve.NewNumericRangeQuery(&beforef, &afterf)
+					onDateQ.SetField("CreateAt")
+					notFilters = append(notFilters, onDateQ)
+				}
+			}
+		}
+
+		if params.Terms != "" {
+			terms := []string{}
+			for _, term := range strings.Split(params.Terms, " ") {
+				if strings.HasSuffix(term, "*") {
+					nameQ := bleve.NewWildcardQuery(term)
+					nameQ.SetField("Name")
+					contentQ := bleve.NewWildcardQuery(term)
+					contentQ.SetField("Content")
+					termQueries = append(termQueries, bleve.NewDisjunctionQuery(nameQ, contentQ))
+				} else {
+					terms = append(terms, term)
+				}
+			}
+
+			if len(terms) > 0 {
+				nameQ := bleve.NewMatchQuery(strings.Join(terms, " "))
+				nameQ.SetField("Name")
+				nameQ.SetOperator(termOperator)
+				contentQ := bleve.NewMatchQuery(strings.Join(terms, " "))
+				contentQ.SetField("Content")
+				contentQ.SetOperator(termOperator)
+				termQueries = append(termQueries, bleve.NewDisjunctionQuery(nameQ, contentQ))
+			}
+		}
+
+		if params.ExcludedTerms != "" {
+			nameQ := bleve.NewMatchQuery(params.ExcludedTerms)
+			nameQ.SetField("Name")
+			nameQ.SetOperator(termOperator)
+			contentQ := bleve.NewMatchQuery(params.ExcludedTerms)
+			contentQ.SetField("Content")
+			contentQ.SetOperator(termOperator)
+			notTermQueries = append(notTermQueries, bleve.NewDisjunctionQuery(nameQ, contentQ))
+		}
+	}
+
+	allTermsQ := bleve.NewBooleanQuery()
+	allTermsQ.AddMustNot(notTermQueries...)
+	if searchParams[0].OrTerms {
+		allTermsQ.AddShould(termQueries...)
+	} else {
+		allTermsQ.AddMust(termQueries...)
+	}
+
+	query := bleve.NewBooleanQuery()
+	query.AddMust(channelDisjunctionQ)
+
+	if len(termQueries) > 0 || len(notTermQueries) > 0 {
+		query.AddMust(allTermsQ)
+	}
+
+	if len(filters) > 0 {
+		query.AddMust(bleve.NewConjunctionQuery(filters...))
+	}
+	if len(notFilters) > 0 {
+		query.AddMustNot(notFilters...)
+	}
+
+	search := bleve.NewSearchRequestOptions(query, perPage, page*perPage, false)
+	search.SortBy([]string{"-CreateAt"})
+	results, err := b.FileIndex.Search(search)
+	if err != nil {
+		return nil, model.NewAppError("Bleveengine.SearchFiles", "bleveengine.search_files.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	fileIds := []string{}
+
+	for _, r := range results.Hits {
+		fileIds = append(fileIds, r.ID)
+	}
+
+	return fileIds, nil
+}
+
+func (b *BleveEngine) DeleteFile(fileID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	if err := b.FileIndex.Delete(fileID); err != nil {
+		return model.NewAppError("Bleveengine.DeleteFile", "bleveengine.delete_file.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (b *BleveEngine) deleteFiles(searchRequest *bleve.SearchRequest, batchSize int) (int64, error) {
+	resultsCount := int64(0)
+
+	for {
+		// As we are deleting the files after fetching them, we need to keep
+		// From fixed always to 0
+		searchRequest.From = 0
+		searchRequest.Size = batchSize
+		results, err := b.FileIndex.Search(searchRequest)
+		if err != nil {
+			return -1, err
+		}
+		batch := b.FileIndex.NewBatch()
+		for _, file := range results.Hits {
+			batch.Delete(file.ID)
+		}
+		if err := b.FileIndex.Batch(batch); err != nil {
+			return -1, err
+		}
+		resultsCount += int64(results.Hits.Len())
+		if results.Hits.Len() < batchSize {
+			break
+		}
+	}
+
+	return resultsCount, nil
+}
+
+func (b *BleveEngine) DeleteUserFiles(userID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(userID)
+	query.SetField("CreatorId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteUserFiles",
+			"bleveengine.delete_user_files.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+
+	return nil
+}
+
+func (b *BleveEngine) DeletePostFiles(postID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(postID)
+	query.SetField("PostId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeletePostFiles",
+			"bleveengine.delete_post_files.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int64("deleted", deleted))
+
+	return nil
+}
+
+func (b *BleveEngine) DeleteFilesBatch(endTime, limit int64) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	endTimeFloat := float64(endTime)
+	query := bleve.NewNumericRangeQuery(nil, &endTimeFloat)
+	query.SetField("CreateAt")
+	search := bleve.NewSearchRequestOptions(query, int(limit), 0, false)
+	search.SortBy([]string{"-CreateAt"})
+
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteFilesBatch",
+			"bleveengine.delete_files_batch.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Files in batch deleted", mlog.Int64("endTime", endTime), mlog.Int64("limit", limit), mlog.Int64("deleted", deleted))
+
 	return nil
 }

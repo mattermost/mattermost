@@ -28,6 +28,8 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/password", api.ApiLocal(updatePassword)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiLocal(convertUserToBot)).Methods("POST")
 	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiLocal(verifyUserEmailWithoutToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/promote", api.ApiLocal(promoteGuestToUser)).Methods("POST")
+	api.BaseRoutes.User.Handle("/demote", api.ApiLocal(demoteUserToGuest)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiLocal(localGetUserByUsername)).Methods("GET")
 	api.BaseRoutes.UserByEmail.Handle("", api.ApiLocal(localGetUserByEmail)).Methods("GET")
@@ -54,7 +56,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
-	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
+	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidUrlParam("team_id")
 		return
 	}
@@ -102,16 +104,16 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
-	} else if len(notInChannelId) > 0 {
+	} else if notInChannelId != "" {
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
-	} else if len(notInTeamId) > 0 {
+	} else if notInTeamId != "" {
 		etag = c.App.GetUsersNotInTeamEtag(inTeamId, "")
 		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return
 		}
 
 		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
-	} else if len(inTeamId) > 0 {
+	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
 			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
@@ -123,7 +125,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
-	} else if len(inChannelId) > 0 {
+	} else if inChannelId != "" {
 		if sort == "status" {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
@@ -138,7 +140,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(etag) > 0 {
+	if etag != "" {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 	w.Write([]byte(model.UserListToJson(profiles)))
@@ -158,7 +160,7 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsAdmin: c.IsSystemAdmin(),
 	}
 
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")
@@ -229,9 +231,9 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteUser(user)
+		err = c.App.PermanentDeleteUser(c.AppContext, user)
 	} else {
-		_, err = c.App.UpdateActive(user, false)
+		_, err = c.App.UpdateActive(c.AppContext, user, false)
 	}
 	if err != nil {
 		c.Err = err
@@ -246,7 +248,7 @@ func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.PermanentDeleteAllUsers(); err != nil {
+	if err := c.App.PermanentDeleteAllUsers(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -297,7 +299,7 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
-		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session().UserId, http.StatusForbidden)
+		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 

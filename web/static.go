@@ -10,8 +10,10 @@ import (
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/templates"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -19,20 +21,20 @@ import (
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
 func (w *Web) InitStatic() {
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
-		if err := utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config()); err != nil {
+	if *w.app.Config().ServiceSettings.WebserverMode != "disabled" {
+		if err := utils.UpdateAssetsSubpathFromConfig(w.app.Config()); err != nil {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
 
 		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
-		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+		subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.app.Config().PluginSettings.ClientDirectory))))
 
-		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
@@ -56,7 +58,10 @@ func (w *Web) InitStatic() {
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckClientCompatibility(r.UserAgent()) {
-		renderUnsupportedBrowser(c.App, w, r)
+		w.Header().Set("Cache-Control", "no-store")
+		data := renderUnsupportedBrowser(c.AppContext, r)
+
+		c.App.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
 		return
 	}
 
@@ -113,6 +118,6 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templatesDir, _ := fileutils.FindDir("templates")
+	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }

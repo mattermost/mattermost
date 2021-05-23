@@ -7,12 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/web"
-
-	_ "github.com/mattermost/go-i18n/i18n"
 )
 
 type Routes struct {
@@ -125,19 +124,25 @@ type Routes struct {
 	Cloud *mux.Router // 'api/v4/cloud'
 
 	Imports *mux.Router // 'api/v4/imports'
+
+	Exports *mux.Router // 'api/v4/exports'
+	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
+
+	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
+	SharedChannels *mux.Router // 'api/v4/sharedchannels'
+
+	Permissions *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
-	ConfigService       configservice.ConfigService
-	GetGlobalAppOptions app.AppOptionCreator
-	BaseRoutes          *Routes
+	app        app.AppIface
+	BaseRoutes *Routes
 }
 
-func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func Init(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -238,6 +243,13 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Cloud = api.BaseRoutes.ApiRoot.PathPrefix("/cloud").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
+
+	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
+
+	api.BaseRoutes.Permissions = api.BaseRoutes.ApiRoot.PathPrefix("/permissions").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -276,17 +288,20 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitAction()
 	api.InitCloud()
 	api.InitImport()
+	api.InitRemoteCluster()
+	api.InitSharedChannels()
+	api.InitPermissions()
+	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	return api
 }
 
-func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -344,8 +359,12 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
 
 	api.InitUserLocal()
 	api.InitTeamLocal()
@@ -363,7 +382,9 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitRoleLocal()
 	api.InitUploadLocal()
 	api.InitImportLocal()
+	api.InitExportLocal()
 	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
@@ -371,7 +392,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.ConfigService, w, r)
+	web.Handle404(api.app, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK

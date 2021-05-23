@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 type mockMarketplaceMeteringClient struct {
@@ -82,7 +82,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		assert.Equal(t, reports[0].Timestamp, resultReports[0].Timestamp)
 
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Error in AWS service call", func(t *testing.T) {
@@ -91,7 +91,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 1, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Invalid dimension", func(t *testing.T) {
@@ -101,7 +101,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -144,6 +144,6 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
 		err := awsmeter.ReportUserCategoryUsage(resultReports)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }

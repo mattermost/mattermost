@@ -6,12 +6,13 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestSAMLSettings(t *testing.T) {
@@ -56,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(s *Server) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
@@ -64,6 +65,7 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
+
 			defer th.TearDown()
 
 			mockStore := th.App.Srv().Store.(*storemocks.Store)
@@ -86,8 +88,6 @@ func TestSAMLSettings(t *testing.T) {
 				})
 			}
 
-			th.Server.initEnterprise()
-			th.App.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {

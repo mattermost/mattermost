@@ -11,8 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -22,8 +22,10 @@ var permissionMap map[string]*model.Permission
 
 type filterType string
 
-const filterTypeWrite filterType = "write"
-const filterTypeRead filterType = "read"
+const (
+	FilterTypeWrite filterType = "write"
+	FilterTypeRead  filterType = "read"
+)
 
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
@@ -36,8 +38,8 @@ func (api *API) InitConfig() {
 }
 
 func init() {
-	writeFilter = makeFilterConfigByPermission(filterTypeWrite)
-	readFilter = makeFilterConfigByPermission(filterTypeRead)
+	writeFilter = makeFilterConfigByPermission(FilterTypeWrite)
+	readFilter = makeFilterConfigByPermission(FilterTypeRead)
 	permissionMap = map[string]*model.Permission{}
 	for _, p := range model.AllPermissions {
 		permissionMap[p.Id] = p
@@ -45,7 +47,7 @@ func init() {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
 		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
@@ -76,8 +78,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_RELOAD_CONFIG) {
+		c.SetPermissionError(model.PERMISSION_RELOAD_CONFIG)
 		return
 	}
 
@@ -106,7 +108,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
 		c.SetPermissionError(model.SysconsoleWritePermissions...)
 		return
 	}
@@ -141,13 +143,22 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(cfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	cfg, mergeErr := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
+
+	newCfg.Sanitize()
+
+	cfg, mergeErr := config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
@@ -181,7 +192,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var config map[string]string
-	if len(c.App.Session().UserId) == 0 {
+	if c.AppContext.Session().UserId == "" {
 		config = c.App.LimitedClientConfigWithComputed()
 	} else {
 		config = c.App.ClientConfigWithComputed()
@@ -191,12 +202,11 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
-		return
-	}
-
-	envConfig := c.App.GetEnvironmentConfig()
+	// Only return the environment variables for the subsections which the client is
+	// allowed to see
+	envConfig := c.App.GetEnvironmentConfig(func(structField reflect.StructField) bool {
+		return readFilter(c, structField)
+	})
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
@@ -212,7 +222,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
 		c.SetPermissionError(model.SysconsoleWritePermissions...)
 		return
 	}
@@ -228,7 +238,10 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
+	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		return
+	}
 
 	if cfg.MessageExportSettings.EnableExport != nil {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
@@ -249,15 +262,24 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(updatedCfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
+
+	newCfg.Sanitize()
+
 	auditRec.Success()
 
-	cfg, mergeErr = config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+	cfg, mergeErr = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
@@ -285,7 +307,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		// If there are no access tag values and the role has manage_system, no need to continue
 		// checking permissions.
 		if len(tagPermissions) == 0 {
-			if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 				return true
 			}
 		}
@@ -298,7 +320,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			}
 			// ConfigAccessTagWriteRestrictable trumps all other permissions
 			if tagValue == model.ConfigAccessTagWriteRestrictable || tagValue == model.ConfigAccessTagCloudRestrictable {
-				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
+				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == FilterTypeWrite {
 					return false
 				}
 				continue
@@ -317,9 +339,14 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			if tagValue == model.ConfigAccessTagCloudRestrictable {
 				continue
 			}
+			if tagValue == model.ConfigAccessTagAnySysConsoleRead && accessType == FilterTypeRead &&
+				c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+				return true
+			}
+
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
-				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
+				if c.App.SessionHasPermissionTo(*c.AppContext.Session(), permission) {
 					return true
 				}
 			} else {
@@ -328,7 +355,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		}
 
 		// with manage_system, default to allow, otherwise default not-allow
-		return c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
+		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	}
 }
 
@@ -350,7 +377,7 @@ func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("to", to)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}

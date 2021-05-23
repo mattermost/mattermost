@@ -4,16 +4,17 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type ShortcutsProvider struct {
 }
 
 const (
-	CMD_SHORTCUTS = "shortcuts"
+	CmdShortcuts = "shortcuts"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (*ShortcutsProvider) GetTrigger() string {
-	return CMD_SHORTCUTS
+	return CmdShortcuts
 }
 
-func (*ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ShortcutsProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SHORTCUTS,
+		Trigger:          CmdShortcuts,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_shortcuts.desc"),
 		AutoCompleteHint: "",
@@ -34,7 +35,7 @@ func (*ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (*ShortcutsProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ShortcutsProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_shortcuts.unsupported.app_error"),

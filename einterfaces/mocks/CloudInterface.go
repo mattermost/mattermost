@@ -14,104 +14,96 @@ type CloudInterface struct {
 	mock.Mock
 }
 
-// ConfirmCustomerPayment provides a mock function with given fields: _a0
-func (_m *CloudInterface) ConfirmCustomerPayment(_a0 *model.ConfirmPaymentMethodRequest) *model.AppError {
-	ret := _m.Called(_a0)
+// ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
+func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
+	ret := _m.Called(userID, confirmRequest)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.ConfirmPaymentMethodRequest) *model.AppError); ok {
-		r0 = rf(_a0)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.ConfirmPaymentMethodRequest) error); ok {
+		r0 = rf(userID, confirmRequest)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
-// CreateCustomerPayment provides a mock function with given fields:
-func (_m *CloudInterface) CreateCustomerPayment() (*model.StripeSetupIntent, *model.AppError) {
-	ret := _m.Called()
+// CreateCustomerPayment provides a mock function with given fields: userID
+func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error) {
+	ret := _m.Called(userID)
 
 	var r0 *model.StripeSetupIntent
-	if rf, ok := ret.Get(0).(func() *model.StripeSetupIntent); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) *model.StripeSetupIntent); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.StripeSetupIntent)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetCloudCustomer provides a mock function with given fields:
-func (_m *CloudInterface) GetCloudCustomer() (*model.CloudCustomer, *model.AppError) {
-	ret := _m.Called()
+// GetCloudCustomer provides a mock function with given fields: userID
+func (_m *CloudInterface) GetCloudCustomer(userID string) (*model.CloudCustomer, error) {
+	ret := _m.Called(userID)
 
 	var r0 *model.CloudCustomer
-	if rf, ok := ret.Get(0).(func() *model.CloudCustomer); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) *model.CloudCustomer); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.CloudCustomer)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetCloudProducts provides a mock function with given fields:
-func (_m *CloudInterface) GetCloudProducts() ([]*model.Product, *model.AppError) {
-	ret := _m.Called()
+// GetCloudProducts provides a mock function with given fields: userID
+func (_m *CloudInterface) GetCloudProducts(userID string) ([]*model.Product, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Product
-	if rf, ok := ret.Get(0).(func() []*model.Product); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) []*model.Product); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Product)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetInvoicePDF provides a mock function with given fields: invoiceID
-func (_m *CloudInterface) GetInvoicePDF(invoiceID string) ([]byte, string, *model.AppError) {
-	ret := _m.Called(invoiceID)
+// GetInvoicePDF provides a mock function with given fields: userID, invoiceID
+func (_m *CloudInterface) GetInvoicePDF(userID string, invoiceID string) ([]byte, string, error) {
+	ret := _m.Called(userID, invoiceID)
 
 	var r0 []byte
-	if rf, ok := ret.Get(0).(func(string) []byte); ok {
-		r0 = rf(invoiceID)
+	if rf, ok := ret.Get(0).(func(string, string) []byte); ok {
+		r0 = rf(userID, invoiceID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
@@ -119,119 +111,109 @@ func (_m *CloudInterface) GetInvoicePDF(invoiceID string) ([]byte, string, *mode
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(string) string); ok {
-		r1 = rf(invoiceID)
+	if rf, ok := ret.Get(1).(func(string, string) string); ok {
+		r1 = rf(userID, invoiceID)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
-	var r2 *model.AppError
-	if rf, ok := ret.Get(2).(func(string) *model.AppError); ok {
-		r2 = rf(invoiceID)
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, string) error); ok {
+		r2 = rf(userID, invoiceID)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.AppError)
-		}
+		r2 = ret.Error(2)
 	}
 
 	return r0, r1, r2
 }
 
-// GetInvoicesForSubscription provides a mock function with given fields:
-func (_m *CloudInterface) GetInvoicesForSubscription() ([]*model.Invoice, *model.AppError) {
-	ret := _m.Called()
+// GetInvoicesForSubscription provides a mock function with given fields: userID
+func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.Invoice, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Invoice
-	if rf, ok := ret.Get(0).(func() []*model.Invoice); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) []*model.Invoice); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Invoice)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetSubscription provides a mock function with given fields:
-func (_m *CloudInterface) GetSubscription() (*model.Subscription, *model.AppError) {
-	ret := _m.Called()
+// GetSubscription provides a mock function with given fields: userID
+func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, error) {
+	ret := _m.Called(userID)
 
 	var r0 *model.Subscription
-	if rf, ok := ret.Get(0).(func() *model.Subscription); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) *model.Subscription); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Subscription)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// UpdateCloudCustomer provides a mock function with given fields: customerInfo
-func (_m *CloudInterface) UpdateCloudCustomer(customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, *model.AppError) {
-	ret := _m.Called(customerInfo)
+// UpdateCloudCustomer provides a mock function with given fields: userID, customerInfo
+func (_m *CloudInterface) UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error) {
+	ret := _m.Called(userID, customerInfo)
 
 	var r0 *model.CloudCustomer
-	if rf, ok := ret.Get(0).(func(*model.CloudCustomerInfo) *model.CloudCustomer); ok {
-		r0 = rf(customerInfo)
+	if rf, ok := ret.Get(0).(func(string, *model.CloudCustomerInfo) *model.CloudCustomer); ok {
+		r0 = rf(userID, customerInfo)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.CloudCustomer)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.CloudCustomerInfo) *model.AppError); ok {
-		r1 = rf(customerInfo)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.CloudCustomerInfo) error); ok {
+		r1 = rf(userID, customerInfo)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// UpdateCloudCustomerAddress provides a mock function with given fields: address
-func (_m *CloudInterface) UpdateCloudCustomerAddress(address *model.Address) (*model.CloudCustomer, *model.AppError) {
-	ret := _m.Called(address)
+// UpdateCloudCustomerAddress provides a mock function with given fields: userID, address
+func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error) {
+	ret := _m.Called(userID, address)
 
 	var r0 *model.CloudCustomer
-	if rf, ok := ret.Get(0).(func(*model.Address) *model.CloudCustomer); ok {
-		r0 = rf(address)
+	if rf, ok := ret.Get(0).(func(string, *model.Address) *model.CloudCustomer); ok {
+		r0 = rf(userID, address)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.CloudCustomer)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Address) *model.AppError); ok {
-		r1 = rf(address)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.Address) error); ok {
+		r1 = rf(userID, address)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

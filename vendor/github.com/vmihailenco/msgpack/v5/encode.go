@@ -7,14 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vmihailenco/msgpack/v5/codes"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 const (
 	sortMapKeysFlag uint32 = 1 << iota
-	structAsArrayFlag
+	arrayEncodedStructsFlag
 	useCompactIntsFlag
 	useCompactFloatsFlag
+	useInternedStringsFlag
 )
 
 type writer interface {
@@ -24,23 +25,16 @@ type writer interface {
 
 type byteWriter struct {
 	io.Writer
-
-	buf [1]byte
 }
 
-func newByteWriter(w io.Writer) *byteWriter {
-	bw := new(byteWriter)
-	bw.Reset(w)
-	return bw
+func newByteWriter(w io.Writer) byteWriter {
+	return byteWriter{
+		Writer: w,
+	}
 }
 
-func (bw *byteWriter) Reset(w io.Writer) {
-	bw.Writer = w
-}
-
-func (bw *byteWriter) WriteByte(c byte) error {
-	bw.buf[0] = c
-	_, err := bw.Write(bw.buf[:])
+func (bw byteWriter) WriteByte(c byte) error {
+	_, err := bw.Write([]byte{c})
 	return err
 }
 
@@ -85,7 +79,7 @@ type Encoder struct {
 	buf     []byte
 	timeBuf []byte
 
-	intern map[string]int
+	dict map[string]int
 
 	flags     uint32
 	structTag string
@@ -105,27 +99,40 @@ func (e *Encoder) Writer() io.Writer {
 	return e.w
 }
 
+// Reset discards any buffered data, resets all state, and switches the writer to write to w.
 func (e *Encoder) Reset(w io.Writer) {
+	e.ResetDict(w, nil)
+}
+
+// ResetDict is like Reset, but also resets the dict.
+func (e *Encoder) ResetDict(w io.Writer, dict map[string]int) {
+	e.resetWriter(w)
+	e.flags = 0
+	e.structTag = ""
+	e.dict = dict
+}
+
+func (e *Encoder) WithDict(dict map[string]int, fn func(*Encoder) error) error {
+	oldDict := e.dict
+	e.dict = dict
+	err := fn(e)
+	e.dict = oldDict
+	return err
+}
+
+func (e *Encoder) resetWriter(w io.Writer) {
 	if bw, ok := w.(writer); ok {
 		e.w = bw
-	} else if bw, ok := e.w.(*byteWriter); ok {
-		bw.Reset(w)
 	} else {
 		e.w = newByteWriter(w)
 	}
-
-	for k := range e.intern {
-		delete(e.intern, k)
-	}
-
-	e.flags = 0
 }
 
-// SortMapKeys causes the Encoder to encode map keys in increasing order.
+// SetSortMapKeys causes the Encoder to encode map keys in increasing order.
 // Supported map types are:
 //   - map[string]string
 //   - map[string]interface{}
-func (e *Encoder) SortMapKeys(on bool) *Encoder {
+func (e *Encoder) SetSortMapKeys(on bool) *Encoder {
 	if on {
 		e.flags |= sortMapKeysFlag
 	} else {
@@ -134,29 +141,19 @@ func (e *Encoder) SortMapKeys(on bool) *Encoder {
 	return e
 }
 
-// StructAsArray causes the Encoder to encode Go structs as msgpack arrays.
-func (e *Encoder) StructAsArray(on bool) {
-	if on {
-		e.flags |= structAsArrayFlag
-	} else {
-		e.flags &= ^structAsArrayFlag
-	}
-}
-
-// UseJSONTag causes the Encoder to use json struct tag as fallback option
-// if there is no msgpack tag.
-func (e *Encoder) UseJSONTag(on bool) {
-	if on {
-		e.UseCustomStructTag("json")
-	} else {
-		e.UseCustomStructTag("")
-	}
-}
-
-// UseCustomStructTag causes the Encoder to use a custom struct tag as
+// SetCustomStructTag causes the Encoder to use a custom struct tag as
 // fallback option if there is no msgpack tag.
-func (e *Encoder) UseCustomStructTag(tag string) {
+func (e *Encoder) SetCustomStructTag(tag string) {
 	e.structTag = tag
+}
+
+// UseArrayEncodedStructs causes the Encoder to encode Go structs as msgpack arrays.
+func (e *Encoder) UseArrayEncodedStructs(on bool) {
+	if on {
+		e.flags |= arrayEncodedStructsFlag
+	} else {
+		e.flags &= ^arrayEncodedStructsFlag
+	}
 }
 
 // UseCompactEncoding causes the Encoder to chose the most compact encoding.
@@ -179,6 +176,15 @@ func (e *Encoder) UseCompactFloats(on bool) {
 	}
 }
 
+// UseInternedStrings causes the Encoder to intern strings.
+func (e *Encoder) UseInternedStrings(on bool) {
+	if on {
+		e.flags |= useInternedStringsFlag
+	} else {
+		e.flags &= ^useInternedStringsFlag
+	}
+}
+
 func (e *Encoder) Encode(v interface{}) error {
 	switch v := v.(type) {
 	case nil:
@@ -188,11 +194,11 @@ func (e *Encoder) Encode(v interface{}) error {
 	case []byte:
 		return e.EncodeBytes(v)
 	case int:
-		return e.encodeInt64Cond(int64(v))
+		return e.EncodeInt(int64(v))
 	case int64:
 		return e.encodeInt64Cond(v)
 	case uint:
-		return e.encodeUint64Cond(uint64(v))
+		return e.EncodeUint(uint64(v))
 	case uint64:
 		return e.encodeUint64Cond(v)
 	case bool:
@@ -224,22 +230,22 @@ func (e *Encoder) EncodeValue(v reflect.Value) error {
 }
 
 func (e *Encoder) EncodeNil() error {
-	return e.writeCode(codes.Nil)
+	return e.writeCode(msgpcode.Nil)
 }
 
 func (e *Encoder) EncodeBool(value bool) error {
 	if value {
-		return e.writeCode(codes.True)
+		return e.writeCode(msgpcode.True)
 	}
-	return e.writeCode(codes.False)
+	return e.writeCode(msgpcode.False)
 }
 
 func (e *Encoder) EncodeDuration(d time.Duration) error {
 	return e.EncodeInt(int64(d))
 }
 
-func (e *Encoder) writeCode(c codes.Code) error {
-	return e.w.WriteByte(byte(c))
+func (e *Encoder) writeCode(c byte) error {
+	return e.w.WriteByte(c)
 }
 
 func (e *Encoder) write(b []byte) error {

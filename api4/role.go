@@ -56,7 +56,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(c.Params.RoleName)
+	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return
@@ -110,8 +110,16 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("role", oldRole)
 
-	if oldRole.Name == model.SYSTEM_ADMIN_ROLE_ID {
-		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.admin_role.error", nil, "", http.StatusNotImplemented)
+	// manage_system permission is required to patch system_admin
+	requiredPermission := model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS
+	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SYSTEM_ADMIN_ROLE_ID)
+	for _, roleID := range specialProtectedSystemRoles {
+		if oldRole.Name == roleID {
+			requiredPermission = model.PERMISSION_MANAGE_SYSTEM
+		}
+	}
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), requiredPermission) {
+		c.SetPermissionError(requiredPermission)
 		return
 	}
 
@@ -154,6 +162,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		*patch.Permissions = model.UniqueStrings(*patch.Permissions)
 	}
 
 	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
@@ -162,12 +172,12 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldRole.Name == model.TEAM_ADMIN_ROLE_ID || oldRole.Name == model.CHANNEL_ADMIN_ROLE_ID || oldRole.Name == model.SYSTEM_USER_ROLE_ID || oldRole.Name == model.TEAM_USER_ROLE_ID || oldRole.Name == model.CHANNEL_USER_ROLE_ID || oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID {
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
 			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES) {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES) {
 			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES)
 			return
 		}

@@ -87,6 +87,8 @@ type MarketplacePluginFilter struct {
 	Cloud                bool
 	LocalOnly            bool
 	Platform             string
+	PluginId             string
+	ReturnAllVersions    bool
 }
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
@@ -103,6 +105,8 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	q.Add("cloud", strconv.FormatBool(filter.Cloud))
 	q.Add("local_only", strconv.FormatBool(filter.LocalOnly))
 	q.Add("platform", filter.Platform)
+	q.Add("plugin_id", filter.PluginId)
+	q.Add("return_all_versions", strconv.FormatBool(filter.ReturnAllVersions))
 	u.RawQuery = q.Encode()
 }
 

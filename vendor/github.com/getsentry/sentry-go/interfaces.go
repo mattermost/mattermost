@@ -52,31 +52,42 @@ type BreadcrumbHint map[string]interface{}
 // Breadcrumb specifies an application event that occurred before a Sentry event.
 // An event may contain one or more breadcrumbs.
 type Breadcrumb struct {
+	Type      string                 `json:"type,omitempty"`
 	Category  string                 `json:"category,omitempty"`
+	Message   string                 `json:"message,omitempty"`
 	Data      map[string]interface{} `json:"data,omitempty"`
 	Level     Level                  `json:"level,omitempty"`
-	Message   string                 `json:"message,omitempty"`
 	Timestamp time.Time              `json:"timestamp"`
-	Type      string                 `json:"type,omitempty"`
 }
+
+// TODO: provide constants for known breadcrumb types.
+// See https://develop.sentry.dev/sdk/event-payloads/breadcrumbs/#breadcrumb-types.
 
 // MarshalJSON converts the Breadcrumb struct to JSON.
 func (b *Breadcrumb) MarshalJSON() ([]byte, error) {
-	type alias Breadcrumb
-	// encoding/json doesn't support the "omitempty" option for struct types.
-	// See https://golang.org/issues/11939.
-	// This implementation of MarshalJSON shadows the original Timestamp field
-	// forcing it to be omitted when the Timestamp is the zero value of
-	// time.Time.
+	// We want to omit time.Time zero values, otherwise the server will try to
+	// interpret dates too far in the past. However, encoding/json doesn't
+	// support the "omitempty" option for struct types. See
+	// https://golang.org/issues/11939.
+	//
+	// We overcome the limitation and achieve what we want by shadowing fields
+	// and a few type tricks.
+
+	// breadcrumb aliases Breadcrumb to allow calling json.Marshal without an
+	// infinite loop. It preserves all fields while none of the attached
+	// methods.
+	type breadcrumb Breadcrumb
+
 	if b.Timestamp.IsZero() {
-		return json.Marshal(&struct {
-			*alias
+		return json.Marshal(struct {
+			// Embed all of the fields of Breadcrumb.
+			*breadcrumb
+			// Timestamp shadows the original Timestamp field and is meant to
+			// remain nil, triggering the omitempty behavior.
 			Timestamp json.RawMessage `json:"timestamp,omitempty"`
-		}{
-			alias: (*alias)(b),
-		})
+		}{breadcrumb: (*breadcrumb)(b)})
 	}
-	return json.Marshal((*alias)(b))
+	return json.Marshal((*breadcrumb)(b))
 }
 
 // User describes the user associated with an Event. If this is used, at least
@@ -139,12 +150,11 @@ func NewRequest(r *http.Request) *Request {
 
 // Exception specifies an error that occurred.
 type Exception struct {
-	Type          string      `json:"type,omitempty"`
-	Value         string      `json:"value,omitempty"`
-	Module        string      `json:"module,omitempty"`
-	ThreadID      string      `json:"thread_id,omitempty"`
-	Stacktrace    *Stacktrace `json:"stacktrace,omitempty"`
-	RawStacktrace *Stacktrace `json:"raw_stacktrace,omitempty"`
+	Type       string      `json:"type,omitempty"`  // used as the main issue title
+	Value      string      `json:"value,omitempty"` // used as the main issue subtitle
+	Module     string      `json:"module,omitempty"`
+	ThreadID   string      `json:"thread_id,omitempty"`
+	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
 }
 
 // EventID is a hexadecimal string representing a unique uuid4 for an Event.
@@ -176,51 +186,99 @@ type Event struct {
 	Request     *Request               `json:"request,omitempty"`
 	Exception   []Exception            `json:"exception,omitempty"`
 
-	// Experimental: This is part of a beta feature of the SDK. The fields below
-	// are only relevant for transactions.
-	Type           string    `json:"type,omitempty"`
-	StartTimestamp time.Time `json:"start_timestamp"`
-	Spans          []*Span   `json:"spans,omitempty"`
+	// The fields below are only relevant for transactions.
+
+	Type      string    `json:"type,omitempty"`
+	StartTime time.Time `json:"start_timestamp"`
+	Spans     []*Span   `json:"spans,omitempty"`
 }
+
+// TODO: Event.Contexts map[string]interface{} => map[string]EventContext,
+// to prevent accidentally storing T when we mean *T.
+// For example, the TraceContext must be stored as *TraceContext to pick up the
+// MarshalJSON method (and avoid copying).
+// type EventContext interface{ EventContext() }
 
 // MarshalJSON converts the Event struct to JSON.
 func (e *Event) MarshalJSON() ([]byte, error) {
+	// We want to omit time.Time zero values, otherwise the server will try to
+	// interpret dates too far in the past. However, encoding/json doesn't
+	// support the "omitempty" option for struct types. See
+	// https://golang.org/issues/11939.
+	//
+	// We overcome the limitation and achieve what we want by shadowing fields
+	// and a few type tricks.
+	if e.Type == transactionType {
+		return e.transactionMarshalJSON()
+	}
+	return e.defaultMarshalJSON()
+}
+
+func (e *Event) defaultMarshalJSON() ([]byte, error) {
 	// event aliases Event to allow calling json.Marshal without an infinite
-	// loop. It preserves all fields of Event while none of the attached
-	// methods.
+	// loop. It preserves all fields while none of the attached methods.
 	type event Event
 
-	// Transactions are marshaled in the standard way how json.Marshal works.
-	if e.Type == transactionType {
-		return json.Marshal((*event)(e))
-	}
-
-	// errorEvent is like Event with some shadowed fields for customizing the
-	// JSON serialization of regular "error events".
+	// errorEvent is like Event with shadowed fields for customizing JSON
+	// marshaling.
 	type errorEvent struct {
 		*event
 
-		// encoding/json doesn't support the omitempty option for struct types.
-		// See https://golang.org/issues/11939.
-		// We shadow the original Event.Timestamp field with a json.RawMessage.
-		// This allows us to include the timestamp when non-zero and omit it
-		// otherwise.
+		// Timestamp shadows the original Timestamp field. It allows us to
+		// include the timestamp when non-zero and omit it otherwise.
 		Timestamp json.RawMessage `json:"timestamp,omitempty"`
 
-		// The fields below are not part of the regular "error events" and only
-		// make sense to be sent for transactions. They shadow the respective
-		// fields in Event and are meant to remain nil, triggering the omitempty
-		// behavior.
-		Type           json.RawMessage `json:"type,omitempty"`
-		StartTimestamp json.RawMessage `json:"start_timestamp,omitempty"`
-		Spans          json.RawMessage `json:"spans,omitempty"`
+		// The fields below are not part of error events and only make sense to
+		// be sent for transactions. They shadow the respective fields in Event
+		// and are meant to remain nil, triggering the omitempty behavior.
+
+		Type      json.RawMessage `json:"type,omitempty"`
+		StartTime json.RawMessage `json:"start_timestamp,omitempty"`
+		Spans     json.RawMessage `json:"spans,omitempty"`
 	}
 
-	x := &errorEvent{event: (*event)(e)}
+	x := errorEvent{event: (*event)(e)}
 	if !e.Timestamp.IsZero() {
-		x.Timestamp = append(x.Timestamp, '"')
-		x.Timestamp = e.Timestamp.UTC().AppendFormat(x.Timestamp, time.RFC3339Nano)
-		x.Timestamp = append(x.Timestamp, '"')
+		b, err := e.Timestamp.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.Timestamp = b
+	}
+	return json.Marshal(x)
+}
+
+func (e *Event) transactionMarshalJSON() ([]byte, error) {
+	// event aliases Event to allow calling json.Marshal without an infinite
+	// loop. It preserves all fields while none of the attached methods.
+	type event Event
+
+	// transactionEvent is like Event with shadowed fields for customizing JSON
+	// marshaling.
+	type transactionEvent struct {
+		*event
+
+		// The fields below shadow the respective fields in Event. They allow us
+		// to include timestamps when non-zero and omit them otherwise.
+
+		StartTime json.RawMessage `json:"start_timestamp,omitempty"`
+		Timestamp json.RawMessage `json:"timestamp,omitempty"`
+	}
+
+	x := transactionEvent{event: (*event)(e)}
+	if !e.Timestamp.IsZero() {
+		b, err := e.Timestamp.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.Timestamp = b
+	}
+	if !e.StartTime.IsZero() {
+		b, err := e.StartTime.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.StartTime = b
 	}
 	return json.Marshal(x)
 }
@@ -238,12 +296,11 @@ func NewEvent() *Event {
 
 // Thread specifies threads that were running at the time of an event.
 type Thread struct {
-	ID            string      `json:"id,omitempty"`
-	Name          string      `json:"name,omitempty"`
-	Stacktrace    *Stacktrace `json:"stacktrace,omitempty"`
-	RawStacktrace *Stacktrace `json:"raw_stacktrace,omitempty"`
-	Crashed       bool        `json:"crashed,omitempty"`
-	Current       bool        `json:"current,omitempty"`
+	ID         string      `json:"id,omitempty"`
+	Name       string      `json:"name,omitempty"`
+	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
+	Crashed    bool        `json:"crashed,omitempty"`
+	Current    bool        `json:"current,omitempty"`
 }
 
 // EventHint contains information that can be associated with an Event.
@@ -255,31 +312,4 @@ type EventHint struct {
 	Context            context.Context
 	Request            *http.Request
 	Response           *http.Response
-}
-
-// TraceContext describes the context of the trace.
-//
-// Experimental: This is part of a beta feature of the SDK.
-type TraceContext struct {
-	TraceID     string `json:"trace_id"`
-	SpanID      string `json:"span_id"`
-	Op          string `json:"op,omitempty"`
-	Description string `json:"description,omitempty"`
-	Status      string `json:"status,omitempty"`
-}
-
-// Span describes a timed unit of work in a trace.
-//
-// Experimental: This is part of a beta feature of the SDK.
-type Span struct {
-	TraceID        string                 `json:"trace_id"`
-	SpanID         string                 `json:"span_id"`
-	ParentSpanID   string                 `json:"parent_span_id,omitempty"`
-	Op             string                 `json:"op,omitempty"`
-	Description    string                 `json:"description,omitempty"`
-	Status         string                 `json:"status,omitempty"`
-	Tags           map[string]string      `json:"tags,omitempty"`
-	StartTimestamp time.Time              `json:"start_timestamp"`
-	EndTimestamp   time.Time              `json:"timestamp"`
-	Data           map[string]interface{} `json:"data,omitempty"`
 }

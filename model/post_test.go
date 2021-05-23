@@ -838,7 +838,8 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			patch.Message = &tc.Message
+			message := tc.Message
+			patch.Message = &message
 			patch.DisableMentionHighlights()
 			if tc.ExpectedProps == nil {
 				assert.Nil(t, patch.Props)
@@ -882,5 +883,50 @@ func TestSearchParameterFromJson(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, params)
 		require.Equal(t, "test", *params.Terms)
+	})
+}
+
+func TestPostAttachments(t *testing.T) {
+	p := &Post{
+		Props: map[string]interface{}{
+			"attachments": []byte(`[{
+				"actions" : {null}
+			}]
+			`),
+		},
+	}
+
+	t.Run("empty actions", func(t *testing.T) {
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{}},
+		}
+		attachments := p.Attachments()
+		require.Empty(t, attachments[0].Actions)
+	})
+
+	t.Run("a couple of actions", func(t *testing.T) {
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{
+				map[string]interface{}{"id": "test1"}, map[string]interface{}{"id": "test2"}},
+			},
+		}
+
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Actions, 2)
+		require.Equal(t, attachments[0].Actions[0].Id, "test1")
+		require.Equal(t, attachments[0].Actions[1].Id, "test2")
+	})
+
+	t.Run("should ignore null actions", func(t *testing.T) {
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{
+				map[string]interface{}{"id": "test1"}, nil, map[string]interface{}{"id": "test2"}, nil, nil},
+			},
+		}
+
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Actions, 2)
+		require.Equal(t, attachments[0].Actions[0].Id, "test1")
+		require.Equal(t, attachments[0].Actions[1].Id, "test2")
 	})
 }

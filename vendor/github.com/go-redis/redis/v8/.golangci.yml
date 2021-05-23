@@ -17,5 +17,8 @@ linters:
     - gomnd
     - goerr113
     - exhaustive
-    - gofumpt
     - nestif
+    - nlreturn
+    - exhaustivestruct
+    - wrapcheck
+    - errorlint
