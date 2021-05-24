@@ -5,14 +5,15 @@ package api4
 
 import (
 	"encoding/json"
+	"net/http"
+	"testing"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	mocks2 "github.com/mattermost/mattermost-server/v5/utils/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
