@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -130,7 +131,9 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			if err := IsPasswordValidWithSettings(tc.Password, tc.Settings); tc.ExpectedError == "" {
 				assert.Nil(t, err)
 			} else {
-				assert.Equal(t, tc.ExpectedError, err.Error())
+				invErr, ok := err.(*ErrInvalidPassword)
+				require.True(t, ok)
+				assert.Equal(t, tc.ExpectedError, invErr.Id())
 			}
 		})
 	}

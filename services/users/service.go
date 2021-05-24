@@ -17,6 +17,11 @@ type UserService struct {
 	config func() *model.Config
 }
 
+type UserCreateOptions struct {
+	Guest      bool
+	FromImport bool
+}
+
 func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
 	return &UserService{
 		store:  s,
@@ -25,9 +30,9 @@ func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
 }
 
 // CreateUser creates a user
-func (us *UserService) CreateUser(user *model.User, guest bool) (*model.User, error) {
+func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
 	user.Roles = model.SYSTEM_USER_ROLE_ID
-	if guest {
+	if opts.Guest {
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
 	}
 
@@ -45,7 +50,7 @@ func (us *UserService) CreateUser(user *model.User, guest bool) (*model.User, er
 	if err != nil {
 		return nil, UserCountError
 	}
-	if count <= 0 && user.Roles == "" {
+	if count <= 0 && !opts.FromImport {
 		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
 	}
 

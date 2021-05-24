@@ -150,7 +150,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
 		require.NoError(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})

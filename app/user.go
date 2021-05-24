@@ -245,7 +245,7 @@ func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *m
 }
 
 func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
-	ruser, nErr := a.srv.userService.CreateUser(user, guest)
+	ruser, nErr := a.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -256,7 +256,7 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 		case errors.Is(nErr, users.AcceptedDomainError):
 			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createUserOrGuest", "", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
 		case errors.Is(nErr, users.UserCountError):
 			return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		case errors.As(nErr, &invErr):
