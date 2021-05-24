@@ -159,6 +159,7 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
+	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
 	sharedChannelService SharedChannelServiceIFace
 
@@ -204,9 +205,6 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
-
-	dndnTaskMut sync.Mutex
-	dndTask     *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -250,8 +248,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	fakeApp := New(ServerConnector(s))
-	fakeApp.HubStart()
+	app := New(ServerConnector(s))
+	app.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -491,11 +489,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("", s.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -507,7 +504,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      fakeApp,
+		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -636,7 +633,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := fakeApp.UpdateProductNotices(); err != nil {
+			if err := app.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -649,7 +646,7 @@ func NewServer(options ...Option) (*Server, error) {
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+			if appErr := app.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -657,7 +654,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+		if appErr := app.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
@@ -665,9 +662,8 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.runEssentialJobs {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(fakeApp, c)
-			runCheckWarnMetricStatusJob(fakeApp, c)
-			runDNDStatusExpireJob(fakeApp)
+			runCheckAdminSupportStatusJob(app, c)
+			runCheckWarnMetricStatusJob(app, c)
 		})
 		s.runJobs()
 	}
@@ -873,15 +869,18 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 
 	var err error
 
-	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	rcs, err := remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		return err
 	}
 
-	if err = s.remoteClusterService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = rcs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.serviceMux.Unlock()
 
 	// Shared Channels service
 
@@ -897,15 +896,19 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
 
-	if err = s.sharedChannelService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = scs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.sharedChannelService = scs
+	s.serviceMux.Unlock()
+
 	return nil
 }
 
@@ -967,11 +970,18 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
+	s.serviceMux.RLock()
+	if s.sharedChannelService != nil {
+		if err = s.sharedChannelService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+		}
+	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
 			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
+	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
@@ -1031,12 +1041,6 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
-
-	s.dndnTaskMut.Lock()
-	if s.dndTask != nil {
-		s.dndTask.Cancel()
-	}
-	s.dndnTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -1992,12 +1996,16 @@ func (s *Server) GetStore() store.Store {
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.remoteClusterService
 }
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.sharedChannelService
 }
 
@@ -2010,12 +2018,16 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
 func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.remoteClusterService = remoteClusterService
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
 }
 
@@ -2263,26 +2275,3 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	}
 // 	return result, nil
 // }
-
-func runDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		a.srv.dndnTaskMut.Lock()
-		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-		a.srv.dndnTaskMut.Unlock()
-	}
-	a.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
-		if a.IsLeader() {
-			a.srv.dndnTaskMut.Lock()
-			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-			a.srv.dndnTaskMut.Unlock()
-		} else {
-			a.srv.dndnTaskMut.Lock()
-			if a.srv.dndTask != nil {
-				a.srv.dndTask.Cancel()
-				a.srv.dndTask = nil
-			}
-			a.srv.dndnTaskMut.Unlock()
-		}
-	})
-}
