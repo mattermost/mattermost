@@ -272,6 +272,10 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "A direct channel cannot be created between these users because they do not share a team in common."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
@@ -1491,12 +1495,20 @@
     "translation": "Failed to migrate config store."
   },
   {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Failed to diff configs"
+  },
+  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Failed to diff configs"
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
@@ -6069,6 +6081,10 @@
   {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Unable to get the common team IDs."
   },
   {
     "id": "app.team.get_member.app_error",
