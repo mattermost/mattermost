@@ -7,25 +7,15 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (us *UserService) IsPasswordValid(password string) *model.AppError {
-
-	if *us.config().ServiceSettings.EnableDeveloper {
-		return nil
-	}
-
-	return utils.IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
+// checkUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
+func checkUserDomain(user *model.User, domains string) bool {
+	return checkEmailDomain(user.Email, domains)
 }
 
-// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
-	return CheckEmailDomain(user.Email, domains)
-}
-
-// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
-func CheckEmailDomain(email string, domains string) bool {
+// checkEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
+func checkEmailDomain(email string, domains string) bool {
 	if domains == "" {
 		return true
 	}

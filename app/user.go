@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mfa"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -244,14 +245,32 @@ func (a *App) CreateGuest(c *request.Context, user *model.User) (*model.User, *m
 }
 
 func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool) (*model.User, *model.AppError) {
-	user.Roles = model.SYSTEM_USER_ROLE_ID
-	if guest {
-		user.Roles = model.SYSTEM_GUEST_ROLE_ID
-	}
-
-	ruser, appErr := a.srv.userService.CreateUser(user)
-	if appErr != nil {
-		return nil, appErr
+	ruser, nErr := a.srv.userService.CreateUser(user, guest)
+	if nErr != nil {
+		var appErr *model.AppError
+		var invErr *store.ErrInvalidInput
+		var nfErr *users.ErrInvalidPassword
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		case errors.Is(nErr, users.AcceptedDomainError):
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("createUserOrGuest", "", nil, "", http.StatusBadRequest)
+		case errors.Is(nErr, users.UserCountError):
+			return nil, model.NewAppError("createUserOrGuest", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		case errors.As(nErr, &invErr):
+			switch invErr.Field {
+			case "email":
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			case "username":
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.username_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			}
+		default:
+			return nil, model.NewAppError("createUserOrGuest", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if user.EmailVerified {
@@ -259,7 +278,13 @@ func (a *App) createUserOrGuest(c *request.Context, user *model.User, guest bool
 
 		nUser, err := a.srv.userService.GetUser(ruser.Id)
 		if err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("createUserOrGuest", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("createUserOrGuest", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		a.sendUpdatedUserEvent(*nUser)
@@ -387,7 +412,18 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	return a.srv.userService.GetUser(userID)
+	user, err := a.srv.userService.GetUser(userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetUser", "app.user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return user, nil
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {

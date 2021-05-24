@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package utils
+package users
 
 import (
 	"strings"
@@ -11,6 +11,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+func TestComparePassword(t *testing.T) {
+	hash := HashPassword("Test")
+
+	assert.True(t, ComparePassword(hash, "Test"), "Passwords don't match")
+	assert.False(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
+}
 
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
@@ -123,7 +130,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			if err := IsPasswordValidWithSettings(tc.Password, tc.Settings); tc.ExpectedError == "" {
 				assert.Nil(t, err)
 			} else {
-				assert.Equal(t, tc.ExpectedError, err.Id)
+				assert.Equal(t, tc.ExpectedError, err.Error())
 			}
 		})
 	}
