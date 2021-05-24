@@ -12,9 +12,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
+var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
 
-func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
+func RegisterAccountMigrationInterface(f func(*Server) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
 }
 
@@ -66,9 +66,9 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
-var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
+var jobsLdapSyncInterface func(*Server) ejobs.LdapSyncInterface
 
-func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
+func RegisterJobsLdapSyncInterface(f func(*Server) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
@@ -78,9 +78,9 @@ func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInter
 	jobsMigrationsInterface = f
 }
 
-var jobsPluginsInterface func(*App) tjobs.PluginsJobInterface
+var jobsPluginsInterface func(*Server) tjobs.PluginsJobInterface
 
-func RegisterJobsPluginsJobInterface(f func(*App) tjobs.PluginsJobInterface) {
+func RegisterJobsPluginsJobInterface(f func(*Server) tjobs.PluginsJobInterface) {
 	jobsPluginsInterface = f
 }
 
@@ -90,16 +90,16 @@ func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface
 	jobsBleveIndexerInterface = f
 }
 
-var jobsActiveUsersInterface func(*App) tjobs.ActiveUsersJobInterface
+var jobsActiveUsersInterface func(*Server) tjobs.ActiveUsersJobInterface
 
-func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface) {
+func RegisterJobsActiveUsersInterface(f func(*Server) tjobs.ActiveUsersJobInterface) {
 	jobsActiveUsersInterface = f
 }
 
-var jobsResendInvitationEmailInterface func(*App) ejobs.ResendInvitationEmailJobInterface
+var jobsResendInvitationEmailInterface func(*Server) ejobs.ResendInvitationEmailJobInterface
 
 // RegisterJobsResendInvitationEmailInterface is used to register or initialize the jobsResendInvitationEmailInterface
-func RegisterJobsResendInvitationEmailInterface(f func(*App) ejobs.ResendInvitationEmailJobInterface) {
+func RegisterJobsResendInvitationEmailInterface(f func(*Server) ejobs.ResendInvitationEmailJobInterface) {
 	jobsResendInvitationEmailInterface = f
 }
 
@@ -109,45 +109,45 @@ func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
 	jobsCloudInterface = f
 }
 
-var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
+var jobsExpiryNotifyInterface func(*Server) tjobs.ExpiryNotifyJobInterface
 
-func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
+func RegisterJobsExpiryNotifyJobInterface(f func(*Server) tjobs.ExpiryNotifyJobInterface) {
 	jobsExpiryNotifyInterface = f
 }
 
-var jobsImportProcessInterface func(*App) tjobs.ImportProcessInterface
+var jobsImportProcessInterface func(*Server) tjobs.ImportProcessInterface
 
-func RegisterJobsImportProcessInterface(f func(*App) tjobs.ImportProcessInterface) {
+func RegisterJobsImportProcessInterface(f func(*Server) tjobs.ImportProcessInterface) {
 	jobsImportProcessInterface = f
 }
 
-var jobsImportDeleteInterface func(*App) tjobs.ImportDeleteInterface
+var jobsImportDeleteInterface func(*Server) tjobs.ImportDeleteInterface
 
-func RegisterJobsImportDeleteInterface(f func(*App) tjobs.ImportDeleteInterface) {
+func RegisterJobsImportDeleteInterface(f func(*Server) tjobs.ImportDeleteInterface) {
 	jobsImportDeleteInterface = f
 }
 
-var jobsExportProcessInterface func(*App) tjobs.ExportProcessInterface
+var jobsExportProcessInterface func(*Server) tjobs.ExportProcessInterface
 
-func RegisterJobsExportProcessInterface(f func(*App) tjobs.ExportProcessInterface) {
+func RegisterJobsExportProcessInterface(f func(*Server) tjobs.ExportProcessInterface) {
 	jobsExportProcessInterface = f
 }
 
-var jobsExportDeleteInterface func(*App) tjobs.ExportDeleteInterface
+var jobsExportDeleteInterface func(*Server) tjobs.ExportDeleteInterface
 
-func RegisterJobsExportDeleteInterface(f func(*App) tjobs.ExportDeleteInterface) {
+func RegisterJobsExportDeleteInterface(f func(*Server) tjobs.ExportDeleteInterface) {
 	jobsExportDeleteInterface = f
 }
 
-var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
+var productNoticesJobInterface func(*Server) tjobs.ProductNoticesJobInterface
 
-func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
+func RegisterProductNoticesJobInterface(f func(*Server) tjobs.ProductNoticesJobInterface) {
 	productNoticesJobInterface = f
 }
 
-var ldapInterface func(*App) einterfaces.LdapInterface
+var ldapInterface func(*Server) einterfaces.LdapInterface
 
-func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
+func RegisterLdapInterface(f func(*Server) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
@@ -169,15 +169,15 @@ func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var samlInterfaceNew func(*App) einterfaces.SamlInterface
+var samlInterfaceNew func(*Server) einterfaces.SamlInterface
 
-func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
+func RegisterNewSamlInterface(f func(*Server) einterfaces.SamlInterface) {
 	samlInterfaceNew = f
 }
 
-var notificationInterface func(*App) einterfaces.NotificationInterface
+var notificationInterface func(*Server) einterfaces.NotificationInterface
 
-func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
+func RegisterNotificationInterface(f func(*Server) einterfaces.NotificationInterface) {
 	notificationInterface = f
 }
 
@@ -200,26 +200,23 @@ func (s *Server) initEnterprise() {
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
-}
-
-func (a *App) initEnterprise() {
 	if accountMigrationInterface != nil {
-		a.srv.AccountMigration = accountMigrationInterface(a)
+		s.AccountMigration = accountMigrationInterface(s)
 	}
 	if ldapInterface != nil {
-		a.srv.Ldap = ldapInterface(a)
+		s.Ldap = ldapInterface(s)
 	}
 	if notificationInterface != nil {
-		a.srv.Notification = notificationInterface(a)
+		s.Notification = notificationInterface(s)
 	}
 	if samlInterfaceNew != nil {
 		mlog.Debug("Loading SAML2 library")
-		a.srv.Saml = samlInterfaceNew(a)
-		if err := a.srv.Saml.ConfigureSP(); err != nil {
+		s.Saml = samlInterfaceNew(s)
+		if err := s.Saml.ConfigureSP(); err != nil {
 			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
-		a.AddConfigListener(func(_, cfg *model.Config) {
-			if err := a.srv.Saml.ConfigureSP(); err != nil {
+		s.AddConfigListener(func(_, cfg *model.Config) {
+			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})

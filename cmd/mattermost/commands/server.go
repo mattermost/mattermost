@@ -52,7 +52,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -100,23 +100,18 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
-	api := api4.Init(server, server.AppOptions, server.Router)
+	a := app.New(app.ServerConnector(server))
+	api := api4.Init(a, server.Router)
+
 	wsapi.Init(server)
-	web.New(server, server.AppOptions, server.Router)
-	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
+	web.New(a, server.Router)
+	api4.InitLocal(a, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
-
-	// TODO: remove this and handle all required initialization while creating
-	// the server. In theory, we shouldn't depend on App to have a fully-featured
-	// server. This initialization is added so that cluster handlers are registered
-	// and job schedulers are initialized.
-	fakeApp := app.New(app.ServerConnector(server))
-	fakeApp.InitServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

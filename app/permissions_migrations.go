@@ -157,8 +157,8 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
-	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
+func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
+	if _, err := s.Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -172,7 +172,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := a.Srv().Store.Role().Save(role); err != nil {
+		if _, err := s.Store.Role().Save(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -183,7 +183,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, ro
 		}
 	}
 
-	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := s.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
 		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -902,8 +902,26 @@ func (a *App) getAddAuthenticationSubsectionPermissions() (permissionsMap, error
 	return transformations, nil
 }
 
+// This migration fixes https://github.com/mattermost/mattermost-server/issues/17642 where this particular ancillary permission was forgotten during the initial migrations
+func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_SMTP
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP.Id),
+		Add: []string{model.PERMISSION_TEST_EMAIL.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
+	return a.Srv().doPermissionsMigrations()
+}
+
+func (s *Server) doPermissionsMigrations() error {
+	a := New(ServerConnector(s))
 	PermissionsMigrations := []struct {
 		Key       string
 		Migration func() (permissionsMap, error)
@@ -934,9 +952,10 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Migration: a.getAddEnvironmentSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Migration: a.getAddAboutSubsectionPermissions},
 		{Key: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Migration: a.getAddReportingSubsectionPermissions},
+		{Key: model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION, Migration: a.getAddTestEmailAncillaryPermission},
 	}
 
-	roles, err := a.srv.Store.Role().GetAll()
+	roles, err := s.Store.Role().GetAll()
 	if err != nil {
 		return err
 	}
@@ -946,7 +965,7 @@ func (a *App) DoPermissionsMigrations() error {
 		if err != nil {
 			return err
 		}
-		if err := a.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
 			return err
 		}
 	}

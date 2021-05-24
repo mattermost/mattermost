@@ -176,11 +176,11 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
 		fileInfo.Content = "test"
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
@@ -204,7 +204,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		emoji := th.CreateEmoji()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
@@ -248,7 +248,7 @@ func TestPreparePostForClient(t *testing.T) {
 		emoji3 := th.CreateEmoji()
 		emoji4 := th.CreateEmoji()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
@@ -289,7 +289,7 @@ func TestPreparePostForClient(t *testing.T) {
 				*cfg.ServiceSettings.EnablePostIconOverride = override
 			})
 
-			post, err := th.App.CreatePost(&model.Post{
+			post, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
@@ -347,7 +347,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
@@ -376,7 +376,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "some post",
@@ -409,7 +409,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
@@ -445,7 +445,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
@@ -482,7 +482,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Props: map[string]interface{}{
@@ -520,10 +520,10 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
 		require.Nil(t, err)
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			Message:   "test",
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
@@ -633,7 +633,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	serverURL = server.URL
 	defer server.Close()
 
-	post, err := th.App.CreatePost(&model.Post{
+	post, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,

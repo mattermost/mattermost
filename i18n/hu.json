@@ -2152,62 +2152,6 @@
     "translation": "[{{.SiteName}}] Új értesítés {{.Year}}. {{.Month}} {{.Day}}. óta"
   },
   {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Csatorna: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Csatorna: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Új értesítése van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Önnek új értesítése van."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Új csoport üzenete van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Új csoport üzenete van."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Új közvetlen üzenete van tőle: {{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Új közvetlen üzenete van."
-  },
-  {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "Nincs licence jelen"
   },
@@ -3834,10 +3778,6 @@
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
     "translation": "A Bleve indexelő munkás nem tudta elemezni a befejezési időt."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "A legrégebbi bejegyzést nem sikerült lekérni az adatbázisból."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -5669,7 +5609,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ugrás a bejegyzéshez"
+    "translation": "Üzenet megtekintése"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -6697,11 +6637,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Azonos URL-lel rendelkező távoli fürt már létezik."
+    "translation": "Azonos URL-lel rendelkező biztonságos kapcsolat már létezik."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Hiba történt a távoli fürt frissítésekor."
+    "translation": "Hiba történt a biztonságos kapcsolat frissítésekor."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -6709,11 +6649,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "A távoli fürt már hozzá lett adva."
+    "translation": "A biztonságos kapcsolat már hozzá lett adva."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Hiba történt a távoli fürt mentése során."
+    "translation": "Hiba történt a biztonságos kapcsolat mentése során."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -6725,11 +6665,11 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Hiba történt egy távoli fürt lekérésekor."
+    "translation": "Hiba történt egy biztonságos kapcsolat lekérésekor."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Hiba történt a távoli fürt törlésekor."
+    "translation": "Hiba történt a biztonságos kapcsolat törlésekor."
   },
   {
     "id": "api.reaction.town_square_read_only",
@@ -7023,33 +6963,6 @@
     }
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Önnek új értesítése van.",
-      "other": "Önnek {{.Count}} új értesítése van."
-    }
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Értesítés innen "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Csoport üzenet tőle: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Ugrás a bejegyzésre"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Közvetlen üzenet tőle: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Month}} {{.Day}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
-  },
-  {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
     "translation": "Csoportos email küldés letiltva a rendszergazda által."
   },
@@ -7099,15 +7012,15 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Hiányzik a távoli fürt azonosítója."
+    "translation": "Hiányzik a biztonságos kapcsolat azonosítója."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Távoli fürt azonosítója nem egyezik."
+    "translation": "Biztonságos kapcsolat azonosítója nem egyezik."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Nem található a távoli fürt azonosítója {{.RemoteId}}."
+    "translation": "Nem található a biztonságos kapcsolat azonosítója {{.RemoteId}}."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -7215,11 +7128,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "A távoli példány azonosítója a meghívás visszavonásához."
+    "translation": "A biztonságos kapcsolat azonosítója a meghívás visszavonásához."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Visszavonja a távoli példány meghívását erről a megosztott csatornáról"
+    "translation": "Visszavonja a biztonságos kapcsolat meghívását erről a megosztott csatornáról"
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
@@ -7247,27 +7160,27 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Távoli `{{.RemoteId}}` meghívása visszavonva."
+    "translation": "Biztonságos kapcsolat `{{.RemoteId}}` meghívása visszavonva."
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Távoli | OldalURL | Leírás | írásvédett| InviteAccepted | Online | Utolsó szinkronizálás |"
+    "translation": "| Biztonságos kapcsolat | SiteURL | írásvédett | Meghívó elfogadva | Online | Utolsó szinkronizálás |"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Meg kell adnia egy érvényes távoli fürtöt a meghívás visszavonásához"
+    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolatot a meghívás visszavonásához"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "A távoli fürt azonosítója érvénytelen: {{.Error}}"
+    "translation": "A biztonságos kapcsolat azonosítója érvénytelen: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Meglévő távoli példány azonosítója. Távoli példány hozzáadásához lásd a `remote` parancsot."
+    "translation": "Meglévő biztonságos kapcsolat azonosítója. Biztonságos kapcsolat hozzáadásához lásd a `secure-connection` parancsot."
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "A távoli fürtöt már meghívták."
+    "translation": "A biztonságos kapcsolatot már meghívták."
   },
   {
     "id": "api.command_share.permission_required",
@@ -7279,15 +7192,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a megosztott csatornára nem hívtak meg távoliakat."
+    "translation": "Erre a megosztott csatornára nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
-    "translation": "megosztás"
+    "translation": "csatorna-megosztás"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Meg kell adnia egy érvényes távoli fürt azonosítót a meghíváshoz."
+    "translation": "Meg kell adnia egy érvényes biztonságos kapcsolat azonosítót a meghíváshoz."
   },
   {
     "id": "api.command_share.missing_action",
@@ -7311,7 +7224,7 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Nem sikerült lekérni a távoliak állapotát: {{.Error}}."
+    "translation": "Nem sikerült lekérni a biztonságos kapcsolatok állapotát: {{.Error}}."
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -7359,7 +7272,7 @@
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Hiba történt a távoli fürtök lekérésekor: {{.Error}}"
+    "translation": "Hiba történt a megosztott kapcsolatok lekérésekor: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
@@ -7391,7 +7304,7 @@
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "Nem lehet meghívni a távoli fürtöt máshonnan származó megosztott csatornára."
+    "translation": "Nem lehet meghívni a biztonságos kapcsolatot máshonnan származó megosztott csatornára."
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -7471,7 +7384,7 @@
   },
   {
     "id": "api.command_remote.status.help",
-    "translation": "Megjeleníti az összes távoli fürt állapotát"
+    "translation": "Megjeleníti az összes biztonságos kapcsolat állapotát"
   },
   {
     "id": "api.command_remote.site_url_not_set",
@@ -7487,43 +7400,43 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "A távoli fürt eltávolításának azonosítója"
+    "translation": "A biztonságos kapcsolatot eltávolításának azonosítója"
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Nem sikerült eltávolítani a távoli fürtöt: {{.Error}}"
+    "translation": "Nem sikerült eltávolítani a biztonságos kapcsolatot: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove.help",
-    "translation": "Eltávolít egy távoli fürtöt"
+    "translation": "Eltávolít egy biztonságos kapcsolatot"
   },
   {
     "id": "api.command_remote.remotes_not_found",
-    "translation": "Nem találhatóak távoli fürtök."
+    "translation": "Nem találhatóak biztonságos kapcsolatok."
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Név | OldalURL | RemoteId | Meghívó elfogadva | Online | Utolsó ping |"
+    "translation": "| Biztonságos kapcsolat | Megjelenített név | ConnectionID | Webhely URL | Meghívó elfogadva | Online | Utolsó ping |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Távoli fürtök hozzáadása / eltávolítása. Elérhető műveletek: {{.Actions}}"
+    "translation": "Biztonságos kapcsolatok hozzáadása / eltávolítása. Elérhető műveletek: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "A távoli fürtök kezeléséhez \"{{.Permission}}\" engedélyre van szüksége."
+    "translation": "A biztonságos kapcsolatok kezeléséhez \"{{.Permission}}\" engedélyre van szüksége."
   },
   {
     "id": "api.command_remote.name.hint",
-    "translation": "Távoli fürt egyedi neve"
+    "translation": "Biztonságos kapcsolat egyedi neve"
   },
   {
     "id": "api.command_remote.name.help",
-    "translation": "Távoli fürt név"
+    "translation": "Biztonságos kapcsolat név"
   },
   {
     "id": "api.command_remote.name",
-    "translation": "távoli"
+    "translation": "biztonságos-kapcsolat"
   },
   {
     "id": "api.command_remote.missing_empty",
@@ -7547,7 +7460,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Távoli fürt meghívása"
+    "translation": "Biztonságos kapcsolat létrehozása"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -7555,11 +7468,11 @@
   },
   {
     "id": "api.command_remote.invitation.hint",
-    "translation": "A titkosított meghívás egy távoli fürtből"
+    "translation": "A titkosított meghívás egy biztonságos kapcsolatról"
   },
   {
     "id": "api.command_remote.invitation.help",
-    "translation": "Meghívás a távoli fürtből"
+    "translation": "Meghívás biztonságos kapcsolatról"
   },
   {
     "id": "api.command_remote.incorrect_password.error",
@@ -7571,7 +7484,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Nem sikerült lekérni a távoli fürtöket: {{.Error}}"
+    "translation": "Nem sikerült lekérni a biztonságos kapcsolatokat: {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -7579,11 +7492,11 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": "Távoli fürt megjelenítési neve"
+    "translation": "Biztonságos kapcsolat megjelenítési neve"
   },
   {
     "id": "api.command_remote.displayname.help",
-    "translation": "Távoli fürt megjelenítési név"
+    "translation": "Biztonságos kapcsolat megjelenítési név"
   },
   {
     "id": "api.command_remote.desc",
@@ -7671,7 +7584,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Hiba történt az aktuális csatorna frissítésekor."
+    "translation": "Hiba történt a csatorna céljának frissítésekor."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -7703,7 +7616,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Hiba az aktuális csatorna módosításakor."
+    "translation": "Hiba a csatorna fejléc módosításakor."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -8625,11 +8538,11 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Távoli fürt {{.RemoteId}} {{.Result}}."
+    "translation": "Biztonságos kapcsolat {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Nem sikerült hozzáadni a távoli fürtöt: {{.Error}}"
+    "translation": "Nem sikerült hozzáadni biztonságos kapcsolatot: {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
@@ -9137,5 +9050,96 @@
   {
     "id": "April",
     "translation": "Április"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Meg akarja változtatni az értesítési beállításokat?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Bejelentkezés a Mattermostba"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " és lépjen a Fiókbeállítások> Értesítések menüpontba"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} megemlített egy üzenetben"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Amíg távol volt, {{.SenderName}} megemlített a {{.ChannelName}} csatornán."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} új üzenetet küldött Önnek"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Amíg távol volt, {{.SenderName}} üzenetet küldött a csoportjának."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} új üzenetet küldött Önnek"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Amíg távol volt, {{.SenderName}} új közvetlen üzenetet küldött Önnek."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Nem sikerült elküldeni a próbaverzió lejárt e-mailt"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "A Mattermost ingyenes 14 napos próbaverziója ma lejárt"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, a Mattermost Cloud Professional 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük, adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Professional előnyeit."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Mattermost cloud próbaidőszak véget ért"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "A [Támogatási e-mail] (https://docs.mattermost.com/administration/config-settings.html#support-email) beállításához a szervezet belső IT-támogatásaként lépjen a ** Rendszerkonzol> Weboldal beállítások> Testreszabás ** oldalra. Asztali e-mail cím a végfelhasználói visszajelzésekhez, e-mailes értesítésekhez és támogatási kérelmekhez."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Előfizetés indítása"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Állítsa be a támogatási email címét"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} új üzenetet küldött neked",
+      "other": "{{ .SenderName }} és {{.Count}} további ember új üzeneteket küldött neked"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Az új üzenetek összefoglalását lásd alább."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Tekintse meg ezt az üzenetet"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermost megnyitása"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "A beírt szöveg meghaladja a karakterkorlátot. A csatorna célja legfeljebb {{.MaxLength}} karakter lehet."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "A beírt szöveg meghaladja a karakterkorlátot. A csatorna fejléce legfeljebb {{.MaxLength}} karakter lehet."
   }
 ]

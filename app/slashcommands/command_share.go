@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -119,7 +120,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 	}
 }
 
-func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (sp *ShareProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
 		return responsef(args.T("api.command_share.permission_required", map[string]interface{}{"Permission": "manage_shared_channels"}))
 	}

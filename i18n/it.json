@@ -987,33 +987,6 @@
     "translation": "La spedizione di email programmata è stata disabilitata dall aministratore di sistema."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Messaggio Diretto da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Vai alla pubblicazione"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Messaggio di Gruppo da "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notifica da "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Hai una nuova notifica.",
-      "other": "Hai {{.Count}} nuove notifiche."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
@@ -2941,62 +2914,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Nome gruppo mancante nelle iscrizioni al gruppo dell'utente."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Hai un nuovo messaggio diretto."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Hai un nuovo messaggio diretto da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Hai un nuovo messaggio di gruppo."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Hai un nuovo messaggio di gruppo da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Hai una nuova notifica."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Hai una nuova notifica da @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canale: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5081,10 +4998,6 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
     "translation": "Impossibile indicizzare gli utenti in batch."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Il post più vecchio non può essere recuperato dal database."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",

@@ -47,7 +47,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.7.0"
+	f.PluginIncidentManagement = "1.9.3"
 	f.PluginApps = ""
 	f.CustomDataRetentionEnabled = false
 }

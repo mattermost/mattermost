@@ -988,34 +988,6 @@
     "translation": "Administrarea de sistem a dezactivat lotul prin e-mail."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Mesaj direct din "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Du-te la"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Mesaj de grup "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notificare de la "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Ai {{.Count}} notificări noi.",
-      "one": "Ai o nouă notificare.",
-      "other": "Au {{.Count}} notificări noi."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}",
@@ -2946,62 +2918,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Numele echipei lipsesc de la utilizator de membru de echipa."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Ai un mesaj nou."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Aveţi un nou mesaj Direct la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Ai un mesaj nou."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Aveţi un mesaj nou de grupa la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Ai o noua notificare."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Ai o noua notificare la @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Canal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5320,8 +5236,8 @@
     "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Cea mai veche entitate (utilizator, canal sau postare) nu a putut fi recuperată din baza de date."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
@@ -9170,5 +9086,53 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Nu s-a reușit resetarea câmpului AuthData la Email."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Politica nu este valabilă."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Am întâmpinat o eroare la efectuarea operațiunii solicitate."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nu se poate trimite un răspuns automat de la utilizator."
+  },
+  {
+    "id": "api.user.cloud_trial_ended_email.error",
+    "translation": "Nu a reușit să trimită e-mailul de încheiere a procesului"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.title",
+    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subtitle",
+    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.subject",
+    "translation": "Procesul Mattermost cloud s-a încheiat"
+  },
+  {
+    "id": "api.templates.cloud_trial_ended_email.start_subscription",
+    "translation": "Începeți abonamentul"
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
+    "translation": "Vă rugăm să accesați **System Console > Site Configuration > Customization** pentru a seta [Support Email](https://docs.mattermost.com/administration/config-settings.html#support-email) ca adresă de e-mail a biroului de asistență IT intern al organizației dumneavoastră pentru feedback-ul utilizatorului final, notificări prin e-mail și cereri de asistență."
+  },
+  {
+    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
+    "translation": "Setați adresa de e-mail de asistență"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Scopul canalului este limitat la {{.MaxLength}} caractere."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Textul introdus depășește limita de caractere. Antetul canalului este limitat la {{.MaxLength}} caractere."
   }
 ]

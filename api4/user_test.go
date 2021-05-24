@@ -22,6 +22,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mail"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+
+	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -375,10 +377,10 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			EmailVerified: true,
 		}
 
-		guest, err := th.App.CreateGuest(guest)
+		guest, err := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, err)
 
-		_, _, err = th.App.AddUserToTeam(th.BasicTeam.Id, guest.Id, "")
+		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, err)
 
 		_, err = th.App.AddUserToChannel(guest, th.BasicChannel, false)
@@ -996,7 +998,7 @@ func TestSearchUsers(t *testing.T) {
 
 	require.True(t, findUserInList(th.BasicUser.Id, users), "should have found user")
 
-	_, err := th.App.UpdateActive(th.BasicUser2, false)
+	_, err := th.App.UpdateActive(th.Context, th.BasicUser2, false)
 	require.Nil(t, err)
 
 	search.Term = th.BasicUser2.Username
@@ -1095,7 +1097,7 @@ func TestSearchUsers(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-	_, err = th.App.UpdateActive(th.BasicUser2, true)
+	_, err = th.App.UpdateActive(th.Context, th.BasicUser2, true)
 	require.Nil(t, err)
 
 	search.InChannelId = ""
@@ -1294,7 +1296,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.Empty(t, rusers.OutOfChannel)
 
-		th.App.GetOrCreateDirectChannel(permissionsUser.Id, otherUser.Id)
+		th.App.GetOrCreateDirectChannel(th.Context, permissionsUser.Id, otherUser.Id)
 
 		rusers, resp = th.Client.AutocompleteUsersInChannel(teamId, channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 		CheckNoError(t, resp)
@@ -1525,14 +1527,14 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
-		user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		require.Nil(t, err)
 
-		user2, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user2, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		require.Nil(t, err)
 
 		// Users not in the list of IDs shouldn't be returned
-		_, err = th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		_, err = th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		require.Nil(t, err)
 
 		users, resp := th.Client.GetUsersByIdsWithOptions([]string{user1.Id, user2.Id}, &model.UserGetByIdsOptions{
@@ -2004,7 +2006,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 
 	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
 		// Basic user creates a team and a channel
-		team, err := th.App.CreateTeamWithUser(&model.Team{
+		team, err := th.App.CreateTeamWithUser(th.Context, &model.Team{
 			DisplayName: "User Created Team",
 			Name:        "user-created-team",
 			Email:       "usercreatedteam@test.com",
@@ -2012,7 +2014,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		}, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		channel, err := th.App.CreateChannelWithUser(&model.Channel{
+		channel, err := th.App.CreateChannelWithUser(th.Context, &model.Channel{
 			DisplayName: "User Created Channel",
 			Name:        "user-created-channel",
 			Type:        model.CHANNEL_OPEN,
@@ -2221,9 +2223,9 @@ func TestUpdateUserActive(t *testing.T) {
 			Password:      "Password1",
 			EmailVerified: true,
 		}
-		user, err := th.App.CreateGuest(guest)
+		user, err := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, err)
-		th.App.UpdateActive(user, false)
+		th.App.UpdateActive(th.Context, user, false)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
@@ -2246,9 +2248,9 @@ func TestUpdateUserActive(t *testing.T) {
 			Password:      "Password1",
 			EmailVerified: true,
 		}
-		user, err := th.App.CreateGuest(guest)
+		user, err := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, err)
-		th.App.UpdateActive(user, false)
+		th.App.UpdateActive(th.Context, user, false)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2592,7 +2594,7 @@ func TestGetUsersInGroup(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
@@ -4613,7 +4615,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 	_, resp = th.Client.GetMe("")
 	CheckNoError(t, resp)
 
-	th.App.UpdateActive(th.BasicUser, false)
+	th.App.UpdateActive(th.Context, th.BasicUser, false)
 
 	_, resp = th.Client.GetMe("")
 	CheckUnauthorizedStatus(t, resp)
@@ -4674,7 +4676,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	team, err := th.App.CreateTeam(&model.Team{
+	team, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
@@ -4683,7 +4685,7 @@ func TestGetUsersByStatus(t *testing.T) {
 
 	require.Nil(t, err, "failed to create team")
 
-	channel, err := th.App.CreateChannel(&model.Channel{
+	channel, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
@@ -4695,7 +4697,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	createUserWithStatus := func(username string, status string) *model.User {
 		id := model.NewId()
 
-		user, err := th.App.CreateUser(&model.User{
+		user, err := th.App.CreateUser(th.Context, &model.User{
 			Email:    "success+" + id + "@simulator.amazonses.com",
 			Username: "un_" + username + "_" + id,
 			Nickname: "nn_" + id,
@@ -4943,7 +4945,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		_, respErr = c.DemoteUserToGuest(user.Id)
 		CheckNoError(t, respErr)
 
-		defer require.Nil(t, th.App.PromoteGuestToUser(user, ""))
+		defer require.Nil(t, th.App.PromoteGuestToUser(th.Context, user, ""))
 	}, "demote a user to guest")
 
 	t.Run("websocket update user event", func(t *testing.T) {
@@ -5085,7 +5087,7 @@ func TestGetKnownUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	t1, err := th.App.CreateTeam(&model.Team{
+	t1, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
@@ -5093,7 +5095,7 @@ func TestGetKnownUsers(t *testing.T) {
 	})
 	require.Nil(t, err, "failed to create team")
 
-	t2, err := th.App.CreateTeam(&model.Team{
+	t2, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
@@ -5101,7 +5103,7 @@ func TestGetKnownUsers(t *testing.T) {
 	})
 	require.Nil(t, err, "failed to create team")
 
-	t3, err := th.App.CreateTeam(&model.Team{
+	t3, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
@@ -5109,7 +5111,7 @@ func TestGetKnownUsers(t *testing.T) {
 	})
 	require.Nil(t, err, "failed to create team")
 
-	c1, err := th.App.CreateChannel(&model.Channel{
+	c1, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
@@ -5118,7 +5120,7 @@ func TestGetKnownUsers(t *testing.T) {
 	}, false)
 	require.Nil(t, err, "failed to create channel")
 
-	c2, err := th.App.CreateChannel(&model.Channel{
+	c2, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
@@ -5127,7 +5129,7 @@ func TestGetKnownUsers(t *testing.T) {
 	}, false)
 	require.Nil(t, err, "failed to create channel")
 
-	c3, err := th.App.CreateChannel(&model.Channel{
+	c3, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        "name_" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
@@ -5137,13 +5139,13 @@ func TestGetKnownUsers(t *testing.T) {
 	require.Nil(t, err, "failed to create channel")
 
 	u1 := th.CreateUser()
-	defer th.App.PermanentDeleteUser(u1)
+	defer th.App.PermanentDeleteUser(th.Context, u1)
 	u2 := th.CreateUser()
-	defer th.App.PermanentDeleteUser(u2)
+	defer th.App.PermanentDeleteUser(th.Context, u2)
 	u3 := th.CreateUser()
-	defer th.App.PermanentDeleteUser(u3)
+	defer th.App.PermanentDeleteUser(th.Context, u3)
 	u4 := th.CreateUser()
-	defer th.App.PermanentDeleteUser(u4)
+	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	th.LinkUserToTeam(u1, t1)
 	th.LinkUserToTeam(u1, t2)
@@ -5521,6 +5523,9 @@ func TestThreadSocketEvents(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -5537,7 +5542,7 @@ func TestThreadSocketEvents(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	_, err = th.App.CreatePostAsUser(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.App.Session().Id, false)
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, err)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)
@@ -5978,9 +5983,9 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 	user2 := th.BasicUser2
-	appErr := th.App.JoinChannel(channel, user.Id)
+	appErr := th.App.JoinChannel(th.Context, channel, user.Id)
 	require.Nil(t, appErr)
-	appErr = th.App.JoinChannel(channel, user2.Id)
+	appErr = th.App.JoinChannel(th.Context, channel, user2.Id)
 	require.Nil(t, appErr)
 
 	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg @" + th.BasicUser2.Username})

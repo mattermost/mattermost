@@ -987,33 +987,6 @@
     "translation": "Toplu e-posta gönderimi sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Şu kullanıcıdan doğrudan ileti: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "İletiye Git"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Şu gruptan ileti: "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Şuradan bildirim: "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Bir yeni bildiriminiz var.",
-      "other": "{{.Count}} yeni bildiriminiz var."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} için yeni bir bildirim var",
@@ -1912,7 +1885,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "İletiye Git"
+    "translation": "İletiyi Görüntüle"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2941,62 +2914,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Kullanıcının Takım Üyeliğinde takım adı eksik."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Yeni bir Doğrudan İletiniz var."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir Doğrudan İletiniz var"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Yeni bir Grup İletiniz var."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir Grup İletiniz var"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Yeni bir bildiriminiz var."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}} tarafından gönderilen yeni bir bildiriminiz var"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5115,8 +5032,8 @@
     "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı."
   },
   {
-    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Veritabanından en eski ileti alınamadı."
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Veritabanından en eski varlık (kullanıcı, kanal ya da ileti) alınamadı."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -8764,7 +8681,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Kümeler arası iletişim için uzak Mattermost kümelerini çağırın."
+    "translation": "Mattermost kopyaları arasında iletişim kurmak için uzak güvenli bağlantıları çağırın."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8784,7 +8701,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Uzak bir kümeden gelen bir çağrıyı kabul et"
+    "translation": "Bir dış Mattermost kopyasından gelen bir çağrıyı kabul et"
   },
   {
     "id": "api.command_remote.accept_invitation",
@@ -8796,11 +8713,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Bir uzak kümeyi geçerli paylaşılan kanala çağırır"
+    "translation": "Bir dış Mattermost kopyasını geçerli paylaşılmış kanala çağırır"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "`{{.Name}} {{.SiteURL}}` üzerine kanal çağrısı gönderildi."
+    "translation": "`{{.Name}} {{.SiteURL}}` üzerine paylaşılmış kanal çağrısı gönderildi."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8820,7 +8737,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Geçerli kanalı bir uzak Mattermost kopyası ile paylaşır."
+    "translation": "Geçerli kanalı bir dış Mattermost kopyası ile paylaşır."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -8868,19 +8785,19 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Site adresi ayarlanmamış. Lütfen sistem panosundan ayarlayın."
+    "translation": "Site adresi ayarlanmamış. Lütfen Sistem Panosu > Ortam > Web Sunucusu bölümünden ayarlayın."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Uzak Küme hizmeti etkinleştirilmemiş."
+    "translation": "Güvenli Bağlantı Hizmeti etkinleştirilmemiş."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Uzak Küme Hizmeti devre dışı bırakılmış."
+    "translation": "Güvenli Bağlantı Hizmeti devre dışı bırakılmış."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Silinecek güvenli bağlantının kodu"
+    "translation": "Silinecek güvenli bağlantının kodu."
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -8888,7 +8805,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile uzak site yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Sizin kümenizden uzak siteye ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
+    "translation": "Aşağıdaki şifreli (AES256 + Base64) veri yığınını parola ile dış Mattermost yöneticisine gönderin. `{{.Command}}` bölü komutunu kullanarak çağrıyı kabul edebilir.\n\n```\n{{.Invitation}}\n```\n\n**Güvenli bağlantının sizin Mattermost kopyanıza ** {{.SiteURL}} adresi ile erişilebildiğinden emin olun"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8904,7 +8821,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli Bağlantı | Görüntülenecek Ad | Bağlantı Kodu | Site Adresi | Çağrı Onaylandı | Çevrimiçi | Son İletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kodu | Site adresi | Çağrı onaylandı | Çevrimiçi | Son iletişim |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8940,7 +8857,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Güvenli bir bağlantı ekle"
+    "translation": "Güvenli bir bağlantı çağır"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9104,7 +9021,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Güvenli Bağlantı | Site Adresi | Salt Okunur| Çağrı Onaylandı | Çevrimiçi | Son Eşitleme |"
+    "translation": "| Güvenli bağlantı | Site adresi | Salt okunur| Çağrı onaylandı | Çevrimiçi | Son eşitleme |"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
@@ -9132,7 +9049,7 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Çağrılmaktan vazgeçilecek geçerli bir güvenli bağlantı belirtilmelidir"
+    "translation": "Çağrılmaktan vazgeçilecek geçerli bir güvenli bağlantı kodu belirtilmelidir"
   },
   {
     "id": "api.command_share.remote_id.help",
@@ -9152,7 +9069,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Bu paylaşılmış kanala herhangi bir güvenli bağlantı çağrılmamış."
+    "translation": "Bu kanala herhangi bir güvenli bağlantı çağrılmamış."
   },
   {
     "id": "api.command_share.name",
@@ -9184,11 +9101,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süresi bugün {{.TodayDate}} sona eriyor. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
+    "translation": "{{.Name}}, 14 günlük Mattermost Cloud Professional ücretsiz deneme süreniz bugün sona erdi. Takımınızın Cloud Professional özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "14 günlük Mattermost deneme süresi bugün sona eriyor"
+    "translation": "14 günlük Mattermost deneme süreniz bugün sona erdi"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9213,5 +9130,72 @@
   {
     "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
     "translation": "Lütfen **Sistem Panosu > Site Yapılandırması > Özelleştirme** bölümüne giderek [Destek E-posta Adresi](https://docs.mattermost.com/administration/config-settings.html#support-email) olarak kuruluşunuzun iç BT destek ekibi e-posta adresini yazın. Böylece son kullanıcı geri bildirimleri, e-posta bilgilerimleri ve destek istekleri alınabilir."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Bildirim ayarlarınızı değiştirmek ister misiniz?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Mattermost Oturumu Aç"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " ve Hesap Ayarları > Bildirimler bölümüne gidin"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} bir iletide sizi andı"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} sizi {{.ChannelName}} kanalında anmış."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} size ileti gönderdi"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} grubunuza ileti göndermiş."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} size ileti gönderdi"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Siz uzaktayken, {{.SenderName}} size doğrudan ileti göndermiş."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} size yeni bir ileti göndermiş",
+      "other": "{{ .SenderName }} ve {{.Count}} diğer kişi size yeni iletiler göndermiş"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Aşağıda yeni iletilerinizin özetini görebilirsiniz."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Bu iletiyi görüntüle"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermost Uygulamasını Aç"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Otomatik olarak yönlendirilmezseniz, <a href='{{.Link}}'>buraya tıklayın</a>"
   }
 ]
