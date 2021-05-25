@@ -274,7 +274,7 @@ func (l *License) ToJson() string {
 }
 
 func (l *License) IsTrialLicense() bool {
-	return l.IsTrial || (l.ExpiresAt-l.StartsAt) <= trialDuration.Milliseconds()
+	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds()
 }
 
 func (l *License) IsSanctionedTrial() bool {

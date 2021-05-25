@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -102,7 +103,7 @@ func TestUploadLicenseFile(t *testing.T) {
 				Name: "Test",
 			},
 			StartsAt:  mills + 100,
-			ExpiresAt: mills + 100 + 2534400000 + 1,
+			ExpiresAt: mills + 100 + (29*(time.Hour*24) + (time.Hour * 9)).Milliseconds(),
 		}
 
 		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
@@ -139,7 +140,7 @@ func TestUploadLicenseFile(t *testing.T) {
 			},
 			IsTrial:   true,
 			StartsAt:  mills + 100,
-			ExpiresAt: mills + 100 + 2534400000,
+			ExpiresAt: mills + 100 + (29*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
 		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
