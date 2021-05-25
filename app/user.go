@@ -351,7 +351,14 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email, http.StatusBadRequest)
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email, http.StatusBadRequest)
+		if provider.IsSameUser(userByEmail, user) {
+			if _, err := a.Srv().Store.User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+				// if the user is not updated, write a warning to the log, but don't prevent user login
+				mlog.Warn("Error attempting to update user AuthData", mlog.Err(err))
+			}
+			return userByEmail, nil
+		}
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true

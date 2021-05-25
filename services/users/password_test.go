@@ -129,7 +129,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		tc.Settings.SetDefaults()
 		t.Run(name, func(t *testing.T) {
 			if err := IsPasswordValidWithSettings(tc.Password, tc.Settings); tc.ExpectedError == "" {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			} else {
 				invErr, ok := err.(*ErrInvalidPassword)
 				require.True(t, ok)
