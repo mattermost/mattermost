@@ -521,11 +521,15 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 	if incrementMentions {
 		mentions = 1
 	}
+	var lastViewed int64
+	if updateViewedTimestamp {
+		lastViewed = now
+	}
 	membership, err = s.SaveMembership(&model.ThreadMembership{
 		PostId:         postId,
 		UserId:         userId,
 		Following:      following,
-		LastViewed:     0,
+		LastViewed:     lastViewed,
 		LastUpdated:    now,
 		UnreadMentions: int64(mentions),
 	})
