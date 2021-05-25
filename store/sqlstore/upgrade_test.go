@@ -10,6 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestStoreUpgradeDotRelease(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlSupplier)
+		saveSchemaVersion(sqlStore, "5.30.1")
+		err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+		require.NoError(t, err)
+		require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+	})
+}
+
 func TestStoreUpgrade(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*SqlSupplier)
