@@ -1423,6 +1423,34 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	return teamIds, nil
 }
 
+// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+// users belong.
+func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error) {
+	var teamIDs []string
+	query, args, err := s.getQueryBuilder().
+		Select("TM1.TeamId").
+		From("TeamMembers AS TM1").
+		InnerJoin("TeamMembers AS TM2 ON TM1.TeamId = TM2.TeamId").
+		InnerJoin("Teams ON TM1.TeamId = Teams.Id").
+		Where(sq.And{
+			sq.Eq{"TM1.UserId": userID},
+			sq.Eq{"TM1.DeleteAt": 0},
+			sq.Eq{"TM2.UserId": otherUserID},
+			sq.Eq{"TM2.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+	_, err = s.GetReplica().Select(&teamIDs, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
+	}
+
+	return teamIDs, nil
+}
+
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
 	var members []*model.TeamMemberForExport

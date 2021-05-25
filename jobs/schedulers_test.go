@@ -107,10 +107,10 @@ func TestScheduler(t *testing.T) {
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
+		jobServer.StopSchedulers()
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
-		jobServer.StopSchedulers()
 	})
 
 	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
@@ -119,10 +119,10 @@ func TestScheduler(t *testing.T) {
 		jobServer.HandleClusterLeaderChange(true)
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
+		jobServer.StopSchedulers()
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.NotNil(t, element)
 		}
-		jobServer.StopSchedulers()
 	})
 
 	t.Run("ConfigChanged", func(t *testing.T) {

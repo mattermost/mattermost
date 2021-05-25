@@ -25,9 +25,6 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// Toggle on and off support for Custom User Statuses
-	CustomUserStatuses bool
-
 	// AppsEnabled toggle the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
