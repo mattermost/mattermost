@@ -6645,7 +6645,7 @@
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
+    "translation": "Commencer l'essai"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7493,7 +7493,7 @@
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les clusters distants."
+    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les connexions sécurisées."
   },
   {
     "id": "api.command_remote.name.hint",
@@ -7578,5 +7578,9 @@
   {
     "id": "api.command_remote.remove_remote_id.help",
     "translation": "ID de la connexion sécurisée à retirer."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Un projet implique souvent des personnes venant de l'organisation, mais aussi de l'extérieur. Avec les comptes invités, vous pouvez amener des partenaires extérieurs à votre instance Mattermost et spécifier avec qui ils peuvent travailler et ce qu'ils peuvent voir.\n\n[En apprendre plus sur l'activation des comptes invités (en anglais)](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nEn cliquant sur « Nous contacter », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisor)."
   }
 ]
