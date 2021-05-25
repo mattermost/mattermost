@@ -103,14 +103,14 @@ func TestUploadLicenseFile(t *testing.T) {
 				Name: "Test",
 			},
 			StartsAt:  mills + 100,
-			ExpiresAt: mills + 100 + (29*(time.Hour*24) + (time.Hour * 9)).Milliseconds(),
+			ExpiresAt: mills + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
 		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr).Once()
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		licenseManagerMock := &mocks.LicenseInterface{}
