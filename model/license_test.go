@@ -304,10 +304,10 @@ func TestLicense_IsTrialLicense(t *testing.T) {
 func TestLicense_IsSanctionedTrial(t *testing.T) {
 	t.Run("short duration sanctioned trial", func(t *testing.T) {
 		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		endDate, err := time.Parse(time.RFC822, "08 Jan 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license := &License{
 			IsTrial:   true,
@@ -323,10 +323,10 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 
 	t.Run("long duration sanctioned trial", func(t *testing.T) {
 		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		endDate, err := time.Parse(time.RFC822, "02 Feb 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license := &License{
 			IsTrial:   true,
@@ -342,10 +342,10 @@ func TestLicense_IsSanctionedTrial(t *testing.T) {
 
 	t.Run("invalid duration for sanctioned trial", func(t *testing.T) {
 		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license := &License{
 			IsTrial:   true,
