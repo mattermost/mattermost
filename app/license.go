@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	requestTrialURL           = "https://customers.mattermost.com/api/v1/trials"
-	LicenseEnv                = "MM_LICENSE"
-	LicenseRenewalURL         = "https://customers.mattermost.com/subscribe/renew"
+	requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
+	LicenseEnv      = "MM_LICENSE"
+	// TODO revert this before merging the PR
+	LicenseRenewalURL         = "https://portal.test.cloud.mattermost.com/subscribe/renew"
 	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
 
