@@ -38,7 +38,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var clientLicense map[string]string
 
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_LICENSE_INFORMATION) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_READ_LICENSE_INFORMATION) {
 		clientLicense = c.App.Srv().ClientLicense()
 	} else {
 		clientLicense = c.App.Srv().GetSanitizedClientLicense()
@@ -52,7 +52,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
@@ -118,7 +118,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
@@ -144,7 +144,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}
@@ -175,7 +175,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentUser, err := c.App.GetUser(c.App.Session().UserId)
+	currentUser, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -213,7 +213,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_LICENSE_INFORMATION) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_LICENSE_INFORMATION)
 		return
 	}

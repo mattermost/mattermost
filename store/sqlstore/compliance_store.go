@@ -242,8 +242,12 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	return append(channelPosts, directMessagePosts...), cursor, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "Limit": limit}
+func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
+	props := map[string]interface{}{
+		"LastPostUpdateAt": cursor.LastPostUpdateAt,
+		"LastPostId":       cursor.LastPostId,
+		"Limit":            limit,
+	}
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -277,15 +281,23 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
-		WHERE
-			Posts.UpdateAt > :StartTime AND
-			Posts.Type NOT LIKE 'system_%'
-		ORDER BY PostUpdateAt
+		WHERE (
+			Posts.UpdateAt > :LastPostUpdateAt
+			OR (
+				Posts.UpdateAt = :LastPostUpdateAt
+				AND Posts.Id > :LastPostId
+			)
+		) AND Posts.Type NOT LIKE 'system_%'
+		ORDER BY PostUpdateAt, PostId
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-		return nil, errors.Wrap(err, "unable to export messages")
+		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
-	return cposts, nil
+	if len(cposts) > 0 {
+		cursor.LastPostUpdateAt = *cposts[len(cposts)-1].PostUpdateAt
+		cursor.LastPostId = *cposts[len(cposts)-1].PostId
+	}
+	return cposts, cursor, nil
 }

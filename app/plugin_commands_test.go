@@ -24,7 +24,7 @@ func TestPluginCommand(t *testing.T) {
 	args.Command = "/plugin"
 
 	t.Run("error before plugin command registered", func(t *testing.T) {
-		_, err := th.App.ExecuteCommand(args)
+		_, err := th.App.ExecuteCommand(th.Context, args)
 		require.NotNil(t, err)
 	})
 
@@ -86,12 +86,12 @@ func TestPluginCommand(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.App.NewPluginAPI)
+		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
 		require.Nil(t, nil, activationErrors[0])
 
-		resp, err := th.App.ExecuteCommand(args)
+		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, err)
 		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
@@ -180,7 +180,7 @@ func TestPluginCommand(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.App.NewPluginAPI)
+		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
@@ -191,7 +191,7 @@ func TestPluginCommand(t *testing.T) {
 		go func() {
 			defer close(wait)
 
-			resp, err := th.App.ExecuteCommand(args)
+			resp, err := th.App.ExecuteCommand(th.Context, args)
 
 			// Ignore if we kill below.
 			if !killed {
@@ -212,7 +212,7 @@ func TestPluginCommand(t *testing.T) {
 	})
 
 	t.Run("error after plugin command unregistered", func(t *testing.T) {
-		_, err := th.App.ExecuteCommand(args)
+		_, err := th.App.ExecuteCommand(th.Context, args)
 		require.NotNil(t, err)
 	})
 
@@ -274,13 +274,13 @@ func TestPluginCommand(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.App.NewPluginAPI)
+		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
 		require.Nil(t, nil, activationErrors[0])
 
 		args.Command = "/code"
-		resp, err := th.App.ExecuteCommand(args)
+		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, err)
 		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
@@ -320,12 +320,12 @@ func TestPluginCommand(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.App.NewPluginAPI)
+		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
 		require.Nil(t, nil, activationErrors[0])
 		args.Command = "/code"
-		resp, err := th.App.ExecuteCommand(args)
+		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_error.error.app_error")
@@ -365,12 +365,12 @@ func TestPluginCommand(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.App.NewPluginAPI)
+		`}, th.App, th.NewPluginAPI)
 		defer tearDown()
 		require.Len(t, activationErrors, 1)
 		require.Nil(t, nil, activationErrors[0])
 		args.Command = "/code"
-		resp, err := th.App.ExecuteCommand(args)
+		resp, err := th.App.ExecuteCommand(th.Context, args)
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_crash.error.app_error")

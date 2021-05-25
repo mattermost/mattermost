@@ -17,7 +17,7 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:20200829_node-10.22
+      - image: mattermost/mattermost-build-webapp:20210518_node-14.16-1
     resource_class: xlarge
     steps:
       - checkout
@@ -509,16 +509,6 @@ workflows:
       - build-api-spec:
           requires:
             - setup
-      - sentry:
-          context: matterbuild-sentry
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-migrations
-            - check-mattermost-vet
-            - check-golangci-lint
-            - build-api-spec
       - build:
           requires:
             - check-app-layers
