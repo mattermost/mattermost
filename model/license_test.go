@@ -255,10 +255,10 @@ func TestLicense_IsTrialLicense(t *testing.T) {
 
 	t.Run("detect trial license form duration", func(t *testing.T) {
 		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license := &License{
 			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
@@ -267,7 +267,7 @@ func TestLicense_IsTrialLicense(t *testing.T) {
 		assert.True(t, license.IsTrialLicense())
 
 		endDate, err = time.Parse(time.RFC822, "01 Feb 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
 		assert.False(t, license.IsTrialLicense())
@@ -275,10 +275,10 @@ func TestLicense_IsTrialLicense(t *testing.T) {
 
 	t.Run("detect trial with both flag and duration", func(t *testing.T) {
 		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		license := &License{
 			IsTrial:   true,
