@@ -284,7 +284,7 @@ type AppIface interface {
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
 	// SaveConfig replaces the active configuration, optionally notifying cluster peers.
-	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 	// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 	SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
 	// SearchAllTeams returns a team list and the total count of the results
@@ -294,9 +294,6 @@ type AppIface interface {
 	SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription, action string) *model.AppError
 	// SendNoCardPaymentFailedEmail
 	SendNoCardPaymentFailedEmail() *model.AppError
-	// ServePluginPublicRequest serves public plugin files
-	// at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
-	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
@@ -311,9 +308,6 @@ type AppIface interface {
 	// relative to either the session creation date or the current time, depending
 	// on the `ExtendSessionOnActivity` config setting.
 	SetSessionExpireInDays(session *model.Session, days int)
-	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
-	// and sets status of given userId to dnd which will be restored back after endtime
-	SetStatusDoNotDisturbTimed(userId string, endtime int64)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
@@ -360,9 +354,6 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
-	// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
-	// which unsets dnd status of users if needed and saves and broadcasts it
-	UpdateDNDStatusOfUsers()
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
@@ -601,6 +592,7 @@ type AppIface interface {
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
+	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
 	GetComplianceReport(reportId string) (*model.Compliance, *model.AppError)
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
@@ -978,7 +970,6 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
-	ServePluginRequest(w http.ResponseWriter, r *http.Request)
 	SessionCacheLength() int
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
@@ -1046,7 +1037,6 @@ type AppIface interface {
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
 	UpdateEphemeralPost(userID string, post *model.Post) *model.Post
-	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
@@ -1070,7 +1060,7 @@ type AppIface interface {
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userID string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error
+	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)

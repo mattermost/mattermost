@@ -109,3 +109,7 @@ func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*
 func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
 	return nil, nil
 }
+
+func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
+}

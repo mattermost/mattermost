@@ -332,6 +332,17 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 		return channel, nil
 	}
 
+	if *a.Config().TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM &&
+		!a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		if err != nil {
+			return nil, err
+		}
+		if len(commonTeamIDs) == 0 {
+			return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+		}
+	}
+
 	channel, err := a.createDirectChannel(userID, otherUserID, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {

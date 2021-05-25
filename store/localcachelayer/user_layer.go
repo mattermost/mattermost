@@ -136,11 +136,6 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 		}
 	}
 
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
-		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
-	}
-
 	if len(remainingUserIds) > 0 {
 		if fromMaster {
 			ctx = sqlstore.WithMaster(ctx)

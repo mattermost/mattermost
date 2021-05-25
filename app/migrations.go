@@ -70,7 +70,7 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	config := s.Config()
 	if *config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
 		*config.ServiceSettings.PostEditTimeLimit = -1
-		if err := s.SaveConfig(config, true); err != nil {
+		if _, _, err := s.SaveConfig(config, true); err != nil {
 			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
 		}
 	}
