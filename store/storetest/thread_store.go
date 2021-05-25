@@ -329,4 +329,29 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			return m2.LastUpdated < m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
 	})
+
+	t.Run("Updating post does not make thread unread", func(t *testing.T) {
+		newPosts := makeSomePosts()
+		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, true, false)
+		require.NoError(t, err)
+		th, err := ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(2), th.UnreadReplies)
+
+		m.LastViewed = newPosts[2].UpdateAt + 1
+		_, err = ss.Thread().UpdateMembership(m)
+		require.NoError(t, err)
+		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), th.UnreadReplies)
+
+		editedPost := newPosts[2].Clone()
+		editedPost.Message = "This is an edited post"
+		_, err = ss.Post().Update(editedPost, newPosts[2])
+		require.NoError(t, err)
+
+		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), th.UnreadReplies)
+	})
 }
