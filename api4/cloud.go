@@ -39,6 +39,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
@@ -65,6 +66,47 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	w.Write(json)
+}
+
+func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var subscriptionChange *model.SubscriptionChange
+	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	currentSubscription, appErr := c.App.Cloud().GetSubscription("")
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	json, err := json.Marshal(changedSub)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Write(json)
