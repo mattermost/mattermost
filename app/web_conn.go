@@ -34,6 +34,12 @@ const (
 	deadQueueSize          = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 )
 
+const (
+	reconnectFound    = "success"
+	reconnectNotFound = "failure"
+	reconnectLossless = "lossless"
+)
+
 type WebConnConfig struct {
 	WebSocket    *websocket.Conn
 	Session      model.Session
@@ -98,14 +104,14 @@ type CheckConnResult struct {
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
 // and if so, accordingly populates the other fields of the webconn.
-func (a *App) PopulateWebConnConfig(cfg *WebConnConfig, seqVal string) (*WebConnConfig, error) {
+func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal string) (*WebConnConfig, error) {
 	if !model.IsValidId(cfg.ConnectionID) {
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
 	// TODO: the method should internally forward the request
 	// to the cluster if it does not have it.
-	res := a.CheckWebConn(a.Session().UserId, cfg.ConnectionID)
+	res := a.CheckWebConn(s.UserId, cfg.ConnectionID)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
 		// or server restart. In that case, we set a new one.
@@ -304,11 +310,13 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectFound)
+			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
-			// TODO: Add metrics for this. (both true and false cases)
 			wc.clearDeadQueue()
 			wc.SetConnectionID(model.NewId())
 			wc.Sequence = 0
@@ -319,6 +327,13 @@ func (wc *WebConn) writePump() {
 			if err := wc.writeMessage(msg); err != nil {
 				wc.logSocketErr("websocket.sendHello", err)
 				return
+			}
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+			}
+		} else {
+			if m := wc.App.Metrics(); m != nil {
+				m.IncrementWebsocketReconnectEvent(reconnectLossless)
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config
+package main
 
 import (
 	"encoding/json"
@@ -9,17 +9,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/config/config_generator/generator"
 	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDefaultsGenerator(t *testing.T) {
 	tmpFile, err := ioutil.TempFile("", "tempconfig")
 	defer os.Remove(tmpFile.Name())
 	require.NoError(t, err)
-	require.NoError(t, generator.GenerateDefaultConfig(tmpFile))
+	require.NoError(t, generateDefaultConfig(tmpFile))
 	_ = tmpFile.Close()
 	var config model.Config
 

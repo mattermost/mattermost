@@ -1113,3 +1113,17 @@ func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PublishPluginClusterEvent(ev, opts)
+	api.recordTime(startTime, "PublishPluginClusterEvent", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	api.recordTime(startTime, "RequestTrialLicense", _returnsA == nil)
+	return _returnsA
+}

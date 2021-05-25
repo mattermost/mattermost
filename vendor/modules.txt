@@ -742,6 +742,8 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/scrypt
 # golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
 ## explicit
 golang.org/x/image/bmp

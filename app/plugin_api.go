@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -23,14 +24,16 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
+	ctx      *request.Context
 	logger   *mlog.SugarLogger
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
+		ctx:      c,
 		app:      a,
 		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
@@ -79,7 +82,7 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	}
 	commandArgs.T = i18n.GetUserTranslations(user.Locale)
 	commandArgs.SiteURL = api.app.GetSiteURL()
-	response, appErr := api.app.ExecuteCommand(commandArgs)
+	response, appErr := api.app.ExecuteCommand(api.ctx, commandArgs)
 	if appErr != nil {
 		return response, appErr
 	}
@@ -106,7 +109,8 @@ func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
-	return api.app.SaveConfig(config, true)
+	_, _, err := api.app.SaveConfig(config, true)
+	return err
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
@@ -120,7 +124,8 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	return api.app.SaveConfig(cfg, true)
+	_, _, err := api.app.SaveConfig(cfg, true)
+	return err
 }
 
 func (api *PluginAPI) GetBundlePath() (string, error) {
@@ -153,7 +158,7 @@ func (api *PluginAPI) GetTelemetryId() string {
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	return api.app.CreateTeam(team)
+	return api.app.CreateTeam(api.ctx, team)
 }
 
 func (api *PluginAPI) DeleteTeam(teamID string) *model.AppError {
@@ -190,11 +195,11 @@ func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppE
 }
 
 func (api *PluginAPI) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return api.app.AddTeamMember(teamID, userID)
+	return api.app.AddTeamMember(api.ctx, teamID, userID)
 }
 
 func (api *PluginAPI) CreateTeamMembers(teamID string, userIDs []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	members, err := api.app.AddTeamMembers(teamID, userIDs, requestorId, false)
+	members, err := api.app.AddTeamMembers(api.ctx, teamID, userIDs, requestorId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -202,11 +207,11 @@ func (api *PluginAPI) CreateTeamMembers(teamID string, userIDs []string, request
 }
 
 func (api *PluginAPI) CreateTeamMembersGracefully(teamID string, userIDs []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
-	return api.app.AddTeamMembers(teamID, userIDs, requestorId, true)
+	return api.app.AddTeamMembers(api.ctx, teamID, userIDs, requestorId, true)
 }
 
 func (api *PluginAPI) DeleteTeamMember(teamID, userID, requestorId string) *model.AppError {
-	return api.app.RemoveUserFromTeam(teamID, userID, requestorId)
+	return api.app.RemoveUserFromTeam(api.ctx, teamID, userID, requestorId)
 }
 
 func (api *PluginAPI) GetTeamMembers(teamID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
@@ -230,7 +235,7 @@ func (api *PluginAPI) GetTeamStats(teamID string) (*model.TeamStats, *model.AppE
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	return api.app.CreateUser(user)
+	return api.app.CreateUser(api.ctx, user)
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
@@ -238,7 +243,7 @@ func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	_, err = api.app.UpdateActive(user, false)
+	_, err = api.app.UpdateActive(api.ctx, user, false)
 	return err
 }
 
@@ -284,7 +289,7 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
-	return api.app.UpdateUserActive(userID, active)
+	return api.app.UpdateUserActive(api.ctx, userID, active)
 }
 
 func (api *PluginAPI) GetUserStatus(userID string) (*model.Status, *model.AppError) {
@@ -355,7 +360,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	return api.app.CreateChannel(channel, false)
+	return api.app.CreateChannel(api.ctx, channel, false)
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
@@ -363,7 +368,7 @@ func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	return api.app.DeleteChannel(channel, "")
+	return api.app.DeleteChannel(api.ctx, channel, "")
 }
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
@@ -407,7 +412,7 @@ func (api *PluginAPI) GetChannelStats(channelID string) (*model.ChannelStats, *m
 }
 
 func (api *PluginAPI) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return api.app.GetOrCreateDirectChannel(userID1, userID2)
+	return api.app.GetOrCreateDirectChannel(api.ctx, userID1, userID2)
 }
 
 func (api *PluginAPI) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError) {
@@ -474,7 +479,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsInTeamForUser(terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	return api.app.SearchPostsInTeamForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -483,7 +488,7 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
 		// For now, don't allow overriding these via the plugin API.
 		UserRequestorID: "",
 		PostRootID:      "",
@@ -496,7 +501,7 @@ func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*mod
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
 		UserRequestorID: asUserID,
 	})
 }
@@ -526,7 +531,7 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string,
 }
 
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
-	return api.app.LeaveChannel(channelID, userID)
+	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
@@ -552,15 +557,15 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.CreatePostMissingChannel(post, true)
+	return api.app.CreatePostMissingChannel(api.ctx, post, true)
 }
 
 func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	return api.app.SaveReactionForPost(reaction)
+	return api.app.SaveReactionForPost(api.ctx, reaction)
 }
 
 func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
-	return api.app.DeleteReactionForPost(reaction)
+	return api.app.DeleteReactionForPost(api.ctx, reaction)
 }
 
 func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.AppError) {
@@ -609,7 +614,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.UpdatePost(post, false)
+	return api.app.UpdatePost(api.ctx, post, false)
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
@@ -681,7 +686,7 @@ func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	return api.app.UploadFile(data, channelID, filename)
+	return api.app.UploadFile(api.ctx, data, channelID, filename)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
@@ -877,7 +882,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		}
 	}
 
-	return api.app.CreateBot(bot)
+	return api.app.CreateBot(api.ctx, bot)
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
@@ -895,7 +900,7 @@ func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *mode
 }
 
 func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *model.AppError) {
-	return api.app.UpdateBotActive(userID, active)
+	return api.app.UpdateBotActive(api.ctx, userID, active)
 }
 
 func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
@@ -1062,4 +1067,72 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	}
 
 	return nil
+}
+
+// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+// the calling plugin.
+func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,
+	opts model.PluginClusterEventSendOptions) error {
+	if api.app.Cluster() == nil {
+		return nil
+	}
+
+	msg := &model.ClusterMessage{
+		Event:            model.CLUSTER_EVENT_PLUGIN_EVENT,
+		SendType:         opts.SendType,
+		WaitForAllToSend: false,
+		Props: map[string]string{
+			"PluginID": api.id,
+			"EventID":  ev.Id,
+		},
+		Data: string(ev.Data),
+	}
+
+	// If TargetId is empty we broadcast to all other cluster nodes.
+	if opts.TargetId == "" {
+		api.app.Cluster().SendClusterMessage(msg)
+	} else {
+		if err := api.app.Cluster().SendClusterMessageToNode(opts.TargetId, msg); err != nil {
+			return fmt.Errorf("failed to send message to cluster node %q: %w", opts.TargetId, err)
+		}
+	}
+
+	return nil
+}
+
+// RequestTrialLicense requests a trial license and installs it in the server
+func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+	if *api.app.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	if !termsAccepted {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+	}
+
+	if users == 0 {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+	}
+
+	requester, err := api.app.GetUser(requesterID)
+	if err != nil {
+		return err
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              api.app.TelemetryId(),
+		Name:                  requester.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 requester.Email,
+		SiteName:              *api.app.Config().TeamSettings.SiteName,
+		SiteURL:               *api.app.Config().ServiceSettings.SiteURL,
+		Users:                 users,
+		TermsAccepted:         termsAccepted,
+		ReceiveEmailsAccepted: receiveEmailsAccepted,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.Srv().RequestTrialLicense(trialLicenseRequest)
 }

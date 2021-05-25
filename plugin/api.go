@@ -1050,6 +1050,21 @@ type API interface {
 	// @tag SlashCommand
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
+
+	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
+	// the calling plugin that are present in the cluster.
+	//
+	// This method is used to allow plugin communication in a High-Availability cluster.
+	// The receiving side should implement the OnPluginClusterEvent hook
+	// to receive events sent through this method.
+	//
+	// Minimum server version: 5.36
+	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+
+	// RequestTrialLicense requests a trial license and installs it in the server
+	//
+	// Minimum server version: 5.36
+	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

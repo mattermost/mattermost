@@ -3034,21 +3034,21 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
+func (s *RetryLayerComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.MessageExport(after, limit)
+		result, resultVar1, err := s.ComplianceStore.MessageExport(cursor, limit)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
@@ -3646,11 +3646,11 @@ func (s *RetryLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 
 }
 
-func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
+func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID)
+		result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 		if err == nil {
 			return result, nil
 		}
@@ -4386,11 +4386,11 @@ func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 
 }
 
-func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
+func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.TeamMembersToAdd(since, teamID)
+		result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 		if err == nil {
 			return result, nil
 		}
@@ -5884,21 +5884,21 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+func (s *RetryLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+		result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor, limit)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 	}
 
@@ -8036,11 +8036,51 @@ func (s *RetryLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
+func (s *RetryLayerSharedChannelStore) GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetUser(userID, channelID, remoteID)
+		result, err := s.SharedChannelStore.GetSingleUser(userID, channelID, remoteID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUsersForSync(filter)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUsersForUser(userID)
 		if err == nil {
 			return result, nil
 		}
@@ -8236,11 +8276,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 		if err == nil {
 			return nil
 		}
@@ -8256,11 +8296,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTim
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 		if err == nil {
 			return nil
 		}
@@ -8867,6 +8907,26 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userID str
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetChannelUnreadsForTeam(teamID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 		if err == nil {
 			return result, nil
 		}

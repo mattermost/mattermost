@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -38,7 +39,7 @@ func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InviteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_message.app_error"),
@@ -140,7 +141,7 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, app.ChannelMemberOpts{
+	if _, err := a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{
 		UserRequestorID: args.UserId,
 	}); err != nil {
 		var text string

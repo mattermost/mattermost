@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config
+package featureflag
 
 import (
 	"testing"
@@ -106,50 +106,6 @@ func TestFeatureFlagsFromMap(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tc.ExpectedTestValue, featureFlagsFromMap(tc.FeatureMap, tc.Base).TestFeature)
-		})
-	}
-}
-
-func TestFeatureFlagsToMap(t *testing.T) {
-	for name, tc := range map[string]struct {
-		Flags            model.FeatureFlags
-		TestFeatureValue string
-	}{
-		"empty": {
-			TestFeatureValue: "",
-			Flags:            model.FeatureFlags{},
-		},
-		"simple value": {
-			TestFeatureValue: "expectedvalue",
-			Flags:            model.FeatureFlags{TestFeature: "expectedvalue"},
-		},
-		"empty value": {
-			TestFeatureValue: "",
-			Flags:            model.FeatureFlags{TestFeature: ""},
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestFeature"])
-		})
-	}
-}
-
-func TestFeatureFlagsToMapBool(t *testing.T) {
-	for name, tc := range map[string]struct {
-		Flags            model.FeatureFlags
-		TestFeatureValue string
-	}{
-		"false": {
-			TestFeatureValue: "false",
-			Flags:            model.FeatureFlags{},
-		},
-		"true": {
-			TestFeatureValue: "true",
-			Flags:            model.FeatureFlags{TestBoolFeature: true},
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestBoolFeature"])
 		})
 	}
 }

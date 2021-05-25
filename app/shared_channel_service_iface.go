@@ -13,7 +13,8 @@ type SharedChannelServiceIFace interface {
 	Shutdown() error
 	Start() error
 	NotifyChannelChanged(channelId string)
-	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
+	NotifyUserProfileChanged(userID string)
+	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
 }
 
@@ -26,7 +27,7 @@ func MockOptionSharedChannelServiceWithActive(active bool) MockOptionSharedChann
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...MockOptionSharedChannelService) *mockSharedChannelService {
-	mrcs := &mockSharedChannelService{service, true, []string{}, 0}
+	mrcs := &mockSharedChannelService{service, true, []string{}, []string{}, 0}
 	for _, option := range options {
 		option(mrcs)
 	}
@@ -35,13 +36,18 @@ func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...M
 
 type mockSharedChannelService struct {
 	SharedChannelServiceIFace
-	active         bool
-	notifications  []string
-	numInvitations int
+	active                   bool
+	channelNotifications     []string
+	userProfileNotifications []string
+	numInvitations           int
 }
 
 func (mrcs *mockSharedChannelService) NotifyChannelChanged(channelId string) {
-	mrcs.notifications = append(mrcs.notifications, channelId)
+	mrcs.channelNotifications = append(mrcs.channelNotifications, channelId)
+}
+
+func (mrcs *mockSharedChannelService) NotifyUserProfileChanged(userId string) {
+	mrcs.userProfileNotifications = append(mrcs.userProfileNotifications, userId)
 }
 
 func (mrcs *mockSharedChannelService) Shutdown() error {
@@ -56,7 +62,7 @@ func (mrcs *mockSharedChannelService) Active() bool {
 	return mrcs.active
 }
 
-func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
+func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
 	mrcs.numInvitations += 1
 	return nil
 }
