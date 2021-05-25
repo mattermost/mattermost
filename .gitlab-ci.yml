@@ -98,7 +98,7 @@ test-schema-mysql:
   after_script:
     - docker logout
   tags:
-    - machine-docker
+    - k8s-memory
 
 test-schema-postgres:
   stage: test
@@ -134,4 +134,4 @@ test-schema-postgres:
   after_script:
     - docker logout
   tags:
-    - machine-docker
+    - k8s-memory
