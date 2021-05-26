@@ -16,7 +16,7 @@ import (
 var ExtractContentCmd = &cobra.Command{
 	Use:     "extract-documents-content",
 	Short:   "Extracts the documents content",
-	Long:    "Extracts the documents content and stores it in the database for document searche",
+	Long:    "Extracts the documents content and stores it in the database for document search",
 	Example: "extract-documents-content --from=12345",
 	RunE:    extractContentCmdF,
 }
@@ -42,7 +42,7 @@ func extractContentCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	if !*a.Config().FileSettings.ExtractContent || !a.Config().FeatureFlags.FilesSearch {
+	if !*a.Config().FileSettings.ExtractContent {
 		return errors.New("ERROR: Document extraction is not enabled")
 	}
 

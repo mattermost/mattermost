@@ -107,6 +107,6 @@ func (srv *JobServer) HandleClusterLeaderChange(isLeader bool) {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 	if srv.schedulers != nil {
-		srv.schedulers.HandleClusterLeaderChange(isLeader)
+		srv.schedulers.handleClusterLeaderChange(isLeader)
 	}
 }
