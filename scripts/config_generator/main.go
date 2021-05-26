@@ -4,11 +4,24 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/config/config_generator/generator"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+// generateDefaultConfig writes default config to outputFile.
+func generateDefaultConfig(outputFile *os.File) error {
+	defaultCfg := &model.Config{}
+	defaultCfg.SetDefaults()
+	if data, err := json.MarshalIndent(defaultCfg, "", "  "); err != nil {
+		return err
+	} else if _, err := outputFile.Write(data); err != nil {
+		return err
+	}
+	return nil
+}
 
 func main() {
 	outputFile := os.Getenv("OUTPUT_CONFIG")
@@ -22,7 +35,7 @@ func main() {
 	}
 
 	if file, err := os.Create(outputFile); err == nil {
-		err = generator.GenerateDefaultConfig(file)
+		err = generateDefaultConfig(file)
 		_ = file.Close()
 		if err != nil {
 			panic(err)
@@ -30,5 +43,4 @@ func main() {
 	} else {
 		panic(err)
 	}
-
 }

@@ -988,34 +988,6 @@
     "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Wiadomość bezpośrednia od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Do wiadomości"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Wiadomość grupowa od "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Powiadomienie od "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "Masz {{.Count}} nowe powiadomienia.",
-      "many": "",
-      "one": "Masz nowe powiadomienie."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
@@ -2946,62 +2918,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Brakuje nazwy zespołu w Członkostwie Zespołu Użytkownika."
-  },
-  {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Masz nową Wiadomość Bezpośrednią."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "Masz nową Wiadomość Bezpośrednią od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Masz nową Wiadomość Grupową."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Masz nową Wiadomość Grupową od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Masz nowe powiadomienie."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "Masz nowe powiadomienie od @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanał: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.direct.full",
