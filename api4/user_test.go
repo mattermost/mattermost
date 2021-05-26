@@ -5515,6 +5515,51 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NotNil(t, uss3.Threads)
 		require.Len(t, uss3.Threads, 0)
 	})
+
+	t.Run("editing or reacting to reply post does not make thread unread", func(t *testing.T) {
+		Client := th.Client
+
+		rootPost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "root post"})
+		replyPost, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply post", RootId: rootPost.Id})
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(1))
+		require.Equal(t, uss.Threads[0].PostId, rootPost.Id)
+
+		_, resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, model.GetMillis())
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+
+		// edit post
+		editedReplyPostMessage := "edited " + replyPost.Message
+		_, resp = th.SystemAdminClient.PatchPost(replyPost.Id, &model.PostPatch{Message: &editedReplyPostMessage})
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+
+		// react to post
+		reaction := &model.Reaction{
+			UserId:    th.SystemAdminUser.Id,
+			PostId:    replyPost.Id,
+			EmojiName: "smile",
+		}
+		_, resp = th.SystemAdminClient.SaveReaction(reaction)
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+	})
 }
 
 func TestThreadSocketEvents(t *testing.T) {
@@ -5721,8 +5766,8 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	// replying to the thread clears reply count, so it should be 0
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
-	// the other user should have 2 replies
-	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
+	// the other user should have 1 reply - the reply from the regular user
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 1, 1, nil)
 
 	// mark all as read for user
 	resp := th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)

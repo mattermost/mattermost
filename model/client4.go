@@ -2915,8 +2915,9 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 }
 
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
-func (c *Client4) SetPostUnread(userId string, postId string) *Response {
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", "")
+func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSupported bool) *Response {
+	b, _ := json.Marshal(map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported})
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+c.GetPostRoute(postId)+"/set_unread", string(b))
 	if err != nil {
 		return BuildErrorResponse(r, err)
 	}
