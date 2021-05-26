@@ -17,7 +17,7 @@ empty:
 
 lint:
   image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.39.0-1
-  stage: .pre
+  stage: test
   script:
     - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
     - make config-reset
@@ -28,7 +28,7 @@ lint:
 
 layers:
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
-  stage: .pre
+  stage: test
   script:
     - make store-layers
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
