@@ -24,7 +24,7 @@ lint:
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   timeout: 60 mins
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 layers:
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
@@ -37,7 +37,7 @@ layers:
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
     - git reset --hard
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 .test-mysql:
   stage: test
@@ -65,7 +65,7 @@ layers:
   tags:
     - k8s-memory
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 .test-postgres:
   stage: test
@@ -93,7 +93,7 @@ layers:
   tags:
     - k8s-memory
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-mysql:
   stage: test
@@ -113,7 +113,7 @@ test-schema-mysql:
   tags:
     - k8s-memory
 #  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+#    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-postgres:
   stage: test
@@ -133,4 +133,4 @@ test-schema-postgres:
   tags:
     - k8s-memory
 #  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+#    - if: '$CI_COMMIT_REF_NAME == "master"'
