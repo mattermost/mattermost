@@ -23,8 +23,8 @@ lint:
     - make config-reset
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   timeout: 60 mins
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"
 
 layers:
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
@@ -36,10 +36,10 @@ layers:
     - make app-layers
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
     - git reset --hard
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"
 
-test-mysql:
+.test-mysql:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -51,14 +51,10 @@ test-mysql:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}mysql"
     - export RACE_MODE=""
     - time cat .gitlab-ci/scripts/test/mysql.sh | /bin/bash
-  after_script:
-    - docker logout
   artifacts:
     when: always
     reports:
@@ -68,10 +64,10 @@ test-mysql:
   timeout: 2 hours
   tags:
     - k8s-memory
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"
 
-test-postgres:
+.test-postgres:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -83,14 +79,10 @@ test-postgres:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}postgres"
     - export RACE_MODE=""
     - time cat .gitlab-ci/scripts/test/postgres.sh | /bin/bash
-  after_script:
-    - docker logout
   artifacts:
     when: always
     reports:
@@ -100,8 +92,8 @@ test-postgres:
   timeout: 2 hours
   tags:
     - k8s-memory
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"
 
 test-schema-mysql:
   stage: test
@@ -115,13 +107,9 @@ test-schema-mysql:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemamysql"
     - time cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
-  after_script:
-    - docker logout
   tags:
     - k8s-memory
 #  rules:
@@ -139,13 +127,9 @@ test-schema-postgres:
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}schemapostgres"
     - time cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
-  after_script:
-    - docker logout
   tags:
     - k8s-memory
 #  rules:
