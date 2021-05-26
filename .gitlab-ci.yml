@@ -64,7 +64,8 @@ test-mysql:
     when: always
     reports:
       junit: report.xml
-    paths: build/logs
+    paths:
+      - build/logs
   timeout: 2 hours
   tags:
     - k8s-memory
@@ -94,7 +95,8 @@ test-postgres:
     when: always
     reports:
       junit: report.xml
-    paths: build/logs
+    paths:
+      - build/logs
   timeout: 2 hours
   tags:
     - k8s-memory
