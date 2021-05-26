@@ -55,6 +55,8 @@ test-mysql:
     - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}mysql"
+#    - export RACE_MODE="-race"
+    - export RACE_MODE=""
     - time cat .gitlab-ci/scripts/test/mysql.sh | /bin/bash
   after_script:
     - docker logout
@@ -62,6 +64,8 @@ test-mysql:
     when: always
     reports:
       junit: report.xml
+    path: build/logs
+  timeout: 2 hours
   tags:
     - k8s-memory
 
@@ -81,6 +85,8 @@ test-postgres:
     - echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME docker.io --password-stdin
   script:
     - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}postgres"
+#    - export RACE_MODE="-race"
+    - export RACE_MODE=""
     - time cat .gitlab-ci/scripts/test/postgres.sh | /bin/bash
   after_script:
     - docker logout
@@ -88,6 +94,8 @@ test-postgres:
     when: always
     reports:
       junit: report.xml
+    path: build/logs
+  timeout: 2 hours
   tags:
     - k8s-memory
 
