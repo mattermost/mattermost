@@ -335,7 +335,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	found := true
 	count := 0
 	for found {
-		if found = a.IsUsernameTaken(user.Username); found {
+		if found = a.srv.userService.IsUsernameTaken(user.Username); found {
 			user.Username = user.Username + strconv.Itoa(count)
 			count++
 		}
@@ -405,19 +405,6 @@ func CheckUserDomain(user *model.User, domains string) bool {
 	return CheckEmailDomain(user.Email, domains)
 }
 
-// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
-func (a *App) IsUsernameTaken(name string) bool {
-	if !model.IsValidUsername(name) {
-		return false
-	}
-
-	if _, err := a.Srv().Store.User().GetByUsername(name); err != nil {
-		return false
-	}
-
-	return true
-}
-
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	user, err := a.srv.userService.GetUser(userID)
 	if err != nil {
@@ -434,7 +421,7 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
-	result, err := a.Srv().Store.User().GetByUsername(username)
+	result, err := a.srv.userService.GetUserByUsername(username)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -448,7 +435,7 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 }
 
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().GetByEmail(email)
+	user, err := a.srv.userService.GetUserByEmail(email)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -462,7 +449,7 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 }
 
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().GetByAuth(authData, authService)
+	user, err := a.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var nfErr *store.ErrNotFound
@@ -480,7 +467,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetAllProfiles(options)
+	users, err := a.srv.userService.GetUsers(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -489,20 +476,20 @@ func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.App
 }
 
 func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsers(options)
+	users, err := a.srv.userService.GetUsersPage(options, asAdmin)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return users, nil
 }
 
 func (a *App) GetUsersEtag(restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForAllProfiles(), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	return a.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
 func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetProfiles(options)
+	users, err := a.srv.userService.GetUsersInTeam(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -511,7 +498,7 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 }
 
 func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetProfilesNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
+	users, err := a.srv.userService.GetUsersNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -520,29 +507,29 @@ func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int
 }
 
 func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInTeam(options)
+	users, err := a.srv.userService.GetUsersInTeamPage(options, asAdmin)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetUsersInTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInTeam(teamID, groupConstrained, page*perPage, perPage, viewRestrictions)
+	users, err := a.srv.userService.GetUsersNotInTeamPage(teamID, groupConstrained, page*perPage, perPage, asAdmin, viewRestrictions)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetUsersNotInTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfiles(teamID), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	return a.srv.userService.GetUsersInTeamEtag(teamID, restrictionsHash)
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfilesNotInTeam(teamID), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+	return a.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
 }
 
 func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
@@ -630,16 +617,16 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 }
 
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersWithoutTeam(options)
+	users, err := a.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetUsersWithoutTeamPage", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetProfilesWithoutTeam(options)
+	users, err := a.srv.userService.GetUsersWithoutTeam(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersWithoutTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -668,14 +655,12 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 }
 
 func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
-	allowFromCache := options.ViewRestrictions == nil
-
-	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
+	users, err := a.srv.userService.GetUsersByIds(userIDs, options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByIds", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return a.sanitizeProfiles(users, options.IsAdmin), nil
+	return users, nil
 }
 
 func (a *App) GetUsersByGroupChannelIds(c *request.Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
@@ -1100,6 +1085,7 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	return nil
 }
 
+// TODO: migrate this after the user service implementation is completed
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()
 	if asAdmin {

@@ -10813,23 +10813,6 @@ func (a *OpenTracingAppLayer) IsUserSignUpAllowed() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) IsUsernameTaken(name string) bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUsernameTaken")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsUsernameTaken(name)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) JoinChannel(c *request.Context, channel *model.Channel, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinChannel")

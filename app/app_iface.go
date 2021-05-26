@@ -230,8 +230,6 @@ type AppIface interface {
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// InstallPluginWithSignature verifies and installs plugin.
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
-	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
-	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
@@ -326,6 +324,8 @@ type AppIface interface {
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
 	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
+	// TODO: migrate this after the user service implementation is completed
+	GetSanitizeOptions(asAdmin bool) map[string]bool
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
@@ -710,7 +710,6 @@ type AppIface interface {
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
-	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)

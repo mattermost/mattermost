@@ -5,6 +5,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -101,4 +102,96 @@ func (us *UserService) verifyUserEmail(userID, email string) error {
 
 func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
+}
+
+func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
+	return us.store.GetByUsername(username)
+}
+
+func (us *UserService) GetUserByEmail(email string) (*model.User, error) {
+	return us.store.GetByEmail(email)
+}
+
+func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {
+	return us.store.GetByAuth(authData, authService)
+}
+
+func (us *UserService) GetUsers(options *model.UserGetOptions) ([]*model.User, error) {
+	return us.store.GetAllProfiles(options)
+}
+
+func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
+	users, err := us.GetUsers(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (us *UserService) GetUsersEtag(restrictionsHash string) string {
+	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForAllProfiles(), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+}
+
+func (us *UserService) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, error) {
+	allowFromCache := options.ViewRestrictions == nil
+
+	users, err := us.store.GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.sanitizeProfiles(users, options.IsAdmin), nil
+}
+
+func (us *UserService) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, error) {
+	return us.store.GetProfiles(options)
+}
+
+func (us *UserService) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	return us.store.GetProfilesNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
+}
+
+func (us *UserService) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
+	users, err := us.GetUsersInTeam(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (us *UserService) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	users, err := us.GetUsersNotInTeam(teamID, groupConstrained, page*perPage, perPage, viewRestrictions)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (us *UserService) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
+	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForProfiles(teamID), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+}
+
+func (us *UserService) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
+	return fmt.Sprintf("%v.%v.%v.%v", us.store.GetEtagForProfilesNotInTeam(teamID), us.config().PrivacySettings.ShowFullName, us.config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+}
+
+func (us *UserService) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
+	users, err := us.GetUsersWithoutTeam(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, error) {
+	users, err := us.store.GetProfilesWithoutTeam(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
