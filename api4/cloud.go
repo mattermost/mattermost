@@ -84,7 +84,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -93,7 +93,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	currentSubscription, appErr := c.App.Cloud().GetSubscription("")
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
