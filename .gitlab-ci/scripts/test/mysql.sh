@@ -6,7 +6,6 @@ docker ps
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
 DOCKER_COMPOSE_FILE="gitlab-dc.mysql.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
-RACE_MODE="-race"
 docker network create ${DOCKER_NETWORK}
 ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
