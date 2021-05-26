@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"hash/maphash"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"

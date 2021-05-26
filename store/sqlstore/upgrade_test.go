@@ -6,10 +6,11 @@ package sqlstore
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -115,6 +116,7 @@ func TestSaveSchemaVersion(t *testing.T) {
 		})
 	})
 }
+
 func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string, lastViewAt int64) *model.ChannelMember {
 	m := model.ChannelMember{}
 	m.ChannelId = channelId
