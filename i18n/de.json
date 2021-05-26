@@ -6982,5 +6982,13 @@
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
     "translation": "Kanäle tragen dazu bei, die Kommunikation zu verbessern, aber dass alle Benutzer in Mattermost Kanäle erstellen und Kanälen beitreten können, vergrößert das Problem der Übersichtlichkeit. Erweiterte Rechte ermöglichen Ihnen festzulegen, welche Benutzer oder Rollen bestimmte Aktionen durchführen dürfen, einschließlich der Verwaltung von Kanaleinstellungen und -mitgliedern, der Nutzung von @channel oder @here, um große Gruppen von Mitgliedern zu benachrichtigen, und der Erstellung von neuen Webhooks.\n\n[Mehr über erweiterte Rechte](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nDurch Klicken auf \"Kontakt\" teilen Sie Ihre Daten mit Mattermost, Inc. [mehr](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Zurück zu {{.SiteName}}"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP ist nicht verfügbar."
   }
 ]

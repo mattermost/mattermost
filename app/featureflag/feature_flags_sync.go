@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config
+package featureflag
 
 import (
 	"math"
@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
-type FeatureFlagSyncParams struct {
+type SyncParams struct {
 	ServerID            string
 	SplitKey            string
 	SyncIntervalSeconds int
@@ -25,8 +25,8 @@ type FeatureFlagSyncParams struct {
 	Attributes          map[string]interface{}
 }
 
-type FeatureFlagSynchronizer struct {
-	FeatureFlagSyncParams
+type Synchronizer struct {
+	SyncParams
 
 	client  *client.SplitClient
 	stop    chan struct{}
@@ -35,7 +35,7 @@ type FeatureFlagSynchronizer struct {
 
 var featureNames = getStructFields(model.FeatureFlags{})
 
-func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynchronizer, error) {
+func NewSynchronizer(params SyncParams) (*Synchronizer, error) {
 	cfg := conf.Default()
 	if params.Log != nil {
 		cfg.Logger = &splitLogger{wrappedLog: params.Log.With(mlog.String("service", "split"))}
@@ -47,16 +47,16 @@ func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynch
 		return nil, errors.Wrap(err, "unable to create split factory")
 	}
 
-	return &FeatureFlagSynchronizer{
-		FeatureFlagSyncParams: params,
-		client:                factory.Client(),
-		stop:                  make(chan struct{}),
-		stopped:               make(chan struct{}),
+	return &Synchronizer{
+		SyncParams: params,
+		client:     factory.Client(),
+		stop:       make(chan struct{}),
+		stopped:    make(chan struct{}),
 	}, nil
 }
 
 // EnsureReady blocks until the syncronizer is ready to update feature flag values
-func (f *FeatureFlagSynchronizer) EnsureReady() error {
+func (f *Synchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
 		return errors.Wrap(err, "split.io client could not initialize")
 	}
@@ -64,13 +64,13 @@ func (f *FeatureFlagSynchronizer) EnsureReady() error {
 	return nil
 }
 
-func (f *FeatureFlagSynchronizer) UpdateFeatureFlagValues(base model.FeatureFlags) model.FeatureFlags {
+func (f *Synchronizer) UpdateFeatureFlagValues(base model.FeatureFlags) model.FeatureFlags {
 	featuresMap := f.client.Treatments(f.ServerID, featureNames, f.Attributes)
 	ffm := featureFlagsFromMap(featuresMap, base)
 	return ffm
 }
 
-func (f *FeatureFlagSynchronizer) Close() {
+func (f *Synchronizer) Close() {
 	f.client.Destroy()
 }
 

@@ -45,7 +45,7 @@ func StoreOverride(override interface{}) Option {
 // config loaded from the dsn on top of the normal defaults
 func Config(dsn string, watch, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStore(dsn, watch, readOnly, configDefaults)
+		configStore, err := config.NewStoreFromDSN(dsn, watch, readOnly, configDefaults)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}

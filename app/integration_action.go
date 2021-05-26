@@ -412,7 +412,7 @@ func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values 
 	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
 
-	a.ServePluginRequest(w, r)
+	a.srv.ServePluginRequest(w, r)
 
 	resp := &http.Response{
 		StatusCode: w.status,

@@ -297,17 +297,22 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread membership 'viewed' timestamp is updated properly", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false, false)
+		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false, false)
 		require.NoError(t, e)
-		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.NoError(t, err1)
-		require.Equal(t, int64(0), m.LastViewed)
+		require.Equal(t, int64(0), tm.LastViewed)
 
 		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, true, false)
 		require.NoError(t, e)
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
 		require.Greater(t, m2.LastViewed, int64(0))
+	})
+
+	t.Run("Thread membership 'viewed' timestamp is updated properly for new membership", func(t *testing.T) {
+		newPosts := makeSomePosts()
+		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, false, true, false)
+		require.NoError(t, e)
+		require.NotEqual(t, int64(0), tm.LastViewed)
 	})
 
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
@@ -328,5 +333,30 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			require.NoError(t, err2)
 			return m2.LastUpdated < m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("Updating post does not make thread unread", func(t *testing.T) {
+		newPosts := makeSomePosts()
+		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, true, false, true, false, false)
+		require.NoError(t, err)
+		th, err := ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(2), th.UnreadReplies)
+
+		m.LastViewed = newPosts[2].UpdateAt + 1
+		_, err = ss.Thread().UpdateMembership(m)
+		require.NoError(t, err)
+		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), th.UnreadReplies)
+
+		editedPost := newPosts[2].Clone()
+		editedPost.Message = "This is an edited post"
+		_, err = ss.Post().Update(editedPost, newPosts[2])
+		require.NoError(t, err)
+
+		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), th.UnreadReplies)
 	})
 }

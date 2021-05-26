@@ -109,7 +109,8 @@ func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
-	return api.app.SaveConfig(config, true)
+	_, _, err := api.app.SaveConfig(config, true)
+	return err
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
@@ -123,7 +124,8 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
-	return api.app.SaveConfig(cfg, true)
+	_, _, err := api.app.SaveConfig(cfg, true)
+	return err
 }
 
 func (api *PluginAPI) GetBundlePath() (string, error) {
@@ -312,14 +314,6 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 		return nil, model.NewAppError("UpdateUserStatus", "plugin.api.update_user_status.bad_status", nil, "unrecognized status", http.StatusBadRequest)
 	}
 
-	return api.app.GetStatus(userID)
-}
-
-func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*model.Status, *model.AppError) {
-	// read-after-write bug which will fail if there are replicas.
-	// it works for now because we have a cache in between.
-	// FIXME: make SetStatusDoNotDisturbTimed return updated status
-	api.app.SetStatusDoNotDisturbTimed(userID, endTime)
 	return api.app.GetStatus(userID)
 }
 
