@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
@@ -36,7 +37,7 @@ func (*HeaderProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*HeaderProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
@@ -92,7 +93,7 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 	}
 	*patch.Header = message
 
-	_, err = a.PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(c, channel, patch, args.UserId)
 	if err != nil {
 		text := args.T("api.command_channel_header.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.header.app_error" {

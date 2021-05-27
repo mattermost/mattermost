@@ -9197,5 +9197,21 @@
   {
     "id": "api.oauth.click_redirect",
     "translation": "Otomatik olarak yönlendirilmezseniz, <a href='{{.Link}}'>buraya tıklayın</a>"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Ortak takım kodları alınamadı."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Ortak bir takımları olmadığından bu kullanıcılar arasında doğrudan bir kanal oluşturulamadı."
   }
 ]

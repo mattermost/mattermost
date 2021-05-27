@@ -25,9 +25,6 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
-	// Toggle on and off support for Custom User Statuses
-	CustomUserStatuses bool
-
 	// AppsEnabled toggle the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -47,7 +44,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = false
 
-	f.PluginIncidentManagement = "1.7.0"
+	f.PluginIncidentManagement = "1.9.3"
 	f.PluginApps = ""
 	f.CustomDataRetentionEnabled = false
 }

@@ -13,7 +13,8 @@ type ProductNoticesJobInterfaceImpl struct {
 }
 
 func init() {
-	app.RegisterProductNoticesJobInterface(func(a *app.App) tjobs.ProductNoticesJobInterface {
+	app.RegisterProductNoticesJobInterface(func(s *app.Server) tjobs.ProductNoticesJobInterface {
+		a := app.New(app.ServerConnector(s))
 		return &ProductNoticesJobInterfaceImpl{a}
 	})
 }

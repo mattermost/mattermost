@@ -1296,6 +1296,8 @@ func hasMissingMigrationsVersion535(sqlStore *SqlStore) bool {
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion536(sqlStore) {
 		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
 	}
 
 	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
@@ -1304,5 +1306,15 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 }
 
 func hasMissingMigrationsVersion536(sqlStore *SqlStore) bool {
-	return !sqlStore.DoesColumnExist("SharedChannelUsers", "ChannelId")
+	if !sqlStore.DoesColumnExist("SharedChannelUsers", "ChannelId") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("SharedChannelRemotes", "LastPostUpdateAt") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("SharedChannelRemotes", "LastPostId") {
+		return true
+	}
+
+	return false
 }
