@@ -21,8 +21,6 @@ type CustomStatusProvider struct {
 const (
 	CmdCustomStatus      = app.CmdCustomStatusTrigger
 	CmdCustomStatusClear = "clear"
-
-	DefaultCustomStatusEmoji = "speech_balloon"
 )
 
 func init() {
@@ -62,6 +60,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 	}
 
 	customStatus := GetCustomStatus(message)
+	customStatus.PreSave()
 	if err := a.SetCustomStatus(args.UserId, customStatus); err != nil {
 		mlog.Debug(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
@@ -78,7 +77,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 
 func GetCustomStatus(message string) *model.CustomStatus {
 	customStatus := &model.CustomStatus{
-		Emoji: DefaultCustomStatusEmoji,
+		Emoji: model.DefaultCustomStatusEmoji,
 		Text:  message,
 	}
 
@@ -87,7 +86,6 @@ func GetCustomStatus(message string) *model.CustomStatus {
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
 		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
-		customStatus.TrimMessage()
 		return customStatus
 	}
 
@@ -117,7 +115,6 @@ func GetCustomStatus(message string) *model.CustomStatus {
 		customStatus.Text = strings.TrimSpace(textString)
 	}
 
-	customStatus.TrimMessage()
 	return customStatus
 }
 
