@@ -22,9 +22,7 @@ type driverConn interface {
 	driver.Conn
 	driver.ConnBeginTx
 	driver.ConnPrepareContext
-	driver.Execer
 	driver.ExecerContext
-	driver.Queryer
 	driver.QueryerContext
 	driver.Pinger
 }
@@ -36,7 +34,7 @@ var (
 
 func (c *Conn) Begin() (tx driver.Tx, err error) {
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		tx, err = innerConn.(driver.Conn).Begin()
+		tx, err = innerConn.(driver.Conn).Begin() //nolint:staticcheck
 		return err
 	})
 	return tx, err
@@ -66,28 +64,12 @@ func (c *Conn) PrepareContext(ctx context.Context, q string) (stmt driver.Stmt, 
 	return stmt, err
 }
 
-func (c *Conn) Exec(q string, args []driver.Value) (res driver.Result, err error) {
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		res, err = innerConn.(driver.Execer).Exec(q, args)
-		return err
-	})
-	return res, err
-}
-
 func (c *Conn) ExecContext(ctx context.Context, q string, args []driver.NamedValue) (res driver.Result, err error) {
 	err = c.conn.Raw(func(innerConn interface{}) error {
 		res, err = innerConn.(driver.ExecerContext).ExecContext(ctx, q, args)
 		return err
 	})
 	return res, err
-}
-
-func (c *Conn) Query(q string, args []driver.Value) (rows driver.Rows, err error) {
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		rows, err = innerConn.(driver.Queryer).Query(q, args)
-		return err
-	})
-	return rows, err
 }
 
 func (c *Conn) QueryContext(ctx context.Context, q string, args []driver.NamedValue) (rows driver.Rows, err error) {
