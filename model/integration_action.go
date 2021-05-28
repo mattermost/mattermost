@@ -587,16 +587,26 @@ func (d *DialogElement) isValid() error {
 		"password": true,
 	}
 
+	if d.MinLength < 0 {
+		return errors.New("invalid minLength")
+	}
+	if d.MaxLength < 0 {
+		return errors.New("invalid maxlength")
+	}
+	if d.MinLength > d.MaxLength {
+		return errors.New("minLength should not be greater then maxlength")
+	}
+
 	switch d.Type {
 	case "text":
-		if d.MaxLength > 150 {
-			return errors.New("invalid maxlength")
-		}
 		if len(d.Default) > 150 {
 			return errors.New("invalid default text")
 		}
-		if reflect.TypeOf(d.Optional).Kind() != reflect.Bool {
-			return errors.New("invalid type for optional")
+		if len(d.Placeholder) > 150 {
+			return errors.New("invalid placeholder")
+		}
+		if len(d.Placeholder) > 150 {
+			return errors.New("invalid default string")
 		}
 		if _, ok := textSubTypeMap[d.Type]; !ok {
 			return errors.New("invalid subtype")
@@ -606,39 +616,39 @@ func (d *DialogElement) isValid() error {
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default text")
 		}
-		if d.MaxLength > 3000 {
-			return errors.New("invalid maxlength")
-		}
-		if d.Placeholder != "" && len(d.Placeholder) > 3000 {
+		if len(d.Placeholder) > 3000 {
 			return errors.New("invalid placeholder")
 		}
-		if d.Default != "" && len(d.Placeholder) > 3000 {
+		if len(d.Placeholder) > 3000 {
 			return errors.New("invalid default string")
 		}
 		if _, ok := textSubTypeMap[d.Type]; !ok {
 			return errors.New("invalid subtype")
 		}
 
-	case "checkbox":
-		if d.DataSource == "" {
-			return errors.New("invalid data source")
-		}
-		if len(d.Default) > 3000 {
-			return errors.New("invalid default string")
-		}
-		if d.Placeholder != "" && len(d.Placeholder) > 3000 {
-			return errors.New("invalid placeholder")
-		}
-
-	case "radio":
-		if len(d.Default) > 3000 {
-			return errors.New("invalid default string")
-		}
-
 	case "select":
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default string")
 		}
+		if len(d.Placeholder) > 3000 {
+			return errors.New("invalid placeholder")
+		}
+
+	case "checkbox":
+		if len(d.Default) > 150 {
+			return errors.New("invalid default string")
+		}
+		if len(d.Placeholder) > 150 {
+			return errors.New("invalid placeholder")
+		}
+		if d.Default != "" && d.Default != "true" && d.Default != "false" {
+			return errors.New("invalid default")
+		}
+	case "radio":
+		if len(d.Default) > 150 {
+			return errors.New("invalid default string")
+		}
+
 	}
 
 	if len(d.DisplayName) > 24 {
