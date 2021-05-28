@@ -187,7 +187,7 @@ func (g *hooksRPCClient) OnActivate() error {
 	_returns := &Z_OnActivateReturns{}
 
 	if err := g.client.Call("Plugin.OnActivate", _args, _returns); err != nil {
-		mlog.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
+		g.log.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
 	}
 	return _returns.A
 }
@@ -242,10 +242,10 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 	_args := &Z_LoadPluginConfigurationArgsArgs{}
 	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
-		mlog.Error("RPC call to LoadPluginConfiguration API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to LoadPluginConfiguration API failed: ", mlog.Err(err))
 	}
 	if err := json.Unmarshal(_returns.A, dest); err != nil {
-		mlog.Error("LoadPluginConfiguration API failed to unmarshal: ", mlog.Err(err))
+		g.log.Error("LoadPluginConfiguration API failed to unmarshal: ", mlog.Err(err))
 	}
 	return nil
 }
@@ -288,14 +288,14 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	go func() {
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
-			mlog.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
+			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
 			return
 		}
 		defer connection.Close()
 
 		rpcServer := rpc.NewServer()
 		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
-			mlog.Error("Plugin failed to ServeHTTP, couldn't register RPC name", mlog.Err(err))
+			g.log.Error("Plugin failed to ServeHTTP, couldn't register RPC name", mlog.Err(err))
 			return
 		}
 		rpcServer.ServeConn(connection)
@@ -307,7 +307,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		go func() {
 			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
 			if err != nil {
-				mlog.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
+				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
 				return
 			}
 			defer bodyConnection.Close()
@@ -333,7 +333,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStreamId,
 	}, nil); err != nil {
-		mlog.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
+		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
 }
@@ -396,7 +396,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 
 	requestBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		mlog.Error("RPC call to PluginHTTP API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to PluginHTTP API failed: ", mlog.Err(err))
 		return nil
 	}
 	request.Body.Close()
@@ -409,7 +409,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 
 	_returns := &Z_PluginHTTPReturns{}
 	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
-		mlog.Error("RPC call to PluginHTTP API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to PluginHTTP API failed: ", mlog.Err(err))
 		return nil
 	}
 
@@ -466,7 +466,7 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 	go func() {
 		uploadedFileConnection, err := g.muxBroker.Accept(uploadedFileStreamId)
 		if err != nil {
-			mlog.Error("Plugin failed to serve upload file stream. MuxBroker could not Accept connection", mlog.Err(err))
+			g.log.Error("Plugin failed to serve upload file stream. MuxBroker could not Accept connection", mlog.Err(err))
 			return
 		}
 		defer uploadedFileConnection.Close()
@@ -480,19 +480,19 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 
 		replacementFileConnection, err := g.muxBroker.Accept(replacementFileStreamId)
 		if err != nil {
-			mlog.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
+			g.log.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
 			return
 		}
 		defer replacementFileConnection.Close()
 		if _, err := io.Copy(output, replacementFileConnection); err != nil {
-			mlog.Error("Error reading replacement file.", mlog.Err(err))
+			g.log.Error("Error reading replacement file.", mlog.Err(err))
 		}
 	}()
 
 	_args := &Z_FileWillBeUploadedArgs{c, info, uploadedFileStreamId, replacementFileStreamId}
 	_returns := &Z_FileWillBeUploadedReturns{A: _args.B}
 	if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
-		mlog.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
+		g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
 	}
 
 	// Ensure the io.Copy from the replacementFileConnection above completes.
@@ -551,7 +551,7 @@ func (g *hooksRPCClient) MessageWillBePosted(c *Context, post *model.Post) (*mod
 	_returns := &Z_MessageWillBePostedReturns{A: _args.B}
 	if g.implemented[MessageWillBePostedID] {
 		if err := g.client.Call("Plugin.MessageWillBePosted", _args, _returns); err != nil {
-			mlog.Error("RPC call MessageWillBePosted to plugin failed.", mlog.Err(err))
+			g.log.Error("RPC call MessageWillBePosted to plugin failed.", mlog.Err(err))
 		}
 	}
 	return _returns.A, _returns.B
@@ -592,7 +592,7 @@ func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *mode
 	_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
 	if g.implemented[MessageWillBeUpdatedID] {
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
-			mlog.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
+			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
 		}
 	}
 	return _returns.A, _returns.B
@@ -623,7 +623,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		mlog.Error("RPC call to LogDebug API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to LogDebug API failed: ", mlog.Err(err))
 	}
 
 }
@@ -652,7 +652,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_LogInfoReturns{}
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		mlog.Error("RPC call to LogInfo API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to LogInfo API failed: ", mlog.Err(err))
 	}
 
 }
@@ -681,7 +681,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_LogWarnReturns{}
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		mlog.Error("RPC call to LogWarn API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to LogWarn API failed: ", mlog.Err(err))
 	}
 
 }
@@ -710,7 +710,7 @@ func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
 	_returns := &Z_LogErrorReturns{}
 	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
-		mlog.Error("RPC call to LogError API failed: ", mlog.Err(err))
+		g.log.Error("RPC call to LogError API failed: ", mlog.Err(err))
 	}
 }
 
@@ -741,7 +741,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 	go func() {
 		uploadPluginConnection, err := g.muxBroker.Accept(pluginStreamID)
 		if err != nil {
-			mlog.Error("Plugin failed to upload plugin. MuxBroker could not Accept connection", mlog.Err(err))
+			g.log.Error("Plugin failed to upload plugin. MuxBroker could not Accept connection", mlog.Err(err))
 			return
 		}
 		defer uploadPluginConnection.Close()
@@ -751,7 +751,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 	_args := &Z_InstallPluginArgs{pluginStreamID, replace}
 	_returns := &Z_InstallPluginReturns{}
 	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
-		mlog.Error("RPC call InstallPlugin to plugin failed.", mlog.Err(err))
+		g.log.Error("RPC call InstallPlugin to plugin failed.", mlog.Err(err))
 	}
 
 	return _returns.A, _returns.B
