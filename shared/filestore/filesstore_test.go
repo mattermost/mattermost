@@ -94,9 +94,9 @@ func (s *FileBackendTestSuite) SetupTest() {
 	s.backend = backend
 
 	// This is needed to create the bucket if it doesn't exist.
-	if err := s.backend.TestConnection(); err == ErrNoS3Bucket {
-		s3Backend, ok := s.backend.(*S3FileBackend)
-		s.True(ok)
+	err = s.backend.TestConnection()
+	if _, ok := err.(*S3FileBackendNoBucketError); ok {
+		s3Backend := s.backend.(*S3FileBackend)
 		s.NoError(s3Backend.MakeBucket())
 	} else {
 		s.NoError(err)

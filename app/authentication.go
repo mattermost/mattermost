@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mfa"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -20,6 +21,7 @@ const (
 	TokenLocationCookie
 	TokenLocationQueryString
 	TokenLocationCloudHeader
+	TokenLocationRemoteClusterHeader
 )
 
 func (tl TokenLocation) String() string {
@@ -34,6 +36,8 @@ func (tl TokenLocation) String() string {
 		return "QueryString"
 	case TokenLocationCloudHeader:
 		return "CloudHeader"
+	case TokenLocationRemoteClusterHeader:
+		return "RemoteClusterHeader"
 	default:
 		return "Unknown"
 	}
@@ -123,13 +127,13 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(c, *ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
@@ -226,7 +230,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
@@ -236,7 +240,7 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
@@ -289,6 +293,10 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 
 	if token := r.Header.Get(model.HEADER_CLOUD_TOKEN); token != "" {
 		return token, TokenLocationCloudHeader
+	}
+
+	if token := r.Header.Get(model.HEADER_REMOTECLUSTER_TOKEN); token != "" {
+		return token, TokenLocationRemoteClusterHeader
 	}
 
 	return "", TokenLocationNotFound

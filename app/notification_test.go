@@ -19,9 +19,9 @@ func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
 
-	post1, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post1, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
@@ -35,10 +35,10 @@ func TestSendNotifications(t *testing.T) {
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
 
-	dm, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 
-	post2, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -49,12 +49,12 @@ func TestSendNotifications(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
-	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
 	require.Nil(t, appErr)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
-	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
+	post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -81,7 +81,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr = th.App.CreatePostMissingChannel(rootPost, false)
+			rootPost, appErr = th.App.CreatePostMissingChannel(th.Context, rootPost, false)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -90,7 +90,7 @@ func TestSendNotifications(t *testing.T) {
 				RootId:    rootPost.Id,
 				Message:   "a reply",
 			}
-			childPost, appErr = th.App.CreatePostMissingChannel(childPost, false)
+			childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false)
 			require.Nil(t, appErr)
 
 			postList := model.PostList{
@@ -126,11 +126,11 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
-		th.App.AddUserToChannel(user, th.BasicChannel)
+		th.App.AddUserToChannel(user, th.BasicChannel, false)
 		users = append(users, user)
 	}
 
-	_, appErr1 := th.App.CreatePostMissingChannel(&model.Post{
+	_, appErr1 := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -150,7 +150,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		}
 	})
 
-	_, appErr1 = th.App.CreatePostMissingChannel(&model.Post{
+	_, appErr1 = th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -213,13 +213,13 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	guest := th.CreateGuest()
 	user4 := th.CreateUser()
 	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
-	defer th.App.PermanentDeleteUser(guest)
+	defer th.App.PermanentDeleteUser(th.Context, guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.App.AddUserToChannel(guest, channel)
-	th.App.AddUserToChannel(user4, guestAndUser4Channel)
-	th.App.AddUserToChannel(guest, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, channel, false)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel, false)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel, false)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -289,7 +289,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 	t.Run("should not return inactive users", func(t *testing.T) {
 		inactiveUser := th.CreateUser()
-		inactiveUser, appErr := th.App.UpdateActive(inactiveUser, false)
+		inactiveUser, appErr := th.App.UpdateActive(th.Context, inactiveUser, false)
 		require.Nil(t, appErr)
 
 		post := &model.Post{}
@@ -2420,13 +2420,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
-	th.App.AddUserToChannel(groupChannelMember, channel)
+	th.App.AddUserToChannel(groupChannelMember, channel, false)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
-	th.App.AddUserToChannel(nonGroupChannelMember, channel)
+	th.App.AddUserToChannel(nonGroupChannelMember, channel, false)
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)

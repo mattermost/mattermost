@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -18,7 +19,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -37,6 +37,8 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/app/featureflag"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -47,8 +49,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -65,7 +69,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -74,10 +77,9 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
-	sqlStore           *sqlstore.SqlStore
-	Store              store.Store
-	WebSocketRouter    *WebSocketRouter
-	AppInitializedOnce sync.Once
+	sqlStore        *sqlstore.SqlStore
+	Store           store.Store
+	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -157,6 +159,10 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
+	serviceMux           sync.RWMutex
+	remoteClusterService remotecluster.RemoteClusterServiceIFace
+	sharedChannelService SharedChannelServiceIFace
+
 	phase2PermissionsMigrationComplete bool
 
 	HTTPService httpservice.HTTPService
@@ -170,6 +176,7 @@ type Server struct {
 	joinCluster       bool
 	startMetrics      bool
 	startSearchEngine bool
+	skipPostInit      bool
 
 	SearchEngine *searchengine.Broker
 
@@ -194,7 +201,7 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagSynchronizer      *featureflag.Synchronizer
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
@@ -241,8 +248,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	fakeApp := New(ServerConnector(s))
-	fakeApp.HubStart()
+	app := New(ServerConnector(s))
+	app.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -379,7 +386,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	templatesDir, ok := fileutils.FindDir("templates")
+	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
 	} else {
@@ -454,6 +461,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	if s.joinCluster && s.Cluster != nil {
+		s.registerClusterHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
@@ -481,11 +489,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("", s.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -497,7 +504,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      fakeApp,
+		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -516,7 +523,7 @@ func NewServer(options ...Option) (*Server, error) {
 	} else {
 		nErr := backend.TestConnection()
 		if nErr != nil {
-			if errors.Is(nErr, filestore.ErrNoS3Bucket) {
+			if _, ok := nErr.(*filestore.S3FileBackendNoBucketError); ok {
 				nErr = backend.(*filestore.S3FileBackend).MakeBucket()
 			}
 			if nErr != nil {
@@ -626,11 +633,53 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := fakeApp.UpdateProductNotices(); err != nil {
+			if err := app.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
+
+	if s.skipPostInit {
+		return s, nil
+	}
+
+	c := request.EmptyContext()
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+			if appErr := app.DeactivateGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+	})
+
+	// Disable active guest accounts on first run if guest accounts are disabled
+	if !*s.Config().GuestAccountsSettings.Enable {
+		if appErr := app.DeactivateGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	}
+
+	if s.runEssentialJobs {
+		s.Go(func() {
+			s.runLicenseExpirationCheckJob()
+			runCheckAdminSupportStatusJob(app, c)
+			runCheckWarnMetricStatusJob(app, c)
+		})
+		s.runJobs()
+	}
+
+	s.doAppMigrations()
+
+	s.initPostMetadata()
+
+	s.initPlugins(c, *s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+		} else {
+			s.ShutDownPlugins()
+		}
+	})
 
 	return s, nil
 }
@@ -752,15 +801,8 @@ func (s *Server) initLogging() error {
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
 		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
-		isJson := config.IsJsonMap(dsn)
 
-		// If this is a file based config we need the full path so it can be watched.
-		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
-			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
-			dsn = filepath.Join(filepath.Dir(configPath), dsn)
-		}
-
-		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
+		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
@@ -769,9 +811,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
-		if !isJson {
-			mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
-		}
+		mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
@@ -805,6 +845,71 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	mlog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
 	})
+}
+
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+	if license == nil {
+		mlog.Debug("No license provided; Remote Cluster services disabled")
+		return nil
+	}
+
+	// Remote Cluster service
+
+	// License check
+	if !*license.Features.RemoteClusterService {
+		mlog.Debug("License does not have Remote Cluster services enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return nil
+	}
+
+	var err error
+
+	rcs, err := remotecluster.NewRemoteClusterService(s)
+	if err != nil {
+		return err
+	}
+
+	if err = rcs.Start(); err != nil {
+		return err
+	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.serviceMux.Unlock()
+
+	// Shared Channels service
+
+	// License check
+	if !*license.Features.SharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Shared Channels Service disabled via config")
+		return nil
+	}
+
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
+	if err != nil {
+		return err
+	}
+
+	if err = scs.Start(); err != nil {
+		return err
+	}
+
+	s.serviceMux.Lock()
+	s.sharedChannelService = scs
+	s.serviceMux.Unlock()
+
+	return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -864,6 +969,19 @@ func (s *Server) Shutdown() {
 	if err != nil {
 		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
+
+	s.serviceMux.RLock()
+	if s.sharedChannelService != nil {
+		if err = s.sharedChannelService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+		}
+	}
+	if s.remoteClusterService != nil {
+		if err = s.remoteClusterService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+		}
+	}
+	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
@@ -1230,6 +1348,10 @@ func (s *Server) Start() error {
 		}
 	}
 
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
 	return nil
 }
 
@@ -1316,10 +1438,10 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-func runLicenseExpirationCheckJob(a *App) {
-	doLicenseExpirationCheck(a)
+func (s *Server) runLicenseExpirationCheckJob() {
+	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
-		doLicenseExpirationCheck(a)
+		s.doLicenseExpirationCheck()
 	}, time.Hour*24)
 }
 
@@ -1341,10 +1463,18 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-func runCheckWarnMetricStatusJob(a *App) {
-	doCheckWarnMetricStatus(a)
+//nolint:golint,unused,deadcode
+func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
+	doCheckWarnMetricStatus(a, c)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
-		doCheckWarnMetricStatus(a)
+		doCheckWarnMetricStatus(a, c)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
+}
+
+func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
+	doCheckAdminSupportStatus(a, c)
+	model.CreateRecurringTask("Check Admin Support Status Job", func() {
+		doCheckAdminSupportStatus(a, c)
 	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
@@ -1368,7 +1498,8 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
-func doCheckWarnMetricStatus(a *App) {
+//nolint:golint,unused,deadcode
+func doCheckWarnMetricStatus(a *App, c *request.Context) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip")
@@ -1414,7 +1545,7 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
 	if err1 != nil {
 		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
@@ -1499,7 +1630,7 @@ func doCheckWarnMetricStatus(a *App) {
 			}
 		}
 
-		if nerr := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); nerr != nil {
+		if nerr := a.notifyAdminsOfWarnMetricStatus(c, warnMetric.Id, isE0Edition); nerr != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 
@@ -1507,6 +1638,16 @@ func doCheckWarnMetricStatus(a *App) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
 		} else {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
+		}
+	}
+}
+
+func doCheckAdminSupportStatus(a *App, c *request.Context) {
+	isE0Edition := model.BuildEnterpriseReady == "true"
+
+	if strings.TrimSpace(*a.Config().SupportSettings.SupportEmail) == model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL {
+		if err := a.notifyAdminsOfWarnMetricStatus(c, model.SYSTEM_METRIC_SUPPORT_EMAIL_NOT_CONFIGURED, isE0Edition); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 	}
 }
@@ -1520,8 +1661,7 @@ func (s *Server) StopMetricsServer() {
 		defer cancel()
 
 		s.metricsServer.Shutdown(ctx)
-		s.Log.Info("Metrics and profiling server is stopping", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
-		s.metricsServer = nil
+		s.Log.Info("Metrics and profiling server is stopping")
 	}
 }
 
@@ -1580,32 +1720,41 @@ func (s *Server) InitMetricsRouter() error {
 }
 
 func (s *Server) startMetricsServer() {
+	var notify chan struct{}
 	s.metricsLock.Lock()
-	defer s.metricsLock.Unlock()
+	defer func() {
+		if notify != nil {
+			<-notify
+		}
+		s.metricsLock.Unlock()
+	}()
 
-	if s.metricsServer != nil {
+	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
+	if err != nil {
+		mlog.Error(err.Error())
 		return
 	}
 
+	notify = make(chan struct{})
 	s.metricsServer = &http.Server{
-		Addr:         *s.Config().MetricsSettings.ListenAddress,
 		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
 	}
 
 	go func() {
-		if err := s.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		close(notify)
+		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
 			mlog.Critical(err.Error())
 		}
 	}()
 
-	s.Log.Info("Metrics and profiling server is started", mlog.String("address", *s.Config().MetricsSettings.ListenAddress))
+	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
-func doLicenseExpirationCheck(a *App) {
-	a.Srv().LoadLicense()
-	license := a.Srv().License()
+func (s *Server) doLicenseExpirationCheck() {
+	s.LoadLicense()
+	license := s.License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -1617,7 +1766,7 @@ func doLicenseExpirationCheck(a *App) {
 		return
 	}
 
-	users, err := a.Srv().Store.User().GetSystemAdminProfiles()
+	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -1632,15 +1781,15 @@ func doLicenseExpirationCheck(a *App) {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL); err != nil {
+		s.Go(func() {
+			if err := s.EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	a.Srv().RemoveLicense()
+	s.RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -1773,6 +1922,50 @@ func (s *Server) initJobs() {
 	if jobsMigrationsInterface != nil {
 		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
+	if jobsLdapSyncInterface != nil {
+		s.Jobs.LdapSync = jobsLdapSyncInterface(s)
+	}
+	if jobsPluginsInterface != nil {
+		s.Jobs.Plugins = jobsPluginsInterface(s)
+	}
+	if jobsExpiryNotifyInterface != nil {
+		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s)
+	}
+	if productNoticesJobInterface != nil {
+		s.Jobs.ProductNotices = productNoticesJobInterface(s)
+	}
+	if jobsImportProcessInterface != nil {
+		s.Jobs.ImportProcess = jobsImportProcessInterface(s)
+	}
+	if jobsImportDeleteInterface != nil {
+		s.Jobs.ImportDelete = jobsImportDeleteInterface(s)
+	}
+	if jobsExportDeleteInterface != nil {
+		s.Jobs.ExportDelete = jobsExportDeleteInterface(s)
+	}
+
+	if jobsExportProcessInterface != nil {
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
+	}
+
+	if jobsExportProcessInterface != nil {
+		s.Jobs.ExportProcess = jobsExportProcessInterface(s)
+	}
+
+	if jobsActiveUsersInterface != nil {
+		s.Jobs.ActiveUsers = jobsActiveUsersInterface(s)
+	}
+
+	if jobsCloudInterface != nil {
+		s.Jobs.Cloud = jobsCloudInterface(s)
+	}
+
+	if jobsResendInvitationEmailInterface != nil {
+		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
+	}
+
+	s.Jobs.InitWorkers()
+	s.Jobs.InitSchedulers()
 }
 
 func (s *Server) TelemetryId() string {
@@ -1788,6 +1981,54 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (s *Server) GetLogger() mlog.LoggerIFace {
+	return s.Log
+}
+
+// GetStore returns the server's Store. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetStore() store.Store {
+	return s.Store
+}
+
+// GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
+	return s.remoteClusterService
+}
+
+// GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
+	return s.sharedChannelService
+}
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
+}
+
+// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
+// For testing only.
+func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
+	s.remoteClusterService = remoteClusterService
+}
+
+// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// For testing only.
+func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
+	s.sharedChannelService = sharedChannelService
 }
 
 func (a *App) GenerateSupportPacket() []model.FileData {
@@ -1964,3 +2205,73 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
 	return nil, warning
 }
+
+func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	if *s.Config().FileSettings.DriverName == "" {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		return img, false, nil
+	}
+
+	path := "users/" + user.Id + "/profile.png"
+
+	data, err := s.ReadFile(path)
+	if err != nil {
+		img, appErr := s.GetDefaultProfileImage(user)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+
+		if user.LastPictureUpdate == 0 {
+			if _, err := s.writeFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, err
+			}
+		}
+		return img, true, nil
+	}
+
+	return data, false, nil
+}
+
+func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	var img []byte
+	var appErr *model.AppError
+
+	if user.IsBot {
+		img = model.BotDefaultImage
+		appErr = nil
+	} else {
+		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
+	}
+	if appErr != nil {
+		return nil, appErr
+	}
+	return img, nil
+}
+
+func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
+	backend, err := s.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
+}
+
+// func (s *Server) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+// 	backend, err := s.FileBackend()
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	result, nErr := backend.WriteFile(fr, path)
+// 	if nErr != nil {
+// 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+// 	}
+// 	return result, nil
+// }

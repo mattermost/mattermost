@@ -20,12 +20,14 @@ const (
 	UnitTestListeningPort = ":0"
 )
 
+//nolint:golint,unused
 type ServerTestHelper struct {
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
+//nolint:golint,unused
 func SetupServerTest(t testing.TB) *ServerTestHelper {
 	if testing.Short() {
 		t.SkipNow()
@@ -50,6 +52,7 @@ func SetupServerTest(t testing.TB) *ServerTestHelper {
 	return th
 }
 
+//nolint:golint,unused
 func (th *ServerTestHelper) TearDownServerTest() {
 	jobs.DefaultWatcherPollingInterval = th.originalInterval
 }

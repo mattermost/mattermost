@@ -56,7 +56,8 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss, s) })
 	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss, s) })
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
-
+	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
+	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -138,7 +139,7 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&replyPost)
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
+		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 	})
@@ -226,7 +227,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
-			storedPost, err := ss.Post().GetSingle(post.Id)
+			storedPost, err := ss.Post().GetSingle(post.Id, false)
 			assert.NoError(t, err)
 			assert.Equal(t, post.ChannelId, storedPost.ChannelId)
 			assert.Equal(t, post.Message, storedPost.Message)
@@ -273,13 +274,13 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
-		storedPost, err := ss.Post().GetSingle(p3.Id)
+		storedPost, err := ss.Post().GetSingle(p3.Id, false)
 		assert.NoError(t, err)
 		assert.Equal(t, p3.ChannelId, storedPost.ChannelId)
 		assert.Equal(t, p3.Message, storedPost.Message)
 		assert.Equal(t, p3.UserId, storedPost.UserId)
 
-		storedPost, err = ss.Post().GetSingle(p4.Id)
+		storedPost, err = ss.Post().GetSingle(p4.Id, false)
 		assert.Error(t, err)
 		assert.Nil(t, storedPost)
 	})
@@ -299,7 +300,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		_, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
-		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
+		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
 
@@ -318,7 +319,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
-		rrootPost2, err := ss.Post().GetSingle(rootPost.Id)
+		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
 		require.NoError(t, err)
 		assert.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 	})
@@ -459,14 +460,33 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = o1.UserId
+	o2.Message = "zz" + model.NewId() + "c"
+
 	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
 
-	post, err := ss.Post().GetSingle(o1.Id)
+	o2, err = ss.Post().Save(o2)
+	require.NoError(t, err)
+
+	err = ss.Post().Delete(o2.Id, model.GetMillis(), o2.UserId)
+	require.NoError(t, err)
+
+	post, err := ss.Post().GetSingle(o1.Id, false)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 
-	_, err = ss.Post().GetSingle("123")
+	post, err = ss.Post().GetSingle(o2.Id, false)
+	require.Error(t, err, "should not return deleted post")
+
+	post, err = ss.Post().GetSingle(o2.Id, true)
+	require.NoError(t, err)
+	require.Equal(t, post.CreateAt, o2.CreateAt, "invalid returned post")
+	require.NotZero(t, post.DeleteAt, "DeleteAt should be non-zero")
+
+	_, err = ss.Post().GetSingle("123", false)
 	require.Error(t, err, "Missing id should have failed")
 }
 
@@ -2950,4 +2970,162 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
+}
+
+func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
+	t.Run("should return posts created after the given time", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
+
+		_, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "auto response message",
+			Type:      model.POST_AUTO_RESPONDER,
+		})
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+
+		exists, err := ss.Post().HasAutoResponsePostByUserSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post2.CreateAt}, userId)
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		err = ss.Post().Delete(post3.Id, time.Now().Unix(), userId)
+		require.NoError(t, err)
+
+		exists, err = ss.Post().HasAutoResponsePostByUserSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post2.CreateAt}, userId)
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+}
+
+func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
+	// create some posts.
+	channelID := model.NewId()
+	remoteID := model.NewString(model.NewId())
+	first := model.GetMillis()
+
+	data := []*model.Post{
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 0"},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 1"},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 2"},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 3", RemoteId: remoteID},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 4", RemoteId: remoteID},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 5", RemoteId: remoteID},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 6", RemoteId: remoteID},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 7"},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 8", DeleteAt: model.GetMillis()},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "test post 9", DeleteAt: model.GetMillis()},
+	}
+
+	for i, p := range data {
+		p.UpdateAt = first + (int64(i) * 300000)
+		if p.RemoteId == nil {
+			p.RemoteId = model.NewString(model.NewId())
+		}
+		_, err := ss.Post().Save(p)
+		require.NoError(t, err, "couldn't save post")
+	}
+
+	t.Run("Invalid channel id", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId: model.NewId(),
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, cursorOut, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Empty(t, posts, "should return zero posts")
+		require.Equal(t, cursor, cursorOut)
+	})
+
+	t.Run("Get by channel, exclude remotes, exclude deleted", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:       channelID,
+			ExcludeRemoteId: *remoteID,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		require.ElementsMatch(t, getPostIds(data[0:3], data[7]), getPostIds(posts))
+	})
+
+	t.Run("Include deleted", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:      channelID,
+			IncludeDeleted: true,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+
+		require.ElementsMatch(t, getPostIds(data), getPostIds(posts))
+	})
+
+	t.Run("Limit and cursor", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId: channelID,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts1, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
+		require.NoError(t, err)
+		require.Len(t, posts1, 5, "should get 5 posts")
+
+		posts2, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
+		require.NoError(t, err)
+		require.Len(t, posts2, 3, "should get 3 posts")
+
+		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
+	})
+
+	t.Run("UpdateAt collisions", func(t *testing.T) {
+		// this test requires all the UpdateAt timestamps to be the same.
+		args := map[string]interface{}{"UpdateAt": model.GetMillis()}
+		result, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt", args)
+		require.NoError(t, err)
+		rows, err := result.RowsAffected()
+		require.NoError(t, err)
+		require.Greater(t, rows, int64(0))
+
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId: channelID,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts1, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
+		require.NoError(t, err)
+		require.Len(t, posts1, 5, "should get 5 posts")
+
+		posts2, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
+		require.NoError(t, err)
+		require.Len(t, posts2, 3, "should get 3 posts")
+
+		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
+	})
+}
+
+func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
+	ids := make([]string, 0, len(posts)+len(morePosts))
+	for _, p := range posts {
+		ids = append(ids, p.Id)
+	}
+	for _, p := range morePosts {
+		ids = append(ids, p.Id)
+	}
+	return ids
 }

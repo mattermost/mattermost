@@ -148,7 +148,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
 
-		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
@@ -320,15 +320,22 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	})
 
 	var tests = []struct {
+		enabled bool
 		name    string
 		session *model.Session
 	}{
-		{name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
-		{name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
-		{name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: true, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: true, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{enabled: false, name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{enabled: false, name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
 	}
+
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt", test.name), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt based on feature enabled", test.name), func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = test.enabled })
+
 			session, err := th.App.CreateSession(test.session)
 			require.Nil(t, err)
 
@@ -336,6 +343,12 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			session.ExpiresAt = expires
 
 			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+
+			if !test.enabled {
+				require.False(t, ok)
+				require.Equal(t, expires, session.ExpiresAt)
+				return
+			}
 
 			require.True(t, ok)
 			require.Greater(t, session.ExpiresAt, expires)
@@ -353,7 +366,6 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}
-
 }
 
 const (
@@ -437,5 +449,41 @@ func TestGetCloudSession(t *testing.T) {
 		require.Nil(t, session)
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
+	})
+}
+
+func TestGetRemoteClusterSession(t *testing.T) {
+	th := Setup(t)
+	token := model.NewId()
+	remoteId := model.NewId()
+
+	rc := model.RemoteCluster{
+		RemoteId:     remoteId,
+		RemoteTeamId: model.NewId(),
+		Name:         "test",
+		Token:        token,
+		CreatorId:    model.NewId(),
+	}
+
+	_, err := th.GetSqlStore().RemoteCluster().Save(&rc)
+	require.NoError(t, err)
+
+	t.Run("Valid remote token should return session", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		require.Nil(t, err)
+		require.NotNil(t, session)
+		require.Equal(t, token, session.Token)
+	})
+
+	t.Run("Invalid remote token should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		require.NotNil(t, err)
+		require.Nil(t, session)
+	})
+
+	t.Run("Invalid remote id should return error", func(t *testing.T) {
+		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
+		require.NotNil(t, err)
+		require.Nil(t, session)
 	})
 }

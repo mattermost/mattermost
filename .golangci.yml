@@ -10,6 +10,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
+    disable:
+      - fieldalignment
 
 linters:
   disable-all: true
@@ -20,7 +22,7 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - scopelint
+    - exportloopref
     - structcheck
     - staticcheck
     - unconvert
@@ -38,11 +40,6 @@ issues:
       # add more as required.
       - unused
       text: "SetupEnterprise"
-
-    - linters:
-      - scopelint
-      # ignore warnings from table tests. https://github.com/kyoh86/scopelint/issues/4
-      path: ".*_test.go|store/storetest"
 
     - linters:
       - staticcheck
