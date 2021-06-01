@@ -5629,6 +5629,7 @@ func TestThreadSocketEvents(t *testing.T) {
 					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED {
 						caught = true
 						require.Equal(t, ev.GetData()["state"], false)
+						require.Equal(t, ev.GetData()["reply_count"], float64(1))
 					}
 				case <-time.After(1 * time.Second):
 					return
