@@ -32,33 +32,34 @@ func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
 
 // CreateUser creates a user
 func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
-	user.Roles = model.SYSTEM_USER_ROLE_ID
-	if opts.Guest {
-		user.Roles = model.SYSTEM_GUEST_ROLE_ID
-	}
+	if !opts.FromImport {
+		user.Roles = model.SYSTEM_USER_ROLE_ID
+		if opts.Guest {
+			user.Roles = model.SYSTEM_GUEST_ROLE_ID
+		}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !checkUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
-		return nil, AcceptedDomainError
-	}
+		if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !checkUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
+			return nil, AcceptedDomainError
+		}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !checkUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
-		return nil, AcceptedDomainError
-	}
+		if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !checkUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
+			return nil, AcceptedDomainError
+		}
 
-	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	count, err := us.store.Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		return nil, UserCountError
-	}
-	if count <= 0 && !opts.FromImport {
-		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
-	}
+		// Below is a special case where the first user in the entire
+		// system is granted the system_admin role
+		count, err := us.store.Count(model.UserCountOptions{IncludeDeleted: true})
+		if err != nil {
+			return nil, UserCountError
+		}
+		if count <= 0 {
+			user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
+		}
 
-	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
-		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
+		if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
+			user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
+		}
 	}
-
 	ruser, err := us.createUser(user)
 	if err != nil {
 		return nil, err
