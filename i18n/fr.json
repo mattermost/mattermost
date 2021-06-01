@@ -7593,7 +7593,7 @@
   },
   {
     "id": "api.command_remote.accept_invitation.error",
-    "translation": "Impossible d'accepter l'invitation : {{.Erreur}}"
+    "translation": "Impossible d'accepter l'invitation : {{.Error}}"
   },
   {
     "id": "api.command_remote.accept_invitation",
