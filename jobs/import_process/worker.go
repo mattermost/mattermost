@@ -144,7 +144,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 		}
 		// avoid "zip slip"
 		if strings.Contains(f.Name, "..") {
-			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusInternalServerError)
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusBadRequest)
 			w.setJobError(job, appError)
 			return
 		}
@@ -161,7 +161,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	if jsonFile == nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFile was nil", http.StatusInternalServerError)
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFile was nil", http.StatusBadRequest)
 		w.setJobError(job, appError)
 		return
 	}
