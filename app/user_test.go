@@ -27,27 +27,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
-func TestIsUsernameTaken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-	taken := th.App.IsUsernameTaken(user.Username)
-
-	if !taken {
-		t.Logf("the username '%v' should be taken", user.Username)
-		t.FailNow()
-	}
-
-	newUsername := "randomUsername"
-	taken = th.App.IsUsernameTaken(newUsername)
-
-	if taken {
-		t.Logf("the username '%v' should not be taken", newUsername)
-		t.FailNow()
-	}
-}
-
 func TestCheckUserDomain(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
