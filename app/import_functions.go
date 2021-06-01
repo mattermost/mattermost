@@ -1125,16 +1125,16 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 	)
 	if data.Data != nil {
 		zipFile, err := data.Data.Open()
-		if zipFile == nil || err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		if err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
 		}
 		defer zipFile.Close()
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 	} else {
 		realFile, err := os.Open(*data.Path)
-		if realFile == nil || err != nil {
-			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
+		if err != nil {
+			return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, err.Error(), http.StatusBadRequest)
 		}
 		defer realFile.Close()
 		name = realFile.Name()
