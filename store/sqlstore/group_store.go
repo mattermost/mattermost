@@ -479,11 +479,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
+		var channel *model.Channel
+		channel, err := s.Channel().Get(groupSyncable.SyncableId, false)
+		if err != nil {
 			return nil, err
 		}
-
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
+		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
@@ -661,7 +663,16 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	case model.GroupSyncableTypeTeam:
 		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
+		// We need to get the TeamId so redux can manage channels when teams are unlinked
+		var channel *model.Channel
+		channel, channelErr := s.Channel().Get(groupSyncable.SyncableId, false)
+		if channelErr != nil {
+			return nil, channelErr
+		}
+
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+
+		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
