@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"context"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -4247,26 +4246,15 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	attachmentsReplyTime := time + 1
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
-	testImageFile, _ := os.Open(testImage)
-	testImageZipFile, _ := os.Create(testImage + ".zip")
-	testImageZipFileWriter := zip.NewWriter(testImageZipFile)
-	testImageInZipFile, err := testImageZipFileWriter.Create("test.png")
-	require.NoError(t, err, "failed to create zip file")
-	_, err = io.Copy(testImageInZipFile, testImageFile)
-	require.NoError(t, err, "failed to copy data to zip file")
-	testImageZipFileWriter.Close()
-	testImageFile.Close()
-	testImageZipFile.Close()
-	testImageZipFile, err = os.Open(testImage + ".zip")
+	testZipFileName := filepath.Join(testsDir, "import_test.zip")
+	testZip, _ := os.Open(testZipFileName)
+	fi, err := testZip.Stat()
+	testZipReader, err := zip.NewReader(testZip, fi.Size())
 	require.NoError(t, err, "failed to reopen zip")
-	fi, err := testImageZipFile.Stat()
 	require.NoError(t, err, "failed to get file info")
 
-	testImageZipFileReader, err := zip.NewReader(testImageZipFile, fi.Size())
 	require.NoError(t, err, "failed to create zip reader")
-	require.NotNil(t, testImageZipFileReader)
-	require.NotEmpty(t, testImageZipFileReader.File)
-	imageData := testImageZipFileReader.File[0]
+	imageData := testZipReader.File[0]
 
 	require.NoError(t, err, "failed to copy test Image file into zip")
 
