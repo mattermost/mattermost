@@ -7192,7 +7192,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a megosztott csatornára nem hívtak meg biztonságos kapcsolatokat."
+    "translation": "Erre a csatornára nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
@@ -7208,11 +7208,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Meghív egy távoli példányt az aktuális megosztott csatornára"
+    "translation": "Meghív egy külső Mattermost példányt az aktuális megosztott csatornára"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Csatorna meghívót elküldtünk ide: `{{.Name}} {{.SiteURL}}`."
+    "translation": "A megosztott csatorna meghívót elküldtünk ide: `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -7272,11 +7272,11 @@
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Hiba történt a megosztott kapcsolatok lekérésekor: {{.Error}}"
+    "translation": "Hiba történt a biztonságos kapcsolatok lekérésekor: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Megosztja az aktuális csatornát egy távoli Mattermost példánnyal."
+    "translation": "Megosztja az aktuális csatornát egy külső Mattermost példánnyal."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7388,19 +7388,19 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Az OldalURL nincs beállítva. Kérjük, állítsa be ezt a rendszerkonzolon keresztül."
+    "translation": "Az OldalURL nincs beállítva. Kérjük, állítsa be ezt a Rendszerkonzol > Környezet > Webszerver oldalon."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "A Távoli fürt szolgáltatás nincs engedélyezve."
+    "translation": "A biztonságos kapcsolat szolgáltatás nincs engedélyezve."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "A Távoli fürt szolgáltatás le van tiltva."
+    "translation": "A biztonságos kapcsolat szolgáltatás le van tiltva."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "A biztonságos kapcsolatot eltávolításának azonosítója"
+    "translation": "Az eltávolítandó biztonságos kapcsolat azonosítója"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -7448,7 +7448,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő titkosított (AES256 + Base64) blobot a távoli webhely rendszergazdájának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n\"\n{{.Invitation}}\n\"\n\n** Győződjön meg róla, hogy a távoli webhely hozzáférhet a fürtjéhez a ** {{.SiteURL}} segítségével"
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Legfrissebb rendszergazdának a jelszóval együtt. A meghívás elfogadásához a \"{{.Command}}\" perjel parancsot fogják használni.\n\n\"\n{{.Invitation}}\n\"\n\n** Győződjön meg róla, hogy a biztonságos kapcsolat a ** {{.SiteURL}} segítségével érheti el a Mattermost példányt."
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -7460,7 +7460,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Biztonságos kapcsolat létrehozása"
+    "translation": "Biztonságos kapcsolat meghívása"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -7500,7 +7500,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Távoli Mattermost fürtök meghívása fürtök közötti kommunikációhoz."
+    "translation": "Hívjon biztonságos kapcsolatokat a Mattermost példányok közötti kommunikációhoz."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8554,7 +8554,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Fogadja el a távoli fürt meghívását"
+    "translation": "Fogadja el egy külső Mattermost példány meghívását"
   },
   {
     "id": "api.command_open.name",
@@ -9141,5 +9141,25 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "A beírt szöveg meghaladja a karakterkorlátot. A csatorna fejléce legfeljebb {{.MaxLength}} karakter lehet."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Ha nem irányítja át automatikusan, kérjük, kattintson a <a href='{{.Link}}'> linkre </a>"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Nem sikerült megkülönböztetni a konfigurációkat"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Nem sikerült megkülönböztetni a konfigurációkat"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Közvetlen csatorna nem hozható létre e felhasználók között, mert nincsenek közös csapatban."
   }
 ]
