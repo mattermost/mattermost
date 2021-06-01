@@ -1,16 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package utils
+package users
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+func TestComparePassword(t *testing.T) {
+	hash := HashPassword("Test")
+
+	assert.NoError(t, ComparePassword(hash, "Test"), "Passwords don't match")
+	assert.Error(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
+}
 
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
@@ -121,9 +129,11 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		tc.Settings.SetDefaults()
 		t.Run(name, func(t *testing.T) {
 			if err := IsPasswordValidWithSettings(tc.Password, tc.Settings); tc.ExpectedError == "" {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			} else {
-				assert.Equal(t, tc.ExpectedError, err.Id)
+				invErr, ok := err.(*ErrInvalidPassword)
+				require.True(t, ok)
+				assert.Equal(t, tc.ExpectedError, invErr.Id())
 			}
 		})
 	}

@@ -11,14 +11,14 @@ import (
 
 func TestGetCustomStatus(t *testing.T) {
 	for msg, expected := range map[string]model.CustomStatus{
-		"":                         {Emoji: DefaultCustomStatusEmoji, Text: ""},
-		"Hey":                      {Emoji: DefaultCustomStatusEmoji, Text: "Hey"},
+		"":                         {Emoji: model.DefaultCustomStatusEmoji, Text: ""},
+		"Hey":                      {Emoji: model.DefaultCustomStatusEmoji, Text: "Hey"},
 		":cactus: Hurt":            {Emoji: "cactus", Text: "Hurt"},
 		"👅":                        {Emoji: "tongue", Text: ""},
 		"👅 Eating":                 {Emoji: "tongue", Text: "Eating"},
 		"💪🏻 Working out":           {Emoji: "muscle_light_skin_tone", Text: "Working out"},
 		"👙 Swimming":               {Emoji: "bikini", Text: "Swimming"},
-		"👙Swimming":                {Emoji: DefaultCustomStatusEmoji, Text: "👙Swimming"},
+		"👙Swimming":                {Emoji: model.DefaultCustomStatusEmoji, Text: "👙Swimming"},
 		"👍🏿 Okay":                  {Emoji: "+1_dark_skin_tone", Text: "Okay"},
 		"🤴🏾 Dark king":             {Emoji: "prince_medium_dark_skin_tone", Text: "Dark king"},
 		"⛹🏾‍♀️ Playing basketball": {Emoji: "basketball_woman", Text: "Playing basketball"},
