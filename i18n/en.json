@@ -3012,7 +3012,7 @@
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
-    "translation": ""
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -4200,7 +4200,7 @@
   },
   {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": ""
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -6744,7 +6744,7 @@
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": ""
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
