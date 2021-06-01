@@ -4248,14 +4248,14 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testZipFileName := filepath.Join(testsDir, "import_test.zip")
 	testZip, _ := os.Open(testZipFileName)
+
 	fi, err := testZip.Stat()
-	testZipReader, err := zip.NewReader(testZip, fi.Size())
-	require.NoError(t, err, "failed to reopen zip")
 	require.NoError(t, err, "failed to get file info")
+	testZipReader, err := zip.NewReader(testZip, fi.Size())
+	require.NoError(t, err, "failed to read test zip")
 
-	require.NoError(t, err, "failed to create zip reader")
+	require.NotEmpty(t, testZipReader.File)
 	imageData := testZipReader.File[0]
-
 	require.NoError(t, err, "failed to copy test Image file into zip")
 
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
