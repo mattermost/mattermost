@@ -6,10 +6,9 @@ package users
 import "errors"
 
 var (
-	AcceptedDomainError  error = errors.New("the email provided does not belong to an accepted domain")
-	VerifyUserError      error = errors.New("could not update verify email field")
-	UserCountError       error = errors.New("could not get the total number of the users.")
-	InvalidPasswordError error = errors.New("invalid password")
+	AcceptedDomainError = errors.New("the email provided does not belong to an accepted domain")
+	VerifyUserError     = errors.New("could not update verify email field")
+	UserCountError      = errors.New("could not get the total number of the users.")
 )
 
 // ErrInvalidPassword indicates an error against the password settings
@@ -24,7 +23,7 @@ func NewErrInvalidPassword(id string) *ErrInvalidPassword {
 }
 
 func (e *ErrInvalidPassword) Error() string {
-	return InvalidPasswordError.Error()
+	return "invalid password"
 }
 
 func (e *ErrInvalidPassword) Id() string {

@@ -4,6 +4,7 @@
 package users
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -11,8 +12,8 @@ import (
 )
 
 func CheckUserPassword(user *model.User, password string) error {
-	if !model.ComparePassword(user.Password, password) {
-		return InvalidPasswordError
+	if err := ComparePassword(user.Password, password); err != nil {
+		return NewErrInvalidPassword("")
 	}
 
 	return nil
@@ -28,13 +29,12 @@ func HashPassword(password string) string {
 	return string(hash)
 }
 
-func ComparePassword(hash string, password string) bool {
+func ComparePassword(hash string, password string) error {
 	if password == "" || hash == "" {
-		return false
+		return errors.New("empty password or hash")
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
 func (us *UserService) isPasswordValid(password string) error {

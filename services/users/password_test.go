@@ -16,8 +16,8 @@ import (
 func TestComparePassword(t *testing.T) {
 	hash := HashPassword("Test")
 
-	assert.True(t, ComparePassword(hash, "Test"), "Passwords don't match")
-	assert.False(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
+	assert.NoError(t, ComparePassword(hash, "Test"), "Passwords don't match")
+	assert.Error(t, ComparePassword(hash, "Test2"), "Passwords should not have matched")
 }
 
 func TestIsPasswordValidWithSettings(t *testing.T) {

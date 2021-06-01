@@ -75,8 +75,9 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 		a.InvalidateCacheForUser(user.Id)
 
+		var invErr *users.ErrInvalidPassword
 		switch {
-		case errors.Is(err, users.InvalidPasswordError):
+		case errors.As(err, &invErr):
 			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 		default:
 			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -123,8 +124,9 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 
 		a.InvalidateCacheForUser(user.Id)
 
+		var invErr *users.ErrInvalidPassword
 		switch {
-		case errors.Is(err, users.InvalidPasswordError):
+		case errors.As(err, &invErr):
 			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 		default:
 			return model.NewAppError("DoubleCheckPassword", "app.valid_password_generic.app_error", nil, err.Error(), http.StatusInternalServerError)
