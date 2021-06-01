@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -390,6 +391,7 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
+	mlog.Debug("Scheduled run of UpdateDNDStatusOfUsers", mlog.String("time", time.Now().Format(time.RFC3339Nano)))
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
