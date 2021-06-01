@@ -7605,11 +7605,11 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength} caractères."
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength} caractères."
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
