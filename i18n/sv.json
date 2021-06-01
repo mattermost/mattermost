@@ -9197,5 +9197,21 @@
   {
     "id": "api.oauth.click_redirect",
     "translation": "Om du inte blir omdirigerad automatiskt kan du klicka på <a href='{{.Link}}'>länken</a>"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Det gick inte att hämta några gemensamma team-IDn."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "En direktkanal kan inte skapas mellan användarna eftersom de inte delar ett team tillsammans."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
   }
 ]
