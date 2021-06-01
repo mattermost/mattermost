@@ -178,14 +178,14 @@ func TestCheckPendingNotifications(t *testing.T) {
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post1", "should've received post1 first")
-	case <-time.After(5*time.Second):
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for first post notification")
 	}
 
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post2", "should've received post2 second")
-	case <-time.After(5*time.Second):
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for second post notification")
 	}
 }
