@@ -5,8 +5,10 @@ package driver
 
 import (
 	"context"
-	"database/sql"
+	// "database/sql"
 	"database/sql/driver"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 var (
@@ -17,30 +19,32 @@ var (
 // Connector is the DB connector which is used to
 // initialize the underlying DB.
 type Connector struct {
-	driverName string
-	dsn        string
-	db         *sql.DB
+	// driverName string
+	// dsn        string
+	// db         *sql.DB
+	api plugin.Driver
 }
 
-func NewConnector(driverName, dsn string) (*Connector, error) {
-	db, err := sql.Open(driverName, dsn)
-	if err != nil {
-		return nil, err
-	}
+func NewConnector(api plugin.Driver) (*Connector, error) {
+	// db, err := sql.Open(driverName, dsn)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return &Connector{
-		driverName: driverName,
-		dsn:        dsn,
-		db:         db,
+		// driverName: driverName,
+		// dsn:        dsn,
+		// db:         db,
+		api: api,
 	}, nil
 }
 
-func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	conn, err := c.db.Conn(ctx)
+func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
+	connID, err := c.api.Conn()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Conn{conn: conn}, nil
+	return &Conn{id: connID, api: c.api}, nil
 }
 
 func (c *Connector) Driver() driver.Driver {

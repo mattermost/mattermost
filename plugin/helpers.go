@@ -4,6 +4,11 @@
 package plugin
 
 import (
+	// "context"
+	"database/sql/driver"
+	// "reflect"
+	// "database/sql"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -94,4 +99,51 @@ type Helpers interface {
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
 type HelpersImpl struct {
 	API API
+}
+
+type Driver interface {
+	// Connection
+	Conn() (string, error)
+	ConnPing(connID string) error
+	ConnClose(connID string) error
+	ConnQuery(connID, q string, args []driver.NamedValue) (string, error) // rows
+	ConnExec(connID, q string, args []driver.NamedValue) (string, error)  // result
+
+	// Transaction
+	Tx(connID string, opts driver.TxOptions) (string, error)
+	TxCommit(txID string) error
+	TxRollback(txID string) error
+
+	// Statement
+	Stmt(connID, q string) (string, error)
+	StmtClose(stID string) error
+	StmtNumInput(stID string) int
+	StmtQuery(stID string, args []driver.NamedValue) (string, error) // rows
+	StmtExec(stID string, args []driver.NamedValue) (string, error)  // result
+
+	// Result
+	ResultLastInsertID(resID string) (int64, error)
+	ResultRowsAffected(resID string) (int64, error)
+
+	// Rows
+	RowsColumns(rowsID string) []string
+	RowsClose(rowsID string) error
+	RowsNext(rowsID string, dest []driver.Value) error
+	RowsHasNextResultSet(rowsID string) bool
+	RowsNextResultSet(rowsID string) error
+	RowsColumnTypeDatabaseTypeName(rowsID string, index int) string
+	RowsColumnTypePrecisionScale(rowsID string, index int) (int64, int64, bool)
+
+	// TODO: add this
+	// RowsColumnScanType(rowsID string, index int) reflect.Type
+
+	// Note: the following cannot be implemented because either MySQL or PG
+	// does not support it. So this implementation has to be a common subset
+	// of both DB implementations.
+	// RowsColumnTypeLength(rowsID string, index int) (int64, bool)
+	// RowsColumnTypeNullable(rowsID string, index int) (bool, bool)
+	// ResetSession(ctx context.Context) error
+	// IsValid() bool
+
+	Hello(string) string
 }

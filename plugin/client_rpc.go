@@ -7,6 +7,10 @@ package plugin
 
 import (
 	"bytes"
+	"database/sql"
+	"database/sql/driver"
+
+	// "context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -32,6 +36,7 @@ type hooksRPCClient struct {
 	log         *mlog.Logger
 	muxBroker   *plugin.MuxBroker
 	apiImpl     API
+	driver      Driver
 	implemented [TotalHooksID]bool
 }
 
@@ -43,9 +48,10 @@ type hooksRPCServer struct {
 
 // Implements hashicorp/go-plugin/plugin.Plugin interface to connect the hooks of a plugin
 type hooksPlugin struct {
-	hooks   interface{}
-	apiImpl API
-	log     *mlog.Logger
+	hooks      interface{}
+	apiImpl    API
+	driverImpl Driver
+	log        *mlog.Logger
 }
 
 func (p *hooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
@@ -53,7 +59,12 @@ func (p *hooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
 }
 
 func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface{}, error) {
-	return &hooksRPCClient{client: client, log: p.log, muxBroker: b, apiImpl: p.apiImpl}, nil
+	return &hooksRPCClient{client: client,
+		log:       p.log,
+		muxBroker: b,
+		apiImpl:   p.apiImpl,
+		driver:    p.driverImpl,
+	}, nil
 }
 
 type apiRPCClient struct {
@@ -72,7 +83,8 @@ type apiRPCServer struct {
 // ErrorString merely preserves the string description of the error, while satisfying the error
 // interface itself to allow other registered types (such as model.AppError) to be sent unmodified.
 type ErrorString struct {
-	Err string
+	Code int // Code to map to various error variables
+	Err  string
 }
 
 func (e ErrorString) Error() string {
@@ -87,9 +99,50 @@ func encodableError(err error) error {
 		return err
 	}
 
-	return &ErrorString{
+	ret := &ErrorString{
 		Err: err.Error(),
 	}
+
+	switch err {
+	case io.EOF:
+		ret.Code = 1
+	case sql.ErrNoRows:
+		ret.Code = 2
+	case sql.ErrConnDone:
+		ret.Code = 3
+	case sql.ErrTxDone:
+		ret.Code = 4
+	case driver.ErrSkip:
+		ret.Code = 5
+	case driver.ErrBadConn:
+		ret.Code = 6
+	case driver.ErrRemoveArgument:
+		ret.Code = 7
+	}
+
+	return ret
+}
+
+func decodeError(err error) error {
+	if encErr, ok := err.(*ErrorString); ok {
+		switch encErr.Code {
+		case 1:
+			return io.EOF
+		case 2:
+			return sql.ErrNoRows
+		case 3:
+			return sql.ErrConnDone
+		case 4:
+			return sql.ErrTxDone
+		case 5:
+			return driver.ErrSkip
+		case 6:
+			return driver.ErrBadConn
+		case 7:
+			return driver.ErrRemoveArgument
+		}
+	}
+	return err
 }
 
 // Registering some types used by MM for encoding/gob used by rpc
@@ -167,7 +220,8 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 }
 
 type Z_OnActivateArgs struct {
-	APIMuxId uint32
+	APIMuxId    uint32
+	DriverMuxId uint32
 }
 
 type Z_OnActivateReturns struct {
@@ -181,8 +235,14 @@ func (g *hooksRPCClient) OnActivate() error {
 		muxBroker: g.muxBroker,
 	})
 
+	nextID := g.muxBroker.NextId()
+	go g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
+		dbImpl: g.driver,
+	})
+
 	_args := &Z_OnActivateArgs{
-		APIMuxId: muxId,
+		APIMuxId:    muxId,
+		DriverMuxId: nextID,
 	}
 	_returns := &Z_OnActivateReturns{}
 
@@ -198,17 +258,28 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 		return err
 	}
 
+	conn2, err := s.muxBroker.Dial(args.DriverMuxId)
+	if err != nil {
+		return err
+	}
+
 	s.apiRPCClient = &apiRPCClient{
 		client:    rpc.NewClient(connection),
 		muxBroker: s.muxBroker,
 	}
 
+	dbClient := &dbRPCClient{
+		client: rpc.NewClient(conn2),
+	}
+
 	if mmplugin, ok := s.impl.(interface {
 		SetAPI(api API)
 		SetHelpers(helpers Helpers)
+		SetDriver(driver Driver)
 	}); ok {
 		mmplugin.SetAPI(s.apiRPCClient)
 		mmplugin.SetHelpers(&HelpersImpl{API: s.apiRPCClient})
+		mmplugin.SetDriver(dbClient)
 	}
 
 	if mmplugin, ok := s.impl.(interface {
