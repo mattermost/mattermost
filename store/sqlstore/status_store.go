@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -142,6 +143,8 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
+	mlog.Debug("updateExpiredStatuses", mlog.String("selectQuery", selectQuery), mlog.Any("selectParams", selectParams), mlog.String("updateQuery", updateQuery), mlog.Any("args", args))
+
 	if _, err := t.Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
 	}
@@ -151,6 +154,7 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		mlog.Debug("UpdateExpiredDNDStatuses: initaing mysql transaction")
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: begin_transaction")
@@ -164,6 +168,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
 		}
 
+		mlog.Debug("UpdateExpiredDNDStatuses: transaction complete", mlog.Any("statuses", statuses))
 		for _, status := range statuses {
 			status.Status = status.PrevStatus
 			status.PrevStatus = model.STATUS_DND
