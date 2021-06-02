@@ -139,7 +139,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 		}
 		// avoid "zip slip"
 		if strings.Contains(f.Name, "..") {
-			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contained ..", http.StatusBadRequest)
+			appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
 			w.setJobError(job, appError)
 			return
 		}
