@@ -130,11 +130,6 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 		w.setJobError(job, appError)
 		return
 	}
-	if importZipReader == nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "importZipReader was nil", http.StatusInternalServerError)
-		w.setJobError(job, appError)
-		return
-	}
 
 	// find JSONL import file.
 	var jsonFile io.ReadCloser
