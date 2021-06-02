@@ -166,7 +166,6 @@ func TestCheckPendingNotifications(t *testing.T) {
 	}
 
 	received := make(chan *model.Post, 2)
-	timeout := make(chan bool)
 
 	job.checkPendingNotifications(time.Unix(10130, 0), func(s string, notifications []*batchedNotification) {
 		for _, notification := range notifications {
@@ -174,27 +173,19 @@ func TestCheckPendingNotifications(t *testing.T) {
 		}
 	})
 
-	go func() {
-		// start a timeout to make sure that we don't get stuck here on a failed test
-		time.Sleep(5 * time.Second)
-		timeout <- true
-	}()
-
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "shouldn't have sent queued post")
 
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post1", "should've received post1 first")
-
-	case <-timeout:
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for first post notification")
 	}
 
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post2", "should've received post2 second")
-
-	case <-timeout:
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for second post notification")
 	}
 }

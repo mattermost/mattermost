@@ -5,10 +5,7 @@ package docextractor
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"path"
 	"strings"
 
@@ -41,19 +38,7 @@ func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (string, 
 		return "", errors.New("unknown converter")
 	}
 
-	f, err := ioutil.TempFile(os.TempDir(), "docconv")
-	if err != nil {
-		return "", fmt.Errorf("error creating temporary file: %v", err)
-	}
-	defer f.Close()
-	defer os.Remove(f.Name())
-
-	_, err = io.Copy(f, r)
-	if err != nil {
-		return "", fmt.Errorf("error copying data into temporary file: %v", err)
-	}
-
-	text, _, err := converter(f)
+	text, _, err := converter(r)
 	if err != nil {
 		return "", err
 	}
