@@ -286,6 +286,7 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
 func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	mlog.Debug("SetStatusDoNotDisturbTimed: called for", mlog.String("userId", userId), mlog.Int64("endTime", endtime))
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -323,6 +324,7 @@ func (a *App) SetStatusDoNotDisturb(userID string) {
 }
 
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
+	mlog.Debug("SaveAndBroadcastStatus: status to be saved is", mlog.Any("status", status))
 	a.AddStatusCache(status)
 
 	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {

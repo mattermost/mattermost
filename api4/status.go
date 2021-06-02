@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) InitStatus() {
@@ -97,6 +98,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err == nil && currentStatus.Status == model.STATUS_OUT_OF_OFFICE && status.Status != model.STATUS_OUT_OF_OFFICE {
 		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
 	}
+
+	mlog.Debug("updateUserStatus", mlog.Any("params", c.Params), mlog.Any("status", status))
 
 	switch status.Status {
 	case "online":
