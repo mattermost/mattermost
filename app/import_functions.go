@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -481,30 +482,57 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	var savedUser *model.User
-	var err *model.AppError
+	var err error
 	if user.Id == "" {
-		if savedUser, err = a.createUser(user); err != nil {
-			return err
+		if savedUser, err = a.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
+			var appErr *model.AppError
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &appErr):
+				return appErr
+			case errors.Is(err, users.AcceptedDomainError):
+				return model.NewAppError("importUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+			case errors.Is(err, users.UserCountError):
+				return model.NewAppError("importUser", "app.user.get_total_users_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			case errors.As(err, &invErr):
+				switch invErr.Field {
+				case "email":
+					return model.NewAppError("importUser", "app.user.save.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				case "username":
+					return model.NewAppError("importUser", "app.user.save.username_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				default:
+					return model.NewAppError("importUser", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				}
+			default:
+				return model.NewAppError("importUser", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
+
+		pref := model.Preference{UserId: savedUser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: savedUser.Id, Value: "0"}
+		if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
+			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+		}
+
 	} else {
+		var appErr *model.AppError
 		if hasUserChanged {
-			if savedUser, err = a.UpdateUser(user, false); err != nil {
-				return err
+			if savedUser, appErr = a.UpdateUser(user, false); appErr != nil {
+				return appErr
 			}
 		}
 		if hasUserRolesChanged {
-			if savedUser, err = a.UpdateUserRoles(user.Id, roles, false); err != nil {
-				return err
+			if savedUser, appErr = a.UpdateUserRoles(user.Id, roles, false); appErr != nil {
+				return appErr
 			}
 		}
 		if hasNotifyPropsChanged {
-			if savedUser, err = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); err != nil {
-				return err
+			if savedUser, appErr = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); appErr != nil {
+				return appErr
 			}
 		}
 		if password != "" {
-			if err = a.UpdatePassword(user, password); err != nil {
-				return err
+			if appErr = a.UpdatePassword(user, password); appErr != nil {
+				return appErr
 			}
 		} else {
 			if hasUserAuthDataChanged {
