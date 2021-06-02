@@ -1039,7 +1039,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, release, err := prepareImage(a.srv.imgDecoder, fileData[i])
+		img, release, err := prepareImage(a.srv.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
@@ -1060,9 +1060,10 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	}
 }
 
-func prepareImage(imgDecoder *imaging.Decoder, fileData []byte) (image.Image, func(), error) {
+func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
 	// Decode image bytes into Image object
-	img, imgType, release, err := imgDecoder.DecodeMemBounded(bytes.NewReader(fileData))
+	var imgType string
+	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
 		return nil, nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
@@ -1072,8 +1073,10 @@ func prepareImage(imgDecoder *imaging.Decoder, fileData []byte) (image.Image, fu
 		imaging.FillImageTransparency(img, image.White)
 	}
 
+	imgData.Seek(0, io.SeekStart)
+
 	// Flip the image to be upright
-	orientation, err := imaging.GetImageOrientation(bytes.NewReader(fileData))
+	orientation, err := imaging.GetImageOrientation(imgData)
 	if err != nil {
 		mlog.Debug("GetImageOrientation failed", mlog.Err(err))
 	}
@@ -1114,12 +1117,13 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && fi.MiniPreview == nil {
-		data, err := a.ReadFile(fi.Path)
+		file, err := a.FileReader(fi.Path)
 		if err != nil {
 			mlog.Debug("error reading image file", mlog.Err(err))
 			return
 		}
-		img, release, imgErr := prepareImage(a.srv.imgDecoder, data)
+		defer file.Close()
+		img, release, imgErr := prepareImage(a.srv.imgDecoder, file)
 		if imgErr != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(imgErr))
 			return
