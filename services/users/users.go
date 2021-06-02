@@ -32,6 +32,10 @@ func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
 
 // CreateUser creates a user
 func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
+	if opts.FromImport {
+		return us.createUser(user)
+	}
+
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 	if opts.Guest {
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
@@ -51,7 +55,7 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 	if err != nil {
 		return nil, UserCountError
 	}
-	if count <= 0 && !opts.FromImport {
+	if count <= 0 {
 		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
 	}
 
@@ -59,12 +63,7 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 
-	ruser, err := us.createUser(user)
-	if err != nil {
-		return nil, err
-	}
-
-	return ruser, nil
+	return us.createUser(user)
 }
 
 func (us *UserService) createUser(user *model.User) (*model.User, error) {
