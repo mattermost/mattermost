@@ -4204,16 +4204,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
-	// Create a user3.
-	username := model.NewId()
-	th.App.importUser(&UserImportData{
-		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
-	}, false)
-	user3, appErr := th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user3 from database.")
-	require.NotNil(t, user3)
-
+	// Create users
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
 		Username: &username2,
@@ -4228,7 +4219,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user3, appErr = th.App.GetUserByUsername(username3)
+	user3, appErr := th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	username4 := model.NewId()
