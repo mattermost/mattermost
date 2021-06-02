@@ -22,14 +22,14 @@ const (
 	  88          88      88  88
 	  88          88  888888  888888
 	*/
-	Upright            = 1
-	UprightMirrored    = 2
-	UpsideDown         = 3
-	UpsideDownMirrored = 4
-	RotatedCWMirrored  = 5
-	RotatedCCW         = 6
-	RotatedCCWMirrored = 7
-	RotatedCW          = 8
+	Upright = iota + 1
+	UprightMirrored
+	UpsideDown
+	UpsideDownMirrored
+	RotatedCWMirrored
+	RotatedCCW
+	RotatedCCWMirrored
+	RotatedCW
 )
 
 // MakeImageUpright changes the orientation of the given image.
