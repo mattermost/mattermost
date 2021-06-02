@@ -256,7 +256,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
 	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOpts{})
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOpts{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
