@@ -19,7 +19,7 @@ func BenchmarkDecoderDecode(b *testing.B) {
 	n := runtime.NumCPU()
 	for k := 1; k <= n; k++ {
 		b.Run(fmt.Sprintf("%d concurrency", k), func(b *testing.B) {
-			d, err := NewDecoder(DecoderOpts{
+			d, err := NewDecoder(DecoderOptions{
 				ConcurrencyLevel: k,
 			})
 			require.NotNil(b, d)
@@ -55,7 +55,7 @@ func BenchmarkDecoderDecodeMemBounded(b *testing.B) {
 	n := runtime.NumCPU()
 	for k := 1; k <= n; k++ {
 		b.Run(fmt.Sprintf("%d concurrency", k), func(b *testing.B) {
-			d, err := NewDecoder(DecoderOpts{
+			d, err := NewDecoder(DecoderOptions{
 				ConcurrencyLevel: k,
 			})
 			require.NotNil(b, d)

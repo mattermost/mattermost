@@ -250,13 +250,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var imgErr error
-	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOpts{
+	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
 		ConcurrencyLevel: runtime.NumCPU(),
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
 	}
-	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOpts{
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
 		ConcurrencyLevel: runtime.NumCPU(),
 	})
 	if imgErr != nil {

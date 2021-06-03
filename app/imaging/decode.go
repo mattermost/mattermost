@@ -18,14 +18,14 @@ import (
 	_ "golang.org/x/image/tiff"
 )
 
-// DecoderOpts holds configuration options for an image decoder.
-type DecoderOpts struct {
+// DecoderOptions holds configuration options for an image decoder.
+type DecoderOptions struct {
 	// The level of concurrency for the decoder. This defines a limit on the
 	// number of concurrently running encoding goroutines.
 	ConcurrencyLevel int
 }
 
-func (o *DecoderOpts) validate() error {
+func (o *DecoderOptions) validate() error {
 	if o.ConcurrencyLevel < 0 {
 		return errors.New("ConcurrencyLevel must be non-negative")
 	}
@@ -36,11 +36,11 @@ func (o *DecoderOpts) validate() error {
 // This is safe to be used from multiple goroutines.
 type Decoder struct {
 	sem  chan struct{}
-	opts DecoderOpts
+	opts DecoderOptions
 }
 
 // NewDecoder creates and returns a new image decoder with the given options.
-func NewDecoder(opts DecoderOpts) (*Decoder, error) {
+func NewDecoder(opts DecoderOptions) (*Decoder, error) {
 	var d Decoder
 	if err := opts.validate(); err != nil {
 		return nil, fmt.Errorf("imaging: error validating decoder options: %w", err)

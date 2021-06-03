@@ -16,7 +16,7 @@ import (
 
 func TestNewDecoder(t *testing.T) {
 	t.Run("invalid options", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: -1,
 		})
 		require.Nil(t, d)
@@ -24,14 +24,14 @@ func TestNewDecoder(t *testing.T) {
 	})
 
 	t.Run("empty options", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{})
+		d, err := NewDecoder(DecoderOptions{})
 		require.NotNil(t, d)
 		require.NoError(t, err)
 		require.Nil(t, d.sem)
 	})
 
 	t.Run("valid options", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: 4,
 		})
 		require.NotNil(t, d)
@@ -43,7 +43,7 @@ func TestNewDecoder(t *testing.T) {
 
 func TestDecoderDecode(t *testing.T) {
 	t.Run("default options", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{})
+		d, err := NewDecoder(DecoderOptions{})
 		require.NotNil(t, d)
 		require.NoError(t, err)
 
@@ -62,7 +62,7 @@ func TestDecoderDecode(t *testing.T) {
 	})
 
 	t.Run("concurrency bounded", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: 1,
 		})
 		require.NotNil(t, d)
@@ -109,7 +109,7 @@ func TestDecoderDecode(t *testing.T) {
 
 func TestDecoderDecodeMemBounded(t *testing.T) {
 	t.Run("concurrency bounded", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: 1,
 		})
 		require.NotNil(t, d)
@@ -161,7 +161,7 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 	})
 
 	t.Run("decode error", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: 1,
 		})
 		require.NotNil(t, d)
@@ -195,7 +195,7 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 	})
 
 	t.Run("multiple releases", func(t *testing.T) {
-		d, err := NewDecoder(DecoderOpts{
+		d, err := NewDecoder(DecoderOptions{
 			ConcurrencyLevel: 1,
 		})
 		require.NotNil(t, d)

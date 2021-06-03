@@ -14,7 +14,7 @@ import (
 
 func TestNewEncoder(t *testing.T) {
 	t.Run("invalid options", func(t *testing.T) {
-		e, err := NewEncoder(EncoderOpts{
+		e, err := NewEncoder(EncoderOptions{
 			ConcurrencyLevel: -1,
 		})
 		require.Nil(t, e)
@@ -22,14 +22,14 @@ func TestNewEncoder(t *testing.T) {
 	})
 
 	t.Run("empty options", func(t *testing.T) {
-		e, err := NewEncoder(EncoderOpts{})
+		e, err := NewEncoder(EncoderOptions{})
 		require.NotNil(t, e)
 		require.NoError(t, err)
 		require.Nil(t, e.sem)
 	})
 
 	t.Run("valid options", func(t *testing.T) {
-		e, err := NewEncoder(EncoderOpts{
+		e, err := NewEncoder(EncoderOptions{
 			ConcurrencyLevel: 4,
 		})
 		require.NotNil(t, e)
@@ -41,7 +41,7 @@ func TestNewEncoder(t *testing.T) {
 
 func TestEncoderEncode(t *testing.T) {
 	t.Run("default options", func(t *testing.T) {
-		e, err := NewEncoder(EncoderOpts{})
+		e, err := NewEncoder(EncoderOptions{})
 		require.NotNil(t, e)
 		require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func TestEncoderEncode(t *testing.T) {
 	})
 
 	t.Run("concurrency bounded", func(t *testing.T) {
-		e, err := NewEncoder(EncoderOpts{
+		e, err := NewEncoder(EncoderOptions{
 			ConcurrencyLevel: 1,
 		})
 		require.NotNil(t, e)

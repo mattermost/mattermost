@@ -57,11 +57,11 @@ func TestFillImageTransparency(t *testing.T) {
 	imgDir, ok := fileutils.FindDir("tests")
 	require.True(t, ok)
 
-	e, err := NewEncoder(EncoderOpts{})
+	e, err := NewEncoder(EncoderOptions{})
 	require.NotNil(t, e)
 	require.NoError(t, err)
 
-	d, err := NewDecoder(DecoderOpts{})
+	d, err := NewDecoder(DecoderOptions{})
 	require.NotNil(t, d)
 	require.NoError(t, err)
 

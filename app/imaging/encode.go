@@ -13,14 +13,14 @@ import (
 	"image/png"
 )
 
-// EncoderOpts holds configuration options for an image encoder.
-type EncoderOpts struct {
+// EncoderOptions holds configuration options for an image encoder.
+type EncoderOptions struct {
 	// The level of concurrency for the encoder. This defines a limit on the
 	// number of concurrently running encoding goroutines.
 	ConcurrencyLevel int
 }
 
-func (o *EncoderOpts) validate() error {
+func (o *EncoderOptions) validate() error {
 	if o.ConcurrencyLevel < 0 {
 		return errors.New("ConcurrencyLevel must be non-negative")
 	}
@@ -31,12 +31,12 @@ func (o *EncoderOpts) validate() error {
 // This is safe to be used from multiple goroutines.
 type Encoder struct {
 	sem        chan struct{}
-	opts       EncoderOpts
+	opts       EncoderOptions
 	pngEncoder *png.Encoder
 }
 
 // NewEncoder creates and returns a new image encoder with the given options.
-func NewEncoder(opts EncoderOpts) (*Encoder, error) {
+func NewEncoder(opts EncoderOptions) (*Encoder, error) {
 	var e Encoder
 	if err := opts.validate(); err != nil {
 		return nil, fmt.Errorf("imaging: error validating encoder options: %w", err)

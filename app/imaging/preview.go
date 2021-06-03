@@ -12,8 +12,8 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-// GenPreview generates the preview for the given image.
-func GenPreview(img image.Image, width int) image.Image {
+// GeneratePreview generates the preview for the given image.
+func GeneratePreview(img image.Image, width int) image.Image {
 	preview := img
 	w := img.Bounds().Dx()
 
@@ -24,8 +24,8 @@ func GenPreview(img image.Image, width int) image.Image {
 	return preview
 }
 
-// GenThumbnail generates the thumbnail for the given image.
-func GenThumbnail(img image.Image, width, height int) image.Image {
+// GenerateThumbnail generates the thumbnail for the given image.
+func GenerateThumbnail(img image.Image, width, height int) image.Image {
 	thumb := img
 	w := img.Bounds().Dx()
 	h := img.Bounds().Dy()
@@ -55,8 +55,8 @@ func GenThumbnail(img image.Image, width, height int) image.Image {
 	return thumb
 }
 
-// GenMiniPreviewImage generates the mini preview for the given image.
-func GenMiniPreviewImage(img image.Image, w, h, q int) ([]byte, error) {
+// GenerateMiniPreviewImage generates the mini preview for the given image.
+func GenerateMiniPreviewImage(img image.Image, w, h, q int) ([]byte, error) {
 	var buf bytes.Buffer
 	preview := imaging.Resize(img, w, h, imaging.Lanczos)
 	if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: q}); err != nil {

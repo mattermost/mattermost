@@ -894,18 +894,18 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// This is needed on mobile in case of animated GIFs.
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GenThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
+		writeJPEG(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
 	}()
 
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GenPreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
+		writeJPEG(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
 	}()
 
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
-			if miniPreview, err := imaging.GenMiniPreviewImage(decoded,
+			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
 				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 				mlog.Info("Unable to generate mini preview image", mlog.Err(err))
 			} else {
@@ -1087,7 +1087,7 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	var buf bytes.Buffer
-	if err := a.srv.imgEncoder.EncodeJPEG(&buf, imaging.GenThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
+	if err := a.srv.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
@@ -1100,7 +1100,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 
 func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 	var buf bytes.Buffer
-	preview := imaging.GenPreview(img, imagePreviewWidth)
+	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
 	if err := a.srv.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
 		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
@@ -1129,7 +1129,7 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer release()
-		if miniPreview, err := imaging.GenMiniPreviewImage(img,
+		if miniPreview, err := imaging.GenerateMiniPreviewImage(img,
 			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 			mlog.Info("Unable to generate mini preview image", mlog.Err(err))
 		} else {
