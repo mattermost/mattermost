@@ -401,7 +401,6 @@ func (cfg *sharedConfig) validateCredentialType() error {
 		len(cfg.CredentialSource) != 0,
 		len(cfg.CredentialProcess) != 0,
 		len(cfg.WebIdentityTokenFile) != 0,
-		cfg.hasSSOConfiguration(),
 	) {
 		return ErrSharedConfigSourceCollision
 	}
@@ -459,6 +458,10 @@ func (cfg *sharedConfig) clearCredentialOptions() {
 	cfg.CredentialProcess = ""
 	cfg.WebIdentityTokenFile = ""
 	cfg.Creds = credentials.Value{}
+	cfg.SSOAccountID = ""
+	cfg.SSORegion = ""
+	cfg.SSORoleName = ""
+	cfg.SSOStartURL = ""
 }
 
 func (cfg *sharedConfig) clearAssumeRoleOptions() {

@@ -9,9 +9,13 @@ const (
 	EventTypeFailedPayment         = "failed-payment"
 	EventTypeFailedPaymentNoCard   = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail = "send-admin-welcome-email"
+	EventTypeTrialWillEnd          = "trial-will-end"
+	EventTypeTrialEnded            = "trial-ended"
 	JoinLimitation                 = "join"
 	InviteLimitation               = "invite"
 )
+
+var MockCWS string
 
 // Product model represents a product on the cloud system.
 type Product struct {
@@ -95,6 +99,8 @@ type Subscription struct {
 	DNS         string   `json:"dns"`
 	IsPaidTier  string   `json:"is_paid_tier"`
 	LastInvoice *Invoice `json:"last_invoice"`
+	IsFreeTrial string   `json:"is_free_trial"`
+	TrialEndAt  int64    `json:"trial_end_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -129,9 +135,10 @@ type InvoiceLineItem struct {
 }
 
 type CWSWebhookPayload struct {
-	Event               string               `json:"event"`
-	FailedPayment       *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	Event                             string               `json:"event"`
+	FailedPayment                     *FailedPayment       `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
+	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
 }
 
 type FailedPayment struct {
@@ -147,4 +154,9 @@ type CloudWorkspaceOwner struct {
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
 	IsPaidTier     string `json:"is_paid_tier"`
+	IsFreeTrial    string `json:"is_free_trial"`
+}
+
+type SubscriptionChange struct {
+	ProductID string `json:"product_id"`
 }

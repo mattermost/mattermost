@@ -7,20 +7,30 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha512"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/scrypt"
 )
 
 const (
 	RemoteOfflineAfterMillis = 1000 * 60 * 5 // 5 minutes
+	RemoteNameMinLength      = 1
+	RemoteNameMaxLength      = 64
+)
+
+var (
+	validRemoteNameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-\_]+$`)
 )
 
 type RemoteCluster struct {
 	RemoteId     string `json:"remote_id"`
 	RemoteTeamId string `json:"remote_team_id"`
+	Name         string `json:"name"`
 	DisplayName  string `json:"display_name"`
 	SiteURL      string `json:"site_url"`
 	CreateAt     int64  `json:"create_at"`
@@ -35,6 +45,14 @@ func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
 		rc.RemoteId = NewId()
 	}
+
+	if rc.DisplayName == "" {
+		rc.DisplayName = rc.Name
+	}
+
+	rc.Name = SanitizeUnicode(rc.Name)
+	rc.DisplayName = SanitizeUnicode(rc.DisplayName)
+	rc.Name = NormalizeRemoteName(rc.Name)
 
 	if rc.Token == "" {
 		rc.Token = NewId()
@@ -51,8 +69,8 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.RemoteId, http.StatusBadRequest)
 	}
 
-	if rc.DisplayName == "" {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "display_name empty", http.StatusBadRequest)
+	if !IsValidRemoteName(rc.Name) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "name="+rc.Name, http.StatusBadRequest)
 	}
 
 	if rc.CreateAt == 0 {
@@ -65,7 +83,21 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	return nil
 }
 
+func IsValidRemoteName(s string) bool {
+	if len(s) < RemoteNameMinLength || len(s) > RemoteNameMaxLength {
+		return false
+	}
+	return validRemoteNameChars.MatchString(s)
+}
+
 func (rc *RemoteCluster) PreUpdate() {
+	if rc.DisplayName == "" {
+		rc.DisplayName = rc.Name
+	}
+
+	rc.Name = SanitizeUnicode(rc.Name)
+	rc.DisplayName = SanitizeUnicode(rc.DisplayName)
+	rc.Name = NormalizeRemoteName(rc.Name)
 	rc.fixTopics()
 }
 
@@ -105,10 +137,15 @@ func (rc *RemoteCluster) ToJSON() (string, error) {
 
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
+		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
 		LastPingAt:  rc.LastPingAt,
 	}
+}
+
+func NormalizeRemoteName(name string) string {
+	return strings.ToLower(name)
 }
 
 func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
@@ -122,6 +159,7 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
 type RemoteClusterInfo struct {
+	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
@@ -236,8 +274,17 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	// create random salt to be prepended to the blob.
+	salt := make([]byte, 16)
+	if _, err = io.ReadFull(rand.Reader, salt); err != nil {
+		return nil, err
+	}
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return nil, err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return nil, err
@@ -255,12 +302,25 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	}
 
 	// prefix the nonce to the cyphertext so we don't need to keep track of it.
-	return gcm.Seal(nonce, nonce, raw, nil), nil
+	sealed := gcm.Seal(nonce, nonce, raw, nil)
+
+	return append(salt, sealed...), nil
 }
 
 func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error {
-	// hash the pasword to 32 bytes for AES256
-	key := sha512.Sum512_256([]byte(password))
+	if len(encrypted) <= 16 {
+		return errors.New("invalid length")
+	}
+
+	// first 16 bytes is the salt that was used to derive a key
+	salt := encrypted[:16]
+	encrypted = encrypted[16:]
+
+	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+	if err != nil {
+		return err
+	}
+
 	block, err := aes.NewCipher(key[:])
 	if err != nil {
 		return err

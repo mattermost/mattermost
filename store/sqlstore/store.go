@@ -8,7 +8,6 @@ import (
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -42,13 +41,17 @@ import (
 type migrationDirection string
 
 const (
-	IndexTypeFullText      = "full_text"
-	IndexTypeFullTextFunc  = "full_text_func"
-	IndexTypeDefault       = "default"
-	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	DBPingAttempts         = 18
-	DBPingTimeoutSecs      = 10
+	IndexTypeFullText                 = "full_text"
+	IndexTypeFullTextFunc             = "full_text_func"
+	IndexTypeDefault                  = "default"
+	PGDupTableErrorCode               = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MySQLDupTableErrorCode            = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	PGForeignKeyViolationErrorCode    = "23503"
+	MySQLForeignKeyViolationErrorCode = 1452
+	PGDuplicateObjectErrorCode        = "42710"
+	MySQLDuplicateObjectErrorCode     = 1022
+	DBPingAttempts                    = 18
+	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -96,6 +99,7 @@ type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	retentionPolicy      store.RetentionPolicyStore
 	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
@@ -184,6 +188,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
 	store.stores.post = newSqlPostStore(store, metrics)
+	store.stores.retentionPolicy = newSqlRetentionPolicyStore(store, metrics)
 	store.stores.user = newSqlUserStore(store, metrics)
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
@@ -237,6 +242,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
@@ -315,25 +321,39 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	var dbmap *gorp.DbMap
+	dbMap := getDBMap(settings, db)
 
+	return dbMap
+}
+
+func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-
-	if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
-	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
-	} else {
+	var dbMap *gorp.DbMap
+	switch *settings.DriverName {
+	case model.DATABASE_DRIVER_MYSQL:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
+			QueryTimeout:  connectionTimeout,
+		}
+	case model.DATABASE_DRIVER_POSTGRES:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.PostgresDialect{},
+			QueryTimeout:  connectionTimeout,
+		}
+	default:
 		mlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(ExitNoDriver)
+		return nil
 	}
-
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
+		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
-
-	return dbmap
+	return dbMap
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -345,7 +365,20 @@ func (ss *SqlStore) Context() context.Context {
 }
 
 func (ss *SqlStore) initConnection() {
-	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	dataSource := *ss.settings.DataSource
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
+		// covers that already. Ideally we'd like to do this only for the upgrade
+		// step. To be reviewed in MM-35789.
+		var err error
+		dataSource, err = resetReadTimeout(dataSource)
+		if err != nil {
+			mlog.Critical("Failed to reset read timeout from datasource.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
+	ss.master = setupConnection("master", dataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
@@ -1077,6 +1110,30 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 	return true
 }
 
+func (ss *SqlStore) CreateForeignKeyIfNotExists(
+	tableName, columnName, refTableName, refColumnName string,
+	onDeleteCascade bool,
+) (err error) {
+	deleteClause := ""
+	if onDeleteCascade {
+		deleteClause = "ON DELETE CASCADE"
+	}
+	constraintName := "FK_" + tableName + "_" + refTableName
+	sQuery := `
+	ALTER TABLE ` + tableName + `
+	ADD CONSTRAINT ` + constraintName + `
+	FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
+	` + deleteClause + `;`
+	_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	if IsConstraintAlreadyExistsError(err) {
+		err = nil
+	}
+	if err != nil {
+		mlog.Warn("Could not create foreign key: " + err.Error())
+	}
+	return
+}
+
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1120,6 +1177,20 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 	}
 
 	return true
+}
+
+func IsConstraintAlreadyExistsError(err error) bool {
+	switch dbErr := err.(type) {
+	case *pq.Error:
+		if dbErr.Code == PGDuplicateObjectErrorCode {
+			return true
+		}
+	case *mysql.MySQLError:
+		if dbErr.Number == MySQLDuplicateObjectErrorCode {
+			return true
+		}
+	}
+	return false
 }
 
 func IsUniqueConstraintError(err error, indexName []string) bool {
@@ -1196,6 +1267,10 @@ func (ss *SqlStore) Channel() store.ChannelStore {
 
 func (ss *SqlStore) Post() store.PostStore {
 	return ss.stores.post
+}
+
+func (ss *SqlStore) RetentionPolicy() store.RetentionPolicyStore {
+	return ss.stores.retentionPolicy
 }
 
 func (ss *SqlStore) User() store.UserStore {
@@ -1364,7 +1439,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 
 	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
 	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
-	dataSource := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
+	if err != nil {
+		return err
+	}
 	conn := setupConnection("migrations", dataSource, ss.settings)
 	defer conn.Db.Close()
 
@@ -1422,22 +1500,29 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	return nil
 }
 
-func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) string {
+func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, error) {
 	// We need to tell the MySQL driver that we want to use multiStatements
 	// in order to make migrations work.
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		u, err := url.Parse(dataSource)
+		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
-			mlog.Critical("Invalid database url found", mlog.Err(err))
-			os.Exit(ExitGenericFailure)
+			return "", err
 		}
-		q := u.Query()
-		q.Set("multiStatements", "true")
-		u.RawQuery = q.Encode()
-		return u.String()
+
+		config.Params["multiStatements"] = "true"
+		return config.FormatDSN(), nil
 	}
 
-	return dataSource
+	return dataSource, nil
+}
+
+func resetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }
 
 type mattermConverter struct{}

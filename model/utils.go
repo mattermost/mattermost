@@ -330,6 +330,12 @@ func StringFromJson(data io.Reader) string {
 	return s
 }
 
+// ToJson serializes an arbitrary data type to JSON, discarding the error.
+func ToJson(v interface{}) []byte {
+	b, _ := json.Marshal(v)
+	return b
+}
+
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
@@ -696,4 +702,19 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
+}
+
+// UniqueStrings returns a unique subset of the string slice provided.
+func UniqueStrings(input []string) []string {
+	u := make([]string, 0, len(input))
+	m := make(map[string]bool)
+
+	for _, val := range input {
+		if _, ok := m[val]; !ok {
+			m[val] = true
+			u = append(u, val)
+		}
+	}
+
+	return u
 }

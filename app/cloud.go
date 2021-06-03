@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
@@ -78,13 +79,13 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	return nil
 }
 
-func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
+func (a *App) CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		// Not cloud instance, do nothing
 		return nil
 	}
 
-	subscription, err := a.Cloud().GetSubscription(a.Session().UserId)
+	subscription, err := a.Cloud().GetSubscription(c.Session().UserId)
 	if err != nil {
 		return model.NewAppError(
 			"app.CheckAndSendUserLimitWarningEmails",
@@ -173,5 +174,64 @@ func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
 			a.Log().Error("Error sending payment failed email", mlog.Err(err))
 		}
 	}
+	return nil
+}
+
+func (a *App) SendCloudTrialEndWarningEmail(trialEndDate, siteURL string) *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for admin := range sysAdmins {
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+		err := a.Srv().EmailService.SendCloudTrialEndWarningEmail(sysAdmins[admin].Email, name, trialEndDate, sysAdmins[admin].Locale, siteURL)
+		if err != nil {
+			a.Log().Error("Error sending trial ending warning to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudTrialEndWarningEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) SendCloudTrialEndedEmail() *model.AppError {
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
+	if e != nil {
+		return e
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for admin := range sysAdmins {
+		name := sysAdmins[admin].FirstName
+		if name == "" {
+			name = sysAdmins[admin].Username
+		}
+
+		err := a.Srv().EmailService.SendCloudTrialEndedEmail(sysAdmins[admin].Email, name, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending trial ended email to", mlog.String("email", sysAdmins[admin].Email), mlog.Err(err))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(sysAdmins) {
+		return model.NewAppError("app.SendCloudTrialEndedEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	return nil
 }

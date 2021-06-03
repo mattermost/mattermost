@@ -9,7 +9,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -30,10 +29,12 @@ import (
 
 	"github.com/disintegration/imaging"
 	_ "github.com/oov/psd"
+	"github.com/pkg/errors"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/docextractor"
@@ -75,6 +76,7 @@ const (
 	ImageThumbnailPixelWidth  = 120
 	ImageThumbnailPixelHeight = 100
 	ImagePreviewPixelWidth    = 1920
+	MaxContentExtractionSize  = 1024 * 1024 // 1Mb
 )
 
 func (a *App) FileBackend() (filestore.FileBackend, *model.AppError) {
@@ -90,6 +92,17 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
+func connectionTestErrorToAppError(connTestErr error) *model.AppError {
+	switch err := connTestErr.(type) {
+	case *filestore.S3FileBackendAuthError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, err.Error(), http.StatusInternalServerError)
+	case *filestore.S3FileBackendNoBucketError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, err.Error(), http.StatusInternalServerError)
+	default:
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (a *App) TestFileStoreConnection() *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -97,7 +110,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
@@ -110,26 +123,17 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
-	backend, err := a.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
-	if nErr != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-	return result, nil
+	return a.srv.ReadFile(path)
 }
 
-// Caller must close the first return value
-func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	backend, err := a.FileBackend()
+func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +144,17 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return result, nil
 }
 
+// Caller must close the first return value
+func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	return a.Srv().fileReader(path)
+}
+
 func (a *App) FileExists(path string) (bool, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().fileExists(path)
+}
+
+func (s *Server) fileExists(path string) (bool, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return false, err
 	}
@@ -190,7 +203,11 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().writeFile(fr, path)
+}
+
+func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return 0, err
 	}
@@ -216,7 +233,11 @@ func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
-	backend, err := a.FileBackend()
+	return a.Srv().removeFile(path)
+}
+
+func (s *Server) removeFile(path string) *model.AppError {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return err
 	}
@@ -228,7 +249,11 @@ func (a *App) RemoveFile(path string) *model.AppError {
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
-	backend, err := a.FileBackend()
+	return a.Srv().listDirectory(path)
+}
+
+func (s *Server) listDirectory(path string) ([]string, *model.AppError) {
+	backend, err := s.FileBackend()
 	if err != nil {
 		return nil, err
 	}
@@ -479,7 +504,7 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -497,13 +522,13 @@ func (a *App) UploadMultipartFiles(teamID string, channelID string, userID strin
 		filenames[i] = fileHeader.Filename
 	}
 
-	return a.UploadFiles(teamID, channelID, userID, files, filenames, clientIds, now)
+	return a.UploadFiles(c, teamID, channelID, userID, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -526,7 +551,7 @@ func (a *App) UploadFiles(teamID string, channelID string, userID string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelID, userID, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(c, now, teamID, channelID, userID, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -550,14 +575,14 @@ func (a *App) UploadFiles(teamID string, channelID string, userID string, files 
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	_, err := a.GetChannel(channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelID, "nouser", filename, data)
+	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -573,8 +598,8 @@ func (a *App) UploadFile(data []byte, channelID string, filename string) (*model
 	return info, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (a *App) DoUploadFile(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
 
@@ -696,7 +721,7 @@ func (t *UploadFileTask) init(a *App) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *App) UploadFileX(channelID, name string, input io.Reader,
+func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 
 	t := &UploadFileTask{
@@ -746,7 +771,7 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 	}
 	defer file.Close()
 
-	aerr = a.runPluginsHook(t.fileinfo, file)
+	aerr = a.runPluginsHook(c, t.fileinfo, file)
 	if aerr != nil {
 		return nil, aerr
 	}
@@ -770,24 +795,12 @@ func (a *App) UploadFileX(channelID, name string, input io.Reader,
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(t.fileinfo.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
+			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -959,7 +972,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interfac
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -1003,7 +1016,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := a.PluginContext()
+		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
 			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
@@ -1040,24 +1053,12 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent && a.Config().FeatureFlags.FilesSearch {
+	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			file, aerr := a.FileReader(infoCopy.Path)
-			if aerr != nil {
-				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
-				return
-			}
-			defer file.Close()
-			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
-				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
-			})
+			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err))
-				return
-			}
-			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
-				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
+				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -1351,7 +1352,7 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
+func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1367,8 +1368,8 @@ func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId strin
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamId, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+			params.InChannels = a.convertChannelNamesToChannelIds(c, params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
 			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
@@ -1395,4 +1396,27 @@ func (a *App) SearchFilesInTeamForUser(terms string, userId string, teamId strin
 	}
 
 	return fileInfoSearchResults, nil
+}
+
+func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	file, aerr := a.FileReader(fileInfo.Path)
+	if aerr != nil {
+		return errors.Wrap(aerr, "failed to open file for extract file content")
+	}
+	defer file.Close()
+	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
+		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to extract file content")
+	}
+	if text != "" {
+		if len(text) > MaxContentExtractionSize {
+			text = text[0:MaxContentExtractionSize]
+		}
+		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+			return errors.Wrap(storeErr, "failed to save the extracted file content")
+		}
+	}
+	return nil
 }

@@ -14,6 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	DefaultGetUsersForSyncLimit = 100
+)
+
 type SqlSharedChannelStore struct {
 	*SqlStore
 }
@@ -38,16 +42,17 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("LastPostId").SetMaxSize(26)
 		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")
 
 		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
 		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("RemoteId").SetMaxSize(26)
-		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteId")
+		tableSharedChannelUsers.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannelUsers.SetUniqueTogether("UserId", "ChannelId", "RemoteId")
 
 		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelAttachment{}, "SharedChannelAttachments").SetKeys(false, "Id")
 		tableSharedChannelFiles.ColMap("Id").SetMaxSize(26)
@@ -467,20 +472,21 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteNextSyncAt updates the NextSyncAt timestamp for the specified SharedChannelRemote.
-func (s SqlSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostId for the specified SharedChannelRemote.
+func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("NextSyncAt", syncTime).
+		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
+		Set("LastPostId", cursor.LastPostId).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_remote_next_sync_at_tosql")
+		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update NextSyncAt for SharedChannelRemote")
+		return errors.Wrap(err, "failed to update cursor for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()
@@ -523,7 +529,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").
@@ -556,44 +562,129 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	return scUser, nil
 }
 
-// GetUser fetches a shared channel user based on user_id and remoteId.
-func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+// GetSingleUser fetches a shared channel user based on userID, channelID and remoteID.
+func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 	var scu model.SharedChannelUser
 
 	squery, args, err := s.getQueryBuilder().
 		Select("*").
 		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userId}).
-		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteId}).
+		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
+		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
+		Where(sq.Eq{"SharedChannelUsers.ChannelId": channelID}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchannelsingleuser_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&scu, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelUser", userID)
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, ChannelId=%s, RemoteId=%s", userID, channelID, remoteID)
+	}
+	return &scu, nil
+}
+
+// GetUsersForUser fetches all shared channel user records based on userID.
+func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
+	squery, args, err := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelUsers").
+		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
 		ToSql()
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "getsharedchanneluser_tosql")
 	}
 
-	if err := s.GetReplica().SelectOne(&scu, squery, args...); err != nil {
+	var users []*model.SharedChannelUser
+	if _, err := s.GetReplica().Select(&users, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("SharedChannelUser", userId)
+			return make([]*model.SharedChannelUser, 0), nil
 		}
-		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, RemoteId=%s", userId, remoteId)
+		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s", userID)
 	}
-	return &scu, nil
+	return users, nil
+}
+
+// GetUsersForSync fetches all shared channel users that need to be synchronized, meaning their
+// `SharedChannelUsers.LastSyncAt` is less than or equal to `User.UpdateAt`.
+func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
+	if filter.Limit <= 0 {
+		filter.Limit = DefaultGetUsersForSyncLimit
+	}
+
+	query := s.getQueryBuilder().
+		Select("u.*").
+		Distinct().
+		From("Users AS u").
+		Join("SharedChannelUsers AS scu ON u.Id = scu.UserId").
+		OrderBy("u.Id").
+		Limit(filter.Limit)
+
+	if filter.CheckProfileImage {
+		query = query.Where("scu.LastSyncAt < u.LastPictureUpdate")
+	} else {
+		query = query.Where("scu.LastSyncAt < u.UpdateAt")
+	}
+
+	if filter.ChannelID != "" {
+		query = query.Where(sq.Eq{"scu.ChannelId": filter.ChannelID})
+	}
+
+	sqlQuery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchannelusersforsync_tosql")
+	}
+
+	var users []*model.User
+	if _, err := s.GetReplica().Select(&users, sqlQuery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return make([]*model.User, 0), nil
+		}
+		return nil, errors.Wrapf(err, "failed to fetch shared channel users with ChannelId=%s",
+			filter.ChannelID)
+	}
+	return users, nil
 }
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
-func (s SqlSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
-	squery, args, err := s.getQueryBuilder().
-		Update("SharedChannelUsers").
-		Set("LastSyncAt", syncTime).
-		Where(sq.Eq{"Id": id}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_user_last_sync_at_tosql")
+func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
+	args := map[string]interface{}{"UserId": userID, "ChannelId": channelID, "RemoteId": remoteID}
+
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+		UPDATE
+			SharedChannelUsers AS scu
+		SET
+			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
+		FROM 
+			Users
+		WHERE
+			Users.Id = scu.UserId AND scu.UserId = :UserId AND scu.ChannelId = :ChannelId AND scu.RemoteId = :RemoteId
+		`
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = `
+		UPDATE
+			SharedChannelUsers AS scu
+		INNER JOIN
+			Users ON scu.UserId = Users.Id
+		SET
+			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
+		WHERE
+			scu.UserId = :UserId AND scu.ChannelId = :ChannelId AND scu.RemoteId = :RemoteId
+		`
+	} else {
+		return errors.New("unsupported DB driver " + s.DriverName())
 	}
 
-	result, err := s.GetMaster().Exec(squery, args...)
+	result, err := s.GetMaster().Exec(query, args)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelUser")
+		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
+			userID, channelID, remoteID, err)
 	}
 
 	count, err := result.RowsAffected()
@@ -601,7 +692,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) e
 		return errors.Wrap(err, "failed to determine rows affected")
 	}
 	if count == 0 {
-		return fmt.Errorf("id not found: %s", id)
+		return fmt.Errorf("SharedChannelUser not found: userId=%s, channelId=%s, remoteId=%s", userID, channelID, remoteID)
 	}
 	return nil
 }

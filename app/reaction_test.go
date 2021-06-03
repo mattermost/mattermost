@@ -26,7 +26,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -39,14 +39,14 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 			EmojiName: "+1",
 		}
 
-		_, err = th.App.SaveReactionForPost(reaction)
+		_, err = th.App.SaveReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, sharedChannelService.notifications, 2)
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
+		assert.Len(t, sharedChannelService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
 
-		post, err := th.App.CreatePost(&model.Post{
+		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
 			ChannelId: channel.Id,
 			Message:   "Hello folks",
@@ -74,13 +74,13 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 			EmojiName: "+1",
 		}
 
-		err = th.App.DeleteReactionForPost(reaction)
+		err = th.App.DeleteReactionForPost(th.Context, reaction)
 		require.Nil(t, err, "Adding a reaction should not error")
 
 		th.TearDown() // We need to enforce teardown because reaction instrumentation happens in a goroutine
 
-		assert.Len(t, sharedChannelService.notifications, 2)
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[0])
-		assert.Equal(t, channel.Id, sharedChannelService.notifications[1])
+		assert.Len(t, sharedChannelService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[0])
+		assert.Equal(t, channel.Id, sharedChannelService.channelNotifications[1])
 	})
 }

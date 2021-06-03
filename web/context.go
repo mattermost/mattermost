@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -19,6 +20,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
+	AppContext    *request.Context
 	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
@@ -51,13 +53,13 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
 // MakeAuditRecord creates a audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
-		APIPath:   c.App.Path(),
+		APIPath:   c.AppContext.Path(),
 		Event:     event,
 		Status:    initialStatus,
-		UserID:    c.App.Session().UserId,
-		SessionID: c.App.Session().Id,
-		Client:    c.App.UserAgent(),
-		IPAddress: c.App.IpAddress(),
+		UserID:    c.AppContext.Session().UserId,
+		SessionID: c.AppContext.Session().Id,
+		Client:    c.AppContext.UserAgent(),
+		IPAddress: c.AppContext.IpAddress(),
 		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
 	}
 	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
@@ -66,7 +68,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 }
 
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
+	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IpAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 		c.LogErrorByCode(appErr)
@@ -74,12 +76,11 @@ func (c *Context) LogAudit(extraInfo string) {
 }
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
-
-	if c.App.Session().UserId != "" {
-		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session().UserId)
+	if c.AppContext.Session().UserId != "" {
+		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.AppContext.Session().UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
+	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IpAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 		c.LogErrorByCode(appErr)
@@ -106,33 +107,33 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
-		c.App.Session().Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
-		c.App.Session().Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
+		c.AppContext.Session().Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		c.AppContext.Session().Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
 
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
 
-	if c.App.Session().UserId == "" {
+	if c.AppContext.Session().UserId == "" {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (c *Context) CloudKeyRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (c *Context) RemoteClusterTokenRequired() {
-	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_REMOTECLUSTER_TOKEN {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.AppContext.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_REMOTECLUSTER_TOKEN {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
@@ -145,11 +146,11 @@ func (c *Context) MfaRequired() {
 	}
 
 	// OAuth integrations are excepted
-	if c.App.Session().IsOAuth {
+	if c.AppContext.Session().IsOAuth {
 		return
 	}
 
-	user, err := c.App.GetUser(c.App.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
 		return
@@ -167,7 +168,7 @@ func (c *Context) MfaRequired() {
 
 	// Special case to let user get themself
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
+	if c.AppContext.Path() == path.Join(subpath, "/api/v4/users/me") {
 		return
 	}
 
@@ -185,8 +186,8 @@ func (c *Context) MfaRequired() {
 // ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
 // Session cookies will be resent to the client with updated max age.
 func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
-	if ok := c.App.ExtendSessionExpiryIfNeeded(c.App.Session()); ok {
-		c.App.AttachSessionCookies(w, r)
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext.Session()); ok {
+		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 }
 
@@ -281,7 +282,7 @@ func NewJSONEncodingError() *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	c.Err = c.App.MakePermissionError(permissions)
+	c.Err = c.App.MakePermissionError(c.AppContext.Session(), permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -298,7 +299,7 @@ func (c *Context) RequireUserId() *Context {
 	}
 
 	if c.Params.UserId == model.ME {
-		c.Params.UserId = c.App.Session().UserId
+		c.Params.UserId = c.AppContext.Session().UserId
 	}
 
 	if !model.IsValidId(c.Params.UserId) {
@@ -403,6 +404,17 @@ func (c *Context) RequirePostId() *Context {
 
 	if !model.IsValidId(c.Params.PostId) {
 		c.SetInvalidUrlParam("post_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePolicyId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.PolicyId) {
+		c.SetInvalidUrlParam("policy_id")
 	}
 	return c
 }

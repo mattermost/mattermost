@@ -166,7 +166,6 @@ func TestCheckPendingNotifications(t *testing.T) {
 	}
 
 	received := make(chan *model.Post, 2)
-	timeout := make(chan bool)
 
 	job.checkPendingNotifications(time.Unix(10130, 0), func(s string, notifications []*batchedNotification) {
 		for _, notification := range notifications {
@@ -174,27 +173,19 @@ func TestCheckPendingNotifications(t *testing.T) {
 		}
 	})
 
-	go func() {
-		// start a timeout to make sure that we don't get stuck here on a failed test
-		time.Sleep(5 * time.Second)
-		timeout <- true
-	}()
-
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "shouldn't have sent queued post")
 
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post1", "should've received post1 first")
-
-	case <-timeout:
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for first post notification")
 	}
 
 	select {
 	case post := <-received:
 		require.Equal(t, post.Message, "post2", "should've received post2 second")
-
-	case <-timeout:
+	case <-time.After(5 * time.Second):
 		require.Fail(t, "timed out waiting for second post notification")
 	}
 }
@@ -282,56 +273,4 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
-}
-
-/*
- * Ensures that post contents are not included in notification email when email notification content type is set to generic
- */
-func TestRenderBatchedPostGeneric(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	var post = &model.Post{}
-	post.Message = "This is the message"
-	var notification = &batchedNotification{}
-	notification.post = post
-	var channel = &model.Channel{}
-	channel.DisplayName = "Some Test Channel"
-	var sender = &model.User{}
-	sender.Email = "sender@test.com"
-
-	translateFunc := func(translationID string, args ...interface{}) string {
-		// mock translateFunc just returns the translation id - this is good enough for our purposes
-		return translationID
-	}
-
-	rendered, err := th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
-	require.NoError(t, err)
-	require.NotContains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
-}
-
-/*
- * Ensures that post contents included in notification email when email notification content type is set to full
- */
-func TestRenderBatchedPostFull(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	var post = &model.Post{}
-	post.Message = "This is the message"
-	var notification = &batchedNotification{}
-	notification.post = post
-	var channel = &model.Channel{}
-	channel.DisplayName = "Some Test Channel"
-	var sender = &model.User{}
-	sender.Email = "sender@test.com"
-
-	translateFunc := func(translationID string, args ...interface{}) string {
-		// mock translateFunc just returns the translation id - this is good enough for our purposes
-		return translationID
-	}
-
-	rendered, err := th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
-	require.NoError(t, err)
-	require.Contains(t, rendered, post.Message, "Rendered email should contain post contents when email notification contents type is set to Full.")
 }

@@ -133,8 +133,8 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 	return rc, nil
 }
 
-func (a *App) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {
-	return a.Srv().Store.SharedChannel().UpdateRemoteNextSyncAt(id, syncTime)
+func (a *App) UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
+	return a.Srv().Store.SharedChannel().UpdateRemoteCursor(id, cursor)
 }
 
 func (a *App) DeleteSharedChannelRemote(id string) (bool, error) {
@@ -146,4 +146,20 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 		return nil, err
 	}
 	return a.Srv().Store.SharedChannel().GetRemotesStatus(channelID)
+}
+
+// SharedChannelUsers
+
+func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
+	a.sendUpdatedUserEvent(*user)
+}
+
+// onUserProfileChange is called when a user's profile has changed
+// (username, email, profile image, ...)
+func (a *App) onUserProfileChange(userID string) {
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		return
+	}
+	syncService.NotifyUserProfileChanged(userID)
 }

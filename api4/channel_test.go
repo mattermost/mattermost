@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -418,12 +419,24 @@ func TestCreateDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
+	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Normal client should not be allowed to create a direct channel if users are
+	// restricted to messaging members of their own team
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.RestrictDirectMessage = model.DIRECT_MESSAGE_TEAM
+	})
+	user4 := th.CreateUser()
+	_, resp = th.Client.CreateDirectChannel(user1.Id, user4.Id)
+	CheckForbiddenStatus(t, resp)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	_, resp = th.Client.CreateDirectChannel(user1.Id, user4.Id)
+	CheckNoError(t, resp)
+
 	Client.Logout()
 	_, resp = Client.CreateDirectChannel(model.NewId(), user2.Id)
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
-	CheckNoError(t, resp)
 }
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {
@@ -448,7 +461,7 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 		Password:      "Password1",
 		EmailVerified: true,
 	}
-	guest, err := th.App.CreateGuest(guest)
+	guest, err := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, err)
 
 	_, resp := Client.Login(guest.Username, "Password1")
@@ -575,7 +588,7 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 		Password:      "Password1",
 		EmailVerified: true,
 	}
-	guest, err := th.App.CreateGuest(guest)
+	guest, err := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, err)
 
 	_, resp := Client.Login(guest.Username, "Password1")
@@ -943,12 +956,12 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 			CreatorId:   th.BasicUser.Id,
 		}
-		th.App.CreateChannel(testChannel, true)
+		th.App.CreateChannel(th.Context, testChannel, true)
 		defer th.App.PermanentDeleteChannel(testChannel)
 		channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 6, len(channels))
-		th.App.DeleteChannel(testChannel, th.BasicUser.Id)
+		th.App.DeleteChannel(th.Context, testChannel, th.BasicUser.Id)
 		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 5, len(channels))
@@ -1025,6 +1038,62 @@ func TestGetAllChannels(t *testing.T) {
 
 	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
+
+	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+	CheckOKStatus(t, resp)
+	policyChannel := (*sysManagerChannels)[0]
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		ChannelIDs: []string{policyChannel.Id},
+	})
+	require.NoError(t, savePolicyErr)
+
+	t.Run("exclude policy constrained", func(t *testing.T) {
+		_, resp := th.SystemManagerClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
+		CheckForbiddenStatus(t, resp)
+
+		channels, resp := th.SystemAdminClient.GetAllChannelsExcludePolicyConstrained(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				break
+			}
+		}
+		require.False(t, found)
+	})
+
+	t.Run("does not return policy ID", func(t *testing.T) {
+		channels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Nil(t, channel.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+
+	t.Run("returns policy ID", func(t *testing.T) {
+		channels, resp := th.SystemAdminClient.GetAllChannels(0, 10000, "")
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Equal(t, *channel.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {
@@ -1126,7 +1195,7 @@ func TestSearchChannels(t *testing.T) {
 	})
 
 	t.Run("Remove the user from BasicChannel and search again, should not be returned", func(t *testing.T) {
-		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
+		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
 
 		search.Term = th.BasicChannel.Name
 		channelList, resp := Client.SearchChannels(th.BasicTeam.Id, search)
@@ -1214,7 +1283,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 	})
 
 	t.Run("Remove the user from BasicDeletedChannel and search again, should still return", func(t *testing.T) {
-		th.App.RemoveUserFromChannel(th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
+		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicDeletedChannel)
 
 		search.Term = th.BasicDeletedChannel.Name
 		channelList, resp := Client.SearchArchivedChannels(th.BasicTeam.Id, search)
@@ -1390,6 +1459,46 @@ func TestSearchAllChannels(t *testing.T) {
 
 	_, resp = Client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckForbiddenStatus(t, resp)
+
+	// Choose a policy which the system manager can read
+	sysManagerChannels, resp := th.SystemManagerClient.GetAllChannels(0, 10000, "")
+	CheckOKStatus(t, resp)
+	policyChannel := (*sysManagerChannels)[0]
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		ChannelIDs: []string{policyChannel.Id},
+	})
+	require.NoError(t, savePolicyErr)
+
+	t.Run("does not return policy ID", func(t *testing.T) {
+		channels, resp := th.SystemManagerClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Nil(t, channel.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+	t.Run("returns policy ID", func(t *testing.T) {
+		channels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: policyChannel.Name})
+		CheckOKStatus(t, resp)
+		found := false
+		for _, channel := range *channels {
+			if channel.Id == policyChannel.Id {
+				found = true
+				require.Equal(t, *channel.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
 }
 
 func TestSearchAllChannelsPaged(t *testing.T) {
@@ -2782,7 +2891,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
 	bot := th.CreateBotWithSystemAdminClient()
-	th.App.AddUserToTeam(team.Id, bot.UserId, "")
+	th.App.AddUserToTeam(th.Context, team.Id, bot.UserId, "")
 
 	pass, resp := Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
@@ -3070,13 +3179,13 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 	th.LoginBasicWithClient(th.Client)
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(u1)
+	defer th.App.PermanentDeleteUser(th.Context, u1)
 	u2 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(u2)
+	defer th.App.PermanentDeleteUser(th.Context, u2)
 	u3 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(u3)
+	defer th.App.PermanentDeleteUser(th.Context, u3)
 	u4 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(u4)
+	defer th.App.PermanentDeleteUser(th.Context, u4)
 
 	// A private channel to make sure private channels are not used
 	utils.DisableDebugLogForTest()
@@ -3182,7 +3291,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	defer th.TearDown()
 
 	u1 := th.CreateUserWithClient(th.SystemAdminClient)
-	defer th.App.PermanentDeleteUser(u1)
+	defer th.App.PermanentDeleteUser(th.Context, u1)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -3200,7 +3309,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 		Password:      "Password1",
 		EmailVerified: true,
 	}
-	guest, err := th.App.CreateGuest(guest)
+	guest, err := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, err)
 
 	th.LoginSystemAdminWithClient(th.SystemAdminClient)
@@ -3437,9 +3546,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 
 	channel := th.CreatePrivateChannel()
 
-	_, err := th.App.AddChannelMember(user1.Id, channel, app.ChannelMemberOpts{})
+	_, err := th.App.AddChannelMember(th.Context, user1.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
-	_, err = th.App.AddChannelMember(user2.Id, channel, app.ChannelMemberOpts{})
+	_, err = th.App.AddChannelMember(th.Context, user2.Id, channel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 
 	channel.GroupConstrained = model.NewBool(true)
@@ -4070,6 +4179,7 @@ func TestMoveChannel(t *testing.T) {
 func TestRootMentionsCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	Client := th.Client
 	user := th.BasicUser
 	channel := th.BasicChannel
@@ -4105,4 +4215,45 @@ func TestRootMentionsCount(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, int64(1), counts.MentionCountRoot)
 	require.Equal(t, int64(2), counts.MentionCount)
+}
+
+func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	Client := th.Client
+	user := th.BasicUser
+	team := th.BasicTeam
+	channel := th.BasicChannel
+
+	// mention the user in a root post
+	post1, resp := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: channel.Id, Message: "hey @" + user.Username})
+	CheckNoError(t, resp)
+	// mention the user in a reply post
+	post2 := &model.Post{ChannelId: channel.Id, Message: "reply at @" + user.Username, RootId: post1.Id}
+	_, resp = th.SystemAdminClient.CreatePost(post2)
+	CheckNoError(t, resp)
+
+	threads, resp := Client.GetUserThreads(user.Id, team.Id, model.GetUserThreadsOpts{})
+	CheckNoError(t, resp)
+	require.EqualValues(t, int64(1), threads.TotalUnreadMentions)
+
+	// simulate opening the channel from an old client
+	_, resp = Client.ViewChannel(user.Id, &model.ChannelView{
+		ChannelId:                 channel.Id,
+		PrevChannelId:             "",
+		CollapsedThreadsSupported: false,
+	})
+	CheckNoError(t, resp)
+
+	threads, resp = Client.GetUserThreads(user.Id, team.Id, model.GetUserThreadsOpts{})
+	CheckNoError(t, resp)
+	require.Zero(t, threads.TotalUnreadMentions)
 }
