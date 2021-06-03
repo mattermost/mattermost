@@ -577,9 +577,10 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.FromWebhook = fw
 	}
 
+	postMessage := post.Message
 	for _, attachment := range post.Attachments() {
 		if attachment.Fallback != "" {
-			post.Message += "\n" + attachment.Fallback
+			postMessage += "\n" + attachment.Fallback
 		}
 	}
 
@@ -588,7 +589,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 
 	msg.Message = a.getPushNotificationMessage(
 		contentsConfig,
-		post.Message,
+		postMessage,
 		explicitMention,
 		channelWideMention,
 		hasFiles,
