@@ -166,7 +166,6 @@ func appenderRoutine(bitmapChan chan<- *Bitmap, resultChan <-chan keyedContainer
 			make([]container, 0, expectedKeys),
 			make([]bool, 0, expectedKeys),
 			false,
-			nil,
 		},
 	}
 	for i := range keys {
@@ -358,7 +357,7 @@ func ParOr(parallelism int, bitmaps ...*Bitmap) *Bitmap {
 		return bitmaps[0]
 	}
 
-	keyRange := hKey - lKey + 1
+	keyRange := int(hKey) - int(lKey) + 1
 	if keyRange == 1 {
 		// revert to FastOr. Since the key range is 0
 		// no container-level aggregation parallelism is achievable
