@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql:5.6"
+    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mysql:5.6"
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
@@ -83,7 +83,7 @@ services:
           - grafana
 
   start_dependencies:
-    image: mattermost/mattermost-wait-for-dep:latest
+    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mattermost/mattermost-wait-for-dep:latest"
     depends_on:
       - mysql
       - minio

@@ -39,7 +39,7 @@ layers:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-.test-mysql:
+.test-mysql: # commented due to high memory consumption for runners
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -67,7 +67,7 @@ layers:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-.test-postgres:
+.test-postgres: # commented due to high memory consumption for runners
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -112,8 +112,8 @@ test-schema-mysql:
     - time cat .gitlab-ci/scripts/test-schema/mysql.sh | /bin/bash
   tags:
     - k8s-memory
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"'
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-postgres:
   stage: test
@@ -132,5 +132,5 @@ test-schema-postgres:
     - time cat .gitlab-ci/scripts/test-schema/postgres.sh | /bin/bash
   tags:
     - k8s-memory
-#  rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"'
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'

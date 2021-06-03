@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: "postgres:10"
+    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/postgres:10"
     restart: always
     environment:
       POSTGRES_USER: mmuser
@@ -81,7 +81,7 @@ services:
           - grafana
 
   start_dependencies:
-    image: mattermost/mattermost-wait-for-dep:latest
+    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mattermost/mattermost-wait-for-dep:latest"
     depends_on:
       - postgres
       - minio
