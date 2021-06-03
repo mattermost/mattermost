@@ -49,6 +49,7 @@ const (
 	envPassword                            = "JAEGER_PASSWORD"
 	envAgentHost                           = "JAEGER_AGENT_HOST"
 	envAgentPort                           = "JAEGER_AGENT_PORT"
+	env128bit                              = "JAEGER_TRACEID_128BIT"
 )
 
 // FromEnv uses environment variables to set the tracer's Configuration
@@ -81,6 +82,14 @@ func (c *Configuration) FromEnv() (*Configuration, error) {
 
 	if e := os.Getenv(envTags); e != "" {
 		c.Tags = parseTags(e)
+	}
+
+	if e := os.Getenv(env128bit); e != "" {
+		if value, err := strconv.ParseBool(e); err == nil {
+			c.Gen128Bit = value
+		} else {
+			return nil, errors.Wrapf(err, "cannot parse env var %s=%s", env128bit, e)
+		}
 	}
 
 	if c.Sampler == nil {
