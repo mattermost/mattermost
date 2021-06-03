@@ -740,3 +740,27 @@ func TestMySQLReadTimeout(t *testing.T) {
 	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }
+
+func TestRemoveIndexIfExists(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+
+		_, err := sqlStore.GetMaster().ExecNoTimeout(`CREATE INDEX idx_posts_create_at ON Posts (CreateAt)`)
+		require.Error(t, err)
+
+		ok := sqlStore.RemoveIndexIfExists("idx_posts_create_at", "Posts")
+		require.True(t, ok)
+
+		ok = sqlStore.RemoveIndexIfExists("idx_posts_create_at", "Posts")
+		require.False(t, ok)
+
+		_, err = sqlStore.GetMaster().ExecNoTimeout(`CREATE INDEX idx_posts_create_at ON Posts (CreateAt)`)
+		require.NoError(t, err)
+
+		ok = sqlStore.RemoveIndexIfExists("idx_posts_create_at", "Posts")
+		require.True(t, ok)
+
+		ok = sqlStore.RemoveIndexIfExists("idx_posts_create_at", "Posts")
+		require.False(t, ok)
+	})
+}
