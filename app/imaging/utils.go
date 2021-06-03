@@ -16,11 +16,9 @@ type rawImg interface {
 }
 
 func isFullyTransparent(c color.Color) bool {
-	var a uint32
-	switch c.(type) {
-	default:
-		_, _, _, a = c.RGBA()
-	}
+	// TODO: This can be optimized by checking the color type and
+	// only extract the needed alpha value.
+	_, _, _, a := c.RGBA()
 	return a == 0
 }
 
