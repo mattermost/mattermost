@@ -25,7 +25,7 @@ type DecoderOpts struct {
 	ConcurrencyLevel int
 }
 
-func (o *DecoderOpts) Validate() error {
+func (o *DecoderOpts) validate() error {
 	if o.ConcurrencyLevel < 0 {
 		return errors.New("ConcurrencyLevel must be non-negative")
 	}
@@ -42,7 +42,7 @@ type Decoder struct {
 // NewDecoder creates and returns a new image decoder with the given options.
 func NewDecoder(opts DecoderOpts) (*Decoder, error) {
 	var d Decoder
-	if err := opts.Validate(); err != nil {
+	if err := opts.validate(); err != nil {
 		return nil, fmt.Errorf("imaging: error validating decoder options: %w", err)
 	}
 	if opts.ConcurrencyLevel > 0 {

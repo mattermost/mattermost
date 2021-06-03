@@ -20,7 +20,7 @@ type EncoderOpts struct {
 	ConcurrencyLevel int
 }
 
-func (o *EncoderOpts) Validate() error {
+func (o *EncoderOpts) validate() error {
 	if o.ConcurrencyLevel < 0 {
 		return errors.New("ConcurrencyLevel must be non-negative")
 	}
@@ -38,7 +38,7 @@ type Encoder struct {
 // NewEncoder creates and returns a new image encoder with the given options.
 func NewEncoder(opts EncoderOpts) (*Encoder, error) {
 	var e Encoder
-	if err := opts.Validate(); err != nil {
+	if err := opts.validate(); err != nil {
 		return nil, fmt.Errorf("imaging: error validating encoder options: %w", err)
 	}
 	if opts.ConcurrencyLevel > 0 {
