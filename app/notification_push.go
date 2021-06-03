@@ -582,14 +582,15 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.FromWebhook = fw
 	}
 
+	postMessage := post.Message
 	for _, attachment := range post.Attachments() {
-		post.Message += "\n" + attachment.Fallback
+		postMessage += "\n" + attachment.Fallback
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	msg.Message = a.getPushNotificationMessage(contentsConfig, post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
+	msg.Message = a.getPushNotificationMessage(contentsConfig, postMessage, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	return msg
 }

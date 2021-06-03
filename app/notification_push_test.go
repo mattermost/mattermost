@@ -1406,8 +1406,9 @@ func TestPushNotificationAttachment(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	originalMessage := "hello world"
 	post := &model.Post{
-		Message: "hello world",
+		Message: originalMessage,
 		Props: map[string]interface{}{
 			"attachments": []*model.SlackAttachment{
 				{
@@ -1421,8 +1422,14 @@ func TestPushNotificationAttachment(t *testing.T) {
 	user := &model.User{}
 	ch := &model.Channel{}
 
-	pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
-	assert.Equal(t, "test: hello world\nfallback text", pn.Message)
+	t.Run("The notification should contain the fallback message from the attachment", func(t *testing.T) {
+		pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+		assert.Equal(t, "test: hello world\nfallback text", pn.Message)
+	})
+
+	t.Run("The original post message should not be modified", func(t *testing.T) {
+		assert.Equal(t, originalMessage, post.Message)
+	})
 }
 
 // Run it with | grep -v '{"level"' to prevent spamming the console.
