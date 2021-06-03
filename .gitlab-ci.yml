@@ -113,7 +113,7 @@ test-schema-mysql:
   tags:
     - k8s-memory
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+#    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-postgres:
   stage: test
@@ -133,4 +133,4 @@ test-schema-postgres:
   tags:
     - k8s-memory
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+#    - if: '$CI_COMMIT_REF_NAME == "master"'
