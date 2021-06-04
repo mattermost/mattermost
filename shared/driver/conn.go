@@ -40,41 +40,46 @@ func (c *Conn) Begin() (tx driver.Tx, err error) {
 	return tx, err
 }
 
-func (c *Conn) BeginTx(ctx context.Context, opts driver.TxOptions) (tx driver.Tx, err error) {
+func (c *Conn) BeginTx(ctx context.Context, opts driver.TxOptions) (_ driver.Tx, err error) {
+	t := &wrapperTx{}
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		tx, err = innerConn.(driver.ConnBeginTx).BeginTx(ctx, opts)
+		t.Tx, err = innerConn.(driver.ConnBeginTx).BeginTx(ctx, opts)
 		return err
 	})
-	return tx, err
+	return t, err
 }
 
-func (c *Conn) Prepare(q string) (stmt driver.Stmt, err error) {
+func (c *Conn) Prepare(q string) (_ driver.Stmt, err error) {
+	st := &wrapperStmt{}
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		stmt, err = innerConn.(driver.Conn).Prepare(q)
+		st.Stmt, err = innerConn.(driver.Conn).Prepare(q)
 		return err
 	})
-	return stmt, err
+	return st, err
 }
 
-func (c *Conn) PrepareContext(ctx context.Context, q string) (stmt driver.Stmt, err error) {
+func (c *Conn) PrepareContext(ctx context.Context, q string) (_ driver.Stmt, err error) {
+	st := &wrapperStmt{}
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		stmt, err = innerConn.(driver.ConnPrepareContext).PrepareContext(ctx, q)
+		st.Stmt, err = innerConn.(driver.ConnPrepareContext).PrepareContext(ctx, q)
 		return err
 	})
-	return stmt, err
+	return st, err
 }
 
-func (c *Conn) ExecContext(ctx context.Context, q string, args []driver.NamedValue) (res driver.Result, err error) {
+func (c *Conn) ExecContext(ctx context.Context, q string, args []driver.NamedValue) (_ driver.Result, err error) {
+	res := &wrapperResult{}
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		res, err = innerConn.(driver.ExecerContext).ExecContext(ctx, q, args)
+		res.Result, err = innerConn.(driver.ExecerContext).ExecContext(ctx, q, args)
 		return err
 	})
 	return res, err
 }
 
-func (c *Conn) QueryContext(ctx context.Context, q string, args []driver.NamedValue) (rows driver.Rows, err error) {
+func (c *Conn) QueryContext(ctx context.Context, q string, args []driver.NamedValue) (_ driver.Rows, err error) {
+	rows := &wrapperRows{}
 	err = c.conn.Raw(func(innerConn interface{}) error {
-		rows, err = innerConn.(driver.QueryerContext).QueryContext(ctx, q, args)
+		rows.Rows, err = innerConn.(driver.QueryerContext).QueryContext(ctx, q, args)
 		return err
 	})
 	return rows, err
