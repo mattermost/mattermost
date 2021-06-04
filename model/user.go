@@ -854,6 +854,7 @@ func HashPassword(password string) string {
 }
 
 // ComparePassword compares the hash
+// This function is deprecated and will be removed in a future release.
 func ComparePassword(hash string, password string) bool {
 
 	if password == "" || hash == "" {

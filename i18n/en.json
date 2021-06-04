@@ -6503,6 +6503,10 @@
     "translation": "Unable to save terms of service."
   },
   {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Password is not valid"
+  },
+  {
     "id": "app.webhooks.analytics_incoming_count.app_error",
     "translation": "Unable to count the incoming webhooks."
   },

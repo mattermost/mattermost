@@ -20,7 +20,6 @@ linters:
     - govet
     - ineffassign
     - interfacer
-    - lll
     - maligned
     - misspell
     - nakedret

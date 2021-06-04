@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5350
+	CurrentSchemaVersion   = Version5360
 	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
@@ -1077,14 +1077,13 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
 
-	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
-	sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
-	sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
-
-	//saveSchemaVersion(sqlStore, Version5360)
-	//}
+		saveSchemaVersion(sqlStore, Version5360)
+	}
 }
 
 func rootCountMigration(sqlStore *SqlStore) {
