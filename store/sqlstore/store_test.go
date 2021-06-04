@@ -586,7 +586,6 @@ func TestAppendMultipleStatementsFlagMysql(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Scenario, func(t *testing.T) {
-			t.Parallel()
 			store := &SqlStore{settings: &model.SqlSettings{DriverName: &tc.Driver, DataSource: &tc.DSN}}
 			res, err := store.appendMultipleStatementsFlag(*store.settings.DataSource)
 			require.NoError(t, err)
