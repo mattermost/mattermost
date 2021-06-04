@@ -740,3 +740,114 @@ func TestMySQLReadTimeout(t *testing.T) {
 	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }
+
+func TestAlterDefaultIfColumnExists(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		var query string
+		def := new(string)
+		sqlStore := ss.(*SqlStore)
+
+		t.Run("non existent table", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("NotExistent", "NotExistent", nil, nil)
+			require.False(t, ok)
+		})
+
+		t.Run("non existent column", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "NotExistent", nil, nil)
+			require.False(t, ok)
+		})
+
+		t.Run("empty string", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "Id", model.NewString(""), model.NewString(""))
+			require.True(t, ok)
+
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				query = `SELECT column_default
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND table_name = 'Posts'
+			 AND column_name = 'Id'`
+			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				query = `SELECT column_default
+			 FROM information_schema.columns
+			 WHERE table_name = 'posts'
+			 AND column_name = 'id'`
+			}
+
+			err := sqlStore.GetMaster().SelectOne(&def, query)
+			require.NoError(t, err)
+			require.NotNil(t, def)
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				require.Equal(t, "", *def)
+			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				require.Equal(t, "''::character varying", *def)
+			}
+		})
+
+		t.Run("nil input", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "Id", nil, nil)
+			require.True(t, ok)
+
+			err := sqlStore.GetMaster().SelectOne(&def, query)
+			require.NoError(t, err)
+			require.NotNil(t, def)
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				require.Equal(t, "", *def)
+			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				require.Equal(t, "''::character varying", *def)
+			}
+		})
+
+		t.Run("remove", func(t *testing.T) {
+			ok := sqlStore.RemoveDefaultIfColumnExists("Posts", "Id")
+			require.True(t, ok)
+
+			err := sqlStore.GetMaster().SelectOne(&def, query)
+			require.NoError(t, err)
+			require.Nil(t, def)
+		})
+
+		t.Run("string default", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "Id", model.NewString("'test'"), model.NewString("'test'"))
+			require.True(t, ok)
+
+			err := sqlStore.GetMaster().SelectOne(&def, query)
+			require.NoError(t, err)
+			require.NotNil(t, def)
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				require.Equal(t, "test", *def)
+			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				require.Equal(t, "'test'::character varying", *def)
+			}
+
+			ok = sqlStore.RemoveDefaultIfColumnExists("Posts", "Id")
+			require.True(t, ok)
+		})
+
+		t.Run("int default", func(t *testing.T) {
+			ok := sqlStore.AlterDefaultIfColumnExists("Posts", "UpdateAt", model.NewString("0"), model.NewString("0"))
+			require.True(t, ok)
+
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				query = `SELECT column_default
+			 FROM information_schema.columns
+			 WHERE table_schema = DATABASE()
+			 AND table_name = 'Posts'
+			 AND column_name = 'UpdateAt'`
+			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				query = `SELECT column_default
+			 FROM information_schema.columns
+			 WHERE table_name = 'posts'
+			 AND column_name = 'updateat'`
+			}
+
+			err := sqlStore.GetMaster().SelectOne(&def, query)
+			require.NoError(t, err)
+			require.NotNil(t, def)
+			require.Equal(t, "0", *def)
+
+			ok = sqlStore.RemoveDefaultIfColumnExists("Posts", "UpdateAt")
+			require.True(t, ok)
+		})
+	})
+}
