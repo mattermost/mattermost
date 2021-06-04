@@ -7487,6 +7487,10 @@
     "translation": "Unable to process import: import_file parameter is missing."
   },
   {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Unable to process import: JSONL file is missing."
+  },
+  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Unable to process import: failed to open file."
   },

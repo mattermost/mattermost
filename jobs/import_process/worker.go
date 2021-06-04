@@ -156,7 +156,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	if jsonFile == nil {
-		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFile was nil", http.StatusBadRequest)
+		appError := model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "jsonFile was nil", http.StatusBadRequest)
 		w.setJobError(job, appError)
 		return
 	}
