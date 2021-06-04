@@ -41,9 +41,11 @@ func init() {
 func TestUnitUpdateConfig(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+	searchEngine := searchengine.NewBroker(th.App.Config(), th.App.Srv().Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(th.App.Config(), th.App.Srv().Jobs)
 	_ = bleveEngine.Start()
-	th.App.Srv().SearchEngine.RegisterBleveEngine(bleveEngine)
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	th.App.Srv().SearchEngine = searchEngine
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
