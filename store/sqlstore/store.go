@@ -1339,6 +1339,10 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 			return "", err
 		}
 
+		if config.Params == nil {
+			config.Params = map[string]string{}
+		}
+
 		config.Params["multiStatements"] = "true"
 		return config.FormatDSN(), nil
 	}
