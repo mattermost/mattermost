@@ -152,8 +152,9 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
 
-	attachedFiles := make(map[string]*zip.File)
+	var attachedFiles map[string]*zip.File
 	if attachmentsReader != nil {
+		attachedFiles = make(map[string]*zip.File, len(attachmentsReader.File))
 		for _, fi := range attachmentsReader.File {
 			attachedFiles[fi.Name] = fi
 		}
