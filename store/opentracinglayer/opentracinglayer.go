@@ -7634,6 +7634,24 @@ func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	return err
 }
 
+func (s *OpenTracingLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.UpdateExpiredDNDStatuses")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.StatusStore.UpdateExpiredDNDStatuses()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.UpdateLastActivityAt")
