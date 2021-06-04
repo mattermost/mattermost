@@ -39,8 +39,6 @@ func init() {
 
 func serverCmdF(command *cobra.Command, args []string) error {
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
-	usedPlatform, _ := command.Flags().GetBool("platform")
-
 	interruptChan := make(chan os.Signal, 1)
 
 	if err := utils.TranslationsPreInit(); err != nil {
@@ -58,10 +56,10 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	}
 	defer configStore.Close()
 
-	return runServer(configStore, usedPlatform, interruptChan)
+	return runServer(configStore, interruptChan)
 }
 
-func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
@@ -95,10 +93,6 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 			panic(x)
 		}
 	}()
-
-	if usedPlatform {
-		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
-	}
 
 	a := app.New(app.ServerConnector(server))
 	api := api4.Init(a, server.Router)
