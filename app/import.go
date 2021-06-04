@@ -169,7 +169,7 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 		}
 
-		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil && len(*line.Post.Attachments) > 0 {
+		if len(attachedFiles) > 0 && line.Post != nil && line.Post.Attachments != nil {
 			for i, attachment := range *line.Post.Attachments {
 				var ok bool
 				path := *attachment.Path
