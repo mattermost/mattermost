@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5360
+	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
@@ -208,6 +209,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion534(sqlStore)
 	upgradeDatabaseToVersion535(sqlStore)
 	upgradeDatabaseToVersion536(sqlStore)
+	upgradeDatabaseToVersion537(sqlStore)
 
 	return nil
 }
@@ -1084,6 +1086,14 @@ func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
 
 		saveSchemaVersion(sqlStore, Version5360)
 	}
+}
+
+func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.37
+	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
+
+	// 	saveSchemaVersion(sqlStore, Version5370)
+	// }
 }
 
 func rootCountMigration(sqlStore *SqlStore) {
