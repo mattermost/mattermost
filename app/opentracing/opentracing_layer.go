@@ -1134,6 +1134,28 @@ func (a *OpenTracingAppLayer) CheckCanInviteToSharedChannel(channelId string) er
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CheckCloudAccountAtOrOverLimit() (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckCloudAccountAtOrOverLimit")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CheckCloudAccountAtOrOverLimit()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckForClientSideCert")
@@ -8722,6 +8744,28 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIDs []string) (map[string]int
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetStatusesByIds(userIDs)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSubscriptionStats")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSubscriptionStats()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
