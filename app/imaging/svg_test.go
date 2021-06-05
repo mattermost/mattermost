@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package imaging
 
 import (
 	"fmt"
@@ -45,7 +45,7 @@ func TestParseValidSVGData(t *testing.T) {
 		generateSVGData(width, height, false, true, true),  // missing viewBox, properly formed width & height; alternate format
 	}
 	for index, svg := range validSVGs {
-		svgInfo, err := parseSVG(svg)
+		svgInfo, err := ParseSVG(svg)
 		if err != nil {
 			t.Errorf("Should be able to parse SVG attributes at index %d, but was not able to: err = %v", index, err)
 		} else {
@@ -68,7 +68,7 @@ func TestParseInvalidSVGData(t *testing.T) {
 		generateSVGData(width, 0, false, true, false),       // missing viewBox, malformed height, properly formed width
 	}
 	for index, svg := range invalidSVGs {
-		_, err := parseSVG(svg)
+		_, err := ParseSVG(svg)
 		if err == nil {
 			t.Errorf("Should not be able to parse SVG attributes at index %d, but was definitely able to!", index)
 		}

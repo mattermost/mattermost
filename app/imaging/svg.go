@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package imaging
 
 import (
 	"encoding/xml"
@@ -12,12 +12,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SVGInfo holds information for a SVG image.
 type SVGInfo struct {
 	Width  int
 	Height int
 }
 
-func parseSVG(svgReader io.Reader) (SVGInfo, error) {
+// ParseSVG returns information for the given SVG input data.
+func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 	var parsedSVG struct {
 		Width   string `xml:"width,attr,omitempty"`
 		Height  string `xml:"height,attr,omitempty"`
