@@ -6645,7 +6645,7 @@
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
+    "translation": "Commencer l'essai"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7493,7 +7493,7 @@
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les clusters distants."
+    "translation": "Vous nécessitez de permission `{{.Permission}}` pour gérer les connexions sécurisées."
   },
   {
     "id": "api.command_remote.name.hint",
@@ -7578,5 +7578,41 @@
   {
     "id": "api.command_remote.remove_remote_id.help",
     "translation": "ID de la connexion sécurisée à retirer."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Un projet implique souvent des personnes venant de l'organisation, mais aussi de l'extérieur. Avec les comptes invités, vous pouvez amener des partenaires extérieurs à votre instance Mattermost et spécifier avec qui ils peuvent travailler et ce qu'ils peuvent voir.\n\n[En apprendre plus sur l'activation des comptes invités (en anglais)](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nEn cliquant sur « Nous contacter », vous partagerez vos informations avec Mattermost, Inc. [En savoir plus](https://mattermost.com/pl/default-admin-advisor)."
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Envoyez l'invitation suivante, chiffrée en AES 256 bits, à l'administrateur système externe avec le mot de passe. Il utilisera la commande slash `{{.Command}}` pour accepter l'invitation.\n\n```\n{{.Invitation}}\n```\n\n**Assurez-vous que la connexion sécurisée peut accéder à votre instance Mattermost via** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Mot de passe à utiliser pour chiffrer l'invitation"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Impossible d'accepter l'invitation : {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Invitation acceptée et confirmée.\nSiteURL : {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Accepter une invitation d'une instance Mattermost externe"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Le texte saisi dépasse la limite de caractères. L'en-tête du canal est limité à {{.MaxLength}} caractères."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Erreur d'invalidation du cache"
   }
 ]

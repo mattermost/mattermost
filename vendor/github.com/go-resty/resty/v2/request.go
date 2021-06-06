@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2020 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
+// Copyright (c) 2015-2021 Jeevanandam M (jeeva@myjeeva.com), All rights reserved.
 // resty source code and usage is governed by a MIT style
 // license that can be found in the LICENSE file.
 
@@ -114,6 +114,21 @@ func (r *Request) SetHeaders(headers map[string]string) *Request {
 	for h, v := range headers {
 		r.SetHeader(h, v)
 	}
+	return r
+}
+
+// SetHeaderVerbatim method is to set a single header field and its value verbatim in the current request.
+//
+// For Example: To set `all_lowercase` and `UPPERCASE` as `available`.
+// 		client.R().
+//			SetHeaderVerbatim("all_lowercase", "available").
+//			SetHeaderVerbatim("UPPERCASE", "available")
+//
+// Also you can override header value, which was set at client instance level.
+//
+// Since v2.6.0
+func (r *Request) SetHeaderVerbatim(header, value string) *Request {
+	r.Header[header] = []string{value}
 	return r
 }
 
@@ -733,6 +748,7 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 		WaitTime(r.client.RetryWaitTime),
 		MaxWaitTime(r.client.RetryMaxWaitTime),
 		RetryConditions(r.client.RetryConditions),
+		RetryHooks(r.client.RetryHooks),
 	)
 
 	r.client.onErrorHooks(r, resp, unwrapNoRetryErr(err))

@@ -3011,12 +3011,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon."
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata."
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -4199,12 +4199,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Could not decode profile image."
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Could not decode profile image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -6495,6 +6495,10 @@
     "translation": "Unable to save terms of service."
   },
   {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Password is not valid"
+  },
+  {
     "id": "app.webhooks.analytics_incoming_count.app_error",
     "translation": "Unable to count the incoming webhooks."
   },
@@ -6739,12 +6743,12 @@
     "translation": "Failed to close user index."
   },
   {
-    "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Unable to decode the image data."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
@@ -6757,10 +6761,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",

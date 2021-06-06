@@ -15,6 +15,7 @@
 package remote
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"sync"
@@ -37,7 +38,7 @@ func newHTTPBaggageRestrictionManagerProxy(hostPort, serviceName string) *httpBa
 	}
 }
 
-func (s *httpBaggageRestrictionManagerProxy) GetBaggageRestrictions(serviceName string) ([]*thrift.BaggageRestriction, error) {
+func (s *httpBaggageRestrictionManagerProxy) GetBaggageRestrictions(context.Context, string) ([]*thrift.BaggageRestriction, error) {
 	var out []*thrift.BaggageRestriction
 	if err := utils.GetJSON(s.url, &out); err != nil {
 		return nil, err
@@ -134,7 +135,7 @@ func (m *RestrictionManager) pollManager() {
 }
 
 func (m *RestrictionManager) updateRestrictions() error {
-	restrictions, err := m.thriftProxy.GetBaggageRestrictions(m.serviceName)
+	restrictions, err := m.thriftProxy.GetBaggageRestrictions(context.Background(), m.serviceName)
 	if err != nil {
 		m.metrics.BaggageRestrictionsUpdateFailure.Inc(1)
 		return err
