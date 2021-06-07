@@ -1124,10 +1124,6 @@
     "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Kunde inte läsa bildfilen. Kontrollera att bildstorleken är mindre än 2 MB och försök igen."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Kunde inte spara bildfilen på din lagringsyta. Kolla din uppkoppling och försök igen."
   },
@@ -1138,10 +1134,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Kunde inte konvertera bilddatat till PNG-format. Försök igen."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kunde inte hämta bildmetadatat."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4696,10 +4688,6 @@
     "translation": "Kunde inte koda profilbilden."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kunde inte spara profilbilden. Filen verkar inte vara en giltig bildfil."
-  },
-  {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kunde inte avkoda profilbilden."
   },
@@ -5470,10 +5458,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kunde inte koda teamikonen."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kunde inte avkoda teamikonens metadata."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",

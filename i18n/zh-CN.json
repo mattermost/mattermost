@@ -1712,10 +1712,6 @@
     "translation": "无法解码团队图标。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "无法解码团队图标元数据。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "无法编码团队图标。"
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "无法解码个人资料图片。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "无法保存个人资料图片。文件不是有效的图片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "无法解码图片数据。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "无法获取图片元数据。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "无法转换图片数据到 PNG 格式。请重试。"
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "无法写入图片文件到您的文件储存。请检查您的连接后再尝试。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "无法读取图片文件。请确定图片大小小于 2MB 并重试。"
   },
   {
     "id": "cli.license.critical",

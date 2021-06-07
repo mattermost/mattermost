@@ -1720,10 +1720,6 @@
     "translation": "Не вдалося розібрати піктограму команди"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не вдається розкрити метадані піктограми команди"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Не вдається кодувати піктограму команди"
   },
@@ -2274,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не вдається декодувати зображення профілю"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не вдалося зберегти зображення профілю. Файл не є дійсним зображенням."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3036,6 @@
     "translation": "Неможливо декодувати дані зображення."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Неможливо отримати метадані зображення."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Неможливо перетворити дані зображення у формат PNG. Будь ласка спробуйте ще раз."
   },
@@ -3058,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Неможливо прочитати файл зображення. Переконайтеся, що розмір зображення менше 2 МБ, і спробуйте ще раз."
   },
   {
     "id": "cli.license.critical",

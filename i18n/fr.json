@@ -1716,10 +1716,6 @@
     "translation": "Impossible de décoder l'icône d'équipe."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Impossible de décoder les métadonnées de l'icône d'équipe"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Impossible d'encoder l'icône d'équipe"
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Impossible de décoder la photo de profil"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Impossible de décoder les données de l'image."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Impossible de récupérer les métadonnées de l'image."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Impossible de convertir l'image en format PNG. Veuillez réessayer. "
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Impossible d'enregistrer l'image dans le stockage de fichiers. Veuillez vérifier votre connexion et réessayez."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Impossible de lire l'image. Veuillez vous assurer que la taille de l'image fasse moins que 2 Mio et réessayez."
   },
   {
     "id": "cli.license.critical",

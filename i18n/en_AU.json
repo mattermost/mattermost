@@ -3680,10 +3680,6 @@
     "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a licence key. Please contact your System Administrator."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
@@ -3694,10 +3690,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Unable to convert the image data to PNG format. Please try again."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -5688,10 +5680,6 @@
     "translation": "Could not encode team icon."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata."
-  },
-  {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "Could not decode team icon."
   },
@@ -6274,10 +6262,6 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Could not encode profile image."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",

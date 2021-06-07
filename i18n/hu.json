@@ -3688,10 +3688,6 @@
     "translation": "A funkcióhoz frissíteni kell az Enterprise Edition-re és meg kell adni egy licenckulcsot. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nem sikerült olvasni a képfájlt. Győződjön meg róla, hogy a kép mérete kevesebb mint 2 MB és próbálja újra."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nem sikerült írni a képfájlt a fájltárba. Kérjük ellenőrizze a kapcsolatát és próbálja újra."
   },
@@ -3702,10 +3698,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nem sikerült átalakítani a kép adatot PNG formátumba. Kérjük próbálja meg újra."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nem sikerült lekérni a kép metaadatot."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4686,10 +4678,6 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Nem sikerült kódolni a profilképet."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "A profilképet nem lehet elmenteni. A fájl nem tűnik érvényes képnek."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -6030,10 +6018,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "A csapat ikont nem lehetett kódolni."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "A csapat ikon metaadatot nem lehetett dekódolni."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",

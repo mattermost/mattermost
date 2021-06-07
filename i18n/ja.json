@@ -1712,10 +1712,6 @@
     "translation": "チームアイコンをデコードできませんでした。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "チームアイコンメタデータをデコードできませんでした。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "チームアイコンをエンコードできませんでした。"
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "プロフィール画像をデコードできませんでした。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "プロフィール画像を保存できませんでした。ファイルは有効な画像として表示されません。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "画像データをデコードできません。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "画像メタデータを取得できません。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "画像データをPNG形式に変換できません。再度実行してください。"
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "画像ファイルを読み込み目線。画像サイズが2MB以下であることを確認し、再度実行してください。"
   },
   {
     "id": "cli.license.critical",
