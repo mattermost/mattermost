@@ -143,6 +143,7 @@ func DialContext(ctx context.Context, target string, opts ...DialOption) (conn *
 		firstResolveEvent: grpcsync.NewEvent(),
 	}
 	cc.retryThrottler.Store((*retryThrottler)(nil))
+	cc.safeConfigSelector.UpdateConfigSelector(&defaultConfigSelector{nil})
 	cc.ctx, cc.cancel = context.WithCancel(context.Background())
 
 	for _, opt := range opts {
@@ -1197,7 +1198,7 @@ func (ac *addrConn) resetTransport() {
 		ac.mu.Lock()
 		if ac.state == connectivity.Shutdown {
 			ac.mu.Unlock()
-			newTr.Close()
+			newTr.Close(fmt.Errorf("reached connectivity state: SHUTDOWN"))
 			return
 		}
 		ac.curAddr = addr
@@ -1329,7 +1330,7 @@ func (ac *addrConn) createTransport(addr resolver.Address, copts transport.Conne
 	select {
 	case <-time.After(time.Until(connectDeadline)):
 		// We didn't get the preface in time.
-		newTr.Close()
+		newTr.Close(fmt.Errorf("failed to receive server preface within timeout"))
 		channelz.Warningf(logger, ac.channelzID, "grpc: addrConn.createTransport failed to connect to %v: didn't receive server preface in time. Reconnecting...", addr)
 		return nil, nil, errors.New("timed out waiting for server handshake")
 	case <-prefaceReceived:
@@ -1446,10 +1447,9 @@ func (ac *addrConn) getReadyTransport() (transport.ClientTransport, bool) {
 }
 
 // tearDown starts to tear down the addrConn.
-// TODO(zhaoq): Make this synchronous to avoid unbounded memory consumption in
-// some edge cases (e.g., the caller opens and closes many addrConn's in a
-// tight loop.
-// tearDown doesn't remove ac from ac.cc.conns.
+//
+// Note that tearDown doesn't remove ac from ac.cc.conns, so the addrConn struct
+// will leak. In most cases, call cc.removeAddrConn() instead.
 func (ac *addrConn) tearDown(err error) {
 	ac.mu.Lock()
 	if ac.state == connectivity.Shutdown {

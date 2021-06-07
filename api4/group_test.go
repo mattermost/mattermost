@@ -193,6 +193,7 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.Equal(t, th.BasicChannel.TeamId, groupTeam.TeamID)
 	assert.NotNil(t, groupTeam)
 
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
@@ -623,6 +624,7 @@ func TestPatchGroupChannel(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
+	assert.Equal(t, th.BasicChannel.TeamId, groupSyncable.TeamID)
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)

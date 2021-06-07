@@ -132,10 +132,8 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
 	#Download MMCTL for OSX
 	scripts/download_mmctl_release.sh "Darwin" $(DIST_PATH)/bin
@@ -167,10 +165,8 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	cp $(GOBIN)/mattermost.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
 	#Download MMCTL for Windows
 	scripts/download_mmctl_release.sh "Windows" $(DIST_PATH)/bin
@@ -202,10 +198,8 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
 	#Download MMCTL for Linux
 	scripts/download_mmctl_release.sh "Linux" $(DIST_PATH)/bin

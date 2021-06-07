@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
@@ -526,7 +527,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 		return err
 	}
 
-	if _, err := parseSVG(file); err != nil {
+	if _, err := imaging.ParseSVG(file); err != nil {
 		return model.NewAppError("SetBotIconImage", "api.bot.set_bot_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
