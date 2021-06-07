@@ -17,7 +17,7 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:20210518_node-14.16-1
+      - image: mattermost/mattermost-build-webapp:20210524_node-16
     resource_class: xlarge
     steps:
       - checkout

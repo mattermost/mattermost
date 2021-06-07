@@ -58,9 +58,8 @@ type EventBuilder interface {
 
 // EventBuilderImpl implenets the EventBuilder interface. Used to parse incoming event lines
 type EventBuilderImpl struct {
-	includesComment bool
-	mutex           sync.Mutex
-	lines           []string
+	mutex sync.Mutex
+	lines []string
 }
 
 // AddLine adds a new line belonging to the currently being processed event
