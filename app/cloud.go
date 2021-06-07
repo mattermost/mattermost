@@ -103,9 +103,9 @@ func (a *App) GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError)
 	}, nil
 }
 
-func (a *App) CheckCloudAccountAtOrOverLimit() (bool, *model.AppError) {
+func (a *App) CheckCloudAccountAtLimit() (bool, *model.AppError) {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
-		// Not cloud instance, so overlimit checks
+		// Not cloud instance, so no at limit checks
 		return false, nil
 	}
 
@@ -114,12 +114,12 @@ func (a *App) CheckCloudAccountAtOrOverLimit() (bool, *model.AppError) {
 		return false, err
 	}
 
-	if (stats.IsPaidTier == "false") && (stats.RemainingSeats < 1) {
-		return true, nil
+	if stats.IsPaidTier == "true" {
+		return false, nil
 	}
 
-	if (stats.IsPaidTier == "false") && (stats.RemainingSeats > 1) {
-		return false, nil
+	if stats.RemainingSeats < 1 {
+		return true, nil
 	}
 
 	return false, nil

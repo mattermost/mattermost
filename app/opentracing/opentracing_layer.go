@@ -1134,9 +1134,9 @@ func (a *OpenTracingAppLayer) CheckCanInviteToSharedChannel(channelId string) er
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckCloudAccountAtOrOverLimit() (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) CheckCloudAccountAtLimit() (bool, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckCloudAccountAtOrOverLimit")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckCloudAccountAtLimit")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -1146,7 +1146,7 @@ func (a *OpenTracingAppLayer) CheckCloudAccountAtOrOverLimit() (bool, *model.App
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CheckCloudAccountAtOrOverLimit()
+	resultVar0, resultVar1 := a.app.CheckCloudAccountAtLimit()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
