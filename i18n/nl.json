@@ -9213,5 +9213,21 @@
   {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Fout bij het vergelijken van de configuraties"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Ongeldig wachtwoord"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
   }
 ]
