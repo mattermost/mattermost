@@ -1712,10 +1712,6 @@
     "translation": "팀 아이콘을 decode할 수 없습니다."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "팀 아이콘 메타데이터를 decode할 수 없습니다."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "팀 아이콘을 encode할 수 없습니다."
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "프로필 이미지를 불러올 수 없습니다."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "Unable to decode the image data."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Unable to convert the image data to PNG format. Please try again."
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
