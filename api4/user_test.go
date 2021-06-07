@@ -2144,6 +2144,7 @@ func TestUpdateUserActive(t *testing.T) {
 		pass, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, pass)
+		require.Equal(t, resp.Error.Message, "Unable to activate more users as the cloud account is over capacity.")
 	})
 	t.Run("basic tests", func(t *testing.T) {
 		th := Setup(t).InitBasic()
