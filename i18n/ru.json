@@ -988,34 +988,6 @@
     "translation": "Почтовые объединения отключены системным администратором."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Личное сообщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Перейти к записи"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групповое сообщение от "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Уведомление от "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "few": "У вас {{.Count}} новых уведомления.",
-      "many": "У вас {{.Count}} новых уведомлений.",
-      "one": "У вас есть новое уведомление."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
@@ -1748,10 +1720,6 @@
     "translation": "Не удалось декодировать значок команды."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не удалось декодировать метаданные значка команды."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Не удалось закодировать значок команды."
   },
@@ -2302,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не удалось декодировать изображение профиля."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не удалось сохранить изображения профиля. Файл должен быть картинкой."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2948,62 +2912,6 @@
     "translation": "Пропущено имя команды в «Участие пользователей в команде»."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "У вас есть новое личное сообщение."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "У вас есть новое личное сообщение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "У вас есть новое групповое сообщение."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "У вас есть новое групповое сообщение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "У вас есть новое уведомление."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "У вас есть новое оповещение от @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Канал: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Новое личное сообщение от @{{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
@@ -3128,10 +3036,6 @@
     "translation": "Невозможно декодировать данные изображения."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Невозможно получить метаданные изображения."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Невозможно преобразовать данные изображения в формат PNG. Пожалуйста, попробуйте еще раз."
   },
@@ -3142,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Невозможно записать файл изображения в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Невозможно прочитать файл изображения. Убедитесь, что размер изображения не превышает 2 МБ, и повторите попытку."
   },
   {
     "id": "cli.license.critical",

@@ -2104,6 +2104,48 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 }
 
 func TestUpdateUserActive(t *testing.T) {
+	t.Run("not activating more users when cloud license users at limit", func(t *testing.T) {
+		// create 5 active users
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		cloudMock := &mocks.CloudInterface{}
+		cloudMock.Mock.On(
+			"GetSubscription", mock.Anything,
+		).Return(&model.Subscription{
+			ID:         "MySubscriptionID",
+			CustomerID: "MyCustomer",
+			ProductID:  "SomeProductId",
+			AddOns:     []string{},
+			StartAt:    1000000000,
+			EndAt:      2000000000,
+			CreateAt:   1000000000,
+			Seats:      100,
+			DNS:        "some.dns.server",
+			IsPaidTier: "false",
+		}, nil)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().Cloud = cloudMock
+
+		user := th.BasicUser
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.EnableUserDeactivation = true
+			*cfg.ExperimentalSettings.CloudUserLimit = 4
+		})
+
+		// deactivate 5th user, now we have 4 active users and are at limit
+		pass, resp := th.SystemAdminClient.UpdateUserActive(user.Id, false)
+		CheckNoError(t, resp)
+		require.True(t, pass)
+
+		// try and reactivate 5th user, not allowed because it exceeds the set cloud user limit
+		pass, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
+		CheckBadRequestStatus(t, resp)
+		require.False(t, pass)
+		require.Equal(t, resp.Error.Message, "Unable to activate more users as the cloud account is over capacity.")
+	})
 	t.Run("basic tests", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -5515,6 +5557,51 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NotNil(t, uss3.Threads)
 		require.Len(t, uss3.Threads, 0)
 	})
+
+	t.Run("editing or reacting to reply post does not make thread unread", func(t *testing.T) {
+		Client := th.Client
+
+		rootPost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "root post"})
+		replyPost, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply post", RootId: rootPost.Id})
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(1))
+		require.Equal(t, uss.Threads[0].PostId, rootPost.Id)
+
+		_, resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, model.GetMillis())
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+
+		// edit post
+		editedReplyPostMessage := "edited " + replyPost.Message
+		_, resp = th.SystemAdminClient.PatchPost(replyPost.Id, &model.PostPatch{Message: &editedReplyPostMessage})
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+
+		// react to post
+		reaction := &model.Reaction{
+			UserId:    th.SystemAdminUser.Id,
+			PostId:    replyPost.Id,
+			EmojiName: "smile",
+		}
+		_, resp = th.SystemAdminClient.SaveReaction(reaction)
+		CheckNoError(t, resp)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		CheckNoError(t, resp)
+		require.Equal(t, uss.TotalUnreadThreads, int64(0))
+	})
 }
 
 func TestThreadSocketEvents(t *testing.T) {
@@ -5522,6 +5609,9 @@ func TestThreadSocketEvents(t *testing.T) {
 	defer th.TearDown()
 	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -5718,8 +5808,8 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	// replying to the thread clears reply count, so it should be 0
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
-	// the other user should have 2 replies
-	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
+	// the other user should have 1 reply - the reply from the regular user
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 1, 1, nil)
 
 	// mark all as read for user
 	resp := th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)

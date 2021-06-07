@@ -986,32 +986,6 @@
     "translation": "電子メールバッチ処理はシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "ダイレクトメッセージ from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "投稿へ行く"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "グループメッセージ from "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "通知 from "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "other": "{{.Count}} 件の新しい通知があります。"
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
@@ -1738,10 +1712,6 @@
     "translation": "チームアイコンをデコードできませんでした。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "チームアイコンメタデータをデコードできませんでした。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "チームアイコンをエンコードできませんでした。"
   },
@@ -1907,7 +1877,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "投稿へ行く"
+    "translation": "投稿を確認する"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2292,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "プロフィール画像をデコードできませんでした。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "プロフィール画像を保存できませんでした。ファイルは有効な画像として表示されません。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2938,62 +2904,6 @@
     "translation": "ユーザーのチームメンバーシップにチーム名が存在しません。"
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "新しいダイレクトメッセージがあります。"
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "@{{.SenderName}} からの新しいダイレクトメッセージがあります"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "新しいグループメッセージがあります。"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "@{{.SenderName}} からの新しいグループメッセージがあります"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "新しい通知があります。"
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "@{{.SenderName}} からの新しい通知があります"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "チャンネル: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "チャンネル: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
@@ -3118,10 +3028,6 @@
     "translation": "画像データをデコードできません。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "画像メタデータを取得できません。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "画像データをPNG形式に変換できません。再度実行してください。"
   },
@@ -3132,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "画像ファイルを読み込み目線。画像サイズが2MB以下であることを確認し、再度実行してください。"
   },
   {
     "id": "cli.license.critical",
@@ -8875,7 +8777,7 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| 安全な接続 | SiteURL | 読取専用 | 招待承認済み | オンライン | 最終同期時刻 |"
+    "translation": "| 安全な接続 | Site URL | 読取専用 | 招待承認済み | オンライン | 最終同期時刻 |"
   },
   {
     "id": "api.command_share.remote_not_valid",
@@ -8887,7 +8789,7 @@
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "既存の安全な接続IDです。安全な接続を追加するには `secure-connection` コマンドを参照してください。"
+    "translation": "既存の安全な接続のIDです。安全な接続を追加するには `secure-connection` コマンドを参照してください。"
   },
   {
     "id": "api.command_share.remote_already_invited",
@@ -8903,7 +8805,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "この共有チャンネルには、どの安全な接続も招待されていません。"
+    "translation": "このチャンネルには、安全な接続への招待はありません。"
   },
   {
     "id": "api.command_share.name",
@@ -8911,7 +8813,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "招待するには有効な安全な接続を指定する必要があります。"
+    "translation": "招待するには有効な安全な接続のIDを指定する必要があります。"
   },
   {
     "id": "api.command_share.missing_action",
@@ -8919,11 +8821,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "現在の共有チャネルにリモートインスタンスを招待する"
+    "translation": "現在の共有チャネルに外部Mattermostインスタンスを招待する"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "チャンネル招待が `{{.Name}} {{.SiteURL}}`に送信されました。"
+    "translation": "共有チャンネルへの招待が `{{.Name}} {{.SiteURL}}`に送信されました。"
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8943,7 +8845,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "現在のチャンネルをリモートのMattermostインスタンスへ共有します。"
+    "translation": "現在のチャンネルを外部Mattermostインスタンスへ共有します。"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
@@ -8987,19 +8889,19 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURLが設定されていません。システムコンソールから設定してください。"
+    "translation": "Site URLが設定されていません。システムコンソール > 環境 > Webサーバー から設定してください。"
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "リモートクラスターサービスが有効化されていません。"
+    "translation": "安全な接続機能が有効化されていません。"
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "リモートクラスターサービスは無効化されています。"
+    "translation": "安全な接続機能は無効化されています。"
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "安全な接続のIDを削除する"
+    "translation": "削除する安全な接続のIDです。"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -9047,7 +8949,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "以下の暗号化された(AES256 + Base64)データを、パスワードと共にリモートサイトの管理者に送ります。彼らは `{{.Command}}` のスラッシュコマンドを使って招待を受け付けます。\n\n```\n{{.Invitation}}\n```\n\n**リモートサイトからあなたのクラスタに {{.SiteURL}} でアクセスできるようにする**"
+    "translation": "以下の AES-256bit で暗号化されたデータを、パスワードと共に外部Mattermostのシステム管理者に送信します。彼らは `{{.Command}}` のスラッシュコマンドを使って招待を受け付けます。\n\n```\n{{.Invitation}}\n```\n\n**安全な接続により、あなたのMattermostインスタンスに次のURLでアクセスできるようにします** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -9059,7 +8961,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "安全な接続を作成する"
+    "translation": "安全な接続を構築する"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9091,7 +8993,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "クラスタ間通信のためにリモードMattermostクラスタを招待します。"
+    "translation": "Mattermostインスタンス間のコミュニケーションのために、安全な接続を構築します。"
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -9115,7 +9017,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "リモートクラスターからの招待を受け付ける"
+    "translation": "外部のMattermostインスタンスからの招待を受け付ける"
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -9159,7 +9061,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Professionalの14日間の無料トライアルが本日 {{.TodayDate}} 終了します。引き続きCloud Professionalを利用するには、支払い情報を追加してください。"
+    "translation": "{{.Name}}、Mattermost Cloud Professionalの14日間の無料トライアルが本日 {{.TodayDate}} 終了しました。引き続きCloud Professionalを利用するには、支払い情報を追加してください。"
   },
   {
     "id": "api.templates.cloud_trial_ending_email.subject",
@@ -9171,7 +9073,7 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Mattermostの14日間のトライアルは本日で終了です"
+    "translation": "Mattermostの14日間のトライアルは本日で終了しました"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9208,5 +9110,103 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "AuthDataフィールドを電子メールアドレスにリセットできませんでした。"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "共通のチームIDを取得できませんでした。"
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "通知の設定を変更しますか?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Mattermostへログインし"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " 、アカウント設定 > 通知 へ移動してください"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} がメッセージであなたについて投稿しました"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "あなたがいない間に、{{.SenderName}} が {{.ChannelName}}チャンネルであなたについて投稿しました。"
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}}があなたに新しいメッセージを送信しました"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "あなたが不在の間に、{{.SenderName}}があなたのグループにメッセージを送信しました。"
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}}があなたに新しいメッセージを送信しました"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "あなたが不在の間に、{{.SenderName}}があなたに新しいダイレクトメッセージを送信しました。"
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "自動で転送されない場合、<a href='{{.Link}}'>このリンク</a>をクリックしてください"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "other": "{{ .SenderName }} と 他 {{.Count}} 名があなたに新しいメッセージを送信しました"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "新しいメッセージの概要は以下の通りです。"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "このメッセージを閲覧する"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermostを開く"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャネルを作成することはできません。"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "パスワードが不正です"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
   }
 ]

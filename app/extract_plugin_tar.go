@@ -68,12 +68,20 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 				return err
 			}
 
-			outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
-			if err != nil {
-				return err
+			copyFile := func() error {
+				outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
+				if err != nil {
+					return err
+				}
+				defer outFile.Close()
+				if _, err := io.Copy(outFile, tarReader); err != nil {
+					return err
+				}
+
+				return nil
 			}
-			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
+
+			if err := copyFile(); err != nil {
 				return err
 			}
 		}

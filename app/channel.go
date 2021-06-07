@@ -332,6 +332,17 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 		return channel, nil
 	}
 
+	if *a.Config().TeamSettings.RestrictDirectMessage == model.DIRECT_MESSAGE_TEAM &&
+		!a.SessionHasPermissionTo(*c.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
+		if err != nil {
+			return nil, err
+		}
+		if len(commonTeamIDs) == 0 {
+			return nil, model.NewAppError("createDirectChannel", "api.channel.create_channel.direct_channel.team_restricted_error", nil, "", http.StatusForbidden)
+		}
+	}
+
 	channel, err := a.createDirectChannel(userID, otherUserID, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
@@ -2367,7 +2378,10 @@ func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *mod
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
+	if !collapsedThreadsSupported {
+		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
+	}
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
@@ -2383,7 +2397,9 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow {
+	// if auto-follow is on
+	// if threadmembership does not exists we create one and update
+	if *a.Config().ServiceSettings.ThreadAutoFollow && collapsedThreadsSupported {
 		threadId := post.RootId
 		if post.RootId == "" {
 			threadId = post.Id
@@ -2423,25 +2439,127 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 				}
 			}
 		}
-
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, *a.Config().ServiceSettings.ThreadAutoFollow, true)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	a.sendWebSocketPostUnreadEvent(channelUnread, postID, false)
+	a.UpdateMobileAppBadge(userID)
+
+	return channelUnread, nil
+}
+
+func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	threadId := post.RootId
+	if post.RootId == "" {
+		threadId = post.Id
+	}
+
+	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
+
+	// if root post,
+	// In CRT Supported Client: badge on channel only sums mentions in root posts including and below the post that was marked.
+	// In CRT Unsupported Client: badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
+	if post.RootId == "" {
+		channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, false, true)
+		if nErr != nil {
+			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		a.sendWebSocketPostUnreadEvent(channelUnread, postID, true)
+		a.UpdateMobileAppBadge(userID)
+		return channelUnread, nil
+	}
+
+	// if reply post, autofollow thread and
+	// In CRT Supported Client: Mark the specific thread as unread but not the channel where the thread exists.
+	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
+	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
+	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
+	rootPost, err := a.GetSinglePost(post.RootId)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	threadMembership, nErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+	var errNotFound *store.ErrNotFound
+	if nErr != nil && !errors.As(nErr, &errNotFound) {
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	// Follow thread if we're not already following it
+	if threadMembership == nil {
+		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, false, true, false, false)
+		if nErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+	// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
+	threadMembership.Following = true
+	threadMembership.LastViewed = post.UpdateAt - 1
+	threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.UpdateAt-1)
+	if err != nil {
+		return nil, err
+	}
+	_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+	if nErr != nil {
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	thread, nErr := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	a.sanitizeProfiles(thread.Participants, false)
+	thread.Post.SanitizeProps()
+
+	payload := thread.ToJson()
+	sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+	if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+		sendEvent = preference.Value == "on"
+	}
+	if sendEvent {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+		message.Add("thread", payload)
+		a.Publish(message)
+	}
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false, false)
+	if nErr != nil {
+		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return channelUnread, nil
+}
+
+func (a *App) sendWebSocketPostUnreadEvent(channelUnread *model.ChannelUnreadAt, postID string, withMsgCountRoot bool) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
 	message.Add("msg_count", channelUnread.MsgCount)
+	if withMsgCountRoot {
+		message.Add("msg_count_root", channelUnread.MsgCountRoot)
+	}
 	message.Add("mention_count", channelUnread.MentionCount)
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)
-
-	a.UpdateMobileAppBadge(userID)
-
-	return channelUnread, nil
 }
 
 func (a *App) AutocompleteChannels(teamID string, term string) (*model.ChannelList, *model.AppError) {
@@ -2560,7 +2678,7 @@ func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string)
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string) (map[string]int64, *model.AppError) {
+func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications {
@@ -2622,10 +2740,32 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 	for _, channelID := range channelsToClearPushNotifications {
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
+
+	if !collapsedThreadsSupported {
+		// for compatibility with old clients, when channel is viewed - mark all threads in that channel as read
+		threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+		// check if a participant has overridden collapsed threads settings
+		if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+			threadsEnabled = preference.Value == "on"
+		}
+		if threadsEnabled {
+			if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
+				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			timestamp := model.GetMillis()
+			for _, channelID := range channelIDs {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", channelID, userID, nil)
+				message.Add("timestamp", timestamp)
+				a.Publish(message)
+			}
+		}
+	}
+
 	return times, nil
 }
 
-func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string) (map[string]int64, *model.AppError) {
+func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	if err := a.SetActiveChannel(userID, view.ChannelId); err != nil {
 		return nil, err
 	}
@@ -2644,7 +2784,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSession
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId)
+	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {

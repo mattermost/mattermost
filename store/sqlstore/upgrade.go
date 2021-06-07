@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5350
+	CurrentSchemaVersion   = Version5360
 	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
@@ -223,9 +223,23 @@ func saveSchemaVersion(sqlStore *SqlStore, version string) {
 }
 
 func shouldPerformUpgrade(sqlStore *SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
-	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
-		mlog.Warn("Attempting to upgrade the database schema version", mlog.String("current_version", currentSchemaVersion), mlog.String("new_version", expectedSchemaVersion))
+	storedSchemaVersion := sqlStore.GetCurrentSchemaVersion()
 
+	storedVersion, err := semver.Parse(storedSchemaVersion)
+	if err != nil {
+		mlog.Error("Error parsing stored schema version", mlog.Err(err))
+		return false
+	}
+
+	currentVersion, err := semver.Parse(currentSchemaVersion)
+	if err != nil {
+		mlog.Error("Error parsing current schema version", mlog.Err(err))
+		return false
+	}
+
+	if storedVersion.Major == currentVersion.Major && storedVersion.Minor == currentVersion.Minor {
+		mlog.Warn("Attempting to upgrade the database schema version",
+			mlog.String("stored_version", storedSchemaVersion), mlog.String("current_version", currentSchemaVersion), mlog.String("new_version", expectedSchemaVersion))
 		return true
 	}
 
@@ -953,7 +967,6 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
-
 		saveSchemaVersion(sqlStore, Version5300)
 	}
 }
@@ -1064,16 +1077,13 @@ func upgradeDatabaseToVersion535(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion536(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+	if shouldPerformUpgrade(sqlStore, Version5350, Version5360) {
+		sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostUpdateAt", "bigint", "bigint", "0")
+		sqlStore.CreateColumnIfNotExists("SharedChannelRemotes", "LastPostId", "VARCHAR(26)", "VARCHAR(26)", "")
 
-	sqlStore.CreateColumnIfNotExists("SharedChannelUsers", "ChannelId", "VARCHAR(26)", "VARCHAR(26)", "")
-
-	// timed dnd status support
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
-
-	//saveSchemaVersion(sqlStore, Version5360)
-	//}
+		saveSchemaVersion(sqlStore, Version5360)
+	}
 }
 
 func rootCountMigration(sqlStore *SqlStore) {

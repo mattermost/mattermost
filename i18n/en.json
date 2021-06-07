@@ -272,6 +272,10 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "A direct channel cannot be created between these users because they do not share a team in common."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
@@ -1491,12 +1495,20 @@
     "translation": "Failed to migrate config store."
   },
   {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Failed to diff configs"
+  },
+  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Failed to diff configs"
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
@@ -2999,12 +3011,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon."
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata."
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -4123,6 +4135,14 @@
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
   {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Unable to make cloud check for at or over the limit."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Unable to activate more users as the cloud account is over capacity."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
@@ -4187,12 +4207,12 @@
     "translation": "Empty array under 'image' in request."
   },
   {
-    "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Could not decode profile image."
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "id": "api.user.upload_profile_user.decode.app_error",
+    "translation": "Could not decode profile image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -6071,6 +6091,10 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Unable to get the common team IDs."
+  },
+  {
     "id": "app.team.get_member.app_error",
     "translation": "Unable to get the team member."
   },
@@ -6479,6 +6503,10 @@
     "translation": "Unable to save terms of service."
   },
   {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Password is not valid"
+  },
+  {
     "id": "app.webhooks.analytics_incoming_count.app_error",
     "translation": "Unable to count the incoming webhooks."
   },
@@ -6723,12 +6751,12 @@
     "translation": "Failed to close user index."
   },
   {
-    "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "id": "brand.save_brand_image.decode.app_error",
+    "translation": "Unable to decode the image data."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
@@ -6741,10 +6769,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",

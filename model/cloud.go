@@ -156,3 +156,7 @@ type SubscriptionStats struct {
 	IsPaidTier     string `json:"is_paid_tier"`
 	IsFreeTrial    string `json:"is_free_trial"`
 }
+
+type SubscriptionChange struct {
+	ProductID string `json:"product_id"`
+}

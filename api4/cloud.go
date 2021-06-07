@@ -39,6 +39,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/join", api.ApiHandler(sendAdminUpgradeRequestEmailOnJoin)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(changeSubscription)).Methods("PUT")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
@@ -70,32 +71,55 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
+func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription("")
-
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
 
-	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
+	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
-	cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 
-	s := cloudUserLimit - count
+	var subscriptionChange *model.SubscriptionChange
+	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
 
-	stats, _ := json.Marshal(model.SubscriptionStats{
-		RemainingSeats: int(s),
-		IsPaidTier:     subscription.IsPaidTier,
-	})
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	json, err := json.Marshal(changedSub)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Write(json)
+}
+
+func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	s, err := c.App.GetSubscriptionStats()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, _ := json.Marshal(s)
 
 	w.Write([]byte(string(stats)))
 }
