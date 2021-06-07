@@ -5746,6 +5746,7 @@ func TestFollowThreads(t *testing.T) {
 		})
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 1)
+		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
 
 	})
 }
