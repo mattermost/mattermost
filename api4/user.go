@@ -1377,6 +1377,18 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if non cloud instances, isOverLimit is false and no error
+	isAtLimit, err := c.App.CheckCloudAccountAtLimit()
+	if err != nil {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_limit_check_error", nil, "userId="+c.Params.UserId, http.StatusInternalServerError)
+		return
+	}
+
+	if active && isAtLimit {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cloud_at_or_over_limit_check_overcapacity", nil, "userId="+c.Params.UserId, http.StatusBadRequest)
+		return
+	}
+
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 	}
