@@ -9213,5 +9213,9 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Не може да се създаде директен канал между тези потребители, тъй като те нямат общ екип."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Паролата не е валидна"
   }
 ]
