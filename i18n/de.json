@@ -5949,7 +5949,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+    "translation": "Ihre Lizenz unterstützt die Moderation eines Kanals nicht"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -6994,5 +6994,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
     "translation": "Nachricht ansehen"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Zwischen diesen Nutzern kann keine Direktnachricht ausgetauscht werden, da sie nicht dem gleichen Team angehören."
   }
 ]
