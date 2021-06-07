@@ -8917,7 +8917,7 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "削除する安全な接続のID"
+    "translation": "削除する安全な接続のIDです。"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -9200,5 +9200,29 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャネルを作成することはできません。"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "パスワードが不正です"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "設定の差分を取得できませんでした"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "画像制限チェックに失敗しました。解像度が高すぎます。"
   }
 ]
