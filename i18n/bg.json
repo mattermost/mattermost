@@ -2276,10 +2276,6 @@
     "translation": "Функцията изисква надграждане до Enterprise Edition и включване на лицензен ключ. Моля, свържете се със системния си администратор."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Файлът с изображения не може да се прочете. Уверете се, че размерът на изображението е по-малък от 2 MB и опитайте отново."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Не може да се запише файлът с изображения във вашето хранилище на файлове. Моля, проверете връзката си и опитайте отново."
   },
@@ -2290,10 +2286,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Неуспешно преобразуване на данните от изображението във формат PNG. Моля, опитайте отново."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Не могат да се получат метаданни за изображения."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4424,10 +4416,6 @@
     "translation": "Иконата на екипа не можа да се кодира."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не можаха да се декодират метаданните на иконата на екипа."
-  },
-  {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "Иконата на екипа не можа да се декодира."
   },
@@ -5216,10 +5204,6 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Изображението на профила не можа да се кодира."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Изображението на профила не можа да бъде запазено. Изглежда, че файлът не е валидно изображение."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -9213,5 +9197,9 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Не може да се създаде директен канал между тези потребители, тъй като те нямат общ екип."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Паролата не е валидна"
   }
 ]
