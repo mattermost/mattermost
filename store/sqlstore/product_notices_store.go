@@ -31,11 +31,7 @@ func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
 
 func (s SqlProductNoticesStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_notice_views_timestamp", "ProductNoticeViewState", "Timestamp")
-	s.CreateIndexIfNotExists("idx_notice_views_user_id", "ProductNoticeViewState", "UserId")
 	s.CreateIndexIfNotExists("idx_notice_views_notice_id", "ProductNoticeViewState", "NoticeId")
-
-	s.CreateCompositeIndexIfNotExists("idx_notice_views_user_notice", "ProductNoticeViewState", []string{"UserId", "NoticeId"})
-
 }
 
 func (s SqlProductNoticesStore) Clear(notices []string) error {
