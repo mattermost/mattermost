@@ -35,13 +35,13 @@ func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: userId, category, name
-func (_m *PreferenceStore) Delete(userId string, category string, name string) error {
-	ret := _m.Called(userId, category, name)
+// Delete provides a mock function with given fields: userID, category, name
+func (_m *PreferenceStore) Delete(userID string, category string, name string) error {
+	ret := _m.Called(userID, category, name)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(userId, category, name)
+		r0 = rf(userID, category, name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -49,13 +49,13 @@ func (_m *PreferenceStore) Delete(userId string, category string, name string) e
 	return r0
 }
 
-// DeleteCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) DeleteCategory(userId string, category string) error {
-	ret := _m.Called(userId, category)
+// DeleteCategory provides a mock function with given fields: userID, category
+func (_m *PreferenceStore) DeleteCategory(userID string, category string) error {
+	ret := _m.Called(userID, category)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, category)
+		r0 = rf(userID, category)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -77,13 +77,13 @@ func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) e
 	return r0
 }
 
-// Get provides a mock function with given fields: userId, category, name
-func (_m *PreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
-	ret := _m.Called(userId, category, name)
+// Get provides a mock function with given fields: userID, category, name
+func (_m *PreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
+	ret := _m.Called(userID, category, name)
 
 	var r0 *model.Preference
 	if rf, ok := ret.Get(0).(func(string, string, string) *model.Preference); ok {
-		r0 = rf(userId, category, name)
+		r0 = rf(userID, category, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Preference)
@@ -92,7 +92,7 @@ func (_m *PreferenceStore) Get(userId string, category string, name string) (*mo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(userId, category, name)
+		r1 = rf(userID, category, name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -100,13 +100,13 @@ func (_m *PreferenceStore) Get(userId string, category string, name string) (*mo
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: userId
-func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, error) {
-	ret := _m.Called(userId)
+// GetAll provides a mock function with given fields: userID
+func (_m *PreferenceStore) GetAll(userID string) (model.Preferences, error) {
+	ret := _m.Called(userID)
 
 	var r0 model.Preferences
 	if rf, ok := ret.Get(0).(func(string) model.Preferences); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Preferences)
@@ -115,7 +115,7 @@ func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -123,13 +123,13 @@ func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	return r0, r1
 }
 
-// GetCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
-	ret := _m.Called(userId, category)
+// GetCategory provides a mock function with given fields: userID, category
+func (_m *PreferenceStore) GetCategory(userID string, category string) (model.Preferences, error) {
+	ret := _m.Called(userID, category)
 
 	var r0 model.Preferences
 	if rf, ok := ret.Get(0).(func(string, string) model.Preferences); ok {
-		r0 = rf(userId, category)
+		r0 = rf(userID, category)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Preferences)
@@ -138,7 +138,7 @@ func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Pr
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, category)
+		r1 = rf(userID, category)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -146,13 +146,13 @@ func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Pr
 	return r0, r1
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PreferenceStore) PermanentDeleteByUser(userId string) error {
-	ret := _m.Called(userId)
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -72,6 +72,12 @@
       }
     }
   </style>
+  <style media="screen and (min-width:480px)">
+    .moz-text-html .mj-column-per-100 {
+      width: 100% !important;
+      max-width: 100%;
+    }
+  </style>
   <style type="text/css">
     @media only screen and (max-width:480px) {
       table.mj-full-width-mobile {
@@ -99,7 +105,7 @@
       font-weight: 600 !important;
       font-size: 28px !important;
       line-height: 36px !important;
-      letter-spacing: -0.02em !important;
+      letter-spacing: -0.01em !important;
       color: #3D3C40 !important;
     }
 
@@ -116,6 +122,17 @@
       line-height: 18px !important;
       color: #FFFFFF !important;
       padding: 15px 24px !important;
+    }
+
+    .messageButton a {
+      background-color: #FFFFFF !important;
+      border: 1px solid #FFFFFF !important;
+      box-sizing: border-box !important;
+      color: #166DE0 !important;
+      padding: 12px 20px !important;
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      line-height: 14px !important;
     }
 
     .info div {
@@ -186,13 +203,52 @@
       width: 32px !important;
     }
 
-    .senderName div {
+    .postNameAndTime {
+      padding: 0px 0px 4px 0px !important;
+      display: flex;
+    }
+
+    .senderName {
+      font-family: Open Sans, sans-serif;
       text-align: left !important;
       font-weight: 600 !important;
       font-size: 14px !important;
       line-height: 20px !important;
       color: #3D3C40 !important;
-      padding: 0px 0px 4px 0px !important;
+    }
+
+    .time {
+      font-family: Open Sans, sans-serif;
+      font-size: 12px;
+      line-height: 16px;
+      color: rgba(61, 60, 64, 0.56);
+      padding: 2px 6px;
+      align-items: center;
+      float: left;
+    }
+
+    .channelBg {
+      background: rgba(61, 60, 64, 0.08);
+      border-radius: 4px;
+      display: flex;
+    }
+
+    .channelLogo {
+      width: 10px;
+      height: 10px;
+      padding: 5px 4px 5px 6px;
+      float: left;
+    }
+
+    .channelName {
+      font-family: Open Sans, sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      line-height: 16px;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: rgba(61, 60, 64, 0.64);
+      padding: 2px 6px 2px 0px;
     }
 
     .senderMessage div {
@@ -373,7 +429,9 @@
                   </tbody>
                 </table>
               </div>
-              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{if .Props.SupportEmail}}
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
               <div style="margin:0px auto;max-width:552px;">
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>
@@ -391,8 +449,7 @@
                               <tr>
                                 <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <div style="font-family:Open Sans, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{.Props.QuestionInfo}}
-                                    <a href='mailto:{{.Props.SupportEmail}}'>
-                                      {{.Props.SupportEmail}}</a>
+                                    <a href="mailto:{{.Props.SupportEmail}}"> {{.Props.SupportEmail}}</a>
                                   </div>
                                 </td>
                               </tr>
@@ -405,7 +462,9 @@
                   </tbody>
                 </table>
               </div>
-              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <!--[if mso | IE]></td></tr></table></td></tr><![endif]-->
+              {{end}}
+              <!--[if mso | IE]><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:552px;" width="552" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
               <div style="margin:0px auto;max-width:552px;">
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>

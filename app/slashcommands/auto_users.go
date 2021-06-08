@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -77,7 +78,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
+func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, error) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
@@ -93,7 +94,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
 		Nickname: userName,
 		Password: UserPassword}
 
-	ruser, appErr := cfg.app.CreateUserWithInviteId(user, cfg.team.InviteId, "")
+	ruser, appErr := cfg.app.CreateUserWithInviteId(c, user, cfg.team.InviteId, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -112,13 +113,13 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
 	return ruser, nil
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range) ([]*model.User, error) {
+func (cfg *AutoUserCreator) CreateTestUsers(c *request.Context, num utils.Range) ([]*model.User, error) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 
 	for i := 0; i < numUsers; i++ {
 		var err error
-		users[i], err = cfg.createRandomUser()
+		users[i], err = cfg.createRandomUser(c)
 		if err != nil {
 			return nil, err
 		}

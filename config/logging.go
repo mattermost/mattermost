@@ -4,7 +4,10 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -13,10 +16,6 @@ import (
 
 type LogSrcListener func(old, new mlog.LogTargetCfg)
 
-type FileGetter interface {
-	GetFile(name string) ([]byte, error)
-}
-
 // LogConfigSrc abstracts the Advanced Logging configuration so that implementations can
 // fetch from file, database, etc.
 type LogConfigSrc interface {
@@ -24,7 +23,7 @@ type LogConfigSrc interface {
 	Get() mlog.LogTargetCfg
 
 	// Set updates the dsn specifying the source and reloads
-	Set(dsn string, fget FileGetter) (err error)
+	Set(dsn string, configStore *Store) (err error)
 
 	// AddListener adds a callback function to invoke when the configuration is modified.
 	AddListener(listener LogSrcListener) string
@@ -38,13 +37,25 @@ type LogConfigSrc interface {
 
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a
 // file, JSON string, or database.
-func NewLogConfigSrc(dsn string, isJSON bool, fget FileGetter) (LogConfigSrc, error) {
+func NewLogConfigSrc(dsn string, configStore *Store) (LogConfigSrc, error) {
+	if configStore == nil {
+		return nil, errors.New("configStore should not be nil")
+	}
+
 	dsn = strings.TrimSpace(dsn)
 
-	if isJSON {
+	if isJSONMap(dsn) {
 		return newJSONSrc(dsn)
 	}
-	return newFileSrc(dsn, fget)
+
+	path := dsn
+	// If this is a file based config we need the full path so it can be watched.
+	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(dsn) {
+		configPath := strings.TrimPrefix(configStore.String(), "file://")
+		path = filepath.Join(filepath.Dir(configPath), dsn)
+	}
+
+	return newFileSrc(path, configStore)
 }
 
 // jsonSrc
@@ -68,8 +79,8 @@ func (src *jsonSrc) Get() mlog.LogTargetCfg {
 }
 
 // Set updates the JSON specifying the source and reloads
-func (src *jsonSrc) Set(data string, _ FileGetter) error {
-	cfg, err := JSONToLogTargetCfg([]byte(data))
+func (src *jsonSrc) Set(data string, _ *Store) error {
+	cfg, err := logTargetCfgFromJSON([]byte(data))
 	if err != nil {
 		return err
 	}
@@ -103,11 +114,11 @@ type fileSrc struct {
 	watcher *watcher
 }
 
-func newFileSrc(path string, fget FileGetter) (*fileSrc, error) {
+func newFileSrc(path string, configStore *Store) (*fileSrc, error) {
 	src := &fileSrc{
 		path: path,
 	}
-	if err := src.Set(path, fget); err != nil {
+	if err := src.Set(path, configStore); err != nil {
 		return nil, err
 	}
 	return src, nil
@@ -123,13 +134,13 @@ func (src *fileSrc) Get() mlog.LogTargetCfg {
 // Set updates the dsn specifying the file source and reloads.
 // The file will be watched for changes and reloaded as needed,
 // and all listeners notified.
-func (src *fileSrc) Set(path string, fget FileGetter) error {
-	data, err := fget.GetFile(path)
+func (src *fileSrc) Set(path string, configStore *Store) error {
+	data, err := configStore.GetFile(path)
 	if err != nil {
 		return err
 	}
 
-	cfg, err := JSONToLogTargetCfg(data)
+	cfg, err := logTargetCfgFromJSON(data)
 	if err != nil {
 		return err
 	}
@@ -153,7 +164,7 @@ func (src *fileSrc) Set(path string, fget FileGetter) error {
 	}
 
 	watcher, err := newWatcher(path, func() {
-		if serr := src.Set(path, fget); serr != nil {
+		if serr := src.Set(path, configStore); serr != nil {
 			mlog.Error("Failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
 		}
 	})
@@ -185,4 +196,13 @@ func (src *fileSrc) Close() error {
 		src.watcher = nil
 	}
 	return err
+}
+
+func logTargetCfgFromJSON(data []byte) (mlog.LogTargetCfg, error) {
+	cfg := make(mlog.LogTargetCfg)
+	err := json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }

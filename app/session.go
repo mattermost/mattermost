@@ -67,6 +67,21 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
+func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
+	rc, appErr := a.GetRemoteCluster(remoteId)
+	if appErr == nil && rc.Token == token {
+		// Need a bare-bones session object for later checks
+		session := &model.Session{
+			Token:   token,
+			IsOAuth: false,
+		}
+
+		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_REMOTECLUSTER_TOKEN)
+		return session, nil
+	}
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+}
+
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 
@@ -237,26 +252,11 @@ func (a *App) ClearSessionCacheForAllUsers() {
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
-	if keys, err := a.Srv().sessionCache.Keys(); err == nil {
-		var session *model.Session
-		for _, key := range keys {
-			if err := a.Srv().sessionCache.Get(key, &session); err == nil {
-				if session.UserId == userID {
-					a.Srv().sessionCache.Remove(key)
-					if a.Metrics() != nil {
-						a.Metrics().IncrementMemCacheInvalidationCounterSession()
-					}
-				}
-			}
-		}
-	}
-
-	a.InvalidateWebConnSessionCacheForUser(userID)
+	a.Srv().clearSessionCacheForUserSkipClusterSend(userID)
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
-	mlog.Info("Purging sessions cache")
-	a.Srv().sessionCache.Purge()
+	a.Srv().clearSessionCacheForAllUsersSkipClusterSend()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
@@ -351,6 +351,10 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
 func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+	if !*a.Srv().Config().ServiceSettings.ExtendSessionLengthWithActivity {
+		return false
+	}
+
 	if session == nil || session.IsExpired() {
 		return false
 	}

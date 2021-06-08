@@ -193,7 +193,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team", team)
 
-	rteam, err := c.App.CreateTeam(team)
+	rteam, err := c.App.CreateTeam(c.AppContext, team)
 	if err != nil {
 		c.Err = err
 		return

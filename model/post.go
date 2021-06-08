@@ -96,6 +96,7 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty"`
 
 	// Transient data populated before sending a post to the client
 	ReplyCount   int64         `json:"reply_count" db:"-"`
@@ -206,6 +207,8 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
+	dst.IsFollowing = o.IsFollowing
+	dst.RemoteId = o.RemoteId
 	return nil
 }
 
@@ -235,6 +238,18 @@ type GetPostsSinceOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
+	SortAscending            bool
+}
+
+type GetPostsSinceForSyncCursor struct {
+	LastPostUpdateAt int64
+	LastPostId       string
+}
+
+type GetPostsSinceForSyncOptions struct {
+	ChannelId       string
+	ExcludeRemoteId string
+	IncludeDeleted  bool
 }
 
 type GetPostsOptions struct {
@@ -450,6 +465,19 @@ func (o *Post) GetProp(key string) interface{} {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
+}
+
+// IsRemote returns true if the post originated on a remote cluster.
+func (o *Post) IsRemote() bool {
+	return o.RemoteId != nil && *o.RemoteId != ""
+}
+
+// GetRemoteID safely returns the remoteID or empty string if not remote.
+func (o *Post) GetRemoteID() string {
+	if o.RemoteId != nil {
+		return *o.RemoteId
+	}
+	return ""
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {

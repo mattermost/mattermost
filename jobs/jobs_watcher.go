@@ -184,6 +184,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_RESEND_INVITATION_EMAIL {
+			if watcher.workers.ResendInvitationEmail != nil {
+				select {
+				case watcher.workers.ResendInvitationEmail.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }
