@@ -265,14 +265,11 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	// image post-processing
 	if info.IsImage() {
-		// Check dimensions before loading the whole thing into memory later on
-		// This casting is done to prevent overflow on 32 bit systems (not needed
-		// in 64 bits systems because images can't have more than 32 bits height or
-		// width)
-		if int64(info.Width)*int64(info.Height) > MaxImageSize {
+		if limitErr := checkImageResolutionLimit(info.Width, info.Height); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
 				map[string]interface{}{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
 		}
+
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
 		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb.jpg"

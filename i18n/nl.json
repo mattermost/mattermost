@@ -1716,10 +1716,6 @@
     "translation": "Kan het teampictogram niet decoderen."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kan de metadata van teampictogram niet decoderen."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kan het teampictogram niet encoderen."
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kan het profielafbeelding niet decoderen."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kan profielafbeelding niet opslaan. Bestand lijkt geen geldige afbeelding te zijn."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Kan afbeeldingsdata niet decoderen."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kan metadata van afbeelding niet krijgen."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "De afbeeldingsgegevens kunnen niet naar PNG-indeling worden geconverteerd. Probeer het opnieuw."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Het afbeeldingsbestand kan niet naar jouw bestandsopslag worden geschreven. Controleer jouw verbinding en probeer het opnieuw."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Het afbeeldingsbestand kan niet worden gelezen. Controleer of de afbeeldingsgrootte kleiner is dan 2 MB en probeer het opnieuw."
   },
   {
     "id": "cli.license.critical",
@@ -9213,5 +9197,21 @@
   {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Fout bij het vergelijken van de configuraties"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Ongeldig wachtwoord"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
   }
 ]

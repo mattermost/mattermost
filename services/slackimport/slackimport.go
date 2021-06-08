@@ -93,7 +93,7 @@ type Actions struct {
 	GeneratePreviewImage   func(image.Image, string)
 	InvalidateAllCaches    func()
 	MaxPostSize            func() int
-	PrepareImage           func(fileData []byte) (image.Image, int, int)
+	PrepareImage           func(fileData []byte) (image.Image, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
@@ -772,11 +772,13 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 	}
 
 	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
-		img, _, _ := si.actions.PrepareImage(data)
-		if img != nil {
-			si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
-			si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath)
+		img, release, err := si.actions.PrepareImage(data)
+		if err != nil {
+			return nil, err
 		}
+		defer release()
+		si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
+		si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath)
 	}
 
 	return fileInfo, nil
