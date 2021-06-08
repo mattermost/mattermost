@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -473,7 +474,22 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, extended b
 
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
-	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Posts.RootId = :RootId AND DeleteAt = 0", map[string]interface{}{"RootId": id})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts for thread %s", id)
+	}
+
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+	return list, nil
 }
 
 func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
@@ -958,26 +974,46 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
-	if options.Limit < 0 || options.Limit > 1000 {
-		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
+func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
+	query := `
+		SELECT 1
+		FROM
+			Posts
+		WHERE
+			UpdateAt >= :Time
+			AND
+			ChannelId = :ChannelId
+			AND
+			UserId = :UserId
+			AND
+			Type = :Type
+		LIMIT 1`
+
+	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+		"ChannelId": options.ChannelId,
+		"Time":      options.Time,
+		"UserId":    userId,
+		"Type":      model.POST_AUTO_RESPONDER,
+	})
+
+	if err != nil {
+		return false, errors.Wrapf(err,
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
 	}
 
-	order := " ASC"
-	if options.SortDescending {
-		order = " DESC"
-	}
+	return exist > 0, nil
+}
 
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.GtOrEq{"UpdateAt": options.Since}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		Limit(uint64(options.Limit)).
-		OrderBy("CreateAt"+order, "DeleteAt", "Id")
+		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
+		OrderBy("UpdateAt", "Id").
+		Limit(uint64(limit))
 
-	if options.Until > 0 {
-		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
 	}
 
 	if !options.IncludeDeleted {
@@ -988,24 +1024,22 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
-	if options.Offset > 0 {
-		query = query.Offset(uint64(options.Offset))
-	}
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
 	}
 
 	var posts []*model.Post
-
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
-
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
 	}
 
-	return posts, nil
+	if len(posts) != 0 {
+		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+		cursor.LastPostId = posts[len(posts)-1].Id
+	}
+	return posts, cursor, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {

@@ -1036,6 +1036,9 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		selectStr = "count(c.Id)"
 	} else {
 		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
+		if opts.IncludePolicyID {
+			selectStr += ", RetentionPoliciesChannels.PolicyId"
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -1057,6 +1060,13 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 
 	if len(opts.ExcludeChannelNames) > 0 {
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
+	}
+
+	if opts.ExcludePolicyConstrained || opts.IncludePolicyID {
+		query = query.LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
+	}
+	if opts.ExcludePolicyConstrained {
+		query = query.Where("RetentionPoliciesChannels.ChannelId IS NULL")
 	}
 
 	return query
@@ -2206,7 +2216,7 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
 // If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
 // an updated model.ChannelUnreadAt that can be returned to the client.
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	var threadsToUpdate []string
 	unreadDate := unreadPost.CreateAt - 1
 	if updateThreads {
@@ -2220,6 +2230,10 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	unread, unreadRoot, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
 		return nil, err
+	}
+
+	if !setUnreadCountRoot {
+		unreadRoot = 0
 	}
 
 	params := map[string]interface{}{
@@ -2279,7 +2293,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, true)
+		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, false)
 	}
 	return result, nil
 }
@@ -2660,7 +2674,7 @@ func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term 
 	})
 }
 
-func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearchOpts, countQuery bool) sq.SelectBuilder {
+func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.SelectBuilder {
 	var limit int
 	if opts.PerPage != nil {
 		limit = *opts.PerPage
@@ -2669,10 +2683,16 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	var selectStr string
-	if countQuery {
+	if opts.CountOnly {
 		selectStr = "count(*)"
 	} else {
-		selectStr = "c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
+		selectStr = "c.*"
+		if opts.IncludeTeamInfo {
+			selectStr += ", t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt"
+		}
+		if opts.IncludePolicyID {
+			selectStr += ", RetentionPoliciesChannels.PolicyId"
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -2681,7 +2701,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		Join("Teams AS t ON t.Id = c.TeamId")
 
 	// don't bother ordering or limiting if we're just getting the count
-	if !countQuery {
+	if !opts.CountOnly {
 		query = query.
 			OrderBy("c.DisplayName, t.DisplayName").
 			Limit(uint64(limit))
@@ -2692,14 +2712,27 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
-	if opts.IsPaginated() && !countQuery {
+	if opts.IsPaginated() && !opts.CountOnly {
 		query = query.Offset(uint64(*opts.Page * *opts.PerPage))
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	if opts.PolicyID != "" {
+		query = query.
+			InnerJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where(sq.Eq{"RetentionPoliciesChannels.PolicyId": opts.PolicyID})
+	} else if opts.ExcludePolicyConstrained {
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId").
+			Where("RetentionPoliciesChannels.ChannelId IS NULL")
+	} else if opts.IncludePolicyID {
+		query = query.
+			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
+	}
+
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 	if likeTerm != "" {
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
 		query = query.Where(sq.Or{
 			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
@@ -2730,7 +2763,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	}
 
 	if opts.Public && !opts.Private {
-		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
+		query = query.InnerJoin("PublicChannels ON c.Id = PublicChannels.Id")
 	} else if opts.Private && !opts.Public {
 		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
 	} else {
@@ -2744,7 +2777,9 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 }
 
 func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
-	queryString, args, err := s.channelSearchQuery(term, opts, false).ToSql()
+	opts.Term = term
+	opts.IncludeTeamInfo = true
+	queryString, args, err := s.channelSearchQuery(&opts).ToSql()
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "channel_tosql")
 	}
@@ -2757,7 +2792,8 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 
 	// only query a 2nd time for the count if the results are being requested paginated.
 	if opts.IsPaginated() {
-		queryString, args, err = s.channelSearchQuery(term, opts, true).ToSql()
+		opts.CountOnly = true
+		queryString, args, err = s.channelSearchQuery(&opts).ToSql()
 		if err != nil {
 			return nil, 0, errors.Wrap(err, "channel_tosql")
 		}

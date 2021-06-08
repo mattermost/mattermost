@@ -370,12 +370,15 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 	return teams, nil
 }
 
-func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
+func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
 	var selectStr string
 	if countQuery {
 		selectStr = "count(*)"
 	} else {
-		selectStr = "*"
+		selectStr = "t.*"
+		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
+			selectStr += ", RetentionPoliciesTeams.PolicyId"
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -391,6 +394,7 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 	}
 
+	term := opts.Term
 	if term != "" {
 		term = sanitizeSearchTerm(term, "\\")
 		term = wildcardSearchTerm(term)
@@ -401,6 +405,19 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 
 		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
+	}
+
+	if opts.PolicyID != nil && *opts.PolicyID != "" {
+		query = query.
+			InnerJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").
+			Where(sq.Eq{"RetentionPoliciesTeams.PolicyId": *opts.PolicyID})
+	} else if opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained {
+		query = query.
+			LeftJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId").
+			Where("RetentionPoliciesTeams.TeamId IS NULL")
+	} else if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
+		query = query.
+			LeftJoin("RetentionPoliciesTeams ON t.Id = RetentionPoliciesTeams.TeamId")
 	}
 
 	var teamFilters sq.Sqlizer
@@ -442,6 +459,11 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 	}
 
+	if opts.TeamType != nil {
+		teamTypeFilter := sq.Eq{"Type": *opts.TeamType}
+		teamFilters = sq.And{teamFilters, teamTypeFilter}
+	}
+
 	query = query.Where(teamFilters)
 
 	return query
@@ -449,41 +471,41 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 
 // SearchAll returns from the database a list of teams that match the Name or DisplayName
 // passed as the term search parameter.
-func (s SqlTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
+func (s SqlTeamStore) SearchAll(opts *model.TeamSearch) ([]*model.Team, error) {
 	var teams []*model.Team
 
-	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
+	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Teams with term=%s", term)
+		return nil, errors.Wrapf(err, "failed to find Teams with term=%s", opts.Term)
 	}
 
 	return teams, nil
 }
 
 // SearchAllPaged returns a teams list and the total count of teams that matched the search.
-func (s SqlTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
+func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int64, error) {
 	var teams []*model.Team
 	var totalCount int64
 
-	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
+	queryString, args, err := s.teamSearchQuery(opts, false).ToSql()
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "team_tosql")
 	}
 	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to find Teams with term=%s", term)
+		return nil, 0, errors.Wrapf(err, "failed to find Teams with term=%s", opts.Term)
 	}
 
-	queryString, args, err = s.teamSearchQuery(term, opts, true).ToSql()
+	queryString, args, err = s.teamSearchQuery(opts, true).ToSql()
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "team_tosql")
 	}
 	totalCount, err = s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to count Teams with term=%s", term)
+		return nil, 0, errors.Wrapf(err, "failed to count Teams with term=%s", opts.Term)
 	}
 
 	return teams, totalCount, nil
@@ -491,53 +513,18 @@ func (s SqlTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*mo
 
 // SearchOpen returns from the database a list of public teams that match the Name or DisplayName
 // passed as the term search parameter.
-func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, error) {
-	var teams []*model.Team
-
-	term = sanitizeSearchTerm(term, "\\")
-	term = wildcardSearchTerm(term)
-	query := s.teamsQuery.Where(sq.Eq{"Type": "O", "AllowOpenInvite": true})
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		query = query.Where(sq.Or{sq.Like{"Name": term}, sq.Like{"DisplayName": term}})
-	} else {
-		query = query.Where(sq.Or{sq.ILike{"Name": term}, sq.ILike{"DisplayName": term}})
-	}
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to count Teams with term=%s", term)
-	}
-
-	return teams, nil
+func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
+	opts.TeamType = model.NewString("O")
+	opts.AllowOpenInvite = model.NewBool(true)
+	return s.SearchAll(opts)
 }
 
 // SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
 // passed as the term search parameter.
-func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
-	var teams []*model.Team
-
-	term = sanitizeSearchTerm(term, "\\")
-	term = wildcardSearchTerm(term)
-	query := s.teamsQuery.Where(sq.Eq{"Type": "O", "AllowOpenInvite": false})
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		query = query.Where(sq.Or{sq.Like{"Name": term}, sq.Like{"DisplayName": term}})
-	} else {
-		query = query.Where(sq.Or{sq.ILike{"Name": term}, sq.ILike{"DisplayName": term}})
-	}
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to count Teams with term=%s", term)
-	}
-	return teams, nil
+func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
+	opts.TeamType = model.NewString("O")
+	opts.AllowOpenInvite = model.NewBool(false)
+	return s.SearchAll(opts)
 }
 
 // GetAll returns all teams
@@ -558,13 +545,35 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 }
 
 // GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
+func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	var teams []*model.Team
 
-	query, args, err := s.teamsQuery.
+	selectString := "Teams.*"
+	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
+		selectString += ", RetentionPoliciesTeams.PolicyId"
+	}
+
+	builder := s.getQueryBuilder().
+		Select(selectString).
+		From("Teams").
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
+		Offset(uint64(offset))
+
+	if opts != nil {
+		if (opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained) ||
+			(opts.IncludePolicyID != nil && *opts.IncludePolicyID) {
+			builder = builder.LeftJoin("RetentionPoliciesTeams ON Teams.Id = RetentionPoliciesTeams.TeamId")
+		}
+		if opts.ExcludePolicyConstrained != nil && *opts.ExcludePolicyConstrained {
+			builder = builder.Where("RetentionPoliciesTeams.TeamId IS NULL")
+		}
+		if opts.AllowOpenInvite != nil {
+			builder = builder.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+		}
+	}
+
+	query, args, err := builder.ToSql()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
@@ -608,43 +617,6 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	return data, nil
 }
 
-// GetAllPublicTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
-		OrderBy("DisplayName").
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	var data []*model.Team
-	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Teams")
-	}
-
-	return data, nil
-}
-
-// GetAllPrivateTeamPageListing returns private teams, up to a total limit passed as paramater and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).
-		OrderBy("DisplayName").
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
-
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	var data []*model.Team
-	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Teams")
-	}
-
-	return data, nil
-}
-
 // GetAllTeamListing returns all public teams.
 func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
@@ -662,25 +634,6 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	return data, nil
 }
 
-// GetAllTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
-	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
-		OrderBy("DisplayName").
-		Limit(uint64(limit)).
-		Offset(uint64(offset)).ToSql()
-
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	var teams []*model.Team
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Teams")
-	}
-
-	return teams, nil
-}
-
 // PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
 // To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) error {
@@ -696,48 +649,14 @@ func (s SqlTeamStore) PermanentDelete(teamId string) error {
 	return nil
 }
 
-// AnalyticsPublicTeamCount returns the number of active public teams.
-func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, error) {
-	query, args, err := s.getQueryBuilder().
-		Select("COUNT(*) FROM Teams").
-		Where(sq.Eq{"DeleteAt": 0, "AllowOpenInvite": true}).ToSql()
-
-	if err != nil {
-		return 0, errors.Wrap(err, "team_tosql")
-	}
-
-	c, err := s.GetReplica().SelectInt(query, args...)
-
-	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Teams")
-	}
-
-	return c, nil
-}
-
-// AnalyticsPrivateTeamCount returns the number of active private teams.
-func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, error) {
-	query, args, err := s.getQueryBuilder().
-		Select("COUNT(*) FROM Teams").
-		Where(sq.Eq{"DeleteAt": 0, "AllowOpenInvite": false}).ToSql()
-
-	if err != nil {
-		return 0, errors.Wrap(err, "team_tosql")
-	}
-	c, err := s.GetReplica().SelectInt(query, args...)
-
-	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Teams")
-	}
-
-	return c, nil
-}
-
-// AnalyticsTeamCount returns the total number of teams including deleted teams if parameter passed is set to 'true'.
-func (s SqlTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
+// AnalyticsTeamCount returns the total number of teams.
+func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) {
 	query := s.getQueryBuilder().Select("COUNT(*) FROM Teams")
-	if !includeDeleted {
+	if opts == nil || (opts.IncludeDeleted != nil && !*opts.IncludeDeleted) {
 		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+	if opts != nil && opts.AllowOpenInvite != nil {
+		query = query.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -1502,6 +1421,34 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	}
 
 	return teamIds, nil
+}
+
+// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+// users belong.
+func (s SqlTeamStore) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error) {
+	var teamIDs []string
+	query, args, err := s.getQueryBuilder().
+		Select("TM1.TeamId").
+		From("TeamMembers AS TM1").
+		InnerJoin("TeamMembers AS TM2 ON TM1.TeamId = TM2.TeamId").
+		InnerJoin("Teams ON TM1.TeamId = Teams.Id").
+		Where(sq.And{
+			sq.Eq{"TM1.UserId": userID},
+			sq.Eq{"TM1.DeleteAt": 0},
+			sq.Eq{"TM2.UserId": otherUserID},
+			sq.Eq{"TM2.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+	_, err = s.GetReplica().Select(&teamIDs, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with user IDs %s and %s", userID, otherUserID)
+	}
+
+	return teamIDs, nil
 }
 
 // GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.

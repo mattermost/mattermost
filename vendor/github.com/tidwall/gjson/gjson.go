@@ -714,10 +714,10 @@ type arrayPathResult struct {
 	alogkey string
 	query   struct {
 		on    bool
+		all   bool
 		path  string
 		op    string
 		value string
-		all   bool
 	}
 }
 
@@ -750,119 +750,26 @@ func parseArrayPath(path string) (r arrayPathResult) {
 				} else if path[1] == '[' || path[1] == '(' {
 					// query
 					r.query.on = true
-					if true {
-						qpath, op, value, _, fi, ok := parseQuery(path[i:])
-						if !ok {
-							// bad query, end now
-							break
+					qpath, op, value, _, fi, vesc, ok :=
+						parseQuery(path[i:])
+					if !ok {
+						// bad query, end now
+						break
+					}
+					if len(value) > 2 && value[0] == '"' &&
+						value[len(value)-1] == '"' {
+						value = value[1 : len(value)-1]
+						if vesc {
+							value = unescape(value)
 						}
-						r.query.path = qpath
-						r.query.op = op
-						r.query.value = value
-						i = fi - 1
-						if i+1 < len(path) && path[i+1] == '#' {
-							r.query.all = true
-						}
-					} else {
-						var end byte
-						if path[1] == '[' {
-							end = ']'
-						} else {
-							end = ')'
-						}
-						i += 2
-						// whitespace
-						for ; i < len(path); i++ {
-							if path[i] > ' ' {
-								break
-							}
-						}
-						s := i
-						for ; i < len(path); i++ {
-							if path[i] <= ' ' ||
-								path[i] == '!' ||
-								path[i] == '=' ||
-								path[i] == '<' ||
-								path[i] == '>' ||
-								path[i] == '%' ||
-								path[i] == end {
-								break
-							}
-						}
-						r.query.path = path[s:i]
-						// whitespace
-						for ; i < len(path); i++ {
-							if path[i] > ' ' {
-								break
-							}
-						}
-						if i < len(path) {
-							s = i
-							if path[i] == '!' {
-								if i < len(path)-1 && (path[i+1] == '=' ||
-									path[i+1] == '%') {
-									i++
-								}
-							} else if path[i] == '<' || path[i] == '>' {
-								if i < len(path)-1 && path[i+1] == '=' {
-									i++
-								}
-							} else if path[i] == '=' {
-								if i < len(path)-1 && path[i+1] == '=' {
-									s++
-									i++
-								}
-							}
-							i++
-							r.query.op = path[s:i]
-							// whitespace
-							for ; i < len(path); i++ {
-								if path[i] > ' ' {
-									break
-								}
-							}
-							s = i
-							for ; i < len(path); i++ {
-								if path[i] == '"' {
-									i++
-									s2 := i
-									for ; i < len(path); i++ {
-										if path[i] > '\\' {
-											continue
-										}
-										if path[i] == '"' {
-											// look for an escaped slash
-											if path[i-1] == '\\' {
-												n := 0
-												for j := i - 2; j > s2-1; j-- {
-													if path[j] != '\\' {
-														break
-													}
-													n++
-												}
-												if n%2 == 0 {
-													continue
-												}
-											}
-											break
-										}
-									}
-								} else if path[i] == end {
-									if i+1 < len(path) && path[i+1] == '#' {
-										r.query.all = true
-									}
-									break
-								}
-							}
-							if i > len(path) {
-								i = len(path)
-							}
-							v := path[s:i]
-							for len(v) > 0 && v[len(v)-1] <= ' ' {
-								v = v[:len(v)-1]
-							}
-							r.query.value = v
-						}
+					}
+					r.query.path = qpath
+					r.query.op = op
+					r.query.value = value
+
+					i = fi - 1
+					if i+1 < len(path) && path[i+1] == '#' {
+						r.query.all = true
 					}
 				}
 			}
@@ -889,11 +796,11 @@ func parseArrayPath(path string) (r arrayPathResult) {
 //                              # middle
 //   .cap                       # right
 func parseQuery(query string) (
-	path, op, value, remain string, i int, ok bool,
+	path, op, value, remain string, i int, vesc, ok bool,
 ) {
 	if len(query) < 2 || query[0] != '#' ||
 		(query[1] != '(' && query[1] != '[') {
-		return "", "", "", "", i, false
+		return "", "", "", "", i, false, false
 	}
 	i = 2
 	j := 0 // start of value part
@@ -921,6 +828,7 @@ func parseQuery(query string) (
 			i++
 			for ; i < len(query); i++ {
 				if query[i] == '\\' {
+					vesc = true
 					i++
 				} else if query[i] == '"' {
 					break
@@ -929,7 +837,7 @@ func parseQuery(query string) (
 		}
 	}
 	if depth > 0 {
-		return "", "", "", "", i, false
+		return "", "", "", "", i, false, false
 	}
 	if j > 0 {
 		path = trim(query[2:j])
@@ -966,7 +874,7 @@ func parseQuery(query string) (
 		path = trim(query[2:i])
 		remain = query[i+1:]
 	}
-	return path, op, value, remain, i + 1, true
+	return path, op, value, remain, i + 1, vesc, true
 }
 
 func trim(s string) string {
@@ -1266,8 +1174,14 @@ func parseObject(c *parseContext, i int, path string) (int, bool) {
 }
 func queryMatches(rp *arrayPathResult, value Result) bool {
 	rpv := rp.query.value
-	if len(rpv) > 2 && rpv[0] == '"' && rpv[len(rpv)-1] == '"' {
-		rpv = rpv[1 : len(rpv)-1]
+	if len(rpv) > 0 && rpv[0] == '~' {
+		// convert to bool
+		rpv = rpv[1:]
+		if value.Bool() {
+			value = Result{Type: True}
+		} else {
+			value = Result{Type: False}
+		}
 	}
 	if !value.Exists() {
 		return false
@@ -1406,7 +1320,6 @@ func parseArray(c *parseContext, i int, path string) (int, bool) {
 		}
 		return false
 	}
-
 	for i < len(c.json)+1 {
 		if !rp.arrch {
 			pmatch = partidx == h
@@ -1608,10 +1521,17 @@ func parseArray(c *parseContext, i int, path string) (int, bool) {
 					c.calcd = true
 					return i + 1, true
 				}
-				if len(multires) > 0 && !c.value.Exists() {
-					c.value = Result{
-						Raw:  string(append(multires, ']')),
-						Type: JSON,
+				if !c.value.Exists() {
+					if len(multires) > 0 {
+						c.value = Result{
+							Raw:  string(append(multires, ']')),
+							Type: JSON,
+						}
+					} else if rp.query.all {
+						c.value = Result{
+							Raw:  "[]",
+							Type: JSON,
+						}
 					}
 				}
 				return i + 1, false
@@ -2176,11 +2096,6 @@ func parseAny(json string, i int, hit bool) (int, Result, bool) {
 	return i, res, false
 }
 
-var ( // used for testing
-	testWatchForFallback bool
-	testLastWasFallback  bool
-)
-
 // GetMany searches json for the multiple paths.
 // The return value is a Result array where the number of items
 // will be equal to the number of input paths.
@@ -2381,6 +2296,12 @@ func validnumber(data []byte, i int) (outi int, ok bool) {
 	// sign
 	if data[i] == '-' {
 		i++
+		if i == len(data) {
+			return i, false
+		}
+		if data[i] < '0' || data[i] > '9' {
+			return i, false
+		}
 	}
 	// int
 	if i == len(data) {
@@ -2745,19 +2666,24 @@ func modFlatten(json, arg string) string {
 	out = append(out, '[')
 	var idx int
 	res.ForEach(func(_, value Result) bool {
-		if idx > 0 {
-			out = append(out, ',')
-		}
+		var raw string
 		if value.IsArray() {
 			if deep {
-				out = append(out, unwrap(modFlatten(value.Raw, arg))...)
+				raw = unwrap(modFlatten(value.Raw, arg))
 			} else {
-				out = append(out, unwrap(value.Raw)...)
+				raw = unwrap(value.Raw)
 			}
 		} else {
-			out = append(out, value.Raw...)
+			raw = value.Raw
 		}
-		idx++
+		raw = strings.TrimSpace(raw)
+		if len(raw) > 0 {
+			if idx > 0 {
+				out = append(out, ',')
+			}
+			out = append(out, raw...)
+			idx++
+		}
 		return true
 	})
 	out = append(out, ']')

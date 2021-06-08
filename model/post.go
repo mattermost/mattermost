@@ -207,6 +207,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
+	dst.IsFollowing = o.IsFollowing
 	dst.RemoteId = o.RemoteId
 	return nil
 }
@@ -240,15 +241,15 @@ type GetPostsSinceOptions struct {
 	SortAscending            bool
 }
 
+type GetPostsSinceForSyncCursor struct {
+	LastPostUpdateAt int64
+	LastPostId       string
+}
+
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
-	Since           int64 // inclusive
-	Until           int64 // inclusive
-	SortDescending  bool
 	ExcludeRemoteId string
 	IncludeDeleted  bool
-	Limit           int
-	Offset          int
 }
 
 type GetPostsOptions struct {
@@ -469,6 +470,14 @@ func (o *Post) IsSystemMessage() bool {
 // IsRemote returns true if the post originated on a remote cluster.
 func (o *Post) IsRemote() bool {
 	return o.RemoteId != nil && *o.RemoteId != ""
+}
+
+// GetRemoteID safely returns the remoteID or empty string if not remote.
+func (o *Post) GetRemoteID() string {
+	if o.RemoteId != nil {
+		return *o.RemoteId
+	}
+	return ""
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {

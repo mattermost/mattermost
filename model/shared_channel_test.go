@@ -76,12 +76,11 @@ func TestSharedChannelPreUpdate(t *testing.T) {
 }
 
 func TestSharedChannelRemoteJson(t *testing.T) {
-	o := SharedChannelRemote{Id: NewId(), ChannelId: NewId(), Description: "Test"}
+	o := SharedChannelRemote{Id: NewId(), ChannelId: NewId()}
 	json := o.ToJson()
 	ro, err := SharedChannelRemoteFromJson(strings.NewReader(json))
 
 	require.NoError(t, err)
 	require.Equal(t, o.Id, ro.Id)
 	require.Equal(t, o.ChannelId, ro.ChannelId)
-	require.Equal(t, o.Description, ro.Description)
 }

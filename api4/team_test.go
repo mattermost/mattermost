@@ -1007,6 +1007,76 @@ func TestGetAllTeams(t *testing.T) {
 		require.Len(t, teams, 5)
 	})
 
+	// Choose a team which the system manager can access
+	sysManagerTeams, resp := th.SystemManagerClient.GetAllTeams("", 0, 10000)
+	CheckOKStatus(t, resp)
+	policyTeam := sysManagerTeams[0]
+	// If no policies exist, GetAllTeamsExcludePolicyConstrained should return everything
+	t.Run("exclude policy constrained, without policy", func(t *testing.T) {
+		_, excludeConstrainedResp := Client.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckForbiddenStatus(t, excludeConstrainedResp)
+		teams, excludeConstrainedResp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, excludeConstrainedResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				break
+			}
+		}
+		require.True(t, found)
+	})
+	// Now actually create the policy and assign the team to it
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		TeamIDs: []string{policyTeam.Id},
+	})
+	require.NoError(t, savePolicyErr)
+	// This time, the team shouldn't be returned
+	t.Run("exclude policy constrained, with policy", func(t *testing.T) {
+		teams, excludeConstrainedResp := th.SystemAdminClient.GetAllTeamsExcludePolicyConstrained("", 0, 100)
+		CheckOKStatus(t, excludeConstrainedResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				break
+			}
+		}
+		require.False(t, found)
+	})
+
+	t.Run("does not return policy ID", func(t *testing.T) {
+		teams, sysManagerResp := th.SystemManagerClient.GetAllTeams("", 0, 100)
+		CheckOKStatus(t, sysManagerResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Nil(t, team.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+
+	t.Run("returns policy ID", func(t *testing.T) {
+		teams, sysAdminResp := th.SystemAdminClient.GetAllTeams("", 0, 100)
+		CheckOKStatus(t, sysAdminResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Equal(t, *team.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+
 	t.Run("Unauthorized", func(t *testing.T) {
 		Client.Logout()
 		_, resp = Client.GetAllTeams("", 1, 10)
@@ -1215,7 +1285,7 @@ func TestSearchAllTeams(t *testing.T) {
 	th.LoginBasic()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
 		require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
@@ -1231,13 +1301,53 @@ func TestSearchAllTeams(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
 
 		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 		CheckNoError(t, resp)
 		require.Len(t, rteams, 1, "should have returned 1 team")
+	})
+
+	// Choose a team which the system manager can access
+	sysManagerTeams, resp := th.SystemManagerClient.GetAllTeams("", 0, 10000)
+	CheckOKStatus(t, resp)
+	policyTeam := sysManagerTeams[0]
+	// Now actually create the policy and assign the team to it
+	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+		RetentionPolicy: model.RetentionPolicy{
+			DisplayName:  "Policy 1",
+			PostDuration: model.NewInt64(30),
+		},
+		TeamIDs: []string{policyTeam.Id},
+	})
+	require.NoError(t, savePolicyErr)
+	t.Run("does not return policy ID", func(t *testing.T) {
+		teams, sysManagerResp := th.SystemManagerClient.SearchTeams(&model.TeamSearch{Term: policyTeam.Name})
+		CheckOKStatus(t, sysManagerResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Nil(t, team.PolicyID)
+				break
+			}
+		}
+		require.True(t, found)
+	})
+	t.Run("returns policy ID", func(t *testing.T) {
+		teams, sysAdminResp := th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: policyTeam.Name})
+		CheckOKStatus(t, sysAdminResp)
+		found := false
+		for _, team := range teams {
+			if team.Id == policyTeam.Id {
+				found = true
+				require.Equal(t, *team.PolicyID, policy.ID)
+				break
+			}
+		}
+		require.True(t, found)
 	})
 }
 
@@ -1249,7 +1359,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 
 	for i := 0; i < 3; i++ {
 		uid := model.NewId()
-		newTeam, err := th.App.CreateTeam(&model.Team{
+		newTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 			DisplayName: fmt.Sprintf("%s %d %s", commonRandom, i, uid),
 			Name:        fmt.Sprintf("%s-%d-%s", commonRandom, i, uid),
 			Type:        model.TEAM_OPEN,
@@ -1259,7 +1369,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		teams[i] = newTeam
 	}
 
-	foobarTeam, err := th.App.CreateTeam(&model.Team{
+	foobarTeam, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.TEAM_OPEN,
@@ -1755,7 +1865,7 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp := th.SystemAdminClient.DemoteUserToGuest(guest.Id)
 	CheckNoError(t, resp)
 
-	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	err := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	if err != nil {
 		require.FailNow(t, err.Error())
 	}
@@ -2132,7 +2242,7 @@ func TestAddTeamMembers(t *testing.T) {
 	})
 	bot := th.CreateBotWithSystemAdminClient()
 
-	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	err := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
 	// Regular user can't add a member to a team they don't belong to.
@@ -2926,7 +3036,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	t.Run("invalid data in request body", func(t *testing.T) {
 		res, err := th.SystemAdminClient.DoApiPost(th.SystemAdminClient.GetTeamRoute(th.BasicTeam.Id)+"/invite-guests/email", "bad data")
-		require.Error(t, err)
+		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_guests_to_channels.invalid_body.app_error", err.Id)
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
@@ -3229,9 +3339,9 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	team, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
-	_, err = th.App.AddTeamMember(team.Id, user1.Id)
+	_, err = th.App.AddTeamMember(th.Context, team.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.AddTeamMember(team.Id, user2.Id)
+	_, err = th.App.AddTeamMember(th.Context, team.Id, user2.Id)
 	require.Nil(t, err)
 
 	group1 := th.CreateGroup()
@@ -3321,8 +3431,8 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	})
 
 	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
-		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_INVALIDATE_EMAIL_INVITE.Id, model.SYSTEM_USER_ROLE_ID)
 		ok, res := th.Client.InvalidateEmailInvites()
 		require.Equal(t, true, ok)
 		CheckOKStatus(t, res)

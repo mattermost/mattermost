@@ -4,6 +4,7 @@
 package telemetry
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -65,6 +66,7 @@ const (
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
+	TrackFeatureFlags            = "config_feature_flags"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -86,7 +88,7 @@ type ServerIface interface {
 	HttpService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
-	GetRoleByName(string) (*model.Role, *model.AppError)
+	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
 }
 
@@ -274,7 +276,7 @@ func (ts *TelemetryService) trackActivity() {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(false)
+	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(nil)
 	if err != nil {
 		mlog.Info("Could not get team count", mlog.Err(err))
 	}
@@ -706,7 +708,6 @@ func (ts *TelemetryService) trackConfig() {
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
 		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
-		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
 		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
@@ -825,6 +826,14 @@ func (ts *TelemetryService) trackConfig() {
 	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
+
+	// Convert feature flags to map[string]interface{} for sending
+	flags := cfg.FeatureFlags.ToMap()
+	interfaceFlags := make(map[string]interface{})
+	for k, v := range flags {
+		interfaceFlags[k] = v
+	}
+	ts.sendTelemetry(TrackFeatureFlags, interfaceFlags)
 }
 
 func (ts *TelemetryService) trackLicense() {
@@ -948,48 +957,48 @@ func (ts *TelemetryService) trackPermissions() {
 	})
 
 	systemAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_ADMIN_ROLE_ID); err == nil {
 		systemAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_USER_ROLE_ID); err == nil {
 		systemUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.TEAM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_ADMIN_ROLE_ID); err == nil {
 		teamAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.TEAM_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_USER_ROLE_ID); err == nil {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.TEAM_GUEST_ROLE_ID); err == nil {
 		teamGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelAdminPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_ADMIN_ROLE_ID); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelUserPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_USER_ROLE_ID); err == nil {
 		channelUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelGuestPermissions := ""
-	if role, err := ts.srv.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.CHANNEL_GUEST_ROLE_ID); err == nil {
 		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemManagerPermissions := ""
 	systemManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_MANAGER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_MANAGER_ROLE_ID); err == nil {
 		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
 		systemManagerPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1000,7 +1009,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 	systemUserManagerPermissions := ""
 	systemUserManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
 		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
 		systemUserManagerPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1011,7 +1020,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 	systemReadOnlyAdminPermissions := ""
 	systemReadOnlyAdminPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
 		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
 		systemReadOnlyAdminPermissions = strings.Join(role.Permissions, " ")
 	}
@@ -1043,32 +1052,32 @@ func (ts *TelemetryService) trackPermissions() {
 	if schemes, err := ts.srv.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
 		for _, scheme := range schemes {
 			teamAdminPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultTeamAdminRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamAdminRole); err == nil {
 				teamAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamUserPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultTeamUserRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamUserRole); err == nil {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamGuestPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultTeamGuestRole); err == nil {
 				teamGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelAdminPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelUserPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelUserRole); err == nil {
 				channelUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelGuestPermissions := ""
-			if role, err := ts.srv.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
+			if role, err := ts.srv.GetRoleByName(context.Background(), scheme.DefaultChannelGuestRole); err == nil {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 

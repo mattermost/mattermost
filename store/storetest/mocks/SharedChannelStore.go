@@ -261,13 +261,13 @@ func (_m *SharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Share
 	return r0, r1
 }
 
-// GetUser provides a mock function with given fields: userId, remoteId
-func (_m *SharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
-	ret := _m.Called(userId, remoteId)
+// GetSingleUser provides a mock function with given fields: userID, channelID, remoteID
+func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
+	ret := _m.Called(userID, channelID, remoteID)
 
 	var r0 *model.SharedChannelUser
-	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelUser); ok {
-		r0 = rf(userId, remoteId)
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.SharedChannelUser); ok {
+		r0 = rf(userID, channelID, remoteID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SharedChannelUser)
@@ -275,8 +275,54 @@ func (_m *SharedChannelStore) GetUser(userId string, remoteId string) (*model.Sh
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userId, remoteId)
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userID, channelID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUsersForSync provides a mock function with given fields: filter
+func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
+	ret := _m.Called(filter)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(model.GetUsersForSyncFilter) []*model.User); ok {
+		r0 = rf(filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetUsersForSyncFilter) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUsersForUser provides a mock function with given fields: userID
+func (_m *SharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
+	ret := _m.Called(userID)
+
+	var r0 []*model.SharedChannelUser
+	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelUser); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -478,13 +524,13 @@ func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*
 	return r0, r1
 }
 
-// UpdateRemoteNextSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
-	ret := _m.Called(id, syncTime)
+// UpdateRemoteCursor provides a mock function with given fields: id, cursor
+func (_m *SharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
+	ret := _m.Called(id, cursor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(id, syncTime)
+	if rf, ok := ret.Get(0).(func(string, model.GetPostsSinceForSyncCursor) error); ok {
+		r0 = rf(id, cursor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -492,13 +538,13 @@ func (_m *SharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) 
 	return r0
 }
 
-// UpdateUserLastSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
-	ret := _m.Called(id, syncTime)
+// UpdateUserLastSyncAt provides a mock function with given fields: userID, channelID, remoteID
+func (_m *SharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
+	ret := _m.Called(userID, channelID, remoteID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(id, syncTime)
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(userID, channelID, remoteID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
@@ -23,8 +24,13 @@ const (
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
 	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
+	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
+	MaxUpsertRetries             = 25
+	ProfileImageSyncTimeout      = time.Second * 5
+	KeyRemoteUsername            = "RemoteUsername"
+	KeyRemoteEmail               = "RemoteEmail"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -40,19 +46,23 @@ type ServerIface interface {
 
 type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
-	GetOrCreateDirectChannel(userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
+	CreateChannelWithUser(c *request.Context, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	GetOrCreateDirectChannel(c *request.Context, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
+	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(channel *model.Channel) *model.AppError
-	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	DeletePost(postID, deleteByID string) (*model.Post, *model.AppError)
-	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
+	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
+	InvalidateCacheForUser(userID string)
+	NotifySharedChannelUserUpdate(user *model.User)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
