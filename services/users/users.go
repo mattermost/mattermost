@@ -6,16 +6,23 @@ package users
 import (
 	"context"
 	"fmt"
+	"runtime"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type UserService struct {
-	store  store.UserStore
-	config func() *model.Config
+	store        store.UserStore
+	sessionStore store.SessionStore
+	sessionCache cache.Cache
+	metrics      einterfaces.MetricsInterface
+	cluster      einterfaces.ClusterInterface
+	config       func() *model.Config
 }
 
 type UserCreateOptions struct {
@@ -23,11 +30,27 @@ type UserCreateOptions struct {
 	FromImport bool
 }
 
-func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
-	return &UserService{
-		store:  s,
-		config: cfgFn,
+func New(s store.UserStore, ss store.SessionStore, c einterfaces.ClusterInterface, m einterfaces.MetricsInterface, cfgFn func() *model.Config) (*UserService, error) {
+	cacheProvider := cache.NewProvider()
+	if err := cacheProvider.Connect(); err != nil {
+		return nil, fmt.Errorf("could not create cache provider: %w", err)
 	}
+
+	sessionCache, err := cacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.SESSION_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create session cache: %w", err)
+	}
+
+	return &UserService{
+		store:        s,
+		sessionStore: ss,
+		config:       cfgFn,
+		sessionCache: sessionCache,
+	}, nil
 }
 
 // CreateUser creates a user
@@ -41,11 +64,11 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !checkUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
 		return nil, AcceptedDomainError
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !checkUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
 		return nil, AcceptedDomainError
 	}
 
@@ -193,4 +216,18 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 	}
 
 	return users, nil
+}
+
+func (us *UserService) InvalidateCacheForUser(userID string) {
+	us.store.InvalidateProfilesInChannelCacheByUser(userID)
+	us.store.InvalidateProfileCacheForUser(userID)
+
+	if us.cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     userID,
+		}
+		us.cluster.SendClusterMessage(msg)
+	}
 }

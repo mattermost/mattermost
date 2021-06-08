@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
@@ -158,6 +159,10 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 
+	userService, err := users.New(&mockUserStore, &mockSessionStore, th.App.Cluster(), th.App.Metrics(), th.App.srv.Config)
+	require.NoError(t, err)
+	th.App.srv.userService = userService
+
 	// This needs to be false for the condition to trigger
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ExtendSessionLengthWithActivity = false
@@ -174,7 +179,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.AddSessionToCache(sess1)
+	th.App.srv.userService.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {

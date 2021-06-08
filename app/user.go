@@ -138,7 +138,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
-	if !CheckUserDomain(user, team.AllowedDomains) {
+	if !users.CheckUserDomain(user, team.AllowedDomains) {
 		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
 	}
 
@@ -207,27 +207,8 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (s *Server) IsFirstUserAccount() bool {
-	cachedSessions, err := s.sessionCache.Len()
-	if err != nil {
-		return false
-	}
-	if cachedSessions == 0 {
-		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-		if err != nil {
-			mlog.Debug("There was an error fetching if first user account", mlog.Err(err))
-			return false
-		}
-		if count <= 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (a *App) IsFirstUserAccount() bool {
-	return a.Srv().IsFirstUserAccount()
+	return a.srv.userService.IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -379,28 +360,6 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	}
 
 	return ruser, nil
-}
-
-// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
-func CheckEmailDomain(email string, domains string) bool {
-	if domains == "" {
-		return true
-	}
-
-	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
-
-	for _, d := range domainArray {
-		if strings.HasSuffix(strings.ToLower(email), "@"+d) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
-	return CheckEmailDomain(user.Email, domains)
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
@@ -1190,13 +1149,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 	var newEmail string
 	if user.Email != prev.Email {
-		if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+		if !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 			if !prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() {
 				return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if !users.CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			if prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() {
 				return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_guest_domain.app_error", nil, "", http.StatusBadRequest)
 			}

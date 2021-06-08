@@ -1968,14 +1968,17 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		"userID": 1,
 	}
 	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", false).Return(times, nil)
-	th.App.srv.userService = users.New(&mockUserStore, th.App.srv.Config)
+	mockSessionStore := mocks.SessionStore{}
+	var err error
+	th.App.srv.userService, err = users.New(&mockUserStore, &mockSessionStore, nil, nil, th.App.srv.Config)
+	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 
-	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
-	require.Nil(t, err)
+	_, appErr := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.Context.Session().Id, false)
+	require.Nil(t, appErr)
 }
 
 func TestClearChannelMembersCache(t *testing.T) {
