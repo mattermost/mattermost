@@ -29,7 +29,12 @@ const (
 	PREFERENCE_NAME_NAME_FORMAT               = "name_format"
 	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
 
+	// PREFERENCE_CATEGORY_THEME
+	// Deprecated: use PREFERENCE_CATEGORY_THEME_OS_SYNCHRONIZABLE
 	PREFERENCE_CATEGORY_THEME = "theme"
+	// the name for theme props is the team id
+
+	PREFERENCE_CATEGORY_THEME_OS_SYNCHRONIZABLE = "theme_os_synchronizable"
 	// the name for theme props is the team id
 
 	PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP = "oauth_app"
@@ -64,6 +69,13 @@ type Preference struct {
 	Value    string `json:"value"`
 }
 
+type themePreference struct {
+	SynchronizeWithOs bool              `json:"synchronize_with_os"`
+	Dark              map[string]string `json:"dark,omitempty"`
+	Light             map[string]string `json:"light,omitempty"`
+	NotSynchronized   map[string]string `json:"not_synchronized,omitempty"`
+}
+
 func (o *Preference) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -94,8 +106,14 @@ func (o *Preference) IsValid() *AppError {
 
 	if o.Category == PREFERENCE_CATEGORY_THEME {
 		var unused map[string]string
-		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
-			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+		if err := o.decodeTheme(&unused); err != nil {
+			return err
+		}
+	}
+	if o.Category == PREFERENCE_CATEGORY_THEME_OS_SYNCHRONIZABLE {
+		var unused themePreference
+		if err := o.decodeTheme(&unused); err != nil {
+			return err
 		}
 	}
 
@@ -104,28 +122,57 @@ func (o *Preference) IsValid() *AppError {
 
 func (o *Preference) PreUpdate() {
 	if o.Category == PREFERENCE_CATEGORY_THEME {
-		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
-		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
+		if err := o.decodeValueFromJson(&props); err != nil {
 			// just continue, the invalid preference value should get caught by IsValid before saving
 			return
 		}
+		blankOutInvalidThemeValues(props)
+		o.setValueAsJson(props)
+	}
+	if o.Category == PREFERENCE_CATEGORY_THEME_OS_SYNCHRONIZABLE {
+		var props themePreference
+		if err := o.decodeValueFromJson(&props); err != nil {
+			// just continue, the invalid preference value should get caught by IsValid before saving
+			return
+		}
+		blankOutInvalidThemeValues(props.Dark)
+		blankOutInvalidThemeValues(props.Light)
+		blankOutInvalidThemeValues(props.NotSynchronized)
+		o.setValueAsJson(props)
+	}
+}
 
-		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+func (o *Preference) decodeTheme(dst interface{}) *AppError {
+	if err := o.decodeValueFromJson(dst); err != nil {
+		return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+	}
+	return nil
+}
 
-		// blank out any invalid theme values
-		for name, value := range props {
-			if name == "image" || name == "type" || name == "codeTheme" {
-				continue
-			}
+func (o *Preference) decodeValueFromJson(dst interface{}) error {
+	return json.NewDecoder(strings.NewReader(o.Value)).Decode(dst)
+}
 
-			if !colorPattern.MatchString(value) {
-				props[name] = "#ffffff"
-			}
+func (o *Preference) setValueAsJson(v interface{}) {
+	if b, err := json.Marshal(v); err == nil {
+		o.Value = string(b)
+	}
+}
+
+func blankOutInvalidThemeValues(themeProps map[string]string) {
+	if themeProps == nil {
+		return
+	}
+	colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
+	for name, value := range themeProps {
+		if name == "image" || name == "type" || name == "codeTheme" {
+			continue
 		}
 
-		if b, err := json.Marshal(props); err == nil {
-			o.Value = string(b)
+		if !colorPattern.MatchString(value) {
+			themeProps[name] = "#ffffff"
 		}
 	}
 }
