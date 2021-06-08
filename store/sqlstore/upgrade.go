@@ -20,6 +20,7 @@ import (
 
 const (
 	CurrentSchemaVersion   = Version5360
+	Version5370            = "5.37.0"
 	Version5360            = "5.36.0"
 	Version5350            = "5.35.0"
 	Version5340            = "5.34.0"
@@ -208,6 +209,7 @@ func upgradeDatabase(sqlStore *SqlStore, currentModelVersionString string) error
 	upgradeDatabaseToVersion534(sqlStore)
 	upgradeDatabaseToVersion535(sqlStore)
 	upgradeDatabaseToVersion536(sqlStore)
+	upgradeDatabaseToVersion537(sqlStore)
 
 	return nil
 }
@@ -1133,7 +1135,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 
 	forceIndex := ""
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		forceIndex = "FORCE INDEX(idx_posts_channel_id)"
+		forceIndex = "FORCE INDEX(idx_posts_channel_id_update_at)"
 	}
 	totalMsgCountRootCTE := `
 		SELECT Channels.Id channelid, COALESCE(COUNT(*),0) newcount, COALESCE(MAX(Posts.CreateAt), 0) as lastpost
@@ -1178,4 +1180,30 @@ func rootCountMigration(sqlStore *SqlStore) {
 			mlog.Error("Error updating ChannelMembers table", mlog.Err(err))
 		}
 	}
+}
+
+func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, Version5360, Version5370) {
+	sqlStore.RemoveIndexIfExists("idx_posts_channel_id", "Posts")
+	sqlStore.RemoveIndexIfExists("idx_channels_name", "Channels")
+	sqlStore.RemoveIndexIfExists("idx_publicchannels_name", "PublicChannels")
+	sqlStore.RemoveIndexIfExists("idx_channelmembers_channel_id", "ChannelMembers")
+	sqlStore.RemoveIndexIfExists("idx_emoji_name", "Emoji")
+	sqlStore.RemoveIndexIfExists("idx_oauthaccessdata_client_id", "OAuthAccessData")
+	sqlStore.RemoveIndexIfExists("idx_oauthauthdata_client_id", "OAuthAuthData")
+	sqlStore.RemoveIndexIfExists("idx_preferences_user_id", "Preferences")
+	sqlStore.RemoveIndexIfExists("idx_notice_views_user_id", "ProductNoticeViewState")
+	sqlStore.RemoveIndexIfExists("idx_notice_views_user_notice", "ProductNoticeViewState")
+	sqlStore.RemoveIndexIfExists("idx_status_user_id", "Status")
+	sqlStore.RemoveIndexIfExists("idx_teammembers_team_id", "TeamMembers")
+	sqlStore.RemoveIndexIfExists("idx_teams_name", "Teams")
+	sqlStore.RemoveIndexIfExists("idx_user_access_tokens_token", "UserAccessTokens")
+	sqlStore.RemoveIndexIfExists("idx_user_terms_of_service_user_id", "UserTermsOfService")
+	sqlStore.RemoveIndexIfExists("idx_users_email", "Users")
+	sqlStore.RemoveIndexIfExists("idx_sharedchannelusers_user_id", "SharedChannelUsers")
+	sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
+	sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+
+	// saveSchemaVersion(sqlStore, Version5370)
+	// }
 }
