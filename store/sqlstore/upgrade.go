@@ -662,9 +662,12 @@ func upgradeDatabaseToVersion58(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
 		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
-		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
-		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
-		sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
+		sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "Username")
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.RemoveDefaultIfColumnExists("OutgoingWebhooks", "IconURL")
+		}
+		sqlStore.AlterDefaultIfColumnExists("OutgoingWebhooks", "Username", model.NewString("NULL"), nil)
+		sqlStore.AlterDefaultIfColumnExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
 
 		saveSchemaVersion(sqlStore, Version580)
 	}
@@ -938,9 +941,9 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
 		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
-		sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
+		sqlStore.RemoveDefaultIfColumnExists("SidebarCategories", "Id")
 		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
-		sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
+		sqlStore.RemoveDefaultIfColumnExists("SidebarChannels", "CategoryId")
 
 		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
 
@@ -1091,7 +1094,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 	msgCountRootExists := sqlStore.DoesColumnExist("ChannelMembers", "MsgCountRoot")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MentionCountRoot", "bigint", "bigint", "0")
-	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
+	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MentionCountRoot", model.NewString("0"), model.NewString("0"))
 
 	mentionCountRootCTE := `
 		SELECT ChannelId, COALESCE(SUM(UnreadMentions), 0) AS UnreadMentions, UserId
@@ -1126,7 +1129,7 @@ func rootCountMigration(sqlStore *SqlStore) {
 	defer sqlStore.RemoveColumnIfExists("Channels", "LastRootPostAt")
 
 	sqlStore.CreateColumnIfNotExists("ChannelMembers", "MsgCountRoot", "bigint", "bigint", "0")
-	sqlStore.AlterColumnDefaultIfExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
+	sqlStore.AlterDefaultIfColumnExists("ChannelMembers", "MsgCountRoot", model.NewString("0"), model.NewString("0"))
 
 	forceIndex := ""
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
