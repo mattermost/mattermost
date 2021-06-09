@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/splitio/go-split-commons/v3/conf"
+	"github.com/splitio/go-split-commons/v3/dtos"
 	"github.com/splitio/go-split-commons/v3/push"
 	"github.com/splitio/go-split-commons/v3/service"
 	"github.com/splitio/go-split-commons/v3/storage"
+	"github.com/splitio/go-split-commons/v3/telemetry"
 	"github.com/splitio/go-toolkit/v4/backoff"
 	"github.com/splitio/go-toolkit/v4/logging"
 	"github.com/splitio/go-toolkit/v4/struct/traits/lifecycle"
@@ -38,15 +40,16 @@ type Manager interface {
 
 // ManagerImpl struct
 type ManagerImpl struct {
-	synchronizer    Synchronizer
-	logger          logging.LoggerInterface
-	config          conf.AdvancedConfig
-	pushManager     push.Manager
-	managerStatus   chan int
-	streamingStatus chan int64
-	operationMode   int32
-	lifecycle       lifecycle.Manager
-	backoff         backoff.Interface
+	synchronizer     Synchronizer
+	logger           logging.LoggerInterface
+	config           conf.AdvancedConfig
+	pushManager      push.Manager
+	managerStatus    chan int
+	streamingStatus  chan int64
+	operationMode    int32
+	lifecycle        lifecycle.Manager
+	backoff          backoff.Interface
+	runtimeTelemetry storage.TelemetryRuntimeProducer
 }
 
 // NewSynchronizerManager creates new sync manager
@@ -57,22 +60,29 @@ func NewSynchronizerManager(
 	authClient service.AuthClient,
 	splitStorage storage.SplitStorage,
 	managerStatus chan int,
+	runtimeTelemetry storage.TelemetryRuntimeProducer,
+	metadata dtos.Metadata,
+	clientKey *string,
 ) (*ManagerImpl, error) {
 	if managerStatus == nil || cap(managerStatus) < 1 {
 		return nil, errors.New("Status channel cannot be nil nor having capacity")
 	}
 
 	manager := &ManagerImpl{
-		backoff:       backoff.New(),
-		synchronizer:  synchronizer,
-		logger:        logger,
-		config:        config,
-		managerStatus: managerStatus,
+		backoff:          backoff.New(),
+		synchronizer:     synchronizer,
+		logger:           logger,
+		config:           config,
+		managerStatus:    managerStatus,
+		runtimeTelemetry: runtimeTelemetry,
 	}
 	manager.lifecycle.Setup()
 	if config.StreamingEnabled {
 		streamingStatus := make(chan int64, 1000)
-		pushManager, err := push.NewManager(logger, synchronizer, &config, streamingStatus, authClient)
+		if clientKey != nil && len(*clientKey) != 4 {
+			return nil, errors.New("invalid ClientKey")
+		}
+		pushManager, err := push.NewManager(logger, synchronizer, &config, streamingStatus, authClient, runtimeTelemetry, metadata, clientKey)
 		if err != nil {
 			return nil, err
 		}
@@ -182,6 +192,8 @@ func (s *ManagerImpl) pushStatusWatcher() {
 				s.pushManager.Stop()
 				s.synchronizer.SyncAll(false)
 				s.startPolling()
+				// Tracking STREAMING_DISABLED
+				s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeStreamingStatus, telemetry.StreamingDisabled))
 			}
 		}
 	}
@@ -190,6 +202,8 @@ func (s *ManagerImpl) pushStatusWatcher() {
 func (s *ManagerImpl) startPolling() {
 	atomic.StoreInt32(&s.operationMode, Polling)
 	s.synchronizer.StartPeriodicFetching()
+	// Tracking POLLING
+	s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeSyncMode, telemetry.Polling))
 }
 
 func (s *ManagerImpl) stopPolling() {
@@ -198,10 +212,16 @@ func (s *ManagerImpl) stopPolling() {
 
 func (s *ManagerImpl) pauseStreaming() {
 	s.pushManager.StartWorkers()
+	// Tracking STREAMING_PAUSED
+	s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeStreamingStatus, telemetry.StreamingPaused))
 }
 
 func (s *ManagerImpl) enableStreaming() {
 	s.pushManager.StartWorkers()
 	atomic.StoreInt32(&s.operationMode, Streaming)
 	s.backoff.Reset()
+	// Tracking STREAMING
+	s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeSyncMode, telemetry.Streaming))
+	// Tracking STREAMING_ENABLED
+	s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeStreamingStatus, telemetry.StreamingEnabled))
 }

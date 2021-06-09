@@ -7,6 +7,7 @@
 package app
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -230,8 +231,6 @@ type AppIface interface {
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// InstallPluginWithSignature verifies and installs plugin.
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
-	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
-	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
@@ -326,6 +325,8 @@ type AppIface interface {
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
 	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
+	// TODO: migrate this after the user service implementation is completed
+	GetSanitizeOptions(asAdmin bool) map[string]bool
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
@@ -382,6 +383,8 @@ type AppIface interface {
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
 	//GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
+	//nolint:golint,unused,deadcode
+	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
@@ -422,13 +425,15 @@ type AppIface interface {
 	BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
 	BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError
-	BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
-	BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
+	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
+	CheckCloudAccountAtLimit() (bool, *model.AppError)
 	CheckForClientSideCert(r *http.Request) (string, string, string)
+	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
@@ -710,7 +715,6 @@ type AppIface interface {
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
-	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)
@@ -734,6 +738,8 @@ type AppIface interface {
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
 	GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError)
+	GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError)
+	GetSystemBot() (*model.Bot, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError)
 	GetTeamByName(name string) (*model.Team, *model.AppError)

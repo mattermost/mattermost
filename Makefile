@@ -111,12 +111,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.9.3
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
+PLUGIN_PACKAGES += focalboard-v0.6.7-plugin
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -575,7 +576,6 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f *.out
 	rm -f *.test
 	rm -f imports/imports.go
-	rm -f cmd/platform/cprofile*.out
 	rm -f cmd/mattermost/cprofile*.out
 
 nuke: clean clean-docker ## Clean plus removes persistent server data.

@@ -1716,10 +1716,6 @@
     "translation": "Konnte das Teamsymbol nicht dekodieren"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Konnte Metadaten des Teamsymbols nicht dekodieren"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Konnte Teamsymbol nicht kodieren."
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Konnte Profilbild nicht dekodieren"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Konnte Profilbild nicht speichern. Datei scheint kein gültiges Bild zu sein."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2917,7 +2909,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Neue Direktnachricht von @{{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{.SiteName}}] Neue Direktnachricht von {{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3040,10 +3032,6 @@
     "translation": "Konnte Bild-Daten nicht dekodieren."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Konnte Bild-Metadaten nicht abrufen."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Konnte das Bild nicht ins PNG-Format konvertieren. Bitte erneut versuchen."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Konnte das Bild nicht auf ihrem Server speichern. Bitte überprüfen Sie ihre Verbindung und versuchen es erneut."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Konnte das Bild nicht lesen. Stellen Sie sicher, dass es kleiner als 2MB ist und versuchen es erneut."
   },
   {
     "id": "cli.license.critical",
@@ -5949,7 +5933,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+    "translation": "Ihre Lizenz unterstützt die Moderation eines Kanals nicht"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -6990,5 +6974,13 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP ist nicht verfügbar."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Nachricht ansehen"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Zwischen diesen Nutzern kann keine Direktnachricht ausgetauscht werden, da sie nicht dem gleichen Team angehören."
   }
 ]

@@ -321,25 +321,39 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	var dbmap *gorp.DbMap
+	dbMap := getDBMap(settings, db)
 
+	return dbMap
+}
+
+func getDBMap(settings *model.SqlSettings, db *dbsql.DB) *gorp.DbMap {
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
-
-	if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
-	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
-	} else {
+	var dbMap *gorp.DbMap
+	switch *settings.DriverName {
+	case model.DATABASE_DRIVER_MYSQL:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"},
+			QueryTimeout:  connectionTimeout,
+		}
+	case model.DATABASE_DRIVER_POSTGRES:
+		dbMap = &gorp.DbMap{
+			Db:            db,
+			TypeConverter: mattermConverter{},
+			Dialect:       gorp.PostgresDialect{},
+			QueryTimeout:  connectionTimeout,
+		}
+	default:
 		mlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(ExitNoDriver)
+		return nil
 	}
-
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
+		dbMap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
-
-	return dbmap
+	return dbMap
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -895,7 +909,23 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return true
 }
 
-func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+func (ss *SqlStore) RemoveDefaultIfColumnExists(tableName, columnName string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+	if err != nil {
+		mlog.Critical("Failed to drop column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(ExitGenericFailure)
+		return false
+	}
+
+	return true
+}
+
+func (ss *SqlStore) AlterDefaultIfColumnExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -924,15 +954,14 @@ func (ss *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName stri
 		return false
 	}
 
-	var err error
 	if defaultValue == "" {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
-	} else {
-		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+		defaultValue = "''"
 	}
 
+	query := "ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue
+	_, err := ss.GetMaster().ExecNoTimeout(query)
 	if err != nil {
-		mlog.Critical("Failed to alter column", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
+		mlog.Critical("Failed to alter column default", mlog.String("table", tableName), mlog.String("column", columnName), mlog.String("default value", defaultValue), mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(ExitGenericFailure)
 		return false
@@ -1493,6 +1522,10 @@ func (ss *SqlStore) appendMultipleStatementsFlag(dataSource string) (string, err
 		config, err := mysql.ParseDSN(dataSource)
 		if err != nil {
 			return "", err
+		}
+
+		if config.Params == nil {
+			config.Params = map[string]string{}
 		}
 
 		config.Params["multiStatements"] = "true"
