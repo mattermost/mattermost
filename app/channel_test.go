@@ -2049,7 +2049,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
 	err := th.App.Srv().Store.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// mention the user in a root post
 	post1 := &model.Post{
@@ -2058,7 +2058,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		UserId:    u2.Id,
 	}
 	rpost1, err := th.App.CreatePost(th.Context, post1, c1, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// mention the user in a reply post
 	post2 := &model.Post{
@@ -2068,11 +2068,11 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		RootId:    rpost1.Id,
 	}
 	_, err = th.App.CreatePost(th.Context, post2, c1, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Check we have unread mention in the thread
 	threads, err := th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	found := false
 	for _, thread := range threads.Threads {
 		if thread.PostId == rpost1.Id {
@@ -2085,11 +2085,11 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 
 	// Mark channel as read from a client that supports CRT
 	_, err = th.App.MarkChannelsAsViewed([]string{c1.Id}, u1.Id, th.Context.Session().Id, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Thread should be marked as read because CRT has been turned off by user
 	threads, err = th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	found = false
 	for _, thread := range threads.Threads {
 		if thread.PostId == rpost1.Id {
@@ -2125,7 +2125,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
 	err := th.App.Srv().Store.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// user2: first root mention @user1
 	//   - user1: hello
