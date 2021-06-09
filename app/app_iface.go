@@ -382,6 +382,8 @@ type AppIface interface {
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
 	//GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
+	//nolint:golint,unused,deadcode
+	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
@@ -736,6 +738,7 @@ type AppIface interface {
 	GetStatusFromCache(userID string) *model.Status
 	GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError)
 	GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError)
+	GetSystemBot() (*model.Bot, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError)
 	GetTeamByName(name string) (*model.Team, *model.AppError)
