@@ -350,7 +350,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 		Where(fetchConditions).ToSql()
-	err := s.GetReplica().SelectOne(&thread, query, args...)
+	err := s.GetMaster().SelectOne(&thread, query, args...)
 
 	if err != nil {
 		return nil, err
