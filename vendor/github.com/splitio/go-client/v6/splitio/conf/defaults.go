@@ -3,6 +3,7 @@ package conf
 const (
 	defaultHTTPTimeout             = 30
 	defaultTaskPeriod              = 60
+	defaultTelemetrySync           = 3600
 	defaultRedisHost               = "localhost"
 	defaultRedisPort               = 6379
 	defaultRedisDb                 = 0

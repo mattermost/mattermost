@@ -147,7 +147,7 @@ func encodeStructValue(e *Encoder, strct reflect.Value) error {
 	if e.flags&arrayEncodedStructsFlag != 0 || structFields.AsArray {
 		return encodeStructValueAsArray(e, strct, structFields.List)
 	}
-	fields := structFields.OmitEmpty(strct)
+	fields := structFields.OmitEmpty(strct, e.flags&omitEmptyFlag != 0)
 
 	if err := e.EncodeMapLen(len(fields)); err != nil {
 		return err

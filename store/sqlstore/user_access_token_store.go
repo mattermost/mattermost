@@ -33,7 +33,6 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 }
 
 func (s SqlUserAccessTokenStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_access_tokens_token", "UserAccessTokens", "Token")
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 

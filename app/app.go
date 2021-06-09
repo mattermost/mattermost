@@ -568,10 +568,10 @@ func (a *App) dbHealthCheckKey() string {
 	return fmt.Sprintf("health_check_%s", a.GetClusterId())
 }
 
-func (a *App) SetServer(srv *Server) {
-	a.srv = srv
+func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	return a.Srv().Store.CheckIntegrity()
 }
 
-func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
-	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
 }

@@ -150,6 +150,10 @@ type TeamStore interface {
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
+
+	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
+	// users belong.
+	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 }
 
 type ChannelStore interface {
@@ -212,7 +216,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userID string) error
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string, updateThreads bool) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
 	IncrementMentionCount(channelID string, userID string, updateThreads, isRoot bool) error
 	AnalyticsTypeCount(teamID string, channelType string) (int64, error)
@@ -284,6 +288,7 @@ type ThreadStore interface {
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID, teamID string) error
+	MarkAllAsReadInChannels(userID string, channelIDs []string) error
 	MarkAsRead(userID, threadID string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
@@ -337,7 +342,7 @@ type PostStore interface {
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
-	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error)
+	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 }
 
 type UserStore interface {
@@ -600,7 +605,6 @@ type StatusStore interface {
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
-	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 }
 
 type FileInfoStore interface {
@@ -849,13 +853,15 @@ type SharedChannelStore interface {
 	GetRemoteForUser(remoteId string, userId string) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
-	UpdateRemoteNextSyncAt(id string, syncTime int64) error
+	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
-	GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
-	UpdateUserLastSyncAt(id string, syncTime int64) error
+	GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error)
+	GetUsersForUser(userID string) ([]*model.SharedChannelUser, error)
+	GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error)
+	UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)

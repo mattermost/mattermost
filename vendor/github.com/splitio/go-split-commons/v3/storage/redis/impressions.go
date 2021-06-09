@@ -14,23 +14,21 @@ const impressionsTTLRefresh = time.Duration(3600) * time.Second
 
 // ImpressionStorage is a redis-based implementation of split storage
 type ImpressionStorage struct {
-	client         *redis.PrefixedRedisClient
-	mutex          *sync.Mutex
-	logger         logging.LoggerInterface
-	redisKey       string
-	impressionsTTL time.Duration
-	metadata       dtos.Metadata
+	client   *redis.PrefixedRedisClient
+	mutex    *sync.Mutex
+	logger   logging.LoggerInterface
+	redisKey string
+	metadata dtos.Metadata
 }
 
 // NewImpressionStorage creates a new RedisSplitStorage and returns a reference to it
 func NewImpressionStorage(client *redis.PrefixedRedisClient, metadata dtos.Metadata, logger logging.LoggerInterface) *ImpressionStorage {
 	return &ImpressionStorage{
-		client:         client,
-		mutex:          &sync.Mutex{},
-		logger:         logger,
-		redisKey:       redisImpressionsQueue,
-		impressionsTTL: redisImpressionsTTL,
-		metadata:       metadata,
+		client:   client,
+		mutex:    &sync.Mutex{},
+		logger:   logger,
+		redisKey: redisImpressionsQueue,
+		metadata: metadata,
 	}
 }
 
@@ -83,7 +81,7 @@ func (r *ImpressionStorage) push(impressions []dtos.ImpressionQueueObject) error
 	// Checks if expiration needs to be set
 	if inserted == int64(len(impressionsJSON)) {
 		r.logger.Debug("Proceeding to set expiration for: ", r.redisKey)
-		result := r.client.Expire(r.redisKey, time.Duration(r.impressionsTTL)*time.Minute)
+		result := r.client.Expire(r.redisKey, time.Duration(redisImpressionsTTL)*time.Second)
 		if result == false {
 			r.logger.Error("Something were wrong setting expiration", errPush)
 		}

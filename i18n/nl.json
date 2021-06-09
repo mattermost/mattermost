@@ -987,33 +987,6 @@
     "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder."
   },
   {
-    "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct bericht van "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Ga naar Bericht"
-  },
-  {
-    "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Groepsbericht van "
-  },
-  {
-    "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Vermelding van "
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "Je hebt een nieuwe melding.",
-      "other": "Je hebt {{.Count}} nieuwe meldingen."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}",
@@ -1743,10 +1716,6 @@
     "translation": "Kan het teampictogram niet decoderen."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kan de metadata van teampictogram niet decoderen."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kan het teampictogram niet encoderen."
   },
@@ -1912,7 +1881,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ga naar bericht"
+    "translation": "Bekijk bericht"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2297,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kan het profielafbeelding niet decoderen."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kan profielafbeelding niet opslaan. Bestand lijkt geen geldige afbeelding te zijn."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2943,62 +2908,6 @@
     "translation": "Teamnaam ontbreekt in het Teamlidmaatschap van de gebruiker."
   },
   {
-    "id": "app.notification.body.intro.direct.full",
-    "translation": "Je hebt een nieuw direct bericht."
-  },
-  {
-    "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.group_message.full",
-    "translation": "Je heeft een nieuw groepsbericht."
-  },
-  {
-    "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "Je hebt een nieuwe melding."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.full",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanaal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.full2",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.group_message.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Kanaal: {{.ChannelName}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full2",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
-  },
-  {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
@@ -3123,10 +3032,6 @@
     "translation": "Kan afbeeldingsdata niet decoderen."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kan metadata van afbeelding niet krijgen."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "De afbeeldingsgegevens kunnen niet naar PNG-indeling worden geconverteerd. Probeer het opnieuw."
   },
@@ -3137,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Het afbeeldingsbestand kan niet naar jouw bestandsopslag worden geschreven. Controleer jouw verbinding en probeer het opnieuw."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Het afbeeldingsbestand kan niet worden gelezen. Controleer of de afbeeldingsgrootte kleiner is dan 2 MB en probeer het opnieuw."
   },
   {
     "id": "cli.license.critical",
@@ -4320,71 +4221,71 @@
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet ontleden."
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team id."
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
-    "translation": "Ongeldig gebruikers id"
+    "translation": "Ongeldig gebruikers id."
   },
   {
     "id": "model.incoming_hook.username.app_error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige gebruikersnaam."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Aangemaakt op moet een geldige tijd zijn."
   },
   {
     "id": "model.job.is_valid.id.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldig job-id."
   },
   {
     "id": "model.job.is_valid.status.app_error",
-    "translation": "Invalid job status"
+    "translation": "Ongeldige taakstatus."
   },
   {
     "id": "model.job.is_valid.type.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige taaktype."
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "Ongeldige waarde voor create_at bij het uploaden van een licentie."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "Ongeldige waarde voor id bij het uploaden van een licentie."
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "De metagegevens van de link kunnen niet leeg zijn."
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "De metagegevens van de link komen niet overeen met het opgegeven type."
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "Tijdaanduiding van de link voor metagegevens moet niet nul zijn en afgerond op het dichtstbijzijnde uur."
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "Ongeldig type linkmetagegevens."
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "URL van linkmetagegevens moet worden ingesteld."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
-    "translation": "Ongeldig app id"
+    "translation": "Ongeldig app id."
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -4488,15 +4389,15 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "An error occurred while trying to execute this command."
+    "translation": "Er is een fout opgetreden bij het uitvoeren van deze opdracht."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Ongeldige sleutel, moet groter zijn dan {{.Min}} en een maximum van {{.Max}} tekens lang."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Ongeldig plugin-ID, moet groter zijn dan {{.Min}} en een maximum van {{.Max}} tekens lang."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4508,7 +4409,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Ongeldige bestands-ID ' s. Houd er rekening mee dat uploads beperkt zijn tot maximaal 5 bestanden. Gebruik extra berichten voor meer bestanden."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4652,7 +4553,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "Ongeldig token vervaltijd"
   },
   {
     "id": "model.token.is_valid.size",
@@ -4752,7 +4653,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the WebSocket server."
+    "translation": "Kon niet verbinden met de WebSocket-server."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -4760,7 +4661,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "De gebruikersstatus kan niet worden ingesteld. Onbekende gebruikersstatus."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -4772,15 +4673,15 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Ontbrekende HTML-tekst."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "E-mailonderwerp ontbreekt."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Aan-adres ontbreekt."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4832,7 +4733,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+    "translation": "Zoeken is uitgeschakeld op deze server. Neem contact op met de systeembeheerder."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
@@ -4884,7 +4785,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Unable to split webhook props into {{.Max}} character parts."
+    "translation": "Kan webhook props niet splitsen in {{.Max}} tekenonderdelen."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -8772,7 +8673,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Accepteer een uitnodiging van een externe cluster"
+    "translation": "Accepteer een uitnodiging van een externe Mattermost server"
   },
   {
     "id": "api.command_remote.invitation.hint",
@@ -8808,7 +8709,7 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id van beveiligde verbinding om uitnodiging ongedaan te maken."
+    "translation": "ID van beveiligde verbinding om uitnodiging ongedaan te maken."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
@@ -8844,19 +8745,19 @@
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "Beveiligde Verbinding | SiteURL |Alleen Lezen | Uitnodiging Aanvaard | Online | Laatste Sync |"
+    "translation": "Beveiligde verbinding | SiteURL |Alleen lezen | Uitnodiging aanvaard | Online | Laatste sync |"
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Moet een geldige beveiligde verbinding specificeren om het uitnodigen ongedaan te maken"
+    "translation": "Moet een geldige beveiligde verbindingsID specificeren om het uitnodigen ongedaan te maken"
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Beveiligde verbinding-id is ongeldig: {{.Error}}"
+    "translation": "Beveiligde verbinding-ID is ongeldig: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id van een bestaande beveiligde verbinding. Zie `secure-connection` commando om een beveiligde verbinding toe te voegen."
+    "translation": "ID van een bestaande beveiligde verbinding. Zie `secure-connection` commando om een beveiligde verbinding toe te voegen."
   },
   {
     "id": "api.command_share.remote_already_invited",
@@ -8872,7 +8773,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Er zijn geen beveiligde verbindingen uitgenodigd voor dit gedeelde kanaal."
+    "translation": "Er zijn geen beveiligde verbindingen uitgenodigd voor dit kanaal."
   },
   {
     "id": "api.command_share.name",
@@ -8880,7 +8781,7 @@
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Moet een geldig beveiligde verbindingsid specificeren om uit te nodigen."
+    "translation": "Moet een geldig beveiligde verbindingsID specificeren om uit te nodigen."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8888,11 +8789,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Nodigt een externe instantie uit in het huidige gedeelde kanaal"
+    "translation": "Nodigt een externe Mattermost instantie uit in het huidige gedeelde kanaal"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Kanaaluitnodiging is verzonden naar `{{.Name}} {{.SiteURL}}`."
+    "translation": "Uitnodiging voor gedeeld kanaal is verzonden naar `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -8964,19 +8865,19 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "SiteURL niet ingesteld. Stel dit in via de systeemconsole."
+    "translation": "SiteURL niet ingesteld. Stel dit in via de systeemconsole>Omgeving>Webserver."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Externe cluster service niet ingeschakeld."
+    "translation": "Beveiligde verbindingsservice niet ingeschakeld."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Externe cluster service is uitgeschakeld."
+    "translation": "Beveiligde verbindingservice is uitgeschakeld."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "Id van beveiligde verbinding verwijderen"
+    "translation": "Het Id van de te verwijderen beveiligde verbinding."
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -8992,7 +8893,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "|Beveiligde Verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
+    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -9024,7 +8925,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Stuur de volgende versleutelde (AES256 + Base64) blob naar de beheerder van de remote site samen met het wachtwoord. Deze zal de `{.Command}}` slashopdracht gebruiken om de uitnodiging te accepteren.\n\n```\n{{.Invitation}}\n```\n\n**Zorg ervoor dat de externe site toegang heeft tot jouw cluster via** {{.SiteURL}}"
+    "translation": "Stuur de volgende AES 256-bit versleutelde uitnodiging naar de externe Mattermost systeembeheerder samen met het wachtwoord. De systeembeheerder zal de `{{.Command}}` slashopdracht gebruiken om de uitnodiging te accepteren.\n\n```\n{{.Invitation}}\n```\n\n**Zorg ervoor dat de beveiligde verbinding toegang heeft tot jouw cluster via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -9036,7 +8937,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Een beveiligde verbinding aanmaken"
+    "translation": "Een beveiligde verbinding uitnodigen"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -9056,7 +8957,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Externe Mattermost clusters uitnodigen voor inter-cluster communicatie."
+    "translation": "Nodig beveiligde verbindingen uit voor communicatie tussen Mattermost-servers."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -9184,11 +9085,11 @@
   },
   {
     "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt vandaag"
+    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigde vandaag"
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigt vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
+    "translation": "{{.Name}}, je 14-daagse gratis proefperiode van Mattermost Cloud Professional eindigde vandaag {{.TodayDate}}. Voeg jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Professional."
   },
   {
     "id": "api.templates.cloud_trial_ended_email.subject",
@@ -9213,5 +9114,104 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "De ingevoerde tekst overschrijdt de karakterlimiet. De hoofding van het kanaal is gelimiteerd tot {{.MaxLength}} tekens."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Wil je jouw meldingsinstellingen wijzigen?"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Inloggen op Mattermost"
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " en ga naar Accountinstellingen > Meldingen"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} vernoemde je in een bericht"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Terwijl je weg was, vernoemde {{.SenderName}} je in het {{.ChannelName}} kanaal."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} stuurde je een nieuw bericht"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} een bericht naar jouw groep gestuurd."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} stuurde je een nieuw bericht"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} je een nieuw direct bericht gestuurd."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Indien je niet automatisch wordt doorverwezen, klik dan op de <a href='{{.Link}}'>link</a>"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": {
+      "one": "{{ .SenderName }} stuurde je een nieuw bericht",
+      "other": "{{ .SenderName }} and {{.Count}} anderen stuurde je een nieuw bericht"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Zie hieronder voor een overzicht van je nieuwe berichten."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Bekijk dit bericht"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Mattermost openen"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Kan de gemeenschappelijke team ID's niet verkrijgen."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Tussen deze gebruikers kan geen direct kanaal worden gecreëerd omdat zij geen gemeenschappelijk team hebben."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Fout bij het vergelijken van de configuraties"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Fout bij het vergelijken van de configuraties"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Ongeldig wachtwoord"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
   }
 ]

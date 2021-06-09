@@ -101,7 +101,6 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
@@ -1004,26 +1003,16 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 	return exist > 0, nil
 }
 
-func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
-	if options.Limit < 0 || options.Limit > 1000 {
-		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
-	}
-
-	order := " ASC"
-	if options.SortDescending {
-		order = " DESC"
-	}
-
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.GtOrEq{"UpdateAt": options.Since}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
-		Limit(uint64(options.Limit)).
-		OrderBy("CreateAt"+order, "DeleteAt", "Id")
+		Where(sq.Or{sq.Gt{"UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Id": cursor.LastPostId}}}).
+		OrderBy("UpdateAt", "Id").
+		Limit(uint64(limit))
 
-	if options.Until > 0 {
-		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"ChannelId": options.ChannelId})
 	}
 
 	if !options.IncludeDeleted {
@@ -1034,24 +1023,22 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
 	}
 
-	if options.Offset > 0 {
-		query = query.Offset(uint64(options.Offset))
-	}
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+		return nil, cursor, errors.Wrap(err, "getpostssinceforsync_tosql")
 	}
 
 	var posts []*model.Post
-
 	_, err = s.GetReplica().Select(&posts, queryString, args...)
-
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
 	}
 
-	return posts, nil
+	if len(posts) != 0 {
+		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+		cursor.LastPostId = posts[len(posts)-1].Id
+	}
+	return posts, cursor, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {

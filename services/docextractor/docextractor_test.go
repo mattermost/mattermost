@@ -106,6 +106,14 @@ func TestExtract(t *testing.T) {
 			false,
 		},
 		{
+			"Odt file",
+			"sample-doc.odt",
+			ExtractSettings{},
+			[]string{"simple", "document", "contains"},
+			[]string{},
+			false,
+		},
+		{
 			"Pptx file",
 			"sample-doc.pptx",
 			ExtractSettings{},
