@@ -2408,8 +2408,15 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
-			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, true, true, true, false)
-			threadData, _ := a.Srv().Store.Thread().Get(threadId)
+			opts := store.ThreadMembershipOpts{
+				Following:             true,
+				IncrementMentions:     true,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: true,
+				UpdateParticipants:    false,
+			}
+			threadMembership, _ = a.Srv().Store.Thread().MaintainMembership(context.Background(), user.Id, threadId, opts)
+			threadData, _ := a.Srv().Store.Thread().Get(context.Background(), threadId)
 			if threadData != nil && threadMembership != nil && threadMembership.Following {
 				channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 				if nErr != nil {
@@ -2509,7 +2516,14 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	}
 	// Follow thread if we're not already following it
 	if threadMembership == nil {
-		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, true, false, true, false, false)
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		threadMembership, nErr = a.Srv().Store.Thread().MaintainMembership(context.Background(), user.Id, threadId, opts)
 		if nErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

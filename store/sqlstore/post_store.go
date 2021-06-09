@@ -2252,7 +2252,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) err
 		return nil
 	}
 	if rootId != "" {
-		thread, err := s.Thread().Get(rootId)
+		thread, err := s.Thread().Get(WithMaster(context.Background()), rootId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if !errors.As(err, &nfErr) {

@@ -9548,11 +9548,11 @@ func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 
 }
 
-func (s *RetryLayerThreadStore) Get(id string) (*model.Thread, error) {
+func (s *RetryLayerThreadStore) Get(ctx context.Context, id string) (*model.Thread, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.Get(id)
+		result, err := s.ThreadStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9688,11 +9688,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 
 }
 
-func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) MaintainMembership(ctx context.Context, userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+		result, err := s.ThreadStore.MaintainMembership(ctx, userID, postID, opts)
 		if err == nil {
 			return result, nil
 		}

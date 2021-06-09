@@ -95,10 +95,10 @@ func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
 	return thread, nil
 }
 
-func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
+func (s *SqlThreadStore) Get(ctx context.Context, id string) (*model.Thread, error) {
 	var thread model.Thread
 	query, args, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": id}).ToSql()
-	err := s.GetReplica().SelectOne(&thread, query, args...)
+	err := s.DBFromContext(ctx).SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Thread", id)
@@ -517,7 +517,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error) {
+func (s *SqlThreadStore) MaintainMembership(ctx context.Context, userId, postId string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if memebership exists, update it if:
@@ -525,16 +525,16 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		followingNeedsUpdate := (updateFollowing && !membership.Following || membership.Following != following)
-		if followingNeedsUpdate || incrementMentions || updateViewedTimestamp {
+		followingNeedsUpdate := (opts.UpdateFollowing && !membership.Following || membership.Following != opts.Following)
+		if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
 			if followingNeedsUpdate {
-				membership.Following = following
+				membership.Following = opts.Following
 			}
-			if updateViewedTimestamp {
+			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
 			}
 			membership.LastUpdated = now
-			if incrementMentions {
+			if opts.IncrementMentions {
 				membership.UnreadMentions += 1
 			}
 			_, err = s.UpdateMembership(membership)
@@ -548,17 +548,17 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 		return nil, errors.Wrap(err, "failed to get thread membership")
 	}
 	mentions := 0
-	if incrementMentions {
+	if opts.IncrementMentions {
 		mentions = 1
 	}
 	var lastViewed int64
-	if updateViewedTimestamp {
+	if opts.UpdateViewedTimestamp {
 		lastViewed = now
 	}
 	membership, err = s.SaveMembership(&model.ThreadMembership{
 		PostId:         postId,
 		UserId:         userId,
-		Following:      following,
+		Following:      opts.Following,
 		LastViewed:     lastViewed,
 		LastUpdated:    now,
 		UnreadMentions: int64(mentions),
@@ -567,8 +567,8 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, in
 		return nil, err
 	}
 
-	if updateParticipants {
-		thread, err2 := s.Get(postId)
+	if opts.UpdateParticipants {
+		thread, err2 := s.Get(ctx, postId)
 		if err2 != nil {
 			return nil, err2
 		}
