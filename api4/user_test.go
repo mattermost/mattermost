@@ -5671,6 +5671,7 @@ func TestThreadSocketEvents(t *testing.T) {
 					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED {
 						caught = true
 						require.Equal(t, ev.GetData()["state"], false)
+						require.Equal(t, ev.GetData()["reply_count"], float64(1))
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -5746,6 +5747,7 @@ func TestFollowThreads(t *testing.T) {
 		})
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 1)
+		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
 
 	})
 }

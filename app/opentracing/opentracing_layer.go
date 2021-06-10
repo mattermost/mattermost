@@ -7,6 +7,7 @@
 package opentracing
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -958,7 +959,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+func (a *OpenTracingAppLayer) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImport")
 
@@ -970,7 +971,7 @@ func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reade
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BulkImport(c, fileReader, dryRun, workers)
+	resultVar0, resultVar1 := a.app.BulkImport(c, jsonlReader, attachmentsReader, dryRun, workers)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -980,7 +981,7 @@ func (a *OpenTracingAppLayer) BulkImport(c *request.Context, fileReader io.Reade
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImportWithPath")
 
@@ -992,7 +993,7 @@ func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, fileReader 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, fileReader, dryRun, workers, importPath)
+	resultVar0, resultVar1 := a.app.BulkImportWithPath(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -8809,6 +8810,28 @@ func (a *OpenTracingAppLayer) GetSuggestions(c *request.Context, commandArgs *mo
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) GetSystemBot() (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSystemBot")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSystemBot()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetTeam(teamID string) (*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeam")
@@ -10127,6 +10150,28 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(userID string) (*model.Vi
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetViewUsersRestrictions(userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsBot")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetWarnMetricsBot()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
