@@ -6335,6 +6335,14 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
+  },
+  {
     "id": "app.user.get_threads_for_user.app_error",
     "translation": "Unable to get user threads"
   },
