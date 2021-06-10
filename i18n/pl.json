@@ -1720,10 +1720,6 @@
     "translation": "Nie udało się zdekodować ikony zespołu"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nie można odszyfrować metadanych ikon zespołu"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Nie można zakodować ikony zespołu"
   },
@@ -2274,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nie można było zdekodować obrazu profilu"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3036,6 @@
     "translation": "Nie można zdekodować danych obrazu."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nie można pobrać metadanych obrazka."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nie można przekonwertować danych obrazu na format PNG. Proszę spróbuj ponownie."
   },
@@ -3058,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nie można zapisać pliku obrazu do magazynu plików. Proszę sprawdź swoje połączenie i spróbuj ponownie."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nie można odczytać pliku obrazu. Upewnij się, że rozmiar obrazu jest mniejszy niż 2 MB i spróbuj ponownie."
   },
   {
     "id": "cli.license.critical",

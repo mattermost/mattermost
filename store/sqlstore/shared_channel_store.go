@@ -65,7 +65,6 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 }
 
 func (s SqlSharedChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_sharedchannelusers_user_id", "SharedChannelUsers", "UserId")
 	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_id", "SharedChannelUsers", "RemoteId")
 }
 
