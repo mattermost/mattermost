@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mysql:5.6"
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mysql:5.6
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
@@ -23,7 +23,7 @@ services:
           - mysql
 
   start_dependencies:
-    image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mattermost/mattermost-wait-for-dep:latest"
+    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
     depends_on:
       - mysql
     command: mysql:3306
