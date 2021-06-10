@@ -183,7 +183,7 @@ func TestExportAllUsers(t *testing.T) {
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -241,7 +241,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+		err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 		require.Nil(t, err)
 		assert.Equal(t, 0, i)
 
@@ -274,7 +274,7 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(th2.Context, &b, true, 5)
+		err, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
 		require.Nil(t, err)
 
 		channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -306,7 +306,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -378,7 +378,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
-	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -457,7 +457,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -532,7 +532,7 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 0)
 
 	// import the exported posts
-	appErr, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	appErr, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
@@ -574,7 +574,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	err, i := th2.App.BulkImport(th2.Context, &b, false, 5)
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
@@ -614,7 +614,7 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, false, 1, dir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, dir)
 	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
@@ -635,6 +635,6 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, false, 1, filepath.Join(dir, "data"))
+	appErr, _ = th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, 1, filepath.Join(dir, "data"))
 	require.Nil(t, appErr)
 }

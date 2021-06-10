@@ -710,6 +710,21 @@ func (a *App) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel
 }
 
 func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+	var authorId string
+	var authorUsername string
+	if user != nil {
+		authorId = user.Id
+		authorUsername = user.Username
+	} else {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		authorId = systemBot.UserId
+		authorUsername = systemBot.Username
+	}
+
 	message := (map[string]string{
 		model.CHANNEL_OPEN:    i18n.T("api.channel.change_channel_privacy.private_to_public"),
 		model.CHANNEL_PRIVATE: i18n.T("api.channel.change_channel_privacy.public_to_private"),
@@ -718,9 +733,9 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 		ChannelId: channel.Id,
 		Message:   message,
 		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
-		UserId:    user.Id,
+		UserId:    authorId,
 		Props: model.StringInterface{
-			"username": user.Username,
+			"username": authorUsername,
 		},
 	}
 
@@ -746,14 +761,18 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
-	user, nErr := a.Srv().Store.User().Get(context.Background(), userID)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	var user *model.User
+	if userID != "" {
+		var nErr error
+		user, nErr = a.Srv().Store.User().Get(context.Background(), userID)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -773,6 +792,28 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 			mlog.Warn("Failed to post unarchive message", mlog.Err(err))
 		}
+	} else {
+		a.Srv().Go(func() {
+			systemBot, err := a.GetSystemBot()
+			if err != nil {
+				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+				return
+			}
+
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
+				Type:      model.POST_CHANNEL_RESTORED,
+				UserId:    systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+			}
+		})
 	}
 
 	return channel, nil
@@ -1297,6 +1338,28 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
 			mlog.Warn("Failed to post archive message", mlog.Err(err))
 		}
+	} else {
+		a.Srv().Go(func() {
+			systemBot, err := a.GetSystemBot()
+			if err != nil {
+				mlog.Error("Failed to post archive message", mlog.Err(err))
+				return
+			}
+
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
+				Type:      model.POST_CHANNEL_DELETED,
+				UserId:    systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+				mlog.Error("Failed to post archive message", mlog.Err(err))
+			}
+		})
 	}
 
 	now := model.GetMillis()
@@ -1468,7 +1531,9 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 	}
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
-		a.postJoinChannelMessage(c, user, channel)
+		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
+			mlog.Error("Failed to post join channel message", mlog.Err(err))
+		}
 	} else {
 		a.Srv().Go(func() {
 			a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
@@ -2179,6 +2244,16 @@ func (a *App) postAddToTeamMessage(c *request.Context, user *model.User, addedUs
 }
 
 func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+	messageUserId := removerUserId
+	if messageUserId == "" {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		messageUserId = systemBot.UserId
+	}
+
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
@@ -2186,7 +2261,7 @@ func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId str
 		// The client renders its own system message, ignoring this value altogether.
 		Message: fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
 		Type:    model.POST_REMOVE_FROM_CHANNEL,
-		UserId:  removerUserId,
+		UserId:  messageUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
@@ -2308,7 +2383,9 @@ func (a *App) RemoveUserFromChannel(c *request.Context, userIDToRemove string, r
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.postRemoveFromChannelMessage(c, removerUserId, user, channel)
+			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+				mlog.Error("Failed to post user removal message", mlog.Err(err))
+			}
 		})
 	}
 
