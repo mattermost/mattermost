@@ -661,7 +661,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchForRetentionPolicies(now, globalPol
 		PrimaryKeys:         []string{"PostId"},
 		ChannelIDTable:      "Threads",
 		NowMillis:           now,
-		GlobalPolicyEndTime: now - (globalPolicyEndTime * millisecondsPerDay),
+		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
 	}, s.SqlStore, cursor)
 }
@@ -681,7 +681,7 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 		PrimaryKeys:         []string{"PostId"},
 		ChannelIDTable:      "Threads",
 		NowMillis:           now,
-		GlobalPolicyEndTime: now - (globalPolicyEndTime * millisecondsPerDay),
+		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
 	}, s.SqlStore, cursor)
 }

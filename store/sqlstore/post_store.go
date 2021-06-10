@@ -1997,7 +1997,7 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 		PrimaryKeys:         []string{"Id"},
 		ChannelIDTable:      "Posts",
 		NowMillis:           now,
-		GlobalPolicyEndTime: now - (globalPolicyEndTime * millisecondsPerDay),
+		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
 	}, s.SqlStore, cursor)
 }

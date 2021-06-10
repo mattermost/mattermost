@@ -696,9 +696,10 @@ func genericPermanentDeleteBatchForRetentionPolicies(
 	// A record falls under the scope of a granular retention policy if:
 	// 1. The policy's post duration is >= 0
 	// 2. The record's lifespan has not exceeded the policy's post duration
+	const millisecondsInADay = 24 * 60 * 60 * 1000
 	fallsUnderGranularPolicy := sq.And{
 		sq.GtOrEq{"RetentionPolicies.PostDuration": 0},
-		sq.Expr(nowStr + " - " + scopedTimeColumn + " > RetentionPolicies.PostDuration * " + strconv.FormatInt(millisecondsPerDay, 10)),
+		sq.Expr(nowStr + " - " + scopedTimeColumn + " > RetentionPolicies.PostDuration * " + strconv.FormatInt(millisecondsInADay, 10)),
 	}
 
 	// If the caller wants to disable the global policy from running

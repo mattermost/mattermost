@@ -15,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-const millisecondsPerDay = 24 * 60 * 60 * 1000
-
 type SqlChannelMemberHistoryStore struct {
 	*SqlStore
 }
@@ -181,7 +179,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(n
 		PrimaryKeys:         []string{"ChannelId", "UserId", "JoinTime"},
 		ChannelIDTable:      "ChannelMemberHistory",
 		NowMillis:           now,
-		GlobalPolicyEndTime: now - (globalPolicyEndTime * millisecondsPerDay),
+		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
 	}, s.SqlStore, cursor)
 }
