@@ -5,6 +5,7 @@ package web
 
 import (
 	b64 "encoding/base64"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,7 +36,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectURL := r.URL.Query().Get("redirect_to")
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	relayProps := map[string]string{}
 	relayState := ""
 
