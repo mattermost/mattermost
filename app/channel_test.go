@@ -1970,7 +1970,11 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", false).Return(times, nil)
 	mockSessionStore := mocks.SessionStore{}
 	var err error
-	th.App.srv.userService, err = users.New(&mockUserStore, &mockSessionStore, nil, nil, th.App.srv.Config)
+	th.App.srv.userService, err = users.New(users.ServiceInitializer{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		ConfigFn:     th.App.srv.Config,
+	})
 	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)

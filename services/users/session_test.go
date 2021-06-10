@@ -34,14 +34,14 @@ func TestCache(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, keys)
 
-	th.service.ClearSessionCacheForUser(session.UserId)
+	th.service.ClearUserSessionCache(session.UserId)
 
 	rkeys, err := th.service.sessionCache.Keys()
 	require.NoError(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 
-	th.service.ClearSessionCacheForAllUsers()
+	th.service.ClearAllUsersSessionCache()
 
 	rkeys, err = th.service.sessionCache.Keys()
 	require.NoError(t, err)

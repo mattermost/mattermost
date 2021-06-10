@@ -4,22 +4,15 @@
 package users
 
 import (
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var userSessionPool = sync.Pool{
-	New: func() interface{} {
-		return &model.Session{}
-	},
-}
-
-func ReturnSessionToPool(session *model.Session) {
+func (us *UserService) ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""
-		userSessionPool.Put(session)
+		us.sessionPool.Put(session)
 	}
 }
 
@@ -37,7 +30,7 @@ func (us *UserService) CreateSession(session *model.Session) (*model.Session, er
 }
 
 func (us *UserService) GetSession(token string) (*model.Session, error) {
-	var session = userSessionPool.Get().(*model.Session)
+	var session = us.sessionPool.Get().(*model.Session)
 	if err := us.sessionCache.Get(token, session); err == nil {
 		if us.metrics != nil {
 			us.metrics.IncrementMemCacheHitCounterSession()
@@ -61,7 +54,7 @@ func (us *UserService) SessionCacheLength() int {
 	return 0
 }
 
-func (us *UserService) ClearSessionCacheForUserSkipClusterSend(userID string) {
+func (us *UserService) ClearUserSessionCacheLocal(userID string) {
 	if keys, err := us.sessionCache.Keys(); err == nil {
 		var session *model.Session
 		for _, key := range keys {
@@ -77,12 +70,12 @@ func (us *UserService) ClearSessionCacheForUserSkipClusterSend(userID string) {
 	}
 }
 
-func (us *UserService) ClearSessionCacheForAllUsersSkipClusterSend() {
+func (us *UserService) ClearAllUsersSessionCacheLocal() {
 	us.sessionCache.Purge()
 }
 
-func (us *UserService) ClearSessionCacheForUser(userID string) {
-	us.ClearSessionCacheForUserSkipClusterSend(userID)
+func (us *UserService) ClearUserSessionCache(userID string) {
+	us.ClearUserSessionCacheLocal(userID)
 
 	if us.cluster != nil {
 		msg := &model.ClusterMessage{
@@ -94,8 +87,8 @@ func (us *UserService) ClearSessionCacheForUser(userID string) {
 	}
 }
 
-func (us *UserService) ClearSessionCacheForAllUsers() {
-	us.ClearSessionCacheForAllUsersSkipClusterSend()
+func (us *UserService) ClearAllUsersSessionCache() {
+	us.ClearAllUsersSessionCacheLocal()
 
 	if us.cluster != nil {
 		msg := &model.ClusterMessage{

@@ -5,8 +5,10 @@ package users
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"runtime"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -20,6 +22,7 @@ type UserService struct {
 	store        store.UserStore
 	sessionStore store.SessionStore
 	sessionCache cache.Cache
+	sessionPool  sync.Pool
 	metrics      einterfaces.MetricsInterface
 	cluster      einterfaces.ClusterInterface
 	config       func() *model.Config
@@ -30,7 +33,18 @@ type UserCreateOptions struct {
 	FromImport bool
 }
 
-func New(s store.UserStore, ss store.SessionStore, c einterfaces.ClusterInterface, m einterfaces.MetricsInterface, cfgFn func() *model.Config) (*UserService, error) {
+// ServiceInitializer is used to initialize the UserService.
+type ServiceInitializer struct {
+	// Mandatory fields
+	UserStore    store.UserStore
+	SessionStore store.SessionStore
+	ConfigFn     func() *model.Config
+	// Optional fields
+	Metrics einterfaces.MetricsInterface
+	Cluster einterfaces.ClusterInterface
+}
+
+func New(initializer ServiceInitializer) (*UserService, error) {
 	cacheProvider := cache.NewProvider()
 	if err := cacheProvider.Connect(); err != nil {
 		return nil, fmt.Errorf("could not create cache provider: %w", err)
@@ -45,11 +59,22 @@ func New(s store.UserStore, ss store.SessionStore, c einterfaces.ClusterInterfac
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
+	if initializer.ConfigFn == nil || initializer.UserStore == nil || initializer.SessionStore == nil {
+		return nil, errors.New("required parameters are not provided")
+	}
+
 	return &UserService{
-		store:        s,
-		sessionStore: ss,
-		config:       cfgFn,
+		store:        initializer.UserStore,
+		sessionStore: initializer.SessionStore,
+		config:       initializer.ConfigFn,
+		metrics:      initializer.Metrics,
+		cluster:      initializer.Cluster,
 		sessionCache: sessionCache,
+		sessionPool: sync.Pool{
+			New: func() interface{} {
+				return &model.Session{}
+			},
+		},
 	}, nil
 }
 

@@ -201,12 +201,16 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	return nil
 }
 
+func (a *App) ReturnSessionToPool(session *model.Session) {
+	a.srv.userService.ReturnSessionToPool(session)
+}
+
 func (a *App) ClearSessionCacheForUser(userID string) {
-	a.srv.userService.ClearSessionCacheForUser(userID)
+	a.srv.userService.ClearUserSessionCache(userID)
 }
 
 func (a *App) ClearSessionCacheForAllUsers() {
-	a.srv.userService.ClearSessionCacheForAllUsers()
+	a.srv.userService.ClearAllUsersSessionCache()
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {

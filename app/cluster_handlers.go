@@ -102,13 +102,13 @@ func (s *Server) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMes
 }
 
 func (s *Server) clearSessionCacheForUserSkipClusterSend(userID string) {
-	s.userService.ClearSessionCacheForUserSkipClusterSend(userID)
+	s.userService.ClearUserSessionCacheLocal(userID)
 	s.invalidateWebConnSessionCacheForUser(userID)
 }
 
 func (s *Server) clearSessionCacheForAllUsersSkipClusterSend() {
 	mlog.Info("Purging sessions cache")
-	s.userService.ClearSessionCacheForAllUsersSkipClusterSend()
+	s.userService.ClearAllUsersSessionCacheLocal()
 }
 
 func (s *Server) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {

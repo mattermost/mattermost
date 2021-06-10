@@ -13157,6 +13157,21 @@ func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(userID string, op
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReturnSessionToPool")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.ReturnSessionToPool(session)
+}
+
 func (a *OpenTracingAppLayer) RevokeAccessToken(token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAccessToken")

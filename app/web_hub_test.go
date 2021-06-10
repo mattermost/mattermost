@@ -159,7 +159,13 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 
-	userService, err := users.New(&mockUserStore, &mockSessionStore, th.App.Cluster(), th.App.Metrics(), th.App.srv.Config)
+	userService, err := users.New(users.ServiceInitializer{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		ConfigFn:     th.App.srv.Config,
+		Metrics:      th.App.Metrics(),
+		Cluster:      th.App.Cluster(),
+	})
 	require.NoError(t, err)
 	th.App.srv.userService = userService
 

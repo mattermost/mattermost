@@ -419,7 +419,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
-	s.userService, err = users.New(s.Store.User(), s.Store.Session(), s.Cluster, s.Metrics, s.Config)
+	s.userService, err = users.New(users.ServiceInitializer{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
