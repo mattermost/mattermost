@@ -11,7 +11,7 @@ ulimit -n 8096
 cd ${CI_PROJECT_DIR}/build
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 sleep 5
-docker run --net ${DOCKER_NETWORK} ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+docker run --net ${DOCKER_NETWORK} ${CI_REGISTRY}/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
 
 echo "Creating databases"
 docker-compose -f $DOCKER_COMPOSE_FILE exec -d -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
@@ -23,7 +23,7 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env MM_SQLSETTINGS_DRIVERNAME=mysql \
   -v $CI_PROJECT_DIR:/mattermost-server \
   -w /mattermost-server \
-  ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/mattermost/mattermost-build-server:20201119_golang-1.15.5 \
+  ${CI_REGISTRY}/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 docker logs -f "${CONTAINER_SERVER}"
 
