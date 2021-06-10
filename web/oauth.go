@@ -4,6 +4,7 @@
 package web
 
 import (
+	"html"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -384,7 +385,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectURL := r.URL.Query().Get("redirect_to")
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 
 	if redirectURL != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
 		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
