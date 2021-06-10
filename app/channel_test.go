@@ -2060,8 +2060,8 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		Message:   "root post @" + u1.Username,
 		UserId:    u2.Id,
 	}
-	rpost1, err := th.App.CreatePost(th.Context, post1, c1, false, true)
-	require.NoError(t, err)
+	rpost1, appErr := th.App.CreatePost(th.Context, post1, c1, false, true)
+	require.Nil(t, appErr)
 
 	// mention the user in a reply post
 	post2 := &model.Post{
@@ -2070,12 +2070,12 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		UserId:    u2.Id,
 		RootId:    rpost1.Id,
 	}
-	_, err = th.App.CreatePost(th.Context, post2, c1, false, true)
-	require.NoError(t, err)
+	_, appErr = th.App.CreatePost(th.Context, post2, c1, false, true)
+	require.Nil(t, appErr)
 
 	// Check we have unread mention in the thread
-	threads, err := th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
-	require.NoError(t, err)
+	threads, appErr := th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
 	found := false
 	for _, thread := range threads.Threads {
 		if thread.PostId == rpost1.Id {
@@ -2087,12 +2087,12 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	require.Truef(t, found, "did not find created thread in user's threads")
 
 	// Mark channel as read from a client that supports CRT
-	_, err = th.App.MarkChannelsAsViewed([]string{c1.Id}, u1.Id, th.Context.Session().Id, true)
-	require.NoError(t, err)
+	_, appErr = th.App.MarkChannelsAsViewed([]string{c1.Id}, u1.Id, th.Context.Session().Id, true)
+	require.Nil(t, appErr)
 
 	// Thread should be marked as read because CRT has been turned off by user
-	threads, err = th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
-	require.NoError(t, err)
+	threads, appErr = th.App.GetThreadsForUser(u1.Id, c1.TeamId, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
 	found = false
 	for _, thread := range threads.Threads {
 		if thread.PostId == rpost1.Id {
