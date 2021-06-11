@@ -2069,7 +2069,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, false, true)
 		require.Nil(t, err)
-		thread, nErr := th.App.Srv().Store.Thread().Get(context.Background(), postRoot.Id)
+		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
 		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)

@@ -7910,10 +7910,10 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 	return err
 }
 
-func (s *TimerLayerThreadStore) Get(ctx context.Context, id string) (*model.Thread, error) {
+func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.Get(ctx, id)
+	result, err := s.ThreadStore.Get(id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8022,10 +8022,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MaintainMembership(ctx context.Context, userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.MaintainMembership(ctx, userID, postID, opts)
+	result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

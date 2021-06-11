@@ -8776,7 +8776,7 @@ func (s *OpenTracingLayerThreadStore) DeleteMembershipForUser(userId string, pos
 	return err
 }
 
-func (s *OpenTracingLayerThreadStore) Get(ctx context.Context, id string) (*model.Thread, error) {
+func (s *OpenTracingLayerThreadStore) Get(id string) (*model.Thread, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -8785,7 +8785,7 @@ func (s *OpenTracingLayerThreadStore) Get(ctx context.Context, id string) (*mode
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.Get(ctx, id)
+	result, err := s.ThreadStore.Get(id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8902,7 +8902,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadsForUser(userId string, teamID st
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) MaintainMembership(ctx context.Context, userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+func (s *OpenTracingLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MaintainMembership")
 	s.Root.Store.SetContext(newCtx)
@@ -8911,7 +8911,7 @@ func (s *OpenTracingLayerThreadStore) MaintainMembership(ctx context.Context, us
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.MaintainMembership(ctx, userID, postID, opts)
+	result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

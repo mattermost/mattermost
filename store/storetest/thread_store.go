@@ -86,7 +86,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	}
 	t.Run("Save replies creates a thread", func(t *testing.T) {
 		newPosts := makeSomePosts()
-		thread, err := ss.Thread().Get(context.Background(), newPosts[0].Id)
+		thread, err := ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
@@ -101,7 +101,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&o5})
 		require.NoError(t, err, "couldn't save item")
 
-		thread, err = ss.Thread().Get(context.Background(), newPosts[0].Id)
+		thread, err = ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(3), thread.ReplyCount)
@@ -110,7 +110,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 	t.Run("Delete a reply updates count on a thread", func(t *testing.T) {
 		newPosts := makeSomePosts()
-		thread, err := ss.Thread().Get(context.Background(), newPosts[0].Id)
+		thread, err := ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
@@ -119,7 +119,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		err = ss.Post().Delete(newPosts[1].Id, 1234, model.NewId())
 		require.NoError(t, err, "couldn't delete post")
 
-		thread, err = ss.Thread().Get(context.Background(), newPosts[0].Id)
+		thread, err = ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(1), thread.ReplyCount)
@@ -142,7 +142,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
-		thread1, err := ss.Thread().Get(context.Background(), newPosts[0].RootId)
+		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
@@ -168,7 +168,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
 
-		thread2, err := ss.Thread().Get(context.Background(), rootPost.Id)
+		thread2, err := ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.Greater(t, thread2.LastReplyAt, thread1.LastReplyAt)
 	})
@@ -189,7 +189,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
-		thread1, err := ss.Thread().Get(context.Background(), newPosts[0].RootId)
+		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.NoError(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 2)
 		require.Len(t, thread1.Participants, 2)
@@ -197,7 +197,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
 		require.NoError(t, err)
 
-		thread2, err := ss.Thread().Get(context.Background(), rootPost.RootId)
+		thread2, err := ss.Thread().Get(rootPost.RootId)
 		require.NoError(t, err)
 		require.EqualValues(t, thread2.ReplyCount, 1)
 		require.Len(t, thread2.Participants, 2)
@@ -221,7 +221,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost})
 		require.NoError(t, err)
 
-		thread1, err := ss.Thread().Get(context.Background(), newPosts1[0].Id)
+		thread1, err := ss.Thread().Get(newPosts1[0].Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 1)
 		require.Len(t, thread1.Participants, 2)
@@ -229,7 +229,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
 		require.NoError(t, err)
 
-		thread2, _ := ss.Thread().Get(context.Background(), rootPost.Id)
+		thread2, _ := ss.Thread().Get(rootPost.Id)
 		require.Nil(t, thread2)
 	})
 
@@ -242,7 +242,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
@@ -270,7 +270,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
@@ -297,7 +297,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
@@ -325,12 +325,12 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		tm, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.Equal(t, int64(0), tm.LastViewed)
 
 		opts.UpdateViewedTimestamp = true
-		_, e = ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
@@ -347,7 +347,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: true,
 			UpdateParticipants:    false,
 		}
-		tm, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.NotEqual(t, int64(0), tm.LastViewed)
 	})
@@ -361,7 +361,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, e := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err1)
@@ -388,7 +388,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		m, err := ss.Thread().MaintainMembership(context.Background(), newPosts[0].UserId, newPosts[0].Id, opts)
+		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
 		th, err := ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
 		require.NoError(t, err)

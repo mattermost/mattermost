@@ -214,8 +214,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					UpdateViewedTimestamp: userID == post.UserId,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				_, err := a.Srv().Store.Thread().MaintainMembership(WithMaster(context.Background()), userID, post.RootId, opts)
-
+				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return

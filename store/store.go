@@ -281,7 +281,7 @@ type ThreadStore interface {
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
-	Get(ctx context.Context, id string) (*model.Thread, error)
+	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postID string) error
@@ -296,7 +296,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	MaintainMembership(ctx context.Context, userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
+	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }

@@ -2357,7 +2357,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		UpdateViewedTimestamp: state,
 		UpdateParticipants:    false,
 	}
-	_, err := a.Srv().Store.Thread().MaintainMembership(context.Background(), userID, threadID, opts)
+	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
