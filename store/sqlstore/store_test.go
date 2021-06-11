@@ -122,6 +122,7 @@ func TestDBConnector(t *testing.T) {
 		store.stores.preference = newSqlPreferenceStore(store)
 		store.stores.bot = newSqlBotStore(store, nil)
 		store.stores.scheme = newSqlSchemeStore(store)
+		store.stores.retentionPolicy = newSqlRetentionPolicyStore(store, nil)
 		err = store.GetMaster().CreateTablesIfNotExists()
 		require.NoError(t, err)
 

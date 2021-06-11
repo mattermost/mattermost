@@ -2637,6 +2637,27 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Get(context.Background(), o3.Id, false, false, false, "")
 	require.NoError(t, err, "Should have found post 3 after purge")
 
+	t.Run("with pagination", func(t *testing.T) {
+		for i := 0; i < 3; i++ {
+			_, err = ss.Post().Save(&model.Post{
+				ChannelId: channel.Id,
+				UserId:    model.NewId(),
+				Message:   "message",
+				CreateAt:  1,
+			})
+			require.NoError(t, err)
+		}
+		cursor := model.RetentionPolicyCursor{}
+
+		deleted, cursor, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		require.NoError(t, err)
+		require.Equal(t, int64(2), deleted)
+
+		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
+		require.NoError(t, err)
+		require.Equal(t, int64(1), deleted)
+	})
+
 	t.Run("with data retention policies", func(t *testing.T) {
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
@@ -2686,12 +2707,19 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		require.NoError(t, err2, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
+		err2 = ss.RetentionPolicy().RemoveChannels(channelPolicy.ID, []string{channel.Id})
+		require.NoError(t, err2)
+
 		err2 = ss.RetentionPolicy().Delete(channelPolicy.ID)
 		require.NoError(t, err2)
+
 		_, _, err2 = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		_, err2 = ss.Post().Get(context.Background(), post.Id, false, false, false, "")
 		require.Error(t, err2, "post should have been deleted by team policy")
+
+		err2 = ss.RetentionPolicy().RemoveTeams(teamPolicy.ID, []string{team.Id})
+		require.NoError(t, err2)
 
 		err2 = ss.RetentionPolicy().Delete(teamPolicy.ID)
 		require.NoError(t, err2)
@@ -2760,27 +2788,6 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		deleted, _, err2 := ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 2, 1000, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
 		require.Equal(t, int64(3), deleted)
-	})
-
-	t.Run("with pagination", func(t *testing.T) {
-		for i := 0; i < 3; i++ {
-			_, err = ss.Post().Save(&model.Post{
-				ChannelId: channel.Id,
-				UserId:    model.NewId(),
-				Message:   "message",
-				CreateAt:  1,
-			})
-			require.NoError(t, err)
-		}
-		cursor := model.RetentionPolicyCursor{}
-
-		deleted, cursor, err := ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
-		require.NoError(t, err)
-		require.Equal(t, int64(2), deleted)
-
-		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
-		require.NoError(t, err)
-		require.Equal(t, int64(1), deleted)
 	})
 }
 
