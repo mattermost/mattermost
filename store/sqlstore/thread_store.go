@@ -368,7 +368,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		return nil, err
 	}
 
-	thread.Following = threadMembership.Following
 	thread.LastViewedAt = threadMembership.LastViewed
 	thread.UnreadMentions = threadMembership.UnreadMentions
 
