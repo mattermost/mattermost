@@ -1952,7 +1952,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err)
 
-	threadMembership, err := th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	threadMembership, err := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, err)
 	thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
@@ -1961,7 +1961,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, false, false)
 	require.Nil(t, err)
 
-	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	threadMembership, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, err)
 	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
