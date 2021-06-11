@@ -2521,7 +2521,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	if err != nil {
 		return nil, err
 	}
-	_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+	threadMembership, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 	if nErr != nil {
 		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

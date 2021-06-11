@@ -363,7 +363,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 
 	args := append(unreadRepliesArgs, threadArgs...)
 
-	err := s.GetMaster().SelectOne(&thread, query, args...)
+	err := s.GetReplica().SelectOne(&thread, query, args...)
 	if err != nil {
 		return nil, err
 	}
