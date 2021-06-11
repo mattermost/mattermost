@@ -39,7 +39,7 @@ empty:
 #  rules:
 #    - if: '$TEST == "yes"'
 
-test-mysql:
+.test-mysql: # Comment due to high memory
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -70,7 +70,7 @@ test-mysql:
   tags:
     - k8s-memory
 
-test-postgres:
+.test-postgres: # Comment due to high memory
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -122,6 +122,8 @@ test-schema-mysql:
     - docker logout
   tags:
     - k8s-memory
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-postgres:
   stage: test
@@ -144,3 +146,5 @@ test-schema-postgres:
     - docker logout
   tags:
     - k8s-memory
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
