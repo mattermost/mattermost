@@ -179,6 +179,23 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
+	if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		ver, err := store.GetDbVersion(true)
+		if err != nil {
+			mlog.Critical("Cannot get DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		intVer, err := strconv.Atoi(ver)
+		if err != nil {
+			mlog.Critical("Cannot parse DB version.", mlog.Err(err))
+			os.Exit(ExitGenericFailure)
+		}
+		if intVer < MinimumRequiredPostgresVersion {
+			mlog.Critical(fmt.Sprintf("minimum required postgres version is %s; found %s", VersionString(MinimumRequiredPostgresVersion), VersionString(intVer)))
+			os.Exit(ExitGenericFailure)
+		}
+	}
+
 	err := store.migrate(migrationsDirectionUp)
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
