@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -136,6 +137,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	cfg := a.Config()
 	channel := notification.Channel
 	post := notification.Post
+	post.Message = utils.StripMarkdown(post.Message)
 
 	nameFormat := a.GetNotificationNameFormat(user)
 
