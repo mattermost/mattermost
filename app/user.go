@@ -2350,13 +2350,19 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 }
 
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
-	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false, false)
+	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, state, false)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	thread, err := a.Srv().Store.Thread().Get(threadID)
+
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
+	message.Add("reply_count", thread.ReplyCount)
 	a.Publish(message)
 	return nil
 }

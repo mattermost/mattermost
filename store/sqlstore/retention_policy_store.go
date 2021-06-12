@@ -48,8 +48,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 }
 
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
-	s.CreateCompositeIndexIfNotExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies",
-		[]string{"DisplayName", "Id"})
+	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
 	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
 	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
