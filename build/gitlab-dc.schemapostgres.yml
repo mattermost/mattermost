@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: "postgres:10"
+    image: ${CI_REGISTRY}/mattermost/ci/images/postgres:10-1
     restart: always
     environment:
       POSTGRES_USER: mmuser
@@ -21,7 +21,7 @@ services:
           - postgres
 
   start_dependencies:
-    image: mattermost/mattermost-wait-for-dep:latest
+    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
     depends_on:
       - postgres
     command: postgres:5432

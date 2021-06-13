@@ -13,8 +13,8 @@ docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 sleep 5
 cat ../tests/test-data.ldif | docker-compose exec -d -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
 docker-compose exec -d -T minio sh -c 'mkdir -p /data/mattermost-test';
-docker run -d --name "${COMPOSE_PROJECT_NAME}_curl_mysql" --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-docker run -d --name "${COMPOSE_PROJECT_NAME}_curl_elasticsearch" --net ${DOCKER_NETWORK} appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+docker run -d --name "${COMPOSE_PROJECT_NAME}_curl_mysql" --net ${CI_REGISTRY}/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+docker run -d --name "${COMPOSE_PROJECT_NAME}_curl_elasticsearch" --net ${DOCKER_NETWORK} ${CI_REGISTRY}/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
 
 docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env-file="dotenv/test.env" \
@@ -22,7 +22,7 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env MM_SQLSETTINGS_DRIVERNAME=mysql \
   -v ${CI_PROJECT_DIR}:/mattermost-server \
   -w /mattermost-server \
-  mattermost/mattermost-build-server:20201119_golang-1.15.5 \
+  ${CI_REGISTRY}/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
   bash -c "ulimit -n 8096; make test-server$RACE_MODE BUILD_NUMBER=$CI_COMMIT_REF_NAME-$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=" \
   bash -c scripts/diff-email-templates.sh
 mkdir -p logs
