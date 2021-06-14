@@ -13202,6 +13202,21 @@ func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(userID string, op
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReturnSessionToPool")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.ReturnSessionToPool(session)
+}
+
 func (a *OpenTracingAppLayer) RevokeAccessToken(token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAccessToken")
@@ -14359,23 +14374,6 @@ func (a *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *
 
 	defer span.Finish()
 	a.app.ServeInterPluginRequest(w, r, sourcePluginId, destinationPluginId)
-}
-
-func (a *OpenTracingAppLayer) SessionCacheLength() int {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionCacheLength")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SessionCacheLength()
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
