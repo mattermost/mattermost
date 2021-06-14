@@ -8064,14 +8064,6 @@
     "translation": "Klasör değeri geçersiz."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "İçe aktarılamadı: Dosya ayıklanamadı."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "İçe aktarılamadı: Geçici klasör oluşturulamadı."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "İçe aktarılamadı: Dosya açılamadı."
   },

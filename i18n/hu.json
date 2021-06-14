@@ -560,14 +560,6 @@
     "translation": "Nem sikerült dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült kicsomagolni a fájlt."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült létrehozni egy ideiglenes könyvtárat."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Nem sikerült feldolgozni az importot: nem sikerült megnyitni a fájlt."
   },

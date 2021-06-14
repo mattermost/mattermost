@@ -8040,14 +8040,6 @@
     "translation": "Ongeldige waarde voor map."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Fout bij het importeren: kon bestand niet decomprimeren."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Fout bij het importeren: kon geen tijdelijke map aanmaken."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Fout bij het importeren: kan het bestand niet openen."
   },

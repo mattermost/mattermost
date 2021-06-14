@@ -1092,14 +1092,6 @@
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Kunde inte hantera importen: kunde inte packa upp filen."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Kunde inte hantera importen: misslyckades med att skapa temporär mapp."
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Kunde inte spara exportfil."
   },

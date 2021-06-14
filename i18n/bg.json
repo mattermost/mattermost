@@ -2644,14 +2644,6 @@
     "translation": "Неуспешно декодиране base64 за задействащо ID на интерактивен диалог."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Не можа да се обработи внасянето: неуспешно разархивиране на файла."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Не можа да се обработи внасянето: неуспешно създаване на временна директория."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Не можа да се обработи внасянето: неуспешно отваряне на файла."
   },

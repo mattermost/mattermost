@@ -2980,14 +2980,6 @@
     "translation": "Failed to decode base64 for trigger ID for interactive dialog."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Unable to process import: failed to unzip file."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Unable to process import: failed to create temporary directory."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Unable to process import: failed to open file."
   },
