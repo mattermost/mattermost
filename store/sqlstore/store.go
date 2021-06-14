@@ -191,7 +191,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 			os.Exit(ExitGenericFailure)
 		}
 		if intVer < MinimumRequiredPostgresVersion {
-			mlog.Critical(fmt.Sprintf("minimum required postgres version is %s; found %s", VersionString(MinimumRequiredPostgresVersion), VersionString(intVer)))
+			mlog.Critical("Minimum Postgres version requirements not met.", mlog.String("Found", VersionString(intVer)), mlog.String("Wanted", VersionString(MinimumRequiredPostgresVersion)))
 			os.Exit(ExitGenericFailure)
 		}
 	}
