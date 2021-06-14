@@ -422,6 +422,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.userService, err = users.New(users.ServiceInitializer{
 		UserStore:    s.Store.User(),
 		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
 		ConfigFn:     s.Config,
 		Metrics:      s.Metrics,
 		Cluster:      s.Cluster,

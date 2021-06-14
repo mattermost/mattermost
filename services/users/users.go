@@ -21,6 +21,7 @@ import (
 type UserService struct {
 	store        store.UserStore
 	sessionStore store.SessionStore
+	oAuthStore   store.OAuthStore
 	sessionCache cache.Cache
 	sessionPool  sync.Pool
 	metrics      einterfaces.MetricsInterface
@@ -38,6 +39,7 @@ type ServiceInitializer struct {
 	// Mandatory fields
 	UserStore    store.UserStore
 	SessionStore store.SessionStore
+	OAuthStore   store.OAuthStore
 	ConfigFn     func() *model.Config
 	// Optional fields
 	Metrics einterfaces.MetricsInterface
@@ -59,13 +61,14 @@ func New(initializer ServiceInitializer) (*UserService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	if initializer.ConfigFn == nil || initializer.UserStore == nil || initializer.SessionStore == nil {
+	if in := initializer; in.ConfigFn == nil || in.UserStore == nil || in.SessionStore == nil || in.OAuthStore == nil {
 		return nil, errors.New("required parameters are not provided")
 	}
 
 	return &UserService{
 		store:        initializer.UserStore,
 		sessionStore: initializer.SessionStore,
+		oAuthStore:   initializer.OAuthStore,
 		config:       initializer.ConfigFn,
 		metrics:      initializer.Metrics,
 		cluster:      initializer.Cluster,
