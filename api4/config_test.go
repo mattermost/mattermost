@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -456,12 +457,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 		},
 	}
 	th := SetupWithServerOptions(t, options)
-	shouldShutdown := true
-	defer func() {
-		if shouldShutdown {
-			th.TearDown()
-		}
-	}()
+	defer th.TearDown()
 
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
@@ -475,9 +471,9 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
 
-	// Shutting down the server to make sure all logged records get flushed.
-	th.TearDown()
-	shouldShutdown = false
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Log.Flush(context.Background())
+	require.NoError(t, err)
 
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
