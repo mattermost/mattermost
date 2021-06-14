@@ -48,6 +48,7 @@ func (db *dbRPCClient) Conn() (string, error) {
 	if err != nil {
 		log.Printf("error during Plugin.Conn: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -63,6 +64,7 @@ func (db *dbRPCClient) ConnPing(connID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.ConnPing: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -78,6 +80,7 @@ func (db *dbRPCClient) ConnClose(connID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.ConnClose: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -102,6 +105,7 @@ func (db *dbRPCClient) Tx(connID string, opts driver.TxOptions) (string, error) 
 	if err != nil {
 		log.Printf("error during Plugin.Tx: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -117,6 +121,7 @@ func (db *dbRPCClient) TxCommit(txID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.TxCommit: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -132,6 +137,7 @@ func (db *dbRPCClient) TxRollback(txID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.TxRollback: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -156,6 +162,7 @@ func (db *dbRPCClient) Stmt(connID, q string) (string, error) {
 	if err != nil {
 		log.Printf("error during Plugin.Stmt: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -171,6 +178,7 @@ func (db *dbRPCClient) StmtClose(stID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.StmtClose: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -213,6 +221,7 @@ func (db *dbRPCClient) StmtQuery(stID string, argVals []driver.NamedValue) (stri
 	if err != nil {
 		log.Printf("error during Plugin.StmtQuery: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -232,6 +241,7 @@ func (db *dbRPCClient) StmtExec(stID string, argVals []driver.NamedValue) (strin
 	if err != nil {
 		log.Printf("error during Plugin.StmtExec: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -258,6 +268,7 @@ func (db *dbRPCClient) ConnQuery(connID, q string, argVals []driver.NamedValue) 
 	if err != nil {
 		log.Printf("error during Plugin.ConnQuery: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -278,6 +289,7 @@ func (db *dbRPCClient) ConnExec(connID, q string, argVals []driver.NamedValue) (
 	if err != nil {
 		log.Printf("error during Plugin.ConnExec: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -298,6 +310,7 @@ func (db *dbRPCClient) ResultLastInsertID(resID string) (int64, error) {
 	if err != nil {
 		log.Printf("error during Plugin.ResultLastInsertID: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -313,6 +326,7 @@ func (db *dbRPCClient) ResultRowsAffected(resID string) (int64, error) {
 	if err != nil {
 		log.Printf("error during Plugin.ResultRowsAffected: %v", err)
 	}
+	ret.B = decodeError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -346,6 +360,7 @@ func (db *dbRPCClient) RowsClose(resID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.RowsClose: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
@@ -416,6 +431,7 @@ func (db *dbRPCClient) RowsNextResultSet(rowsID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.RowsNextResultSet: %v", err)
 	}
+	ret.A = decodeError(ret.A)
 	return ret.A
 }
 
