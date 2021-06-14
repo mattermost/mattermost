@@ -456,7 +456,12 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 		},
 	}
 	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
+	shouldShutdown := true
+	defer func() {
+		if shouldShutdown {
+			th.TearDown()
+		}
+	}()
 
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
@@ -469,6 +474,10 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	// Shutting down the server to make sure all logged records get flushed.
+	th.TearDown()
+	shouldShutdown = false
 
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
