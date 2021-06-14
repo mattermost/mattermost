@@ -7600,14 +7600,6 @@
     "translation": "Невозможно обновить активный статус MFA для пользователя."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Невозможно обработать импорт: не удалось распаковать файл."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Невозможно обработать импорт: не удалось создать временную директорию."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Невозможно обработать импорт: не удалось открыть файл."
   },
