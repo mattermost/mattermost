@@ -1124,10 +1124,6 @@
     "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Kunde inte läsa bildfilen. Kontrollera att bildstorleken är mindre än 2 MB och försök igen."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Kunde inte spara bildfilen på din lagringsyta. Kolla din uppkoppling och försök igen."
   },
@@ -1138,10 +1134,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Kunde inte konvertera bilddatat till PNG-format. Försök igen."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kunde inte hämta bildmetadatat."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4696,10 +4688,6 @@
     "translation": "Kunde inte koda profilbilden."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kunde inte spara profilbilden. Filen verkar inte vara en giltig bildfil."
-  },
-  {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kunde inte avkoda profilbilden."
   },
@@ -5470,10 +5458,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kunde inte koda teamikonen."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kunde inte avkoda teamikonens metadata."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -9197,5 +9181,37 @@
   {
     "id": "api.oauth.click_redirect",
     "translation": "Om du inte blir omdirigerad automatiskt kan du klicka på <a href='{{.Link}}'>länken</a>"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Det gick inte att hämta några gemensamma team-IDn."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "En direktkanal kan inte skapas mellan användarna eftersom de inte delar ett team tillsammans."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Lösenordet är inte giltigt"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
   }
 ]

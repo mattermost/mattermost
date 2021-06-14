@@ -1716,10 +1716,6 @@
     "translation": "Takım simgesinin kodu çözülemedi."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Takım simgesi üst verisinin kodu çözülemedi."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Takım simgesi kodlanamadı."
   },
@@ -2270,10 +2266,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Profil görselinin kodu çözülemedi."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Profil görseli kaydedilemedi. Dosya geçerli bir görsel gibi görünmüyor."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3040,10 +3032,6 @@
     "translation": "Görsel verilerinin kodu çözülemedi."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Görsel üst verileri alınamadı."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Görsel verileri PNG biçimine dönüştürülemedi. Lütfen yeniden deneyin."
   },
@@ -3054,10 +3042,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Görsel dosyası kullandığınız dosya depolaması üzerine yazılamadı. Lütfen bağlantınızı denetleyip yeniden deneyin."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Görsel dosyası okunamadı. Görsel boyutunun 2MB değerinden küçük olduğundan emin olun ve yeniden deneyin."
   },
   {
     "id": "cli.license.critical",
@@ -9197,5 +9181,37 @@
   {
     "id": "api.oauth.click_redirect",
     "translation": "Otomatik olarak yönlendirilmezseniz, <a href='{{.Link}}'>buraya tıklayın</a>"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Yapılandırma farkları belirlenemedi"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Ortak takım kodları alınamadı."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Ortak bir takımları olmadığından bu kullanıcılar arasında doğrudan bir kanal oluşturulamadı."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Parola geçersiz"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Görsel sınırları denetimi yapılamadı. Çözünürlük çok yüksek."
   }
 ]

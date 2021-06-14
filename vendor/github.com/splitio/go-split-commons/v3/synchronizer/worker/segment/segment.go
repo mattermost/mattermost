@@ -2,25 +2,24 @@ package segment
 
 import (
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/splitio/go-split-commons/v3/dtos"
 	"github.com/splitio/go-split-commons/v3/service"
 	"github.com/splitio/go-split-commons/v3/storage"
-	"github.com/splitio/go-split-commons/v3/util"
+	"github.com/splitio/go-split-commons/v3/telemetry"
 	"github.com/splitio/go-toolkit/v4/datastructures/set"
 	"github.com/splitio/go-toolkit/v4/logging"
 )
 
 // UpdaterImpl struct for segment sync
 type UpdaterImpl struct {
-	splitStorage   storage.SplitStorageConsumer
-	segmentStorage storage.SegmentStorage
-	segmentFetcher service.SegmentFetcher
-	metricsWrapper *storage.MetricWrapper
-	logger         logging.LoggerInterface
+	splitStorage     storage.SplitStorageConsumer
+	segmentStorage   storage.SegmentStorage
+	segmentFetcher   service.SegmentFetcher
+	logger           logging.LoggerInterface
+	runtimeTelemetry storage.TelemetryRuntimeProducer
 }
 
 // NewSegmentFetcher creates new segment synchronizer for processing segment updates
@@ -28,15 +27,15 @@ func NewSegmentFetcher(
 	splitStorage storage.SplitStorage,
 	segmentStorage storage.SegmentStorage,
 	segmentFetcher service.SegmentFetcher,
-	metricsWrapper *storage.MetricWrapper,
 	logger logging.LoggerInterface,
+	runtimeTelemetry storage.TelemetryRuntimeProducer,
 ) Updater {
 	return &UpdaterImpl{
-		splitStorage:   splitStorage,
-		segmentStorage: segmentStorage,
-		segmentFetcher: segmentFetcher,
-		metricsWrapper: metricsWrapper,
-		logger:         logger,
+		splitStorage:     splitStorage,
+		segmentStorage:   segmentStorage,
+		segmentFetcher:   segmentFetcher,
+		logger:           logger,
+		runtimeTelemetry: runtimeTelemetry,
 	}
 }
 
@@ -83,16 +82,14 @@ func (s *UpdaterImpl) SynchronizeSegment(name string, till *int64, requestNoCach
 		segmentChanges, err := s.segmentFetcher.Fetch(name, changeNumber, requestNoCache)
 		if err != nil {
 			if httpError, ok := err.(*dtos.HTTPError); ok {
-				s.metricsWrapper.StoreCounters(storage.SegmentChangesCounter, strconv.Itoa(httpError.Code))
+				s.runtimeTelemetry.RecordSyncError(telemetry.SegmentSync, httpError.Code)
 			}
 			return err
 		}
-
+		s.runtimeTelemetry.RecordSyncLatency(telemetry.SegmentSync, time.Since(before).Nanoseconds())
 		s.processUpdate(segmentChanges)
-		bucket := util.Bucket(time.Now().Sub(before).Nanoseconds())
-		s.metricsWrapper.StoreLatencies(storage.SegmentChangesLatency, bucket)
-		s.metricsWrapper.StoreCounters(storage.SegmentChangesCounter, "ok")
 		if segmentChanges.Till == segmentChanges.Since || (till != nil && segmentChanges.Till >= *till) {
+			s.runtimeTelemetry.RecordSuccessfulSync(telemetry.SegmentSync, time.Now().UTC().UnixNano()/int64(time.Millisecond))
 			return nil
 		}
 	}

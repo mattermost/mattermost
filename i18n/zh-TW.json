@@ -1712,10 +1712,6 @@
     "translation": "無法解碼團隊標誌"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "無法解碼團隊標誌資料"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "無法編碼團隊標誌"
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "無法解碼個人頭像"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "無法儲存個人資訊圖片。檔案不是有效圖片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "無法解碼圖片資料。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "無法取得圖片的中繼資料。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "無法轉換圖片至 PNG 格式。請重新嘗試。"
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "無法讀取圖片檔案。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
     "id": "cli.license.critical",
