@@ -350,7 +350,7 @@ func (s *Server) ClientConfigWithComputed() map[string]string {
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(s.IsFirstUserAccount())
+	respCfg["NoAccounts"] = strconv.FormatBool(s.userService.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
 	respCfg["UpgradedFromTE"] = strconv.FormatBool(s.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""
