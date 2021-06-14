@@ -1889,7 +1889,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Vous avez demandez la réinitialisation de votre mot de passe"
+    "translation": "Vous avez demander la réinitialisation de votre mot de passe"
   },
   {
     "id": "api.templates.reset_subject",
