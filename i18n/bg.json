@@ -9201,5 +9201,37 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Паролата не е валидна"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Не мога да активирам повече потребители, тъй като капацитетът на профила в облака е надхвърлен."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Не е възможно да се извърши проверка на облака за превишаване на лимита."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Система"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
   }
 ]
