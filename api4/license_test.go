@@ -111,3 +111,32 @@ func TestRemoveLicenseFile(t *testing.T) {
 		require.True(t, ok)
 	})
 }
+
+func TestRequestTrialLicense(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
+
+	t.Run("permission denied", func(t *testing.T) {
+		ok, resp := th.Client.RequestTrialLicense(1000)
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok)
+	})
+
+	t.Run("blank site url", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
+		ok, resp := th.SystemAdminClient.RequestTrialLicense(1000)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.license.request_trial_license.no-site-url.app_error", resp.Error.Id)
+		require.False(t, ok)
+	})
+
+	t.Run("trial license user count less than current users", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RequestTrialLicense(1)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.license.add_license.unique_users.app_error", resp.Error.Id)
+		require.False(t, ok)
+	})
+}
