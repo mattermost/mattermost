@@ -211,8 +211,8 @@ type Server struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndnTaskMut sync.Mutex
-	dndTask     *model.ScheduledTask
+	dndTaskMut sync.Mutex
+	dndTask    *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -1062,11 +1062,11 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
-	s.dndnTaskMut.Lock()
+	s.dndTaskMut.Lock()
 	if s.dndTask != nil {
 		s.dndTask.Cancel()
 	}
-	s.dndnTaskMut.Unlock()
+	s.dndTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -2302,36 +2302,40 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	return result, nil
 // }
 
+func createDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.srv.dndTaskMut.Unlock()
+}
+
+func cancelDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	if a.srv.dndTask != nil {
+		a.srv.dndTask.Cancel()
+		a.srv.dndTask = nil
+	}
+	a.srv.dndTaskMut.Unlock()
+}
+
 func runDNDStatusExpireJob(a *App) {
 	if !a.Config().FeatureFlags.TimedDND {
 		return
 	}
 	if a.IsLeader() {
-		a.srv.dndnTaskMut.Lock()
-		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-		a.srv.dndnTaskMut.Unlock()
+		createDNDStatusExpirationRecurringTask(a)
 	}
 	a.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			a.srv.dndnTaskMut.Lock()
-			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-			a.srv.dndnTaskMut.Unlock()
+			createDNDStatusExpirationRecurringTask(a)
 		} else {
-			a.srv.dndnTaskMut.Lock()
-			if a.srv.dndTask != nil {
-				a.srv.dndTask.Cancel()
-				a.srv.dndTask = nil
-			}
-			a.srv.dndnTaskMut.Unlock()
+			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
 }
 
 func stopDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		a.srv.dndnTaskMut.Lock()
-		a.srv.dndTask.Cancel()
-		a.srv.dndnTaskMut.Unlock()
+		cancelDNDStatusExpirationRecurringTask(a)
 	}
 }
