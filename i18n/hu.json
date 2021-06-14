@@ -560,14 +560,6 @@
     "translation": "Nem sikerült dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült kicsomagolni a fájlt."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült létrehozni egy ideiglenes könyvtárat."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Nem sikerült feldolgozni az importot: nem sikerült megnyitni a fájlt."
   },
@@ -9145,5 +9137,61 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Közvetlen csatorna nem hozható létre e felhasználók között, mert nincsenek közös csapatban."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Hiba lépett fel a JSON kérés listázása közben"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "A jelszó érvénytelen"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Nem sikerült lekérni a közös csapatazonosítókat."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "A piactéri bővítményeket nem sikerült listázni."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyeket mostantól letiltottak.\n\n{{.BotNames}}{{else}}{{.UserName}} deaktiválták. Ők kezelték a {{.NumBots}} botfiókokat, amelyeket mostanra letiltottak, beleértve a következőket:\n\n{{.BotNames}}{{end}}Az egyes botok tulajdonjogát úgy veheti át, hogy engedélyezi őket a **Integrációk > Botfiókok** menüpontban, és új tokeneket hoz létre a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyek még mindig engedélyezve vannak.\n\n{{.BotNames}}\n{{else}}{{.UserName}} deaktiválták. Ők kezelték a még mindig engedélyezett {{.NumBots}} botfiókokat, köztük a következőket:\n\n{{.BotNames}}{{end}}Nyomatékosan javasoljuk, hogy vegye tulajdonába az egyes botokat, és engedélyezze újra a **Integrációk > Botfiókok** menüpontban, és hozzon létre új tokeneket a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nHa azt szeretné, hogy a botfiókok automatikusan kikapcsolódjanak a tulajdonos deaktiválása után, állítsa a **Rendszerkonzol > Integrációk > Botfiókok** pontban a \"Botfiókok kikapcsolása, ha a tulajdonos deaktiválódik\" opciót igazra.{{end}}"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Nem tud több felhasználót aktiválni, mivel a felhőfiók kapacitása túllépte a korlátot."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Nem lehet felhőellenőrzést végezni a határértéknél vagy a határérték felett."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
   }
 ]
