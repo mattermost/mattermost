@@ -1092,11 +1092,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
 			t.Run(d, func(t *testing.T) {
-				file := "main.go"
-				if d == "test_db_driver" {
-					file = "main_test.go"
-				}
-				mainPath := path.Join(testFolder, d, file)
+				mainPath := path.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
 				th := Setup(t).InitBasic()
@@ -1108,29 +1104,6 @@ func TestBasicAPIPlugins(t *testing.T) {
 		}
 	}
 }
-
-// func TestDBAPIPlugins(t *testing.T) {
-// 	defaultSchema := getDefaultPluginSettingsSchema()
-// 	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
-// 	require.True(t, found, "Cannot read find app folder")
-// 	dirs, err := ioutil.ReadDir(testFolder)
-// 	require.NoError(t, err, "Cannot read test folder %v", testFolder)
-// 	for _, dir := range dirs {
-// 		d := dir.Name()
-// 		if dir.IsDir() && d == "test_db_driver" {
-// 			t.Run(d, func(t *testing.T) {
-// 				mainPath := path.Join(testFolder, d, "main_test.go")
-// 				_, err := os.Stat(mainPath)
-// 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
-// 				th := Setup(t).InitBasic()
-// 				defer th.TearDown()
-// 				setDefaultPluginConfig(th, dir.Name())
-// 				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)
-// 				require.NoError(t, err)
-// 			})
-// 		}
-// 	}
-// }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	th := Setup(t)

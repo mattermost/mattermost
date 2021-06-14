@@ -4,10 +4,7 @@
 package plugin
 
 import (
-	// "context"
 	"database/sql/driver"
-	// "reflect"
-	// "database/sql"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
