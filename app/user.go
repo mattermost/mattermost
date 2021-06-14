@@ -2285,8 +2285,19 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	return threads, nil
 }
 
-func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store.Thread().GetThreadForUser(userID, teamID, threadId, extended)
+func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
+	threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(userId, threadId)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if threadMembership == nil {
+		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "thread membership not found/followed", http.StatusNotFound)
+	}
+	return threadMembership, nil
+}
+
+func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, threadMembership, extended)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2349,14 +2360,16 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	membership.LastViewed = timestamp
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	thread, err := a.GetThreadForUser(userID, teamID, threadID, false)
+	thread, err := a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
 	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
