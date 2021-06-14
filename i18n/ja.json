@@ -7792,14 +7792,6 @@
     "translation": "CollapsedThreads設定は、無効、デフォルトON、デフォルトOFFのいずれかでなければなりません"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "インポートを処理できませんでした: ファイルをunzipできませんでした。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "インポートを処理できませんでした: 一時ディレクトリを作成できませんでした。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "インポートを処理できませんでした: ファイルを開けません。"
   },
