@@ -30,22 +30,14 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-	str := "echo test via driver"
-	if p.Driver.Hello(str) != str {
-		return nil, "unexpected response string"
-	}
-
 	store := sqlstore.New(p.API.GetUnsanitizedConfig().SqlSettings, nil)
 	store.GetMaster().Db.Close()
 
-	connector, err := driver.NewConnector(p.Driver)
-	if err != nil {
-		return nil, err.Error()
-	}
-	store.GetMaster().Db = sql.OpenDB(connector)
+	store.GetMaster().Db = sql.OpenDB(driver.NewConnector(p.Driver))
 	defer store.GetMaster().Db.Close()
 
 	// Testing with a handful of stores
+	storetest.TestPostStore(p.t, store, store)
 	storetest.TestUserStore(p.t, store, store)
 	storetest.TestTeamStore(p.t, store)
 	storetest.TestChannelStore(p.t, store, store)

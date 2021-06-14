@@ -572,7 +572,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		}
 	}
 
-	c.logger.Debug("starting plugin", "path", cmd.Path, "args", cmd.Args)
+	c.logger.Debug("starting plugin", "path: ", cmd.Path, "args: ", cmd.Args)
 	err = cmd.Start()
 	if err != nil {
 		return

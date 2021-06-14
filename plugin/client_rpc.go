@@ -23,7 +23,9 @@ import (
 	"reflect"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
+	"github.com/lib/pq"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -99,6 +101,14 @@ func encodableError(err error) error {
 		return err
 	}
 
+	if _, ok := err.(*pq.Error); ok {
+		return err
+	}
+
+	if _, ok := err.(*mysql.MySQLError); ok {
+		return err
+	}
+
 	ret := &ErrorString{
 		Err: err.Error(),
 	}
@@ -123,7 +133,7 @@ func encodableError(err error) error {
 	return ret
 }
 
-func decodeError(err error) error {
+func decodableError(err error) error {
 	if encErr, ok := err.(*ErrorString); ok {
 		switch encErr.Code {
 		case 1:
@@ -151,6 +161,8 @@ func init() {
 	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
 	gob.Register(&model.AppError{})
+	gob.Register(&pq.Error{})
+	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&opengraph.OpenGraph{})
 	gob.Register(&model.AutocompleteDynamicListArg{})

@@ -5,7 +5,6 @@ package plugin
 
 import (
 	"database/sql/driver"
-	// "context"
 	"log"
 	"net/rpc"
 )
@@ -24,22 +23,18 @@ type Z_DbStrErrReturn struct {
 	A string
 	B error
 }
+
 type Z_DbErrReturn struct {
 	A error
 }
 
-func (db *dbRPCClient) Hello(s string) string {
-	var ret string
-	err := db.client.Call("Plugin.Hello", s, &ret)
-	if err != nil {
-		panic(err)
-	}
-	return ret
+type Z_DbInt64ErrReturn struct {
+	A int64
+	B error
 }
 
-func (db *dbRPCServer) Hello(s string, ret *string) error {
-	*ret = db.dbImpl.Hello(s)
-	return nil
+type Z_DbBoolReturn struct {
+	A bool
 }
 
 func (db *dbRPCClient) Conn() (string, error) {
@@ -48,7 +43,7 @@ func (db *dbRPCClient) Conn() (string, error) {
 	if err != nil {
 		log.Printf("error during Plugin.Conn: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -64,7 +59,7 @@ func (db *dbRPCClient) ConnPing(connID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.ConnPing: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -80,7 +75,7 @@ func (db *dbRPCClient) ConnClose(connID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.ConnClose: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -105,7 +100,7 @@ func (db *dbRPCClient) Tx(connID string, opts driver.TxOptions) (string, error) 
 	if err != nil {
 		log.Printf("error during Plugin.Tx: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -121,7 +116,7 @@ func (db *dbRPCClient) TxCommit(txID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.TxCommit: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -137,7 +132,7 @@ func (db *dbRPCClient) TxRollback(txID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.TxRollback: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -162,7 +157,7 @@ func (db *dbRPCClient) Stmt(connID, q string) (string, error) {
 	if err != nil {
 		log.Printf("error during Plugin.Stmt: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -178,7 +173,7 @@ func (db *dbRPCClient) StmtClose(stID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.StmtClose: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -221,7 +216,7 @@ func (db *dbRPCClient) StmtQuery(stID string, argVals []driver.NamedValue) (stri
 	if err != nil {
 		log.Printf("error during Plugin.StmtQuery: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -241,7 +236,7 @@ func (db *dbRPCClient) StmtExec(stID string, argVals []driver.NamedValue) (strin
 	if err != nil {
 		log.Printf("error during Plugin.StmtExec: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -268,7 +263,7 @@ func (db *dbRPCClient) ConnQuery(connID, q string, argVals []driver.NamedValue) 
 	if err != nil {
 		log.Printf("error during Plugin.ConnQuery: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -289,7 +284,7 @@ func (db *dbRPCClient) ConnExec(connID, q string, argVals []driver.NamedValue) (
 	if err != nil {
 		log.Printf("error during Plugin.ConnExec: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -299,18 +294,13 @@ func (db *dbRPCServer) ConnExec(args *Z_DbConnArgs, ret *Z_DbStrErrReturn) error
 	return nil
 }
 
-type Z_DbInt64ErrReturn struct {
-	A int64
-	B error
-}
-
 func (db *dbRPCClient) ResultLastInsertID(resID string) (int64, error) {
 	ret := &Z_DbInt64ErrReturn{}
 	err := db.client.Call("Plugin.ResultLastInsertID", resID, ret)
 	if err != nil {
 		log.Printf("error during Plugin.ResultLastInsertID: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -326,7 +316,7 @@ func (db *dbRPCClient) ResultRowsAffected(resID string) (int64, error) {
 	if err != nil {
 		log.Printf("error during Plugin.ResultRowsAffected: %v", err)
 	}
-	ret.B = decodeError(ret.B)
+	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
@@ -360,7 +350,7 @@ func (db *dbRPCClient) RowsClose(resID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.RowsClose: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 
@@ -390,7 +380,7 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 	if err != nil {
 		log.Printf("error during Plugin.RowsNext: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	for i, v := range ret.B {
 		dest[i] = v
 	}
@@ -405,10 +395,6 @@ func (db *dbRPCServer) RowsNext(args *Z_DbRowScanArg, ret *Z_DbRowScanReturn) er
 	// to return values is via the return struct.
 	ret.B = args.B
 	return nil
-}
-
-type Z_DbBoolReturn struct {
-	A bool
 }
 
 func (db *dbRPCClient) RowsHasNextResultSet(rowsID string) bool {
@@ -431,7 +417,7 @@ func (db *dbRPCClient) RowsNextResultSet(rowsID string) error {
 	if err != nil {
 		log.Printf("error during Plugin.RowsNextResultSet: %v", err)
 	}
-	ret.A = decodeError(ret.A)
+	ret.A = decodableError(ret.A)
 	return ret.A
 }
 

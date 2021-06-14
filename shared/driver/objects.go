@@ -6,9 +6,6 @@ package driver
 import (
 	"context"
 	"database/sql/driver"
-	// "fmt"
-
-	// "reflect"
 
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )

@@ -144,6 +144,4 @@ type Driver interface {
 	// RowsColumnTypeNullable(rowsID string, index int) (bool, bool)
 	// ResetSession(ctx context.Context) error
 	// IsValid() bool
-
-	Hello(string) string
 }
