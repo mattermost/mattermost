@@ -2871,15 +2871,21 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	extendedStr := r.URL.Query().Get("extended")
-
 	extended, _ := strconv.ParseBool(extendedStr)
-	threads, err := c.App.GetThreadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, extended)
+
+	threadMembership, err := c.App.GetThreadMembershipForUser(c.Params.UserId, c.Params.ThreadId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(threads.ToJson()))
+	thread, err := c.App.GetThreadForUser(c.Params.TeamId, threadMembership, extended)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(thread.ToJson()))
 }
 
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
