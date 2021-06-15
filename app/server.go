@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -136,7 +135,6 @@ type Server struct {
 	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *templates.Container
-	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
 	configListenerId        string
@@ -329,13 +327,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var err error
-	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create session cache")
-	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
@@ -360,19 +351,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
-			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				ver, err2 := s.sqlStore.GetDbVersion(true)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot get DB version")
-				}
-				intVer, err2 := strconv.Atoi(ver)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot parse DB version")
-				}
-				if intVer < sqlstore.MinimumRequiredPostgresVersion {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
-				}
-			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -427,7 +405,16 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
-	s.userService = users.New(s.Store.User(), s.Config)
+	s.userService, err = users.New(users.ServiceInitializer{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()
