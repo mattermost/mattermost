@@ -405,7 +405,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
-	s.userService, err = users.New(users.ServiceInitializer{
+	s.userService, err = users.New(users.ServiceConfig{
 		UserStore:    s.Store.User(),
 		SessionStore: s.Store.Session(),
 		OAuthStore:   s.Store.OAuth(),
@@ -2246,18 +2246,18 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 }
 
 func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	var img []byte
-	var appErr *model.AppError
+	img, err := s.userService.GetDefaultProfileImage(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.DefaultFontError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.UserInitialsError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
+		default:
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
-	if user.IsBot {
-		img = model.BotDefaultImage
-		appErr = nil
-	} else {
-		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
-	}
-	if appErr != nil {
-		return nil, appErr
-	}
 	return img, nil
 }
 

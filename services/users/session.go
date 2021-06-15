@@ -5,10 +5,12 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/pkg/errors"
 )
 
 func (us *UserService) ReturnSessionToPool(session *model.Session) {
@@ -43,6 +45,14 @@ func (us *UserService) GetSession(token string) (*model.Session, error) {
 		}
 	}
 	return session, nil
+}
+
+func (us *UserService) GetSessionContext(ctx context.Context, token string) (*model.Session, error) {
+	return us.sessionStore.Get(ctx, token)
+}
+
+func (us *UserService) GetSessions(userID string) ([]*model.Session, error) {
+	return us.sessionStore.GetSessions(userID)
 }
 
 func (us *UserService) AddSessionToCache(session *model.Session) {
@@ -192,4 +202,42 @@ func (us *UserService) SetSessionExpireInDays(session *model.Session, days int) 
 	} else {
 		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
 	}
+}
+
+func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error {
+	sessions, err := us.GetSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	for _, session := range sessions {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, fmt.Sprintf("%t", isGuest))
+		err := us.sessionStore.UpdateProps(session)
+		if err != nil {
+			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
+			continue
+		}
+		us.AddSessionToCache(session)
+	}
+	return nil
+}
+
+func (us *UserService) RevokeAllSessions(userID string) error {
+	sessions, err := us.sessionStore.GetSessions(userID)
+	if err != nil {
+		return errors.Wrap(GetSessionError, err.Error())
+	}
+	for _, session := range sessions {
+		if session.IsOAuth {
+			us.RevokeAccessToken(session.Token)
+		} else {
+			if err := us.sessionStore.Remove(session.Id); err != nil {
+				return errors.Wrap(DeleteSessionError, err.Error())
+			}
+		}
+	}
+
+	us.ClearUserSessionCache(userID)
+
+	return nil
 }

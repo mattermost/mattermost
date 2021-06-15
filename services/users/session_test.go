@@ -105,7 +105,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.service.RevokeAccessToken(model.NewRandomString(16))
-	require.NotNil(t, err, "Should have failed due to an incorrect token")
+	require.Error(t, err, "Should have failed due to an incorrect token")
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -116,7 +116,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 
 	session, _ = th.service.CreateSession(session)
 	err = th.service.RevokeAccessToken(session.Token)
-	require.NotNil(t, err, "Should have failed does not have an access token")
+	require.Error(t, err, "Should have failed does not have an access token")
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -129,5 +129,5 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	require.NoError(t, nErr)
 
 	err = th.service.RevokeAccessToken(accessData.Token)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
