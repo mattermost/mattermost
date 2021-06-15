@@ -138,7 +138,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
-	if !CheckUserDomain(user, team.AllowedDomains) {
+	if !users.CheckUserDomain(user, team.AllowedDomains) {
 		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
 	}
 
@@ -207,27 +207,8 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (s *Server) IsFirstUserAccount() bool {
-	cachedSessions, err := s.sessionCache.Len()
-	if err != nil {
-		return false
-	}
-	if cachedSessions == 0 {
-		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-		if err != nil {
-			mlog.Debug("There was an error fetching if first user account", mlog.Err(err))
-			return false
-		}
-		if count <= 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (a *App) IsFirstUserAccount() bool {
-	return a.Srv().IsFirstUserAccount()
+	return a.srv.userService.IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -379,28 +360,6 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	}
 
 	return ruser, nil
-}
-
-// CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
-func CheckEmailDomain(email string, domains string) bool {
-	if domains == "" {
-		return true
-	}
-
-	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
-
-	for _, d := range domainArray {
-		if strings.HasSuffix(strings.ToLower(email), "@"+d) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
-	return CheckEmailDomain(user.Email, domains)
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
@@ -1190,13 +1149,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 	var newEmail string
 	if user.Email != prev.Email {
-		if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+		if !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 			if !prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() {
 				return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if !users.CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			if prev.IsGuest() && !prev.IsLDAPUser() && !prev.IsSAMLUser() {
 				return nil, model.NewAppError("UpdateUser", "api.user.update_user.accepted_guest_domain.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -2326,8 +2285,19 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	return threads, nil
 }
 
-func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store.Thread().GetThreadForUser(userID, teamID, threadId, extended)
+func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
+	threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(userId, threadId)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if threadMembership == nil {
+		return nil, model.NewAppError("GetThreadMembershipForUser", "app.user.get_thread_membership_for_user.not_found", nil, "thread membership not found/followed", http.StatusNotFound)
+	}
+	return threadMembership, nil
+}
+
+func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, threadMembership, extended)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2350,13 +2320,19 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 }
 
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
-	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, false, false)
+	_, err := a.Srv().Store.Thread().MaintainMembership(userID, threadID, state, false, true, state, false)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	thread, err := a.Srv().Store.Thread().Get(threadID)
+
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
+	message.Add("reply_count", thread.ReplyCount)
 	a.Publish(message)
 	return nil
 }
@@ -2384,14 +2360,16 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	membership.LastViewed = timestamp
 	nErr = a.Srv().Store.Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	thread, err := a.GetThreadForUser(userID, teamID, threadID, false)
+	thread, err := a.GetThreadForUser(teamID, membership, false)
 	if err != nil {
 		return nil, err
 	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
