@@ -39,13 +39,12 @@ func (s *wrapperStmt) NumInput() int {
 }
 
 func (s *wrapperStmt) ExecContext(_ context.Context, args []driver.NamedValue) (driver.Result, error) {
-	resID, err := s.api.StmtExec(s.id, args)
+	resultContainer, err := s.api.StmtExec(s.id, args)
 	if err != nil {
 		return nil, err
 	}
 	res := &wrapperResult{
-		id:  resID,
-		api: s.api,
+		res: resultContainer,
 	}
 	return res, nil
 }
@@ -63,16 +62,15 @@ func (s *wrapperStmt) QueryContext(_ context.Context, args []driver.NamedValue) 
 }
 
 type wrapperResult struct {
-	id  string
-	api plugin.Driver
+	res plugin.ResultContainer
 }
 
 func (r *wrapperResult) LastInsertId() (int64, error) {
-	return r.api.ResultLastInsertID(r.id)
+	return r.res.LastID, r.res.LastIDError
 }
 
 func (r *wrapperResult) RowsAffected() (int64, error) {
-	return r.api.ResultRowsAffected(r.id)
+	return r.res.RowsAffected, r.res.RowsAffectedError
 }
 
 type wrapperRows struct {

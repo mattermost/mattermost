@@ -86,13 +86,12 @@ func (c *Conn) PrepareContext(_ context.Context, q string) (driver.Stmt, error) 
 }
 
 func (c *Conn) ExecContext(_ context.Context, q string, args []driver.NamedValue) (driver.Result, error) {
-	resID, err := c.api.ConnExec(c.id, q, args)
+	resultContainer, err := c.api.ConnExec(c.id, q, args)
 	if err != nil {
 		return nil, err
 	}
 	res := &wrapperResult{
-		id:  resID,
-		api: c.api,
+		res: resultContainer,
 	}
 	return res, nil
 }

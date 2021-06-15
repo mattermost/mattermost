@@ -10,40 +10,28 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type DriverImpl struct {
-	s         *Server
-	connMut   sync.RWMutex
-	connMap   map[string]*connObj
-	txMut     sync.Mutex
-	txMap     map[string]driver.Tx
-	stMut     sync.Mutex
-	stMap     map[string]*stmtObj
-	rowsMut   sync.Mutex
-	rowsMap   map[string]driver.Rows
-	resultMut sync.Mutex
-	resultMap map[string]driver.Result
-}
-
-type connObj struct {
-	conn    *sql.Conn
-	results []string
-}
-
-type stmtObj struct {
-	stmt    driver.Stmt
-	results []string
+	s       *Server
+	connMut sync.RWMutex
+	connMap map[string]*sql.Conn
+	txMut   sync.Mutex
+	txMap   map[string]driver.Tx
+	stMut   sync.Mutex
+	stMap   map[string]driver.Stmt
+	rowsMut sync.Mutex
+	rowsMap map[string]driver.Rows
 }
 
 func NewDriverImpl(s *Server) *DriverImpl {
 	return &DriverImpl{
-		s:         s,
-		connMap:   make(map[string]*connObj),
-		txMap:     make(map[string]driver.Tx),
-		stMap:     make(map[string]*stmtObj),
-		rowsMap:   make(map[string]driver.Rows),
-		resultMap: make(map[string]driver.Result),
+		s:       s,
+		connMap: make(map[string]*sql.Conn),
+		txMap:   make(map[string]driver.Tx),
+		stMap:   make(map[string]driver.Stmt),
+		rowsMap: make(map[string]driver.Rows),
 	}
 }
 
@@ -54,14 +42,14 @@ func (d *DriverImpl) Conn() (string, error) {
 	}
 	connID := model.NewId()
 	d.connMut.Lock()
-	d.connMap[connID] = &connObj{conn: conn}
+	d.connMap[connID] = conn
 	d.connMut.Unlock()
 	return connID, nil
 }
 
 func (d *DriverImpl) ConnPing(connID string) error {
 	d.connMut.RLock()
-	conn := d.connMap[connID].conn
+	conn := d.connMap[connID]
 	d.connMut.RUnlock()
 	return conn.Raw(func(innerConn interface{}) error {
 		return innerConn.(driver.Pinger).Ping(context.Background())
@@ -71,7 +59,7 @@ func (d *DriverImpl) ConnPing(connID string) error {
 func (d *DriverImpl) ConnQuery(connID, q string, args []driver.NamedValue) (_ string, err error) {
 	var rows driver.Rows
 	d.connMut.RLock()
-	conn := d.connMap[connID].conn
+	conn := d.connMap[connID]
 	d.connMut.RUnlock()
 	err = conn.Raw(func(innerConn interface{}) error {
 		rows, err = innerConn.(driver.QueryerContext).QueryContext(context.Background(), q, args)
@@ -89,44 +77,31 @@ func (d *DriverImpl) ConnQuery(connID, q string, args []driver.NamedValue) (_ st
 	return rowsID, nil
 }
 
-func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ string, err error) {
+func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ plugin.ResultContainer, err error) {
 	var res driver.Result
+	var ret plugin.ResultContainer
 	d.connMut.RLock()
-	conn := d.connMap[connID].conn
+	conn := d.connMap[connID]
 	d.connMut.RUnlock()
 	err = conn.Raw(func(innerConn interface{}) error {
 		res, err = innerConn.(driver.ExecerContext).ExecContext(context.Background(), q, args)
 		return err
 	})
 	if err != nil {
-		return "", err
+		return ret, err
 	}
 
-	resID := model.NewId()
-	d.connMut.Lock()
-	d.connMap[connID].results = append(d.connMap[connID].results, resID)
-	d.connMut.Unlock()
+	ret.LastID, ret.LastIDError = res.LastInsertId()
+	ret.RowsAffected, ret.RowsAffectedError = res.RowsAffected()
 
-	d.resultMut.Lock()
-	d.resultMap[resID] = res
-	d.resultMut.Unlock()
-
-	return resID, nil
+	return ret, nil
 }
 
 func (d *DriverImpl) ConnClose(connID string) error {
-	var results []string
 	d.connMut.Lock()
-	err := d.connMap[connID].conn.Close()
-	results = append(results, d.connMap[connID].results...)
+	err := d.connMap[connID].Close()
 	delete(d.connMap, connID)
 	d.connMut.Unlock()
-
-	d.resultMut.Lock()
-	for _, res := range results {
-		delete(d.resultMap, res)
-	}
-	d.resultMut.Unlock()
 
 	return err
 }
@@ -134,7 +109,7 @@ func (d *DriverImpl) ConnClose(connID string) error {
 func (d *DriverImpl) Tx(connID string, opts driver.TxOptions) (_ string, err error) {
 	var tx driver.Tx
 	d.connMut.RLock()
-	conn := d.connMap[connID].conn
+	conn := d.connMap[connID]
 	d.connMut.RUnlock()
 	err = conn.Raw(func(innerConn interface{}) error {
 		tx, err = innerConn.(driver.ConnBeginTx).BeginTx(context.Background(), opts)
@@ -143,6 +118,7 @@ func (d *DriverImpl) Tx(connID string, opts driver.TxOptions) (_ string, err err
 	if err != nil {
 		return "", err
 	}
+
 	txID := model.NewId()
 	d.txMut.Lock()
 	d.txMap[txID] = tx
@@ -169,7 +145,7 @@ func (d *DriverImpl) TxRollback(txID string) error {
 func (d *DriverImpl) Stmt(connID, q string) (_ string, err error) {
 	var stmt driver.Stmt
 	d.connMut.RLock()
-	conn := d.connMap[connID].conn
+	conn := d.connMap[connID]
 	d.connMut.RUnlock()
 	err = conn.Raw(func(innerConn interface{}) error {
 		stmt, err = innerConn.(driver.Conn).Prepare(q)
@@ -181,24 +157,16 @@ func (d *DriverImpl) Stmt(connID, q string) (_ string, err error) {
 
 	stID := model.NewId()
 	d.stMut.Lock()
-	d.stMap[stID] = &stmtObj{stmt: stmt}
+	d.stMap[stID] = stmt
 	d.stMut.Unlock()
 	return stID, nil
 }
 
 func (d *DriverImpl) StmtClose(stID string) error {
-	var results []string
 	d.stMut.Lock()
-	err := d.stMap[stID].stmt.Close()
-	results = append(results, d.stMap[stID].results...)
+	err := d.stMap[stID].Close()
 	delete(d.stMap, stID)
 	d.stMut.Unlock()
-
-	d.resultMut.Lock()
-	for _, res := range results {
-		delete(d.resultMap, res)
-	}
-	d.resultMut.Unlock()
 
 	return err
 }
@@ -206,7 +174,7 @@ func (d *DriverImpl) StmtClose(stID string) error {
 func (d *DriverImpl) StmtNumInput(stID string) int {
 	d.stMut.Lock()
 	defer d.stMut.Unlock()
-	return d.stMap[stID].stmt.NumInput()
+	return d.stMap[stID].NumInput()
 }
 
 func (d *DriverImpl) StmtQuery(stID string, args []driver.NamedValue) (string, error) {
@@ -215,7 +183,7 @@ func (d *DriverImpl) StmtQuery(stID string, args []driver.NamedValue) (string, e
 		argVals[i] = a.Value
 	}
 	d.stMut.Lock()
-	rows, err := d.stMap[stID].stmt.Query(argVals) //nolint:staticcheck
+	rows, err := d.stMap[stID].Query(argVals) //nolint:staticcheck
 	d.stMut.Unlock()
 	if err != nil {
 		return "", err
@@ -227,39 +195,23 @@ func (d *DriverImpl) StmtQuery(stID string, args []driver.NamedValue) (string, e
 	return rowsID, nil
 }
 
-func (d *DriverImpl) StmtExec(stID string, args []driver.NamedValue) (string, error) {
+func (d *DriverImpl) StmtExec(stID string, args []driver.NamedValue) (plugin.ResultContainer, error) {
 	argVals := make([]driver.Value, len(args))
 	for i, a := range args {
 		argVals[i] = a.Value
 	}
+	var ret plugin.ResultContainer
 	d.stMut.Lock()
-	res, err := d.stMap[stID].stmt.Exec(argVals) //nolint:staticcheck
+	res, err := d.stMap[stID].Exec(argVals) //nolint:staticcheck
 	d.stMut.Unlock()
 	if err != nil {
-		return "", err
+		return ret, err
 	}
-	resID := model.NewId()
-	d.stMut.Lock()
-	d.stMap[stID].results = append(d.stMap[stID].results, resID)
-	d.stMut.Unlock()
 
-	d.resultMut.Lock()
-	d.resultMap[resID] = res
-	d.resultMut.Unlock()
+	ret.LastID, ret.LastIDError = res.LastInsertId()
+	ret.RowsAffected, ret.RowsAffectedError = res.RowsAffected()
 
-	return resID, nil
-}
-
-func (d *DriverImpl) ResultLastInsertID(resID string) (int64, error) {
-	d.resultMut.Lock()
-	defer d.resultMut.Unlock()
-	return d.resultMap[resID].LastInsertId()
-}
-
-func (d *DriverImpl) ResultRowsAffected(resID string) (int64, error) {
-	d.resultMut.Lock()
-	defer d.resultMut.Unlock()
-	return d.resultMap[resID].RowsAffected()
+	return ret, nil
 }
 
 func (d *DriverImpl) RowsColumns(rowsID string) []string {

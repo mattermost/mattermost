@@ -226,22 +226,26 @@ func (db *dbRPCServer) StmtQuery(args *Z_DbStmtQueryArgs, ret *Z_DbStrErrReturn)
 	return nil
 }
 
-func (db *dbRPCClient) StmtExec(stID string, argVals []driver.NamedValue) (string, error) {
+func (db *dbRPCClient) StmtExec(stID string, argVals []driver.NamedValue) (ResultContainer, error) {
 	args := &Z_DbStmtQueryArgs{
 		A: stID,
 		B: argVals,
 	}
-	ret := &Z_DbStrErrReturn{}
+	ret := &Z_DbResultContErrReturn{}
 	err := db.client.Call("Plugin.StmtExec", args, ret)
 	if err != nil {
 		log.Printf("error during Plugin.StmtExec: %v", err)
 	}
+	ret.A.LastIDError = decodableError(ret.A.LastIDError)
+	ret.A.RowsAffectedError = decodableError(ret.A.RowsAffectedError)
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
-func (db *dbRPCServer) StmtExec(args *Z_DbStmtQueryArgs, ret *Z_DbStrErrReturn) error {
+func (db *dbRPCServer) StmtExec(args *Z_DbStmtQueryArgs, ret *Z_DbResultContErrReturn) error {
 	ret.A, ret.B = db.dbImpl.StmtExec(args.A, args.B)
+	ret.A.LastIDError = encodableError(ret.A.LastIDError)
+	ret.A.RowsAffectedError = encodableError(ret.A.RowsAffectedError)
 	ret.B = encodableError(ret.B)
 	return nil
 }
@@ -273,55 +277,32 @@ func (db *dbRPCServer) ConnQuery(args *Z_DbConnArgs, ret *Z_DbStrErrReturn) erro
 	return nil
 }
 
-func (db *dbRPCClient) ConnExec(connID, q string, argVals []driver.NamedValue) (string, error) {
+type Z_DbResultContErrReturn struct {
+	A ResultContainer
+	B error
+}
+
+func (db *dbRPCClient) ConnExec(connID, q string, argVals []driver.NamedValue) (ResultContainer, error) {
 	args := &Z_DbConnArgs{
 		A: connID,
 		B: q,
 		C: argVals,
 	}
-	ret := &Z_DbStrErrReturn{}
+	ret := &Z_DbResultContErrReturn{}
 	err := db.client.Call("Plugin.ConnExec", args, ret)
 	if err != nil {
 		log.Printf("error during Plugin.ConnExec: %v", err)
 	}
+	ret.A.LastIDError = decodableError(ret.A.LastIDError)
+	ret.A.RowsAffectedError = decodableError(ret.A.RowsAffectedError)
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
 }
 
-func (db *dbRPCServer) ConnExec(args *Z_DbConnArgs, ret *Z_DbStrErrReturn) error {
+func (db *dbRPCServer) ConnExec(args *Z_DbConnArgs, ret *Z_DbResultContErrReturn) error {
 	ret.A, ret.B = db.dbImpl.ConnExec(args.A, args.B, args.C)
-	ret.B = encodableError(ret.B)
-	return nil
-}
-
-func (db *dbRPCClient) ResultLastInsertID(resID string) (int64, error) {
-	ret := &Z_DbInt64ErrReturn{}
-	err := db.client.Call("Plugin.ResultLastInsertID", resID, ret)
-	if err != nil {
-		log.Printf("error during Plugin.ResultLastInsertID: %v", err)
-	}
-	ret.B = decodableError(ret.B)
-	return ret.A, ret.B
-}
-
-func (db *dbRPCServer) ResultLastInsertID(resID string, ret *Z_DbInt64ErrReturn) error {
-	ret.A, ret.B = db.dbImpl.ResultLastInsertID(resID)
-	ret.B = encodableError(ret.B)
-	return nil
-}
-
-func (db *dbRPCClient) ResultRowsAffected(resID string) (int64, error) {
-	ret := &Z_DbInt64ErrReturn{}
-	err := db.client.Call("Plugin.ResultRowsAffected", resID, ret)
-	if err != nil {
-		log.Printf("error during Plugin.ResultRowsAffected: %v", err)
-	}
-	ret.B = decodableError(ret.B)
-	return ret.A, ret.B
-}
-
-func (db *dbRPCServer) ResultRowsAffected(resID string, ret *Z_DbInt64ErrReturn) error {
-	ret.A, ret.B = db.dbImpl.ResultRowsAffected(resID)
+	ret.A.LastIDError = encodableError(ret.A.LastIDError)
+	ret.A.RowsAffectedError = encodableError(ret.A.RowsAffectedError)
 	ret.B = encodableError(ret.B)
 	return nil
 }

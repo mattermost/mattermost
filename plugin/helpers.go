@@ -98,13 +98,24 @@ type HelpersImpl struct {
 	API API
 }
 
+// ResultContainer contains the output from the LastInsertID
+// and RowsAffected methods for a given set of rows.
+// It is used to embed another round-trip to the server,
+// and helping to avoid tracking results on the server.
+type ResultContainer struct {
+	LastID            int64
+	LastIDError       error
+	RowsAffected      int64
+	RowsAffectedError error
+}
+
 type Driver interface {
 	// Connection
 	Conn() (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error
-	ConnQuery(connID, q string, args []driver.NamedValue) (string, error) // rows
-	ConnExec(connID, q string, args []driver.NamedValue) (string, error)  // result
+	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
+	ConnExec(connID, q string, args []driver.NamedValue) (ResultContainer, error) // result
 
 	// Transaction
 	Tx(connID string, opts driver.TxOptions) (string, error)
@@ -115,12 +126,8 @@ type Driver interface {
 	Stmt(connID, q string) (string, error)
 	StmtClose(stID string) error
 	StmtNumInput(stID string) int
-	StmtQuery(stID string, args []driver.NamedValue) (string, error) // rows
-	StmtExec(stID string, args []driver.NamedValue) (string, error)  // result
-
-	// Result
-	ResultLastInsertID(resID string) (int64, error)
-	ResultRowsAffected(resID string) (int64, error)
+	StmtQuery(stID string, args []driver.NamedValue) (string, error)         // rows
+	StmtExec(stID string, args []driver.NamedValue) (ResultContainer, error) // result
 
 	// Rows
 	RowsColumns(rowsID string) []string
