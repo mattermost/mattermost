@@ -367,6 +367,44 @@ func TestOAuthAccessToken(t *testing.T) {
 	ApiClient.ClearOAuthToken()
 }
 
+func TestMobileLoginWithOAuth(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	var siteURL = "http://localhost:8065"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
+
+	translationFunc := i18n.GetUserTranslations("en")
+	c.AppContext.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	responseWriter := httptest.NewRecorder()
+
+	// Incase of valid but not supported scheme, we should throw error and include the invalid scheme in the response
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+
+	mobileLoginWithOAuth(c, responseWriter, request)
+	assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
+	assert.NotContains(t, responseWriter.Body.String(), siteURL)
+
+	// Incase of invalid scheme or JS Injection, redirectURL should be replaced by SiteURL
+	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+
+	mobileLoginWithOAuth(c, responseWriter, request2)
+	assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
+	assert.Contains(t, responseWriter.Body.String(), siteURL)
+}
+
 func TestOAuthComplete(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
