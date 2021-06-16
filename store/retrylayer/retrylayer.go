@@ -9668,11 +9668,11 @@ func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, e
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(userID, teamID, threadId, extended)
+		result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
 		if err == nil {
 			return result, nil
 		}

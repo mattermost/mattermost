@@ -379,7 +379,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	a.AddSessionToCache(session)
+	a.srv.userService.AddSessionToCache(session)
 
 	return session, nil
 }
@@ -520,7 +520,7 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 func (a *App) RevokeAccessToken(token string) *model.AppError {
 	session, _ := a.GetSession(token)
 
-	defer ReturnSessionToPool(session)
+	defer a.srv.userService.ReturnSessionToPool(session)
 
 	schan := make(chan error, 1)
 	go func() {

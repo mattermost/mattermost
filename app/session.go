@@ -10,8 +10,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,9 +19,7 @@ import (
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
-	session.Token = ""
-
-	session, err := a.Srv().Store.Session().Save(session)
+	session, err := a.srv.userService.CreateSession(session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -34,22 +30,7 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 		}
 	}
 
-	a.AddSessionToCache(session)
-
 	return session, nil
-}
-
-func ReturnSessionToPool(session *model.Session) {
-	if session != nil {
-		session.Id = ""
-		userSessionPool.Put(session)
-	}
-}
-
-var userSessionPool = sync.Pool{
-	New: func() interface{} {
-		return &model.Session{}
-	},
 }
 
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
@@ -83,19 +64,9 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
-	metrics := a.Metrics()
-
-	var session = userSessionPool.Get().(*model.Session)
-
-	var err *model.AppError
-	if err := a.Srv().sessionCache.Get(token, session); err == nil {
-		if metrics != nil {
-			metrics.IncrementMemCacheHitCounterSession()
-		}
-	} else {
-		if metrics != nil {
-			metrics.IncrementMemCacheMissCounterSession()
-		}
+	session, err := a.srv.userService.GetSession(token)
+	if err != nil {
+		return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if session.Id == "" {
@@ -107,7 +78,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 				}
 
 				if !session.IsExpired() {
-					a.AddSessionToCache(session)
+					a.srv.userService.AddSessionToCache(session)
 				}
 			}
 		} else if nfErr := new(store.ErrNotFound); !errors.As(nErr, &nfErr) {
@@ -115,16 +86,17 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
+	var appErr *model.AppError
 	if session == nil || session.Id == "" {
-		session, err = a.createSessionForUserAccessToken(token)
-		if err != nil {
+		session, appErr = a.createSessionForUserAccessToken(token)
+		if appErr != nil {
 			detailedError := ""
 			statusCode := http.StatusUnauthorized
-			if err.Id != "app.user_access_token.invalid_or_missing" {
-				detailedError = err.Error()
-				statusCode = err.StatusCode
+			if appErr.Id != "app.user_access_token.invalid_or_missing" {
+				detailedError = appErr.Error()
+				statusCode = appErr.StatusCode
 			} else {
-				mlog.Warn("Error while creating session for user access token", mlog.Err(err))
+				mlog.Warn("Error while creating session for user access token", mlog.Err(appErr))
 			}
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": detailedError}, "", statusCode)
 		}
@@ -162,7 +134,6 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetSessions(userID string) ([]*model.Session, *model.AppError) {
-
 	sessions, err := a.Srv().Store.Session().GetSessions(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -185,7 +156,7 @@ func (a *App) UpdateSessionsIsGuest(userID string, isGuest bool) {
 			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
-		a.AddSessionToCache(session)
+		a.srv.userService.AddSessionToCache(session)
 	}
 }
 
@@ -209,6 +180,10 @@ func (a *App) RevokeAllSessions(userID string) *model.AppError {
 	return nil
 }
 
+func (a *App) AddSessionToCache(session *model.Session) {
+	a.srv.userService.AddSessionToCache(session)
+}
+
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
@@ -226,29 +201,16 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) ClearSessionCacheForUser(userID string) {
-	a.ClearSessionCacheForUserSkipClusterSend(userID)
+func (a *App) ReturnSessionToPool(session *model.Session) {
+	a.srv.userService.ReturnSessionToPool(session)
+}
 
-	if a.Cluster() != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
-			SendType: model.CLUSTER_SEND_RELIABLE,
-			Data:     userID,
-		}
-		a.Cluster().SendClusterMessage(msg)
-	}
+func (a *App) ClearSessionCacheForUser(userID string) {
+	a.srv.userService.ClearUserSessionCache(userID)
 }
 
 func (a *App) ClearSessionCacheForAllUsers() {
-	a.ClearSessionCacheForAllUsersSkipClusterSend()
-
-	if a.Cluster() != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
-			SendType: model.CLUSTER_SEND_RELIABLE,
-		}
-		a.Cluster().SendClusterMessage(msg)
-	}
+	a.srv.userService.ClearAllUsersSessionCache()
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
@@ -257,17 +219,6 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 	a.Srv().clearSessionCacheForAllUsersSkipClusterSend()
-}
-
-func (a *App) AddSessionToCache(session *model.Session) {
-	a.Srv().sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*a.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
-}
-
-func (a *App) SessionCacheLength() int {
-	if l, err := a.Srv().sessionCache.Len(); err == nil {
-		return l
-	}
-	return 0
 }
 
 func (a *App) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) *model.AppError {
@@ -344,7 +295,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	session.LastActivityAt = now
-	a.AddSessionToCache(&session)
+	a.srv.userService.AddSessionToCache(&session)
 }
 
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
@@ -392,7 +343,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	// ensures each node will get an extended expiry within the next 10 minutes.
 	// Worst case is another node may generate a redundant expiry update.
 	session.ExpiresAt = newExpiry
-	a.AddSessionToCache(session)
+	a.srv.userService.AddSessionToCache(session)
 
 	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
 		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
@@ -531,7 +482,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		}
 	}
 
-	a.AddSessionToCache(session)
+	a.srv.userService.AddSessionToCache(session)
 
 	return session, nil
 
