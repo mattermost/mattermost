@@ -15005,6 +15005,21 @@ func (a *OpenTracingAppLayer) SetStatusDoNotDisturb(userID string) {
 	a.app.SetStatusDoNotDisturb(userID)
 }
 
+func (a *OpenTracingAppLayer) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturbTimed")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetStatusDoNotDisturbTimed(userId, endtime)
+}
+
 func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userID string, activityAt int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusLastActivityAt")
@@ -15930,6 +15945,21 @@ func (a *OpenTracingAppLayer) UpdateConfig(f func(*model.Config)) {
 	a.app.UpdateConfig(f)
 }
 
+func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDNDStatusOfUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UpdateDNDStatusOfUsers()
+}
+
 func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateEphemeralPost")
@@ -15945,6 +15975,28 @@ func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Pos
 	resultVar0 := a.app.UpdateEphemeralPost(userID, post)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateExpiredDNDStatuses")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateExpiredDNDStatuses()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
