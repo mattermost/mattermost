@@ -61,6 +61,13 @@ func (s *wrapperStmt) QueryContext(_ context.Context, args []driver.NamedValue) 
 	return rows, nil
 }
 
+// wrapperResult implements the driver.Result interface.
+// This differs from other objects because it already contains the
+// information for its methods. This does two things:
+//
+// 1. Simplifies server-side code by avoiding to track result ids
+// in a map.
+// 2. Avoids round-trip to compute result methods.
 type wrapperResult struct {
 	res plugin.ResultContainer
 }

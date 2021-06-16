@@ -13,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+// DriverImpl implements the plugin.Driver interface on the server-side.
+// Each new request for a connection/statement/transaction etc, generates
+// a new entry tracked centrally in a map. Further requests operate on the
+// object ID.
 type DriverImpl struct {
 	s       *Server
 	connMut sync.RWMutex
@@ -46,6 +50,15 @@ func (d *DriverImpl) Conn() (string, error) {
 	d.connMut.Unlock()
 	return connID, nil
 }
+
+// According to https://golang.org/pkg/database/sql/#Conn, a client can call
+// Close on a connection, concurrently while running a query.
+//
+// Therefore, we have to handle the case where the connection is no longer
+// present in the map because it has been closed. ErrBadConn is a good choice
+// here which indicates the sql package to retry on a new connection.
+//
+// ConnPing, ConnQuery, ConnClose, Tx, and Stmt does this.
 
 func (d *DriverImpl) ConnPing(connID string) error {
 	d.connMut.RLock()

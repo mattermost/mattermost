@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// package driver implements a DB driver that can be used by plugins
+// to make SQL queries using RPC. This helps to avoid opening new connections
+// for every plugin, and lets everyone use the central connection
+// pool in the server.
+// The tests for this package are at app/plugin_api_tests/test_db_driver/main.go.
 package driver
 
 import (
@@ -16,7 +21,7 @@ var (
 )
 
 // Connector is the DB connector which is used to
-// initialize the underlying DB.
+// communicate with the DB API.
 type Connector struct {
 	api plugin.Driver
 }

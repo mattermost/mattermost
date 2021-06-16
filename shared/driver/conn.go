@@ -11,8 +11,7 @@ import (
 )
 
 // Conn is a DB driver conn implementation
-// which will just pass-through all queries to its
-// underlying connection.
+// which executes queries using the Plugin DB API.
 type Conn struct {
 	id  string
 	api plugin.Driver
