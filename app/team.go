@@ -1625,6 +1625,8 @@ func (a *App) FindTeamByName(name string) bool {
 }
 
 func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*model.TeamUnread, *model.AppError) {
+	crtDisabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DISABLED
+
 	data, err := a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1634,6 +1636,15 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 	membersMap := make(map[string]*model.TeamUnread)
 
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+
+		if !crtDisabled {
+			data, err := a.Srv().Store.Thread().GetThreadsForUser(userID, cu.TeamId, model.GetUserThreadsOpts{PageSize: 0, Unread: true})
+			if err == nil {
+				tu.ThreadCount = data.TotalUnreadThreads
+				tu.ThreadMentionCount = data.TotalUnreadMentions
+			}
+		}
+
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
@@ -1651,11 +1662,13 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*mod
 			membersMap[id] = unreads(data[i], mu)
 		} else {
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
-				MsgCount:         0,
-				MentionCount:     0,
-				MentionCountRoot: 0,
-				MsgCountRoot:     0,
-				TeamId:           id,
+				MsgCount:           0,
+				MentionCount:       0,
+				MentionCountRoot:   0,
+				MsgCountRoot:       0,
+				ThreadCount:        0,
+				ThreadMentionCount: 0,
+				TeamId:             id,
 			})
 		}
 	}

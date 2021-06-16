@@ -132,7 +132,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	pageSize := uint64(30)
-	if opts.PageSize != 0 {
+	if opts.PageSize >= 0 {
 		pageSize = opts.PageSize
 	}
 
@@ -185,6 +185,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		close(totalUnreadMentionsChan)
 	}()
 	go func() {
+		if pageSize == 0 {
+			return
+		}
 		newFetchConditions := fetchConditions
 		if opts.Since > 0 {
 			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
@@ -223,12 +226,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		close(threadsChan)
 	}()
 
-	threadsResult := <-threadsChan
-	if threadsResult.NErr != nil {
-		return nil, threadsResult.NErr
-	}
-	threads := threadsResult.Data.([]*JoinedThread)
-
 	totalUnreadMentionsResult := <-totalUnreadMentionsChan
 	if totalUnreadMentionsResult.NErr != nil {
 		return nil, totalUnreadMentionsResult.NErr
@@ -249,26 +246,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	var userIds []string
 	userIdMap := map[string]bool{}
-	for _, thread := range threads {
-		for _, participantId := range thread.Participants {
-			if _, ok := userIdMap[participantId]; !ok {
-				userIdMap[participantId] = true
-				userIds = append(userIds, participantId)
-			}
-		}
-	}
-	var users []*model.User
-	if opts.Extended {
-		var err error
-		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
-		}
-	} else {
-		for _, userId := range userIds {
-			users = append(users, &model.User{Id: userId})
-		}
-	}
 
 	result := &model.Threads{
 		Total:               totalCount,
@@ -277,31 +254,59 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
 
-	for _, thread := range threads {
-		var participants []*model.User
-		for _, participantId := range thread.Participants {
-			var participant *model.User
-			for _, u := range users {
-				if u.Id == participantId {
-					participant = u
-					break
+	if pageSize != 0 {
+		threadsResult := <-threadsChan
+		if threadsResult.NErr != nil {
+			return nil, threadsResult.NErr
+		}
+		threads := threadsResult.Data.([]*JoinedThread)
+		for _, thread := range threads {
+			for _, participantId := range thread.Participants {
+				if _, ok := userIdMap[participantId]; !ok {
+					userIdMap[participantId] = true
+					userIds = append(userIds, participantId)
 				}
 			}
-			if participant == nil {
-				return nil, errors.New("cannot find thread participant with id=" + participantId)
-			}
-			participants = append(participants, participant)
 		}
-		result.Threads = append(result.Threads, &model.ThreadResponse{
-			PostId:         thread.PostId,
-			ReplyCount:     thread.ReplyCount,
-			LastReplyAt:    thread.LastReplyAt,
-			LastViewedAt:   thread.LastViewedAt,
-			UnreadReplies:  thread.UnreadReplies,
-			UnreadMentions: thread.UnreadMentions,
-			Participants:   participants,
-			Post:           &thread.Post,
-		})
+		var users []*model.User
+		if opts.Extended {
+			var err error
+			users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			}
+		} else {
+			for _, userId := range userIds {
+				users = append(users, &model.User{Id: userId})
+			}
+		}
+
+		for _, thread := range threads {
+			var participants []*model.User
+			for _, participantId := range thread.Participants {
+				var participant *model.User
+				for _, u := range users {
+					if u.Id == participantId {
+						participant = u
+						break
+					}
+				}
+				if participant == nil {
+					return nil, errors.New("cannot find thread participant with id=" + participantId)
+				}
+				participants = append(participants, participant)
+			}
+			result.Threads = append(result.Threads, &model.ThreadResponse{
+				PostId:         thread.PostId,
+				ReplyCount:     thread.ReplyCount,
+				LastReplyAt:    thread.LastReplyAt,
+				LastViewedAt:   thread.LastViewedAt,
+				UnreadReplies:  thread.UnreadReplies,
+				UnreadMentions: thread.UnreadMentions,
+				Participants:   participants,
+				Post:           &thread.Post,
+			})
+		}
 	}
 
 	return result, nil

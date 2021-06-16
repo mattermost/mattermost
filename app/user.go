@@ -2374,6 +2374,10 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	if err != nil {
 		return nil, err
 	}
+	channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
 	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamID, timestamp)
 	if err != nil {
 		return nil, err
@@ -2398,6 +2402,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("unread_mentions", membership.UnreadMentions)
 	message.Add("unread_replies", thread.UnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+	message.Add("channel_type", channel.Type)
 	a.Publish(message)
 	return thread, nil
 }
