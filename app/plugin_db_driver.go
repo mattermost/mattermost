@@ -49,8 +49,12 @@ func (d *DriverImpl) Conn() (string, error) {
 
 func (d *DriverImpl) ConnPing(connID string) error {
 	d.connMut.RLock()
-	conn := d.connMap[connID]
+	conn, ok := d.connMap[connID]
 	d.connMut.RUnlock()
+	if !ok {
+		return driver.ErrBadConn
+	}
+
 	return conn.Raw(func(innerConn interface{}) error {
 		return innerConn.(driver.Pinger).Ping(context.Background())
 	})
@@ -59,8 +63,12 @@ func (d *DriverImpl) ConnPing(connID string) error {
 func (d *DriverImpl) ConnQuery(connID, q string, args []driver.NamedValue) (_ string, err error) {
 	var rows driver.Rows
 	d.connMut.RLock()
-	conn := d.connMap[connID]
+	conn, ok := d.connMap[connID]
 	d.connMut.RUnlock()
+	if !ok {
+		return "", driver.ErrBadConn
+	}
+
 	err = conn.Raw(func(innerConn interface{}) error {
 		rows, err = innerConn.(driver.QueryerContext).QueryContext(context.Background(), q, args)
 		return err
@@ -81,8 +89,12 @@ func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ plu
 	var res driver.Result
 	var ret plugin.ResultContainer
 	d.connMut.RLock()
-	conn := d.connMap[connID]
+	conn, ok := d.connMap[connID]
 	d.connMut.RUnlock()
+	if !ok {
+		return ret, driver.ErrBadConn
+	}
+
 	err = conn.Raw(func(innerConn interface{}) error {
 		res, err = innerConn.(driver.ExecerContext).ExecContext(context.Background(), q, args)
 		return err
@@ -99,18 +111,25 @@ func (d *DriverImpl) ConnExec(connID, q string, args []driver.NamedValue) (_ plu
 
 func (d *DriverImpl) ConnClose(connID string) error {
 	d.connMut.Lock()
-	err := d.connMap[connID].Close()
+	conn, ok := d.connMap[connID]
+	if !ok {
+		return driver.ErrBadConn
+	}
 	delete(d.connMap, connID)
 	d.connMut.Unlock()
 
-	return err
+	return conn.Close()
 }
 
 func (d *DriverImpl) Tx(connID string, opts driver.TxOptions) (_ string, err error) {
 	var tx driver.Tx
 	d.connMut.RLock()
-	conn := d.connMap[connID]
+	conn, ok := d.connMap[connID]
 	d.connMut.RUnlock()
+	if !ok {
+		return "", driver.ErrBadConn
+	}
+
 	err = conn.Raw(func(innerConn interface{}) error {
 		tx, err = innerConn.(driver.ConnBeginTx).BeginTx(context.Background(), opts)
 		return err
@@ -147,8 +166,12 @@ func (d *DriverImpl) TxRollback(txID string) error {
 func (d *DriverImpl) Stmt(connID, q string) (_ string, err error) {
 	var stmt driver.Stmt
 	d.connMut.RLock()
-	conn := d.connMap[connID]
+	conn, ok := d.connMap[connID]
 	d.connMut.RUnlock()
+	if !ok {
+		return "", driver.ErrBadConn
+	}
+
 	err = conn.Raw(func(innerConn interface{}) error {
 		stmt, err = innerConn.(driver.Conn).Prepare(q)
 		return err
