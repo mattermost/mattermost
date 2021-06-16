@@ -102,8 +102,13 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	var link = redirectURL
+	var invalidSchemes = map[string]bool{
+		"data":       true,
+		"javascript": true,
+		"vbscript":   true,
+	}
 	u, redirectErr := url.Parse(redirectURL)
-	if redirectErr != nil || u.Scheme == "javascript" {
+	if redirectErr != nil || invalidSchemes[u.Scheme] {
 		link = *config.ServiceSettings.SiteURL
 	}
 	RenderMobileMessage(w, `
