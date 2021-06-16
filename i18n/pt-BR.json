@@ -8004,14 +8004,6 @@
     "translation": "Valor inválido para Diretório."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Não foi possível processar a importação: falha ao descompactar o arquivo."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Impossível processar importação: falha ao criar diretório temporário."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Impossível processar importação: falha ao abrir o arquivo."
   },

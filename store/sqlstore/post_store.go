@@ -34,7 +34,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
-	IsFollowing        bool
+	IsFollowing        *bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -739,7 +739,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
-		p.Post.IsFollowing = p.IsFollowing
+		if p.IsFollowing != nil {
+			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+		}
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {

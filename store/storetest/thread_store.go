@@ -390,14 +390,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		}
 		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
-		th, err := ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		th, err := ss.Thread().GetThreadForUser("", m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), th.UnreadReplies)
 
 		m.LastViewed = newPosts[2].UpdateAt + 1
 		_, err = ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
-		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		th, err = ss.Thread().GetThreadForUser("", m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 
@@ -406,7 +406,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Update(editedPost, newPosts[2])
 		require.NoError(t, err)
 
-		th, err = ss.Thread().GetThreadForUser(newPosts[0].UserId, "", newPosts[0].Id, false)
+		th, err = ss.Thread().GetThreadForUser("", m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})

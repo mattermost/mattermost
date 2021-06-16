@@ -181,13 +181,13 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: userID, teamID, threadId, extended
-func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(userID, teamID, threadId, extended)
+// GetThreadForUser provides a mock function with given fields: teamID, threadMembership, extended
+func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(teamID, threadMembership, extended)
 
 	var r0 *model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ThreadResponse); ok {
-		r0 = rf(userID, teamID, threadId, extended)
+	if rf, ok := ret.Get(0).(func(string, *model.ThreadMembership, bool) *model.ThreadResponse); ok {
+		r0 = rf(teamID, threadMembership, extended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -195,8 +195,8 @@ func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId s
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
-		r1 = rf(userID, teamID, threadId, extended)
+	if rf, ok := ret.Get(1).(func(string, *model.ThreadMembership, bool) error); ok {
+		r1 = rf(teamID, threadMembership, extended)
 	} else {
 		r1 = ret.Error(1)
 	}

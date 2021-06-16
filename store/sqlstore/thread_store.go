@@ -330,7 +330,11 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
 	return users, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+	if !threadMembership.Following {
+		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+	}
+
 	type JoinedThread struct {
 		PostId         string
 		Following      bool
@@ -343,38 +347,45 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		model.Post
 	}
 
-	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.CreateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
+	unreadRepliesQuery, unreadRepliesArgs := sq.
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": threadMembership.PostId},
+			sq.GtOrEq{"Posts.CreateAt": threadMembership.LastViewed},
+			sq.Eq{"Posts.DeleteAt": 0},
+		}).MustSql()
+
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-		sq.Eq{"ThreadMemberships.UserId": userId},
-		sq.Eq{"Threads.PostId": threadId},
+		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
 	var thread JoinedThread
-	query, args, _ := s.getQueryBuilder().
-		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
+	query, threadArgs, _ := s.getQueryBuilder().
+		Select("Threads.*, Posts.*").
 		From("Threads").
 		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 		Where(fetchConditions).ToSql()
-	err := s.GetReplica().SelectOne(&thread, query, args...)
 
+	args := append(unreadRepliesArgs, threadArgs...)
+
+	err := s.GetReplica().SelectOne(&thread, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	if !thread.Following {
-		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
-	}
+	thread.LastViewedAt = threadMembership.LastViewed
+	thread.UnreadMentions = threadMembership.UnreadMentions
 
 	var users []*model.User
 	if extended {
 		var err error
 		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
 		}
 	} else {
 		for _, userId := range thread.Participants {

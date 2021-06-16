@@ -471,7 +471,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, post.RootId, true)
+				threadMembership, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+				if err != nil {
+					return nil, errors.Wrapf(err, "cannot get thread membership %q for user %q", post.RootId, uid)
+				}
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}

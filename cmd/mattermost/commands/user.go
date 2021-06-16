@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 )
 
 var UserCmd = &cobra.Command{
@@ -480,7 +481,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 		user.Locale = locale
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !app.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !users.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, errors.New("The email does not belong to an accepted domain.")
 	}
 
