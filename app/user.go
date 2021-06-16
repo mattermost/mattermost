@@ -2013,7 +2013,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
 		if uErr := a.srv.userService.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
-			mlog.Error("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
+			mlog.Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
 
@@ -2054,7 +2054,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 	a.sendUpdatedUserEvent(*demotedUser)
 	if uErr := a.srv.userService.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
-		mlog.Error("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
+		mlog.Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)

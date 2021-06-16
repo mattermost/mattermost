@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +45,12 @@ func (us *UserService) GetSession(token string) (*model.Session, error) {
 			us.metrics.IncrementMemCacheMissCounterSession()
 		}
 	}
-	return session, nil
+
+	if session.Id != "" {
+		return session, nil
+	}
+
+	return us.GetSessionContext(sqlstore.WithMaster(context.Background()), token)
 }
 
 func (us *UserService) GetSessionContext(ctx context.Context, token string) (*model.Session, error) {
@@ -119,7 +125,7 @@ func (us *UserService) RevokeSessionsFromAllUsers() error {
 	// revoke tokens before sessions so they can't be used to relogin
 	nErr := us.oAuthStore.RemoveAllAccessData()
 	if nErr != nil {
-		return DeleteAllAccessDataError
+		return errors.Wrap(DeleteAllAccessDataError, nErr.Error())
 	}
 	err := us.sessionStore.RemoveAllSessions()
 	if err != nil {
@@ -175,15 +181,15 @@ func (us *UserService) RevokeAccessToken(token string) error {
 	}()
 
 	if _, err := us.oAuthStore.GetAccessData(token); err != nil {
-		return GetTokenError
+		return errors.Wrap(GetTokenError, err.Error())
 	}
 
 	if err := us.oAuthStore.RemoveAccessData(token); err != nil {
-		return DeleteTokenError
+		return errors.Wrap(DeleteTokenError, err.Error())
 	}
 
 	if err := <-schan; err != nil {
-		return DeleteSessionError
+		return errors.Wrap(DeleteSessionError, err.Error())
 	}
 
 	if session != nil {

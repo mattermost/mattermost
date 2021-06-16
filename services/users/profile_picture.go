@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ImageProfilePixelDimension = 128
+	imageProfilePixelDimension = 128
 )
 
 func (us *UserService) GetDefaultProfileImage(user *model.User) ([]byte, error) {
@@ -74,10 +74,10 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	}
 
 	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, ImageProfilePixelDimension, ImageProfilePixelDimension))
+	dstImg := image.NewRGBA(image.Rect(0, 0, imageProfilePixelDimension, imageProfilePixelDimension))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
-	size := float64(ImageProfilePixelDimension / 2)
+	size := float64(imageProfilePixelDimension / 2)
 
 	c := freetype.NewContext()
 	c.SetFont(font)
@@ -86,7 +86,7 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(ImageProfilePixelDimension/5, ImageProfilePixelDimension*2/3)
+	pt := freetype.Pt(imageProfilePixelDimension/5, imageProfilePixelDimension*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, UserInitialsError

@@ -38,7 +38,11 @@ type ServiceConfig struct {
 	Cluster einterfaces.ClusterInterface
 }
 
-func New(initializer ServiceConfig) (*UserService, error) {
+func New(c ServiceConfig) (*UserService, error) {
+	if err := c.validate(); err != nil {
+		return nil, err
+	}
+
 	cacheProvider := cache.NewProvider()
 	if err := cacheProvider.Connect(); err != nil {
 		return nil, fmt.Errorf("could not create cache provider: %w", err)
@@ -53,17 +57,13 @@ func New(initializer ServiceConfig) (*UserService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	if in := initializer; in.ConfigFn == nil || in.UserStore == nil || in.SessionStore == nil || in.OAuthStore == nil {
-		return nil, errors.New("required parameters are not provided")
-	}
-
 	return &UserService{
-		store:        initializer.UserStore,
-		sessionStore: initializer.SessionStore,
-		oAuthStore:   initializer.OAuthStore,
-		config:       initializer.ConfigFn,
-		metrics:      initializer.Metrics,
-		cluster:      initializer.Cluster,
+		store:        c.UserStore,
+		sessionStore: c.SessionStore,
+		oAuthStore:   c.OAuthStore,
+		config:       c.ConfigFn,
+		metrics:      c.Metrics,
+		cluster:      c.Cluster,
 		sessionCache: sessionCache,
 		sessionPool: sync.Pool{
 			New: func() interface{} {
@@ -71,4 +71,12 @@ func New(initializer ServiceConfig) (*UserService, error) {
 			},
 		},
 	}, nil
+}
+
+func (c *ServiceConfig) validate() error {
+	if in := c; in.ConfigFn == nil || in.UserStore == nil || in.SessionStore == nil || in.OAuthStore == nil {
+		return errors.New("required parameters are not provided")
+	}
+
+	return nil
 }

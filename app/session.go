@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -64,25 +63,14 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
-	session, err := a.srv.userService.GetSession(token)
-	if err != nil {
-		return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
+	var session *model.Session
+	if session, _ = a.srv.userService.GetSession(token); session != nil {
+		if session.Token != token {
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
+		}
 
-	if session.Id == "" {
-		var nErr error
-		if session, nErr = a.srv.userService.GetSessionContext(sqlstore.WithMaster(context.Background()), token); nErr == nil {
-			if session != nil {
-				if session.Token != token {
-					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
-				}
-
-				if !session.IsExpired() {
-					a.srv.userService.AddSessionToCache(session)
-				}
-			}
-		} else if nfErr := new(store.ErrNotFound); !errors.As(nErr, &nfErr) {
-			return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		if !session.IsExpired() {
+			a.srv.userService.AddSessionToCache(session)
 		}
 	}
 
@@ -228,7 +216,7 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 		case errors.Is(err, users.DeleteSessionError):
 			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 		default:
-			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, err.Error(), http.StatusInternalServerError) // TODO: include error types to switch
+			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
