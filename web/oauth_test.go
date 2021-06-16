@@ -390,19 +390,29 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	responseWriter := httptest.NewRecorder()
 
-	// Incase of valid but not supported scheme, we should throw error and include the invalid scheme in the response
-	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
 
-	mobileLoginWithOAuth(c, responseWriter, request)
-	assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
-	assert.NotContains(t, responseWriter.Body.String(), siteURL)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
+		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+	})
 
-	// Incase of invalid scheme or JS Injection, redirectURL should be replaced by SiteURL
-	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
 
-	mobileLoginWithOAuth(c, responseWriter, request2)
-	assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
-	assert.Contains(t, responseWriter.Body.String(), siteURL)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
 }
 
 func TestOAuthComplete(t *testing.T) {
