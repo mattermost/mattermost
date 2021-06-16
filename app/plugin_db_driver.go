@@ -19,9 +19,9 @@ type DriverImpl struct {
 	connMap map[string]*sql.Conn
 	txMut   sync.Mutex
 	txMap   map[string]driver.Tx
-	stMut   sync.Mutex
+	stMut   sync.RWMutex
 	stMap   map[string]driver.Stmt
-	rowsMut sync.Mutex
+	rowsMut sync.RWMutex
 	rowsMap map[string]driver.Rows
 }
 
@@ -128,18 +128,20 @@ func (d *DriverImpl) Tx(connID string, opts driver.TxOptions) (_ string, err err
 
 func (d *DriverImpl) TxCommit(txID string) error {
 	d.txMut.Lock()
-	defer d.txMut.Unlock()
-	err := d.txMap[txID].Commit()
+	tx := d.txMap[txID]
 	delete(d.txMap, txID)
-	return err
+	d.txMut.Unlock()
+
+	return tx.Commit()
 }
 
 func (d *DriverImpl) TxRollback(txID string) error {
 	d.txMut.Lock()
-	defer d.txMut.Unlock()
-	err := d.txMap[txID].Rollback()
+	tx := d.txMap[txID]
 	delete(d.txMap, txID)
-	return err
+	d.txMut.Unlock()
+
+	return tx.Rollback()
 }
 
 func (d *DriverImpl) Stmt(connID, q string) (_ string, err error) {
@@ -172,8 +174,8 @@ func (d *DriverImpl) StmtClose(stID string) error {
 }
 
 func (d *DriverImpl) StmtNumInput(stID string) int {
-	d.stMut.Lock()
-	defer d.stMut.Unlock()
+	d.stMut.RLock()
+	defer d.stMut.RUnlock()
 	return d.stMap[stID].NumInput()
 }
 
@@ -182,9 +184,11 @@ func (d *DriverImpl) StmtQuery(stID string, args []driver.NamedValue) (string, e
 	for i, a := range args {
 		argVals[i] = a.Value
 	}
-	d.stMut.Lock()
-	rows, err := d.stMap[stID].Query(argVals) //nolint:staticcheck
-	d.stMut.Unlock()
+	d.stMut.RLock()
+	st := d.stMap[stID]
+	d.stMut.RUnlock()
+
+	rows, err := st.Query(argVals) //nolint:staticcheck
 	if err != nil {
 		return "", err
 	}
@@ -201,9 +205,11 @@ func (d *DriverImpl) StmtExec(stID string, args []driver.NamedValue) (plugin.Res
 		argVals[i] = a.Value
 	}
 	var ret plugin.ResultContainer
-	d.stMut.Lock()
-	res, err := d.stMap[stID].Exec(argVals) //nolint:staticcheck
-	d.stMut.Unlock()
+	d.stMut.RLock()
+	st := d.stMap[stID]
+	d.stMut.RUnlock()
+
+	res, err := st.Exec(argVals) //nolint:staticcheck
 	if err != nil {
 		return ret, err
 	}
@@ -215,8 +221,8 @@ func (d *DriverImpl) StmtExec(stID string, args []driver.NamedValue) (plugin.Res
 }
 
 func (d *DriverImpl) RowsColumns(rowsID string) []string {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
+	d.rowsMut.RLock()
+	defer d.rowsMut.RUnlock()
 	return d.rowsMap[rowsID].Columns()
 }
 
@@ -229,31 +235,32 @@ func (d *DriverImpl) RowsClose(rowsID string) error {
 }
 
 func (d *DriverImpl) RowsNext(rowsID string, dest []driver.Value) error {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
-	return d.rowsMap[rowsID].Next(dest)
+	d.rowsMut.RLock()
+	rows := d.rowsMap[rowsID]
+	d.rowsMut.RUnlock()
+	return rows.Next(dest)
 }
 
 func (d *DriverImpl) RowsHasNextResultSet(rowsID string) bool {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
+	d.rowsMut.RLock()
+	defer d.rowsMut.RUnlock()
 	return d.rowsMap[rowsID].(driver.RowsNextResultSet).HasNextResultSet()
 }
 
 func (d *DriverImpl) RowsNextResultSet(rowsID string) error {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
+	d.rowsMut.RLock()
+	defer d.rowsMut.RUnlock()
 	return d.rowsMap[rowsID].(driver.RowsNextResultSet).NextResultSet()
 }
 
 func (d *DriverImpl) RowsColumnTypeDatabaseTypeName(rowsID string, index int) string {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
+	d.rowsMut.RLock()
+	defer d.rowsMut.RUnlock()
 	return d.rowsMap[rowsID].(driver.RowsColumnTypeDatabaseTypeName).ColumnTypeDatabaseTypeName(index)
 }
 
 func (d *DriverImpl) RowsColumnTypePrecisionScale(rowsID string, index int) (int64, int64, bool) {
-	d.rowsMut.Lock()
-	defer d.rowsMut.Unlock()
+	d.rowsMut.RLock()
+	defer d.rowsMut.RUnlock()
 	return d.rowsMap[rowsID].(driver.RowsColumnTypePrecisionScale).ColumnTypePrecisionScale(index)
 }
