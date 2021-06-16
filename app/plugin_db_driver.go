@@ -58,7 +58,7 @@ func (d *DriverImpl) Conn() (string, error) {
 // present in the map because it has been closed. ErrBadConn is a good choice
 // here which indicates the sql package to retry on a new connection.
 //
-// ConnPing, ConnQuery, ConnClose, Tx, and Stmt does this.
+// ConnPing, ConnQuery, ConnClose, Tx, and Stmt do this.
 
 func (d *DriverImpl) ConnPing(connID string) error {
 	d.connMut.RLock()
@@ -126,6 +126,7 @@ func (d *DriverImpl) ConnClose(connID string) error {
 	d.connMut.Lock()
 	conn, ok := d.connMap[connID]
 	if !ok {
+		d.connMut.Unlock()
 		return driver.ErrBadConn
 	}
 	delete(d.connMap, connID)
