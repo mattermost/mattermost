@@ -9688,11 +9688,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 
 }
 
-func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+		result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 		if err == nil {
 			return result, nil
 		}

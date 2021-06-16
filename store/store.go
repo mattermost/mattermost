@@ -296,7 +296,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error)
+	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
@@ -911,4 +911,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+// ThreadMembershipOpts defines some properties to be passed to
+// ThreadStore.MaintainMembership()
+type ThreadMembershipOpts struct {
+	// Following indicates whether or not the user is following the thread.
+	Following bool
+	// IncrementMentions indicates whether or not the mentions count for
+	// the thread should be incremented.
+	IncrementMentions bool
+	// UpdateFollowing indicates whether or not a membership update should be forced.
+	UpdateFollowing bool
+	// UpdateViewedTimestamp indicates whether or not the LastViewed field of the
+	// membership should be updated.
+	UpdateViewedTimestamp bool
+	// UpdateParticipants indicates whether or not the thread's participants list
+	// should be updated.
+	UpdateParticipants bool
 }
