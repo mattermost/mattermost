@@ -9,6 +9,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -88,7 +89,11 @@ func (s *SqlThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 }
 
 func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
-	if _, err := s.GetMaster().Update(thread); err != nil {
+	return s.update(s.GetMaster(), thread)
+}
+
+func (s *SqlThreadStore) update(ex gorp.SqlExecutor, thread *model.Thread) (*model.Thread, error) {
+	if _, err := ex.Update(thread); err != nil {
 		return nil, errors.Wrapf(err, "failed to update thread with id=%s", thread.PostId)
 	}
 
@@ -96,9 +101,13 @@ func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
 }
 
 func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
+	return s.get(s.GetReplica(), id)
+}
+
+func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, error) {
 	var thread model.Thread
 	query, args, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": id}).ToSql()
-	err := s.GetReplica().SelectOne(&thread, query, args...)
+	err := ex.SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Thread", id)
@@ -321,7 +330,11 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
 	return users, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+	if !threadMembership.Following {
+		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+	}
+
 	type JoinedThread struct {
 		PostId         string
 		Following      bool
@@ -334,38 +347,45 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		model.Post
 	}
 
-	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.CreateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
+	unreadRepliesQuery, unreadRepliesArgs := sq.
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": threadMembership.PostId},
+			sq.GtOrEq{"Posts.CreateAt": threadMembership.LastViewed},
+			sq.Eq{"Posts.DeleteAt": 0},
+		}).MustSql()
+
 	fetchConditions := sq.And{
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
-		sq.Eq{"ThreadMemberships.UserId": userId},
-		sq.Eq{"Threads.PostId": threadId},
+		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
 	var thread JoinedThread
-	query, args, _ := s.getQueryBuilder().
-		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
+	query, threadArgs, _ := s.getQueryBuilder().
+		Select("Threads.*, Posts.*").
 		From("Threads").
 		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 		Where(fetchConditions).ToSql()
-	err := s.GetReplica().SelectOne(&thread, query, args...)
 
+	args := append(unreadRepliesArgs, threadArgs...)
+
+	err := s.GetReplica().SelectOne(&thread, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	if !thread.Following {
-		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
-	}
+	thread.LastViewedAt = threadMembership.LastViewed
+	thread.UnreadMentions = threadMembership.UnreadMentions
 
 	var users []*model.User
 	if extended {
 		var err error
 		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+			return nil, errors.Wrapf(err, "failed to get thread for user id=%s", threadMembership.UserId)
 		}
 	} else {
 		for _, userId := range thread.Participants {
@@ -463,7 +483,11 @@ func (s *SqlThreadStore) Delete(threadId string) error {
 }
 
 func (s *SqlThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	if err := s.GetMaster().Insert(membership); err != nil {
+	return s.saveMembership(s.GetMaster(), membership)
+}
+
+func (s *SqlThreadStore) saveMembership(ex gorp.SqlExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	if err := ex.Insert(membership); err != nil {
 		return nil, errors.Wrapf(err, "failed to save thread membership with postid=%s userid=%s", membership.PostId, membership.UserId)
 	}
 
@@ -471,7 +495,11 @@ func (s *SqlThreadStore) SaveMembership(membership *model.ThreadMembership) (*mo
 }
 
 func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
-	if _, err := s.GetMaster().Update(membership); err != nil {
+	return s.updateMembership(s.GetMaster(), membership)
+}
+
+func (s *SqlThreadStore) updateMembership(ex gorp.SqlExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	if _, err := ex.Update(membership); err != nil {
 		return nil, errors.Wrapf(err, "failed to update thread membership with postid=%s userid=%s", membership.PostId, membership.UserId)
 	}
 
@@ -498,8 +526,12 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 }
 
 func (s *SqlThreadStore) GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error) {
+	return s.getMembershipForUser(s.GetReplica(), userId, postId)
+}
+
+func (s *SqlThreadStore) getMembershipForUser(ex gorp.SqlExecutor, userId, postId string) (*model.ThreadMembership, error) {
 	var membership model.ThreadMembership
-	err := s.GetReplica().SelectOne(&membership, "SELECT * from ThreadMemberships WHERE UserId = :UserId AND PostId = :PostId", map[string]interface{}{"UserId": userId, "PostId": postId})
+	err := ex.SelectOne(&membership, "SELECT * from ThreadMemberships WHERE UserId = :UserId AND PostId = :PostId", map[string]interface{}{"UserId": userId, "PostId": postId})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Thread", postId)
@@ -517,66 +549,89 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error) {
-	membership, err := s.GetMembershipForUser(userId, postId)
+// MaintainMembership creates or updates a thread membership for the given user
+// and post. This method is used to update the state of a membership in response
+// to some events like:
+// - post creation (mentions handling)
+// - channel marked unread
+// - user explicitly following a thread
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+	trx, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(trx)
+
+	membership, err := s.getMembershipForUser(trx, userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	// if memebership exists, update it if:
 	// a. user started/stopped following a thread
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		followingNeedsUpdate := (updateFollowing && !membership.Following || membership.Following != following)
-		if followingNeedsUpdate || incrementMentions || updateViewedTimestamp {
+		followingNeedsUpdate := (opts.UpdateFollowing && !membership.Following || membership.Following != opts.Following)
+		if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
 			if followingNeedsUpdate {
-				membership.Following = following
+				membership.Following = opts.Following
 			}
-			if updateViewedTimestamp {
+			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
 			}
 			membership.LastUpdated = now
-			if incrementMentions {
+			if opts.IncrementMentions {
 				membership.UnreadMentions += 1
 			}
-			_, err = s.UpdateMembership(membership)
+			if _, err = s.updateMembership(trx, membership); err != nil {
+				return nil, err
+			}
 		}
-		return nil, err
+
+		if err = trx.Commit(); err != nil {
+			return nil, errors.Wrap(err, "commit_transaction")
+		}
+
+		return membership, err
 	}
 
 	var nfErr *store.ErrNotFound
-
 	if !errors.As(err, &nfErr) {
 		return nil, errors.Wrap(err, "failed to get thread membership")
 	}
-	mentions := 0
-	if incrementMentions {
-		mentions = 1
+
+	membership = &model.ThreadMembership{
+		PostId:      postId,
+		UserId:      userId,
+		Following:   opts.Following,
+		LastUpdated: now,
 	}
-	var lastViewed int64
-	if updateViewedTimestamp {
-		lastViewed = now
+	if opts.IncrementMentions {
+		membership.UnreadMentions = 1
 	}
-	membership, err = s.SaveMembership(&model.ThreadMembership{
-		PostId:         postId,
-		UserId:         userId,
-		Following:      following,
-		LastViewed:     lastViewed,
-		LastUpdated:    now,
-		UnreadMentions: int64(mentions),
-	})
+	if opts.UpdateViewedTimestamp {
+		membership.LastViewed = now
+	}
+	membership, err = s.saveMembership(trx, membership)
 	if err != nil {
 		return nil, err
 	}
 
-	if updateParticipants {
-		thread, err2 := s.Get(postId)
-		if err2 != nil {
-			return nil, err2
+	if opts.UpdateParticipants {
+		thread, getErr := s.get(trx, postId)
+		if getErr != nil {
+			return nil, getErr
 		}
 		if !thread.Participants.Contains(userId) {
 			thread.Participants = append(thread.Participants, userId)
-			_, err = s.Update(thread)
+			if _, err = s.update(trx, thread); err != nil {
+				return nil, err
+			}
 		}
 	}
+
+	if err = trx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
 	return membership, err
 }
 

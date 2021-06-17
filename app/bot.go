@@ -216,6 +216,10 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		return nil, err
 	}
 
+	if !bot.WouldPatch(botPatch) {
+		return bot, nil
+	}
+
 	bot.Patch(botPatch)
 
 	user, nErr := a.Srv().Store.User().Get(context.Background(), botUserId)

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -469,6 +470,10 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
 	})
 	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Log.Flush(context.Background())
+	require.NoError(t, err)
 
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)

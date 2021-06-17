@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// package driver implements a DB driver that can be used by plugins
+// to make SQL queries using RPC. This helps to avoid opening new connections
+// for every plugin, and lets everyone use the central connection
+// pool in the server.
+// The tests for this package are at app/plugin_api_tests/test_db_driver/main.go.
 package driver
 
 import (
 	"context"
-	"database/sql"
 	"database/sql/driver"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 var (
@@ -15,32 +21,26 @@ var (
 )
 
 // Connector is the DB connector which is used to
-// initialize the underlying DB.
+// communicate with the DB API.
 type Connector struct {
-	driverName string
-	dsn        string
-	db         *sql.DB
+	api      plugin.Driver
+	isMaster bool
 }
 
-func NewConnector(driverName, dsn string) (*Connector, error) {
-	db, err := sql.Open(driverName, dsn)
-	if err != nil {
-		return nil, err
-	}
-	return &Connector{
-		driverName: driverName,
-		dsn:        dsn,
-		db:         db,
-	}, nil
+// NewConnector returns a DB connector that can be used to return a sql.DB object.
+// It takes a plugin.Driver implementation and a boolean flag to indicate whether
+// to connect to a master or replica DB instance.
+func NewConnector(api plugin.Driver, isMaster bool) *Connector {
+	return &Connector{api: api, isMaster: isMaster}
 }
 
-func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	conn, err := c.db.Conn(ctx)
+func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
+	connID, err := c.api.Conn(c.isMaster)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Conn{conn: conn}, nil
+	return &Conn{id: connID, api: c.api}, nil
 }
 
 func (c *Connector) Driver() driver.Driver {

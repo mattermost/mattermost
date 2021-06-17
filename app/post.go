@@ -649,6 +649,11 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	rpost = a.PreparePostForClient(rpost, false, true)
 
+	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
+	// and we don't want to have to populate it for every single user and broadcast to each
+	// individually.
+	rpost.IsFollowing = nil
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
