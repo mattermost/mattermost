@@ -369,8 +369,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := &Context{
-		App:        th.App,
-		AppContext: &request.Context{},
+		App: th.App,
 		Params: &Params{
 			Service: "gitlab",
 		},
@@ -380,7 +379,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
 
 	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
+	c.App.SetT(translationFunc)
 	buffer := &bytes.Buffer{}
 	c.Logger = mlog.NewTestingLogger(t, buffer)
 	provider := &MattermostTestProvider{}
