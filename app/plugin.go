@@ -199,7 +199,7 @@ func (s *Server) initPlugins(c *request.Context, pluginDir, webappPluginDir stri
 		return New(ServerConnector(s)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newApiFunc, pluginDir, webappPluginDir, s.Log, s.Metrics)
+	env, err := plugin.NewEnvironment(newApiFunc, NewDriverImpl(s), pluginDir, webappPluginDir, s.Log, s.Metrics)
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
