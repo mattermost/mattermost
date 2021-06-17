@@ -9,8 +9,10 @@ import (
 	"database/sql/driver"
 	"sync"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	mmdriver "github.com/mattermost/mattermost-server/v5/shared/driver"
 )
 
 // DriverImpl implements the plugin.Driver interface on the server-side.
@@ -39,8 +41,15 @@ func NewDriverImpl(s *Server) *DriverImpl {
 	}
 }
 
-func (d *DriverImpl) Conn() (string, error) {
-	conn, err := d.s.sqlStore.GetMaster().Db.Conn(context.Background())
+func (d *DriverImpl) Conn(dbType string) (string, error) {
+	var dbFunc func() *gorp.DbMap
+	switch dbType {
+	case mmdriver.DBTypeMaster:
+		dbFunc = d.s.sqlStore.GetMaster
+	case mmdriver.DBTypeReplica:
+		dbFunc = d.s.sqlStore.GetReplica
+	}
+	conn, err := dbFunc().Db.Conn(context.Background())
 	if err != nil {
 		return "", err
 	}
