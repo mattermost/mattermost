@@ -56,6 +56,7 @@ func (p *MattermostPlugin) SetHelpers(helpers Helpers) {
 	p.Helpers = helpers
 }
 
+// SetDriver sets the RPC client implementation to talk with the server.
 func (p *MattermostPlugin) SetDriver(driver Driver) {
 	p.Driver = driver
 }

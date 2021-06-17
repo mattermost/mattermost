@@ -109,9 +109,13 @@ type ResultContainer struct {
 	RowsAffectedError error
 }
 
+// Driver is a sql driver interface that is used by plugins to perform
+// raw SQL queries without opening DB connections by themselves. This interface
+// is not subject to backward compatibility guarantees and is only meant to be
+// used by plugins built by the Mattermost team.
 type Driver interface {
 	// Connection
-	Conn() (string, error)
+	Conn(isMaster bool) (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error
 	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
