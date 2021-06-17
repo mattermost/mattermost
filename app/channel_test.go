@@ -2176,9 +2176,9 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 		//  MentionCountRoot should be zero for a user that has CRT turned off
 		require.Equal(t, channelUnread.MsgCountRoot, int64(0))
 
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
-		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+		threadMembership, err := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		require.Nil(t, err)
+		thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)
