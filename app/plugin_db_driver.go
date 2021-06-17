@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"sync"
 
 	"github.com/mattermost/gorp"
@@ -48,6 +49,8 @@ func (d *DriverImpl) Conn(dbType string) (string, error) {
 		dbFunc = d.s.sqlStore.GetMaster
 	case mmdriver.DBTypeReplica:
 		dbFunc = d.s.sqlStore.GetReplica
+	default:
+		return "", fmt.Errorf("incorrect DB type: %s", dbType)
 	}
 	conn, err := dbFunc().Db.Conn(context.Background())
 	if err != nil {
