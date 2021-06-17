@@ -18,6 +18,7 @@ import (
 func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("/ids", api.ApiSessionRequired(getPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.ApiSessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
@@ -370,6 +371,57 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
 	w.Write([]byte(post.ToJson()))
+}
+
+func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	var postIDs []string
+	json.NewDecoder(r.Body).Decode(&postIDs)
+	if postIDs == nil {
+		c.SetInvalidParam("post_ids")
+		return
+	}
+
+	var posts []*model.Post
+
+	for _, postID := range postIDs {
+		post, err := c.App.GetSinglePost(postID)
+		if err != nil {
+			if err.StatusCode == http.StatusNotFound {
+				continue
+			} else {
+				c.Err = err
+				return
+			}
+		}
+
+		channel, err := c.App.GetChannel(post.ChannelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
+			if channel.Type == model.CHANNEL_OPEN {
+				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+					continue
+				}
+			} else {
+				continue
+			}
+		}
+
+		post = c.App.PreparePostForClient(post, false, false, c.AppContext.Session().UserId)
+
+		posts = append(posts, post)
+	}
+
+	b, err := json.Marshal(posts)
+	if err != nil {
+		c.Err = model.NewAppError("getPosts", "api.post.search_posts.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Write(b)
 }
 
 func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
