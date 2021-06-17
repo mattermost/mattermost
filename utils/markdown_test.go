@@ -51,7 +51,7 @@ func TestStripMarkdown(t *testing.T) {
 		{
 			name: "code block: multiline code block 2",
 			args: "Multiline\n```function(number) {\n  return number + 1;\n}```",
-			want: "Multiline function(number) {   return number + 1; }",
+			want: "Multiline function(number) { return number + 1; }",
 		},
 		{
 			name: "code block: language highlighting",

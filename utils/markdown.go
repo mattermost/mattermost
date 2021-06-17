@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	openCodeBlockRgx  = regexp.MustCompile("`{3}(\\s*)(.*?)\\n")
-	closeCodeBlockRgx = regexp.MustCompile("\\n`{3}")
+	openCodeBlockRgx  = regexp.MustCompile("`{3}[ 	\\w\\d]*\\n")
+	closeCodeBlockRgx = regexp.MustCompile("`{3}")
 
 	backtickRgx      = regexp.MustCompile("`*(.*?)`*")
 	asterisksRgx     = regexp.MustCompile(`\*+(.*?)\*+`)
@@ -15,18 +15,18 @@ var (
 	strikethroughRgx = regexp.MustCompile("~+(.*?)~+")
 	blockQuoteRgx    = regexp.MustCompile("> (.*)")
 	headerRgx        = regexp.MustCompile("#+ (.*)")
-	listRgx          = regexp.MustCompile(`(-|\*|\+)` + " (.*)(\\n?)")
+	listRgx          = regexp.MustCompile(`(?m)^([ ]?[-*+]) (.*)(\n?)`)
 	numberingRgx     = regexp.MustCompile(`(\d+)\. (.*)(\n?)`)
 	linkRgx          = regexp.MustCompile(`!?\[(.*?)\][\[\(].*?[\]\)]`)
 	newLineRgx       = regexp.MustCompile(`\n+`)
-	whitespaceRgx    = regexp.MustCompile(`\s+`)
+	whitespaceRgx    = regexp.MustCompile(`(\s+)`)
 	tableRgx         = regexp.MustCompile(`((\r?\n){2}|^)([^\r\n]*\|[^\r\n]*(\r?\n)?)+(=(\r?\n){2}|$)`)
 )
 
 func StripMarkdown(text string) string {
 	res := text
 	// TODO: Code block regex
-	res = openCodeBlockRgx.ReplaceAllString(res, "$2\n")
+	res = openCodeBlockRgx.ReplaceAllString(res, " ")
 	res = closeCodeBlockRgx.ReplaceAllString(res, "$1")
 
 	res = tableRgx.ReplaceAllString(res, "")
