@@ -42,9 +42,9 @@ type Z_DbBoolReturn struct {
 	A bool
 }
 
-func (db *dbRPCClient) Conn() (string, error) {
+func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
 	ret := &Z_DbStrErrReturn{}
-	err := db.client.Call("Plugin.Conn", struct{}{}, ret)
+	err := db.client.Call("Plugin.Conn", isMaster, ret)
 	if err != nil {
 		log.Printf("error during Plugin.Conn: %v", err)
 	}
@@ -52,8 +52,8 @@ func (db *dbRPCClient) Conn() (string, error) {
 	return ret.A, ret.B
 }
 
-func (db *dbRPCServer) Conn(_ struct{}, ret *Z_DbStrErrReturn) error {
-	ret.A, ret.B = db.dbImpl.Conn()
+func (db *dbRPCServer) Conn(isMaster bool, ret *Z_DbStrErrReturn) error {
+	ret.A, ret.B = db.dbImpl.Conn(isMaster)
 	ret.B = encodableError(ret.B)
 	return nil
 }

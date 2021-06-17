@@ -23,15 +23,19 @@ var (
 // Connector is the DB connector which is used to
 // communicate with the DB API.
 type Connector struct {
-	api plugin.Driver
+	api      plugin.Driver
+	isMaster bool
 }
 
-func NewConnector(api plugin.Driver) *Connector {
-	return &Connector{api: api}
+// NewConnector returns a DB connector that can be used to return a sql.DB object.
+// It takes a plugin.Driver implementation and a boolean flag to indicate whether
+// to connect to a master or replica DB instance.
+func NewConnector(api plugin.Driver, isMaster bool) *Connector {
+	return &Connector{api: api, isMaster: isMaster}
 }
 
 func (c *Connector) Connect(_ context.Context) (driver.Conn, error) {
-	connID, err := c.api.Conn()
+	connID, err := c.api.Conn(c.isMaster)
 	if err != nil {
 		return nil, err
 	}
