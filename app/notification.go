@@ -191,7 +191,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mac := make(chan *model.AppError, 1)
 			go func(userID string) {
 				defer close(mac)
-				_, incrementMentions := mentions.Mentions[userID]
+				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
 					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
@@ -205,6 +205,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					if membership != nil && !membership.Following {
 						return
 					}
+				}
+				if mentionType == ThreadMention || mentionType == CommentMention {
+					incrementMentions = false
 				}
 
 				opts := store.ThreadMembershipOpts{
