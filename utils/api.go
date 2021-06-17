@@ -99,13 +99,23 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 }
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
+	var link = redirectURL
+	var invalidSchemes = map[string]bool{
+		"data":       true,
+		"javascript": true,
+		"vbscript":   true,
+	}
+	u, redirectErr := url.Parse(redirectURL)
+	if redirectErr != nil || invalidSchemes[u.Scheme] {
+		link = *config.ServiceSettings.SiteURL
+	}
 	RenderMobileMessage(w, `
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
 		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
-		<a href="`+redirectURL+`">
+		<a href="`+link+`">
 			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
