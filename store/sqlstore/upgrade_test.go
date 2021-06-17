@@ -256,3 +256,96 @@ func TestMsgCountRootMigration(t *testing.T) {
 		})
 	}
 }
+
+func TestFixCRTCountsAndUnreads(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+
+		team := createTeam(ss)
+		uId1 := model.NewId()
+		uId2 := model.NewId()
+		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, 0, 0, 0)
+		require.Nil(t, err)
+		createChannelMemberWithLastViewAt(ss, c1.Id, uId1, 0)
+		createChannelMemberWithLastViewAt(ss, c1.Id, uId2, 0)
+
+		// Create a thread
+		// user2: root post 1
+		//   - user1: reply 1 to root post 1
+		//   - user2: reply 2 to root post 1
+		//   - user1: reply 3 to root post 1
+		//   - user2: reply 4 to root post 1
+		rootPost1 := createPostWithTimestamp(ss, c1.Id, uId2, "", "", 1)
+		lastReplyAt := int64(40)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 10)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, 20)
+		_ = createPostWithTimestamp(ss, c1.Id, uId1, rootPost1.Id, rootPost1.Id, 30)
+		_ = createPostWithTimestamp(ss, c1.Id, uId2, rootPost1.Id, rootPost1.Id, lastReplyAt)
+
+		// Check created thread is good
+		goodThread1, err := ss.Thread().Get(rootPost1.Id)
+		require.Nil(t, err)
+		require.EqualValues(t, 4, goodThread1.ReplyCount)
+		require.EqualValues(t, int64(40), goodThread1.LastReplyAt)
+		require.ElementsMatch(t, model.StringArray{uId1, uId2}, goodThread1.Participants)
+
+		// Create ThreadMembership
+		goodThreadMembership1, err := ss.Thread().SaveMembership(&model.ThreadMembership{
+			PostId:         rootPost1.Id,
+			UserId:         uId1,
+			Following:      true,
+			LastViewed:     lastReplyAt + 1,
+			LastUpdated:    lastReplyAt + 1,
+			UnreadMentions: 0,
+		})
+		require.Nil(t, err)
+		_, err = ss.Thread().SaveMembership(&model.ThreadMembership{
+			PostId:         rootPost1.Id,
+			UserId:         uId2,
+			Following:      true,
+			LastViewed:     lastReplyAt + 1,
+			LastUpdated:    lastReplyAt + 1,
+			UnreadMentions: 0,
+		})
+		require.Nil(t, err)
+
+		// Update channel last viewed at
+		_, err = ss.Channel().UpdateLastViewedAt([]string{c1.Id}, uId1, true)
+		require.Nil(t, err)
+		_, err = ss.Channel().UpdateLastViewedAt([]string{c1.Id}, uId2, true)
+		require.Nil(t, err)
+
+		// Update Thread with bad data, as we might expect because
+		// of previous bugs or changed behaviour
+		badThread1 := *goodThread1
+		badThread1.ReplyCount = 3
+		badThread1.LastReplyAt = 30
+		badThread1.Participants = badThread1.Participants.Remove(uId1)
+		_, err = ss.Thread().Update(&badThread1)
+		require.Nil(t, err)
+
+		// Update ThreadMembership with bad data, as we might expect because
+		// of previous bugs or changed behaviour
+		badThreadMembership1 := *goodThreadMembership1
+		badThreadMembership1.LastViewed = 30
+		badThreadMembership1.UnreadMentions = 4
+		_, err = ss.Thread().UpdateMembership(&badThreadMembership1)
+		require.Nil(t, err)
+
+		// Run migration to fix threads and memberships
+		fixCRTCountsAndUnreads(sqlStore)
+
+		// Check thread is fixed
+		fixedThread1, err := ss.Thread().Get(rootPost1.Id)
+		require.Nil(t, err)
+		require.EqualValues(t, goodThread1.ReplyCount, fixedThread1.ReplyCount)
+		require.EqualValues(t, goodThread1.LastReplyAt, fixedThread1.LastReplyAt)
+		require.ElementsMatch(t, goodThread1.Participants, fixedThread1.Participants)
+
+		// Check threadMemberships is fixed
+		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
+		require.Nil(t, err)
+		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
+		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
+	})
+}

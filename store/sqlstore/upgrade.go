@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -1210,4 +1211,66 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 
 	// saveSchemaVersion(sqlStore, Version5370)
 	// }
+}
+
+func fixCRTCountsAndUnreads(sqlStore *SqlStore) {
+	countsAndLastReplyCTE := "SELECT RootId, COUNT(Id) AS FixedReplyCount, max(Posts.CreateAt) as FixedLastReply FROM Posts where Posts.DeleteAt = 0 GROUP BY RootId"
+	updateReplyCountsQuery := `
+		WITH q AS (` + countsAndLastReplyCTE + `)
+		UPDATE Threads
+		SET ReplyCount = q.FixedReplyCount, LastReplyAt = q.FixedLastReply
+		FROM q
+		WHERE Threads.PostId = q.RootId;
+		`
+
+	fmt.Println("======: ", sqlStore.DriverName())
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateReplyCountsQuery = `
+			UPDATE Threads
+			INNER JOIN (` + countsAndLastReplyCTE + `) as q
+			ON Threads.PostId = q.RootId
+			SET ReplyCount = q.FixedReplyCount, LastReplyAt = q.FixedLastReply
+		`
+	}
+
+	participantsCTE := `SELECT COALESCE(NULLIF(RootId,''), Id) AS ThreadId, ARRAY_AGG(DISTINCT UserId) FixedParticipants FROM Posts WHERE Posts.DeleteAt = 0 GROUP BY ThreadId`
+	updateParticipantsQuery := `
+		WITH q AS (` + participantsCTE + `)
+		UPDATE Threads
+		SET Participants = CONCAT('["', ARRAY_TO_STRING(q.FixedParticipants,'","'), '"]')
+		FROM q WHERE Threads.PostId = q.ThreadId
+		`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateParticipantsQuery = `
+			UPDATE Threads
+			INNER JOIN (SELECT COALESCE(NULLIF(RootId,''), Id) AS ThreadId, GROUP_CONCAT(DISTINCT UserId SEPARATOR '\", \"') AS FixedParticipants FROM Posts WHERE Posts.DeleteAt = 0 GROUP BY ThreadId) as q
+			ON Threads.PostId = q.ThreadId
+			SET Participants = CONCAT('[\"', q.FixedParticipants, '\"]')
+                        `
+	}
+
+	threadMembershipsCTE := `SELECT PostId, UserId, ChannelMembers.LastViewedAt as CM_LastViewedAt FROM Threads INNER JOIN ChannelMembers on ChannelMembers.ChannelId = Threads.ChannelId WHERE Threads.LastReplyAt <= ChannelMembers.LastViewedAt`
+	updateThreadMembershipQuery := `
+		WITH q as (` + threadMembershipsCTE + `)
+		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt, UnreadMentions = 0
+		FROM q WHERE ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
+	`
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateThreadMembershipQuery = `
+			UPDATE ThreadMemberships
+			INNER JOIN (` + threadMembershipsCTE + `) as q
+			ON ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
+			SET LastViewed = q.CM_LastViewedAt, UnreadMentions = 0
+		`
+	}
+
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateReplyCountsQuery); err != nil {
+		mlog.Error("Error updating reply counts and lastreplyat of threads", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateParticipantsQuery); err != nil {
+		mlog.Error("Error updating participants of threads", mlog.Err(err))
+	}
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadMembershipQuery); err != nil {
+		mlog.Error("Error updating lastviewedat and unreadmentions of threadmemberships", mlog.Err(err))
+	}
 }
