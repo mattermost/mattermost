@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -41,9 +40,6 @@ func init() {
 func TestUnitUpdateConfig(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
-	bleveEngine := bleveengine.NewBleveEngine(th.App.Config(), th.App.Srv().Jobs)
-	_ = bleveEngine.Start()
-	th.App.Srv().SearchEngine.RegisterBleveEngine(bleveEngine)
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
