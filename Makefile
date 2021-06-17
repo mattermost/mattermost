@@ -111,7 +111,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.9.3
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -314,6 +314,10 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
 	$(GOBIN)/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly -note 'Regenerate this file using `make sharedchannel-mocks`.'
+
+misc-mocks: ## Creates mocks for misc interfaces.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir utils --name LicenseValidatorIface -output utils/mocks -note 'Regenerate this file using `make misc-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin

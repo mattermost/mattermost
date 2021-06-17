@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -2607,5 +2608,77 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		require.Equal(t, groupsMap[*group1.Name], group1)
 		require.Equal(t, groupsMap[*group2.Name], group2)
 		require.Equal(t, groupsMap[*group3.Name], group3)
+	})
+}
+
+func TestReplyPostNotificationsWithCRT(t *testing.T) {
+	t.Run("Reply posts only shows badges for explicit mentions in collapsed threads", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		u1 := th.BasicUser
+		u2 := th.BasicUser2
+		c1 := th.BasicChannel
+		th.AddUserToChannel(u2, c1)
+
+		// Enable "Trigger notifications on messages in
+		// reply threads that I start or participate in"
+		// for the second user
+		oldValue := th.BasicUser2.NotifyProps[model.COMMENTS_NOTIFY_PROP]
+		newNotifyProps := th.BasicUser2.NotifyProps
+		newNotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		u2, appErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+		require.Nil(t, appErr)
+		require.Equal(t, model.COMMENTS_NOTIFY_ANY, u2.NotifyProps[model.COMMENTS_NOTIFY_PROP])
+		defer func() {
+			newNotifyProps := th.BasicUser2.NotifyProps
+			newNotifyProps[model.COMMENTS_NOTIFY_PROP] = oldValue
+			_, nAppErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+			require.Nil(t, nAppErr)
+		}()
+
+		// Enable CRT
+		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ThreadAutoFollow = true
+			*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+		})
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost1 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost2 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user1",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		require.Nil(t, appErr)
+
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(c1.TeamId, threadMembership, false)
+		require.Nil(t, appErr)
+		// Then: with notifications set to "all" we should
+		// not see a mention badge
+		require.Equal(t, int64(0), thread.UnreadMentions)
+		// Then: last post is still marked as unread
+		require.Equal(t, int64(1), thread.UnreadReplies)
 	})
 }
