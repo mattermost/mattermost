@@ -7988,14 +7988,6 @@
     "translation": "CollapsedThreads设置必须为disabled，default_on或default_off"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "无法处理导入：无法解压文件。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "无法处理导入：无法创建临时目录。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "无法处理导入：无法打开文件。"
   },

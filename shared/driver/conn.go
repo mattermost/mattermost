@@ -5,15 +5,16 @@ package driver
 
 import (
 	"context"
-	"database/sql"
 	"database/sql/driver"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 // Conn is a DB driver conn implementation
-// which will just pass-through all queries to its
-// underlying connection.
+// which executes queries using the Plugin DB API.
 type Conn struct {
-	conn *sql.Conn
+	id  string
+	api plugin.Driver
 }
 
 // driverConn is a super-interface combining the basic
@@ -33,66 +34,84 @@ var (
 )
 
 func (c *Conn) Begin() (tx driver.Tx, err error) {
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		tx, err = innerConn.(driver.Conn).Begin() //nolint:staticcheck
-		return err
-	})
-	return tx, err
+	txID, err := c.api.Tx(c.id, driver.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	t := &wrapperTx{
+		id:  txID,
+		api: c.api,
+	}
+	return t, nil
 }
 
-func (c *Conn) BeginTx(ctx context.Context, opts driver.TxOptions) (_ driver.Tx, err error) {
-	t := &wrapperTx{}
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		t.Tx, err = innerConn.(driver.ConnBeginTx).BeginTx(ctx, opts)
-		return err
-	})
-	return t, err
+func (c *Conn) BeginTx(_ context.Context, opts driver.TxOptions) (driver.Tx, error) {
+	txID, err := c.api.Tx(c.id, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	t := &wrapperTx{
+		id:  txID,
+		api: c.api,
+	}
+	return t, nil
 }
 
-func (c *Conn) Prepare(q string) (_ driver.Stmt, err error) {
-	st := &wrapperStmt{}
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		st.Stmt, err = innerConn.(driver.Conn).Prepare(q)
-		return err
-	})
-	return st, err
+func (c *Conn) Prepare(q string) (driver.Stmt, error) {
+	stID, err := c.api.Stmt(c.id, q)
+	if err != nil {
+		return nil, err
+	}
+
+	st := &wrapperStmt{
+		id:  stID,
+		api: c.api,
+	}
+	return st, nil
 }
 
-func (c *Conn) PrepareContext(ctx context.Context, q string) (_ driver.Stmt, err error) {
-	st := &wrapperStmt{}
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		st.Stmt, err = innerConn.(driver.ConnPrepareContext).PrepareContext(ctx, q)
-		return err
-	})
-	return st, err
+func (c *Conn) PrepareContext(_ context.Context, q string) (driver.Stmt, error) {
+	stID, err := c.api.Stmt(c.id, q)
+	if err != nil {
+		return nil, err
+	}
+	st := &wrapperStmt{
+		id:  stID,
+		api: c.api,
+	}
+	return st, nil
 }
 
-func (c *Conn) ExecContext(ctx context.Context, q string, args []driver.NamedValue) (_ driver.Result, err error) {
-	res := &wrapperResult{}
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		res.Result, err = innerConn.(driver.ExecerContext).ExecContext(ctx, q, args)
-		return err
-	})
-	return res, err
+func (c *Conn) ExecContext(_ context.Context, q string, args []driver.NamedValue) (driver.Result, error) {
+	resultContainer, err := c.api.ConnExec(c.id, q, args)
+	if err != nil {
+		return nil, err
+	}
+	res := &wrapperResult{
+		res: resultContainer,
+	}
+	return res, nil
 }
 
-func (c *Conn) QueryContext(ctx context.Context, q string, args []driver.NamedValue) (_ driver.Rows, err error) {
-	rows := &wrapperRows{}
-	err = c.conn.Raw(func(innerConn interface{}) error {
-		rows.Rows, err = innerConn.(driver.QueryerContext).QueryContext(ctx, q, args)
-		return err
-	})
-	return rows, err
+func (c *Conn) QueryContext(_ context.Context, q string, args []driver.NamedValue) (driver.Rows, error) {
+	rowsID, err := c.api.ConnQuery(c.id, q, args)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := &wrapperRows{
+		id:  rowsID,
+		api: c.api,
+	}
+	return rows, nil
 }
 
-func (c *Conn) Ping(ctx context.Context) error {
-	return c.conn.Raw(func(innerConn interface{}) error {
-		return innerConn.(driver.Pinger).Ping(ctx)
-	})
+func (c *Conn) Ping(_ context.Context) error {
+	return c.api.ConnPing(c.id)
 }
 
 func (c *Conn) Close() error {
-	return c.conn.Raw(func(innerConn interface{}) error {
-		return innerConn.(driver.Conn).Close()
-	})
+	return c.api.ConnClose(c.id)
 }

@@ -451,7 +451,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	r1, err := ss.Post().Get(context.Background(), o1.Id, false, true, false, o1.UserId)
 	require.NoError(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
-	require.True(t, r1.Posts[o1.Id].IsFollowing)
+	require.True(t, *r1.Posts[o1.Id].IsFollowing)
 }
 
 func testPostStoreGetSingle(t *testing.T, ss store.Store) {

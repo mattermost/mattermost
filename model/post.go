@@ -102,7 +102,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	IsFollowing  *bool         `json:"is_following,omitempty" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
@@ -207,7 +207,9 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
-	dst.IsFollowing = o.IsFollowing
+	if o.IsFollowing != nil {
+		dst.IsFollowing = NewBool(*o.IsFollowing)
+	}
 	dst.RemoteId = o.RemoteId
 	return nil
 }

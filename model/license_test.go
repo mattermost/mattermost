@@ -6,6 +6,7 @@ package model
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -158,6 +159,7 @@ func TestLicenseToFromJson(t *testing.T) {
 			Company: NewId(),
 		},
 		Features: &f,
+		IsTrial:  true,
 	}
 
 	j := l.ToJson()
@@ -169,6 +171,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
 	CheckInt64(t, l1.StartsAt, l.StartsAt)
 	CheckInt64(t, l1.ExpiresAt, l.ExpiresAt)
+	CheckBool(t, l1.IsTrial, l.IsTrial)
 
 	CheckString(t, l1.Customer.Id, l.Customer.Id)
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
@@ -237,4 +240,148 @@ func TestLicenseRecordPreSave(t *testing.T) {
 	lr.PreSave()
 
 	assert.NotZero(t, lr.CreateAt)
+}
+
+func TestLicense_IsTrialLicense(t *testing.T) {
+	t.Run("detect trial license directly from the flag", func(t *testing.T) {
+		license := &License{
+			IsTrial: true,
+		}
+		assert.True(t, license.IsTrial)
+
+		license.IsTrial = false
+		assert.False(t, license.IsTrialLicense())
+	})
+
+	t.Run("detect trial license form duration", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+		assert.True(t, license.IsTrialLicense())
+
+		endDate, err = time.Parse(time.RFC822, "01 Feb 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
+		assert.False(t, license.IsTrialLicense())
+
+		// 30 days + 23 hours 59 mins 59 seconds
+		endDate, err = time.Parse("02 Jan 06 15:04:05 MST", "31 Jan 21 23:59:59 UTC")
+		assert.NoError(t, err)
+		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
+		assert.True(t, license.IsTrialLicense())
+	})
+
+	t.Run("detect trial with both flag and duration", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			IsTrial:   true,
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+
+		assert.True(t, license.IsTrialLicense())
+		license.IsTrial = false
+
+		// detecting trial from duration
+		assert.True(t, license.IsTrialLicense())
+
+		endDate, _ = time.Parse(time.RFC822, "1 Feb 2021 08:00 UTC")
+		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
+		assert.False(t, license.IsTrialLicense())
+
+		license.IsTrial = true
+		assert.True(t, license.IsTrialLicense())
+	})
+}
+
+func TestLicense_IsSanctionedTrial(t *testing.T) {
+	t.Run("short duration sanctioned trial", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		endDate, err := time.Parse(time.RFC822, "08 Jan 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			IsTrial:   true,
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+
+		assert.True(t, license.IsSanctionedTrial())
+
+		license.IsTrial = false
+		assert.False(t, license.IsSanctionedTrial())
+	})
+
+	t.Run("long duration sanctioned trial", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		endDate, err := time.Parse(time.RFC822, "02 Feb 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			IsTrial:   true,
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+
+		assert.True(t, license.IsSanctionedTrial())
+
+		license.IsTrial = false
+		assert.False(t, license.IsSanctionedTrial())
+	})
+
+	t.Run("invalid duration for sanctioned trial", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		endDate, err := time.Parse(time.RFC822, "31 Jan 21 08:00 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			IsTrial:   true,
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+
+		assert.False(t, license.IsSanctionedTrial())
+	})
+
+	t.Run("boundary conditions for sanctioned trial", func(t *testing.T) {
+		startDate, err := time.Parse(time.RFC822, "01 Jan 21 00:00 UTC")
+		assert.NoError(t, err)
+
+		// 29 days + 23 hours 59 mins 59 seconds
+		endDate, err := time.Parse("02 Jan 06 15:04:05 MST", "30 Jan 21 23:59:59 UTC")
+		assert.NoError(t, err)
+
+		license := &License{
+			IsTrial:   true,
+			StartsAt:  startDate.UnixNano() / int64(time.Millisecond),
+			ExpiresAt: endDate.UnixNano() / int64(time.Millisecond),
+		}
+
+		assert.True(t, license.IsSanctionedTrial())
+
+		// 31 days + 23 hours 59 mins 59 seconds
+		endDate, err = time.Parse("02 Jan 06 15:04:05 MST", "01 Feb 21 23:59:59 UTC")
+		assert.NoError(t, err)
+		license.ExpiresAt = endDate.UnixNano() / int64(time.Millisecond)
+		assert.True(t, license.IsSanctionedTrial())
+	})
 }
