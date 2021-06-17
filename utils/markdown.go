@@ -20,7 +20,7 @@ var (
 	linkRgx          = regexp.MustCompile(`!?\[(.*?)\][\[\(].*?[\]\)]`)
 	newLineRgx       = regexp.MustCompile(`\n+`)
 	whitespaceRgx    = regexp.MustCompile(`\s+`)
-	tableRgx         = regexp.MustCompile("[|]?(\\s+[A-Za-z0-9 -_*#@$%:;?!.,-\\/\\\\]+\\s+)[|]?[|]?(\\s+[A-Za-z0-9 -_*#@$%:;?!.,\\/\\\\]+\\s+)[|]?[|]?(\\s+[A-Za-z0-9 -_*#@$%:;?!.,\\/\\\\]+\\s+)[|]?\\r?\\n")
+	tableRgx         = regexp.MustCompile(`((\r?\n){2}|^)([^\r\n]*\|[^\r\n]*(\r?\n)?)+(=(\r?\n){2}|$)`)
 )
 
 func StripMarkdown(text string) string {
@@ -29,7 +29,6 @@ func StripMarkdown(text string) string {
 	res = openCodeBlockRgx.ReplaceAllString(res, "$2\n")
 	res = closeCodeBlockRgx.ReplaceAllString(res, "$1")
 
-	// TODO: table regex
 	res = tableRgx.ReplaceAllString(res, "")
 
 	res = backtickRgx.ReplaceAllString(res, "$1")
