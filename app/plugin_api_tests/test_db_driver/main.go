@@ -32,10 +32,10 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	store := sqlstore.New(p.API.GetUnsanitizedConfig().SqlSettings, nil)
 	store.GetMaster().Db.Close()
 
-	for _, dbType := range []string{driver.DBTypeMaster, driver.DBTypeReplica} {
+	for _, isMaster := range []bool{true, false} {
 		// We replace the master DB with master and replica both just to make
 		// gorp APIs work.
-		store.GetMaster().Db = sql.OpenDB(driver.NewConnector(p.Driver, dbType))
+		store.GetMaster().Db = sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
 
 		// Testing with a handful of stores
 		storetest.TestPostStore(p.t, store, store)

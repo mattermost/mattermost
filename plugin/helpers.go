@@ -115,7 +115,7 @@ type ResultContainer struct {
 // used by plugins built by the Mattermost team.
 type Driver interface {
 	// Connection
-	Conn(dbType string) (string, error)
+	Conn(isMaster bool) (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error
 	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
