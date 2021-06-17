@@ -2671,7 +2671,9 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
 		require.Nil(t, appErr)
 
-		thread, appErr := th.App.GetThreadForUser(u2.Id, c1.TeamId, rpost.Id, false)
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(c1.TeamId, threadMembership, false)
 		require.Nil(t, appErr)
 		// Then: with notifications set to "all" we should
 		// not see a mention badge
