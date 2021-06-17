@@ -369,7 +369,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := &Context{
-		App:    th.App,
+		App: th.App,
 		Params: &Params{
 			Service: "gitlab",
 		},
