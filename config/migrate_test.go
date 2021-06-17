@@ -18,6 +18,9 @@ import (
 type cleanUpFn func(store *Store)
 
 func TestMigrate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping migration test in short mode")
+	}
 	files := []string{
 		"IdpCertificateFile",
 		"PublicCertificateFile",

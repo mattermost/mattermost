@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost-server/v5/model"
+	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -180,13 +181,13 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string) ([]string, error) {
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: userID, teamID, threadId, extended
-func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(userID, teamID, threadId, extended)
+// GetThreadForUser provides a mock function with given fields: teamID, threadMembership, extended
+func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(teamID, threadMembership, extended)
 
 	var r0 *model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ThreadResponse); ok {
-		r0 = rf(userID, teamID, threadId, extended)
+	if rf, ok := ret.Get(0).(func(string, *model.ThreadMembership, bool) *model.ThreadResponse); ok {
+		r0 = rf(teamID, threadMembership, extended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -194,8 +195,8 @@ func (_m *ThreadStore) GetThreadForUser(userID string, teamID string, threadId s
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
-		r1 = rf(userID, teamID, threadId, extended)
+	if rf, ok := ret.Get(1).(func(string, *model.ThreadMembership, bool) error); ok {
+		r1 = rf(teamID, threadMembership, extended)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -226,13 +227,13 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 	return r0, r1
 }
 
-// MaintainMembership provides a mock function with given fields: userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants
-func (_m *ThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
-	ret := _m.Called(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+// MaintainMembership provides a mock function with given fields: userID, postID, opts
+func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+	ret := _m.Called(userID, postID, opts)
 
 	var r0 *model.ThreadMembership
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool, bool, bool) *model.ThreadMembership); ok {
-		r0 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+	if rf, ok := ret.Get(0).(func(string, string, store.ThreadMembershipOpts) *model.ThreadMembership); ok {
+		r0 = rf(userID, postID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadMembership)
@@ -240,8 +241,8 @@ func (_m *ThreadStore) MaintainMembership(userID string, postID string, followin
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool, bool, bool, bool, bool) error); ok {
-		r1 = rf(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+	if rf, ok := ret.Get(1).(func(string, string, store.ThreadMembershipOpts) error); ok {
+		r1 = rf(userID, postID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
