@@ -15,7 +15,7 @@ empty:
   script:
     - echo "empty"
 
-lint:
+.lint: # Commenting this job, because it is run in CircleCI
   image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.39.0-1
   stage: test
   script:
@@ -26,7 +26,7 @@ lint:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-layers:
+.layers: # Commenting this job, because it is run in CircleCI
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
   stage: test
   script:
@@ -39,7 +39,7 @@ layers:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-.test-mysql: # commented due to high memory consumption for runners
+.test-mysql: # Commenting this job, because it is run in CircleCI
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -69,7 +69,7 @@ layers:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-.test-postgres: # commented due to high memory consumption for runners
+.test-postgres: # Commenting this job, because it is run in CircleCI
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
@@ -119,7 +119,7 @@ test-schema-mysql:
   tags:
     - k8s-memory
   rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 test-schema-postgres:
   stage: test
@@ -141,4 +141,4 @@ test-schema-postgres:
   tags:
     - k8s-memory
   rules:
-#    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
