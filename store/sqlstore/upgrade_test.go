@@ -300,7 +300,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 			UnreadMentions: 0,
 		})
 		require.Nil(t, err)
-		_, err = ss.Thread().SaveMembership(&model.ThreadMembership{
+		goodThreadMembership2, err := ss.Thread().SaveMembership(&model.ThreadMembership{
 			PostId:         rootPost1.Id,
 			UserId:         uId2,
 			Following:      true,
@@ -336,18 +336,23 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		// Run migration to fix threads and memberships
 		fixCRTThreadCountsAndUnreads(sqlStore)
 
-		// Check thread is fixed
+		// Check bad thread is fixed
 		fixedThread1, err := ss.Thread().Get(rootPost1.Id)
 		require.Nil(t, err)
 		require.EqualValues(t, goodThread1.ReplyCount, fixedThread1.ReplyCount)
 		require.EqualValues(t, goodThread1.LastReplyAt, fixedThread1.LastReplyAt)
 		require.ElementsMatch(t, goodThread1.Participants, fixedThread1.Participants)
 
-		// Check threadMemberships is fixed
+		// Check bad threadMemberships is fixed
 		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
 		require.Nil(t, err)
 		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
 		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
+		require.NotEqual(t, goodThreadMembership1.LastUpdated, fixedThreadMembership1.LastUpdated)
+
+		// check good threadMembership is unchanged
+		fixedThreadMembership2, err := ss.Thread().GetMembershipForUser(uId2, rootPost1.Id)
+		require.Equal(t, goodThreadMembership2, fixedThreadMembership2)
 	})
 }
 
@@ -456,6 +461,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 			Type:      model.POST_LEAVE_CHANNEL,
 			Message:   "user-1 left the channel.",
 		})
+		require.Nil(t, err)
 
 		// u1 has seen till second user post
 		cm1, err := ss.Channel().SaveMember(&model.ChannelMember{

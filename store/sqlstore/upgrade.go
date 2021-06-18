@@ -1248,10 +1248,11 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
                         `
 	}
 
+	now := fmt.Sprintf("%d", model.GetMillis())
 	threadMembershipsCTE := `SELECT PostId, UserId, ChannelMembers.LastViewedAt as CM_LastViewedAt FROM Threads INNER JOIN ChannelMembers on ChannelMembers.ChannelId = Threads.ChannelId WHERE Threads.LastReplyAt <= ChannelMembers.LastViewedAt`
 	updateThreadMembershipQuery := `
 		WITH q as (` + threadMembershipsCTE + `)
-		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt, UnreadMentions = 0
+		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt, UnreadMentions = 0, LastUpdated =` + now + `
 		FROM q WHERE ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
 	`
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1259,7 +1260,7 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 			UPDATE ThreadMemberships
 			INNER JOIN (` + threadMembershipsCTE + `) as q
 			ON ThreadMemberships.Postid = q.PostId AND ThreadMemberships.UserId = q.UserId
-			SET LastViewed = q.CM_LastViewedAt, UnreadMentions = 0
+			SET LastViewed = q.CM_LastViewedAt, UnreadMentions = 0, LastUpdated =` + now + `
 		`
 	}
 
