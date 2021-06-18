@@ -352,6 +352,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 
 		// check good threadMembership is unchanged
 		fixedThreadMembership2, err := ss.Thread().GetMembershipForUser(uId2, rootPost1.Id)
+		require.Nil(t, err)
 		require.Equal(t, goodThreadMembership2, fixedThreadMembership2)
 	})
 }
