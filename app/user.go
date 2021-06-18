@@ -2344,7 +2344,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil) // TODO error? No msg details?
 	a.Publish(message)
 	return nil
 }
@@ -2369,6 +2369,10 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	membership, nErr := a.Srv().Store.Thread().GetMembershipForUser(userID, threadID)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	prevThread, err := a.GetThreadForUser(userID, teamID, threadID, false)
+	if err != nil {
+		return nil, err
 	}
 	post, err := a.GetSinglePost(threadID)
 	if err != nil {
@@ -2401,6 +2405,8 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)
 	message.Add("unread_replies", thread.UnreadReplies)
+	message.Add("prev_unread_mentions", prevThread.UnreadMentions)
+	message.Add("prev_unread_replies", prevThread.UnreadReplies)
 	message.Add("channel_id", post.ChannelId)
 	message.Add("channel_type", channel.Type)
 	a.Publish(message)

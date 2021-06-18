@@ -420,8 +420,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// optional team id to be excluded from the result
 	teamId := r.URL.Query().Get("exclude_team")
+	collapsedThreads := r.URL.Query().Get("collapsedThreads") == "true"
 
-	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId, collapsedThreads)
 	if err != nil {
 		c.Err = err
 		return
