@@ -64,6 +64,8 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	var session *model.Session
+	// We intentionally skip the error check here, we only want to check if the token is valid.
+	// If we don't have the session we are going to create one with the token eventually.
 	if session, _ = a.srv.userService.GetSession(token); session != nil {
 		if session.Token != token {
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
