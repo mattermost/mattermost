@@ -248,7 +248,6 @@ func (a *App) SetStatusOffline(userID string, manual bool) {
 	}
 
 	status = &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: "", MondayStart: status.MondayStart, MondayEnd: status.MondayEnd, TuesdayStart: status.TuesdayStart, TuesdayEnd: status.TuesdayEnd, WednesdayStart: status.WednesdayStart, WednesdayEnd: status.WednesdayEnd, ThursdayStart: status.ThursdayStart, ThursdayEnd: status.ThursdayEnd, FridayStart: status.FridayStart, FridayEnd: status.FridayEnd, SaturdayStart: status.SaturdayStart, SaturdayEnd: status.SaturdayEnd, SundayStart: status.SundayStart, SundayEnd: status.SundayEnd, Mode: status.Mode}
-
 	a.SaveAndBroadcastStatus(status)
 }
 
@@ -290,7 +289,6 @@ func (a *App) SetStatusDoNotDisturbSchedule(userId, currentDayOfTheWeek, current
 	if err != nil {
 		return
 	}
-	
 	startTime := ""
 	endTime := ""
 
