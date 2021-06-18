@@ -1213,7 +1213,7 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	// }
 }
 
-func fixCRTCountsAndUnreads(sqlStore *SqlStore) {
+func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 	countsAndLastReplyCTE := "SELECT RootId, COUNT(Id) AS FixedReplyCount, max(Posts.CreateAt) as FixedLastReply FROM Posts where Posts.DeleteAt = 0 GROUP BY RootId"
 	updateReplyCountsQuery := `
 		WITH q AS (` + countsAndLastReplyCTE + `)
@@ -1223,7 +1223,6 @@ func fixCRTCountsAndUnreads(sqlStore *SqlStore) {
 		WHERE Threads.PostId = q.RootId;
 		`
 
-	fmt.Println("======: ", sqlStore.DriverName())
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		updateReplyCountsQuery = `
 			UPDATE Threads
@@ -1273,4 +1272,96 @@ func fixCRTCountsAndUnreads(sqlStore *SqlStore) {
 	if _, err := sqlStore.GetMaster().ExecNoTimeout(updateThreadMembershipQuery); err != nil {
 		mlog.Error("Error updating lastviewedat and unreadmentions of threadmemberships", mlog.Err(err))
 	}
+}
+
+func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
+	now := fmt.Sprintf("%d", model.GetMillis())
+
+	channelMembershipsCountsAndMentions := `
+		UPDATE ChannelMembers
+		SET MentionCount=0, MentionCountRoot=0, MsgCount=Channels.TotalMsgCount, MsgCountRoot=Channels.TotalMsgCountRoot, LastUpdateAt=` + now + `
+		FROM Channels
+		WHERE ChannelMembers.Channelid = Channels.Id AND ChannelMembers.LastViewedAt >= Channels.LastPostAt;
+	`
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		channelMembershipsCountsAndMentions = `
+			UPDATE ChannelMembers
+			INNER JOIN Channels on Channels.Id = ChannelMembers.ChannelId
+			SET MentionCount=0, MentionCountRoot=0, MsgCount=Channels.TotalMsgCount, MsgCountRoot=Channels.TotalMsgCountRoot, LastUpdateAt=` + now + `
+			WHERE ChannelMembers.LastViewedAt >= Channels.LastPostAt;
+		`
+	}
+
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(channelMembershipsCountsAndMentions); err != nil {
+		mlog.Error("Error updating counts and unreads for channelmemberships", mlog.Err(err))
+	}
+}
+
+func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
+	now := fmt.Sprintf("%d", model.GetMillis())
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		systemMessagesFixQuery := `
+			WITH
+			cte1 AS (SELECT ChannelId, UserId, LastViewedAt FROM ChannelMembers INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id WHERE ChannelMembers.MsgCountRoot != Channels.TotalMsgCountRoot),
+			cte2 AS (SELECT ARRAY_AGG(DISTINCT Posts.Type) AS Typ, cte1.UserId, cte1.ChannelId FROM cte1 INNER JOIN Posts ON Posts.Channelid = cte1.ChannelId WHERE Posts.Createat > cte1.LastViewedAt GROUP BY cte1.UserId, cte1.ChannelId),
+			cte3 AS (SELECT cte2.*, TotalMsgCountRoot, TotalMsgCount FROM cte2 INNER JOIN Channels on cte2.ChannelId = Channels.Id)
+			UPDATE ChannelMembers SET MsgCountRoot = cte3.TotalMsgCountRoot, MsgCount = cte3.TotalMsgCount, LastUpdateAt = ` + now + `
+			FROM cte3 WHERE cte3.UserId = ChannelMembers.UserId AND ChannelMembers.ChannelId = cte3.ChannelId and '' != ALL (cte3.Typ)
+		`
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(systemMessagesFixQuery); err != nil {
+			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
+		}
+		return
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		cte1 := `
+		        CREATE TEMPORARY TABLE cte1
+			SELECT ChannelId, UserId, LastViewedAt
+			FROM ChannelMembers INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
+			WHERE ChannelMembers.MsgCountRoot != Channels.TotalMsgCountRoot;
+		`
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte1); err != nil {
+			mlog.Error("Error creating first temporary table", mlog.Err(err))
+			return
+		}
+		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte1;`)
+
+		cte2 := `
+		        CREATE TEMPORARY TABLE cte2
+			SELECT GROUP_CONCAT(DISTINCT Posts.Type) AS Typ, cte1.UserId, cte1.ChannelId
+			FROM cte1 INNER JOIN Posts ON Posts.Channelid = cte1.ChannelId
+			WHERE Posts.Createat > cte1.LastViewedAt GROUP BY cte1.UserId, cte1.ChannelId;
+		`
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte2); err != nil {
+			mlog.Error("Error creating second temporary table", mlog.Err(err))
+			return
+		}
+		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte2;`)
+
+		cte3 := `
+			CREATE TEMPORARY TABLE cte3
+			SELECT cte2.*, TotalMsgCountRoot, TotalMsgCount
+			FROM cte2 INNER JOIN Channels on cte2.ChannelId = Channels.Id;
+		`
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte3); err != nil {
+			mlog.Error("Error creating third temporary table", mlog.Err(err))
+			return
+		}
+		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte3;`)
+
+		systemMessagesFixQuery := `
+			UPDATE ChannelMembers
+			INNER JOIN cte3 ON cte3.UserId = ChannelMembers.UserId AND ChannelMembers.ChannelId = cte3.ChannelId
+			SET MsgCountRoot = cte3.TotalMsgCountRoot, MsgCount = cte3.TotalMsgCount, LastUpdateAt = ` + now + `
+			WHERE FIND_IN_SET("", cte3.typ) = 0 && cte3.typ != '';
+		`
+		if _, err := sqlStore.GetMaster().ExecNoTimeout(systemMessagesFixQuery); err != nil {
+			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
+		}
+		return
+	}
+	mlog.Error("Error unknown DB type")
 }

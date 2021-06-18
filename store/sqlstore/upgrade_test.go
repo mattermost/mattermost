@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -333,7 +334,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		require.Nil(t, err)
 
 		// Run migration to fix threads and memberships
-		fixCRTCountsAndUnreads(sqlStore)
+		fixCRTThreadCountsAndUnreads(sqlStore)
 
 		// Check thread is fixed
 		fixedThread1, err := ss.Thread().Get(rootPost1.Id)
@@ -347,5 +348,165 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		require.Nil(t, err)
 		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
 		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
+	})
+}
+
+func TestFixChannelUnreadsCRT(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+
+		team := createTeam(ss)
+		uId1 := model.NewId()
+		uId2 := model.NewId()
+		channelLastPostAt := int64(100)
+		channelMsgCount := int64(200)
+		channelMsgCountRoot := int64(100)
+		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, channelLastPostAt, channelMsgCount, channelMsgCountRoot)
+		require.Nil(t, err)
+
+		// Make a membership entry
+		cm1, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:        c1.Id,
+			UserId:           uId1,
+			LastViewedAt:     channelLastPostAt - 50,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         80,
+			MsgCountRoot:     40,
+			MentionCount:     5,
+			MentionCountRoot: 5,
+		})
+		require.Nil(t, err)
+
+		// make a bad membership entry
+		// LastViewed at newer than channel LastPostAt and with unreads and mentions
+		cm2, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:        c1.Id,
+			UserId:           uId2,
+			LastViewedAt:     channelLastPostAt + 50,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         80,
+			MsgCountRoot:     40,
+			MentionCount:     5,
+			MentionCountRoot: 5,
+		})
+		require.Nil(t, err)
+
+		fixCRTChannelMembershipCounts(sqlStore)
+
+		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)
+		require.Nil(t, err)
+		// Migration should not affect this channelmembership
+		require.Equal(t, *cm1, *cm1AfterFix)
+
+		cm2AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
+		require.Nil(t, err)
+		// Check that the channelmembership is fixed
+		require.NotEqual(t, *cm2, *cm2AfterFix)
+		require.EqualValues(t, 0, cm2AfterFix.MentionCount)
+		require.EqualValues(t, 0, cm2AfterFix.MentionCountRoot)
+		require.Equal(t, channelMsgCount, cm2AfterFix.MsgCount)
+		require.Equal(t, channelMsgCountRoot, cm2AfterFix.MsgCountRoot)
+		require.NotEqual(t, cm2.LastUpdateAt, cm2AfterFix.LastUpdateAt)
+	})
+}
+
+func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+
+		team := createTeam(ss)
+		uId1 := model.NewId()
+		uId2 := model.NewId()
+		// in a previous migration we incorrectly counted join leave
+		// messages in channel message count
+		channelMsgCount := int64(5)
+		channelMsgCountRoot := int64(5)
+		secondUserPostAt := int64(30)
+		lastUserPostAt := int64(40)
+		lastPostAt := int64(100)
+
+		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, 0, 0, 0)
+		require.Nil(t, err)
+
+		// Channel Messages
+		// - user post
+		// - user post (second user post)
+		// - user post (last user post)
+		// - Join message
+		// - Leave mesage (last post)
+		createPostWithTimestamp(ss, c1.Id, uId2, "", "", 1)
+		createPostWithTimestamp(ss, c1.Id, uId1, "", "", secondUserPostAt)
+		createPostWithTimestamp(ss, c1.Id, uId1, "", "", lastUserPostAt)
+		_, err = ss.Post().Save(&model.Post{
+			CreateAt:  lastUserPostAt + 10,
+			ChannelId: c1.Id,
+			UserId:    uId1,
+			RootId:    "",
+			ParentId:  "",
+			Type:      model.POST_ADD_TO_CHANNEL,
+			Message:   "user-1 added to the channel by sysadmin",
+		})
+		require.Nil(t, err)
+		_, err = ss.Post().Save(&model.Post{
+			CreateAt:  lastPostAt,
+			ChannelId: c1.Id,
+			UserId:    uId1,
+			RootId:    "",
+			ParentId:  "",
+			Type:      model.POST_LEAVE_CHANNEL,
+			Message:   "user-1 left the channel.",
+		})
+
+		// u1 has seen till second user post
+		cm1, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:        c1.Id,
+			UserId:           uId1,
+			LastViewedAt:     secondUserPostAt,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         2,
+			MsgCountRoot:     2,
+			MentionCount:     0,
+			MentionCountRoot: 1,
+		})
+		require.Nil(t, err)
+
+		// u2 has seen till last user post
+		cm2, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:        c1.Id,
+			UserId:           uId2,
+			LastViewedAt:     lastUserPostAt,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         3,
+			MsgCountRoot:     3,
+			MentionCount:     0,
+			MentionCountRoot: 0,
+		})
+		require.Nil(t, err)
+
+		// join-level messages don't count towards a channel's post counts.
+		// In a previous migration we incorrectly counted join-leave
+		// messages in channel post counts.
+		// Here we update the channel counts with the join-leave messages
+		// created above to replicate the bad counts
+		c1WithBadCounts := c1
+		c1WithBadCounts.TotalMsgCount = channelMsgCount
+		c1WithBadCounts.TotalMsgCountRoot = channelMsgCountRoot
+		_, err = ss.Channel().Update(c1WithBadCounts)
+		require.Nil(t, err)
+
+		fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore)
+
+		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)
+		require.Nil(t, err)
+		// Migration should not affect this channelmembership
+		require.Equal(t, *cm1, *cm1AfterFix)
+
+		cm2AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
+		require.Nil(t, err)
+		// Check that the channelmembership is fixed
+		require.NotEqual(t, *cm2, *cm2AfterFix)
+		require.Equal(t, channelMsgCount, cm2AfterFix.MsgCount)
+		require.Equal(t, channelMsgCountRoot, cm2AfterFix.MsgCountRoot)
+		require.NotEqual(t, cm2.LastUpdateAt, cm2AfterFix.LastUpdateAt)
 	})
 }
