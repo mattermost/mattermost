@@ -26,7 +26,7 @@ const (
 
 func (us *UserService) GetDefaultProfileImage(user *model.User) ([]byte, error) {
 	if user.IsBot {
-		return model.BotDefaultImage, nil
+		return botDefaultImage, nil
 	}
 
 	return createProfileImage(user.Username, user.Id, *us.config().FileSettings.InitialFont)
