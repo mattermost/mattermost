@@ -35,6 +35,9 @@ type FeatureFlags struct {
 
 	// Control support for custom data retention policies
 	CustomDataRetentionEnabled bool
+
+	// Enable timed dnd support for user status
+	TimedDND bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -49,6 +52,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.CustomDataRetentionEnabled = false
+	f.TimedDND = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

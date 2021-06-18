@@ -1977,6 +1977,14 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Could not check if a trial can be started"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
     "id": "api.license.request_renewal_link.app_error",
     "translation": "Error getting the license renewal link"
   },
@@ -6353,6 +6361,14 @@
   {
     "id": "app.user.get_recently_active_users.app_error",
     "translation": "We encountered an error while finding the recently active users."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Unable to get user thread membership"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "User thread membership doesn't exist"
   },
   {
     "id": "app.user.get_threads_for_user.app_error",
