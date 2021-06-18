@@ -153,15 +153,18 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 
+	mockOAuthStore := mocks.OAuthStore{}
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("OAuth").Return(&mockOAuthStore)
 	mockStore.On("Status").Return(&mockStatusStore)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 
-	userService, err := users.New(users.ServiceInitializer{
+	userService, err := users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
 		ConfigFn:     th.App.srv.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),

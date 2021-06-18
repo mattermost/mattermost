@@ -8,8 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"image"
-	"image/color"
 	"os"
 	"strings"
 	"testing"
@@ -81,19 +79,6 @@ func TestCreateOAuthUser(t *testing.T) {
 		_, err := th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader("{}"), th.BasicTeam.Id, nil)
 		require.NotNil(t, err, "should have failed - user creation disabled")
 	})
-}
-
-func TestCreateProfileImage(t *testing.T) {
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
-	require.Nil(t, err)
-
-	rdr := bytes.NewReader(b)
-	img, _, err2 := image.Decode(rdr)
-	require.NoError(t, err2)
-
-	colorful := color.RGBA{116, 49, 196, 255}
-
-	require.Equal(t, colorful, img.At(1, 1), "Failed to create correct color")
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
