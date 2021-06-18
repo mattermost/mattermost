@@ -1970,10 +1970,12 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	}
 	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", false).Return(times, nil)
 	mockSessionStore := mocks.SessionStore{}
+	mockOAuthStore := mocks.OAuthStore{}
 	var err error
-	th.App.srv.userService, err = users.New(users.ServiceInitializer{
+	th.App.srv.userService, err = users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
 		ConfigFn:     th.App.srv.Config,
 	})
 	require.NoError(t, err)

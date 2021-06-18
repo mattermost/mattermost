@@ -4,9 +4,14 @@
 package users
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/pkg/errors"
 )
 
 func (us *UserService) ReturnSessionToPool(session *model.Session) {
@@ -40,7 +45,20 @@ func (us *UserService) GetSession(token string) (*model.Session, error) {
 			us.metrics.IncrementMemCacheMissCounterSession()
 		}
 	}
-	return session, nil
+
+	if session.Id != "" {
+		return session, nil
+	}
+
+	return us.GetSessionContext(sqlstore.WithMaster(context.Background()), token)
+}
+
+func (us *UserService) GetSessionContext(ctx context.Context, token string) (*model.Session, error) {
+	return us.sessionStore.Get(ctx, token)
+}
+
+func (us *UserService) GetSessions(userID string) ([]*model.Session, error) {
+	return us.sessionStore.GetSessions(userID)
 }
 
 func (us *UserService) AddSessionToCache(session *model.Session) {
@@ -97,4 +115,135 @@ func (us *UserService) ClearAllUsersSessionCache() {
 		}
 		us.cluster.SendClusterMessage(msg)
 	}
+}
+
+func (us *UserService) GetSessionByID(sessionID string) (*model.Session, error) {
+	return us.sessionStore.Get(context.Background(), sessionID)
+}
+
+func (us *UserService) RevokeSessionsFromAllUsers() error {
+	// revoke tokens before sessions so they can't be used to relogin
+	nErr := us.oAuthStore.RemoveAllAccessData()
+	if nErr != nil {
+		return errors.Wrap(DeleteAllAccessDataError, nErr.Error())
+	}
+	err := us.sessionStore.RemoveAllSessions()
+	if err != nil {
+		return err
+	}
+
+	us.ClearAllUsersSessionCache()
+	return nil
+}
+
+func (us *UserService) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) error {
+	sessions, err := us.sessionStore.GetSessions(userID)
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if session.DeviceId == deviceID && session.Id != currentSessionId {
+			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			if err := us.RevokeSession(session); err != nil {
+				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (us *UserService) RevokeSession(session *model.Session) error {
+	if session.IsOAuth {
+		if err := us.RevokeAccessToken(session.Token); err != nil {
+			return err
+		}
+	} else {
+		if err := us.sessionStore.Remove(session.Id); err != nil {
+			return errors.Wrap(DeleteSessionError, err.Error())
+		}
+	}
+
+	us.ClearUserSessionCache(session.UserId)
+
+	return nil
+}
+
+func (us *UserService) RevokeAccessToken(token string) error {
+	session, _ := us.GetSession(token)
+
+	defer us.ReturnSessionToPool(session)
+
+	schan := make(chan error, 1)
+	go func() {
+		schan <- us.sessionStore.Remove(token)
+		close(schan)
+	}()
+
+	if _, err := us.oAuthStore.GetAccessData(token); err != nil {
+		return errors.Wrap(GetTokenError, err.Error())
+	}
+
+	if err := us.oAuthStore.RemoveAccessData(token); err != nil {
+		return errors.Wrap(DeleteTokenError, err.Error())
+	}
+
+	if err := <-schan; err != nil {
+		return errors.Wrap(DeleteSessionError, err.Error())
+	}
+
+	if session != nil {
+		us.ClearUserSessionCache(session.UserId)
+	}
+
+	return nil
+}
+
+// SetSessionExpireInDays sets the session's expiry the specified number of days
+// relative to either the session creation date or the current time, depending
+// on the `ExtendSessionOnActivity` config setting.
+func (us *UserService) SetSessionExpireInDays(session *model.Session, days int) {
+	if session.CreateAt == 0 || *us.config().ServiceSettings.ExtendSessionLengthWithActivity {
+		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+	} else {
+		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
+	}
+}
+
+func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error {
+	sessions, err := us.GetSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	for _, session := range sessions {
+		session.AddProp(model.SESSION_PROP_IS_GUEST, fmt.Sprintf("%t", isGuest))
+		err := us.sessionStore.UpdateProps(session)
+		if err != nil {
+			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
+			continue
+		}
+		us.AddSessionToCache(session)
+	}
+	return nil
+}
+
+func (us *UserService) RevokeAllSessions(userID string) error {
+	sessions, err := us.sessionStore.GetSessions(userID)
+	if err != nil {
+		return errors.Wrap(GetSessionError, err.Error())
+	}
+	for _, session := range sessions {
+		if session.IsOAuth {
+			us.RevokeAccessToken(session.Token)
+		} else {
+			if err := us.sessionStore.Remove(session.Id); err != nil {
+				return errors.Wrap(DeleteSessionError, err.Error())
+			}
+		}
+	}
+
+	us.ClearUserSessionCache(userID)
+
+	return nil
 }
