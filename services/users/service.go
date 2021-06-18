@@ -45,7 +45,7 @@ func New(c ServiceConfig) (*UserService, error) {
 
 	cacheProvider := cache.NewProvider()
 	if err := cacheProvider.Connect(); err != nil {
-		return nil, fmt.Errorf("could not create cache provider: %w", err)
+		return nil, fmt.Errorf("could not connect to cache provider: %w", err)
 	}
 
 	sessionCache, err := cacheProvider.NewCache(&cache.CacheOptions{

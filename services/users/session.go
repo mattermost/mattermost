@@ -160,7 +160,7 @@ func (us *UserService) RevokeSession(session *model.Session) error {
 		}
 	} else {
 		if err := us.sessionStore.Remove(session.Id); err != nil {
-			return DeleteSessionError
+			return errors.Wrap(DeleteSessionError, err.Error())
 		}
 	}
 
