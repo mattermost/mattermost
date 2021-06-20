@@ -357,7 +357,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 	})
 }
 
-func TestFixChannelUnreadsCRT(t *testing.T) {
+func TestFixCRTChannelUnreads(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 
