@@ -424,6 +424,7 @@ func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
 			Participants: model.StringArray{model.NewId(), model.NewId()},
 		}
 		_, err := ss.Thread().Save(threadToSave)
+		require.Nil(t, err)
 
 		th, err := ss.Thread().Get(threadToSave.PostId)
 		require.Nil(t, err)
