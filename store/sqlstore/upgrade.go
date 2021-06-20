@@ -1332,17 +1332,21 @@ func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 	}
 
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		trans, err := sqlStore.GetMaster().Begin()
+		if err != nil {
+			mlog.Critical("Error starting transaction", mlog.Err(err))
+		}
+
 		cte1 := `
 		        CREATE TEMPORARY TABLE cte1
 			SELECT ChannelId, UserId, LastViewedAt
 			FROM ChannelMembers INNER JOIN Channels ON ChannelMembers.ChannelId = Channels.Id
 			WHERE ChannelMembers.MsgCountRoot != Channels.TotalMsgCountRoot;
 		`
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte1); err != nil {
+		if _, err = trans.ExecNoTimeout(cte1); err != nil {
 			mlog.Error("Error creating first temporary table", mlog.Err(err))
 			return
 		}
-		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte1;`)
 
 		cte2 := `
 		        CREATE TEMPORARY TABLE cte2
@@ -1350,22 +1354,20 @@ func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 			FROM cte1 INNER JOIN Posts ON Posts.Channelid = cte1.ChannelId
 			WHERE Posts.Createat > cte1.LastViewedAt GROUP BY cte1.UserId, cte1.ChannelId;
 		`
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte2); err != nil {
+		if _, err = trans.ExecNoTimeout(cte2); err != nil {
 			mlog.Error("Error creating second temporary table", mlog.Err(err))
 			return
 		}
-		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte2;`)
 
 		cte3 := `
 			CREATE TEMPORARY TABLE cte3
 			SELECT cte2.*, TotalMsgCountRoot, TotalMsgCount
 			FROM cte2 INNER JOIN Channels on cte2.ChannelId = Channels.Id;
 		`
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(cte3); err != nil {
+		if _, err = trans.ExecNoTimeout(cte3); err != nil {
 			mlog.Error("Error creating third temporary table", mlog.Err(err))
 			return
 		}
-		defer sqlStore.GetMaster().ExecNoTimeout(`DROP TEMPORARY TABLE cte3;`)
 
 		systemMessagesFixQuery := `
 			UPDATE ChannelMembers
@@ -1373,8 +1375,13 @@ func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 			SET MsgCountRoot = cte3.TotalMsgCountRoot, MsgCount = cte3.TotalMsgCount, LastUpdateAt = ` + now + `
 			WHERE FIND_IN_SET("", cte3.typ) = 0 && cte3.typ != '';
 		`
-		if _, err := sqlStore.GetMaster().ExecNoTimeout(systemMessagesFixQuery); err != nil {
+		if _, err = trans.ExecNoTimeout(systemMessagesFixQuery); err != nil {
 			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
+			return
+		}
+
+		if trans.Commit() != nil {
+			mlog.Error("Error committing transaction", mlog.Err(err))
 		}
 		return
 	}
