@@ -123,6 +123,9 @@ type AppIface interface {
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
+	// DoCRTFixMentionCountsInThreadsMigration fixes mention counts in threads for users
+	// who have newer replies in threads than the last time the user viewed the channel.
+	DoCRTFixMentionCountsInThreadsMigration()
 	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
 	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
@@ -534,7 +537,6 @@ type AppIface interface {
 	DisableAutoResponder(userID string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
-	DoCRTFixMentionCountsInThreadsMigration()
 	DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError)
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
