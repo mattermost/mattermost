@@ -467,7 +467,7 @@ func testCRTMigrationFixQuery(t *testing.T, ss store.Store, s SqlStore) {
 		})
 		require.Nil(t, err)
 
-		// user3 has reach channel before latest post in a thread
+		// user3 has read channel before latest post in a thread
 		// in the channel
 		cm3, err := ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:    c1.Id,
