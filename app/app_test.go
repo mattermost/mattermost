@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
@@ -499,4 +500,117 @@ func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 
 	_, err = th.App.Srv().Store.System().GetByName(expectedKey)
 	assert.Error(t, err)
+}
+
+func TestDoCRTFixMentionCountsInThreadsMigration(t *testing.T) {
+	th := SetupWithoutPreloadMigrations(t).InitBasic()
+	defer th.TearDown()
+
+	t1 := th.BasicTeam
+	c1 := th.BasicChannel
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	u3 := th.CreateUser()
+	u3, err := th.App.GetUser(u3.Id)
+	require.Nil(t, err)
+	th.LinkUserToTeam(u3, t1)
+	th.AddUserToChannel(u1, c1)
+	th.AddUserToChannel(u2, c1)
+	th.AddUserToChannel(u3, c1)
+
+	makePost := func(userId, message, rootId string, createAt int64) *model.Post {
+		post, nErr := th.App.CreatePost(
+			th.Context,
+			&model.Post{
+				UserId:    userId,
+				CreateAt:  createAt,
+				ChannelId: c1.Id,
+				Message:   message,
+				RootId:    rootId,
+				ParentId:  rootId,
+			},
+			c1,
+			false, false,
+		)
+		require.Nil(t, nErr)
+		return post
+	}
+
+	u1Mention := " @" + u1.Username
+	u2Mention := " @" + u2.Username
+	u3Mention := " @" + u3.Username
+
+	// user1: mention u2 and u3
+	//   - user1: mention u2 and u3
+	//   - user3: mention u1 and u2
+	//   - user1: mention u2 and u3
+	//   - user1: mention u2 and u3
+	// user1: another root post
+	rootPost1 := makePost(u1.Id, u2Mention+u3Mention, "", 100)
+	makePost(u1.Id, u2Mention+u3Mention, rootPost1.Id, 200)
+	u3ReplyPost := makePost(u3.Id, u1Mention+u2Mention, rootPost1.Id, 300)
+	makePost(u1.Id, u2Mention+u3Mention, rootPost1.Id, 400)
+	makePost(u1.Id, u2Mention+u3Mention, rootPost1.Id, 500)
+	lastPost := makePost(u1.Id, "a root post", "", 600)
+
+	// user1 has fully read the channel
+	cm1, err := th.App.GetChannelMember(context.Background(), c1.Id, u1.Id)
+	require.Nil(t, err)
+	cm1.LastViewedAt = lastPost.CreateAt
+	cm1, nErr := th.App.Srv().Store.Channel().UpdateMember(cm1)
+	require.Nil(t, nErr)
+
+	// user2 has never seen the channel, no need to update
+
+	// user3 has last seen the channel when he posted
+	cm3, err := th.App.GetChannelMember(context.Background(), c1.Id, u3.Id)
+	require.Nil(t, err)
+	cm3.LastViewedAt = u3ReplyPost.CreateAt
+	cm3, nErr = th.App.Srv().Store.Channel().UpdateMember(cm3)
+	require.Nil(t, nErr)
+
+	// All threadmemberships are in a good state now because our app
+	// code is good
+	tm1, err := th.App.GetThreadMembershipForUser(u1.Id, rootPost1.Id)
+	require.Nil(t, err)
+	tm2, err := th.App.GetThreadMembershipForUser(u2.Id, rootPost1.Id)
+	require.Nil(t, err)
+	tm3, err := th.App.GetThreadMembershipForUser(u3.Id, rootPost1.Id)
+	require.Nil(t, err)
+
+	// Before we fixed our app code, threadmemberships (in this case mentions)
+	// were being set incorrectly. We simulate this by resetting
+	// user3's threadmembership mention count back to root post
+	tm3Bad := *tm3
+	tm3Bad.UnreadMentions = 4
+	_, nErr = th.App.Srv().Store.Thread().UpdateMembership(&tm3Bad)
+	require.Nil(t, nErr)
+
+	// Run app migration to fix counts
+	th.App.DoCRTFixMentionCountsInThreadsMigration()
+
+	// user1's threadmembership should NOT be changed by this fix
+	// because user1 has fully read the channel.
+	// This user's counts and unreads are fixed in a store upgrade fix
+	tm1AfterFix, err := th.App.GetThreadMembershipForUser(u1.Id, rootPost1.Id)
+	require.Nil(t, err)
+	require.Equal(t, tm1, tm1AfterFix)
+
+	// user2's threadmembership should be unchanged
+	// because user2 has never read the channel
+	tm2AfterFix, err := th.App.GetThreadMembershipForUser(u2.Id, rootPost1.Id)
+	require.Nil(t, err)
+	require.Equal(t, tm2, tm2AfterFix)
+
+	// user3's threadmembership should be fixed
+	cm3, err = th.App.GetChannelMember(context.Background(), c1.Id, u3.Id)
+	require.Nil(t, err)
+	tm3AfterFix, err := th.App.GetThreadMembershipForUser(u3.Id, rootPost1.Id)
+	require.Nil(t, err)
+	// two mentions after fix
+	require.Equal(t, int64(2), tm3AfterFix.UnreadMentions)
+	// check thread lastviewed is set to channel last viewed
+	require.Equal(t, cm3.LastViewedAt, tm3AfterFix.LastViewed)
+	// check that threadmembership last updated has been updated
+	require.NotEqual(t, tm3.LastUpdated, tm3AfterFix.LastUpdated)
 }
