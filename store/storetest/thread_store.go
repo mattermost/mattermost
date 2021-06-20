@@ -16,6 +16,7 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 }
 
@@ -409,5 +410,22 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		th, err = ss.Thread().GetThreadForUser("", m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
+	})
+}
+
+func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("Save", func(t *testing.T) {
+		threadToSave := &model.Thread{
+			PostId:       model.NewId(),
+			ChannelId:    model.NewId(),
+			LastReplyAt:  10,
+			ReplyCount:   5,
+			Participants: model.StringArray{model.NewId(), model.NewId()},
+		}
+		_, err := ss.Thread().Save(threadToSave)
+
+		th, err := ss.Thread().Get(threadToSave.PostId)
+		require.Nil(t, err)
+		require.Equal(t, threadToSave, th)
 	})
 }
