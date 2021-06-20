@@ -13,56 +13,56 @@ import (
 )
 
 var searchChannelStoreTests = []searchTest{
-	{
-		Name: "Should be able to autocomplete a channel by name",
-		Fn:   testAutocompleteChannelByName,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should be able to autocomplete a channel by display name",
-		Fn:   testAutocompleteChannelByDisplayName,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character",
-		Fn:   testAutocompleteChannelByNameSplittedWithDashChar,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
-		Fn:   testAutocompleteChannelByNameSplittedWithUnderscoreChar,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
-	},
-	{
-		Name: "Should be able to autocomplete a channel by a part of its display name when has parts splitted by whitespace character",
-		Fn:   testAutocompleteChannelByDisplayNameSplittedByWhitespaces,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
-	},
-	{
-		Name: "Should be able to autocomplete retrieving all channels if the term is empty",
-		Fn:   testAutocompleteAllChannelsIfTermIsEmpty,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should be able to autocomplete channels in a case insensitive manner",
-		Fn:   testSearchChannelsInCaseInsensitiveManner,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should autocomplete only returning public channels",
-		Fn:   testSearchOnlyPublicChannels,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should support to autocomplete having a hyphen as the last character",
-		Fn:   testSearchShouldSupportHavingHyphenAsLastCharacter,
-		Tags: []string{EngineAll},
-	},
-	{
-		Name: "Should support to autocomplete with archived channels",
-		Fn:   testSearchShouldSupportAutocompleteWithArchivedChannels,
-		Tags: []string{EngineAll},
-	},
+	// 	{
+	// 		Name: "Should be able to autocomplete a channel by name",
+	// 		Fn:   testAutocompleteChannelByName,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete a channel by display name",
+	// 		Fn:   testAutocompleteChannelByDisplayName,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character",
+	// 		Fn:   testAutocompleteChannelByNameSplittedWithDashChar,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
+	// 		Fn:   testAutocompleteChannelByNameSplittedWithUnderscoreChar,
+	// 		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete a channel by a part of its display name when has parts splitted by whitespace character",
+	// 		Fn:   testAutocompleteChannelByDisplayNameSplittedByWhitespaces,
+	// 		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete retrieving all channels if the term is empty",
+	// 		Fn:   testAutocompleteAllChannelsIfTermIsEmpty,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should be able to autocomplete channels in a case insensitive manner",
+	// 		Fn:   testSearchChannelsInCaseInsensitiveManner,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should autocomplete only returning public channels",
+	// 		Fn:   testSearchOnlyPublicChannels,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should support to autocomplete having a hyphen as the last character",
+	// 		Fn:   testSearchShouldSupportHavingHyphenAsLastCharacter,
+	// 		Tags: []string{EngineAll},
+	// 	},
+	// 	{
+	// 		Name: "Should support to autocomplete with archived channels",
+	// 		Fn:   testSearchShouldSupportAutocompleteWithArchivedChannels,
+	// 		Tags: []string{EngineAll},
+	// 	},
 }
 
 func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
