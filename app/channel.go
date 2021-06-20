@@ -2454,9 +2454,21 @@ func (a *App) UpdateChannelLastViewedAt(channelIDs []string, userID string) *mod
 	return nil
 }
 
+func (a *App) isCRTEnabledForUser(userID string) bool {
+	if *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DISABLED {
+		return false
+	}
+	threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+	// check if a participant has overridden collapsed threads settings
+	if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+		threadsEnabled = preference.Value == "on"
+	}
+	return threadsEnabled
+}
+
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
-	if !collapsedThreadsSupported {
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError) {
+	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
 	}
 	post, err := a.GetSinglePost(postID)
@@ -2476,7 +2488,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 
 	// if auto-follow is on
 	// if threadmembership does not exists we create one and update
-	if *a.Config().ServiceSettings.ThreadAutoFollow && collapsedThreadsSupported {
+	if *a.Config().ServiceSettings.ThreadAutoFollow {
 		threadId := post.RootId
 		if post.RootId == "" {
 			threadId = post.Id
@@ -2490,7 +2502,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		// if this post was not followed before, create thread membership and update mention count
 		if threadMembership == nil {
 			opts := store.ThreadMembershipOpts{
-				Following:             true,
+				Following:             followThread,
 				IncrementMentions:     true,
 				UpdateFollowing:       true,
 				UpdateViewedTimestamp: true,
@@ -2500,8 +2512,8 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 			if storeErr != nil && !errors.As(storeErr, &nfErr) {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
-			threadData, storeErr := a.Srv().Store.Thread().Get(threadId)
-			if storeErr != nil && !errors.As(storeErr, &nfErr) {
+			threadData, storeErr2 := a.Srv().Store.Thread().Get(threadId)
+			if storeErr2 != nil && !errors.As(storeErr2, &nfErr) {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 			if threadData != nil && threadMembership != nil && threadMembership.Following {
@@ -2525,15 +2537,18 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 				thread.Post.SanitizeProps()
 
 				payload := thread.ToJson()
-				sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-				if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-					sendEvent = preference.Value == "on"
-				}
-				if sendEvent {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
-					message.Add("thread", payload)
-					a.Publish(message)
-				}
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
+			}
+		} else if !threadMembership.Following && followThread {
+			opts := store.ThreadMembershipOpts{
+				Following:       true,
+				UpdateFollowing: true,
+			}
+			_, storeErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if storeErr != nil && !errors.As(storeErr, &nfErr) {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -2637,11 +2652,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	thread.Post.SanitizeProps()
 
 	payload := thread.ToJson()
-	sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-	if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-		sendEvent = preference.Value == "on"
-	}
-	if sendEvent {
+	if a.isCRTEnabledForUser(userID) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
 		message.Add("thread", payload)
 		a.Publish(message)
@@ -2845,18 +2856,12 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID)
 	}
 
-	if !collapsedThreadsSupported {
-		// for compatibility with old clients, when channel is viewed - mark all threads in that channel as read
-		threadsEnabled := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
-		// check if a participant has overridden collapsed threads settings
-		if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
-			threadsEnabled = preference.Value == "on"
+	if !collapsedThreadsSupported || !a.isCRTEnabledForUser(userID) {
+		if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		if threadsEnabled {
-			if err := a.Srv().Store.Thread().MarkAllAsReadInChannels(userID, channelIDs); err != nil {
-				return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
 
+		if a.isCRTEnabledForUser(userID) {
 			timestamp := model.GetMillis()
 			for _, channelID := range channelIDs {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", channelID, userID, nil)

@@ -11347,7 +11347,7 @@ func (a *OpenTracingAppLayer) MakePermissionError(s *model.Session, permissions 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
+func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool, followThread bool) (*model.ChannelUnreadAt, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelAsUnreadFromPost")
 
@@ -11359,7 +11359,7 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelAsUnreadFromPost(postID, userID, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.MarkChannelAsUnreadFromPost(postID, userID, collapsedThreadsSupported, followThread)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16482,21 +16482,6 @@ func (a *OpenTracingAppLayer) UpdateScheme(scheme *model.Scheme) (*model.Scheme,
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) UpdateSessionsIsGuest(userID string, isGuest bool) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSessionsIsGuest")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.UpdateSessionsIsGuest(userID, isGuest)
 }
 
 func (a *OpenTracingAppLayer) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {

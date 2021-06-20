@@ -243,7 +243,7 @@ type AppIface interface {
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-	MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError)
+	MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError)
 	// MentionsToPublicChannels returns all the mentions to public channels,
 	// linking them to their channels
 	MentionsToPublicChannels(message, teamID string) model.ChannelMentionMap
@@ -331,8 +331,6 @@ type AppIface interface {
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
 	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
-	// TODO: migrate this after the user service implementation is completed
-	GetSanitizeOptions(asAdmin bool) map[string]bool
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
@@ -724,6 +722,7 @@ type AppIface interface {
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
+	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)
@@ -1075,7 +1074,6 @@ type AppIface interface {
 	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	UpdateSessionsIsGuest(userID string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
