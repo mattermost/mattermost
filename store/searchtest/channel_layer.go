@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -75,6 +74,7 @@ func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestE
 	runTestSearch(t, testEngine, searchChannelStoreTests, th)
 }
 
+/*
 func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "Channel Alternate", model.CHANNEL_OPEN, false)
 	require.NoError(t, err)
@@ -166,4 +166,4 @@ func testSearchShouldSupportAutocompleteWithArchivedChannels(t *testing.T, th *S
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", true)
 	require.NoError(t, err)
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelDeleted.Id}, res)
-}
+}*/
