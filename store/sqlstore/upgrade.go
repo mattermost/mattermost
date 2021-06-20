@@ -1353,6 +1353,15 @@ func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 			mlog.Critical("Error starting transaction", mlog.Err(err))
 		}
 
+		defer func() {
+			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte1;`)
+			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte2;`)
+			trans.ExecNoTimeout(`DROP TEMPORARY TABLE cte3;`)
+			if trans.Commit() != nil {
+				mlog.Error("Error committing transaction", mlog.Err(err))
+			}
+		}()
+
 		cte1 := `
 		        CREATE TEMPORARY TABLE cte1
 			SELECT ChannelId, UserId, LastViewedAt
@@ -1393,11 +1402,6 @@ func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 		`
 		if _, err = trans.ExecNoTimeout(systemMessagesFixQuery); err != nil {
 			mlog.Error("Error updating unreads caused by join leave messages", mlog.Err(err))
-			return
-		}
-
-		if trans.Commit() != nil {
-			mlog.Error("Error committing transaction", mlog.Err(err))
 		}
 		return
 	}
