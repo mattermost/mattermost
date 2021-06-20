@@ -100,3 +100,10 @@ func (o *ThreadMembership) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
 }
+
+type ThreadsNewerThanChannelLastViewedAt struct {
+	ThreadId     string
+	UserId       string
+	TeamId       string
+	LastViewedAt int64
+}

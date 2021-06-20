@@ -7942,6 +7942,22 @@ func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetAllThreadsNewerThanChannelLastViewedAt() ([]*model.ThreadsNewerThanChannelLastViewedAt, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetAllThreadsNewerThanChannelLastViewedAt()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetAllThreadsNewerThanChannelLastViewedAt", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postID string) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 

@@ -16,6 +16,7 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("CRTMigrationFixQuery", func(t *testing.T) { testCRTMigrationFixQuery(t, ss, s) })
 	t.Run("ThreadSQLOperations", func(t *testing.T) { testThreadSQLOperations(t, ss, s) })
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 }
@@ -427,5 +428,85 @@ func testThreadSQLOperations(t *testing.T, ss store.Store, s SqlStore) {
 		th, err := ss.Thread().Get(threadToSave.PostId)
 		require.Nil(t, err)
 		require.Equal(t, threadToSave, th)
+	})
+}
+
+func testCRTMigrationFixQuery(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("Get all threads newer than channel LastViewedAt", func(t *testing.T) {
+		teamId := model.NewId()
+		uId1 := model.NewId()
+		uId2 := model.NewId()
+		uId3 := model.NewId()
+
+		c1, err := ss.Channel().Save(&model.Channel{
+			DisplayName: model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+			Name:        model.NewId(),
+			TeamId:      teamId,
+			CreatorId:   uId1,
+		}, 999)
+		require.Nil(t, err)
+
+		lastPostAt := int64(100)
+		// user1 has never seen the channel
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:    c1.Id,
+			UserId:       uId1,
+			LastViewedAt: 0,
+			NotifyProps:  model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		// user2 has fully read the channel
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:    c1.Id,
+			UserId:       uId2,
+			LastViewedAt: lastPostAt,
+			NotifyProps:  model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		// user3 has reach channel before latest post in a thread
+		// in the channel
+		cm3, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:    c1.Id,
+			UserId:       uId3,
+			LastViewedAt: lastPostAt - 50,
+			NotifyProps:  model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		rootPostId := model.NewId()
+		_, err = ss.Thread().Save(&model.Thread{
+			PostId:      rootPostId,
+			ChannelId:   c1.Id,
+			LastReplyAt: lastPostAt,
+		})
+		require.Nil(t, err)
+
+		// Create ThreadMembership
+		_, err = ss.Thread().SaveMembership(&model.ThreadMembership{
+			PostId: rootPostId,
+			UserId: uId1,
+		})
+		require.Nil(t, err)
+		_, err = ss.Thread().SaveMembership(&model.ThreadMembership{
+			PostId: rootPostId,
+			UserId: uId2,
+		})
+		require.Nil(t, err)
+		_, err = ss.Thread().SaveMembership(&model.ThreadMembership{
+			PostId: rootPostId,
+			UserId: uId3,
+		})
+		require.Nil(t, err)
+
+		newerThreadsInfo, err := ss.Thread().GetAllThreadsNewerThanChannelLastViewedAt()
+		require.Nil(t, err)
+		require.Len(t, newerThreadsInfo, 1)
+		require.Equal(t, rootPostId, newerThreadsInfo[0].ThreadId)
+		require.Equal(t, uId3, newerThreadsInfo[0].UserId)
+		require.Equal(t, teamId, newerThreadsInfo[0].TeamId)
+		require.Equal(t, cm3.LastViewedAt, newerThreadsInfo[0].LastViewedAt)
 	})
 }

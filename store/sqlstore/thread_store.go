@@ -691,3 +691,21 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 	}
 	return result, nil
 }
+
+func (s *SqlThreadStore) GetAllThreadsNewerThanChannelLastViewedAt() ([]*model.ThreadsNewerThanChannelLastViewedAt, error) {
+	query := `
+		SELECT ThreadMemberships.PostId As ThreadId, ThreadMemberships.UserId, ChannelMembers.LastViewedAt, Channels.TeamId
+		FROM ThreadMemberships
+		INNER JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		INNER JOIN ChannelMembers ON Threads.ChannelId = ChannelMembers.ChannelId
+		INNER JOIN Channels ON ChannelMembers.channelid = Channels.Id
+		WHERE Threads.LastReplyAt > ChannelMembers.LastViewedAt AND ChannelMembers.LastViewedAt > 0 AND ThreadMemberships.UserId = ChannelMembers.UserId
+		ORDER BY ThreadId;
+	`
+	var newerThreadsInfos []*model.ThreadsNewerThanChannelLastViewedAt
+
+	if _, err := s.GetMaster().Select(&newerThreadsInfos, query); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+	return newerThreadsInfos, nil
+}

@@ -299,6 +299,8 @@ type ThreadStore interface {
 	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
+
+	GetAllThreadsNewerThanChannelLastViewedAt() ([]*model.ThreadsNewerThanChannelLastViewedAt, error)
 }
 
 type PostStore interface {
