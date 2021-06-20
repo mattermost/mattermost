@@ -1209,6 +1209,10 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	sqlStore.RemoveIndexIfExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies")
 	sqlStore.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
 
+	fixCRTThreadCountsAndUnreads(sqlStore)
+	fixCRTChannelMembershipCounts(sqlStore)
+	fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore)
+
 	// saveSchemaVersion(sqlStore, Version5370)
 	// }
 }
