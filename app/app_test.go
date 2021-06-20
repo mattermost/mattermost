@@ -558,7 +558,7 @@ func TestDoCRTFixMentionCountsInThreadsMigration(t *testing.T) {
 	require.Nil(t, err)
 	cm1.LastViewedAt = lastPost.CreateAt
 	cm1, nErr := th.App.Srv().Store.Channel().UpdateMember(cm1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	// user2 has never seen the channel, no need to update
 
@@ -567,7 +567,7 @@ func TestDoCRTFixMentionCountsInThreadsMigration(t *testing.T) {
 	require.Nil(t, err)
 	cm3.LastViewedAt = u3ReplyPost.CreateAt
 	cm3, nErr = th.App.Srv().Store.Channel().UpdateMember(cm3)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	// All threadmemberships are in a good state now because our app
 	// code is good
@@ -584,7 +584,7 @@ func TestDoCRTFixMentionCountsInThreadsMigration(t *testing.T) {
 	tm3Bad := *tm3
 	tm3Bad.UnreadMentions = 4
 	_, nErr = th.App.Srv().Store.Thread().UpdateMembership(&tm3Bad)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	// Run app migration to fix counts
 	th.App.DoCRTFixMentionCountsInThreadsMigration()
