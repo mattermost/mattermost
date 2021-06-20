@@ -266,7 +266,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		uId1 := model.NewId()
 		uId2 := model.NewId()
 		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, 0, 0, 0)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		createChannelMemberWithLastViewAt(ss, c1.Id, uId1, 0)
 		createChannelMemberWithLastViewAt(ss, c1.Id, uId2, 0)
 
@@ -285,9 +285,9 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 
 		// Check created thread is good
 		goodThread1, err := ss.Thread().Get(rootPost1.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.EqualValues(t, 4, goodThread1.ReplyCount)
-		require.EqualValues(t, int64(40), goodThread1.LastReplyAt)
+		require.EqualValues(t, lastReplyAt, goodThread1.LastReplyAt)
 		require.ElementsMatch(t, model.StringArray{uId1, uId2}, goodThread1.Participants)
 
 		// Create ThreadMembership
@@ -299,7 +299,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 			LastUpdated:    lastReplyAt + 1,
 			UnreadMentions: 0,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		goodThreadMembership2, err := ss.Thread().SaveMembership(&model.ThreadMembership{
 			PostId:         rootPost1.Id,
 			UserId:         uId2,
@@ -308,13 +308,19 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 			LastUpdated:    lastReplyAt + 1,
 			UnreadMentions: 0,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Update channel last viewed at
+		// set channel as fully read for user1
 		_, err = ss.Channel().UpdateLastViewedAt([]string{c1.Id}, uId1, true)
-		require.Nil(t, err)
-		_, err = ss.Channel().UpdateLastViewedAt([]string{c1.Id}, uId2, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
+		// for user2 set channel as read before the last post in thread
+		// user2's threadmembership wont change
+		cm2, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
+		require.NoError(t, err)
+		cm2.LastViewedAt = lastReplyAt - 10
+		cm2, err = ss.Channel().UpdateMember(cm2)
+		require.NoError(t, err)
 
 		// Update Thread with bad data, as we might expect because
 		// of previous bugs or changed behaviour
@@ -323,7 +329,7 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		badThread1.LastReplyAt = 30
 		badThread1.Participants = badThread1.Participants.Remove(uId1)
 		_, err = ss.Thread().Update(&badThread1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Update ThreadMembership with bad data, as we might expect because
 		// of previous bugs or changed behaviour
@@ -331,28 +337,28 @@ func TestFixCRTCountsAndUnreads(t *testing.T) {
 		badThreadMembership1.LastViewed = 30
 		badThreadMembership1.UnreadMentions = 4
 		_, err = ss.Thread().UpdateMembership(&badThreadMembership1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Run migration to fix threads and memberships
 		fixCRTThreadCountsAndUnreads(sqlStore)
 
 		// Check bad thread is fixed
 		fixedThread1, err := ss.Thread().Get(rootPost1.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.EqualValues(t, goodThread1.ReplyCount, fixedThread1.ReplyCount)
 		require.EqualValues(t, goodThread1.LastReplyAt, fixedThread1.LastReplyAt)
 		require.ElementsMatch(t, goodThread1.Participants, fixedThread1.Participants)
 
 		// Check bad threadMemberships is fixed
 		fixedThreadMembership1, err := ss.Thread().GetMembershipForUser(uId1, rootPost1.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.EqualValues(t, lastReplyAt, fixedThreadMembership1.LastViewed)
 		require.EqualValues(t, int64(0), fixedThreadMembership1.UnreadMentions)
 		require.NotEqual(t, goodThreadMembership1.LastUpdated, fixedThreadMembership1.LastUpdated)
 
 		// check good threadMembership is unchanged
 		fixedThreadMembership2, err := ss.Thread().GetMembershipForUser(uId2, rootPost1.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, goodThreadMembership2, fixedThreadMembership2)
 	})
 }
@@ -368,7 +374,7 @@ func TestFixCRTChannelUnreads(t *testing.T) {
 		channelMsgCount := int64(200)
 		channelMsgCountRoot := int64(100)
 		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, channelLastPostAt, channelMsgCount, channelMsgCountRoot)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Make a membership entry
 		cm1, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -381,7 +387,7 @@ func TestFixCRTChannelUnreads(t *testing.T) {
 			MentionCount:     5,
 			MentionCountRoot: 5,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// make a bad membership entry
 		// LastViewed at newer than channel LastPostAt and with unreads and mentions
@@ -395,17 +401,17 @@ func TestFixCRTChannelUnreads(t *testing.T) {
 			MentionCount:     5,
 			MentionCountRoot: 5,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		fixCRTChannelMembershipCounts(sqlStore)
 
 		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		// Migration should not affect this channelmembership
 		require.Equal(t, *cm1, *cm1AfterFix)
 
 		cm2AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		// Check that the channelmembership is fixed
 		require.NotEqual(t, *cm2, *cm2AfterFix)
 		require.EqualValues(t, 0, cm2AfterFix.MentionCount)
@@ -432,7 +438,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 		lastPostAt := int64(100)
 
 		c1, err := createChannelWithLastPostAt(ss, team.Id, uId1, 0, 0, 0)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Channel Messages
 		// - user post
@@ -452,7 +458,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 			Type:      model.POST_ADD_TO_CHANNEL,
 			Message:   "user-1 added to the channel by sysadmin",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		_, err = ss.Post().Save(&model.Post{
 			CreateAt:  lastPostAt,
 			ChannelId: c1.Id,
@@ -462,7 +468,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 			Type:      model.POST_LEAVE_CHANNEL,
 			Message:   "user-1 left the channel.",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// u1 has seen till second user post
 		cm1, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -475,7 +481,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 			MentionCount:     0,
 			MentionCountRoot: 1,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// u2 has seen till last user post
 		cm2, err := ss.Channel().SaveMember(&model.ChannelMember{
@@ -488,7 +494,7 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 			MentionCount:     0,
 			MentionCountRoot: 0,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// join-level messages don't count towards a channel's post counts.
 		// In a previous migration we incorrectly counted join-leave
@@ -499,17 +505,17 @@ func TestFixCRTChannelUnreadsForJoinLeaveMessages(t *testing.T) {
 		c1WithBadCounts.TotalMsgCount = channelMsgCount
 		c1WithBadCounts.TotalMsgCountRoot = channelMsgCountRoot
 		_, err = ss.Channel().Update(c1WithBadCounts)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore)
 
 		cm1AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		// Migration should not affect this channelmembership
 		require.Equal(t, *cm1, *cm1AfterFix)
 
 		cm2AfterFix, err := ss.Channel().GetMember(context.Background(), c1.Id, uId2)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		// Check that the channelmembership is fixed
 		require.NotEqual(t, *cm2, *cm2AfterFix)
 		require.Equal(t, channelMsgCount, cm2AfterFix.MsgCount)

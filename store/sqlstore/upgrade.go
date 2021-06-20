@@ -1214,14 +1214,18 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 }
 
 func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
-	countsAndLastReplyCTE := "SELECT RootId, COUNT(Id) AS FixedReplyCount, max(Posts.CreateAt) as FixedLastReply FROM Posts where Posts.DeleteAt = 0 GROUP BY RootId"
+	countsAndLastReplyCTE := `
+		SELECT RootId, COUNT(Id) AS FixedReplyCount, max(Posts.CreateAt) as FixedLastReply
+		FROM Posts where Posts.DeleteAt = 0
+		GROUP BY RootId
+	`
 	updateReplyCountsQuery := `
 		WITH q AS (` + countsAndLastReplyCTE + `)
 		UPDATE Threads
 		SET ReplyCount = q.FixedReplyCount, LastReplyAt = q.FixedLastReply
 		FROM q
 		WHERE Threads.PostId = q.RootId;
-		`
+	`
 
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		updateReplyCountsQuery = `
@@ -1232,24 +1236,34 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 		`
 	}
 
-	participantsCTE := `SELECT COALESCE(NULLIF(RootId,''), Id) AS ThreadId, ARRAY_AGG(DISTINCT UserId) FixedParticipants FROM Posts WHERE Posts.DeleteAt = 0 GROUP BY ThreadId`
+	participantsCTE := `
+		SELECT COALESCE(NULLIF(RootId,''), Id) AS ThreadId, ARRAY_AGG(DISTINCT UserId) FixedParticipants
+		FROM Posts
+		WHERE Posts.DeleteAt = 0
+		GROUP BY ThreadId
+	`
 	updateParticipantsQuery := `
 		WITH q AS (` + participantsCTE + `)
 		UPDATE Threads
 		SET Participants = CONCAT('["', ARRAY_TO_STRING(q.FixedParticipants,'","'), '"]')
 		FROM q WHERE Threads.PostId = q.ThreadId
-		`
+	`
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		updateParticipantsQuery = `
 			UPDATE Threads
 			INNER JOIN (SELECT COALESCE(NULLIF(RootId,''), Id) AS ThreadId, GROUP_CONCAT(DISTINCT UserId SEPARATOR '\", \"') AS FixedParticipants FROM Posts WHERE Posts.DeleteAt = 0 GROUP BY ThreadId) as q
 			ON Threads.PostId = q.ThreadId
 			SET Participants = CONCAT('[\"', q.FixedParticipants, '\"]')
-                        `
+                `
 	}
 
 	now := fmt.Sprintf("%d", model.GetMillis())
-	threadMembershipsCTE := `SELECT PostId, UserId, ChannelMembers.LastViewedAt as CM_LastViewedAt FROM Threads INNER JOIN ChannelMembers on ChannelMembers.ChannelId = Threads.ChannelId WHERE Threads.LastReplyAt <= ChannelMembers.LastViewedAt`
+	threadMembershipsCTE := `
+		SELECT PostId, UserId, ChannelMembers.LastViewedAt as CM_LastViewedAt, Threads.LastReplyAt
+		FROM Threads
+		INNER JOIN ChannelMembers on ChannelMembers.ChannelId = Threads.ChannelId
+		WHERE Threads.LastReplyAt <= ChannelMembers.LastViewedAt
+	`
 	updateThreadMembershipQuery := `
 		WITH q as (` + threadMembershipsCTE + `)
 		UPDATE ThreadMemberships set LastViewed = q.CM_LastViewedAt, UnreadMentions = 0, LastUpdated =` + now + `
