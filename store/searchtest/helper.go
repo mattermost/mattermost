@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -466,14 +465,14 @@ func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID st
 	assert.Contains(t, fileIDS, fileID, "Did not find expected file in search results.")
 }
 
-func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {
-	t.Helper()
-	channelIds := make([]string, len(*results))
-	for i, channel := range *results {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, expected, channelIds)
-}
+// func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {
+// 	t.Helper()
+// 	channelIds := make([]string, len(*results))
+// 	for i, channel := range *results {
+// 		channelIds[i] = channel.Id
+// 	}
+// 	require.ElementsMatch(t, expected, channelIds)
+// }
 
 type ByChannelDisplayName model.ChannelList
 
