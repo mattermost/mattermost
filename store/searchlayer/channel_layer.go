@@ -132,7 +132,7 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 	return channel, err
 }
 
-func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
+func (c *SearchChannelStore) AutocompleteInTeam(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	var channelList *model.ChannelList
 	var err error
 
@@ -152,7 +152,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 
 	if allFailed {
 		mlog.Debug("Using database search because no other search engine is available")
-		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, userId, term, includeDeleted)
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
 		}

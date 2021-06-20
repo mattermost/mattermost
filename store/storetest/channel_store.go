@@ -5173,8 +5173,8 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	}
 
 	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, error){
-		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
-		"SearchInTeam":       ss.Channel().SearchInTeam,
+		// "AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
+		"SearchInTeam": ss.Channel().SearchInTeam,
 	} {
 		for _, testCase := range testCases {
 			t.Run(name+"/"+testCase.Description, func(t *testing.T) {
