@@ -1712,10 +1712,6 @@
     "translation": "无法解码团队图标。"
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "无法解码团队图标元数据。"
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "无法编码团队图标。"
   },
@@ -2266,10 +2262,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "无法解码个人资料图片。"
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "无法保存个人资料图片。文件不是有效的图片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3036,10 +3028,6 @@
     "translation": "无法解码图片数据。"
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "无法获取图片元数据。"
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "无法转换图片数据到 PNG 格式。请重试。"
   },
@@ -3050,10 +3038,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "无法写入图片文件到您的文件储存。请检查您的连接后再尝试。"
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "无法读取图片文件。请确定图片大小小于 2MB 并重试。"
   },
   {
     "id": "cli.license.critical",
@@ -8004,14 +7988,6 @@
     "translation": "CollapsedThreads设置必须为disabled，default_on或default_off"
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "无法处理导入：无法解压文件。"
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "无法处理导入：无法创建临时目录。"
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "无法处理导入：无法打开文件。"
   },
@@ -8781,7 +8757,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "接受来源远程集群的邀请"
+    "translation": "接受来自外部 Mattermost 的邀请"
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8825,6 +8801,10 @@
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "删除的安全连接 Id"
+    "translation": "要删除的安全连接 Id。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "无法在这些用户之间创建直连频道因为他们不属于同一个团队。"
   }
 ]

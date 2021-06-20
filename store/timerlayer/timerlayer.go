@@ -2014,10 +2014,10 @@ func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userID 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, updateThreads bool, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads)
+	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, updateThreads, setUnreadCountRoot)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -3995,6 +3995,22 @@ func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	return result, err
 }
 
+func (s *TimerLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+	start := timemodule.Now()
+
+	result, err := s.LicenseStore.GetAll()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("LicenseStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 
@@ -4890,10 +4906,10 @@ func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, allowFromCache bool) ([]*model.Post, error) {
+func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.GetPostsSinceForSync(options, allowFromCache)
+	result, resultVar1, err := s.PostStore.GetPostsSinceForSync(options, cursor, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4903,7 +4919,7 @@ func (s *TimerLayerPostStore) GetPostsSinceForSync(options model.GetPostsSinceFo
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsSinceForSync", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error) {
@@ -6568,10 +6584,10 @@ func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
+func (s *TimerLayerSharedChannelStore) GetSingleUser(userID string, channelID string, remoteID string) (*model.SharedChannelUser, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetUser(userID, channelID, remoteID)
+	result, err := s.SharedChannelStore.GetSingleUser(userID, channelID, remoteID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6579,7 +6595,39 @@ func (s *TimerLayerSharedChannelStore) GetUser(userID string, channelID string, 
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUser", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetSingleUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetUsersForSync(filter)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUsersForSync", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetUsersForUser(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUsersForUser", success, elapsed)
 	}
 	return result, err
 }
@@ -6728,10 +6776,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteCursor(id, cursor)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6739,15 +6787,15 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTim
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteNextSyncAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteCursor", success, elapsed)
 	}
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(userID, channelID, remoteID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7974,10 +8022,10 @@ func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string) ([]string, e
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetThreadForUser(userID, teamID, threadId, extended)
+	result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8006,10 +8054,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+	result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8034,6 +8082,22 @@ func (s *TimerLayerThreadStore) MarkAllAsRead(userID string, teamID string) erro
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAllAsRead", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) MarkAllAsReadInChannels(userID string, channelIDs []string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.MarkAllAsReadInChannels(userID, channelIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAllAsReadInChannels", success, elapsed)
 	}
 	return err
 }

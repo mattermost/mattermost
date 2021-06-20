@@ -560,14 +560,6 @@
     "translation": "Nem sikerült dekódolni az interaktív párbeszédpanel trigger ID azonosítóját."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült kicsomagolni a fájlt."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Nem sikerült feldolgozni az importot: nem sikerült létrehozni egy ideiglenes könyvtárat."
-  },
-  {
     "id": "import_process.worker.do_job.open_file",
     "translation": "Nem sikerült feldolgozni az importot: nem sikerült megnyitni a fájlt."
   },
@@ -3688,10 +3680,6 @@
     "translation": "A funkcióhoz frissíteni kell az Enterprise Edition-re és meg kell adni egy licenckulcsot. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Nem sikerült olvasni a képfájlt. Győződjön meg róla, hogy a kép mérete kevesebb mint 2 MB és próbálja újra."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Nem sikerült írni a képfájlt a fájltárba. Kérjük ellenőrizze a kapcsolatát és próbálja újra."
   },
@@ -3702,10 +3690,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Nem sikerült átalakítani a kép adatot PNG formátumba. Kérjük próbálja meg újra."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Nem sikerült lekérni a kép metaadatot."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4686,10 +4670,6 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Nem sikerült kódolni a profilképet."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "A profilképet nem lehet elmenteni. A fájl nem tűnik érvényes képnek."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -6032,10 +6012,6 @@
     "translation": "A csapat ikont nem lehetett kódolni."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "A csapat ikon metaadatot nem lehetett dekódolni."
-  },
-  {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "A csapat ikont nem lehetett dekódolni."
   },
@@ -7192,7 +7168,7 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Erre a megosztott csatornára nem hívtak meg biztonságos kapcsolatokat."
+    "translation": "Erre a csatornára nem hívtak meg biztonságos kapcsolatokat."
   },
   {
     "id": "api.command_share.name",
@@ -7208,11 +7184,11 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Meghív egy távoli példányt az aktuális megosztott csatornára"
+    "translation": "Meghív egy külső Mattermost példányt az aktuális megosztott csatornára"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Csatorna meghívót elküldtünk ide: `{{.Name}} {{.SiteURL}}`."
+    "translation": "A megosztott csatorna meghívót elküldtünk ide: `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -7272,11 +7248,11 @@
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Hiba történt a megosztott kapcsolatok lekérésekor: {{.Error}}"
+    "translation": "Hiba történt a biztonságos kapcsolatok lekérésekor: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Megosztja az aktuális csatornát egy távoli Mattermost példánnyal."
+    "translation": "Megosztja az aktuális csatornát egy külső Mattermost példánnyal."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7388,19 +7364,19 @@
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Az OldalURL nincs beállítva. Kérjük, állítsa be ezt a rendszerkonzolon keresztül."
+    "translation": "Az OldalURL nincs beállítva. Kérjük, állítsa be ezt a Rendszerkonzol > Környezet > Webszerver oldalon."
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "A Távoli fürt szolgáltatás nincs engedélyezve."
+    "translation": "A biztonságos kapcsolat szolgáltatás nincs engedélyezve."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "A Távoli fürt szolgáltatás le van tiltva."
+    "translation": "A biztonságos kapcsolat szolgáltatás le van tiltva."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
-    "translation": "A biztonságos kapcsolatot eltávolításának azonosítója"
+    "translation": "Az eltávolítandó biztonságos kapcsolat azonosítója"
   },
   {
     "id": "api.command_remote.remove_remote.error",
@@ -7448,7 +7424,7 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Küldje el a következő titkosított (AES256 + Base64) blobot a távoli webhely rendszergazdájának a jelszóval együtt. A meghívás elfogadásához a `{{.Command}}` perjel parancsot fogják használni.\n\n\"\n{{.Invitation}}\n\"\n\n** Győződjön meg róla, hogy a távoli webhely hozzáférhet a fürtjéhez a ** {{.SiteURL}} segítségével"
+    "translation": "Küldje el a következő AES 256 bites titkosított meghívót a külső Legfrissebb rendszergazdának a jelszóval együtt. A meghívás elfogadásához a \"{{.Command}}\" perjel parancsot fogják használni.\n\n\"\n{{.Invitation}}\n\"\n\n** Győződjön meg róla, hogy a biztonságos kapcsolat a ** {{.SiteURL}} segítségével érheti el a Mattermost példányt."
   },
   {
     "id": "api.command_remote.invite_password.hint",
@@ -7460,7 +7436,7 @@
   },
   {
     "id": "api.command_remote.invite.help",
-    "translation": "Biztonságos kapcsolat létrehozása"
+    "translation": "Biztonságos kapcsolat meghívása"
   },
   {
     "id": "api.command_remote.invitation_created",
@@ -7500,7 +7476,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Távoli Mattermost fürtök meghívása fürtök közötti kommunikációhoz."
+    "translation": "Hívjon biztonságos kapcsolatokat a Mattermost példányok közötti kommunikációhoz."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
@@ -8554,7 +8530,7 @@
   },
   {
     "id": "api.command_remote.accept.help",
-    "translation": "Fogadja el a távoli fürt meghívását"
+    "translation": "Fogadja el egy külső Mattermost példány meghívását"
   },
   {
     "id": "api.command_open.name",
@@ -9141,5 +9117,81 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "A beírt szöveg meghaladja a karakterkorlátot. A csatorna fejléce legfeljebb {{.MaxLength}} karakter lehet."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Ha nem irányítja át automatikusan, kérjük, kattintson a <a href='{{.Link}}'> linkre </a>"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Nem sikerült megkülönböztetni a konfigurációkat"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Nem sikerült megkülönböztetni a konfigurációkat"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Közvetlen csatorna nem hozható létre e felhasználók között, mert nincsenek közös csapatban."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Hiba lépett fel a JSON kérés listázása közben"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "A legrégebbi entitást (felhasználó, csatorna vagy bejegyzés) nem sikerült lekérdezni az adatbázisból."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "A jelszó érvénytelen"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Nem sikerült lekérni a közös csapatazonosítókat."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "A piactéri bővítményeket nem sikerült listázni."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Nem sikerült választ kapni."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyeket mostantól letiltottak.\n\n{{.BotNames}}{{else}}{{.UserName}} deaktiválták. Ők kezelték a {{.NumBots}} botfiókokat, amelyeket mostanra letiltottak, beleértve a következőket:\n\n{{.BotNames}}{{end}}Az egyes botok tulajdonjogát úgy veheti át, hogy engedélyezi őket a **Integrációk > Botfiókok** menüpontban, és új tokeneket hoz létre a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} ki lett kapcsolva. A következő botfiókokat kezelték, amelyek még mindig engedélyezve vannak.\n\n{{.BotNames}}\n{{else}}{{.UserName}} deaktiválták. Ők kezelték a még mindig engedélyezett {{.NumBots}} botfiókokat, köztük a következőket:\n\n{{.BotNames}}{{end}}Nyomatékosan javasoljuk, hogy vegye tulajdonába az egyes botokat, és engedélyezze újra a **Integrációk > Botfiókok** menüpontban, és hozzon létre új tokeneket a bothoz.\n\nTovábbi információért lásd a [dokumentációnkat](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nHa azt szeretné, hogy a botfiókok automatikusan kikapcsolódjanak a tulajdonos deaktiválása után, állítsa a **Rendszerkonzol > Integrációk > Botfiókok** pontban a \"Botfiókok kikapcsolása, ha a tulajdonos deaktiválódik\" opciót igazra.{{end}}"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Nem tud több felhasználót aktiválni, mivel a felhőfiók kapacitása túllépte a korlátot."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Nem lehet felhőellenőrzést végezni a határértéknél vagy a határérték felett."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
   }
 ]

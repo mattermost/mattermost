@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
@@ -152,11 +153,24 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 
+	mockOAuthStore := mocks.OAuthStore{}
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("OAuth").Return(&mockOAuthStore)
 	mockStore.On("Status").Return(&mockStatusStore)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+
+	userService, err := users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
+		ConfigFn:     th.App.srv.Config,
+		Metrics:      th.App.Metrics(),
+		Cluster:      th.App.Cluster(),
+	})
+	require.NoError(t, err)
+	th.App.srv.userService = userService
 
 	// This needs to be false for the condition to trigger
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -174,7 +188,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.AddSessionToCache(sess1)
+	th.App.srv.userService.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {

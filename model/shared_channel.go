@@ -112,7 +112,8 @@ type SharedChannelRemote struct {
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
-	NextSyncAt        int64  `json:"next_sync_at"`
+	LastPostUpdateAt  int64  `json:"last_post_update_at"`
+	LastPostId        string `json:"last_post_id"`
 }
 
 func (sc *SharedChannelRemote) ToJson() string {
@@ -209,6 +210,12 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
+}
+
+type GetUsersForSyncFilter struct {
+	CheckProfileImage bool
+	ChannelID         string
+	Limit             uint64
 }
 
 // SharedChannelAttachment stores a lastSyncAt timestamp on behalf of a remote cluster for

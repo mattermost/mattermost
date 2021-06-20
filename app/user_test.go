@@ -8,71 +8,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"image"
-	"image/color"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
-
-func TestIsUsernameTaken(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-	taken := th.App.IsUsernameTaken(user.Username)
-
-	if !taken {
-		t.Logf("the username '%v' should be taken", user.Username)
-		t.FailNow()
-	}
-
-	newUsername := "randomUsername"
-	taken = th.App.IsUsernameTaken(newUsername)
-
-	if taken {
-		t.Logf("the username '%v' should not be taken", newUsername)
-		t.FailNow()
-	}
-}
-
-func TestCheckUserDomain(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-
-	cases := []struct {
-		domains string
-		matched bool
-	}{
-		{"simulator.amazonses.com", true},
-		{"gmail.com", false},
-		{"", true},
-		{"gmail.com simulator.amazonses.com", true},
-	}
-	for _, c := range cases {
-		matched := CheckUserDomain(user, c.domains)
-		if matched != c.matched {
-			if c.matched {
-				t.Logf("'%v' should have matched '%v'", user.Email, c.domains)
-			} else {
-				t.Logf("'%v' should not have matched '%v'", user.Email, c.domains)
-			}
-			t.FailNow()
-		}
-	}
-}
 
 func TestCreateOAuthUser(t *testing.T) {
 	th := Setup(t).InitBasic()
@@ -82,33 +33,51 @@ func TestCreateOAuthUser(t *testing.T) {
 		*cfg.GitLabSettings.Enable = true
 	})
 
-	glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+	t.Run("create user successfully", func(t *testing.T) {
+		glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+		json := glUser.ToJson()
 
-	json := glUser.ToJson()
-	user, err := th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id, nil)
-	require.Nil(t, err)
+		user, err := th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id, nil)
+		require.Nil(t, err)
 
-	require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
+		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
 
-	th.App.PermanentDeleteUser(th.Context, user)
+		th.App.PermanentDeleteUser(th.Context, user)
+	})
 
-	*th.App.Config().TeamSettings.EnableUserCreation = false
+	t.Run("user exists, update authdata successfully", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.Office365Settings.Enable = true
+		})
 
-	_, err = th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id, nil)
-	require.NotNil(t, err, "should have failed - user creation disabled")
-}
+		dbUser := th.BasicUser
 
-func TestCreateProfileImage(t *testing.T) {
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
-	require.Nil(t, err)
+		// mock oAuth Provider, return data
+		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		providerMock := &mocks.OauthProvider{}
+		providerMock.On("IsSameUser", mock.Anything, mock.Anything).Return(true)
+		providerMock.On("GetUserFromJson", mock.Anything, mock.Anything).Return(mockUser, nil)
+		einterfaces.RegisterOauthProvider(model.SERVICE_OFFICE365, providerMock)
 
-	rdr := bytes.NewReader(b)
-	img, _, err2 := image.Decode(rdr)
-	require.NoError(t, err2)
+		// Update user to be OAuth, formatting to match Office365 OAuth data
+		s, er2 := th.App.Srv().Store.User().UpdateAuthData(dbUser.Id, model.SERVICE_OFFICE365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
+		assert.NoError(t, er2)
+		assert.Equal(t, dbUser.Id, s)
 
-	colorful := color.RGBA{116, 49, 196, 255}
+		// data passed doesn't matter as return is mocked
+		_, err := th.App.CreateOAuthUser(th.Context, model.SERVICE_OFFICE365, strings.NewReader("{}"), th.BasicTeam.Id, nil)
+		assert.Nil(t, err)
+		u, er := th.App.Srv().Store.User().GetByEmail(dbUser.Email)
+		assert.NoError(t, er)
+		// make sure authdata is updated
+		assert.Equal(t, "e7110007-64be-43d8-9840-4a7e9c26b710", *u.AuthData)
+	})
 
-	require.Equal(t, colorful, img.At(1, 1), "Failed to create correct color")
+	t.Run("user creation disabled", func(t *testing.T) {
+		*th.App.Config().TeamSettings.EnableUserCreation = false
+		_, err := th.App.CreateOAuthUser(th.Context, model.USER_AUTH_SERVICE_GITLAB, strings.NewReader("{}"), th.BasicTeam.Id, nil)
+		require.NotNil(t, err, "should have failed - user creation disabled")
+	})
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {

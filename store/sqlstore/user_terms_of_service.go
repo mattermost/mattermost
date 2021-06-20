@@ -29,7 +29,6 @@ func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceS
 }
 
 func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_terms_of_service_user_id", "UserTermsOfService", "UserId")
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {

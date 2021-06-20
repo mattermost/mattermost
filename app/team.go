@@ -9,18 +9,17 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/disintegration/imaging"
-
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -1523,7 +1522,7 @@ func (a *App) InviteGuestsToChannelsGracefully(teamID string, guestsInvite *mode
 			Email: email,
 			Error: nil,
 		}
-		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
@@ -1596,7 +1595,7 @@ func (a *App) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsIn
 
 	var invalidEmailList []string
 	for _, email := range guestsInvite.Emails {
-		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
@@ -1898,20 +1897,10 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	// Decode image config first to check dimensions before loading the whole thing into memory later on
-	config, _, err := image.DecodeConfig(file)
-	if err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
+	if limitErr := checkImageLimits(file); limitErr != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.check_image_limits.app_error",
+			nil, limitErr.Error(), http.StatusBadRequest)
 	}
-
-	// This casting is done to prevent overflow on 32 bit systems (not needed
-	// in 64 bits systems because images can't have more than 32 bits height or
-	// width)
-	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	file.Seek(0, 0)
 
 	return a.SetTeamIconFromFile(team, file)
 }
@@ -1923,15 +1912,15 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	orientation, _ := getImageOrientation(file)
-	img = makeImageUpright(img, orientation)
+	orientation, _ := imaging.GetImageOrientation(file)
+	img = imaging.MakeImageUpright(img, orientation)
 
 	// Scale team icon
 	teamIconWidthAndHeight := 128
-	img = imaging.Fill(img, teamIconWidthAndHeight, teamIconWidthAndHeight, imaging.Center, imaging.Lanczos)
+	img = imaging.FillCenter(img, teamIconWidthAndHeight, teamIconWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = png.Encode(buf, img)
+	err = a.srv.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

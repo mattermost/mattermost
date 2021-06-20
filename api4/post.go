@@ -639,11 +639,15 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(patchedPost.ToJson()))
 }
 
-func setPostUnread(c *Context, w http.ResponseWriter, _ *http.Request) {
+func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
 	}
+
+	props := model.MapBoolFromJson(r.Body)
+	collapsedThreadsSupported := props["collapsed_threads_supported"]
+
 	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -653,7 +657,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.Params.UserId)
+	state, err := c.App.MarkChannelAsUnreadFromPost(c.Params.PostId, c.Params.UserId, collapsedThreadsSupported, false)
 	if err != nil {
 		c.Err = err
 		return

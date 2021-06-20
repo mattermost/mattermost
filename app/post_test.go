@@ -1952,21 +1952,27 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err)
 
-	thread, err := th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, false, false)
 	require.Nil(t, err)
 
-	thread, err = th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
 	// another user follows the thread
 	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
 
-	thread, err = th.App.GetThreadForUser(user2.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
 	for _, p := range thread.Participants {
@@ -2032,7 +2038,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	th.App.ViewChannel(&model.ChannelView{
 		ChannelId:     channel.Id,
 		PrevChannelId: "",
-	}, user2.Id, "")
+	}, user2.Id, "", true)
 
 	m1, e1 := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e1)
@@ -2072,7 +2078,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true, true)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
@@ -2080,7 +2086,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.EqualValues(t, []string{user1.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id})
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
-		require.True(t, l.Posts[postRoot.Id].IsFollowing)
+		require.True(t, *l.Posts[postRoot.Id].IsFollowing)
 
 		// try extended fetch
 		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
@@ -2190,8 +2196,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
 
-		assert.Len(t, remoteClusterService.notifications, 1)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
+		assert.Len(t, remoteClusterService.channelNotifications, 1)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 	})
 
 	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -2217,9 +2223,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(th.Context, post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		assert.Len(t, remoteClusterService.notifications, 2)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
+		assert.Len(t, remoteClusterService.channelNotifications, 2)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -2246,9 +2252,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		require.Nil(t, err, "Deleting a post should not error")
 
 		// one creation and two deletes
-		assert.Len(t, remoteClusterService.notifications, 3)
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
-		assert.Equal(t, channel.Id, remoteClusterService.notifications[2])
+		assert.Len(t, remoteClusterService.channelNotifications, 3)
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
+		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])
 	})
 }

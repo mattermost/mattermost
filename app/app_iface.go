@@ -7,6 +7,7 @@
 package app
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -230,8 +231,6 @@ type AppIface interface {
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// InstallPluginWithSignature verifies and installs plugin.
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
-	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
-	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
@@ -241,7 +240,7 @@ type AppIface interface {
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported, followThread bool) (*model.ChannelUnreadAt, *model.AppError)
 	// MentionsToPublicChannels returns all the mentions to public channels,
 	// linking them to their channels
 	MentionsToPublicChannels(message, teamID string) model.ChannelMentionMap
@@ -284,7 +283,7 @@ type AppIface interface {
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
 	// SaveConfig replaces the active configuration, optionally notifying cluster peers.
-	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError
+	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 	// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 	SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
 	// SearchAllTeams returns a team list and the total count of the results
@@ -294,9 +293,6 @@ type AppIface interface {
 	SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription, action string) *model.AppError
 	// SendNoCardPaymentFailedEmail
 	SendNoCardPaymentFailedEmail() *model.AppError
-	// ServePluginPublicRequest serves public plugin files
-	// at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
-	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
@@ -391,6 +387,8 @@ type AppIface interface {
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
 	//GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
+	//nolint:golint,unused,deadcode
+	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
@@ -431,13 +429,15 @@ type AppIface interface {
 	BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
 	BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError
-	BulkImport(c *request.Context, fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
-	BulkImportWithPath(c *request.Context, fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
+	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails(c *request.Context) *model.AppError
 	CheckCanInviteToSharedChannel(channelId string) error
+	CheckCloudAccountAtLimit() (bool, *model.AppError)
 	CheckForClientSideCert(r *http.Request) (string, string, string)
+	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
@@ -743,6 +743,8 @@ type AppIface interface {
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
 	GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError)
+	GetSubscriptionStats() (*model.SubscriptionStats, *model.AppError)
+	GetSystemBot() (*model.Bot, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError)
 	GetTeamByName(name string) (*model.Team, *model.AppError)
@@ -762,7 +764,8 @@ type AppIface interface {
 	GetTeamsForUser(userID string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
-	GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError)
+	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError)
+	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
@@ -850,7 +853,7 @@ type AppIface interface {
 	Log() *mlog.Logger
 	LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError
-	MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string) (map[string]int64, *model.AppError)
+	MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
@@ -929,6 +932,7 @@ type AppIface interface {
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
+	ReturnSessionToPool(session *model.Session)
 	RevokeAccessToken(token string) *model.AppError
 	RevokeAllSessions(userID string) *model.AppError
 	RevokeSession(session *model.Session) *model.AppError
@@ -979,8 +983,6 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
-	ServePluginRequest(w http.ResponseWriter, r *http.Request)
-	SessionCacheLength() int
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
 	SessionHasPermissionToCategory(session model.Session, userID, teamID, categoryId string) bool
@@ -1069,9 +1071,8 @@ type AppIface interface {
 	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	UpdateSessionsIsGuest(userID string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error
+	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
@@ -1097,6 +1098,6 @@ type AppIface interface {
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
-	ViewChannel(view *model.ChannelView, userID string, currentSessionId string) (map[string]int64, *model.AppError)
+	ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 }

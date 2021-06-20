@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -38,6 +37,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/app/featureflag"
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -57,6 +57,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/services/users"
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mail"
@@ -134,7 +135,6 @@ type Server struct {
 	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *templates.Container
-	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
 	configListenerId        string
@@ -158,7 +158,9 @@ type Server struct {
 	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
+	userService      *users.UserService
 
+	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
 	sharedChannelService SharedChannelServiceIFace
 
@@ -189,6 +191,7 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+	LicenseManager   einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
 
@@ -205,8 +208,11 @@ type Server struct {
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
 
-	dndnTaskMut sync.Mutex
-	dndTask     *model.ScheduledTask
+	imgDecoder *imaging.Decoder
+	imgEncoder *imaging.Encoder
+
+	dndTaskMut sync.Mutex
+	dndTask    *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -245,13 +251,27 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
+	var imgErr error
+	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+	}
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image encoder")
+	}
+
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	fakeApp := New(ServerConnector(s))
-	fakeApp.HubStart()
+	app := New(ServerConnector(s))
+	app.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
@@ -311,13 +331,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var err error
-	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create session cache")
-	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
@@ -342,19 +355,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
-			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				ver, err2 := s.sqlStore.GetDbVersion(true)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot get DB version")
-				}
-				intVer, err2 := strconv.Atoi(ver)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot parse DB version")
-				}
-				if intVer < sqlstore.MinimumRequiredPostgresVersion {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
-				}
-			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -407,6 +407,18 @@ func NewServer(options ...Option) (*Server, error) {
 	s.Store, err = s.newStore()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
+	}
+
+	s.userService, err = users.New(users.ServiceConfig{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
@@ -491,11 +503,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("", s.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", s.ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -507,7 +518,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.WebSocketRouter = &WebSocketRouter{
 		handlers: make(map[string]webSocketHandler),
-		app:      fakeApp,
+		app:      app,
 	}
 
 	mailConfig := s.MailServiceConfig()
@@ -636,7 +647,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// if enabled - perform initial product notices fetch
 	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
-			if err := fakeApp.UpdateProductNotices(); err != nil {
+			if err := app.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failied to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
@@ -649,7 +660,7 @@ func NewServer(options ...Option) (*Server, error) {
 	c := request.EmptyContext()
 	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+			if appErr := app.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -657,7 +668,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := fakeApp.DeactivateGuests(c); appErr != nil {
+		if appErr := app.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
@@ -665,9 +676,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.runEssentialJobs {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
-			runCheckAdminSupportStatusJob(fakeApp, c)
-			runCheckWarnMetricStatusJob(fakeApp, c)
-			runDNDStatusExpireJob(fakeApp)
+			runCheckAdminSupportStatusJob(app, c)
+			runCheckWarnMetricStatusJob(app, c)
+			runDNDStatusExpireJob(app)
 		})
 		s.runJobs()
 	}
@@ -682,6 +693,14 @@ func NewServer(options ...Option) (*Server, error) {
 			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
 			s.ShutDownPlugins()
+		}
+	})
+	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
+			runDNDStatusExpireJob(app)
+		}
+		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
+			stopDNDStatusExpireJob(app)
 		}
 	})
 
@@ -873,15 +892,18 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 
 	var err error
 
-	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	rcs, err := remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		return err
 	}
 
-	if err = s.remoteClusterService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = rcs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.remoteClusterService = rcs
+	s.serviceMux.Unlock()
 
 	// Shared Channels service
 
@@ -897,15 +919,19 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) err
 		return nil
 	}
 
-	s.sharedChannelService, err = sharedchannel.NewSharedChannelService(s, app)
+	scs, err := sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		return err
 	}
 
-	if err = s.sharedChannelService.Start(); err != nil {
-		s.remoteClusterService = nil
+	if err = scs.Start(); err != nil {
 		return err
 	}
+
+	s.serviceMux.Lock()
+	s.sharedChannelService = scs
+	s.serviceMux.Unlock()
+
 	return nil
 }
 
@@ -967,11 +993,18 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
+	s.serviceMux.RLock()
+	if s.sharedChannelService != nil {
+		if err = s.sharedChannelService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+		}
+	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
 			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
+	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
@@ -1032,11 +1065,11 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
-	s.dndnTaskMut.Lock()
+	s.dndTaskMut.Lock()
 	if s.dndTask != nil {
 		s.dndTask.Cancel()
 	}
-	s.dndnTaskMut.Unlock()
+	s.dndTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -1992,12 +2025,16 @@ func (s *Server) GetStore() store.Store {
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.remoteClusterService
 }
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
+	s.serviceMux.RLock()
+	defer s.serviceMux.RUnlock()
 	return s.sharedChannelService
 }
 
@@ -2010,12 +2047,16 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
 func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.remoteClusterService = remoteClusterService
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+	s.serviceMux.Lock()
+	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
 }
 
@@ -2224,18 +2265,18 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 }
 
 func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	var img []byte
-	var appErr *model.AppError
+	img, err := s.userService.GetDefaultProfileImage(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.DefaultFontError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.UserInitialsError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
+		default:
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
-	if user.IsBot {
-		img = model.BotDefaultImage
-		appErr = nil
-	} else {
-		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
-	}
-	if appErr != nil {
-		return nil, appErr
-	}
 	return img, nil
 }
 
@@ -2264,25 +2305,40 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	return result, nil
 // }
 
+func createDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.srv.dndTaskMut.Unlock()
+}
+
+func cancelDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	if a.srv.dndTask != nil {
+		a.srv.dndTask.Cancel()
+		a.srv.dndTask = nil
+	}
+	a.srv.dndTaskMut.Unlock()
+}
+
 func runDNDStatusExpireJob(a *App) {
+	if !a.Config().FeatureFlags.TimedDND {
+		return
+	}
 	if a.IsLeader() {
-		a.srv.dndnTaskMut.Lock()
-		a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-		a.srv.dndnTaskMut.Unlock()
+		createDNDStatusExpirationRecurringTask(a)
 	}
 	a.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			a.srv.dndnTaskMut.Lock()
-			a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-			a.srv.dndnTaskMut.Unlock()
+			createDNDStatusExpirationRecurringTask(a)
 		} else {
-			a.srv.dndnTaskMut.Lock()
-			if a.srv.dndTask != nil {
-				a.srv.dndTask.Cancel()
-				a.srv.dndTask = nil
-			}
-			a.srv.dndnTaskMut.Unlock()
+			cancelDNDStatusExpirationRecurringTask(a)
 		}
 	})
+}
+
+func stopDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		cancelDNDStatusExpirationRecurringTask(a)
+	}
 }

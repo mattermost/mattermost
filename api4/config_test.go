@@ -4,6 +4,9 @@
 package api4
 
 import (
+	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -12,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -434,6 +438,49 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
 		require.Equal(t, "http://example.com", *returnedCfg.ServiceSettings.SiteURL)
 	})
+}
+
+func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
+	logFile, err := ioutil.TempFile("", "adv.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{
+		func(s *app.Server) error {
+			s.SetLicense(model.NewTestLicense("advanced_logging"))
+			return nil
+		},
+	}
+	th := SetupWithServerOptions(t, options)
+	defer th.TearDown()
+
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	timeoutVal := *cfg.ServiceSettings.ReadTimeout
+	cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal + 1)
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.ReadTimeout = model.NewInt(timeoutVal)
+	})
+	require.Equal(t, timeoutVal+1, *cfg.ServiceSettings.ReadTimeout)
+
+	// Forcing a flush before attempting to read log's content.
+	err = th.Server.Log.Flush(context.Background())
+	require.NoError(t, err)
+
+	data, err := ioutil.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+	require.Contains(t, string(data),
+		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
+			timeoutVal, timeoutVal+1))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
