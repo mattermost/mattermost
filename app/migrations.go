@@ -326,6 +326,8 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	}
 }
 
+// DoCRTFixMentionCountsInThreadsMigration fixes mention counts in threads for users
+// who have newer replies in threads than the last time the user viewed the channel.
 func (a *App) DoCRTFixMentionCountsInThreadsMigration() {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := a.Srv().Store.System().GetByName(CRTThreadMentionCountsFixKey); err == nil {

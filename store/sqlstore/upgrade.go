@@ -1213,6 +1213,13 @@ func upgradeDatabaseToVersion537(sqlStore *SqlStore) {
 	// }
 }
 
+// fixCRTThreadCountsAndUnreads
+// 1. Fixes reply counts, last reply times and participants of threads.
+// 2. Marks threads as read for users where the last reply time of the thread
+//    is earlier than the time the user viewed the channel.
+//    Marking a thread means setting the mention count to zero and
+//    setting the last viewed at time of the the thread as the last viewed at time
+//    of the channel
 func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 	countsAndLastReplyCTE := `
 		SELECT RootId, COUNT(Id) AS FixedReplyCount, max(Posts.CreateAt) as FixedLastReply
@@ -1289,6 +1296,9 @@ func fixCRTThreadCountsAndUnreads(sqlStore *SqlStore) {
 	}
 }
 
+// fixCRTChannelMembershipCounts fixes the channel counts, i.e. the total message count,
+// total root message count, mention count, and mention count in root messages for users
+// who have viewed the channel after the last post in the channel
 func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	now := fmt.Sprintf("%d", model.GetMillis())
 
@@ -1313,6 +1323,8 @@ func fixCRTChannelMembershipCounts(sqlStore *SqlStore) {
 	}
 }
 
+// fixCRTChannelUnreadsForJoinLeaveMessages marks channels as read for users
+// if there are only system posts after the last time the user viewed the channel
 func fixCRTChannelUnreadsForJoinLeaveMessages(sqlStore *SqlStore) {
 	now := fmt.Sprintf("%d", model.GetMillis())
 
