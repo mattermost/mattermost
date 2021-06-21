@@ -3,6 +3,9 @@
 package daily_license_check
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
@@ -57,7 +60,20 @@ func (dlcworker *DailyLicenseCheckWorker) JobChannel() chan<- model.Job {
 	return dlcworker.jobs
 }
 
-func (dlcworker *DailyLicenseCheckWorker) DoJob(job *model.Job) {}
+func (dlcworker *DailyLicenseCheckWorker) DoJob(job *model.Job) {
+	license := dlcworker.App.Srv().License()
+	now := model.GetMillis()
+
+	dif := license.ExpiresAt - now
+	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
+	days := d.Hours() / 24
+	if days <= 60 && days >= 58 {
+		// TODO: Send email
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_AT_SIXTY_DAYS_TO_EXPIRATION, "", "", "", nil)
+		dlcworker.App.Publish(message)
+		dlcworker.setJobSuccess(job)
+	}
+}
 
 func (dlcworker *DailyLicenseCheckWorker) setJobSuccess(job *model.Job) {
 	if err := dlcworker.App.Srv().Jobs.SetJobSuccess(job); err != nil {

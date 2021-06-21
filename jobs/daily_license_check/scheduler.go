@@ -28,7 +28,7 @@ func (s *DailyLicenseCheckScheduler) JobType() string {
 }
 
 func (s *DailyLicenseCheckScheduler) Enabled(cfg *model.Config) bool {
-	return true
+	return s.App.Srv().License() != nil
 }
 
 func (s *DailyLicenseCheckScheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
