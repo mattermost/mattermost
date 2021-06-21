@@ -36,4 +36,7 @@ import (
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
 	_ "github.com/mattermost/mattermost-server/v5/jobs/resend_invitation_email"
+
+	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
+	_ "github.com/mattermost/mattermost-server/v5/jobs/daily_license_check"
 )

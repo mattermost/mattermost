@@ -1993,6 +1993,10 @@ func (s *Server) initJobs() {
 		s.Jobs.ResendInvitationEmails = jobsResendInvitationEmailInterface(s)
 	}
 
+	if jobsDailyLicenseCheckInterface != nil {
+		s.Jobs.DailyLicenseCheck = jobsDailyLicenseCheckInterface(s)
+	}
+
 	s.Jobs.InitWorkers()
 	s.Jobs.InitSchedulers()
 }

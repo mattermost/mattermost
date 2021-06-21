@@ -191,6 +191,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_DAILY_LICENSE_CHECK {
+			if watcher.workers.DailyLicenseCheck != nil {
+				select {
+				case watcher.workers.DailyLicenseCheck.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }

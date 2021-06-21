@@ -103,6 +103,12 @@ func RegisterJobsResendInvitationEmailInterface(f func(*Server) ejobs.ResendInvi
 	jobsResendInvitationEmailInterface = f
 }
 
+var jobsDailyLicenseCheckInterface func(*Server) ejobs.DailyLicenseCheckJobInterface
+
+func RegisterJobsDailyLicenseCheckInterface(f func(*Server) ejobs.DailyLicenseCheckJobInterface) {
+	jobsDailyLicenseCheckInterface = f
+}
+
 var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
 
 func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {

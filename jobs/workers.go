@@ -32,6 +32,7 @@ type Workers struct {
 	ExportDelete             model.Worker
 	Cloud                    model.Worker
 	ResendInvitationEmail    model.Worker
+	DailyLicenseCheck        model.Worker
 
 	listenerId string
 	running    bool
@@ -124,6 +125,10 @@ func (srv *JobServer) InitWorkers() error {
 		workers.ResendInvitationEmail = resendInvitationEmailInterface.MakeWorker()
 	}
 
+	if dailyLicenseCheckInterface := srv.DailyLicenseCheck; dailyLicenseCheckInterface != nil {
+		workers.DailyLicenseCheck = dailyLicenseCheckInterface.MakeWorker()
+	}
+
 	srv.workers = workers
 
 	return nil
@@ -199,6 +204,10 @@ func (workers *Workers) Start() {
 
 	if workers.ResendInvitationEmail != nil {
 		go workers.ResendInvitationEmail.Run()
+	}
+
+	if workers.DailyLicenseCheck != nil {
+		go workers.DailyLicenseCheck.Run()
 	}
 
 	go workers.Watcher.Start()
@@ -332,6 +341,10 @@ func (workers *Workers) Stop() {
 
 	if workers.ResendInvitationEmail != nil {
 		workers.ResendInvitationEmail.Stop()
+	}
+
+	if workers.DailyLicenseCheck != nil {
+		go workers.DailyLicenseCheck.Stop()
 	}
 
 	workers.running = false

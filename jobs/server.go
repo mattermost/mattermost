@@ -36,6 +36,7 @@ type JobServer struct {
 	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
 	ResendInvitationEmails  ejobs.ResendInvitationEmailJobInterface
+	DailyLicenseCheck       ejobs.DailyLicenseCheckJobInterface
 
 	// mut is used to protect the following fields from concurrent access.
 	mut        sync.Mutex
