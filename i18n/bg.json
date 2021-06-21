@@ -2276,10 +2276,6 @@
     "translation": "Функцията изисква надграждане до Enterprise Edition и включване на лицензен ключ. Моля, свържете се със системния си администратор."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Файлът с изображения не може да се прочете. Уверете се, че размерът на изображението е по-малък от 2 MB и опитайте отново."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Не може да се запише файлът с изображения във вашето хранилище на файлове. Моля, проверете връзката си и опитайте отново."
   },
@@ -2290,10 +2286,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Неуспешно преобразуване на данните от изображението във формат PNG. Моля, опитайте отново."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Не могат да се получат метаданни за изображения."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -2650,14 +2642,6 @@
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Неуспешно декодиране base64 за задействащо ID на интерактивен диалог."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Не можа да се обработи внасянето: неуспешно разархивиране на файла."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Не можа да се обработи внасянето: неуспешно създаване на временна директория."
   },
   {
     "id": "import_process.worker.do_job.open_file",
@@ -4424,10 +4408,6 @@
     "translation": "Иконата на екипа не можа да се кодира."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не можаха да се декодират метаданните на иконата на екипа."
-  },
-  {
     "id": "api.team.set_team_icon.decode.app_error",
     "translation": "Иконата на екипа не можа да се декодира."
   },
@@ -5216,10 +5196,6 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Изображението на профила не можа да се кодира."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Изображението на профила не можа да бъде запазено. Изглежда, че файлът не е валидно изображение."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -9213,5 +9189,41 @@
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "Не може да се създаде директен канал между тези потребители, тъй като те нямат общ екип."
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Паролата не е валидна"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Не мога да активирам повече потребители, тъй като капацитетът на профила в облака е надхвърлен."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Не е възможно да се извърши проверка на облака за превишаване на лимита."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Система"
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Списъкът на администраторите е празен."
   }
 ]

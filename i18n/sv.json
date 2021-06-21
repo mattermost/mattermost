@@ -1092,14 +1092,6 @@
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
   },
   {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Kunde inte hantera importen: kunde inte packa upp filen."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Kunde inte hantera importen: misslyckades med att skapa temporär mapp."
-  },
-  {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Kunde inte spara exportfil."
   },
@@ -1124,10 +1116,6 @@
     "translation": "Funktionen kräver en uppgradering till Enterpriseversionen och tillhörande licensnyckel. Kontakta din systemadministratör."
   },
   {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Kunde inte läsa bildfilen. Kontrollera att bildstorleken är mindre än 2 MB och försök igen."
-  },
-  {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Kunde inte spara bildfilen på din lagringsyta. Kolla din uppkoppling och försök igen."
   },
@@ -1138,10 +1126,6 @@
   {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Kunde inte konvertera bilddatat till PNG-format. Försök igen."
-  },
-  {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Kunde inte hämta bildmetadatat."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4696,10 +4680,6 @@
     "translation": "Kunde inte koda profilbilden."
   },
   {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Kunde inte spara profilbilden. Filen verkar inte vara en giltig bildfil."
-  },
-  {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Kunde inte avkoda profilbilden."
   },
@@ -5470,10 +5450,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Kunde inte koda teamikonen."
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Kunde inte avkoda teamikonens metadata."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -9213,5 +9189,41 @@
   {
     "id": "api.config.patch_config.diff.app_error",
     "translation": "Kunde inte identifiera konfigurationsförändringar"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Lösenordet är inte giltigt"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
+    "translation": "Det går inte att aktivera fler användare eftersom du nått gränsen för ditt Mattermost Cloud-konto."
+  },
+  {
+    "id": "api.user.update_active.cloud_at_limit_check_error",
+    "translation": "Det gick inte att kontrollera gränsen för antalet tillåtna användare."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Listan med administratörer är tom."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "System"
   }
 ]

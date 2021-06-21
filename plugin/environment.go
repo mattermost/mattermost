@@ -54,17 +54,23 @@ type Environment struct {
 	logger                 *mlog.Logger
 	metrics                einterfaces.MetricsInterface
 	newAPIImpl             apiImplCreatorFunc
+	dbDriver               Driver
 	pluginDir              string
 	webappPluginDir        string
 	prepackagedPlugins     []*PrepackagedPlugin
 	prepackagedPluginsLock sync.RWMutex
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger, metrics einterfaces.MetricsInterface) (*Environment, error) {
+func NewEnvironment(newAPIImpl apiImplCreatorFunc,
+	dbDriver Driver,
+	pluginDir string, webappPluginDir string,
+	logger *mlog.Logger,
+	metrics einterfaces.MetricsInterface) (*Environment, error) {
 	return &Environment{
 		logger:          logger,
 		metrics:         metrics,
 		newAPIImpl:      newAPIImpl,
+		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
 	}, nil
@@ -263,7 +269,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.logger, env.metrics)
+		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}

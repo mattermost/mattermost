@@ -34,7 +34,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
-	IsFollowing        bool
+	IsFollowing        *bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -101,7 +101,6 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
@@ -740,7 +739,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
-		p.Post.IsFollowing = p.IsFollowing
+		if p.IsFollowing != nil {
+			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+		}
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {

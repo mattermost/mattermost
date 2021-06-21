@@ -283,7 +283,7 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) (*model.Threads, error)
-	GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, error)
+	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	Delete(postID string) error
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
@@ -296,7 +296,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postID string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postID string) error
-	MaintainMembership(userID, postID string, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants bool) (*model.ThreadMembership, error)
+	MaintainMembership(userID, postID string, opts ThreadMembershipOpts) (*model.ThreadMembership, error)
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
@@ -578,6 +578,7 @@ type PreferenceStore interface {
 type LicenseStore interface {
 	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
 	Get(id string) (*model.LicenseRecord, error)
+	GetAll() ([]*model.LicenseRecord, error)
 }
 
 type TokenStore interface {
@@ -605,6 +606,7 @@ type StatusStore interface {
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userID string, lastActivityAt int64) error
+	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 }
 
 type FileInfoStore interface {
@@ -911,4 +913,22 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+// ThreadMembershipOpts defines some properties to be passed to
+// ThreadStore.MaintainMembership()
+type ThreadMembershipOpts struct {
+	// Following indicates whether or not the user is following the thread.
+	Following bool
+	// IncrementMentions indicates whether or not the mentions count for
+	// the thread should be incremented.
+	IncrementMentions bool
+	// UpdateFollowing indicates whether or not a membership update should be forced.
+	UpdateFollowing bool
+	// UpdateViewedTimestamp indicates whether or not the LastViewed field of the
+	// membership should be updated.
+	UpdateViewedTimestamp bool
+	// UpdateParticipants indicates whether or not the thread's participants list
+	// should be updated.
+	UpdateParticipants bool
 }

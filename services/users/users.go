@@ -5,29 +5,19 @@ package users
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mfa"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-type UserService struct {
-	store  store.UserStore
-	config func() *model.Config
-}
-
 type UserCreateOptions struct {
 	Guest      bool
 	FromImport bool
-}
-
-func New(s store.UserStore, cfgFn func() *model.Config) *UserService {
-	return &UserService{
-		store:  s,
-		config: cfgFn,
-	}
 }
 
 // CreateUser creates a user
@@ -41,11 +31,11 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Roles = model.SYSTEM_GUEST_ROLE_ID
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !checkUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *us.config().TeamSettings.RestrictCreationToDomains) {
 		return nil, AcceptedDomainError
 	}
 
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !checkUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *us.config().GuestAccountsSettings.RestrictCreationToDomains) {
 		return nil, AcceptedDomainError
 	}
 
@@ -117,6 +107,10 @@ func (us *UserService) GetUserByAuth(authData *string, authService string) (*mod
 
 func (us *UserService) GetUsers(options *model.UserGetOptions) ([]*model.User, error) {
 	return us.store.GetAllProfiles(options)
+}
+
+func (us *UserService) GetUsersByUsernames(usernames []string, options *model.UserGetOptions) ([]*model.User, error) {
+	return us.store.GetProfilesByUsernames(usernames, options.ViewRestrictions)
 }
 
 func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
@@ -193,4 +187,58 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 	}
 
 	return users, nil
+}
+
+func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+	return us.store.Update(user, allowRoleUpdate)
+}
+
+func (us *UserService) DeactivateAllGuests() ([]string, error) {
+	users, err := us.store.DeactivateGuests()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, userID := range users {
+		if err := us.RevokeAllSessions(userID); err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+func (us *UserService) InvalidateCacheForUser(userID string) {
+	us.store.InvalidateProfilesInChannelCacheByUser(userID)
+	us.store.InvalidateProfileCacheForUser(userID)
+
+	if us.cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     userID,
+		}
+		us.cluster.SendClusterMessage(msg)
+	}
+}
+
+func (us *UserService) GenerateMfaSecret(user *model.User) (*model.MfaSecret, error) {
+	secret, img, err := mfa.New(us.store).GenerateSecret(*us.config().ServiceSettings.SiteURL, user.Email, user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sure the old secret is not cached on any cluster nodes.
+	us.InvalidateCacheForUser(user.Id)
+
+	mfaSecret := &model.MfaSecret{Secret: secret, QRCode: base64.StdEncoding.EncodeToString(img)}
+	return mfaSecret, nil
+}
+
+func (us *UserService) ActivateMfa(user *model.User, token string) error {
+	return mfa.New(us.store).Activate(user.MfaSecret, user.Id, token)
+}
+
+func (us *UserService) DeactivateMfa(user *model.User) error {
+	return mfa.New(us.store).Deactivate(user.Id)
 }

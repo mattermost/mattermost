@@ -4746,6 +4746,26 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 
 }
 
+func (s *RetryLayerLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+
+	tries := 0
+	for {
+		result, err := s.LicenseStore.GetAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 
 	tries := 0
@@ -8296,6 +8316,26 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 
 }
 
+func (s *RetryLayerStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+
+	tries := 0
+	for {
+		result, err := s.StatusStore.UpdateExpiredDNDStatuses()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerStatusStore) UpdateLastActivityAt(userID string, lastActivityAt int64) error {
 
 	tries := 0
@@ -9648,11 +9688,11 @@ func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string) ([]string, e
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(userID string, teamID string, threadId string, extended bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(userID, teamID, threadId, extended)
+		result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
 		if err == nil {
 			return result, nil
 		}
@@ -9688,11 +9728,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamID string, 
 
 }
 
-func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, following bool, incrementMentions bool, updateFollowing bool, updateViewedTimestamp bool, updateParticipants bool) (*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.MaintainMembership(userID, postID, following, incrementMentions, updateFollowing, updateViewedTimestamp, updateParticipants)
+		result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 		if err == nil {
 			return result, nil
 		}
