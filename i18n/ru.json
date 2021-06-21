@@ -1720,10 +1720,6 @@
     "translation": "Не удалось декодировать значок команды."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не удалось декодировать метаданные значка команды."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Не удалось закодировать значок команды."
   },
@@ -2274,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Не удалось декодировать изображение профиля."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не удалось сохранить изображения профиля. Файл должен быть картинкой."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3036,6 @@
     "translation": "Невозможно декодировать данные изображения."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Невозможно получить метаданные изображения."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Невозможно преобразовать данные изображения в формат PNG. Пожалуйста, попробуйте еще раз."
   },
@@ -3058,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Невозможно записать файл изображения в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Невозможно прочитать файл изображения. Убедитесь, что размер изображения не превышает 2 МБ, и повторите попытку."
   },
   {
     "id": "cli.license.critical",
@@ -7614,14 +7598,6 @@
   {
     "id": "mfa.activate.app_error",
     "translation": "Невозможно обновить активный статус MFA для пользователя."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Невозможно обработать импорт: не удалось распаковать файл."
-  },
-  {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Невозможно обработать импорт: не удалось создать временную директорию."
   },
   {
     "id": "import_process.worker.do_job.open_file",

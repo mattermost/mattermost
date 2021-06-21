@@ -1720,10 +1720,6 @@
     "translation": "Nu s-a putut decoda pictograma echipei."
   },
   {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Nu s-au putut decoda metadatele pictogramei echipei."
-  },
-  {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Pictograma echipei nu a putut fi codificată."
   },
@@ -2274,10 +2270,6 @@
   {
     "id": "api.user.upload_profile_user.decode.app_error",
     "translation": "Nu s-a putut decoda imaginea de profil."
-  },
-  {
-    "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Ar putea salva imaginea de profil. Fişier nu pare a fi o imagine validă."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3044,10 +3036,6 @@
     "translation": "Imposibil de decodat datele imaginii."
   },
   {
-    "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Imposibilitatea de a obţine imaginea metadate."
-  },
-  {
     "id": "brand.save_brand_image.encode.app_error",
     "translation": "Imposibilitatea de a converti datele imagine PNG format. Vă rugăm să încercaţi din nou."
   },
@@ -3058,10 +3046,6 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Imposibil de scris fișierul imagine în memoria de stocare a fișierelor. Verificați conexiunea și încercați din nou."
-  },
-  {
-    "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Imposibil de citit fișierul imagine. Asigurați-vă că dimensiunea imaginii este mai mică de 2 MB și încercați din nou."
   },
   {
     "id": "cli.license.critical",
@@ -7992,10 +7976,6 @@
     "translation": "Am întâmpinat o eroare la găsirea contului."
   },
   {
-    "id": "import_process.worker.do_job.tmp_dir",
-    "translation": "Imposibil de procesat importul: nu s-a putut crea directorul temporar."
-  },
-  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Nu se poate procesa importul: fișierul nu există."
   },
@@ -8010,10 +7990,6 @@
   {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Încărcarea nu a reușit."
-  },
-  {
-    "id": "import_process.worker.do_job.unzip",
-    "translation": "Nu s-a putut procesa importul: nu s-a putut dezarhiva fișierul."
   },
   {
     "id": "import_process.worker.do_job.missing_file",
