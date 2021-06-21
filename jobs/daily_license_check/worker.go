@@ -16,7 +16,7 @@ type DailyLicenseCheckWorker struct {
 	App     *app.App
 }
 
-func (dlc *DailyLicenseCheckJobInterfaceImpl) MakeWroker() model.Worker {
+func (dlc *DailyLicenseCheckJobInterfaceImpl) MakeWorker() model.Worker {
 	worker := DailyLicenseCheckWorker{
 		name:    DailyLicenseCheckJob,
 		stop:    make(chan bool, 1),
