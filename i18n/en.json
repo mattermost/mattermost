@@ -3583,6 +3583,26 @@
     "translation": "Mattermost user request upgrade of workspace"
   },
   {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Your license is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Your Mattermost subscription is up for renewal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, your subscription is set to expire in 60 days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Log in to your Customer Account to renew"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_renew_now",
+    "translation": "Renew now"
+  },
+  {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} would like to invite members to your workspace"
   },
@@ -4125,6 +4145,10 @@
   {
     "id": "api.user.send_upgrade_request_email.error",
     "translation": "Failed to send email to user limit notification to admin"
+  },
+  {
+    "id": "api.user.send_license_up_for_renewal_email.error",
+    "translation": "Failed to send license up for renewal email"
   },
   {
     "id": "api.user.send_user_access_token.error",

@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -263,6 +264,13 @@ func (l *License) IsExpired() bool {
 func (l *License) IsPastGracePeriod() bool {
 	timeDiff := GetMillis() - l.ExpiresAt
 	return timeDiff > LICENSE_GRACE_PERIOD
+}
+
+func (l *License) IsAroundSixtyDaysToExpiration() bool {
+	dif := l.ExpiresAt - GetMillis()
+	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
+	days := d.Hours() / 24
+	return days <= 60 && days >= 58
 }
 
 func (l *License) IsStarted() bool {

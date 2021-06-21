@@ -1781,6 +1781,35 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User) *model.AppError {
+	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		return appErr
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for _, user := range users {
+		name := user.FirstName
+		if name == "" {
+			name = user.Username
+		}
+		ok, err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink)
+		if !ok || err != nil {
+			mlog.Error(fmt.Sprintf("Error sending license up for renewal email to: %s", user.Email))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(users) {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "Failed to send license up for renewal emails", nil, "", http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 	license := s.License()
@@ -1790,14 +1819,21 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
-		return
-	}
-
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		return
+	}
+
+	if license.IsAroundSixtyDaysToExpiration() {
+		appErr := s.sendLicenseUpForRenewalEmail(users)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
+	}
+
+	if !license.IsPastGracePeriod() {
+		mlog.Debug("License is not past the grace period.")
 		return
 	}
 

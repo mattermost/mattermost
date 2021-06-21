@@ -815,6 +815,33 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 	return true, nil
 }
 
+func (es *EmailService) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string) (bool, *model.AppError) {
+	T := i18n.GetUserTranslations(locale)
+	subject := T("api.templates.license_up_for_renewal_subject")
+
+	data := es.newEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
+	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]interface{}{"UserName": name})
+	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
+	data.Props["ButtonURL"] = renewalLink
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+
+	body, err := es.srv.TemplatesContainer().RenderToString("license_up_for_renewal", data)
+	if err != nil {
+		return false, model.NewAppError("SendLicenseUpForRenewalEmail", "api.user.send_license_up_for_renewal_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := es.sendMail(email, subject, body); err != nil {
+		return false, model.NewAppError("SendLicenseUpForRenewalEmail", "api.user.send_license_up_for_renewal_email.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
 // SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
 func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, *model.AppError) {
 	T := i18n.GetUserTranslations(locale)
