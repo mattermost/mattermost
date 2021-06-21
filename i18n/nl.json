@@ -4341,51 +4341,51 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Aangemaakt op moet een geldige tijd zijn."
   },
   {
     "id": "model.outgoing_hook.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige beschrijving."
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel."
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team ID."
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
-    "translation": "Ongeldig token"
+    "translation": "Ongeldig token."
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Ongeldige trigger-woorden"
+    "translation": "Ongeldige trigger-woorden."
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'update at' moet een geldige tijd zijn."
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
-    "translation": "Ongeldige 'callback' URL's. Iedere geldige URL moet beginnen met http:// of https://"
+    "translation": "Ongeldige 'callback' URL's. Iedere geldige URL moet beginnen met http:// of https://."
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikersid."
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
-    "translation": "Ongeldige trigger-woorden"
+    "translation": "Ongeldige trigger-woorden."
   },
   {
     "id": "model.outgoing_hook.username.app_error",
-    "translation": "Ongeldige gebruikersnaam"
+    "translation": "Ongeldige gebruikersnaam."
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -9225,5 +9225,21 @@
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Lijst van beheerders is leeg."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Lidmaatschap gebruiker van draadje bestaat niet"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kan lidmaatschap van gebruiker voor draadje niet verkrijgen"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Deze proeflicentiesleutel voor Mattermost Enterprise Edition is verlopen en is niet langer geldig. Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kon niet controleren of een proefperiode gestart kan worden"
   }
 ]
