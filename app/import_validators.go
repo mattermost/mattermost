@@ -36,7 +36,7 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.DisplayName == nil || len(*data.DisplayName) == 0 || len(*data.DisplayName) > model.SCHEME_DISPLAY_NAME_MAX_LENGTH {
+	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.SCHEME_DISPLAY_NAME_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -89,7 +89,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.DisplayName == nil || len(*data.DisplayName) == 0 || len(*data.DisplayName) > model.ROLE_DISPLAY_NAME_MAX_LENGTH {
+	if data.DisplayName == nil || *data.DisplayName == "" || len(*data.DisplayName) > model.ROLE_DISPLAY_NAME_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -100,7 +100,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	if data.Permissions != nil {
 		for _, permission := range *data.Permissions {
 			permissionValidated := false
-			for _, p := range model.ALL_PERMISSIONS {
+			for _, p := range append(model.AllPermissions, model.DeprecatedPermissions...) {
 				if permission == p.Id {
 					permissionValidated = true
 					break
@@ -207,7 +207,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Email == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_missing.error", nil, "", http.StatusBadRequest)
-	} else if len(*data.Email) == 0 || len(*data.Email) > model.USER_EMAIL_MAX_LENGTH {
+	} else if *data.Email == "" || len(*data.Email) > model.USER_EMAIL_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -223,14 +223,14 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		if str == nil {
 			return true
 		}
-		return len(*str) == 0
+		return *str == ""
 	}
 
 	if (!blank(data.AuthService) && blank(data.AuthData)) || (blank(data.AuthService) && !blank(data.AuthData)) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Password != nil && len(*data.Password) == 0 {
+	if data.Password != nil && *data.Password == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -565,7 +565,7 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Name == nil || len(*data.Name) == 0 {
+	if data.Name == nil || *data.Name == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -573,7 +573,7 @@ func validateEmojiImportData(data *EmojiImportData) *model.AppError {
 		return err
 	}
 
-	if data.Image == nil || len(*data.Image) == 0 {
+	if data.Image == nil || *data.Image == "" {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
 	}
 

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go"
+	"github.com/uber/jaeger-client-go/utils"
 
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/internal/baggage/remote"
@@ -39,11 +40,17 @@ type Configuration struct {
 	// Can be provided by FromEnv() via the environment variable named JAEGER_SERVICE_NAME
 	ServiceName string `yaml:"serviceName"`
 
-	// Disabled can be provided by FromEnv() via the environment variable named JAEGER_DISABLED
+	// Disabled makes the config return opentracing.NoopTracer.
+	// Value can be provided by FromEnv() via the environment variable named JAEGER_DISABLED.
 	Disabled bool `yaml:"disabled"`
 
-	// RPCMetrics can be provided by FromEnv() via the environment variable named JAEGER_RPC_METRICS
+	// RPCMetrics enables generations of RPC metrics (requires metrics factory to be provided).
+	// Value can be provided by FromEnv() via the environment variable named JAEGER_RPC_METRICS
 	RPCMetrics bool `yaml:"rpc_metrics"`
+
+	// Gen128Bit instructs the tracer to generate 128-bit wide trace IDs, compatible with W3C Trace Context.
+	// Value can be provided by FromEnv() via the environment variable named JAEGER_TRACEID_128BIT.
+	Gen128Bit bool `yaml:"traceid_128bit"`
 
 	// Tags can be provided by FromEnv() via the environment variable named JAEGER_TAGS
 	Tags []opentracing.Tag `yaml:"tags"`
@@ -123,6 +130,17 @@ type ReporterConfig struct {
 	// LocalAgentHostPort instructs reporter to send spans to jaeger-agent at this address.
 	// Can be provided by FromEnv() via the environment variable named JAEGER_AGENT_HOST / JAEGER_AGENT_PORT
 	LocalAgentHostPort string `yaml:"localAgentHostPort"`
+
+	// DisableAttemptReconnecting when true, disables udp connection helper that periodically re-resolves
+	// the agent's hostname and reconnects if there was a change. This option only
+	// applies if LocalAgentHostPort is specified.
+	// Can be provided by FromEnv() via the environment variable named JAEGER_REPORTER_ATTEMPT_RECONNECTING_DISABLED
+	DisableAttemptReconnecting bool `yaml:"disableAttemptReconnecting"`
+
+	// AttemptReconnectInterval controls how often the agent client re-resolves the provided hostname
+	// in order to detect address changes. This option only applies if DisableAttemptReconnecting is false.
+	// Can be provided by FromEnv() via the environment variable named JAEGER_REPORTER_ATTEMPT_RECONNECT_INTERVAL
+	AttemptReconnectInterval time.Duration
 
 	// CollectorEndpoint instructs reporter to send spans to jaeger-collector at this URL.
 	// Can be provided by FromEnv() via the environment variable named JAEGER_ENDPOINT
@@ -249,11 +267,18 @@ func (c Configuration) NewTracer(options ...Option) (opentracing.Tracer, io.Clos
 		jaeger.TracerOptions.Metrics(tracerMetrics),
 		jaeger.TracerOptions.Logger(opts.logger),
 		jaeger.TracerOptions.CustomHeaderKeys(c.Headers),
-		jaeger.TracerOptions.Gen128Bit(opts.gen128Bit),
 		jaeger.TracerOptions.PoolSpans(opts.poolSpans),
 		jaeger.TracerOptions.ZipkinSharedRPCSpan(opts.zipkinSharedRPCSpan),
 		jaeger.TracerOptions.MaxTagValueLength(opts.maxTagValueLength),
 		jaeger.TracerOptions.NoDebugFlagOnForcedSampling(opts.noDebugFlagOnForcedSampling),
+	}
+
+	if c.Gen128Bit || opts.gen128Bit {
+		tracerOptions = append(tracerOptions, jaeger.TracerOptions.Gen128Bit(true))
+	}
+
+	if opts.randomNumber != nil {
+		tracerOptions = append(tracerOptions, jaeger.TracerOptions.RandomNumber(opts.randomNumber))
 	}
 
 	for _, tag := range opts.tags {
@@ -384,7 +409,7 @@ func (rc *ReporterConfig) NewReporter(
 	metrics *jaeger.Metrics,
 	logger jaeger.Logger,
 ) (jaeger.Reporter, error) {
-	sender, err := rc.newTransport()
+	sender, err := rc.newTransport(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -401,15 +426,22 @@ func (rc *ReporterConfig) NewReporter(
 	return reporter, err
 }
 
-func (rc *ReporterConfig) newTransport() (jaeger.Transport, error) {
+func (rc *ReporterConfig) newTransport(logger jaeger.Logger) (jaeger.Transport, error) {
 	switch {
 	case rc.CollectorEndpoint != "":
-		httpOptions := []transport.HTTPOption{transport.HTTPBatchSize(1), transport.HTTPHeaders(rc.HTTPHeaders)}
+		httpOptions := []transport.HTTPOption{transport.HTTPHeaders(rc.HTTPHeaders)}
 		if rc.User != "" && rc.Password != "" {
 			httpOptions = append(httpOptions, transport.HTTPBasicAuth(rc.User, rc.Password))
 		}
 		return transport.NewHTTPTransport(rc.CollectorEndpoint, httpOptions...), nil
 	default:
-		return jaeger.NewUDPTransport(rc.LocalAgentHostPort, 0)
+		return jaeger.NewUDPTransportWithParams(jaeger.UDPTransportParams{
+			AgentClientUDPParams: utils.AgentClientUDPParams{
+				HostPort:                   rc.LocalAgentHostPort,
+				Logger:                     logger,
+				DisableAttemptReconnecting: rc.DisableAttemptReconnecting,
+				AttemptReconnectInterval:   rc.AttemptReconnectInterval,
+			},
+		})
 	}
 }

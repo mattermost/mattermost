@@ -12,9 +12,9 @@
 package gorp
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -113,8 +113,8 @@ func (t *TableMap) bindInsert(elem reflect.Value) (bindInstance, error) {
 	plan.once.Do(func() {
 		plan.autoIncrIdx = -1
 
-		s := bytes.Buffer{}
-		s2 := bytes.Buffer{}
+		s := strings.Builder{}
+		s2 := strings.Builder{}
 		s.WriteString(fmt.Sprintf("insert into %s (", t.dbmap.Dialect.QuotedTableForQuery(t.SchemaName, t.TableName)))
 
 		x := 0
@@ -175,7 +175,7 @@ func (t *TableMap) bindUpdate(elem reflect.Value, colFilter ColumnFilter) (bindI
 
 	plan := &t.updatePlan
 	plan.once.Do(func() {
-		s := bytes.Buffer{}
+		s := strings.Builder{}
 		s.WriteString(fmt.Sprintf("update %s set ", t.dbmap.Dialect.QuotedTableForQuery(t.SchemaName, t.TableName)))
 		x := 0
 
@@ -231,7 +231,7 @@ func (t *TableMap) bindUpdate(elem reflect.Value, colFilter ColumnFilter) (bindI
 func (t *TableMap) bindDelete(elem reflect.Value) (bindInstance, error) {
 	plan := &t.deletePlan
 	plan.once.Do(func() {
-		s := bytes.Buffer{}
+		s := strings.Builder{}
 		s.WriteString(fmt.Sprintf("delete from %s", t.dbmap.Dialect.QuotedTableForQuery(t.SchemaName, t.TableName)))
 
 		for y := range t.Columns {
@@ -275,7 +275,7 @@ func (t *TableMap) bindDelete(elem reflect.Value) (bindInstance, error) {
 func (t *TableMap) bindGet() *bindPlan {
 	plan := &t.getPlan
 	plan.once.Do(func() {
-		s := bytes.Buffer{}
+		s := strings.Builder{}
 		s.WriteString("select ")
 
 		x := 0

@@ -10,5 +10,5 @@ import (
 )
 
 func TestPluginStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestPluginStore)
+	StoreTestWithSqlStore(t, storetest.TestPluginStore)
 }

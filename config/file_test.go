@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package config_test
+package config
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -35,7 +35,7 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 		f, err := ioutil.TempFile(tempDir, "setupConfigFile")
 		require.NoError(t, err)
 
-		cfgData, err := config.MarshalConfig(cfg)
+		cfgData, err := marshalConfig(cfg)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(f.Name(), cfgData, 0644)
@@ -48,35 +48,47 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	}
 }
 
+func setupConfigFileStore(t *testing.T, cfg *model.Config) (*Store, func()) {
+	t.Helper()
+	path, tearDown := setupConfigFile(t, cfg)
+	fs, err := NewFileStore(path, false)
+	require.NoError(t, err)
+	configStore, err := NewStoreFromBacking(fs, nil, false)
+	require.NoError(t, err)
+	return configStore, func() {
+		tearDown()
+		configStore.Close()
+	}
+}
+
 // getActualFileConfig returns the configuration present in the given file without relying on a config store.
 func getActualFileConfig(t *testing.T, path string) *model.Config {
 	t.Helper()
 
 	f, err := os.Open(path)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer f.Close()
 
-	actualCfg, _, err := config.UnmarshalConfig(f, false)
-	require.Nil(t, err)
+	var actualCfg *model.Config
+	err = json.NewDecoder(f).Decode(&actualCfg)
+	require.NoError(t, err)
 
 	return actualCfg
 }
 
-// assertFileEqualsConfig verifies the on disk contents of the given path equal the given config.
+// assertFileEqualsConfig verifies the on disk contents of the given path equal the given
 func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
 	assert.Equal(t, expectedCfg, actualCfg)
 }
 
-// assertFileNotEqualsConfig verifies the on disk contents of the given path does not equal the given config.
+// assertFileNotEqualsConfig verifies the on disk contents of the given path does not equal the given
 func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
 	assert.NotEqual(t, expectedCfg, actualCfg)
@@ -89,24 +101,64 @@ func TestFileStoreNew(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
-		defer fs.Close()
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.NoError(t, err)
+		defer configStore.Close()
 
-		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
+		assertFileNotEqualsConfig(t, testConfig, path)
+	})
+
+	t.Run("absolute path, initialization required, with custom defaults", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		configStore, err := NewStoreFromBacking(fs, customConfigDefaults, false)
+		require.NoError(t, err)
+		defer configStore.Close()
+
+		// already existing value should not be affected by the custom
+		// defaults
+		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
+		// nonexisting value should be overwritten by the custom
+		// defaults
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
 	t.Run("absolute path, already minimally configured", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
-		defer fs.Close()
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.NoError(t, err)
+		defer configStore.Close()
 
-		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
-		assertFileEqualsConfig(t, minimalConfig, path)
+		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
+	})
+
+	t.Run("absolute path, already minimally configured, with custom defaults", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		configStore, err := NewStoreFromBacking(fs, customConfigDefaults, false)
+		require.NoError(t, err)
+		defer configStore.Close()
+
+		// as the whole config has default values already, custom
+		// defaults should have no effect
+		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
+		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
 	t.Run("absolute path, file does not exist", func(t *testing.T) {
@@ -118,12 +170,33 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		path := filepath.Join(tempDir, "does_not_exist")
-		fs, err := config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
-		defer fs.Close()
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.NoError(t, err)
+		defer configStore.Close()
 
-		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, path)
+	})
+
+	t.Run("absolute path, file does not exist, with custom defaults", func(t *testing.T) {
+		_, tearDown := setupConfigFile(t, nil)
+		defer tearDown()
+
+		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
+		require.NoError(t, err)
+		defer os.RemoveAll(tempDir)
+
+		path := filepath.Join(tempDir, "does_not_exist")
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		configStore, err := NewStoreFromBacking(fs, customConfigDefaults, false)
+		require.NoError(t, err)
+		defer configStore.Close()
+
+		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *configStore.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
@@ -135,7 +208,10 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		path := filepath.Join(tempDir, "does/not/exist")
-		_, err = config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.Nil(t, configStore)
 		require.Error(t, err)
 	})
 
@@ -149,16 +225,18 @@ func TestFileStoreNew(t *testing.T) {
 
 		path := "TestFileStoreNew/a/b/c/config.json"
 
-		cfgData, err := config.MarshalConfig(testConfig)
+		cfgData, err := marshalConfig(testConfig)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
 
-		fs, err := config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
-		defer fs.Close()
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.NoError(t, err)
+		defer configStore.Close()
 
-		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -171,36 +249,33 @@ func TestFileStoreNew(t *testing.T) {
 		defer os.RemoveAll("config/TestFileStoreNew")
 
 		path := "TestFileStoreNew/a/b/c/config.json"
-		fs, err := config.NewFileStore(path, false)
+		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
-		defer fs.Close()
+		configStore, err := NewStoreFromBacking(fs, nil, false)
+		require.NoError(t, err)
+		defer configStore.Close()
 
-		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, filepath.Join("config", path))
 	})
 }
 
 func TestFileStoreGet(t *testing.T) {
-	path, tearDown := setupConfigFile(t, testConfig)
+	configStore, tearDown := setupConfigFileStore(t, testConfig)
 	defer tearDown()
 
-	fs, err := config.NewFileStore(path, false)
-	require.NoError(t, err)
-	defer fs.Close()
-
-	cfg := fs.Get()
+	cfg := configStore.Get()
 	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
 
-	cfg2 := fs.Get()
+	cfg2 := configStore.Get()
 	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
 
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
 	newCfg := &model.Config{}
-	oldCfg, err := fs.Set(newCfg)
+	_, _, err := configStore.Set(newCfg)
 	require.NoError(t, err)
 
-	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
 	assert.False(t, newCfg == cfg, "returned config should have been different from original")
 }
 
@@ -209,7 +284,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -219,10 +296,39 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
+		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a string variable, with custom defaults", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, testConfig)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, customConfigDefaults, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Empty(t, fs.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, customConfigDefaults, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// environment override should take priority over the custom default value
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 	})
@@ -231,7 +337,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -241,7 +349,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -253,7 +363,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -263,7 +375,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -275,7 +389,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -285,7 +401,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -297,7 +415,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -307,7 +427,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -316,13 +438,12 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 	})
 
 	t.Run("get override for a slice variable - three values", func(t *testing.T) {
-		// This should work, but Viper (or we) don't parse environment variables to turn strings with spaces into slices.
-		t.Skip("not implemented yet")
-
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -332,7 +453,9 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		fs, err = config.NewFileStore(path, false)
+		fsInner, err = NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err = NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -342,112 +465,81 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 }
 
 func TestFileStoreSet(t *testing.T) {
-	t.Run("set same pointer value", func(t *testing.T) {
-		t.Skip("not yet implemented")
-
-		path, tearDown := setupConfigFile(t, emptyConfig)
-		defer tearDown()
-
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		_, err = fs.Set(fs.Get())
-		if assert.Error(t, err) {
-			assert.EqualError(t, err, "old configuration modified instead of cloning")
-		}
-	})
-
 	t.Run("defaults required", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		oldCfg := fs.Get()
-
+		oldCfg := configStore.Get().Clone()
 		newCfg := &model.Config{}
 
-		retCfg, err := fs.Set(newCfg)
+		retCfg, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
+		require.Equal(t, oldCfg, retCfg)
+		require.NotEqual(t, newCfg, newConfig)
 
-		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, ldapConfig)
+		configStore, tearDown := setupConfigFileStore(t, ldapConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		oldCfg := fs.Get()
-
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
+		newCfg.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
 
-		retCfg, err := fs.Set(newCfg)
+		_, newConfig, err := configStore.Set(newCfg)
 		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
+		require.NotEqual(t, newCfg, newConfig)
 
-		assert.Equal(t, "password", *fs.Get().LdapSettings.BindPassword)
+		assert.Equal(t, "password", *configStore.Get().LdapSettings.BindPassword)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, emptyConfig)
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = sToP("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
 
-		_, err = fs.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 
-		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("read-only", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, readOnlyConfig)
+		configStore, tearDown := setupConfigFileStore(t, readOnlyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		newCfg := &model.Config{}
-
-		_, err = fs.Set(newCfg)
+		newReadOnlyConfig := readOnlyConfig.Clone()
+		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
+			SiteURL: model.NewString("http://test"),
+		}
+		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
-			assert.Equal(t, config.ErrReadOnlyConfiguration, errors.Cause(err))
+			assert.Equal(t, ErrReadOnlyConfiguration, errors.Cause(err))
 		}
 
-		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("persist failed", func(t *testing.T) {
-		t.Skip("skipping persistence test inside Set")
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
-		os.Chmod(path, 0500)
+		fsInner.path = ""
 
 		newCfg := &model.Config{}
 
-		_, err = fs.Set(newCfg)
+		_, _, err = fs.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write file"))
 		}
@@ -456,28 +548,80 @@ func TestFileStoreSet(t *testing.T) {
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, emptyConfig)
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		oldCfg := fs.Get()
-
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
 			called <- true
 		}
-		fs.AddListener(callback)
+		configStore.AddListener(callback)
 
-		newCfg := &model.Config{}
+		newCfg := minimalConfig
 
-		retCfg, err := fs.Set(newCfg)
+		_, _, err := configStore.Set(newCfg)
 		require.NoError(t, err)
-		assert.Equal(t, oldCfg, retCfg)
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
+	})
+
+	t.Run("listeners notified, only env change", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		configStore.AddListener(callback)
+
+		newCfg := minimalConfig
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		_, _, err := configStore.Set(newCfg)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed")
+	})
+
+	t.Run("listeners notified, feature flags change only", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		expectedOldConfig := minimalConfig.Clone()
+		var expectedNewConfig *model.Config
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			require.Equal(t, expectedOldConfig, oldCfg)
+			require.Equal(t, expectedNewConfig, newCfg)
+			called <- true
+		}
+		configStore.AddListener(callback)
+
+		configStore.SetReadOnlyFF(true)
+
+		expectedNewConfig = minimalConfig.Clone()
+		expectedNewConfig.FeatureFlags.TestFeature = "test"
+		_, _, err := configStore.Set(expectedNewConfig)
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 5*time.Second))
+
+		configStore.SetReadOnlyFF(false)
+
+		expectedNewConfig.FeatureFlags.TestFeature = "test2"
+		_, _, err = configStore.Set(expectedNewConfig)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second))
 	})
 
 	t.Run("watcher restarted", func(t *testing.T) {
@@ -488,24 +632,26 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fsInner, err := NewFileStore(path, true)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(&model.Config{})
+		_, _, err = fs.Set(minimalConfig)
 		require.NoError(t, err)
 
 		// Let the initial call to invokeConfigListeners finish.
 		time.Sleep(1 * time.Second)
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		cfgData, err := config.MarshalConfig(emptyConfig)
+		cfgData, err := marshalConfig(emptyConfig)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
@@ -518,7 +664,9 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -530,22 +678,18 @@ func TestFileStoreLoad(t *testing.T) {
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		err = fs.Load()
+		err := configStore.Load()
 		require.NoError(t, err)
-		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, "http://override", *configStore.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, configStore.GetEnvironmentOverrides())
 	})
 
 	t.Run("do not persist environment variables - string", func(t *testing.T) {
@@ -555,13 +699,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
@@ -578,13 +724,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
@@ -601,13 +749,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
@@ -624,13 +774,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
@@ -647,13 +799,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -672,13 +826,15 @@ func TestFileStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, _, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -692,11 +848,13 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
-		cfgData, err := config.MarshalConfig(invalidConfig)
+		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
@@ -707,11 +865,26 @@ func TestFileStoreLoad(t *testing.T) {
 		}
 	})
 
+	t.Run("invalid environment value", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
+		defer tearDown()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "invalid_url")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		newCfg := minimalConfig
+		_, _, err := configStore.Set(newCfg)
+		require.Error(t, err)
+		require.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+	})
+
 	t.Run("fixes required", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, fixesRequiredConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -728,20 +901,70 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, false)
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
 
+		cfgData, err := marshalConfig(minimalConfig)
+		require.NoError(t, err)
+
+		err = ioutil.WriteFile(path, cfgData, 0644)
+		require.NoError(t, err)
+
 		err = fs.Load()
 		require.NoError(t, err)
 
-		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config loaded")
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed on load")
+	})
+
+	t.Run("no change", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, testConfig)
+		defer tearDown()
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			called <- true
+		}
+		configStore.AddListener(callback)
+
+		err := configStore.Load()
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 5*time.Second), "callback should not have been called if nothing changed")
+	})
+
+	t.Run("listeners notified, only env change", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		configStore.AddListener(callback)
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		err := configStore.Load()
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config changed")
 	})
 }
 
@@ -750,13 +973,12 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		t.Skip("skipping watcher test in short mode")
 	}
 
-	t.Parallel()
-
-	path, tearDown := setupConfigFile(t, emptyConfig)
-	defer tearDown()
-
 	t.Run("disabled", func(t *testing.T) {
-		fs, err := config.NewFileStore(path, false)
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -764,13 +986,13 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		cfgData, err := config.MarshalConfig(emptyConfig)
+		cfgData, err := marshalConfig(emptyConfig)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
@@ -778,47 +1000,107 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	})
 
 	t.Run("enabled", func(t *testing.T) {
-		fs, err := config.NewFileStore(path, true)
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
+		fsInner, err := NewFileStore(path, true)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		called := make(chan bool, 1)
-		callback := func(oldfg, newCfg *model.Config) {
+		callback := func(oldCCfg, newCfg *model.Config) {
 			called <- true
 		}
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		cfgData, err := config.MarshalConfig(emptyConfig)
+		cfgData, err := marshalConfig(minimalConfig)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(path, cfgData, 0644)
+		f, err := os.OpenFile(path, os.O_WRONLY, 0644)
+		require.NoError(t, err)
+		defer f.Close()
+		_, err = f.Write(cfgData)
+		require.NoError(t, err)
+
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
+	})
+
+	t.Run("no change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+		fsInner, err := NewFileStore(path, true)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// Let the initial call to invokeConfigListeners finish.
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		_, _, err = fs.Set(minimalConfig)
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since no change has happened")
+	})
+
+	t.Run("env only change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+		fsInner, err := NewFileStore(path, true)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// Let the initial call to invokeConfigListeners finish.
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldCfg, newCfg *model.Config) {
+			require.NotEqual(t, oldCfg, newCfg)
+			expectedConfig := minimalConfig.Clone()
+			expectedConfig.ServiceSettings.SiteURL = model.NewString("http://override")
+			require.Equal(t, minimalConfig, oldCfg)
+			require.Equal(t, expectedConfig, newCfg)
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+		_, _, err = fs.Set(minimalConfig)
+		require.NoError(t, err)
+
+		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called since no change has happened")
 	})
 }
 
 func TestFileStoreSave(t *testing.T) {
-	path, tearDown := setupConfigFile(t, minimalConfig)
+	store, tearDown := setupConfigFileStore(t, minimalConfig)
 	defer tearDown()
-
-	fs, err := config.NewFileStore(path, true)
-	require.NoError(t, err)
-	defer fs.Close()
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://new"),
+			SiteURL: model.NewString("http://new"),
 		},
 	}
 
 	t.Run("set with automatic save", func(t *testing.T) {
-		_, err = fs.Set(newCfg)
+		_, _, err := store.Set(newCfg)
 		require.NoError(t, err)
 
-		err = fs.Load()
+		err = store.Load()
 		require.NoError(t, err)
 
-		assert.Equal(t, "http://new", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://new", *store.Get().ServiceSettings.SiteURL)
 	})
 }
 
@@ -826,7 +1108,7 @@ func TestFileGetFile(t *testing.T) {
 	path, tearDown := setupConfigFile(t, minimalConfig)
 	defer tearDown()
 
-	fs, err := config.NewFileStore(path, true)
+	fs, err := NewFileStore(path, true)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -888,7 +1170,7 @@ func TestFileSetFile(t *testing.T) {
 	path, tearDown := setupConfigFile(t, minimalConfig)
 	defer tearDown()
 
-	fs, err := config.NewFileStore(path, true)
+	fs, err := NewFileStore(path, true)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -939,7 +1221,7 @@ func TestFileHasFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -952,7 +1234,7 @@ func TestFileHasFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -968,7 +1250,7 @@ func TestFileHasFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -991,7 +1273,7 @@ func TestFileHasFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1004,7 +1286,7 @@ func TestFileHasFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1023,7 +1305,7 @@ func TestFileRemoveFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1035,7 +1317,7 @@ func TestFileRemoveFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1057,7 +1339,7 @@ func TestFileRemoveFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1086,7 +1368,7 @@ func TestFileRemoveFile(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, err := config.NewFileStore(path, true)
+		fs, err := NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -1108,7 +1390,7 @@ func TestFileStoreString(t *testing.T) {
 	path, tearDown := setupConfigFile(t, emptyConfig)
 	defer tearDown()
 
-	fs, err := config.NewFileStore(path, false)
+	fs, err := NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -1124,4 +1406,63 @@ func wasCalled(c chan bool, duration time.Duration) bool {
 	case <-time.After(duration):
 	}
 	return false
+}
+
+func TestFileStoreReadOnly(t *testing.T) {
+	path, tearDown := setupConfigFile(t, emptyConfig)
+	defer tearDown()
+	fsInner, err := NewFileStore(path, true)
+	require.NoError(t, err)
+	fs, err := NewStoreFromBacking(fsInner, nil, true)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	called := make(chan bool, 1)
+	callback := func(oldCfg, newCfg *model.Config) {
+		called <- true
+	}
+	fs.AddListener(callback)
+
+	cfg, _, err := fs.Set(minimalConfig)
+	require.Nil(t, cfg)
+	require.Equal(t, ErrReadOnlyStore, err)
+
+	require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since config is read-only")
+}
+
+func TestFileStoreSetReadOnlyFF(t *testing.T) {
+	t.Run("read only true", func(t *testing.T) {
+		store, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+		config := store.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+
+		newCfg := config.Clone()
+		newCfg.FeatureFlags.TestFeature = "test"
+
+		// store has read-only FF by default.
+		_, _, err := store.Set(newCfg)
+		require.NoError(t, err)
+
+		config = store.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+	})
+
+	t.Run("read only false", func(t *testing.T) {
+		store, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+		config := store.Get()
+		require.Equal(t, minimalConfig.FeatureFlags, config.FeatureFlags)
+
+		newCfg := config.Clone()
+		newCfg.FeatureFlags.TestFeature = "test"
+
+		store.SetReadOnlyFF(false)
+
+		_, _, err := store.Set(newCfg)
+		require.NoError(t, err)
+
+		config = store.Get()
+		require.Equal(t, newCfg.FeatureFlags, config.FeatureFlags)
+	})
 }

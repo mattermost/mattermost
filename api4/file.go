@@ -22,13 +22,13 @@ import (
 )
 
 const (
-	FILE_TEAM_ID = "noteam"
+	FileTeamId = "noteam"
 
-	PREVIEW_IMAGE_TYPE   = "image/jpeg"
-	THUMBNAIL_IMAGE_TYPE = "image/jpeg"
+	PreviewImageType   = "image/jpeg"
+	ThumbnailImageType = "image/jpeg"
 )
 
-var UNSAFE_CONTENT_TYPES = [...]string{
+var UnsafeContentTypes = [...]string{
 	"application/javascript",
 	"application/ecmascript",
 	"text/javascript",
@@ -37,7 +37,7 @@ var UNSAFE_CONTENT_TYPES = [...]string{
 	"text/html",
 }
 
-var MEDIA_CONTENT_TYPES = [...]string{
+var MediaContentTypes = [...]string{
 	"image/jpeg",
 	"image/png",
 	"image/bmp",
@@ -59,6 +59,8 @@ func (api *API) InitFile() {
 	api.BaseRoutes.File.Handle("/link", api.ApiSessionRequired(getFileLink)).Methods("GET")
 	api.BaseRoutes.File.Handle("/preview", api.ApiSessionRequiredTrustRequester(getFilePreview)).Methods("GET")
 	api.BaseRoutes.File.Handle("/info", api.ApiSessionRequired(getFileInfo)).Methods("GET")
+
+	api.BaseRoutes.Team.Handle("/files/search", api.ApiSessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
 
 	api.BaseRoutes.PublicFile.Handle("", api.ApiHandler(getPublicFile)).Methods("GET")
 
@@ -89,9 +91,9 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 
 	if stream != nil {
 		return multipart.NewReader(stream, boundary), nil
-	} else {
-		return multipart.NewReader(req.Body, boundary), nil
 	}
+
+	return multipart.NewReader(req.Body, boundary), nil
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -160,7 +162,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
@@ -168,9 +170,9 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	clientId := r.Form.Get("client_id")
 	auditRec.AddMeta("client_id", clientId)
 
-	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
-		app.UploadFileSetTeamId(FILE_TEAM_ID),
-		app.UploadFileSetUserId(c.App.Session().UserId),
+	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
+		app.UploadFileSetTeamId(FileTeamId),
+		app.UploadFileSetUserId(c.AppContext.Session().UserId),
 		app.UploadFileSetTimestamp(timestamp),
 		app.UploadFileSetContentLength(r.ContentLength),
 		app.UploadFileSetClientId(clientId))
@@ -305,7 +307,7 @@ NEXT_PART:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return nil
 		}
@@ -331,9 +333,9 @@ NEXT_PART:
 		auditRec.AddMeta("channel_id", c.Params.ChannelId)
 		auditRec.AddMeta("client_id", clientId)
 
-		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
-			app.UploadFileSetTeamId(FILE_TEAM_ID),
-			app.UploadFileSetUserId(c.App.Session().UserId),
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -394,7 +396,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
@@ -434,9 +436,9 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		auditRec.AddMeta("channel_id", channelId)
 		auditRec.AddMeta("client_id", clientId)
 
-		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
-			app.UploadFileSetTeamId(FILE_TEAM_ID),
-			app.UploadFileSetUserId(c.App.Session().UserId),
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
 			app.UploadFileSetClientId(clientId))
@@ -479,7 +481,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -494,11 +496,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -514,7 +512,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -532,11 +530,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -560,12 +554,12 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if len(info.PostId) == 0 {
+	if info.PostId == "" {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -593,7 +587,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -611,11 +605,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -630,12 +620,12 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Write([]byte(info.ToJson()))
 }
 
@@ -658,7 +648,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
-	if len(hash) == 0 {
+	if hash == "" {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
@@ -674,17 +664,14 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
+		return
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
 }
 
-func writeFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "private, no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
@@ -700,7 +687,7 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	} else {
-		for _, unsafeContentType := range UNSAFE_CONTENT_TYPES {
+		for _, unsafeContentType := range UnsafeContentTypes {
 			if strings.HasPrefix(contentType, unsafeContentType) {
 				contentType = "text/plain"
 				break
@@ -716,7 +703,7 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	} else {
 		isMediaType := false
 
-		for _, mediaContentType := range MEDIA_CONTENT_TYPES {
+		for _, mediaContentType := range MediaContentTypes {
 			if strings.HasPrefix(contentType, mediaContentType) {
 				isMediaType = true
 				break
@@ -739,6 +726,72 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
 	http.ServeContent(w, r, filename, lastModification, fileReader)
+}
 
-	return nil
+func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	params, jsonErr := model.SearchParameterFromJson(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if params.Terms == nil || *params.Terms == "" {
+		c.SetInvalidParam("terms")
+		return
+	}
+	terms := *params.Terms
+
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
+
+	startTime := time.Now()
+
+	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+
+	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+	metrics := c.App.Metrics()
+	if metrics != nil {
+		metrics.IncrementFilesSearchCounter()
+		metrics.ObserveFilesSearchDuration(elapsedTime)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(results.ToJson()))
 }

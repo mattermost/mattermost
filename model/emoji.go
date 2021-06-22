@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 )
 
 const (
@@ -16,6 +17,14 @@ const (
 )
 
 var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
+
+// ALL_EMOJI_PATTERN is same as the EMOJI_PATTERN except for allowing a '+' character.
+// This is to allow the system emoji :+1: to be matched.
+// We kept a separate variable to avoid renaming help texts for custom emoji's.
+// TODO: Merge ALL_EMOJI_PATTERN with EMOJI_PATTERN after updating custom emoji help texts
+var ALL_EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
+
+var ReverseSystemEmojisMap = makeReverseEmojiMap()
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -34,6 +43,26 @@ func inSystemEmoji(emojiName string) bool {
 func GetSystemEmojiId(emojiName string) (string, bool) {
 	id, found := SystemEmojis[emojiName]
 	return id, found
+}
+
+func makeReverseEmojiMap() map[string][]string {
+	reverseEmojiMap := make(map[string][]string)
+	for key, value := range SystemEmojis {
+		emojiNames := reverseEmojiMap[value]
+		emojiNames = append(emojiNames, key)
+		sort.Strings(emojiNames)
+		reverseEmojiMap[value] = emojiNames
+	}
+
+	return reverseEmojiMap
+}
+
+func GetEmojiNameFromUnicode(unicode string) (emojiName string, count int) {
+	if emojiNames, found := ReverseSystemEmojisMap[unicode]; found {
+		return emojiNames[0], len(emojiNames)
+	}
+
+	return "", 0
 }
 
 func (emoji *Emoji) IsValid() *AppError {
@@ -57,7 +86,7 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if len(name) == 0 || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(name, false) || inSystemEmoji(name) {
+	if name == "" || len(name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(name, false) || inSystemEmoji(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 

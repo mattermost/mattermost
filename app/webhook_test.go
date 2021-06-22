@@ -13,10 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -292,7 +293,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.DeleteIncomingWebhook(hook.Id)
 
-	post, err := th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", model.StringInterface{
+	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -306,11 +307,11 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
-	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
+	_, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
 	require.NotNil(t, err, "Should have failed - bad post type")
 
 	expectedText := "`<>|<>|`"
-	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -322,7 +323,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
-	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -350,7 +351,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 
  test | 3 +++
  1 file changed, 3 insertions(+)`
-	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
+	post, err = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			{
 				Text: "text",
@@ -587,7 +588,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		}
 	}
 
-	waitUntilWebhookResposeIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, t *testing.T, createdPost chan *model.Post) {
+	waitUntilWebhookResposeIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
 		go func() {
 			for i := 0; i < 5; i++ {
 				time.Sleep(time.Second)
@@ -606,7 +607,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		EnablePostUsernameOverride bool
 		EnablePostIconOverride     bool
 		ExpectedUsername           string
-		ExpectedIconUrl            string
+		ExpectedIconURL            string
 		WebhookResponse            *model.OutgoingWebhookResponse
 	}
 
@@ -636,7 +637,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
 				ExpectedUsername:           "some-user-name",
-				ExpectedIconUrl:            "http://some-icon/",
+				ExpectedIconURL:            "http://some-icon/",
 			},
 			"Should not override username and Icon": {
 				EnablePostUsernameOverride: false,
@@ -646,7 +647,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
 				ExpectedUsername:           "webhookuser",
-				ExpectedIconUrl:            "http://webhok/icon",
+				ExpectedIconURL:            "http://webhok/icon",
 				WebhookResponse:            &model.OutgoingWebhookResponse{Text: &webHookResponse, Username: "webhookuser", IconURL: "http://webhok/icon"},
 			},
 		}
@@ -683,16 +684,16 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
-			th.App.TriggerWebhook(payload, hook, th.BasicPost, channel)
+			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
 
-			waitUntilWebhookResposeIsCreatedAsPost(channel, th, t, createdPost)
+			waitUntilWebhookResposeIsCreatedAsPost(channel, th, createdPost)
 
 			select {
 			case webhookPost := <-createdPost:
 				assert.Equal(t, webhookPost.Message, "sample response text from test server")
 				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
-				if testCase.ExpectedIconUrl != "" {
-					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconUrl)
+				if testCase.ExpectedIconURL != "" {
+					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconURL)
 				} else {
 					assert.Nil(t, webhookPost.GetProp("override_icon_url"))
 				}
@@ -739,7 +740,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		assert.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
@@ -753,7 +754,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -764,7 +765,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, io.ErrUnexpectedEOF, err)
 	})
 
@@ -775,7 +776,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -795,7 +796,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
 	})
 
@@ -805,7 +806,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Nil(t, resp)
 	})
 }

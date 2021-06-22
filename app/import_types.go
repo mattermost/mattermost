@@ -3,7 +3,11 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import (
+	"archive/zip"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+)
 
 // Import Data Models
 
@@ -193,7 +197,8 @@ type LineImportWorkerError struct {
 }
 
 type AttachmentImportData struct {
-	Path *string `json:"path"`
+	Path *string   `json:"path"`
+	Data *zip.File `json:"-"`
 }
 
 type ComparablePreference struct {

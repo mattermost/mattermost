@@ -5,41 +5,55 @@ import (
 	"time"
 )
 
-// DEPRECATED. Quota returns the number of requests allowed and the custom time window.
+// Quota returns the number of requests allowed and the custom time window.
+//
+// Deprecated: Use Rate and RateLimiter instead.
 func (q Rate) Quota() (int, time.Duration) {
 	return q.count, q.period * time.Duration(q.count)
 }
 
-// DEPRECATED. Q represents a custom quota.
+// Q represents a custom quota.
+//
+// Deprecated: Use Rate and RateLimiter instead.
 type Q struct {
 	Requests int
 	Window   time.Duration
 }
 
-// DEPRECATED. Quota returns the number of requests allowed and the custom time window.
+// Quota returns the number of requests allowed and the custom time window.
+//
+// Deprecated: Use Rate and RateLimiter instead.
 func (q Q) Quota() (int, time.Duration) {
 	return q.Requests, q.Window
 }
 
-// DEPRECATED. The Quota interface defines the method to implement to describe
+// The Quota interface defines the method to implement to describe
 // a time-window quota, as required by the RateLimit throttler.
+//
+// Deprecated: Use Rate and RateLimiter instead.
 type Quota interface {
 	// Quota returns a number of requests allowed, and a duration.
 	Quota() (int, time.Duration)
 }
 
-// DEPRECATED. Throttler is a backwards-compatible alias for HTTPLimiter.
+// Throttler is a backwards-compatible alias for HTTPLimiter.
+//
+// Deprecated: Use Rate and RateLimiter instead.
 type Throttler struct {
 	HTTPRateLimiter
 }
 
-// DEPRECATED. Throttle is an alias for HTTPLimiter#Limit
+// Throttle is an alias for HTTPLimiter#Limit
+//
+// Deprecated: Use Rate and RateLimiter instead.
 func (t *Throttler) Throttle(h http.Handler) http.Handler {
 	return t.RateLimit(h)
 }
 
-// DEPRECATED. RateLimit creates a Throttler that conforms to the given
+// RateLimit creates a Throttler that conforms to the given
 // rate limits
+//
+// Deprecated: Use Rate and RateLimiter instead.
 func RateLimit(q Quota, vary *VaryBy, store GCRAStore) *Throttler {
 	count, period := q.Quota()
 
@@ -67,7 +81,9 @@ func RateLimit(q Quota, vary *VaryBy, store GCRAStore) *Throttler {
 	}
 }
 
-// DEPRECATED. Store is an alias for GCRAStore
+// Store is an alias for GCRAStore
+//
+// Deprecated: Use Rate and RateLimiter instead.
 type Store interface {
 	GCRAStore
 }

@@ -212,10 +212,14 @@ func (c SpanContext) SetFirehose() {
 }
 
 func (c SpanContext) String() string {
-	if c.traceID.High == 0 {
-		return fmt.Sprintf("%016x:%016x:%016x:%x", c.traceID.Low, uint64(c.spanID), uint64(c.parentID), c.samplingState.stateFlags.Load())
+	var flags int32
+	if c.samplingState != nil {
+		flags = c.samplingState.stateFlags.Load()
 	}
-	return fmt.Sprintf("%016x%016x:%016x:%016x:%x", c.traceID.High, c.traceID.Low, uint64(c.spanID), uint64(c.parentID), c.samplingState.stateFlags.Load())
+	if c.traceID.High == 0 {
+		return fmt.Sprintf("%016x:%016x:%016x:%x", c.traceID.Low, uint64(c.spanID), uint64(c.parentID), flags)
+	}
+	return fmt.Sprintf("%016x%016x:%016x:%016x:%x", c.traceID.High, c.traceID.Low, uint64(c.spanID), uint64(c.parentID), flags)
 }
 
 // ContextFromString reconstructs the Context encoded in a string
@@ -267,6 +271,16 @@ func (c SpanContext) Flags() byte {
 	return c.samplingState.flags()
 }
 
+// Span can be written to if it is sampled or the sampling decision has not been finalized.
+func (c SpanContext) isWriteable() bool {
+	state := c.samplingState
+	return !state.isFinal() || state.isSampled()
+}
+
+func (c SpanContext) isSamplingFinalized() bool {
+	return c.samplingState.isFinal()
+}
+
 // NewSpanContext creates a new instance of SpanContext
 func NewSpanContext(traceID TraceID, spanID, parentID SpanID, sampled bool, baggage map[string]string) SpanContext {
 	samplingState := &samplingState{}
@@ -300,8 +314,29 @@ func (c *SpanContext) CopyFrom(ctx *SpanContext) {
 }
 
 // WithBaggageItem creates a new context with an extra baggage item.
+// Delete a baggage item if provided blank value.
+//
+// The SpanContext is designed to be immutable and passed by value. As such,
+// it cannot contain any locks, and should only hold immutable data, including baggage.
+// Another reason for why baggage is immutable is when the span context is passed
+// as a parent when starting a new span. The new span's baggage cannot affect the parent
+// span's baggage, so the child span either needs to take a copy of the parent baggage
+// (which is expensive and unnecessary since baggage rarely changes in the life span of
+// a trace), or it needs to do a copy-on-write, which is the approach taken here.
 func (c SpanContext) WithBaggageItem(key, value string) SpanContext {
 	var newBaggage map[string]string
+	// unset baggage item
+	if value == "" {
+		if _, ok := c.baggage[key]; !ok {
+			return c
+		}
+		newBaggage = make(map[string]string, len(c.baggage))
+		for k, v := range c.baggage {
+			newBaggage[k] = v
+		}
+		delete(newBaggage, key)
+		return SpanContext{c.traceID, c.spanID, c.parentID, newBaggage, "", c.samplingState, c.remote}
+	}
 	if c.baggage == nil {
 		newBaggage = map[string]string{key: value}
 	} else {
@@ -332,9 +367,9 @@ func (c *SpanContext) isDebugIDContainerOnly() bool {
 
 func (t TraceID) String() string {
 	if t.High == 0 {
-		return fmt.Sprintf("%x", t.Low)
+		return fmt.Sprintf("%016x", t.Low)
 	}
-	return fmt.Sprintf("%x%016x", t.High, t.Low)
+	return fmt.Sprintf("%016x%016x", t.High, t.Low)
 }
 
 // TraceIDFromString creates a TraceID from a hexadecimal string
@@ -367,7 +402,7 @@ func (t TraceID) IsValid() bool {
 // ------- SpanID -------
 
 func (s SpanID) String() string {
-	return fmt.Sprintf("%x", uint64(s))
+	return fmt.Sprintf("%016x", uint64(s))
 }
 
 // SpanIDFromString creates a SpanID from a hexadecimal string

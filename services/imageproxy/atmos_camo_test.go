@@ -7,13 +7,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func makeTestAtmosCamoProxy() *ImageProxy {
@@ -64,11 +66,21 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	defer mock.Close()
 
 	proxy := makeTestAtmosCamoProxy()
-	proxy.ConfigService.(*testutils.StaticConfigService).Cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString(mock.URL)
+	parsedURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
+	require.NoError(t, err)
 
-	body, contentType, err := proxy.GetImageDirect("https://example.com/image.png")
+	remoteURL, err := url.Parse(mock.URL)
+	require.NoError(t, err)
 
-	assert.Nil(t, err)
+	backend := &AtmosCamoBackend{
+		proxy:     proxy,
+		siteURL:   parsedURL,
+		remoteURL: remoteURL,
+	}
+
+	body, contentType, err := backend.GetImageDirect("https://example.com/image.png")
+
+	assert.NoError(t, err)
 	assert.Equal(t, "image/png", contentType)
 
 	require.NotNil(t, body)
@@ -82,7 +94,6 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 
 	defaultSiteURL := "https://mattermost.example.com"
 	proxyURL := "http://images.example.com"
-	options := "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"
 
 	for _, test := range []struct {
 		Name     string
@@ -112,7 +123,13 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			Name:     "should not proxy a relative image",
 			Input:    "/static/logo.png",
 			SiteURL:  defaultSiteURL,
-			Expected: "/static/logo.png",
+			Expected: "https://mattermost.example.com/static/logo.png",
+		},
+		{
+			Name:     "should bypass opaque URLs",
+			Input:    "http:xyz123?query",
+			SiteURL:  defaultSiteURL,
+			Expected: defaultSiteURL,
 		},
 		{
 			Name:     "should not proxy an image on the Mattermost server",
@@ -132,9 +149,39 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			SiteURL:  defaultSiteURL,
 			Expected: proxiedURL,
 		},
+		{
+			Name:     "should not bypass protocol relative URLs",
+			Input:    "//www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png",
+			SiteURL:  "http://mattermost.example.com",
+			Expected: proxiedURL,
+		},
+		{
+			Name:     "should not bypass if the host prefix is same",
+			Input:    "http://www.mattermost.org.example.com/wp-content/uploads/2016/03/logoHorizontal.png",
+			SiteURL:  defaultSiteURL,
+			Expected: "http://images.example.com/99dcf38b8e6110d6e3ebcfb7a2db9ce875bc5c03/687474703a2f2f7777772e6d61747465726d6f73742e6f72672e6578616d706c652e636f6d2f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67",
+		},
+		{
+			Name:     "should not bypass for user auth URLs",
+			Input:    "http://www.mattermost.org@example.com/wp-content/uploads/2016/03/logoHorizontal.png",
+			SiteURL:  defaultSiteURL,
+			Expected: "http://images.example.com/19deedea7c0b75369f8d2162ee4e7ab36e26ca50/687474703a2f2f7777772e6d61747465726d6f73742e6f7267406578616d706c652e636f6d2f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67",
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			assert.Equal(t, test.Expected, getAtmosCamoImageURL(test.Input, test.SiteURL, proxyURL, options))
+			parsedURL, err := url.Parse(test.SiteURL)
+			require.NoError(t, err)
+
+			remoteURL, err := url.Parse(proxyURL)
+			require.NoError(t, err)
+
+			backend := &AtmosCamoBackend{
+				proxy:     makeTestAtmosCamoProxy(),
+				siteURL:   parsedURL,
+				remoteURL: remoteURL,
+			}
+
+			assert.Equal(t, test.Expected, backend.getAtmosCamoImageURL(test.Input))
 		})
 	}
 

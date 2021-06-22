@@ -25,9 +25,9 @@ func TestProcessSlackText(t *testing.T) {
 		t.Fail()
 	}
 
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
-	if th.App.ProcessSlackText("<@"+userId+"> hello") != "@"+username+" hello" {
+	if th.App.ProcessSlackText("<@"+userID+"> hello") != "@"+username+" hello" {
 		t.Fail()
 	}
 }
@@ -36,7 +36,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
 
 	attachments := []*model.SlackAttachment{
@@ -53,13 +53,13 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			},
 		},
 		{
-			Pretext: "<@" + userId + "> pretext",
-			Text:    "<@" + userId + "> text",
-			Title:   "<@" + userId + "> title",
+			Pretext: "<@" + userID + "> pretext",
+			Text:    "<@" + userID + "> text",
+			Title:   "<@" + userID + "> title",
 			Fields: []*model.SlackAttachmentField{
 				{
 					Title: "foo",
-					Value: "<@" + userId + "> bar",
+					Value: "<@" + userID + "> bar",
 					Short: true,
 				},
 			},

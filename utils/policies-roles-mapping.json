@@ -420,7 +420,7 @@
             {
                 "roleName": "system_admin",
                 "permission": "edit_post",
-                "shouldHave": false
+                "shouldHave": true
             }
         ]
     },

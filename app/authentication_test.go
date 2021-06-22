@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestParseAuthTokenFromRequest(t *testing.T) {
@@ -26,6 +27,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		{"BEARER mytoken", "", "", "mytoken", TokenLocationHeader},
 		{"", "mytoken", "", "mytoken", TokenLocationCookie},
 		{"", "", "mytoken", "mytoken", TokenLocationQueryString},
+		{"mytoken", "", "", "mytoken", TokenLocationCloudHeader},
 	}
 
 	for testnum, tc := range cases {
@@ -34,10 +36,12 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 			pathname += "?access_token=" + tc.query
 		}
 		req := httptest.NewRequest("GET", pathname, nil)
-		if tc.header != "" {
+		switch tc.expectedLocation {
+		case TokenLocationHeader:
 			req.Header.Add(model.HEADER_AUTH, tc.header)
-		}
-		if tc.cookie != "" {
+		case TokenLocationCloudHeader:
+			req.Header.Add(model.HEADER_CLOUD_TOKEN, tc.header)
+		case TokenLocationCookie:
 			req.AddCookie(&http.Cookie{
 				Name:  model.SESSION_COOKIE_TOKEN,
 				Value: tc.cookie,

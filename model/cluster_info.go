@@ -16,15 +16,15 @@ type ClusterInfo struct {
 	Hostname   string `json:"hostname"`
 }
 
-func (me *ClusterInfo) ToJson() string {
-	b, _ := json.Marshal(me)
+func (ci *ClusterInfo) ToJson() string {
+	b, _ := json.Marshal(ci)
 	return string(b)
 }
 
 func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
-	var me *ClusterInfo
-	json.NewDecoder(data).Decode(&me)
-	return me
+	var ci *ClusterInfo
+	json.NewDecoder(data).Decode(&ci)
+	return ci
 }
 
 func ClusterInfosToJson(objmap []*ClusterInfo) string {
@@ -38,7 +38,6 @@ func ClusterInfosFromJson(data io.Reader) []*ClusterInfo {
 	var objmap []*ClusterInfo
 	if err := decoder.Decode(&objmap); err != nil {
 		return make([]*ClusterInfo, 0)
-	} else {
-		return objmap
 	}
+	return objmap
 }

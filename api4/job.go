@@ -4,14 +4,14 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) InitJob() {
@@ -29,14 +29,19 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
-		return
-	}
-
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), job.Type)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("getJob", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+		return
+	}
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 
@@ -45,17 +50,8 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FILE_PATH = "export/%s/%s"
-	fileInfo := map[string]map[string]string{
-		"csv": {
-			"fileName": "csv_export.zip",
-			"fileMime": "application/zip",
-		},
-		"actiance": {
-			"fileName": "actiance_export.zip",
-			"fileMime": "application/zip",
-		},
-	}
+	const FilePath = "export"
+	const FileMime = "application/zip"
 
 	c.RequireJobId()
 	if c.Err != nil {
@@ -67,15 +63,19 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	job, err := c.App.GetJob(c.Params.JobId)
-	if err != nil {
-		mlog.Error(err.Error())
-		c.Err = err
+	// Currently, this endpoint only supports downloading the compliance report.
+	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
+	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
+		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
+		return
+	} else if job.Type != model.JOB_TYPE_MESSAGE_EXPORT {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -85,10 +85,10 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf(FILE_PATH, job.Id, fileInfo[job.Data["export_type"]]["fileName"])
+	fileName := job.Id + ".zip"
+	filePath := filepath.Join(FilePath, fileName)
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
-		mlog.Error(err.Error())
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
@@ -97,12 +97,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	err = writeFileResponse(fileInfo[job.Data["export_type"]]["fileName"], fileInfo[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
-	if err != nil {
-		mlog.Error(err.Error())
-		c.Err = err
-		return
-	}
+	writeFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -116,8 +111,14 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job", job)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 
@@ -139,12 +140,23 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	var validJobTypes []string
+	for _, jobType := range model.ALL_JOB_TYPES {
+		hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jobType)
+		if permissionRequired == nil {
+			mlog.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jobType))
+			continue
+		}
+		if hasPermission {
+			validJobTypes = append(validJobTypes, jobType)
+		}
+	}
+	if len(validJobTypes) == 0 {
+		c.SetPermissionError()
 		return
 	}
 
-	jobs, err := c.App.GetJobsPage(c.Params.Page, c.Params.PerPage)
+	jobs, err := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -159,8 +171,13 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), c.Params.JobType)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
+		return
+	}
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 
@@ -183,8 +200,21 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job_id", c.Params.JobId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// if permission to create, permission to cancel, same permission
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	if permissionRequired == nil {
+		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 

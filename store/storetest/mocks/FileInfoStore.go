@@ -14,17 +14,15 @@ type FileInfoStore struct {
 	mock.Mock
 }
 
-// AttachToPost provides a mock function with given fields: fileId, postId, creatorId
-func (_m *FileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
-	ret := _m.Called(fileId, postId, creatorId)
+// AttachToPost provides a mock function with given fields: fileID, postID, creatorID
+func (_m *FileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+	ret := _m.Called(fileID, postID, creatorID)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
-		r0 = rf(fileId, postId, creatorId)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(fileID, postID, creatorID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -35,31 +33,50 @@ func (_m *FileInfoStore) ClearCaches() {
 	_m.Called()
 }
 
-// DeleteForPost provides a mock function with given fields: postId
-func (_m *FileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
-	ret := _m.Called(postId)
+// CountAll provides a mock function with given fields:
+func (_m *FileInfoStore) CountAll() (int64, error) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteForPost provides a mock function with given fields: postID
+func (_m *FileInfoStore) DeleteForPost(postID string) (string, error) {
+	ret := _m.Called(postID)
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(postId)
+		r0 = rf(postID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(postId)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Get provides a mock function with given fields: id
-func (_m *FileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.FileInfo
@@ -71,20 +88,41 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByIds provides a mock function with given fields: ids
+func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+	ret := _m.Called(ids)
+
+	var r0 []*model.FileInfo
+	if rf, ok := ret.Get(0).(func([]string) []*model.FileInfo); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileInfo)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByPath provides a mock function with given fields: path
-func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	ret := _m.Called(path)
 
 	var r0 *model.FileInfo
@@ -96,70 +134,110 @@ func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppErro
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(path)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetForPost provides a mock function with given fields: postId, readFromMaster, includeDeleted, allowFromCache
-func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
-	ret := _m.Called(postId, readFromMaster, includeDeleted, allowFromCache)
+// GetFilesBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
+func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+	ret := _m.Called(startTime, endTime, limit)
+
+	var r0 []*model.FileForIndexing
+	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.FileForIndexing); ok {
+		r0 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileForIndexing)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
+		r1 = rf(startTime, endTime, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForPost provides a mock function with given fields: postID, readFromMaster, includeDeleted, allowFromCache
+func (_m *FileInfoStore) GetForPost(postID string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
+	ret := _m.Called(postID, readFromMaster, includeDeleted, allowFromCache)
 
 	var r0 []*model.FileInfo
 	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) []*model.FileInfo); ok {
-		r0 = rf(postId, readFromMaster, includeDeleted, allowFromCache)
+		r0 = rf(postID, readFromMaster, includeDeleted, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) *model.AppError); ok {
-		r1 = rf(postId, readFromMaster, includeDeleted, allowFromCache)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) error); ok {
+		r1 = rf(postID, readFromMaster, includeDeleted, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// GetForUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
-	ret := _m.Called(userId)
+// GetForUser provides a mock function with given fields: userID
+func (_m *FileInfoStore) GetForUser(userID string) ([]*model.FileInfo, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.FileInfo
 	if rf, ok := ret.Get(0).(func(string) []*model.FileInfo); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(userId)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFromMaster provides a mock function with given fields: id
+func (_m *FileInfoStore) GetFromMaster(id string) (*model.FileInfo, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(string) *model.FileInfo); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetWithOptions provides a mock function with given fields: page, perPage, opt
-func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	ret := _m.Called(page, perPage, opt)
 
 	var r0 []*model.FileInfo
@@ -171,41 +249,37 @@ func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFil
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, *model.GetFileInfosOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, *model.GetFileInfosOptions) error); ok {
 		r1 = rf(page, perPage, opt)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// InvalidateFileInfosForPostCache provides a mock function with given fields: postId, deleted
-func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
-	_m.Called(postId, deleted)
+// InvalidateFileInfosForPostCache provides a mock function with given fields: postID, deleted
+func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postID string, deleted bool) {
+	_m.Called(postID, deleted)
 }
 
-// PermanentDelete provides a mock function with given fields: fileId
-func (_m *FileInfoStore) PermanentDelete(fileId string) *model.AppError {
-	ret := _m.Called(fileId)
+// PermanentDelete provides a mock function with given fields: fileID
+func (_m *FileInfoStore) PermanentDelete(fileID string) error {
+	ret := _m.Called(fileID)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(fileId)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(fileID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -215,43 +289,39 @@ func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
 		r1 = rf(endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *FileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
-	ret := _m.Called(userId)
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *FileInfoStore) PermanentDeleteByUser(userID string) (int64, error) {
+	ret := _m.Called(userID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(userId)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Save provides a mock function with given fields: info
-func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	ret := _m.Called(info)
 
 	var r0 *model.FileInfo
@@ -263,13 +333,71 @@ func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.App
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.FileInfo) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.FileInfo) error); ok {
 		r1 = rf(info)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Search provides a mock function with given fields: paramsList, userID, teamID, page, perPage
+func (_m *FileInfoStore) Search(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
+	ret := _m.Called(paramsList, userID, teamID, page, perPage)
+
+	var r0 *model.FileInfoList
+	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.FileInfoList); ok {
+		r0 = rf(paramsList, userID, teamID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfoList)
 		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
+		r1 = rf(paramsList, userID, teamID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SetContent provides a mock function with given fields: fileID, content
+func (_m *FileInfoStore) SetContent(fileID string, content string) error {
+	ret := _m.Called(fileID, content)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(fileID, content)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Upsert provides a mock function with given fields: info
+func (_m *FileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+	ret := _m.Called(info)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(*model.FileInfo) *model.FileInfo); ok {
+		r0 = rf(info)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.FileInfo) error); ok {
+		r1 = rf(info)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

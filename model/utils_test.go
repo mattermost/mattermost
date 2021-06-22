@@ -5,7 +5,6 @@ package model
 
 import (
 	"bytes"
-	"encoding/base32"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -32,13 +31,6 @@ func TestRandomString(t *testing.T) {
 	}
 }
 
-func TestRandomBase32String(t *testing.T) {
-	for i := 0; i < 1000; i++ {
-		str := NewRandomBase32String(i)
-		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
-	}
-}
-
 func TestGetMillisForTime(t *testing.T) {
 	thisTimeMillis := int64(1471219200000)
 	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
@@ -46,6 +38,14 @@ func TestGetMillisForTime(t *testing.T) {
 	result := GetMillisForTime(thisTime)
 
 	require.Equalf(t, thisTimeMillis, result, "millis are not the same: %d and %d", thisTimeMillis, result)
+}
+
+func TestGetTimeForMillis(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetTimeForMillis(thisTimeMillis)
+	require.True(t, thisTime.Equal(result))
 }
 
 func TestPadDateStringZeros(t *testing.T) {
@@ -774,5 +774,128 @@ func TestSanitizeUnicode(t *testing.T) {
 			got := SanitizeUnicode(tt.arg)
 			assert.Equal(t, tt.want, got)
 		})
+	}
+}
+
+func TestIsValidHttpUrl(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description string
+		Value       string
+		Expected    bool
+	}{
+		{
+			"empty url",
+			"",
+			false,
+		},
+		{
+			"bad url",
+			"bad url",
+			false,
+		},
+		{
+			"relative url",
+			"/api/test",
+			false,
+		},
+		{
+			"relative url ending with slash",
+			"/some/url/",
+			false,
+		},
+		{
+			"url with invalid scheme",
+			"htp://mattermost.com",
+			false,
+		},
+		{
+			"url with just http",
+			"http://",
+			false,
+		},
+		{
+			"url with just https",
+			"https://",
+			false,
+		},
+		{
+			"url with extra slashes",
+			"https:///mattermost.com",
+			false,
+		},
+		{
+			"correct url with http scheme",
+			"http://mattemost.com",
+			true,
+		},
+		{
+			"correct url with https scheme",
+			"https://mattermost.com/api/test",
+			true,
+		},
+		{
+			"correct url with port",
+			"https://localhost:8080/test",
+			true,
+		},
+		{
+			"correct url without scheme",
+			"mattermost.com/some/url/",
+			false,
+		},
+		{
+			"correct url with extra slashes",
+			"https://mattermost.com/some//url",
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("panic: %v", r)
+				}
+			}()
+
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+		})
+	}
+}
+
+func TestUniqueStrings(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Result []string
+	}{
+		{
+			Input:  []string{"1", "2", "3", "3", "3"},
+			Result: []string{"1", "2", "3"},
+		},
+		{
+			Input:  []string{"1", "2", "3", "4", "5"},
+			Result: []string{"1", "2", "3", "4", "5"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "3", "3"},
+			Result: []string{"1", "3"},
+		},
+		{
+			Input:  []string{"1", "1", "1", "1", "1"},
+			Result: []string{"1"},
+		},
+		{
+			Input:  []string{},
+			Result: []string{},
+		},
+	}
+
+	for _, tc := range cases {
+		actual := UniqueStrings(tc.Input)
+		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 )
 
 const (
@@ -14,6 +15,16 @@ const (
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
 	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
 	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
+)
+
+var (
+	trialDuration      = 30*(time.Hour*24) + (time.Hour * 8)                                            // 720 hours (30 days) + 8 hours is trial license duration
+	adminTrialDuration = 30*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 720 hours (30 days) + 23 hours, 59 mins and 59 seconds
+
+	// a sanctioned trial's duration is either more than the upper bound,
+	// or less than the lower bound
+	sanctionedTrialDurationLowerBound = 31*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 744 hours (31 days) + 23 hours, 59 mins and 59 seconds
+	sanctionedTrialDurationUpperBound = 29*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 696 hours (29 days) + 23 hours, 59 mins and 59 seconds
 )
 
 type LicenseRecord struct {
@@ -31,6 +42,7 @@ type License struct {
 	Features     *Features `json:"features"`
 	SkuName      string    `json:"sku_name"`
 	SkuShortName string    `json:"sku_short_name"`
+	IsTrial      bool      `json:"is_trial"`
 }
 
 type Customer struct {
@@ -63,6 +75,7 @@ type Features struct {
 	MFA                       *bool `json:"mfa"`
 	GoogleOAuth               *bool `json:"google_oauth"`
 	Office365OAuth            *bool `json:"office365_oauth"`
+	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
 	Metrics                   *bool `json:"metrics"`
@@ -82,6 +95,9 @@ type Features struct {
 	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display"`
 	EnterprisePlugins         *bool `json:"enterprise_plugins"`
 	AdvancedLogging           *bool `json:"advanced_logging"`
+	Cloud                     *bool `json:"cloud"`
+	SharedChannels            *bool `json:"shared_channels"`
+	RemoteClusterService      *bool `json:"remote_cluster_service"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -94,6 +110,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"mfa":                         *f.MFA,
 		"google":                      *f.GoogleOAuth,
 		"office365":                   *f.Office365OAuth,
+		"openid":                      *f.OpenId,
 		"compliance":                  *f.Compliance,
 		"cluster":                     *f.Cluster,
 		"metrics":                     *f.Metrics,
@@ -110,6 +127,9 @@ func (f *Features) ToMap() map[string]interface{} {
 		"lock_teammate_name_display":  *f.LockTeammateNameDisplay,
 		"enterprise_plugins":          *f.EnterprisePlugins,
 		"advanced_logging":            *f.AdvancedLogging,
+		"cloud":                       *f.Cloud,
+		"shared_channels":             *f.SharedChannels,
+		"remote_cluster_service":      *f.RemoteClusterService,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -141,6 +161,10 @@ func (f *Features) SetDefaults() {
 
 	if f.Office365OAuth == nil {
 		f.Office365OAuth = NewBool(*f.FutureFeatures)
+	}
+
+	if f.OpenId == nil {
+		f.OpenId = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Compliance == nil {
@@ -218,6 +242,18 @@ func (f *Features) SetDefaults() {
 	if f.AdvancedLogging == nil {
 		f.AdvancedLogging = NewBool(*f.FutureFeatures)
 	}
+
+	if f.Cloud == nil {
+		f.Cloud = NewBool(false)
+	}
+
+	if f.SharedChannels == nil {
+		f.SharedChannels = NewBool(*f.FutureFeatures)
+	}
+
+	if f.RemoteClusterService == nil {
+		f.RemoteClusterService = NewBool(*f.FutureFeatures)
+	}
 }
 
 func (l *License) IsExpired() bool {
@@ -236,6 +272,17 @@ func (l *License) IsStarted() bool {
 func (l *License) ToJson() string {
 	b, _ := json.Marshal(l)
 	return string(b)
+}
+
+func (l *License) IsTrialLicense() bool {
+	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
+}
+
+func (l *License) IsSanctionedTrial() bool {
+	duration := l.ExpiresAt - l.StartsAt
+
+	return l.IsTrialLicense() &&
+		(duration >= sanctionedTrialDurationLowerBound.Milliseconds() || duration <= sanctionedTrialDurationUpperBound.Milliseconds())
 }
 
 // NewTestLicense returns a license that expires in the future and has the given features.
@@ -272,7 +319,7 @@ func (lr *LicenseRecord) IsValid() *AppError {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(lr.Bytes) == 0 || len(lr.Bytes) > 10000 {
+	if lr.Bytes == "" || len(lr.Bytes) > 10000 {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 

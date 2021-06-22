@@ -355,6 +355,10 @@ func (m *Memberlist) ingestPacket(buf []byte, from net.Addr, timestamp time.Time
 }
 
 func (m *Memberlist) handleCommand(buf []byte, from net.Addr, timestamp time.Time) {
+	if len(buf) < 1 {
+		m.logger.Printf("[ERR] memberlist: missing message type byte %s", LogAddress(from))
+		return
+	}
 	// Decode the message type
 	msgType := messageType(buf[0])
 	buf = buf[1:]

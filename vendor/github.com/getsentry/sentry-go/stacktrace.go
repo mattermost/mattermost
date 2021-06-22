@@ -23,7 +23,7 @@ type Stacktrace struct {
 	FramesOmitted []uint  `json:"frames_omitted,omitempty"`
 }
 
-// NewStacktrace creates a stacktrace using `runtime.Callers`.
+// NewStacktrace creates a stacktrace using runtime.Callers.
 func NewStacktrace() *Stacktrace {
 	pcs := make([]uintptr, 100)
 	n := runtime.Callers(1, pcs)
@@ -42,17 +42,21 @@ func NewStacktrace() *Stacktrace {
 	return &stacktrace
 }
 
-// ExtractStacktrace creates a new `Stacktrace` based on the given `error` object.
 // TODO: Make it configurable so that anyone can provide their own implementation?
-// Use of reflection allows us to not have a hard dependency on any given package, so we don't have to import it
+// Use of reflection allows us to not have a hard dependency on any given
+// package, so we don't have to import it.
+
+// ExtractStacktrace creates a new Stacktrace based on the given error.
 func ExtractStacktrace(err error) *Stacktrace {
 	method := extractReflectedStacktraceMethod(err)
 
-	if !method.IsValid() {
-		return nil
-	}
+	var pcs []uintptr
 
-	pcs := extractPcs(method)
+	if method.IsValid() {
+		pcs = extractPcs(method)
+	} else {
+		pcs = extractXErrorsPC(err)
+	}
 
 	if len(pcs) == 0 {
 		return nil
@@ -127,7 +131,34 @@ func extractPcs(method reflect.Value) []uintptr {
 	return pcs
 }
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/stacktrace/
+// extractXErrorsPC extracts program counters from error values compatible with
+// the error types from golang.org/x/xerrors.
+//
+// It returns nil if err is not compatible with errors from that package or if
+// no program counters are stored in err.
+func extractXErrorsPC(err error) []uintptr {
+	// This implementation uses the reflect package to avoid a hard dependency
+	// on third-party packages.
+
+	// We don't know if err matches the expected type. For simplicity, instead
+	// of trying to account for all possible ways things can go wrong, some
+	// assumptions are made and if they are violated the code will panic. We
+	// recover from any panic and ignore it, returning nil.
+	//nolint: errcheck
+	defer func() { recover() }()
+
+	field := reflect.ValueOf(err).Elem().FieldByName("frame") // type Frame struct{ frames [3]uintptr }
+	field = field.FieldByName("frames")
+	field = field.Slice(1, field.Len()) // drop first pc pointing to xerrors.New
+	pc := make([]uintptr, field.Len())
+	for i := 0; i < field.Len(); i++ {
+		pc[i] = uintptr(field.Index(i).Uint())
+	}
+	return pc
+}
+
+// Frame represents a function call and it's metadata. Frames are associated
+// with a Stacktrace.
 type Frame struct {
 	Function    string                 `json:"function,omitempty"`
 	Symbol      string                 `json:"symbol,omitempty"`
@@ -144,22 +175,38 @@ type Frame struct {
 	Vars        map[string]interface{} `json:"vars,omitempty"`
 }
 
-// NewFrame assembles a stacktrace frame out of `runtime.Frame`.
+// NewFrame assembles a stacktrace frame out of runtime.Frame.
 func NewFrame(f runtime.Frame) Frame {
-	abspath := f.File
-	filename := f.File
+	var abspath, relpath string
+	// NOTE: f.File paths historically use forward slash as path separator even
+	// on Windows, though this is not yet documented, see
+	// https://golang.org/issues/3335. In any case, filepath.IsAbs can work with
+	// paths with either slash or backslash on Windows.
+	switch {
+	case f.File == "":
+		relpath = unknown
+		// Leave abspath as the empty string to be omitted when serializing
+		// event as JSON.
+		abspath = ""
+	case filepath.IsAbs(f.File):
+		abspath = f.File
+		// TODO: in the general case, it is not trivial to come up with a
+		// "project relative" path with the data we have in run time.
+		// We shall not use filepath.Base because it creates ambiguous paths and
+		// affects the "Suspect Commits" feature.
+		// For now, leave relpath empty to be omitted when serializing the event
+		// as JSON. Improve this later.
+		relpath = ""
+	default:
+		// f.File is a relative path. This may happen when the binary is built
+		// with the -trimpath flag.
+		relpath = f.File
+		// Omit abspath when serializing the event as JSON.
+		abspath = ""
+	}
+
 	function := f.Function
 	var pkg string
-
-	if filename != "" {
-		filename = filepath.Base(filename)
-	} else {
-		filename = unknown
-	}
-
-	if abspath == "" {
-		abspath = unknown
-	}
 
 	if function != "" {
 		pkg, function = splitQualifiedFunctionName(function)
@@ -167,7 +214,7 @@ func NewFrame(f runtime.Frame) Frame {
 
 	frame := Frame{
 		AbsPath:  abspath,
-		Filename: filename,
+		Filename: relpath,
 		Lineno:   f.Line,
 		Module:   pkg,
 		Function: function,

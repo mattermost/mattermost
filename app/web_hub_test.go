@@ -11,11 +11,14 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/users"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -34,9 +37,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 
@@ -44,7 +47,13 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *W
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	cfg := &WebConnConfig{
+		WebSocket: c,
+		Session:   *session,
+		TFunc:     i18n.IdentityTfunc(),
+		Locale:    "en",
+	}
+	wc := a.NewWebConn(cfg)
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc
@@ -108,11 +117,108 @@ func TestHubStopRaceCondition(t *testing.T) {
 	}
 }
 
+func TestHubSessionRevokeRace(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	sess1 := &model.Session{
+		Id:             "id1",
+		UserId:         "user1",
+		DeviceId:       "",
+		Token:          "sesstoken",
+		ExpiresAt:      model.GetMillis() + 300000,
+		LastActivityAt: 10000,
+	}
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	mockSessionStore := mocks.SessionStore{}
+	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
+	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
+	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
+	mockSessionStore.On("Remove", "id1").Return(nil)
+
+	mockStatusStore := mocks.StatusStore{}
+	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+
+	mockOAuthStore := mocks.OAuthStore{}
+	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("OAuth").Return(&mockOAuthStore)
+	mockStore.On("Status").Return(&mockStatusStore)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+
+	userService, err := users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
+		ConfigFn:     th.App.srv.Config,
+		Metrics:      th.App.Metrics(),
+		Cluster:      th.App.Cluster(),
+	})
+	require.NoError(t, err)
+	th.App.srv.userService = userService
+
+	// This needs to be false for the condition to trigger
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ExtendSessionLengthWithActivity = false
+	})
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "testid")
+	hub := th.App.GetHubForUserId(wc1.UserId)
+
+	done := make(chan bool)
+
+	time.Sleep(time.Second)
+	// We override the LastActivityAt which happens in NewWebConn.
+	// This is needed to call RevokeSessionById which triggers the race.
+	th.App.srv.userService.AddSessionToCache(sess1)
+
+	go func() {
+		for i := 0; i <= broadcastQueueSize; i++ {
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
+		}
+		close(done)
+	}()
+
+	// This call should happen _after_ !wc.IsAuthenticated() and _before_wc.isMemberOfTeam().
+	// There's no guarantee this will happen. But that's out best bet to trigger this race.
+	wc1.InvalidateCache()
+
+	for i := 0; i < 10; i++ {
+		// If broadcast buffer has not emptied,
+		// we sleep for a second and check again
+		if len(hub.broadcast) > 0 {
+			time.Sleep(time.Second)
+			continue
+		}
+	}
+	if len(hub.broadcast) > 0 {
+		require.Fail(t, "hub is deadlocked")
+	}
+}
+
 func TestHubConnIndex(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
@@ -183,6 +289,56 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexInactive(t *testing.T) {
+	connIndex := newHubConnectionIndex(2 * time.Second)
+
+	// User1
+	wc1 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc1.SetConnectionID("conn1")
+
+	// User2
+	wc2 := &WebConn{
+		UserId: model.NewId(),
+		active: true,
+	}
+	wc2.SetConnectionID("conn2")
+	wc3 := &WebConn{
+		UserId: wc2.UserId,
+		active: false,
+	}
+	wc3.SetConnectionID("conn3")
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.GetInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.GetInactiveByConnectionID(wc1.UserId, "conn3"))
+
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
+	assert.NotNil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn3"))
+	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc1.UserId, "conn3"))
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+
+	wc3.lastUserActivityAt = model.GetMillis()
+	connIndex.Add(wc3)
+	connIndex.RemoveInactiveConnections()
+	assert.True(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
+	assert.Len(t, connIndex.All(), 3)
+
+	wc3.lastUserActivityAt = model.GetMillis() - (time.Minute).Milliseconds()
+	connIndex.RemoveInactiveConnections()
+	assert.False(t, connIndex.Has(wc3))
+	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
+	assert.Len(t, connIndex.All(), 2)
+}
+
 func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -216,7 +372,7 @@ func TestHubIsRegistered(t *testing.T) {
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
-	connIndex := newHubConnectionIndex()
+	connIndex := newHubConnectionIndex(1 * time.Second)
 
 	// User1
 	wc1 := &WebConn{

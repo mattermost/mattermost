@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const COMMAND_ARGS_SEPARATOR = ":"
+const CommandArgsSeparator = ":"
 
 func getCommandsFromCommandArgs(a *app.App, commandArgs []string) []*model.Command {
 	commands := make([]*model.Command, 0, len(commandArgs))
@@ -25,7 +25,7 @@ func getCommandsFromCommandArgs(a *app.App, commandArgs []string) []*model.Comma
 }
 
 func parseCommandArg(commandArg string) (string, string) {
-	result := strings.SplitN(commandArg, COMMAND_ARGS_SEPARATOR, 2)
+	result := strings.SplitN(commandArg, CommandArgsSeparator, 2)
 
 	if len(result) == 1 {
 		return "", commandArg

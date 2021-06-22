@@ -19,7 +19,7 @@ import (
 func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
@@ -76,8 +76,9 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should fail on bad key", func(t *testing.T) {
 		_, triggerId, err := GenerateTriggerId(NewId(), key)
+		require.Nil(t, err)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		require.Nil(t, keyErr)
+		require.NoError(t, keyErr)
 		_, _, err = DecodeAndVerifyTriggerId(triggerId, newKey)
 		require.NotNil(t, err)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", err.Id)
@@ -159,5 +160,67 @@ func TestSubmitDialogResponseToJson(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		r := SubmitDialogResponseFromJson(strings.NewReader(""))
 		assert.Nil(t, r)
+	})
+}
+
+func TestPostActionIntegrationEquals(t *testing.T) {
+	t.Run("equal uncomparable types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		require.True(t, pa1.Equals(pa2))
+	})
+
+	t.Run("equal comparable types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		require.True(t, pa1.Equals(pa2))
+	})
+
+	t.Run("non-equal types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		require.False(t, pa1.Equals(pa2))
 	})
 }

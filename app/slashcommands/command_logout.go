@@ -4,29 +4,30 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type LogoutProvider struct {
 }
 
 const (
-	CMD_LOGOUT = "logout"
+	CmdLogout = "logout"
 )
 
 func init() {
 	app.RegisterCommandProvider(&LogoutProvider{})
 }
 
-func (me *LogoutProvider) GetTrigger() string {
-	return CMD_LOGOUT
+func (*LogoutProvider) GetTrigger() string {
+	return CmdLogout
 }
 
-func (me *LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*LogoutProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_LOGOUT,
+		Trigger:          CmdLogout,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_logout.desc"),
 		AutoCompleteHint: "",
@@ -34,7 +35,7 @@ func (me *LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *LogoutProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LogoutProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	// Actual logout is handled client side.
 	return &model.CommandResponse{GotoLocation: "/login"}
 }

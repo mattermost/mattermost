@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"image"
 	"image/gif"
@@ -37,22 +36,26 @@ type GetFileInfosOptions struct {
 }
 
 type FileInfo struct {
-	Id              string `json:"id"`
-	CreatorId       string `json:"user_id"`
-	PostId          string `json:"post_id,omitempty"`
-	CreateAt        int64  `json:"create_at"`
-	UpdateAt        int64  `json:"update_at"`
-	DeleteAt        int64  `json:"delete_at"`
-	Path            string `json:"-"` // not sent back to the client
-	ThumbnailPath   string `json:"-"` // not sent back to the client
-	PreviewPath     string `json:"-"` // not sent back to the client
-	Name            string `json:"name"`
-	Extension       string `json:"extension"`
-	Size            int64  `json:"size"`
-	MimeType        string `json:"mime_type"`
-	Width           int    `json:"width,omitempty"`
-	Height          int    `json:"height,omitempty"`
-	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
+	Id              string  `json:"id"`
+	CreatorId       string  `json:"user_id"`
+	PostId          string  `json:"post_id,omitempty"`
+	ChannelId       string  `db:"-" json:"channel_id"`
+	CreateAt        int64   `json:"create_at"`
+	UpdateAt        int64   `json:"update_at"`
+	DeleteAt        int64   `json:"delete_at"`
+	Path            string  `json:"-"` // not sent back to the client
+	ThumbnailPath   string  `json:"-"` // not sent back to the client
+	PreviewPath     string  `json:"-"` // not sent back to the client
+	Name            string  `json:"name"`
+	Extension       string  `json:"extension"`
+	Size            int64   `json:"size"`
+	MimeType        string  `json:"mime_type"`
+	Width           int     `json:"width,omitempty"`
+	Height          int     `json:"height,omitempty"`
+	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
+	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
+	Content         string  `json:"-"`
+	RemoteId        *string `json:"remote_id"`
 }
 
 func (fi *FileInfo) ToJson() string {
@@ -66,9 +69,8 @@ func FileInfoFromJson(data io.Reader) *FileInfo {
 	var fi FileInfo
 	if err := decoder.Decode(&fi); err != nil {
 		return nil
-	} else {
-		return &fi
 	}
+	return &fi
 }
 
 func FileInfosToJson(infos []*FileInfo) string {
@@ -82,9 +84,8 @@ func FileInfosFromJson(data io.Reader) []*FileInfo {
 	var infos []*FileInfo
 	if err := decoder.Decode(&infos); err != nil {
 		return nil
-	} else {
-		return infos
 	}
+	return infos
 }
 
 func (fi *FileInfo) PreSave() {
@@ -99,6 +100,10 @@ func (fi *FileInfo) PreSave() {
 	if fi.UpdateAt < fi.CreateAt {
 		fi.UpdateAt = fi.CreateAt
 	}
+
+	if fi.RemoteId == nil {
+		fi.RemoteId = NewString("")
+	}
 }
 
 func (fi *FileInfo) IsValid() *AppError {
@@ -110,7 +115,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
-	if len(fi.PostId) != 0 && !IsValidId(fi.PostId) {
+	if fi.PostId != "" && !IsValidId(fi.PostId) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
@@ -151,10 +156,10 @@ func NewInfo(name string) *FileInfo {
 	return info
 }
 
-func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
+func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
-		Size: int64(len(data)),
+		Size: int64(size),
 	}
 	var err *AppError
 
@@ -170,19 +175,20 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 
 	if info.IsImage() {
 		// Only set the width and height if it's actually an image that we can understand
-		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
+		if config, _, err := image.DecodeConfig(data); err == nil {
 			info.Width = config.Width
 			info.Height = config.Height
 
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
-				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+				data.Seek(0, io.SeekStart)
+				gifConfig, err := gif.DecodeAll(data)
+				if err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif
 					info.HasPreviewImage = true
-					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name, http.StatusBadRequest)
-				} else {
-					info.HasPreviewImage = len(gifConfig.Image) == 1
+					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, err.Error(), http.StatusBadRequest)
 				}
+				info.HasPreviewImage = len(gifConfig.Image) == 1
 			} else {
 				info.HasPreviewImage = true
 			}

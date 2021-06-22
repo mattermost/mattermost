@@ -14,9 +14,10 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"willnorris.com/go/imageproxy"
+
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var imageContentTypes = []string{
@@ -47,7 +48,7 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	if proxy.Logger != nil {
 		logger, err := proxy.Logger.StdLogAt(mlog.LevelDebug, mlog.String("image_proxy", "local"))
 		if err != nil {
-			mlog.Error("Failed to initialize logger for image proxy", mlog.Err(err))
+			mlog.Warn("Failed to initialize logger for image proxy", mlog.Err(err))
 		}
 
 		impl.Logger = logger
@@ -55,7 +56,7 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 
 	baseURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
 	if err != nil {
-		mlog.Error("Failed to set base URL for image proxy. Relative image links may not work.", mlog.Err(err))
+		mlog.Warn("Failed to set base URL for image proxy. Relative image links may not work.", mlog.Err(err))
 	} else {
 		impl.DefaultBaseURL = baseURL
 	}
@@ -92,7 +93,7 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
 	if err != nil {
 		// http.NewRequest should only return an error on an invalid URL
-		mlog.Error("Failed to create request for proxied image", mlog.String("url", imageURL), mlog.Err(err))
+		mlog.Debug("Failed to create request for proxied image", mlog.String("url", imageURL), mlog.Err(err))
 
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte{})
@@ -101,7 +102,7 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 
 	u, err := url.Parse(imageURL)
 	if err != nil {
-		mlog.Error("Failed to parse URL for proxied image", mlog.String("url", imageURL), mlog.Err(err))
+		mlog.Debug("Failed to parse URL for proxied image", mlog.String("url", imageURL), mlog.Err(err))
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte{})
 		return

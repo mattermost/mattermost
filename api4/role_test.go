@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -26,7 +27,7 @@ func TestGetRole(t *testing.T) {
 	}
 
 	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -63,7 +64,7 @@ func TestGetRoleByName(t *testing.T) {
 	}
 
 	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -114,15 +115,15 @@ func TestGetRolesByNames(t *testing.T) {
 	}
 
 	role1, err := th.App.Srv().Store.Role().Save(role1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role1.Id)
 
 	role2, err = th.App.Srv().Store.Role().Save(role2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role2.Id)
 
 	role3, err = th.App.Srv().Store.Role().Save(role3)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role3.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -170,12 +171,49 @@ func TestPatchRole(t *testing.T) {
 	}
 
 	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
 		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+
+		// Cannot edit a system admin
+		adminRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_admin")
+		assert.NoError(t, err)
+		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
+
+		_, resp := client.PatchRole(adminRole.Id, patch)
+		CheckNotImplementedStatus(t, resp)
+
+		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
+		systemManager, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_manager")
+		assert.NoError(t, err)
+		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
+
+		patchWriteSystemRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		CheckNotImplementedStatus(t, resp)
+
+		patchReadSystemRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		CheckNotImplementedStatus(t, resp)
+
+		patchManageRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_MANAGE_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchManageRoles)
+		CheckNotImplementedStatus(t, resp)
+	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, resp := client.PatchRole(role.Id, patch)
@@ -234,8 +272,8 @@ func TestPatchRole(t *testing.T) {
 			license.Features.GuestAccountsPermissions = model.NewBool(false)
 			th.App.Srv().SetLicense(license)
 
-			guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
-			require.Nil(t, err)
+			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			require.NoError(t, err)
 			received, resp = client.PatchRole(guestRole.Id, patch)
 			CheckNotImplementedStatus(t, resp)
 		})
@@ -244,8 +282,8 @@ func TestPatchRole(t *testing.T) {
 			license := model.NewTestLicense()
 			license.Features.GuestAccountsPermissions = model.NewBool(true)
 			th.App.Srv().SetLicense(license)
-			guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
-			require.Nil(t, err)
+			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			require.NoError(t, err)
 			_, resp = client.PatchRole(guestRole.Id, patch)
 			CheckNoError(t, resp)
 		})

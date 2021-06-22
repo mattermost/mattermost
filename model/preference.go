@@ -21,12 +21,13 @@ const (
 	PREFERENCE_CATEGORY_FAVORITE_CHANNEL    = "favorite_channel"
 	PREFERENCE_CATEGORY_SIDEBAR_SETTINGS    = "sidebar_settings"
 
-	PREFERENCE_CATEGORY_DISPLAY_SETTINGS = "display_settings"
-	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE = "channel_display_mode"
-	PREFERENCE_NAME_COLLAPSE_SETTING     = "collapse_previews"
-	PREFERENCE_NAME_MESSAGE_DISPLAY      = "message_display"
-	PREFERENCE_NAME_NAME_FORMAT          = "name_format"
-	PREFERENCE_NAME_USE_MILITARY_TIME    = "use_military_time"
+	PREFERENCE_CATEGORY_DISPLAY_SETTINGS      = "display_settings"
+	PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED = "collapsed_reply_threads"
+	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE      = "channel_display_mode"
+	PREFERENCE_NAME_COLLAPSE_SETTING          = "collapse_previews"
+	PREFERENCE_NAME_MESSAGE_DISPLAY           = "message_display"
+	PREFERENCE_NAME_NAME_FORMAT               = "name_format"
+	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
 
 	PREFERENCE_CATEGORY_THEME = "theme"
 	// the name for theme props is the team id
@@ -37,6 +38,12 @@ const (
 	PREFERENCE_CATEGORY_LAST     = "last"
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
 	PREFERENCE_NAME_LAST_TEAM    = "team"
+
+	PREFERENCE_CATEGORY_CUSTOM_STATUS            = "custom_status"
+	PREFERENCE_NAME_RECENT_CUSTOM_STATUSES       = "recent_custom_statuses"
+	PREFERENCE_NAME_CUSTOM_STATUS_TUTORIAL_STATE = "custom_status_tutorial_state"
+
+	PREFERENCE_CUSTOM_STATUS_MODAL_VIEWED = "custom_status_modal_viewed"
 
 	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
 	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"
@@ -73,7 +80,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)
 	}
 
-	if len(o.Category) == 0 || len(o.Category) > 32 {
+	if o.Category == "" || len(o.Category) > 32 {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.category.app_error", nil, "category="+o.Category, http.StatusBadRequest)
 	}
 

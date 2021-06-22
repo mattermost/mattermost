@@ -11,8 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 // extractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
@@ -67,12 +68,20 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 				return err
 			}
 
-			outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
-			if err != nil {
-				return err
+			copyFile := func() error {
+				outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
+				if err != nil {
+					return err
+				}
+				defer outFile.Close()
+				if _, err := io.Copy(outFile, tarReader); err != nil {
+					return err
+				}
+
+				return nil
 			}
-			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
+
+			if err := copyFile(); err != nil {
 				return err
 			}
 		}

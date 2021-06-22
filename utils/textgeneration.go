@@ -14,7 +14,7 @@ const (
 )
 
 // Strings that should pass as acceptable posts
-var FUZZY_STRINGS_POSTS = []string{
+var FuzzyStringsPosts = []string{
 	`**[1] - [Markdown Tests]**
 _italics_
 more _italics_
@@ -367,7 +367,7 @@ This is a link to http://example.com.
 }
 
 // Strings that should pass as acceptable team names
-var FUZZY_STRINGS_NAMES = []string{
+var FuzzyStringsNames = []string{
 	"*",
 	"?",
 	".",
@@ -426,7 +426,7 @@ var FUZZY_STRINGS_NAMES = []string{
 }
 
 // Strings that should pass as acceptable emails
-var FUZZY_STRINGS_EMAILS = []string{
+var FuzzyStringsEmails = []string{
 	"sue@thatmightbe",
 	"sue@thatmightbe.c",
 	"sue@thatmightbe.co",
@@ -439,7 +439,7 @@ var FUZZY_STRINGS_EMAILS = []string{
 }
 
 // Lovely giberish for all to use
-const GIBBERISH_TEXT = `
+const GibberishText = `
 Thus one besides much goodness shyly far some hyena overtook since rhinoceros nodded withdrew wombat before deserved apart a alongside the far dalmatian less ouch where yet a salmon.
 Then jeez far marginal hey aboard more as leaned much oversold that inside spoke showed much went crud close save so and and after and informally much lion commendably less conductive oh excepting conductive compassionate jeepers hey a much leopard alas woolly untruthful outside snug rashly one cunning past fabulous adjusted far woodchuck and and indecisive crud loving exotic less resolute ladybug sprang drank under following far the as hence passably stolidly jeez the inset spaciously more cozily fishily the hey alas petted one audible yikes dear preparatory darn goldfinch gosh a then as moth more guinea.
 Timid mislaid as salamander yikes alas ouch much that goldfinch shark in before instead dear one swore vivid versus one until regardless sang panther tolerable much preparatory hardily shuddered where coquettish far sheep coarsely exaggerated preparatory because cordial awesome gradually nutria that dear mocking behind off staunchly regarding a the komodo crud shrewd well jeez iguanodon strove strived and moodily and sought and and mounted gosh aboard crud spitefully boa.
@@ -463,7 +463,7 @@ The painful essential jeepers merrily proudly essential and less far dismounted 
 Beside far this this a crud polite cantankerous exclusively misheard pled far circuitously and frugal less more temperately gauche goldfinch oh against this along excitedly goodhearted more classically quit serenely outside vulture ouch after one a this yet.
 Less and handsomely manatee some amidst much reined komodo busted exultingly but fatuously less across mighty goodness objective alas glaringly gregariously hello the since one pridefully much well placed far less goodness jellyfish unnecessary reciprocating a far stylistic gazed one.
 Hey rethought excepting lamely much and naughtily amidst more since jeez then bluebird hence less bald by some brought left the across logic loyal brightly jeez capitally that less more forward rebound a yikes chose convulsively confidently repeated broadcast much dipped when awesomely or some some regal the scowled merry zebra since more credible so inescapably fetchingly and lantern that due dear one went gosh wow well furrowed much much specially spoiled as vitally instead the seriously some rooster irrespective well imprecisely rapidly more llama.
-Up to and hey without pill that this squid alas brusque on inventoried and spread the more excepting aristocratically due piquant wove beneath that macaw in more until much grimaced far and jeez enticingly unicorn some far crab more barring purely jeepers clear groomed glaring hey dear hence before the the this hello.`
+Up to and hey without pill that this squid alas brusque on inventoried and spread the more excepting aristocratically due piquant wove beneath that macaw in more until much grimaced far and jeez enticingly unicorn some far crab more barring purely jeepers clear groomed glaring hey dear hence before the this hello.`
 
 func RandString(l int, charset string) string {
 	ret := make([]byte, l)
@@ -481,7 +481,7 @@ func RandString(l int, charset string) string {
 // }
 
 // func FuzzEmail() string {
-// 	return FUZZY_STRINGS_EMAILS[RandIntFromRange(Range{0, len(FUZZY_STRINGS_EMAILS) - 1})]
+// 	return FuzzyStringsEmails[RandIntFromRange(Range{0, len(FuzzyStringsEmails) - 1})]
 // }
 
 func RandomName(length Range, charset string) string {
@@ -490,7 +490,7 @@ func RandomName(length Range, charset string) string {
 }
 
 func FuzzName() string {
-	return FUZZY_STRINGS_NAMES[RandIntFromRange(Range{0, len(FUZZY_STRINGS_NAMES) - 1})]
+	return FuzzyStringsNames[RandIntFromRange(Range{0, len(FuzzyStringsNames) - 1})]
 }
 
 // Random selection of text for post
@@ -498,12 +498,12 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 	textLength := RandIntFromRange(length)
 	numHashtags := RandIntFromRange(hashtags)
 	numMentions := RandIntFromRange(mentions)
-	if textLength > len(GIBBERISH_TEXT) || textLength < 0 {
-		textLength = len(GIBBERISH_TEXT)
+	if textLength > len(GibberishText) || textLength < 0 {
+		textLength = len(GibberishText)
 	}
-	startPosition := RandIntFromRange(Range{0, len(GIBBERISH_TEXT) - textLength - 1})
+	startPosition := RandIntFromRange(Range{0, len(GibberishText) - textLength - 1})
 
-	words := strings.Split(GIBBERISH_TEXT[startPosition:startPosition+textLength], " ")
+	words := strings.Split(GibberishText[startPosition:startPosition+textLength], " ")
 	for i := 0; i < numHashtags; i++ {
 		randword := RandIntFromRange(Range{0, len(words) - 1})
 		words = append(words, " #"+words[randword])
@@ -525,5 +525,5 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 }
 
 func FuzzPost() string {
-	return FUZZY_STRINGS_POSTS[RandIntFromRange(Range{0, len(FUZZY_STRINGS_POSTS) - 1})]
+	return FuzzyStringsPosts[RandIntFromRange(Range{0, len(FuzzyStringsPosts) - 1})]
 }

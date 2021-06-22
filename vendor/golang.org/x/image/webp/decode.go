@@ -126,22 +126,23 @@ func decode(r io.Reader, configOnly bool) (image.Image, image.Config, error) {
 				alphaBit        = 1 << 4
 				iccProfileBit   = 1 << 5
 			)
-			if buf[0] != alphaBit {
-				return nil, image.Config{}, errors.New("webp: non-Alpha VP8X is not implemented")
-			}
+			wantAlpha = (buf[0] & alphaBit) != 0
 			widthMinusOne = uint32(buf[4]) | uint32(buf[5])<<8 | uint32(buf[6])<<16
 			heightMinusOne = uint32(buf[7]) | uint32(buf[8])<<8 | uint32(buf[9])<<16
 			if configOnly {
+				if wantAlpha {
+					return nil, image.Config{
+						ColorModel: color.NYCbCrAModel,
+						Width:      int(widthMinusOne) + 1,
+						Height:     int(heightMinusOne) + 1,
+					}, nil
+				}
 				return nil, image.Config{
-					ColorModel: color.NYCbCrAModel,
+					ColorModel: color.YCbCrModel,
 					Width:      int(widthMinusOne) + 1,
 					Height:     int(heightMinusOne) + 1,
 				}, nil
 			}
-			wantAlpha = true
-
-		default:
-			return nil, image.Config{}, errInvalidFormat
 		}
 	}
 }

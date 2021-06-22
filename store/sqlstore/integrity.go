@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	sq "github.com/Masterminds/squirrel"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type relationalCheckConfig struct {
@@ -20,7 +20,7 @@ type relationalCheckConfig struct {
 	filter             interface{}
 }
 
-func getOrphanedRecords(ss *SqlSupplier, cfg relationalCheckConfig) ([]model.OrphanedRecord, error) {
+func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.OrphanedRecord, error) {
 	var records []model.OrphanedRecord
 
 	sub := ss.getQueryBuilder().
@@ -59,14 +59,14 @@ func getOrphanedRecords(ss *SqlSupplier, cfg relationalCheckConfig) ([]model.Orp
 	return records, err
 }
 
-func checkParentChildIntegrity(ss *SqlSupplier, config relationalCheckConfig) model.IntegrityCheckResult {
+func checkParentChildIntegrity(ss *SqlStore, config relationalCheckConfig) model.IntegrityCheckResult {
 	var result model.IntegrityCheckResult
 	var data model.RelationalIntegrityCheckData
 
 	config.sortRecords = true
 	data.Records, result.Err = getOrphanedRecords(ss, config)
 	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+		mlog.Error("Error while getting orphaned records", mlog.Err(result.Err))
 		return result
 	}
 	data.ParentName = config.parentName
@@ -78,7 +78,7 @@ func checkParentChildIntegrity(ss *SqlSupplier, config relationalCheckConfig) mo
 	return result
 }
 
-func checkChannelsCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsCommandWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -87,7 +87,7 @@ func checkChannelsCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheck
 	})
 }
 
-func checkChannelsChannelMemberHistoryIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsChannelMemberHistoryIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -96,7 +96,7 @@ func checkChannelsChannelMemberHistoryIntegrity(ss *SqlSupplier) model.Integrity
 	})
 }
 
-func checkChannelsChannelMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsChannelMembersIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -105,7 +105,7 @@ func checkChannelsChannelMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckR
 	})
 }
 
-func checkChannelsIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsIncomingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -114,7 +114,7 @@ func checkChannelsIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityChec
 	})
 }
 
-func checkChannelsOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsOutgoingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -123,7 +123,7 @@ func checkChannelsOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityChec
 	})
 }
 
-func checkChannelsPostsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkChannelsPostsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
@@ -132,7 +132,7 @@ func checkChannelsPostsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkCommandsCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkCommandsCommandWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Commands",
 		parentIdAttr: "CommandId",
@@ -141,7 +141,7 @@ func checkCommandsCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheck
 	})
 }
 
-func checkPostsFileInfoIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkPostsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Posts",
 		parentIdAttr: "PostId",
@@ -150,7 +150,7 @@ func checkPostsFileInfoIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkPostsPostsParentIdIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkPostsPostsParentIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Posts",
 		parentIdAttr:       "ParentId",
@@ -160,7 +160,7 @@ func checkPostsPostsParentIdIntegrity(ss *SqlSupplier) model.IntegrityCheckResul
 	})
 }
 
-func checkPostsPostsRootIdIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkPostsPostsRootIdIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Posts",
 		parentIdAttr:       "RootId",
@@ -170,7 +170,7 @@ func checkPostsPostsRootIdIntegrity(ss *SqlSupplier) model.IntegrityCheckResult 
 	})
 }
 
-func checkPostsReactionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkPostsReactionsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Posts",
 		parentIdAttr: "PostId",
@@ -179,7 +179,7 @@ func checkPostsReactionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkSchemesChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkSchemesChannelsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Schemes",
 		parentIdAttr:       "SchemeId",
@@ -189,7 +189,7 @@ func checkSchemesChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkSchemesTeamsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkSchemesTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Schemes",
 		parentIdAttr:       "SchemeId",
@@ -199,7 +199,7 @@ func checkSchemesTeamsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkSessionsAuditsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkSessionsAuditsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Sessions",
 		parentIdAttr:       "SessionId",
@@ -209,7 +209,7 @@ func checkSessionsAuditsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkTeamsChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkTeamsChannelsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	res1 := checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Teams",
 		parentIdAttr: "TeamId",
@@ -232,7 +232,7 @@ func checkTeamsChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	return res1
 }
 
-func checkTeamsCommandsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkTeamsCommandsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Teams",
 		parentIdAttr: "TeamId",
@@ -241,7 +241,7 @@ func checkTeamsCommandsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkTeamsIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkTeamsIncomingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Teams",
 		parentIdAttr: "TeamId",
@@ -250,7 +250,7 @@ func checkTeamsIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckRe
 	})
 }
 
-func checkTeamsOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkTeamsOutgoingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Teams",
 		parentIdAttr: "TeamId",
@@ -259,7 +259,7 @@ func checkTeamsOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckRe
 	})
 }
 
-func checkTeamsTeamMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkTeamsTeamMembersIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Teams",
 		parentIdAttr: "TeamId",
@@ -268,7 +268,7 @@ func checkTeamsTeamMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult 
 	})
 }
 
-func checkUsersAuditsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersAuditsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Users",
 		parentIdAttr:       "UserId",
@@ -278,7 +278,7 @@ func checkUsersAuditsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersCommandWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -287,7 +287,7 @@ func checkUsersCommandWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckRes
 	})
 }
 
-func checkUsersChannelMemberHistoryIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersChannelMemberHistoryIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -296,7 +296,7 @@ func checkUsersChannelMemberHistoryIntegrity(ss *SqlSupplier) model.IntegrityChe
 	})
 }
 
-func checkUsersChannelMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersChannelMembersIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -305,7 +305,7 @@ func checkUsersChannelMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResu
 	})
 }
 
-func checkUsersChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersChannelsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Users",
 		parentIdAttr:       "CreatorId",
@@ -315,7 +315,7 @@ func checkUsersChannelsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersCommandsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersCommandsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "CreatorId",
@@ -324,7 +324,7 @@ func checkUsersCommandsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersCompliancesIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersCompliancesIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -333,7 +333,7 @@ func checkUsersCompliancesIntegrity(ss *SqlSupplier) model.IntegrityCheckResult 
 	})
 }
 
-func checkUsersEmojiIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersEmojiIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "CreatorId",
@@ -342,7 +342,7 @@ func checkUsersEmojiIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersFileInfoIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "CreatorId",
@@ -351,7 +351,7 @@ func checkUsersFileInfoIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersIncomingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -360,7 +360,7 @@ func checkUsersIncomingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckRe
 	})
 }
 
-func checkUsersOAuthAccessDataIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersOAuthAccessDataIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -369,7 +369,7 @@ func checkUsersOAuthAccessDataIntegrity(ss *SqlSupplier) model.IntegrityCheckRes
 	})
 }
 
-func checkUsersOAuthAppsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersOAuthAppsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "CreatorId",
@@ -378,7 +378,7 @@ func checkUsersOAuthAppsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersOAuthAuthDataIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersOAuthAuthDataIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -387,7 +387,7 @@ func checkUsersOAuthAuthDataIntegrity(ss *SqlSupplier) model.IntegrityCheckResul
 	})
 }
 
-func checkUsersOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersOutgoingWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "CreatorId",
@@ -396,7 +396,7 @@ func checkUsersOutgoingWebhooksIntegrity(ss *SqlSupplier) model.IntegrityCheckRe
 	})
 }
 
-func checkUsersPostsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersPostsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -405,7 +405,7 @@ func checkUsersPostsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersPreferencesIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersPreferencesIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -414,7 +414,7 @@ func checkUsersPreferencesIntegrity(ss *SqlSupplier) model.IntegrityCheckResult 
 	})
 }
 
-func checkUsersReactionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersReactionsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -423,7 +423,7 @@ func checkUsersReactionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersSessionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersSessionsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -432,7 +432,7 @@ func checkUsersSessionsIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersStatusIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersStatusIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -441,7 +441,7 @@ func checkUsersStatusIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
 	})
 }
 
-func checkUsersTeamMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersTeamMembersIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -450,7 +450,7 @@ func checkUsersTeamMembersIntegrity(ss *SqlSupplier) model.IntegrityCheckResult 
 	})
 }
 
-func checkUsersUserAccessTokensIntegrity(ss *SqlSupplier) model.IntegrityCheckResult {
+func checkUsersUserAccessTokensIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Users",
 		parentIdAttr: "UserId",
@@ -459,7 +459,7 @@ func checkUsersUserAccessTokensIntegrity(ss *SqlSupplier) model.IntegrityCheckRe
 	})
 }
 
-func checkChannelsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkChannelsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkChannelsCommandWebhooksIntegrity(ss)
 	results <- checkChannelsChannelMemberHistoryIntegrity(ss)
 	results <- checkChannelsChannelMembersIntegrity(ss)
@@ -468,27 +468,27 @@ func checkChannelsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheck
 	results <- checkChannelsPostsIntegrity(ss)
 }
 
-func checkCommandsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkCommandsCommandWebhooksIntegrity(ss)
 }
 
-func checkPostsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkPostsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkPostsFileInfoIntegrity(ss)
 	results <- checkPostsPostsParentIdIntegrity(ss)
 	results <- checkPostsPostsRootIdIntegrity(ss)
 	results <- checkPostsReactionsIntegrity(ss)
 }
 
-func checkSchemesIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkSchemesIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkSchemesChannelsIntegrity(ss)
 	results <- checkSchemesTeamsIntegrity(ss)
 }
 
-func checkSessionsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkSessionsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkSessionsAuditsIntegrity(ss)
 }
 
-func checkTeamsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkTeamsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkTeamsChannelsIntegrity(ss)
 	results <- checkTeamsCommandsIntegrity(ss)
 	results <- checkTeamsIncomingWebhooksIntegrity(ss)
@@ -496,7 +496,7 @@ func checkTeamsIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckRes
 	results <- checkTeamsTeamMembersIntegrity(ss)
 }
 
-func checkUsersIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	results <- checkUsersAuditsIntegrity(ss)
 	results <- checkUsersCommandWebhooksIntegrity(ss)
 	results <- checkUsersChannelMemberHistoryIntegrity(ss)
@@ -520,7 +520,7 @@ func checkUsersIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckRes
 	results <- checkUsersUserAccessTokensIntegrity(ss)
 }
 
-func CheckRelationalIntegrity(ss *SqlSupplier, results chan<- model.IntegrityCheckResult) {
+func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {
 	mlog.Info("Starting relational integrity checks...")
 	checkChannelsIntegrity(ss, results)
 	checkCommandsIntegrity(ss, results)

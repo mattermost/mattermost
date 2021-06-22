@@ -6,9 +6,10 @@ package commands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -66,7 +67,7 @@ func TestLeaveTeam(t *testing.T) {
 	require.False(t, found, "profile should not be on team")
 
 	teams, err := th.App.Srv().Store.Team().GetTeamsByUserId(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 0, len(teams), "Shouldn't be in team")
 }
 

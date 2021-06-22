@@ -57,6 +57,13 @@ func isZero(v reflect.Value) bool {
 		}
 		return z
 	case reflect.Struct:
+		type zero interface {
+			IsZero() bool
+		}
+		if v.Type().Implements(reflect.TypeOf((*zero)(nil)).Elem()) {
+			iz := v.MethodByName("IsZero").Call([]reflect.Value{})[0]
+			return iz.Interface().(bool)
+		}
 		z := true
 		for i := 0; i < v.NumField(); i++ {
 			z = z && isZero(v.Field(i))

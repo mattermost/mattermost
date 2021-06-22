@@ -4,9 +4,10 @@
 package commands
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/spf13/cobra"
 )
 
 var VersionCmd = &cobra.Command{
@@ -32,6 +33,7 @@ func versionCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Srv().Shutdown()
 
 	printVersion(a)
 

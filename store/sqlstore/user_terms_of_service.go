@@ -6,17 +6,17 @@ package sqlstore
 import (
 	"database/sql"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlUserTermsOfServiceStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUserTermsOfServiceStore(sqlStore SqlStore) store.UserTermsOfServiceStore {
+func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
 	s := SqlUserTermsOfServiceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -29,7 +29,6 @@ func newSqlUserTermsOfServiceStore(sqlStore SqlStore) store.UserTermsOfServiceSt
 }
 
 func (s SqlUserTermsOfServiceStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_terms_of_service_user_id", "UserTermsOfService", "UserId")
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {

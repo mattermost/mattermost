@@ -1,4 +1,3 @@
-
 dist: | check-style test package
 
 build-linux:
@@ -66,7 +65,6 @@ build-client:
 
 package:
 	@ echo Packaging mattermost
-
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
@@ -78,9 +76,10 @@ package:
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
+	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go run ./scripts/config_generator
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
+	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
 	cp -RL i18n $(DIST_PATH)
 
 	@# Disable developer settings
@@ -98,14 +97,21 @@ package:
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
+	@#Download MMCTL
+	scripts/download_mmctl_release.sh "" $(DIST_PATH)/bin
+
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
+	cp -L $(BUILD_ENTERPRISE_DIR)/cloud/config/cloud_defaults.json $(DIST_PATH)/config
 else
 	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
+	if [ -f ../manifest.txt ]; then \
+		cp ../manifest.txt $(DIST_PATH); \
+	fi
 
 	@# Import Mattermost plugin public key
 	gpg --import build/plugin-production-public-key.gpg
@@ -126,12 +132,11 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for OSX
+	scripts/download_mmctl_release.sh "Darwin" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="osx-amd64"; \
@@ -160,12 +165,11 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	cp $(GOBIN)/mattermost.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for Windows
+	scripts/download_mmctl_release.sh "Windows" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
@@ -194,12 +198,11 @@ endif
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for Linux
+	scripts/download_mmctl_release.sh "Linux" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \
@@ -222,3 +225,4 @@ endif
 	@#rm -f $(DIST_PATH)/bin/mattermost
 
 	rm -rf tmpprepackaged
+	rm -rf dist/mattermost

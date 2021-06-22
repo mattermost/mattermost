@@ -67,7 +67,7 @@ func TestHTTPClient(t *testing.T) {
 		testCases := []struct {
 			description     string
 			allowHost       func(string) bool
-			allowIp         func(net.IP) bool
+			allowIP         func(net.IP) bool
 			expectedAllowed bool
 		}{
 			{"allow with no checks", nil, nil, true},
@@ -84,7 +84,7 @@ func TestHTTPClient(t *testing.T) {
 		}
 		for _, testCase := range testCases {
 			t.Run(testCase.description, func(t *testing.T) {
-				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIp))
+				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIP))
 				if _, err := c.Get(mockHTTP.URL); testCase.expectedAllowed {
 					require.NoError(t, err)
 				} else {
@@ -105,11 +105,11 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	c.Transport.(*MattermostTransport).Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
 	resp, err := c.Get("http://acme.com")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, "proxy", string(body))
 }
 
@@ -150,10 +150,10 @@ func TestDialContextFilter(t *testing.T) {
 		_, err := filter(context.Background(), "", tc.Addr)
 
 		if tc.IsValid {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.True(t, didDial)
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 			require.Equal(t, err, AddressForbidden)
 			require.False(t, didDial)
 		}
@@ -172,7 +172,7 @@ func TestUserAgentIsSet(t *testing.T) {
 	client := NewHTTPClient(NewTransport(true, nil, nil))
 	req, err := http.NewRequest("GET", ts.URL, nil)
 
-	require.Nil(t, err, "NewRequest failed", err)
+	require.NoError(t, err, "NewRequest failed", err)
 
 	client.Do(req)
 }

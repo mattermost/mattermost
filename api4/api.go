@@ -7,12 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/web"
-
-	_ "github.com/mattermost/go-i18n/i18n"
 )
 
 type Routes struct {
@@ -31,6 +30,8 @@ type Routes struct {
 	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
 	Team               *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
 	TeamForUser        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}'
+	UserThreads        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/threads'
+	UserThread         *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/threads/{thread_id:[A-Za-z0-9]+}'
 	TeamByName         *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
 	TeamMembers        *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/members'
 	TeamMember         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
@@ -56,6 +57,9 @@ type Routes struct {
 
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
+
+	Uploads *mux.Router // 'api/v4/uploads'
+	Upload  *mux.Router // 'api/v4/uploads/{upload_id:[A-Za-z0-9]+}'
 
 	Plugins *mux.Router // 'api/v4/plugins'
 	Plugin  *mux.Router // 'api/v4/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}'
@@ -116,19 +120,29 @@ type Routes struct {
 
 	TermsOfService *mux.Router // 'api/v4/terms_of_service'
 	Groups         *mux.Router // 'api/v4/groups'
+
+	Cloud *mux.Router // 'api/v4/cloud'
+
+	Imports *mux.Router // 'api/v4/imports'
+
+	Exports *mux.Router // 'api/v4/exports'
+	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
+
+	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
+	SharedChannels *mux.Router // 'api/v4/sharedchannels'
+
+	Permissions *mux.Router // 'api/v4/permissions'
 }
 
 type API struct {
-	ConfigService       configservice.ConfigService
-	GetGlobalAppOptions app.AppOptionCreator
-	BaseRoutes          *Routes
+	app        app.AppIface
+	BaseRoutes *Routes
 }
 
-func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func Init(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -146,6 +160,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.TeamsForUser = api.BaseRoutes.User.PathPrefix("/teams").Subrouter()
 	api.BaseRoutes.Team = api.BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.TeamForUser = api.BaseRoutes.TeamsForUser.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.UserThreads = api.BaseRoutes.TeamForUser.PathPrefix("/threads").Subrouter()
+	api.BaseRoutes.UserThread = api.BaseRoutes.TeamForUser.PathPrefix("/threads/{thread_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.TeamByName = api.BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	api.BaseRoutes.TeamMembers = api.BaseRoutes.Team.PathPrefix("/members").Subrouter()
 	api.BaseRoutes.TeamMember = api.BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -172,6 +188,9 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Files = api.BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
 	api.BaseRoutes.File = api.BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PublicFile = api.BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
+
+	api.BaseRoutes.Uploads = api.BaseRoutes.ApiRoot.PathPrefix("/uploads").Subrouter()
+	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Plugins = api.BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
 	api.BaseRoutes.Plugin = api.BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
@@ -221,12 +240,24 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
+	api.BaseRoutes.Cloud = api.BaseRoutes.ApiRoot.PathPrefix("/cloud").Subrouter()
+
+	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
+
+	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+	api.BaseRoutes.SharedChannels = api.BaseRoutes.ApiRoot.PathPrefix("/sharedchannels").Subrouter()
+
+	api.BaseRoutes.Permissions = api.BaseRoutes.ApiRoot.PathPrefix("/permissions").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
 	api.InitChannel()
 	api.InitPost()
 	api.InitFile()
+	api.InitUpload()
 	api.InitSystem()
 	api.InitLicense()
 	api.InitConfig()
@@ -255,17 +286,22 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitTermsOfService()
 	api.InitGroup()
 	api.InitAction()
+	api.InitCloud()
+	api.InitImport()
+	api.InitRemoteCluster()
+	api.InitSharedChannels()
+	api.InitPermissions()
+	api.InitExport()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	return api
 }
 
-func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+func InitLocal(a app.AppIface, root *mux.Router) *API {
 	api := &API{
-		ConfigService:       configservice,
-		GetGlobalAppOptions: globalOptionsFunc,
-		BaseRoutes:          &Routes{},
+		app:        a,
+		BaseRoutes: &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -301,21 +337,40 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	api.BaseRoutes.Command = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.Hooks = api.BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
+	api.BaseRoutes.IncomingHooks = api.BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()
+	api.BaseRoutes.IncomingHook = api.BaseRoutes.IncomingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.OutgoingHooks = api.BaseRoutes.Hooks.PathPrefix("/outgoing").Subrouter()
+	api.BaseRoutes.OutgoingHook = api.BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.BaseRoutes.LDAP = api.BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
+	api.BaseRoutes.System = api.BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
 
 	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
 
+	api.BaseRoutes.Uploads = api.BaseRoutes.ApiRoot.PathPrefix("/uploads").Subrouter()
+	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
+
+	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Exports = api.BaseRoutes.ApiRoot.PathPrefix("/exports").Subrouter()
+	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
+
+	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitConfigLocal()
+	api.InitWebhookLocal()
 	api.InitPluginLocal()
 	api.InitCommandLocal()
 	api.InitLicenseLocal()
@@ -325,6 +380,11 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitSystemLocal()
 	api.InitPostLocal()
 	api.InitRoleLocal()
+	api.InitUploadLocal()
+	api.InitImportLocal()
+	api.InitExportLocal()
+	api.InitJobLocal()
+	api.InitSamlLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
@@ -332,7 +392,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.ConfigService, w, r)
+	web.Handle404(api.app, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK

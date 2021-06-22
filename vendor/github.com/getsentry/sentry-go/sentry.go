@@ -5,14 +5,18 @@ import (
 	"time"
 )
 
-// Version is the version of the sentry-go SDK.
-const Version = "0.6.1"
+// Version is the version of the SDK.
+const Version = "0.11.0"
 
 // apiVersion is the minimum version of the Sentry API compatible with the
 // sentry-go SDK.
 const apiVersion = "7"
 
-// Init initializes whole SDK by creating new `Client` and binding it to the current `Hub`
+// userAgent is the User-Agent of outgoing HTTP requests.
+const userAgent = "sentry-go/" + Version
+
+// Init initializes the SDK with options. The returned error is non-nil if
+// options is invalid, for instance if a malformed DSN is provided.
 func Init(options ClientOptions) error {
 	hub := CurrentHub()
 	client, err := NewClient(options)
@@ -47,7 +51,7 @@ func CaptureException(exception error) *EventID {
 // CaptureEvent captures an event on the currently active client if any.
 //
 // The event must already be assembled. Typically code would instead use
-// the utility methods like `CaptureException`. The return value is the
+// the utility methods like CaptureException. The return value is the
 // event ID. In case Sentry is disabled or event was dropped, the return value will be nil.
 func CaptureEvent(event *Event) *EventID {
 	hub := CurrentHub()
@@ -63,7 +67,7 @@ func Recover() *EventID {
 	return nil
 }
 
-// Recover captures a panic and passes relevant context object.
+// RecoverWithContext captures a panic and passes relevant context object.
 func RecoverWithContext(ctx context.Context) *EventID {
 	if err := recover(); err != nil {
 		var hub *Hub
@@ -79,34 +83,25 @@ func RecoverWithContext(ctx context.Context) *EventID {
 	return nil
 }
 
-// WithScope temporarily pushes a scope for a single call.
-//
-// This function takes one argument, a callback that executes
-// in the context of that scope.
-//
-// This is useful when extra data should be send with a single capture call
-// for instance a different level or tags
+// WithScope is a shorthand for CurrentHub().WithScope.
 func WithScope(f func(scope *Scope)) {
 	hub := CurrentHub()
 	hub.WithScope(f)
 }
 
-// ConfigureScope invokes a function that can modify the current scope.
-//
-// The function is passed a mutable reference to the `Scope` so that modifications
-// can be performed.
+// ConfigureScope is a shorthand for CurrentHub().ConfigureScope.
 func ConfigureScope(f func(scope *Scope)) {
 	hub := CurrentHub()
 	hub.ConfigureScope(f)
 }
 
-// PushScope pushes a new scope.
+// PushScope is a shorthand for CurrentHub().PushScope.
 func PushScope() {
 	hub := CurrentHub()
 	hub.PushScope()
 }
 
-// PopScope pushes a new scope.
+// PopScope is a shorthand for CurrentHub().PopScope.
 func PopScope() {
 	hub := CurrentHub()
 	hub.PopScope()

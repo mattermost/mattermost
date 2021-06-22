@@ -4,16 +4,17 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type SearchProvider struct {
 }
 
 const (
-	CMD_SEARCH = "search"
+	CmdSearch = "search"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (search *SearchProvider) GetTrigger() string {
-	return CMD_SEARCH
+	return CmdSearch
 }
 
-func (search *SearchProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (search *SearchProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SEARCH,
+		Trigger:          CmdSearch,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_search.desc"),
 		AutoCompleteHint: T("api.command_search.hint"),
@@ -34,7 +35,7 @@ func (search *SearchProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mo
 	}
 }
 
-func (search *SearchProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (search *SearchProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_search.unsupported.app_error"),

@@ -6,20 +6,20 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlCommandStore struct {
-	SqlStore
+	*SqlStore
 
 	commandsQuery sq.SelectBuilder
 }
 
-func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
+func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().
@@ -54,7 +54,7 @@ func (s SqlCommandStore) createIndexesIfNotExists() {
 }
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
-	if len(command.Id) > 0 {
+	if command.Id != "" {
 		return nil, store.NewErrInvalidInput("Command", "CommandId", command.Id)
 	}
 
@@ -193,7 +193,7 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		From("Commands").
 		Where(sq.Eq{"DeleteAt": 0})
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
 

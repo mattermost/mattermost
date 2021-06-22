@@ -28,22 +28,34 @@ func (nt *NullTime) Scan(value interface{}) error {
 	case time.Time:
 		nt.Time, nt.Valid = t, true
 	case []byte:
-		nt.Valid = false
-		for _, dtfmt := range []string{
-			"2006-01-02 15:04:05.999999999",
-			"2006-01-02T15:04:05.999999999",
-			"2006-01-02 15:04:05",
-			"2006-01-02T15:04:05",
-			"2006-01-02 15:04",
-			"2006-01-02T15:04",
-			"2006-01-02",
-			"2006-01-02 15:04:05-07:00",
-		} {
-			var err error
-			if nt.Time, err = time.Parse(dtfmt, string(t)); err == nil {
-				nt.Valid = true
-				break
-			}
+		v := strToTime(string(t))
+		if v != nil {
+			nt.Valid = true
+			nt.Time = *v
+		}
+	case string:
+		v := strToTime(t)
+		if v != nil {
+			nt.Valid = true
+			nt.Time = *v
+		}
+	}
+	return nil
+}
+
+func strToTime(v string) *time.Time {
+	for _, dtfmt := range []string{
+		"2006-01-02 15:04:05.999999999",
+		"2006-01-02T15:04:05.999999999",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04",
+		"2006-01-02T15:04",
+		"2006-01-02",
+		"2006-01-02 15:04:05-07:00",
+	} {
+		if t, err := time.Parse(dtfmt, v); err == nil {
+			return &t
 		}
 	}
 	return nil

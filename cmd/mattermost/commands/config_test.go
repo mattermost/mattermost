@@ -94,6 +94,7 @@ func TestConfigValidate(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "TestConfigValidate")
 	require.NoError(t, err)
 	defer os.Remove(tempFile.Name())
+	tempFile.Write([]byte("{"))
 
 	assert.Error(t, th.RunCommand(t, "--config", tempFile.Name(), "config", "validate"))
 	th.CheckCommand(t, "config", "validate")
@@ -206,6 +207,8 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when the confirm boolean flag is given", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
 		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
@@ -216,10 +219,20 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when a configuration section is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		th := Setup(t)
+		defer th.TearDown()
+		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "PrivacySettings.ShowFullName", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings")
+		assert.NoErrorf(t, err, "output %s", output)
+
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
@@ -229,9 +242,18 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("Success when a configuration setting is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
+		th := Setup(t)
+		defer th.TearDown()
+
+		output, err := th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunJobs", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "set", "JobSettings.RunScheduler", "false")
+		assert.NoErrorf(t, err, "output %s", output)
+
+		output, err = th.RunCommandWithOutput(t, "config", "reset", "JobSettings.RunJobs")
+		assert.NoErrorf(t, err, "output %s", output)
+
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
 		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		assert.Contains(t, output1, "true")
@@ -417,7 +439,7 @@ func TestConfigShow(t *testing.T) {
 
 	t.Run("successfully dumping config as json", func(t *testing.T) {
 		output, err := th.RunCommandWithOutput(t, "config", "show", "--json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Filter out the test headers
 		var filteredOutput []string
@@ -433,7 +455,7 @@ func TestConfigShow(t *testing.T) {
 
 		var config model.Config
 		err = json.Unmarshal([]byte(output), &config)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -524,7 +546,7 @@ func TestUpdateMap(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			err := UpdateMap(configMap, test.configSettings, test.newVal)
 
-			require.Nil(t, err, "Wasn't expecting an error")
+			require.NoError(t, err, "Wasn't expecting an error")
 
 			if !contains(configMap, test.expected, test.configSettings) {
 				t.Error("update didn't happen")
@@ -542,9 +564,9 @@ func TestConfigMigrate(t *testing.T) {
 	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
-	ds, err := config.NewStore(sqlDSN, false)
+	ds, err := config.NewStoreFromDSN(sqlDSN, false, false, nil)
 	require.NoError(t, err)
-	fs, err := config.NewStore(fileDSN, false)
+	fs, err := config.NewStoreFromDSN(fileDSN, false, false, nil)
 	require.NoError(t, err)
 
 	defer ds.Close()
@@ -634,18 +656,18 @@ func TestPluginConfigs(t *testing.T) {
 
 	configMap := configToMap(pluginConfig)
 	err := UpdateMap(configMap, []string{"Enable"}, []string{"false"})
-	require.Nil(t, err, "Wasn't expecting an error")
+	require.NoError(t, err, "Wasn't expecting an error")
 	assert.Equal(t, false, configMap["Enable"].(bool))
 
 	err = UpdateMap(configMap, []string{"Plugins", "antivirus", "clamavhostport"}, []string{"some text"})
-	require.Nil(t, err, "Wasn't expecting an error")
+	require.NoError(t, err, "Wasn't expecting an error")
 	assert.Equal(t, "some text", configMap["Plugins"].(map[string]map[string]interface{})["antivirus"]["clamavhostport"].(string))
 
 	err = UpdateMap(configMap, []string{"Plugins", "mattermost-autolink", "enableadmincommand"}, []string{"true"})
-	require.Nil(t, err, "Wasn't expecting an error")
+	require.NoError(t, err, "Wasn't expecting an error")
 	assert.Equal(t, true, configMap["Plugins"].(map[string]map[string]interface{})["mattermost-autolink"]["enableadmincommand"].(bool))
 
 	err = UpdateMap(configMap, []string{"PluginStates", "antivirus", "Enable"}, []string{"true"})
-	require.Nil(t, err, "Wasn't expecting an error")
+	require.NoError(t, err, "Wasn't expecting an error")
 	assert.Equal(t, true, configMap["PluginStates"].(map[string]*model.PluginState)["antivirus"].Enable)
 }

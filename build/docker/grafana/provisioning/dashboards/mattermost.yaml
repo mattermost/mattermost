@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: 'mattermost'
+    orgId: 1
+    folder: 'mattermost'
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 300
+    allowUiUpdates: true
+    options:
+      # <string, required> path to dashboard files on disk. Required when using the 'file' type
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true

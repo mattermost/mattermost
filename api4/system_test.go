@@ -14,20 +14,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func TestGetPing(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("basic ping", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
@@ -39,31 +39,57 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "basic ping")
 
-	})
-
-	t.Run("with server status", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
+
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
 
 		t.Run("unhealthy", func(t *testing.T) {
+			oldDriver := th.App.Config().FileSettings.DriverName
 			badDriver := "badDriverName"
 			th.App.Config().FileSettings.DriverName = &badDriver
+			defer func() {
+				th.App.Config().FileSettings.DriverName = oldDriver
+			}()
 
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "with server status")
 
-	})
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.ReloadConfig()
+		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err := ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+		respString := string(respBytes)
+		require.NotContains(t, respString, "TestFeatureFlag")
+
+		// Run the environment variable override code to test
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
+		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		th.App.ReloadConfig()
+
+		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err = ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+		respString = string(respBytes)
+		require.Contains(t, respString, "testvalue")
+	}, "ping feature flag test")
 }
 
 func TestGetAudits(t *testing.T) {
@@ -157,6 +183,34 @@ func TestEmailTest(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestGenerateSupportPacket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("As a System Administrator", func(t *testing.T) {
+		l := model.NewTestLicense()
+		th.App.Srv().SetLicense(l)
+
+		file, resp := th.SystemAdminClient.GenerateSupportPacket()
+		require.Nil(t, resp.Error)
+		require.NotZero(t, len(file))
+	})
+
+	t.Run("As a Regular User", func(t *testing.T) {
+		_, resp := th.Client.GenerateSupportPacket()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Server with no License", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		require.True(t, ok)
+
+		_, resp = th.SystemAdminClient.GenerateSupportPacket()
 		CheckForbiddenStatus(t, resp)
 	})
 }
@@ -275,6 +329,12 @@ func TestGetLogs(t *testing.T) {
 		logs, resp = c.GetLogs(-1, -1)
 		CheckNoError(t, resp)
 		require.NotEmpty(t, logs, "should not be empty")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp := th.Client.GetLogs(0, 10)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	_, resp := th.Client.GetLogs(0, 10)
@@ -447,11 +507,20 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
 
-		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
-		CheckOKStatus(t, resp)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection_s3_bucket_does_not_exist.app_error", resp.Error.Id)
+	})
+
+	t.Run("with incorrect credentials", func(t *testing.T) {
+		configCopy := config
+		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
+		_, resp := th.SystemAdminClient.TestS3Connection(&configCopy)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "api.file.test_connection_s3_auth.app_error", resp.Error.Id)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
@@ -460,7 +529,6 @@ func TestS3TestConnection(t *testing.T) {
 		_, resp := th.SystemAdminClient.TestS3Connection(&config)
 		CheckForbiddenStatus(t, resp)
 	})
-
 }
 
 func TestSupportedTimezones(t *testing.T) {
@@ -557,7 +625,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
 			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)
@@ -666,7 +734,7 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	th := Setup(t)
-	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	api := Init(th.App, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {

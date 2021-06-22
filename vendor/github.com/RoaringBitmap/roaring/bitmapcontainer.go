@@ -5,8 +5,6 @@ import (
 	"unsafe"
 )
 
-//go:generate msgp -unexported
-
 type bitmapContainer struct {
 	cardinality int
 	bitmap      []uint64
@@ -115,7 +113,7 @@ type bitmapContainerShortIterator struct {
 
 func (bcsi *bitmapContainerShortIterator) next() uint16 {
 	j := bcsi.i
-	bcsi.i = bcsi.ptr.NextSetBit(bcsi.i + 1)
+	bcsi.i = bcsi.ptr.NextSetBit(uint(bcsi.i) + 1)
 	return uint16(j)
 }
 func (bcsi *bitmapContainerShortIterator) hasNext() bool {
@@ -128,7 +126,7 @@ func (bcsi *bitmapContainerShortIterator) peekNext() uint16 {
 
 func (bcsi *bitmapContainerShortIterator) advanceIfNeeded(minval uint16) {
 	if bcsi.hasNext() && bcsi.peekNext() < minval {
-		bcsi.i = bcsi.ptr.NextSetBit(int(minval))
+		bcsi.i = bcsi.ptr.NextSetBit(uint(minval))
 	}
 }
 
@@ -194,6 +192,33 @@ func (bcmi *bitmapContainerManyIterator) nextMany(hs uint32, buf []uint32) int {
 		}
 		t := bitset & -bitset
 		buf[n] = uint32(((base * 64) + int(popcount(t-1)))) | hs
+		n = n + 1
+		bitset ^= t
+	}
+
+	bcmi.base = base
+	bcmi.bitset = bitset
+	return n
+}
+
+func (bcmi *bitmapContainerManyIterator) nextMany64(hs uint64, buf []uint64) int {
+	n := 0
+	base := bcmi.base
+	bitset := bcmi.bitset
+
+	for n < len(buf) {
+		if bitset == 0 {
+			base++
+			if base >= len(bcmi.ptr.bitmap) {
+				bcmi.base = base
+				bcmi.bitset = bitset
+				return n
+			}
+			bitset = bcmi.ptr.bitmap[base]
+			continue
+		}
+		t := bitset & -bitset
+		buf[n] = uint64(((base * 64) + int(popcount(t-1)))) | hs
 		n = n + 1
 		bitset ^= t
 	}
@@ -934,6 +959,32 @@ func (bc *bitmapContainer) loadData(arrayContainer *arrayContainer) {
 	}
 }
 
+func (bc *bitmapContainer) resetTo(a container) {
+	switch x := a.(type) {
+	case *arrayContainer:
+		fill(bc.bitmap, 0)
+		bc.loadData(x)
+
+	case *bitmapContainer:
+		bc.cardinality = x.cardinality
+		copy(bc.bitmap, x.bitmap)
+
+	case *runContainer16:
+		bc.cardinality = len(x.iv)
+		lastEnd := 0
+		for _, r := range x.iv {
+			bc.cardinality += int(r.length)
+			resetBitmapRange(bc.bitmap, lastEnd, int(r.start))
+			lastEnd = int(r.start+r.length) + 1
+			setBitmapRange(bc.bitmap, int(r.start), lastEnd)
+		}
+		resetBitmapRange(bc.bitmap, lastEnd, maxCapacity)
+
+	default:
+		panic("unsupported container type")
+	}
+}
+
 func (bc *bitmapContainer) toArrayContainer() *arrayContainer {
 	ac := &arrayContainer{}
 	ac.loadData(bc)
@@ -956,20 +1007,23 @@ func (bc *bitmapContainer) fillArray(container []uint16) {
 	}
 }
 
-func (bc *bitmapContainer) NextSetBit(i int) int {
-	x := i / 64
-	if x >= len(bc.bitmap) {
+func (bc *bitmapContainer) NextSetBit(i uint) int {
+	var (
+		x      = i / 64
+		length = uint(len(bc.bitmap))
+	)
+	if x >= length {
 		return -1
 	}
 	w := bc.bitmap[x]
 	w = w >> uint(i%64)
 	if w != 0 {
-		return i + countTrailingZeros(w)
+		return int(i) + countTrailingZeros(w)
 	}
 	x++
-	for ; x < len(bc.bitmap); x++ {
+	for ; x < length; x++ {
 		if bc.bitmap[x] != 0 {
-			return (x * 64) + countTrailingZeros(bc.bitmap[x])
+			return int(x*64) + countTrailingZeros(bc.bitmap[x])
 		}
 	}
 	return -1

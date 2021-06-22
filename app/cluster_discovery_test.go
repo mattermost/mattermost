@@ -5,7 +5,6 @@ package app
 
 import (
 	"testing"
-
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"

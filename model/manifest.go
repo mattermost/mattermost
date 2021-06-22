@@ -147,7 +147,7 @@ type Manifest struct {
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name" yaml:"name"`
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -196,9 +196,21 @@ type Manifest struct {
 }
 
 type ManifestServer struct {
-	// Executables are the paths to your executable binaries, specifying multiple entry points
-	// for different platforms when bundled together in a single plugin.
-	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
+	// AllExecutables are the paths to your executable binaries, specifying multiple entry
+	// points for different platforms when bundled together in a single plugin.
+	AllExecutables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
+
+	// Executables is a legacy field populated with a subset of supported platform executables.
+	// When unmarshalling, Executables is authoritative for the platform executable paths it
+	// contains, overriding any values in AllExecutables. When marshalling, AllExecutables
+	// is authoritative.
+	//
+	// Code duplication is avoided when (un)marshalling by leveraging type aliases in the
+	// various (Un)Marshal(JSON|YAML) methods, since aliases don't inherit the aliased type's
+	// methods.
+	//
+	// In v6.0, we should remove this field and rename AllExecutables back to Executables.
+	Executables *ManifestExecutables `json:"-" yaml:"-"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -210,6 +222,79 @@ type ManifestServer struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
+func (ms *ManifestServer) MarshalJSON() ([]byte, error) {
+	type auxManifestServer ManifestServer
+
+	// Populate AllExecutables from Executables, if it exists.
+	if ms.Executables != nil {
+		if ms.AllExecutables == nil {
+			ms.AllExecutables = make(map[string]string)
+		}
+
+		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
+		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	}
+
+	return json.Marshal((*auxManifestServer)(ms))
+}
+
+func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
+	type auxManifestServer ManifestServer
+
+	aux := (*auxManifestServer)(ms)
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	if len(aux.AllExecutables) > 0 {
+		ms.Executables = &ManifestExecutables{
+			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
+			WindowsAmd64: aux.AllExecutables["windows-amd64"],
+		}
+	}
+
+	return nil
+}
+
+func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
+	type auxManifestServer ManifestServer
+
+	// Populate AllExecutables from Executables, if it exists.
+	if ms.Executables != nil {
+		if ms.AllExecutables == nil {
+			ms.AllExecutables = make(map[string]string)
+		}
+
+		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
+		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	}
+
+	return yaml.Marshal((*auxManifestServer)(ms))
+}
+
+func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type auxManifestServer ManifestServer
+
+	aux := (*auxManifestServer)(ms)
+	if err := unmarshal(&aux); err != nil {
+		return err
+	}
+
+	if len(aux.AllExecutables) > 0 {
+		ms.Executables = &ManifestExecutables{
+			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
+			WindowsAmd64: aux.AllExecutables["windows-amd64"],
+		}
+	}
+
+	return nil
+}
+
+// ManifestExecutables is a legacy structure capturing a subet of the known platform executables.
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
@@ -287,14 +372,9 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 	}
 
 	var executable string
-	if server.Executables != nil {
-		if goOs == "linux" && goArch == "amd64" {
-			executable = server.Executables.LinuxAmd64
-		} else if goOs == "darwin" && goArch == "amd64" {
-			executable = server.Executables.DarwinAmd64
-		} else if goOs == "windows" && goArch == "amd64" {
-			executable = server.Executables.WindowsAmd64
-		}
+	if len(server.AllExecutables) > 0 {
+		osArch := fmt.Sprintf("%s-%s", goOs, goArch)
+		executable = server.AllExecutables[osArch]
 	}
 
 	if executable == "" {
@@ -327,6 +407,10 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 func (m *Manifest) IsValid() error {
 	if !IsValidPluginId(m.Id) {
 		return errors.New("invalid plugin ID")
+	}
+
+	if strings.TrimSpace(m.Name) == "" {
+		return errors.New("a plugin name is needed")
 	}
 
 	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {

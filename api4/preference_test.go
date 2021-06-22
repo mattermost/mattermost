@@ -610,7 +610,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			}
 
 			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			for i, preference := range *preferences {
 				require.Equal(t, preference.UserId, received[i].UserId)

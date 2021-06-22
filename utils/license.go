@@ -11,13 +11,14 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -31,7 +32,33 @@ a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
 hwIDAQAB
 -----END PUBLIC KEY-----`)
 
-func ValidateLicense(signed []byte) (bool, string) {
+var LicenseValidator LicenseValidatorIface
+
+func init() {
+	if LicenseValidator == nil {
+		LicenseValidator = &LicenseValidatorImpl{}
+	}
+}
+
+type LicenseValidatorIface interface {
+	LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError)
+	ValidateLicense(signed []byte) (bool, string)
+}
+
+type LicenseValidatorImpl struct {
+}
+
+func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
+	success, licenseStr := l.ValidateLicense(licenseBytes)
+	if !success {
+		return nil, model.NewAppError("LicenseFromBytes", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	}
+
+	license := model.LicenseFromJson(strings.NewReader(licenseStr))
+	return license, nil
+}
+
+func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
@@ -87,12 +114,12 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
-	if success, licenseStr := ValidateLicense(licenseBytes); !success {
+	success, licenseStr := LicenseValidator.ValidateLicense(licenseBytes)
+	if !success {
 		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
-	} else {
-		return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
 	}
+	return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {
@@ -116,9 +143,8 @@ func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		configDir, _ := fileutils.FindDir("config")
 		return filepath.Join(configDir, "mattermost.mattermost-license")
-	} else {
-		return fileLocation
 	}
+	return fileLocation
 }
 
 func GetClientLicense(l *model.License) map[string]string {
@@ -139,6 +165,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Metrics"] = strconv.FormatBool(*l.Features.Metrics)
 		props["GoogleOAuth"] = strconv.FormatBool(*l.Features.GoogleOAuth)
 		props["Office365OAuth"] = strconv.FormatBool(*l.Features.Office365OAuth)
+		props["OpenId"] = strconv.FormatBool(*l.Features.OpenId)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)
 		props["Announcement"] = strconv.FormatBool(*l.Features.Announcement)
@@ -158,7 +185,30 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["GuestAccountsPermissions"] = strconv.FormatBool(*l.Features.GuestAccountsPermissions)
 		props["CustomTermsOfService"] = strconv.FormatBool(*l.Features.CustomTermsOfService)
 		props["LockTeammateNameDisplay"] = strconv.FormatBool(*l.Features.LockTeammateNameDisplay)
+		props["Cloud"] = strconv.FormatBool(*l.Features.Cloud)
+		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
+		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
+		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 	}
 
 	return props
+}
+
+func GetSanitizedClientLicense(l map[string]string) map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range l {
+		sanitizedLicense[k] = v
+	}
+
+	delete(sanitizedLicense, "Id")
+	delete(sanitizedLicense, "Name")
+	delete(sanitizedLicense, "Email")
+	delete(sanitizedLicense, "IssuedAt")
+	delete(sanitizedLicense, "StartsAt")
+	delete(sanitizedLicense, "ExpiresAt")
+	delete(sanitizedLicense, "SkuName")
+	delete(sanitizedLicense, "SkuShortName")
+
+	return sanitizedLicense
 }

@@ -8,17 +8,17 @@ import (
 	"fmt"
 
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlOAuthStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
+func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	as := &SqlOAuthStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -55,14 +55,12 @@ func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
 
 func (as SqlOAuthStore) createIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_client_id", "OAuthAccessData", "ClientId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_refresh_token", "OAuthAccessData", "RefreshToken")
-	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
-	if len(app.Id) > 0 {
+	if app.Id != "" {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)
 	}
 

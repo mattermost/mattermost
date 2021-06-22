@@ -4,6 +4,8 @@
 package web
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"io"
 	"io/ioutil"
@@ -13,11 +15,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/app/request"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
@@ -90,13 +96,13 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
 	ruri, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
-	require.False(t, len(ruri) == 0, "redirect url should be set")
+	require.False(t, ruri == "", "redirect url should be set")
 
 	ru, _ = url.Parse(ruri)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
-	require.Nil(t, err)
-	assert.False(t, len(values.Get("access_token")) == 0, "access_token not returned")
+	require.NoError(t, err)
+	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
 	oldToken := ApiClient.AuthToken
@@ -127,6 +133,16 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ClientId = model.NewId()
 	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.Login(ApiClient, th.SystemAdminUser)
+	defer th.TearDown()
+
+	_, resp := ApiClient.AuthorizeOAuthApp(nil)
+	require.NotNil(t, resp.Error)
+	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
@@ -337,7 +353,7 @@ func TestOAuthAccessToken(t *testing.T) {
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
 	_, nErr := th.App.Srv().Store.OAuth().SaveAuthData(authData)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -349,6 +365,52 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.NotNil(t, resp.Error, "Should have failed - code is expired")
 
 	ApiClient.ClearOAuthToken()
+}
+
+func TestMobileLoginWithOAuth(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	var siteURL = "http://localhost:8065"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = siteURL })
+
+	translationFunc := i18n.GetUserTranslations("en")
+	c.AppContext.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
+		assert.NotContains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
+
+	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
+		responseWriter := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		mobileLoginWithOAuth(c, responseWriter, request)
+		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
+		assert.Contains(t, responseWriter.Body.String(), siteURL)
+	})
 }
 
 func TestOAuthComplete(t *testing.T) {
@@ -473,9 +535,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	_, err = th.App.Srv().Store.User().UpdateAuthData(
+	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, err)
+	require.NoError(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -511,11 +573,50 @@ func TestOAuthComplete(t *testing.T) {
 	}
 }
 
+func TestOAuthComplete_ErrorMessages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	c := &Context{
+		App:        th.App,
+		AppContext: &request.Context{},
+		Params: &Params{
+			Service: "gitlab",
+		},
+	}
+
+	translationFunc := i18n.GetUserTranslations("en")
+	c.AppContext.SetT(translationFunc)
+	buffer := &bytes.Buffer{}
+	c.Logger = mlog.NewTestingLogger(t, buffer)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	provider := &MattermostTestProvider{}
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	responseWriter := httptest.NewRecorder()
+
+	// Renders for web & mobile app with webview
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+
+	completeOAuth(c, responseWriter, request)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- web error message -->")
+
+	// Renders for mobile app with redirect url
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_MOBILE
+	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+
+	completeOAuth(c, responseWriter, request2)
+	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
+}
+
 func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
-	if len(authToken) > 0 {
+	if authToken != "" {
 		rq.Header.Set(model.HEADER_AUTH, authToken)
 	}
 
@@ -549,48 +650,56 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
-	return user
+	return user, nil
+}
+
+func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+	return nil, nil
+}
+
+func (m *MattermostTestProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
 }
 
 func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int) {
 	t.Helper()
 
-	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
+	require.NotNil(t, resp, "Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, true)
 
-	if expectError {
-		require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
-	} else {
-		require.Nil(t, resp.Error, "Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
-	}
+	require.NotNil(t, resp.Error, "Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
 
 	require.Equal(t, resp.StatusCode, expectedStatus, "Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusForbidden, true)
+	checkHTTPStatus(t, resp, http.StatusForbidden)
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
+	checkHTTPStatus(t, resp, http.StatusUnauthorized)
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusNotFound, true)
+	checkHTTPStatus(t, resp, http.StatusNotFound)
 }
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
+	checkHTTPStatus(t, resp, http.StatusBadRequest)
 }
 
 func (th *TestHelper) Login(client *model.Client4, user *model.User) {
@@ -621,7 +730,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -638,7 +747,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	utils.DisableDebugLogForTest()
 
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(roleName)
+		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 		if err1 != nil {
 			utils.EnableDebugLogForTest()
 			panic(err1)
@@ -695,7 +804,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
-	role, err1 := th.App.GetRoleByName(roleName)
+	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
 	if err1 != nil {
 		utils.EnableDebugLogForTest()
 		panic(err1)

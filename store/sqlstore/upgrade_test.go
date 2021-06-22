@@ -6,13 +6,26 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
+
+func TestStoreUpgradeDotRelease(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(*SqlStore)
+		saveSchemaVersion(sqlStore, "5.33.1")
+		err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
+		require.NoError(t, err)
+		require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
+	})
+}
 
 func TestStoreUpgrade(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		sqlStore := ss.(SqlStore)
+		sqlStore := ss.(*SqlStore)
 
 		t.Run("invalid currentModelVersion", func(t *testing.T) {
 			err := upgradeDatabase(sqlStore, "notaversion")
@@ -34,40 +47,40 @@ func TestStoreUpgrade(t *testing.T) {
 		})
 
 		t.Run("upgrade from earliest supported version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			saveSchemaVersion(sqlStore, Version300)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade from no existing version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "")
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier minor version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "5.1.0")
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
-			// Assert CURRENT_SCHEMA_VERSION, not 5.8.0, since the migrations will move
+			// Assert CurrentSchemaVersion, not 5.8.0, since the migrations will move
 			// past 5.8.0 regardless of the input parameter.
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running later minor version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "5.29.0")
+			saveSchemaVersion(sqlStore, "5.99.0")
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
-			require.Equal(t, "5.29.0", sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, "5.99.0", sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier major version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "4.1.0")
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running later major version", func(t *testing.T) {
@@ -81,24 +94,165 @@ func TestStoreUpgrade(t *testing.T) {
 
 func TestSaveSchemaVersion(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		sqlStore := ss.(SqlStore)
+		sqlStore := ss.(*SqlStore)
 
 		t.Run("set earliest version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
+			saveSchemaVersion(sqlStore, Version300)
 			props, err := ss.System().Get()
-			require.Nil(t, err)
+			require.NoError(t, err)
 
-			require.Equal(t, VERSION_3_0_0, props["Version"])
-			require.Equal(t, VERSION_3_0_0, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, Version300, props["Version"])
+			require.Equal(t, Version300, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("set current version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, CURRENT_SCHEMA_VERSION)
+			saveSchemaVersion(sqlStore, CurrentSchemaVersion)
 			props, err := ss.System().Get()
-			require.Nil(t, err)
+			require.NoError(t, err)
 
-			require.Equal(t, CURRENT_SCHEMA_VERSION, props["Version"])
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, props["Version"])
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 	})
+}
+func createChannelMemberWithLastViewAt(ss store.Store, channelId, userId string, lastViewAt int64) *model.ChannelMember {
+	m := model.ChannelMember{}
+	m.ChannelId = channelId
+	m.UserId = userId
+	m.LastViewedAt = lastViewAt
+	m.NotifyProps = model.GetDefaultChannelNotifyProps()
+	cm, _ := ss.Channel().SaveMember(&m)
+	return cm
+}
+func createPostWithTimestamp(ss store.Store, channelId, userId, rootId, parentId string, timestamp int64) *model.Post {
+	m := model.Post{}
+	m.CreateAt = timestamp
+	m.ChannelId = channelId
+	m.UserId = userId
+	m.RootId = rootId
+	m.ParentId = parentId
+	m.Message = "zz" + model.NewId() + "b"
+	p, _ := ss.Post().Save(&m)
+	return p
+}
+
+func createChannelWithLastPostAt(ss store.Store, teamId, creatorId string, lastPostAt, msgCount, rootCount int64) (*model.Channel, error) {
+	m := model.Channel{}
+	m.TeamId = teamId
+	m.TotalMsgCount = msgCount
+	m.TotalMsgCountRoot = rootCount
+	m.LastPostAt = lastPostAt
+	m.CreatorId = creatorId
+	m.DisplayName = "Name"
+	m.Name = "zz" + model.NewId() + "b"
+	m.Type = model.CHANNEL_OPEN
+	return ss.Channel().Save(&m, -1)
+}
+
+func TestMsgCountRootMigration(t *testing.T) {
+	type TestCaseChannel struct {
+		Name                           string
+		PostTimes                      []int64
+		ReplyTimes                     []int64
+		MembershipsLastViewAt          []int64
+		ExpectedMembershipMsgCountRoot []int64
+	}
+	type TestTableEntry struct {
+		name string
+		data []TestCaseChannel
+	}
+	testTable := []TestTableEntry{
+		{
+			name: "test1",
+			data: []TestCaseChannel{
+				{
+					Name:                           "channel with one post",
+					PostTimes:                      []int64{1000},
+					ReplyTimes:                     []int64{0},
+					MembershipsLastViewAt:          []int64{1},
+					ExpectedMembershipMsgCountRoot: []int64{0},
+				},
+				{
+					Name:                           "channel with one post, read",
+					PostTimes:                      []int64{1000},
+					ReplyTimes:                     []int64{0},
+					MembershipsLastViewAt:          []int64{1000},
+					ExpectedMembershipMsgCountRoot: []int64{1},
+				},
+				{
+					Name:                           "with one reply, viewed after 2nd root",
+					PostTimes:                      []int64{1000, 2000, 3000, 4000},
+					ReplyTimes:                     []int64{1001, 0, 0, 0},
+					MembershipsLastViewAt:          []int64{2001},
+					ExpectedMembershipMsgCountRoot: []int64{0},
+				},
+				{
+					Name:                           "two replies, 3 memberships",
+					PostTimes:                      []int64{1000, 2000, 3000},
+					ReplyTimes:                     []int64{1001, 2001, 0},
+					MembershipsLastViewAt:          []int64{2000, 5000, 0},
+					ExpectedMembershipMsgCountRoot: []int64{0, 3, 0},
+				},
+			},
+		},
+	}
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			StoreTest(t, func(t *testing.T, ss store.Store) {
+				sqlStore := ss.(*SqlStore)
+				team := createTeam(ss)
+				for _, testChannel := range testCase.data {
+					t.Run(testChannel.Name, func(t *testing.T) {
+						lastPostAt := int64(0)
+						for i := range testChannel.PostTimes {
+							if testChannel.PostTimes[i] > lastPostAt {
+								lastPostAt = testChannel.PostTimes[i]
+							}
+							if testChannel.ReplyTimes[i] > lastPostAt {
+								lastPostAt = testChannel.ReplyTimes[i]
+							}
+						}
+						channel, err := createChannelWithLastPostAt(ss, team.Id, model.NewId(), lastPostAt, int64(len(testChannel.PostTimes)+len(testChannel.ReplyTimes)), int64(len(testChannel.PostTimes)))
+						require.NoError(t, err)
+						var userIds []string
+						for _, md := range testChannel.MembershipsLastViewAt {
+							user := createUser(ss)
+							userIds = append(userIds, user.Id)
+							require.NotNil(t, user)
+							cm := createChannelMemberWithLastViewAt(ss, channel.Id, user.Id, md)
+							require.NotNil(t, cm)
+						}
+						for i, pt := range testChannel.PostTimes {
+							rt := testChannel.ReplyTimes[i]
+							post := createPostWithTimestamp(ss, channel.Id, model.NewId(), "", "", pt)
+							require.NotNil(t, post)
+							if rt > 0 {
+								reply := createPostWithTimestamp(ss, channel.Id, model.NewId(), post.Id, post.Id, rt)
+								require.NotNil(t, reply)
+							}
+						}
+
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE Channels DROP COLUMN TotalMsgCountRoot`)
+						require.NoError(t, err)
+						_, err = sqlStore.GetMaster().Exec(`ALTER TABLE ChannelMembers DROP COLUMN MsgCountRoot`)
+						require.NoError(t, err)
+						rootCountMigration(sqlStore)
+
+						members, err := ss.Channel().GetMembersByIds(channel.Id, userIds)
+						require.NoError(t, err)
+
+						for _, m := range *members {
+							for i, uid := range userIds {
+								if m.UserId == uid {
+									assert.Equal(t, testChannel.ExpectedMembershipMsgCountRoot[i], m.MsgCountRoot)
+									break
+								}
+							}
+						}
+
+					})
+				}
+			})
+		})
+	}
 }

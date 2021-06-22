@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBusySet(t *testing.T) {
@@ -86,6 +87,16 @@ func TestBusyExpires(t *testing.T) {
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 }
 
+func TestBusyRace(t *testing.T) {
+	cluster := &ClusterMock{Busy: &Busy{}}
+	busy := NewBusy(cluster)
+
+	busy.Set(500 * time.Millisecond)
+
+	// We are sleeping in order to let the race trigger.
+	time.Sleep(time.Second)
+}
+
 func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 	t.Helper()
 	if busy1.IsBusy() != busy2.IsBusy() {
@@ -107,6 +118,10 @@ type ClusterMock struct {
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	sbs := model.ServerBusyStateFromJson(strings.NewReader(msg.Data))
 	c.Busy.ClusterEventChanged(sbs)
+}
+
+func (c *ClusterMock) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
+	return nil
 }
 
 func (c *ClusterMock) StartInterNodeCommunication() {}

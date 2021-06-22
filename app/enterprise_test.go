@@ -6,18 +6,18 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestSAMLSettings(t *testing.T) {
 	tt := []struct {
 		name              string
-		setSAMLInterface  bool
 		setNewInterface   bool
 		useNewSAMLLibrary bool
 		isNil             bool
@@ -25,45 +25,25 @@ func TestSAMLSettings(t *testing.T) {
 	}{
 		{
 			name:              "No SAML Interfaces, default setting",
-			setSAMLInterface:  false,
 			setNewInterface:   false,
 			useNewSAMLLibrary: false,
 			isNil:             true,
 		},
 		{
 			name:              "No SAML Interfaces, set config true",
-			setSAMLInterface:  false,
 			setNewInterface:   false,
 			useNewSAMLLibrary: true,
 			isNil:             true,
 		},
 		{
-			name:              "Orignal SAML Interface, default setting",
-			setSAMLInterface:  true,
-			setNewInterface:   false,
-			useNewSAMLLibrary: false,
-			isNil:             false,
-			metadata:          "samlOne",
-		},
-		{
-			name:              "Orignal SAML Interface, config true",
-			setSAMLInterface:  true,
-			setNewInterface:   false,
-			useNewSAMLLibrary: true,
-			isNil:             false,
-			metadata:          "samlOne",
-		},
-		{
 			name:              "Both SAML Interfaces, default setting",
-			setSAMLInterface:  true,
 			setNewInterface:   true,
 			useNewSAMLLibrary: false,
 			isNil:             false,
-			metadata:          "samlOne",
+			metadata:          "samlTwo",
 		},
 		{
 			name:              "Both SAML Interfaces, config true",
-			setSAMLInterface:  true,
 			setNewInterface:   true,
 			useNewSAMLLibrary: true,
 			isNil:             false,
@@ -73,22 +53,11 @@ func TestSAMLSettings(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			saml := &mocks.SamlInterface{}
-			saml.Mock.On("ConfigureSP").Return(nil)
-			saml.Mock.On("GetMetadata").Return("samlOne", nil)
-			if tc.setSAMLInterface {
-				RegisterSamlInterface(func(a *App) einterfaces.SamlInterface {
-					return saml
-				})
-			} else {
-				RegisterSamlInterface(nil)
-			}
-
 			saml2 := &mocks.SamlInterface{}
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(a *App) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(s *Server) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
@@ -96,6 +65,7 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
+
 			defer th.TearDown()
 
 			mockStore := th.App.Srv().Store.(*storemocks.Store)
@@ -104,6 +74,7 @@ func TestSAMLSettings(t *testing.T) {
 			mockPostStore := storemocks.PostStore{}
 			mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 			mockSystemStore := storemocks.SystemStore{}
+			mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -117,8 +88,6 @@ func TestSAMLSettings(t *testing.T) {
 				})
 			}
 
-			th.Server.initEnterprise()
-			th.App.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {

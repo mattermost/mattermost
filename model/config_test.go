@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -307,6 +308,76 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
+	t.Run("should enable IncidentManagement plugin by default on enterprise-ready builds", func(t *testing.T) {
+		BuildEnterpriseReady = "true"
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+	})
+
+	t.Run("should not enable IncidentManagement plugin by default on non-enterprise-ready builds", func(t *testing.T) {
+		BuildEnterpriseReady = ""
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"])
+	})
+
+	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
+		BuildEnterpriseReady = ""
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.plugin-incident-management": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
+	})
+}
+
+func TestConfigDefaultChannelExportPluginState(t *testing.T) {
+	t.Run("should enable ChannelExport plugin by default on enterprise-ready builds", func(t *testing.T) {
+		BuildEnterpriseReady = "true"
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
+	})
+
+	t.Run("should not enable ChannelExport plugin by default on non-enterprise-ready builds", func(t *testing.T) {
+		BuildEnterpriseReady = ""
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"])
+	})
+
+	t.Run("should not re-enable ChannelExport plugin after it has been disabled", func(t *testing.T) {
+		BuildEnterpriseReady = ""
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.plugin-channel-export": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
+	})
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -317,63 +388,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{}
 
 	// should fail fast because mes.EnableExport is not set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(false),
 	}
 
 	// should fail fast because message export isn't enabled
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
 
 	// should fail fast because export from timestamp isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(-1)
 
 	// should fail fast because export from timestamp isn't valid
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
 	}
 
 	// should fail fast because daily runtime isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 
 	mes.DailyRunTime = NewString("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -381,13 +445,10 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	}
 
 	// should fail fast because batch size isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -396,13 +457,10 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	}
 
 	// should fail fast because export format isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -412,13 +470,10 @@ func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T
 	}
 
 	// should fail fast because global relay email address isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE),
@@ -428,13 +483,10 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	}
 
 	// should pass because everything is valid
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -444,13 +496,10 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	}
 
 	// should fail because globalrelay settings are missing
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -466,14 +515,11 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 	}
 
 	// should fail because customer type is invalid
-	require.Error(t, mes.isValid(*fs))
+	require.NotNil(t, mes.isValid())
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
@@ -542,9 +588,9 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			}
 
 			if tt.success {
-				require.Nil(t, mes.isValid(*fs))
+				require.Nil(t, mes.isValid())
 			} else {
-				require.Error(t, mes.isValid(*fs))
+				require.NotNil(t, mes.isValid())
 			}
 		})
 	}
@@ -1251,6 +1297,7 @@ func TestConfigSanitize(t *testing.T) {
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
+	*c.OpenIdSettings.Secret = "secret"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 
@@ -1261,11 +1308,56 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
+}
+
+func TestConfigFilteredByTag(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	// Remove entire sections but the map is still there
+	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, 0, len(clusterSettings))
+
+	// Some fields are removed if they have the filtering tag
+	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]interface{})
+	require.True(t, ok)
+	_, ok = serviceSettings["ListenAddress"]
+	require.False(t, ok)
+}
+
+func TestConfigToJSONFiltered(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	unmarshaledCfg := make(map[string]json.RawMessage)
+	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	require.NoError(t, err)
+
+	_, ok := unmarshaledCfg["SqlSettings"]
+	require.False(t, ok)
+
+	serviceSettingsRaw, ok := unmarshaledCfg["ServiceSettings"]
+	require.True(t, ok)
+
+	unmarshaledServiceSettings := make(map[string]json.RawMessage)
+	err = json.Unmarshal([]byte(serviceSettingsRaw), &unmarshaledServiceSettings)
+	require.NoError(t, err)
+
+	_, ok = unmarshaledServiceSettings["ListenAddress"]
+	require.False(t, ok)
+	_, ok = unmarshaledServiceSettings["SiteURL"]
+	require.True(t, ok)
 }
 
 func TestConfigMarketplaceDefaults(t *testing.T) {
@@ -1300,4 +1392,78 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		require.True(t, *c.PluginSettings.EnableMarketplace)
 		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
 	})
+}
+
+func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "off", cfg.FeatureFlags.TestFeature)
+
+	cfg = Config{
+		FeatureFlags: &FeatureFlags{
+			TestFeature: "somevalue",
+		},
+	}
+	cfg.SetDefaults()
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
+
+}
+
+func TestConfigImportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./import", *cfg.ImportSettings.Directory)
+	require.Equal(t, 30, *cfg.ImportSettings.RetentionDays)
+}
+
+func TestConfigImportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ImportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ImportSettings.Directory = ""
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ImportSettings.RetentionDays = 0
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
+}
+
+func TestConfigExportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./export", *cfg.ExportSettings.Directory)
+	require.Equal(t, 30, *cfg.ExportSettings.RetentionDays)
+}
+
+func TestConfigExportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ExportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ExportSettings.Directory = ""
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ExportSettings.RetentionDays = 0
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
 }

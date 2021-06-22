@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -83,13 +85,13 @@ func (_m *RoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, 
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: roleId
-func (_m *RoleStore) Delete(roleId string) (*model.Role, error) {
-	ret := _m.Called(roleId)
+// Delete provides a mock function with given fields: roleID
+func (_m *RoleStore) Delete(roleID string) (*model.Role, error) {
+	ret := _m.Called(roleID)
 
 	var r0 *model.Role
 	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
-		r0 = rf(roleId)
+		r0 = rf(roleID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
@@ -98,7 +100,7 @@ func (_m *RoleStore) Delete(roleId string) (*model.Role, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(roleId)
+		r1 = rf(roleID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -106,13 +108,13 @@ func (_m *RoleStore) Delete(roleId string) (*model.Role, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: roleId
-func (_m *RoleStore) Get(roleId string) (*model.Role, error) {
-	ret := _m.Called(roleId)
+// Get provides a mock function with given fields: roleID
+func (_m *RoleStore) Get(roleID string) (*model.Role, error) {
+	ret := _m.Called(roleID)
 
 	var r0 *model.Role
 	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
-		r0 = rf(roleId)
+		r0 = rf(roleID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
@@ -121,7 +123,7 @@ func (_m *RoleStore) Get(roleId string) (*model.Role, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(roleId)
+		r1 = rf(roleID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -152,13 +154,13 @@ func (_m *RoleStore) GetAll() ([]*model.Role, error) {
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: name
-func (_m *RoleStore) GetByName(name string) (*model.Role, error) {
-	ret := _m.Called(name)
+// GetByName provides a mock function with given fields: ctx, name
+func (_m *RoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+	ret := _m.Called(ctx, name)
 
 	var r0 *model.Role
-	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
-		r0 = rf(name)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Role); ok {
+		r0 = rf(ctx, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Role)
@@ -166,8 +168,8 @@ func (_m *RoleStore) GetByName(name string) (*model.Role, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(name)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, name)
 	} else {
 		r1 = ret.Error(1)
 	}

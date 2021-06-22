@@ -17,7 +17,7 @@ import (
 )
 
 func TestChannelStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestChannelStore)
+	StoreTestWithSqlStore(t, storetest.TestChannelStore)
 }
 
 func TestSearchChannelStore(t *testing.T) {
@@ -28,13 +28,13 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 	for _, st := range storeTypes {
 		t.Run(st.Name, func(t *testing.T) {
 			s := &SqlChannelStore{
-				SqlStore: st.SqlSupplier,
+				SqlStore: st.SqlStore,
 			}
 
-			opts := store.ChannelSearchOpts{}
-			builder := s.channelSearchQuery("'or'1'=sleep(3))); -- -", opts, false)
+			opts := store.ChannelSearchOpts{Term: "'or'1'=sleep(3))); -- -"}
+			builder := s.channelSearchQuery(&opts)
 			query, _, err := builder.ToSql()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.NotContains(t, query, "sleep")
 		})
 	}
@@ -69,6 +69,7 @@ func testNewChannelMemberFromModel(t *testing.T) {
 	assert.Equal(t, m.LastViewedAt, db.LastViewedAt)
 	assert.Equal(t, m.MsgCount, db.MsgCount)
 	assert.Equal(t, m.MentionCount, db.MentionCount)
+	assert.Equal(t, int64(0), m.MentionCountRoot)
 	assert.Equal(t, m.NotifyProps, db.NotifyProps)
 	assert.Equal(t, m.LastUpdateAt, db.LastUpdateAt)
 	assert.Equal(t, true, db.SchemeGuest.Valid)
@@ -111,6 +112,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 		assert.Equal(t, db.LastViewedAt, m.LastViewedAt)
 		assert.Equal(t, db.MsgCount, m.MsgCount)
 		assert.Equal(t, db.MentionCount, m.MentionCount)
+		assert.Equal(t, db.MentionCountRoot, m.MentionCountRoot)
 		assert.Equal(t, db.NotifyProps, m.NotifyProps)
 		assert.Equal(t, db.LastUpdateAt, m.LastUpdateAt)
 		assert.Equal(t, db.SchemeGuest.Bool, m.SchemeGuest)

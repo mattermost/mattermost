@@ -11,12 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -350,187 +353,187 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
-	userId := model.NewId()
-	channelId := model.NewId()
+	userID := model.NewId()
+	channelID := model.NewId()
 
-	offline := &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	away := &model.Status{UserId: userId, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	online := &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	dnd := &model.Status{UserId: userId, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	offline := &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	away := &model.Status{UserId: userID, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	online := &model.Status{UserId: userID, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	dnd := &model.Status{UserId: userID, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	tt := []struct {
 		name              string
 		userNotifySetting string
 		status            *model.Status
-		channelId         string
+		channelID         string
 		expected          bool
 	}{
 		{
 			name:              "WHEN props is ONLINE and user is offline with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is offline without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is away without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is online without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd with channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is ONLINE and user is dnd without channel",
 			userNotifySetting: model.STATUS_ONLINE,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is offline without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is away with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is away without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is AWAY and user is online with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is online without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd with channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is AWAY and user is dnd without channel",
 			userNotifySetting: model.STATUS_AWAY,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            offline,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is offline without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            offline,
-			channelId:         "",
+			channelID:         "",
 			expected:          true,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            away,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is away without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            away,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            online,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is online without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            online,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd with channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            dnd,
-			channelId:         channelId,
+			channelID:         channelID,
 			expected:          false,
 		},
 		{
 			name:              "WHEN props is OFFLINE and user is dnd without channel",
 			userNotifySetting: model.STATUS_OFFLINE,
 			status:            dnd,
-			channelId:         "",
+			channelID:         "",
 			expected:          false,
 		},
 	}
@@ -539,7 +542,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelId))
+			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID))
 		})
 	}
 }
@@ -554,6 +557,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -908,10 +912,9 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				tc.channelWideMention,
 				tc.HasFiles,
 				"user",
-				"channel",
 				tc.ChannelType,
 				tc.replyToThreadType,
-				utils.GetUserTranslations(locale),
+				i18n.GetUserTranslations(locale),
 			)
 
 			assert.Equal(t, tc.ExpectedMessage, actualMessage)
@@ -1126,6 +1129,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1180,6 +1184,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1222,6 +1227,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1238,7 +1244,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 		NotificationType: model.PUSH_TYPE_MESSAGE,
 	}
 	err := th.App.SendAckToPushProxy(ack)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
 	require.Equal(t, 1, handler.numReqs())
@@ -1246,7 +1252,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	assert.Equal(t, ack.NotificationType, handler.notificationAcks()[0].NotificationType)
 }
 
-// TestAllPushNotifications is a master test which sends all verious types
+// TestAllPushNotifications is a master test which sends all various types
 // of notifications and verifies they have been properly sent.
 func TestAllPushNotifications(t *testing.T) {
 	if testing.Short() {
@@ -1277,7 +1283,7 @@ func TestAllPushNotifications(t *testing.T) {
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
-		_, err = th.App.AddTeamMember(th.BasicTeam.Id, u.Id)
+		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
 		th.AddUserToChannel(u, th.BasicChannel)
 		testData = append(testData, userSession{
@@ -1358,6 +1364,74 @@ func TestAllPushNotifications(t *testing.T) {
 	assert.Equal(t, 6, numUpdateBadges)
 }
 
+func TestPushNotificationRace(t *testing.T) {
+	memoryStore := config.NewTestMemoryStore()
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get",
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string")).
+		Return(&model.Preference{Value: "test"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	s := &Server{
+		configStore: memoryStore,
+		Store:       mockStore,
+	}
+	app := New(ServerConnector(s))
+	require.NotPanics(t, func() {
+		s.createPushNotificationsHub()
+
+		s.StopPushNotificationsHubWorkers()
+
+		// Now we start sending messages after the PN hub is shut down.
+		// We test all 3 notification types.
+		app.clearPushNotification("currentSessionId", "userId", "channelId")
+
+		app.UpdateMobileAppBadge("userId")
+
+		notification := &PostNotification{
+			Post:    &model.Post{},
+			Channel: &model.Channel{},
+			ProfileMap: map[string]*model.User{
+				"userId": {},
+			},
+			Sender: &model.User{},
+		}
+		app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
+	})
+}
+
+func TestPushNotificationAttachment(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	originalMessage := "hello world"
+	post := &model.Post{
+		Message: originalMessage,
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					AuthorName: "testuser",
+					Text:       "test attachment",
+					Fallback:   "fallback text",
+				},
+			},
+		},
+	}
+	user := &model.User{}
+	ch := &model.Channel{}
+
+	t.Run("The notification should contain the fallback message from the attachment", func(t *testing.T) {
+		pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+		assert.Equal(t, "test: hello world\nfallback text", pn.Message)
+	})
+
+	t.Run("The original post message should not be modified", func(t *testing.T) {
+		assert.Equal(t, originalMessage, post.Message)
+	})
+}
+
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
@@ -1379,6 +1453,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 

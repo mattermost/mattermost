@@ -320,7 +320,7 @@
         "ClusterName": "",
         "OverrideHostname": "",
         "UseIpAddress": true,
-        "UseExperimentalGossip": false,
+        "UseExperimentalGossip": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
         "StreamingPort": 8075,

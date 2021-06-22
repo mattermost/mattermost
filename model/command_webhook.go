@@ -53,11 +53,11 @@ func (o *CommandWebhook) IsValid() *AppError {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.RootId) != 0 && !IsValidId(o.RootId) {
+	if o.RootId != "" && !IsValidId(o.RootId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) != 0 && !IsValidId(o.ParentId) {
+	if o.ParentId != "" && !IsValidId(o.ParentId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -20,13 +20,17 @@ package transport
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
+	"google.golang.org/grpc/internal/grpcutil"
+	"google.golang.org/grpc/status"
 )
 
 var updateHeaderTblSize = func(e *hpack.Encoder, v uint32) {
@@ -127,6 +131,14 @@ type cleanupStream struct {
 }
 
 func (c *cleanupStream) isTransportResponseFrame() bool { return c.rst } // Results in a RST_STREAM
+
+type earlyAbortStream struct {
+	streamID       uint32
+	contentSubtype string
+	status         *status.Status
+}
+
+func (*earlyAbortStream) isTransportResponseFrame() bool { return false }
 
 type dataFrame struct {
 	streamID  uint32
@@ -505,7 +517,9 @@ func (l *loopyWriter) run() (err error) {
 			// 1. When the connection is closed by some other known issue.
 			// 2. User closed the connection.
 			// 3. A graceful close of connection.
-			infof("transport: loopyWriter.run returning. %v", err)
+			if logger.V(logLevel) {
+				logger.Infof("transport: loopyWriter.run returning. %v", err)
+			}
 			err = nil
 		}
 	}()
@@ -605,7 +619,9 @@ func (l *loopyWriter) headerHandler(h *headerFrame) error {
 	if l.side == serverSide {
 		str, ok := l.estdStreams[h.streamID]
 		if !ok {
-			warningf("transport: loopy doesn't recognize the stream: %d", h.streamID)
+			if logger.V(logLevel) {
+				logger.Warningf("transport: loopy doesn't recognize the stream: %d", h.streamID)
+			}
 			return nil
 		}
 		// Case 1.A: Server is responding back with headers.
@@ -658,7 +674,9 @@ func (l *loopyWriter) writeHeader(streamID uint32, endStream bool, hf []hpack.He
 	l.hBuf.Reset()
 	for _, f := range hf {
 		if err := l.hEnc.WriteField(f); err != nil {
-			warningf("transport: loopyWriter.writeHeader encountered error while encoding headers:", err)
+			if logger.V(logLevel) {
+				logger.Warningf("transport: loopyWriter.writeHeader encountered error while encoding headers: %v", err)
+			}
 		}
 	}
 	var (
@@ -743,6 +761,24 @@ func (l *loopyWriter) cleanupStreamHandler(c *cleanupStream) error {
 	return nil
 }
 
+func (l *loopyWriter) earlyAbortStreamHandler(eas *earlyAbortStream) error {
+	if l.side == clientSide {
+		return errors.New("earlyAbortStream not handled on client")
+	}
+
+	headerFields := []hpack.HeaderField{
+		{Name: ":status", Value: "200"},
+		{Name: "content-type", Value: grpcutil.ContentType(eas.contentSubtype)},
+		{Name: "grpc-status", Value: strconv.Itoa(int(eas.status.Code()))},
+		{Name: "grpc-message", Value: encodeGrpcMessage(eas.status.Message())},
+	}
+
+	if err := l.writeHeader(eas.streamID, true, headerFields, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (l *loopyWriter) incomingGoAwayHandler(*incomingGoAway) error {
 	if l.side == clientSide {
 		l.draining = true
@@ -781,6 +817,8 @@ func (l *loopyWriter) handle(i interface{}) error {
 		return l.registerStreamHandler(i)
 	case *cleanupStream:
 		return l.cleanupStreamHandler(i)
+	case *earlyAbortStream:
+		return l.earlyAbortStreamHandler(i)
 	case *incomingGoAway:
 		return l.incomingGoAwayHandler(i)
 	case *dataFrame:

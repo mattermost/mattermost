@@ -88,8 +88,8 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -128,8 +128,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -247,7 +247,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(syncableID, syncableType)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -284,7 +284,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -321,8 +321,8 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -408,7 +408,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(syncableID, syncableType)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	b, marshalErr := json.Marshal(groupSyncable)
@@ -462,7 +462,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(syncableID, syncableType)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	auditRec.Success()
@@ -473,8 +473,8 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), syncableID, model.PERMISSION_MANAGE_TEAM) {
-			return c.App.MakePermissionError(model.PERMISSION_MANAGE_TEAM)
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PERMISSION_MANAGE_TEAM) {
+			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PERMISSION_MANAGE_TEAM})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(syncableID)
@@ -489,8 +489,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
 
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), syncableID, permission) {
-			return c.App.MakePermissionError(permission)
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), syncableID, permission) {
+			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	}
 
@@ -508,8 +508,8 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -545,8 +545,8 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -575,7 +575,7 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -611,18 +611,18 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var permission *model.Permission
 	channel, err := c.App.GetChannel(c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	var permission *model.Permission
 	if channel.Type == model.CHANNEL_PRIVATE {
-		permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
+		permission = model.PERMISSION_READ_PRIVATE_CHANNEL_GROUPS
 	} else {
-		permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
+		permission = model.PERMISSION_READ_PUBLIC_CHANNEL_GROUPS
 	}
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, permission) {
+	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, permission) {
 		c.SetPermissionError(permission)
 		return
 	}
@@ -784,7 +784,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelID, permission) {
+		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelID, permission) {
 			c.SetPermissionError(permission)
 			return
 		}
@@ -792,7 +792,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sinceString := r.URL.Query().Get("since")
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")

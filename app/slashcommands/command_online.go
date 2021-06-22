@@ -4,36 +4,37 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type OnlineProvider struct {
 }
 
 const (
-	CMD_ONLINE = "online"
+	CmdOnline = "online"
 )
 
 func init() {
 	app.RegisterCommandProvider(&OnlineProvider{})
 }
 
-func (me *OnlineProvider) GetTrigger() string {
-	return CMD_ONLINE
+func (*OnlineProvider) GetTrigger() string {
+	return CmdOnline
 }
 
-func (me *OnlineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*OnlineProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ONLINE,
+		Trigger:          CmdOnline,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_online.desc"),
 		DisplayName:      T("api.command_online.name"),
 	}
 }
 
-func (me *OnlineProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*OnlineProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusOnline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_online.success")}

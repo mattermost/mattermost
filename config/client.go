@@ -12,10 +12,11 @@ import (
 )
 
 // GenerateClientConfig renders the given configuration for a client.
-func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
-	props := GenerateLimitedClientConfig(c, diagnosticID, license)
+func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
+	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
+	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -47,22 +48,22 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
+	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
 	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
 
+	props["ExperimentalCloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
 	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
 	} else {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
 
-	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
-
-	props["ExperimentalDataPrefetch"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalDataPrefetch)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
@@ -96,6 +97,12 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+
+	props["EnableLegacySidebar"] = strconv.FormatBool(*c.ServiceSettings.EnableLegacySidebar)
+
+	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
@@ -127,8 +134,12 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["CWSUrl"] = ""
+
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	props["ExperimentalSharedChannels"] = "false"
+	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
@@ -189,13 +200,22 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
+
+		if *license.Features.Cloud {
+			props["CWSUrl"] = *c.CloudSettings.CWSUrl
+		}
+
+		if *license.Features.SharedChannels {
+			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
+			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
+		}
 	}
 
 	return props
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
-func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
+func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -206,6 +226,8 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
+	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
+	props["FileLevel"] = *c.LogSettings.FileLevel
 
 	props["SiteName"] = *c.TeamSettings.SiteName
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
@@ -248,7 +270,8 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
-	props["DiagnosticId"] = diagnosticID
+	props["DiagnosticId"] = telemetryID
+	props["TelemetryId"] = telemetryID
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
@@ -277,6 +300,10 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
+	props["EnableSignUpWithOpenId"] = "false"
+	props["OpenIdButtonText"] = ""
+	props["OpenIdButtonColor"] = ""
+	props["CWSUrl"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
@@ -310,6 +337,12 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
 		}
 
+		if *license.Features.OpenId {
+			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
+			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
+			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
+		}
+
 		if *license.Features.CustomTermsOfService {
 			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
 			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
@@ -318,6 +351,10 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 		if *license.Features.MFA {
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
+	}
+
+	for key, value := range c.FeatureFlags.ToMap() {
+		props["FeatureFlag"+key] = value
 	}
 
 	return props

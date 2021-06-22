@@ -24,36 +24,42 @@ const (
 )
 
 type ChannelUnread struct {
-	TeamId       string    `json:"team_id"`
-	ChannelId    string    `json:"channel_id"`
-	MsgCount     int64     `json:"msg_count"`
-	MentionCount int64     `json:"mention_count"`
-	NotifyProps  StringMap `json:"-"`
+	TeamId           string    `json:"team_id"`
+	ChannelId        string    `json:"channel_id"`
+	MsgCount         int64     `json:"msg_count"`
+	MentionCount     int64     `json:"mention_count"`
+	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
+	NotifyProps      StringMap `json:"-"`
 }
 
 type ChannelUnreadAt struct {
-	TeamId       string    `json:"team_id"`
-	UserId       string    `json:"user_id"`
-	ChannelId    string    `json:"channel_id"`
-	MsgCount     int64     `json:"msg_count"`
-	MentionCount int64     `json:"mention_count"`
-	LastViewedAt int64     `json:"last_viewed_at"`
-	NotifyProps  StringMap `json:"-"`
+	TeamId           string    `json:"team_id"`
+	UserId           string    `json:"user_id"`
+	ChannelId        string    `json:"channel_id"`
+	MsgCount         int64     `json:"msg_count"`
+	MentionCount     int64     `json:"mention_count"`
+	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
+	LastViewedAt     int64     `json:"last_viewed_at"`
+	NotifyProps      StringMap `json:"-"`
 }
 
 type ChannelMember struct {
-	ChannelId     string    `json:"channel_id"`
-	UserId        string    `json:"user_id"`
-	Roles         string    `json:"roles"`
-	LastViewedAt  int64     `json:"last_viewed_at"`
-	MsgCount      int64     `json:"msg_count"`
-	MentionCount  int64     `json:"mention_count"`
-	NotifyProps   StringMap `json:"notify_props"`
-	LastUpdateAt  int64     `json:"last_update_at"`
-	SchemeGuest   bool      `json:"scheme_guest"`
-	SchemeUser    bool      `json:"scheme_user"`
-	SchemeAdmin   bool      `json:"scheme_admin"`
-	ExplicitRoles string    `json:"explicit_roles"`
+	ChannelId        string    `json:"channel_id"`
+	UserId           string    `json:"user_id"`
+	Roles            string    `json:"roles"`
+	LastViewedAt     int64     `json:"last_viewed_at"`
+	MsgCount         int64     `json:"msg_count"`
+	MentionCount     int64     `json:"mention_count"`
+	MentionCountRoot int64     `json:"mention_count_root"`
+	MsgCountRoot     int64     `json:"msg_count_root"`
+	NotifyProps      StringMap `json:"notify_props"`
+	LastUpdateAt     int64     `json:"last_update_at"`
+	SchemeGuest      bool      `json:"scheme_guest"`
+	SchemeUser       bool      `json:"scheme_user"`
+	SchemeAdmin      bool      `json:"scheme_admin"`
+	ExplicitRoles    string    `json:"explicit_roles"`
 }
 
 type ChannelMembers []ChannelMember
@@ -65,11 +71,11 @@ type ChannelMemberForExport struct {
 }
 
 func (o *ChannelMembers) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelUnread) ToJson() string {
@@ -162,6 +168,18 @@ func (o *ChannelMember) PreUpdate() {
 
 func (o *ChannelMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+func (o *ChannelMember) SetChannelMuted(muted bool) {
+	if o.IsChannelMuted() {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_ALL
+	} else {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_MENTION
+	}
+}
+
+func (o *ChannelMember) IsChannelMuted() bool {
+	return o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] == CHANNEL_MARK_UNREAD_MENTION
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {

@@ -6,9 +6,9 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type webSocketHandler interface {
@@ -16,7 +16,6 @@ type webSocketHandler interface {
 }
 
 type WebSocketRouter struct {
-	server   *Server
 	app      *App
 	handlers map[string]webSocketHandler
 }
@@ -26,8 +25,6 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
-	wr.app.InitServer()
-
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		returnWebSocketError(wr.app, conn, r, err)
@@ -56,10 +53,11 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.WebSocket.Close()
 			return
 		}
-
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
+
+		// TODO: Same logic to reconnect queue as api4/websocket.go
 
 		wr.app.HubRegister(conn)
 
@@ -95,11 +93,15 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func returnWebSocketError(app *App, conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
-	mlog.Error(
+	logF := mlog.Error
+	if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+		logF = mlog.Debug
+	}
+	logF(
 		"websocket routing error.",
 		mlog.Int64("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
-		mlog.String("system_message", err.SystemMessage(utils.T)),
+		mlog.String("system_message", err.SystemMessage(i18n.T)),
 		mlog.Err(err),
 	)
 

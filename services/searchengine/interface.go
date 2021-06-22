@@ -12,7 +12,9 @@ import (
 type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
+	GetFullVersion() string
 	GetVersion() int
+	GetPlugins() []string
 	UpdateConfig(cfg *model.Config)
 	GetName() string
 	IsActive() bool
@@ -32,6 +34,12 @@ type SearchEngineInterface interface {
 	SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
 	SearchUsersInTeam(teamId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
 	DeleteUser(user *model.User) *model.AppError
+	IndexFile(file *model.FileInfo, channelId string) *model.AppError
+	SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError)
+	DeleteFile(fileID string) *model.AppError
+	DeletePostFiles(postID string) *model.AppError
+	DeleteUserFiles(userID string) *model.AppError
+	DeleteFilesBatch(endTime, limit int64) *model.AppError
 	TestConfig(cfg *model.Config) *model.AppError
 	PurgeIndexes() *model.AppError
 	RefreshIndexes() *model.AppError

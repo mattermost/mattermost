@@ -52,7 +52,7 @@ type AutocompleteArg struct {
 	HelpText string
 	// Type of the argument
 	Type AutocompleteArgType
-	// Required determins if argument is optional or not.
+	// Required determines if argument is optional or not.
 	Required bool
 	// Actual data of the argument (depends on the Type)
 	Data interface{}

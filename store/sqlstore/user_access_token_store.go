@@ -7,18 +7,18 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlUserAccessTokenStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
+func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 	s := &SqlUserAccessTokenStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -33,7 +33,6 @@ func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
 }
 
 func (s SqlUserAccessTokenStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_access_tokens_token", "UserAccessTokens", "Token")
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 

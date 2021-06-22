@@ -27,6 +27,11 @@ func NewPostList() *PostList {
 
 func (o *PostList) ToSlice() []*Post {
 	var posts []*Post
+
+	if l := len(o.Posts); l > 0 {
+		posts = make([]*Post, 0, l)
+	}
+
 	for _, id := range o.Order {
 		posts = append(posts, o.Posts[id])
 	}
@@ -58,9 +63,8 @@ func (o *PostList) ToJson() string {
 	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *PostList) MakeNonNil() {

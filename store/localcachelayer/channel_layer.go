@@ -14,7 +14,7 @@ type LocalCacheChannelStore struct {
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelMemberCountsCache.Purge()
 	} else {
 		s.rootStore.channelMemberCountsCache.Remove(msg.Data)
@@ -22,7 +22,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg 
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelPinnedPostCountsCache.Purge()
 	} else {
 		s.rootStore.channelPinnedPostCountsCache.Remove(msg.Data)
@@ -30,7 +30,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(m
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelGuestCountCache.Purge()
 	} else {
 		s.rootStore.channelGuestCountCache.Remove(msg.Data)
@@ -38,7 +38,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelByIdCache.Purge()
 	} else {
 		s.rootStore.channelByIdCache.Remove(msg.Data)
@@ -87,7 +87,7 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	}
 }
 
-func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelId, &count); err == nil {
@@ -103,7 +103,7 @@ func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache 
 	return count, err
 }
 
-func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelGuestCountCache, channelId, &count); err == nil {
@@ -133,7 +133,7 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 	return count
 }
 
-func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId, &count); err == nil {
@@ -159,8 +159,7 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	if allowFromCache {
 		var cacheItem *model.Channel
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
-			ch := cacheItem.DeepCopy()
-			return ch, nil
+			return cacheItem, nil
 		}
 	}
 
@@ -173,7 +172,7 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	return ch, err
 }
 
-func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
 	member, err := s.ChannelStore.SaveMember(member)
 	if err != nil {
 		return nil, err
@@ -182,7 +181,7 @@ func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.
 	return member, nil
 }
 
-func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	members, err := s.ChannelStore.SaveMultipleMembers(members)
 	if err != nil {
 		return nil, err
@@ -193,7 +192,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 	return members, nil
 }
 
-func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
 	member, err := s.ChannelStore.UpdateMember(member)
 	if err != nil {
 		return nil, err
@@ -202,7 +201,7 @@ func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*mode
 	return member, nil
 }
 
-func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	members, err := s.ChannelStore.UpdateMultipleMembers(members)
 	if err != nil {
 		return nil, err
@@ -213,7 +212,7 @@ func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMe
 	return members, nil
 }
 
-func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) *model.AppError {
+func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) error {
 	err := s.ChannelStore.RemoveMember(channelId, userId)
 	if err != nil {
 		return err
@@ -222,7 +221,7 @@ func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) *model.Ap
 	return nil
 }
 
-func (s LocalCacheChannelStore) RemoveMembers(channelId string, userIds []string) *model.AppError {
+func (s LocalCacheChannelStore) RemoveMembers(channelId string, userIds []string) error {
 	err := s.ChannelStore.RemoveMembers(channelId, userIds)
 	if err != nil {
 		return err

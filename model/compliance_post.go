@@ -53,6 +53,7 @@ func CompliancePostHeader() []string {
 		"UserUsername",
 		"UserEmail",
 		"UserNickname",
+		"UserType",
 
 		"PostId",
 		"PostCreateAt",
@@ -66,61 +67,58 @@ func CompliancePostHeader() []string {
 		"PostProps",
 		"PostHashtags",
 		"PostFileIds",
-		"UserType",
 	}
 }
 
 func cleanComplianceStrings(in string) string {
 	if matched, _ := regexp.MatchString("^\\s*(=|\\+|\\-)", in); matched {
 		return "'" + in
-
-	} else {
-		return in
 	}
+	return in
 }
 
-func (me *CompliancePost) Row() []string {
+func (cp *CompliancePost) Row() []string {
 
 	postDeleteAt := ""
-	if me.PostDeleteAt > 0 {
-		postDeleteAt = time.Unix(0, me.PostDeleteAt*int64(1000*1000)).Format(time.RFC3339)
+	if cp.PostDeleteAt > 0 {
+		postDeleteAt = time.Unix(0, cp.PostDeleteAt*int64(1000*1000)).Format(time.RFC3339)
 	}
 
 	postUpdateAt := ""
-	if me.PostUpdateAt != me.PostCreateAt {
-		postUpdateAt = time.Unix(0, me.PostUpdateAt*int64(1000*1000)).Format(time.RFC3339)
+	if cp.PostUpdateAt != cp.PostCreateAt {
+		postUpdateAt = time.Unix(0, cp.PostUpdateAt*int64(1000*1000)).Format(time.RFC3339)
 	}
 
 	userType := "user"
-	if me.IsBot {
+	if cp.IsBot {
 		userType = "bot"
 	}
 
 	return []string{
-		cleanComplianceStrings(me.TeamName),
-		cleanComplianceStrings(me.TeamDisplayName),
+		cleanComplianceStrings(cp.TeamName),
+		cleanComplianceStrings(cp.TeamDisplayName),
 
-		cleanComplianceStrings(me.ChannelName),
-		cleanComplianceStrings(me.ChannelDisplayName),
-		cleanComplianceStrings(me.ChannelType),
+		cleanComplianceStrings(cp.ChannelName),
+		cleanComplianceStrings(cp.ChannelDisplayName),
+		cleanComplianceStrings(cp.ChannelType),
 
-		cleanComplianceStrings(me.UserUsername),
-		cleanComplianceStrings(me.UserEmail),
-		cleanComplianceStrings(me.UserNickname),
+		cleanComplianceStrings(cp.UserUsername),
+		cleanComplianceStrings(cp.UserEmail),
+		cleanComplianceStrings(cp.UserNickname),
 		userType,
 
-		me.PostId,
-		time.Unix(0, me.PostCreateAt*int64(1000*1000)).Format(time.RFC3339),
+		cp.PostId,
+		time.Unix(0, cp.PostCreateAt*int64(1000*1000)).Format(time.RFC3339),
 		postUpdateAt,
 		postDeleteAt,
 
-		me.PostRootId,
-		me.PostParentId,
-		me.PostOriginalId,
-		cleanComplianceStrings(me.PostMessage),
-		me.PostType,
-		me.PostProps,
-		me.PostHashtags,
-		me.PostFileIds,
+		cp.PostRootId,
+		cp.PostParentId,
+		cp.PostOriginalId,
+		cleanComplianceStrings(cp.PostMessage),
+		cp.PostType,
+		cp.PostProps,
+		cp.PostHashtags,
+		cp.PostFileIds,
 	}
 }

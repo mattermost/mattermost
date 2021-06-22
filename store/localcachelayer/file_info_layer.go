@@ -14,14 +14,14 @@ type LocalCacheFileInfoStore struct {
 }
 
 func (s *LocalCacheFileInfoStore) handleClusterInvalidateFileInfo(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.fileInfoCache.Purge()
 		return
 	}
 	s.rootStore.fileInfoCache.Remove(msg.Data)
 }
 
-func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	if !allowFromCache {
 		return s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
 	}

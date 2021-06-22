@@ -10,8 +10,6 @@ import (
 	"net"
 	"net/http"
 	"time"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -86,7 +84,7 @@ func init() {
 		}
 		reservedIPRanges = append(reservedIPRanges, parsed)
 	}
-	defaultUserAgent = "mattermost-" + model.CurrentVersion
+	defaultUserAgent = "Mattermost-Bot/1.1"
 }
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)
@@ -136,7 +134,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
-func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) http.RoundTripper {
+func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *MattermostTransport {
 	dialContext := (&net.Dialer{
 		Timeout:   ConnectTimeout,
 		KeepAlive: 30 * time.Second,

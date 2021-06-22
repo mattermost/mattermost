@@ -27,6 +27,14 @@ type Logr struct {
 	shutdown           bool
 	lvlCache           levelCache
 
+	metricsInitOnce  sync.Once
+	metricsCloseOnce sync.Once
+	metricsDone      chan struct{}
+	metrics          MetricsCollector
+	queueSizeGauge   Gauge
+	loggedCounter    Counter
+	errorCounter     Counter
+
 	bufferPool sync.Pool
 
 	// MaxQueueSize is the maximum number of log records that can be queued.
@@ -95,6 +103,10 @@ type Logr struct {
 
 	// DisableBufferPool when true disables the buffer pool. See MaxPooledBuffer.
 	DisableBufferPool bool
+
+	// MetricsUpdateFreqMillis determines how often polled metrics are updated
+	// when metrics are enabled.
+	MetricsUpdateFreqMillis int64
 }
 
 // Configure adds/removes targets via the supplied `Config`.
@@ -103,35 +115,33 @@ func (logr *Logr) Configure(config *cfg.Config) error {
 	return fmt.Errorf("not implemented yet")
 }
 
-// AddTarget adds a target to the logger which will receive
-// log records for outputting.
-func (logr *Logr) AddTarget(target Target) error {
-	logr.mux.Lock()
-	defer logr.mux.Unlock()
-
-	if logr.shutdown {
-		return fmt.Errorf("logr shut down")
-	}
-
-	logr.tmux.Lock()
-	defer logr.tmux.Unlock()
-	logr.targets = append(logr.targets, target)
-
+func (logr *Logr) ensureInit() {
 	logr.once.Do(func() {
+		defer func() {
+			go logr.start()
+		}()
+
+		logr.mux.Lock()
+		defer logr.mux.Unlock()
+
 		logr.maxQueueSizeActual = logr.MaxQueueSize
 		if logr.maxQueueSizeActual == 0 {
 			logr.maxQueueSizeActual = DefaultMaxQueueSize
 		}
+
 		if logr.maxQueueSizeActual < 0 {
 			logr.maxQueueSizeActual = 0
 		}
+
 		logr.in = make(chan *LogRec, logr.maxQueueSizeActual)
 		logr.done = make(chan struct{})
+
 		if logr.UseSyncMapLevelCache {
 			logr.lvlCache = &syncMapLevelCache{}
 		} else {
 			logr.lvlCache = &arrayLevelCache{}
 		}
+
 		if logr.MaxPooledBuffer == 0 {
 			logr.MaxPooledBuffer = DefaultMaxPooledBuffer
 		}
@@ -140,11 +150,41 @@ func (logr *Logr) AddTarget(target Target) error {
 				return new(bytes.Buffer)
 			},
 		}
+
 		logr.lvlCache.setup()
-		go logr.start()
 	})
-	logr.resetLevelCache()
-	return nil
+}
+
+// AddTarget adds one or more targets to the logger which will receive
+// log records for outputting.
+func (logr *Logr) AddTarget(targets ...Target) error {
+	if logr.IsShutdown() {
+		return fmt.Errorf("AddTarget called after Logr shut down")
+	}
+
+	logr.ensureInit()
+	metrics := logr.getMetricsCollector()
+	defer logr.ResetLevelCache() // call this after tmux is released
+
+	logr.tmux.Lock()
+	defer logr.tmux.Unlock()
+
+	errs := merror.New()
+	for _, t := range targets {
+		if t == nil {
+			continue
+		}
+
+		logr.targets = append(logr.targets, t)
+		if metrics != nil {
+			if tm, ok := t.(TargetWithMetrics); ok {
+				if err := tm.EnableMetrics(metrics, logr.MetricsUpdateFreqMillis); err != nil {
+					errs.Append(err)
+				}
+			}
+		}
+	}
+	return errs.ErrorOrNil()
 }
 
 // NewLogger creates a Logger using defaults. A `Logger` is light-weight
@@ -160,28 +200,13 @@ var levelStatusDisabled = LevelStatus{}
 // IsLevelEnabled returns true if at least one target has the specified
 // level enabled. The result is cached so that subsequent checks are fast.
 func (logr *Logr) IsLevelEnabled(lvl Level) LevelStatus {
-	// Check cache. lvlCache may still be nil if no targets added.
-	if logr.lvlCache == nil {
-		return levelStatusDisabled
-	}
-	status, ok := logr.lvlCache.get(lvl.ID)
+	status, ok := logr.isLevelEnabledFromCache(lvl)
 	if ok {
 		return status
 	}
 
-	logr.mux.RLock()
-	defer logr.mux.RUnlock()
-
-	// Don't accept new log records after shutdown.
-	if logr.shutdown {
-		return levelStatusDisabled
-	}
-
-	status = LevelStatus{}
-
 	// Check each target.
 	logr.tmux.RLock()
-	defer logr.tmux.RUnlock()
 	for _, t := range logr.targets {
 		e, s := t.IsLevelEnabled(lvl)
 		if e {
@@ -192,13 +217,115 @@ func (logr *Logr) IsLevelEnabled(lvl Level) LevelStatus {
 			}
 		}
 	}
+	logr.tmux.RUnlock()
 
 	// Cache and return the result.
-	if err := logr.lvlCache.put(lvl.ID, status); err != nil {
+	if err := logr.updateLevelCache(lvl.ID, status); err != nil {
 		logr.ReportError(err)
 		return LevelStatus{}
 	}
 	return status
+}
+
+func (logr *Logr) isLevelEnabledFromCache(lvl Level) (LevelStatus, bool) {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+
+	// Don't accept new log records after shutdown.
+	if logr.shutdown {
+		return levelStatusDisabled, true
+	}
+
+	// Check cache. lvlCache may still be nil if no targets added.
+	if logr.lvlCache == nil {
+		return levelStatusDisabled, true
+	}
+	status, ok := logr.lvlCache.get(lvl.ID)
+	if ok {
+		return status, true
+	}
+	return LevelStatus{}, false
+}
+
+func (logr *Logr) updateLevelCache(id LevelID, status LevelStatus) error {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	if logr.lvlCache != nil {
+		return logr.lvlCache.put(id, status)
+	}
+	return nil
+}
+
+// HasTargets returns true only if at least one target exists within the Logr.
+func (logr *Logr) HasTargets() bool {
+	logr.tmux.RLock()
+	defer logr.tmux.RUnlock()
+	return len(logr.targets) > 0
+}
+
+// TargetInfo provides name and type for a Target.
+type TargetInfo struct {
+	Name string
+	Type string
+}
+
+// TargetInfos enumerates all the targets added to this Logr.
+// The resulting slice represents a snapshot at time of calling.
+func (logr *Logr) TargetInfos() []TargetInfo {
+	logr.tmux.RLock()
+	defer logr.tmux.RUnlock()
+
+	infos := make([]TargetInfo, 0)
+
+	for _, t := range logr.targets {
+		inf := TargetInfo{
+			Name: fmt.Sprintf("%v", t),
+			Type: fmt.Sprintf("%T", t),
+		}
+		infos = append(infos, inf)
+	}
+	return infos
+}
+
+// RemoveTargets safely removes one or more targets based on the filtering method.
+// f should return true to delete the target, false to keep it.
+// When removing a target, best effort is made to write any queued log records before
+// closing, with cxt determining how much time can be spent in total.
+// Note, keep the timeout short since this method blocks certain logging operations.
+func (logr *Logr) RemoveTargets(cxt context.Context, f func(ti TargetInfo) bool) error {
+	var removed bool
+	defer func() {
+		if removed {
+			// call this after tmux is released since
+			// it will lock mux and we don't want to
+			// introduce possible deadlock.
+			logr.ResetLevelCache()
+		}
+	}()
+
+	errs := merror.New()
+
+	logr.tmux.Lock()
+	defer logr.tmux.Unlock()
+
+	cp := make([]Target, 0)
+
+	for _, t := range logr.targets {
+		inf := TargetInfo{
+			Name: fmt.Sprintf("%v", t),
+			Type: fmt.Sprintf("%T", t),
+		}
+		if f(inf) {
+			if err := t.Shutdown(cxt); err != nil {
+				errs.Append(err)
+			}
+			removed = true
+		} else {
+			cp = append(cp, t)
+		}
+	}
+	logr.targets = cp
+	return errs.ErrorOrNil()
 }
 
 // ResetLevelCache resets the cached results of `IsLevelEnabled`. This is
@@ -279,11 +406,24 @@ func (logr *Logr) panic(err interface{}) {
 // timing out. Use `IsTimeoutError` to determine if the returned error is
 // due to a timeout.
 func (logr *Logr) Flush() error {
-	logr.mux.Lock()
-	defer logr.mux.Unlock()
-
 	ctx, cancel := context.WithTimeout(context.Background(), logr.flushTimeout())
 	defer cancel()
+	return logr.FlushWithTimeout(ctx)
+}
+
+// Flush blocks while flushing the logr queue and all target queues, by
+// writing existing log records to valid targets.
+// Any attempts to add new log records will block until flush is complete.
+// Use `IsTimeoutError` to determine if the returned error is
+// due to a timeout.
+func (logr *Logr) FlushWithTimeout(ctx context.Context) error {
+	if !logr.HasTargets() {
+		return nil
+	}
+
+	if logr.IsShutdown() {
+		return errors.New("Flush called on shut down Logr")
+	}
 
 	rec := newFlushLogRec(logr.NewLogger())
 	logr.enqueue(rec)
@@ -296,6 +436,15 @@ func (logr *Logr) Flush() error {
 	return nil
 }
 
+// IsShutdown returns true if this Logr instance has been shut down.
+// No further log records can be enqueued and no targets added after
+// shutdown.
+func (logr *Logr) IsShutdown() bool {
+	logr.mux.Lock()
+	defer logr.mux.Unlock()
+	return logr.shutdown
+}
+
 // Shutdown cleanly stops the logging engine after making best efforts
 // to flush all targets. Call this function right before application
 // exit - logr cannot be restarted once shut down.
@@ -303,6 +452,17 @@ func (logr *Logr) Flush() error {
 // timing out. Use `IsTimeoutError` to determine if the returned error is
 // due to a timeout.
 func (logr *Logr) Shutdown() error {
+	ctx, cancel := context.WithTimeout(context.Background(), logr.shutdownTimeout())
+	defer cancel()
+	return logr.ShutdownWithTimeout(ctx)
+}
+
+// Shutdown cleanly stops the logging engine after making best efforts
+// to flush all targets. Call this function right before application
+// exit - logr cannot be restarted once shut down.
+// Use `IsTimeoutError` to determine if the returned error is due to a
+// timeout.
+func (logr *Logr) ShutdownWithTimeout(ctx context.Context) error {
 	logr.mux.Lock()
 	if logr.shutdown {
 		logr.mux.Unlock()
@@ -312,10 +472,13 @@ func (logr *Logr) Shutdown() error {
 	logr.resetLevelCache()
 	logr.mux.Unlock()
 
-	errs := merror.New()
+	logr.metricsCloseOnce.Do(func() {
+		if logr.metricsDone != nil {
+			close(logr.metricsDone)
+		}
+	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), logr.shutdownTimeout())
-	defer cancel()
+	errs := merror.New()
 
 	// close the incoming channel and wait for read loop to exit.
 	if logr.in != nil {
@@ -344,6 +507,8 @@ func (logr *Logr) Shutdown() error {
 // If `OnLoggerError` is not nil, it is called with the error, otherwise the error is
 // output to `os.Stderr`.
 func (logr *Logr) ReportError(err interface{}) {
+	logr.incErrorCounter()
+
 	if logr.OnLoggerError == nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -415,6 +580,33 @@ func (logr *Logr) start() {
 	close(logr.done)
 }
 
+// startMetricsUpdater updates the metrics for any polled values every `MetricsUpdateFreqSecs` seconds until
+// logr is closed.
+func (logr *Logr) startMetricsUpdater() {
+	for {
+		updateFreq := logr.getMetricsUpdateFreqMillis()
+		if updateFreq == 0 {
+			updateFreq = DefMetricsUpdateFreqMillis
+		}
+		if updateFreq < 250 {
+			updateFreq = 250 // don't peg the CPU
+		}
+
+		select {
+		case <-logr.metricsDone:
+			return
+		case <-time.After(time.Duration(updateFreq) * time.Millisecond):
+			logr.setQueueSizeGauge(float64(len(logr.in)))
+		}
+	}
+}
+
+func (logr *Logr) getMetricsUpdateFreqMillis() int64 {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	return logr.MetricsUpdateFreqMillis
+}
+
 // fanout pushes a LogRec to all targets.
 func (logr *Logr) fanout(rec *LogRec) {
 	var target Target
@@ -424,11 +616,19 @@ func (logr *Logr) fanout(rec *LogRec) {
 		}
 	}()
 
+	var logged bool
+	defer func() {
+		if logged {
+			logr.incLoggedCounter() // call this after tmux is released
+		}
+	}()
+
 	logr.tmux.RLock()
 	defer logr.tmux.RUnlock()
 	for _, target = range logr.targets {
 		if enabled, _ := target.IsLevelEnabled(rec.Level()); enabled {
 			target.Log(rec)
+			logged = true
 		}
 	}
 }

@@ -11,11 +11,11 @@ import (
 type ChannelList []*Channel
 
 func (o *ChannelList) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelList) Etag() string {
@@ -55,11 +55,11 @@ func ChannelSliceFromJson(data io.Reader) []*Channel {
 type ChannelListWithTeamData []*ChannelWithTeamData
 
 func (o *ChannelListWithTeamData) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelListWithTeamData) Etag() string {

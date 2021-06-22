@@ -10,4 +10,6 @@ func (api *API) InitPluginLocal() {
 	api.BaseRoutes.Plugin.Handle("", api.ApiLocal(removePlugin)).Methods("DELETE")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiLocal(enablePlugin)).Methods("POST")
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiLocal(disablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiLocal(installMarketplacePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiLocal(getMarketplacePlugins)).Methods("GET")
 }

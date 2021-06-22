@@ -35,7 +35,7 @@ const avgReadMsgSizeBytes = 1024
 // WebSocketClient stores the necessary information required to
 // communicate with a WebSocket endpoint.
 // A client must read from PingTimeoutChannel, EventChannel and ResponseChannel to prevent
-// deadlocks from occuring in the program.
+// deadlocks from occurring in the program.
 type WebSocketClient struct {
 	Url                string                  // The location of the server like "ws://localhost:8065"
 	ApiUrl             string                  // The API location of the server like "ws://localhost:8065/api/v3"

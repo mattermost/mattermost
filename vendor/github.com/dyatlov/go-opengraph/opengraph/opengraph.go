@@ -17,7 +17,7 @@ type Image struct {
 	Type      string `json:"type"`
 	Width     uint64 `json:"width"`
 	Height    uint64 `json:"height"`
-	draft     bool    `json:"-"`
+	draft     bool   `json:"-"`
 }
 
 // Video defines Open Graph Video type
@@ -27,7 +27,7 @@ type Video struct {
 	Type      string `json:"type"`
 	Width     uint64 `json:"width"`
 	Height    uint64 `json:"height"`
-	draft     bool    `json:"-"`
+	draft     bool   `json:"-"`
 }
 
 // Audio defines Open Graph Audio Type
@@ -35,7 +35,7 @@ type Audio struct {
 	URL       string `json:"url"`
 	SecureURL string `json:"secure_url"`
 	Type      string `json:"type"`
-	draft     bool    `json:"-"`
+	draft     bool   `json:"-"`
 }
 
 // Article contain Open Graph Article structure
@@ -119,9 +119,6 @@ func (og *OpenGraph) ProcessHTML(buffer io.Reader) error {
 			return z.Err()
 		case html.StartTagToken, html.SelfClosingTagToken, html.EndTagToken:
 			name, hasAttr := z.TagName()
-			if atom.Lookup(name) == atom.Body {
-				return nil // OpenGraph is only in head, so we don't need body
-			}
 			if atom.Lookup(name) != atom.Meta || !hasAttr {
 				continue
 			}
@@ -185,7 +182,7 @@ func (og *OpenGraph) ProcessMeta(metaAttrs map[string]string) {
 	case "og:locale:alternate":
 		og.LocalesAlternate = append(og.LocalesAlternate, metaAttrs["content"])
 	case "og:audio":
-		if len(og.Audios)>0 && og.Audios[len(og.Audios)-1].draft {
+		if len(og.Audios) > 0 && og.Audios[len(og.Audios)-1].draft {
 			og.Audios[len(og.Audios)-1].URL = metaAttrs["content"]
 			og.Audios[len(og.Audios)-1].draft = false
 		} else {
@@ -198,7 +195,7 @@ func (og *OpenGraph) ProcessMeta(metaAttrs map[string]string) {
 		og.ensureHasAudio()
 		og.Audios[len(og.Audios)-1].Type = metaAttrs["content"]
 	case "og:image":
-		if len(og.Images)>0 && og.Images[len(og.Images)-1].draft {
+		if len(og.Images) > 0 && og.Images[len(og.Images)-1].draft {
 			og.Images[len(og.Images)-1].URL = metaAttrs["content"]
 			og.Images[len(og.Images)-1].draft = false
 		} else {
@@ -226,7 +223,7 @@ func (og *OpenGraph) ProcessMeta(metaAttrs map[string]string) {
 			og.Images[len(og.Images)-1].Height = h
 		}
 	case "og:video":
-		if len(og.Videos)>0 && og.Videos[len(og.Videos)-1].draft {
+		if len(og.Videos) > 0 && og.Videos[len(og.Videos)-1].draft {
 			og.Videos[len(og.Videos)-1].URL = metaAttrs["content"]
 			og.Videos[len(og.Videos)-1].draft = false
 		} else {

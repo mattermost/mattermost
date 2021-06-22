@@ -7,9 +7,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestCountFrames(t *testing.T) {
@@ -35,7 +36,7 @@ func TestCountFrames(t *testing.T) {
 
 		count, err := CountFrames(bytes.NewReader(b))
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
 
@@ -49,32 +50,32 @@ func TestCountFrames(t *testing.T) {
 
 		count, err := CountFrames(bytes.NewReader(b))
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 100, count)
 	})
 
 	t.Run("should count the frames of an actual animated gif", func(t *testing.T) {
 		b, err := testutils.ReadTestFile("testgif.gif")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		count, err := CountFrames(bytes.NewReader(b))
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 4, count)
 	})
 
 	t.Run("should return an error for a non-gif image", func(t *testing.T) {
 		b, err := testutils.ReadTestFile("test.png")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = CountFrames(bytes.NewReader(b))
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("should return an error for garbage data", func(t *testing.T) {
 		_, err := CountFrames(bytes.NewReader([]byte("garbage data")))
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 }

@@ -4,13 +4,12 @@
 package storetest
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"net/url"
 	"os"
 	"path"
-
-	"database/sql"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -21,17 +20,17 @@ import (
 )
 
 const (
-	defaultMysqlDSN      = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
-	defaultPostgresqlDSN = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-	defaultMysqlRootPWD  = "mostest"
+	defaultMysqlDSN        = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s&multiStatements=true"
+	defaultPostgresqlDSN   = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+	defaultMysqlRootPWD    = "mostest"
+	defaultMysqlReplicaDSN = "root:mostest@tcp(localhost:3307)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s"
 )
 
 func getEnv(name, defaultValue string) string {
 	if value := os.Getenv(name); value != "" {
 		return value
-	} else {
-		return defaultValue
 	}
+	return defaultValue
 }
 
 func log(message string) {
@@ -50,7 +49,7 @@ func log(message string) {
 
 // MySQLSettings returns the database settings to connect to the MySQL unittesting database.
 // The database name is generated randomly and must be created before use.
-func MySQLSettings() *model.SqlSettings {
+func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_MYSQL_DSN", defaultMysqlDSN)
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
@@ -59,7 +58,13 @@ func MySQLSettings() *model.SqlSettings {
 
 	cfg.DBName = "db" + model.NewId()
 
-	return databaseSettings("mysql", cfg.FormatDSN())
+	mySQLSettings := databaseSettings("mysql", cfg.FormatDSN())
+
+	if withReplica {
+		mySQLSettings.DataSourceReplicas = []string{getEnv("TEST_DATABASE_MYSQL_REPLICA_DSN", defaultMysqlReplicaDSN)}
+	}
+
+	return mySQLSettings
 }
 
 // PostgresSQLSettings returns the database settings to connect to the PostgreSQL unittesting database.
@@ -135,6 +140,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		DataSourceSearchReplicas:    []string{},
 		MaxIdleConns:                new(int),
 		ConnMaxLifetimeMilliseconds: new(int),
+		ConnMaxIdleTimeMilliseconds: new(int),
 		MaxOpenConns:                new(int),
 		Trace:                       model.NewBool(false),
 		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
@@ -142,6 +148,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
+	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
 
@@ -174,15 +181,29 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	return nil
 }
 
+func replaceMySQLDatabaseName(dsn, newDBName string) string {
+	cfg, err := mysql.ParseDSN(dsn)
+	if err != nil {
+		panic("failed to parse dsn " + dsn + ": " + err.Error())
+	}
+	cfg.DBName = newDBName
+	return cfg.FormatDSN()
+}
+
 // MakeSqlSettings creates a randomly named database and returns the corresponding sql settings
-func MakeSqlSettings(driver string) *model.SqlSettings {
+func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	var settings *model.SqlSettings
 	var dbName string
 
 	switch driver {
 	case model.DATABASE_DRIVER_MYSQL:
-		settings = MySQLSettings()
+		settings = MySQLSettings(withReplica)
 		dbName = mySQLDSNDatabase(*settings.DataSource)
+		newDSRs := []string{}
+		for _, dataSource := range settings.DataSourceReplicas {
+			newDSRs = append(newDSRs, replaceMySQLDatabaseName(dataSource, dbName))
+		}
+		settings.DataSourceReplicas = newDSRs
 	case model.DATABASE_DRIVER_POSTGRES:
 		settings = PostgreSQLSettings()
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)

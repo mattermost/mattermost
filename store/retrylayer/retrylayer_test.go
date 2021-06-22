@@ -8,9 +8,10 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/pkg/errors"
 )
 
 func genStore() *mocks.Store {
@@ -20,20 +21,26 @@ func genStore() *mocks.Store {
 	mock.On("Channel").Return(&mocks.ChannelStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
+	mock.On("RemoteCluster").Return(&mocks.RemoteClusterStore{})
 	mock.On("Command").Return(&mocks.CommandStore{})
 	mock.On("CommandWebhook").Return(&mocks.CommandWebhookStore{})
 	mock.On("Compliance").Return(&mocks.ComplianceStore{})
 	mock.On("Emoji").Return(&mocks.EmojiStore{})
 	mock.On("FileInfo").Return(&mocks.FileInfoStore{})
+	mock.On("UploadSession").Return(&mocks.UploadSessionStore{})
 	mock.On("Group").Return(&mocks.GroupStore{})
 	mock.On("Job").Return(&mocks.JobStore{})
 	mock.On("License").Return(&mocks.LicenseStore{})
 	mock.On("LinkMetadata").Return(&mocks.LinkMetadataStore{})
+	mock.On("SharedChannel").Return(&mocks.SharedChannelStore{})
 	mock.On("OAuth").Return(&mocks.OAuthStore{})
 	mock.On("Plugin").Return(&mocks.PluginStore{})
 	mock.On("Post").Return(&mocks.PostStore{})
+	mock.On("Thread").Return(&mocks.ThreadStore{})
 	mock.On("Preference").Return(&mocks.PreferenceStore{})
+	mock.On("ProductNotices").Return(&mocks.ProductNoticesStore{})
 	mock.On("Reaction").Return(&mocks.ReactionStore{})
+	mock.On("RetentionPolicy").Return(&mocks.RetentionPolicyStore{})
 	mock.On("Role").Return(&mocks.RoleStore{})
 	mock.On("Scheme").Return(&mocks.SchemeStore{})
 	mock.On("Session").Return(&mocks.SessionStore{})

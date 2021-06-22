@@ -4,14 +4,16 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetGroup(t *testing.T) {
@@ -191,6 +193,7 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.Equal(t, th.BasicChannel.TeamId, groupTeam.TeamID)
 	assert.NotNil(t, groupTeam)
 
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
@@ -595,7 +598,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
-	role, err := th.App.GetRoleByName("channel_user")
+	role, err := th.App.GetRoleByName(context.Background(), "channel_user")
 	require.Nil(t, err)
 	originalPermissions := role.Permissions
 	_, err = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
@@ -621,6 +624,7 @@ func TestPatchGroupChannel(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
+	assert.Equal(t, th.BasicChannel.TeamId, groupSyncable.TeamID)
 	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.AutoAdd = model.NewBool(true)
@@ -976,7 +980,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
 	user1.Password = "test-password-1"
 	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
@@ -1060,7 +1064,7 @@ func TestGetGroupStats(t *testing.T) {
 		assert.Equal(t, stats.TotalMemberCount, int64(0))
 	})
 
-	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
@@ -1102,7 +1106,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 		TeamId:           team.Id,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel, err := th.App.CreateChannel(channel, false)
+	channel, err := th.App.CreateChannel(th.Context, channel, false)
 	require.Nil(t, err)
 
 	// normal result of groups are returned if the team is not group-constrained

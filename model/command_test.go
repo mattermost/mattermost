@@ -86,6 +86,9 @@ func TestCommandIsValid(t *testing.T) {
 	o.URL = "1234"
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
+	o.URL = "https:////example.com"
+	require.NotNil(t, o.IsValid(), "should be invalid")
+
 	o.URL = "https://example.com"
 	require.Nil(t, o.IsValid())
 

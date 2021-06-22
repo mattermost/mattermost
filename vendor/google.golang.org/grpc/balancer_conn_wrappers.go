@@ -163,6 +163,14 @@ func (ccb *ccBalancerWrapper) RemoveSubConn(sc balancer.SubConn) {
 	ccb.cc.removeAddrConn(acbw.getAddrConn(), errConnDrain)
 }
 
+func (ccb *ccBalancerWrapper) UpdateAddresses(sc balancer.SubConn, addrs []resolver.Address) {
+	acbw, ok := sc.(*acBalancerWrapper)
+	if !ok {
+		return
+	}
+	acbw.UpdateAddresses(addrs)
+}
+
 func (ccb *ccBalancerWrapper) UpdateState(s balancer.State) {
 	ccb.mu.Lock()
 	defer ccb.mu.Unlock()
@@ -197,7 +205,7 @@ func (acbw *acBalancerWrapper) UpdateAddresses(addrs []resolver.Address) {
 	acbw.mu.Lock()
 	defer acbw.mu.Unlock()
 	if len(addrs) <= 0 {
-		acbw.ac.tearDown(errConnDrain)
+		acbw.ac.cc.removeAddrConn(acbw.ac, errConnDrain)
 		return
 	}
 	if !acbw.ac.tryUpdateAddrs(addrs) {
@@ -212,7 +220,7 @@ func (acbw *acBalancerWrapper) UpdateAddresses(addrs []resolver.Address) {
 		acbw.ac.acbw = nil
 		acbw.ac.mu.Unlock()
 		acState := acbw.ac.getState()
-		acbw.ac.tearDown(errConnDrain)
+		acbw.ac.cc.removeAddrConn(acbw.ac, errConnDrain)
 
 		if acState == connectivity.Shutdown {
 			return
@@ -220,7 +228,7 @@ func (acbw *acBalancerWrapper) UpdateAddresses(addrs []resolver.Address) {
 
 		ac, err := cc.newAddrConn(addrs, opts)
 		if err != nil {
-			channelz.Warningf(acbw.ac.channelzID, "acBalancerWrapper: UpdateAddresses: failed to newAddrConn: %v", err)
+			channelz.Warningf(logger, acbw.ac.channelzID, "acBalancerWrapper: UpdateAddresses: failed to newAddrConn: %v", err)
 			return
 		}
 		acbw.ac = ac

@@ -4,26 +4,27 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
-	SESSIONS_CLEANUP_DELAY_MILLISECONDS = 100
+	SessionsCleanupDelayMilliseconds = 100
 )
 
 type SqlSessionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSessionStore(sqlStore SqlStore) store.SessionStore {
+func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	us := &SqlSessionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -48,7 +49,7 @@ func (me SqlSessionStore) createIndexesIfNotExists() {
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
-	if len(session.Id) > 0 {
+	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
 	session.PreSave()
@@ -57,7 +58,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(session.UserId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -72,17 +73,19 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	if _, err := me.DBFromContext(ctx).Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	} else if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
 	}
 	session := sessions[0]
 
-	tempMembers, err := me.Team().GetTeamsForUser(session.UserId)
+	tempMembers, err := me.Team().GetTeamsForUser(
+		WithMaster(context.Background()),
+		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -102,7 +105,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(userId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
@@ -246,9 +249,9 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
-	if appErr != nil {
-		return appErr
+	oldSession, err := me.Get(context.Background(), session.Id)
+	if err != nil {
+		return err
 	}
 	oldSession.Props = session.Props
 
@@ -289,18 +292,18 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	var rowsAffected int64 = 1
 
 	for rowsAffected > 0 {
-		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
+		sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize})
+		if err != nil {
 			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
 			return
-		} else {
-			var rowErr error
-			rowsAffected, rowErr = sqlResult.RowsAffected()
-			if rowErr != nil {
-				mlog.Error("Unable to cleanup session store.", mlog.Err(err))
-				return
-			}
+		}
+		var rowErr error
+		rowsAffected, rowErr = sqlResult.RowsAffected()
+		if rowErr != nil {
+			mlog.Error("Unable to cleanup session store.", mlog.Err(err))
+			return
 		}
 
-		time.Sleep(SESSIONS_CLEANUP_DELAY_MILLISECONDS * time.Millisecond)
+		time.Sleep(SessionsCleanupDelayMilliseconds * time.Millisecond)
 	}
 }

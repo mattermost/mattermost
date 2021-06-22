@@ -62,7 +62,7 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 	var o CommandResponse
 	err = json.Unmarshal(b, &o)
 	if err != nil {
-		return nil, jsonutils.HumanizeJsonError(err, b)
+		return nil, jsonutils.HumanizeJSONError(err, b)
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)

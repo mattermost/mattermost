@@ -6,12 +6,12 @@ package app
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
-	DISCOVERY_SERVICE_WRITE_PING = 60 * time.Second
+	DiscoveryServiceWritePing = 60 * time.Second
 )
 
 type ClusterDiscoveryService struct {
@@ -34,54 +34,52 @@ func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
 	return a.Srv().NewClusterDiscoveryService()
 }
 
-func (me *ClusterDiscoveryService) Start() {
-	err := me.srv.Store.ClusterDiscovery().Cleanup()
+func (cds *ClusterDiscoveryService) Start() {
+	err := cds.srv.Store.ClusterDiscovery().Cleanup()
 	if err != nil {
-		mlog.Error("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
+		mlog.Warn("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
 	}
 
-	exists, err := me.srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery)
+	exists, err := cds.srv.Store.ClusterDiscovery().Exists(&cds.ClusterDiscovery)
 	if err != nil {
-		mlog.Error("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
-	} else {
-		if exists {
-			if _, err := me.srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
-				mlog.Error("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
-			}
+		mlog.Warn("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
+	} else if exists {
+		if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
+			mlog.Warn("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 		}
 	}
 
-	if err := me.srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); err != nil {
-		mlog.Error("ClusterDiscoveryService failed to save", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
+	if err := cds.srv.Store.ClusterDiscovery().Save(&cds.ClusterDiscovery); err != nil {
+		mlog.Error("ClusterDiscoveryService failed to save", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 		return
 	}
 
 	go func() {
-		mlog.Debug("ClusterDiscoveryService ping writer started", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()))
-		ticker := time.NewTicker(DISCOVERY_SERVICE_WRITE_PING)
+		mlog.Debug("ClusterDiscoveryService ping writer started", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()))
+		ticker := time.NewTicker(DiscoveryServiceWritePing)
 		defer func() {
 			ticker.Stop()
-			if _, err := me.srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
-				mlog.Error("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
+			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
+				mlog.Warn("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 			}
-			mlog.Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()))
+			mlog.Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()))
 		}()
 
 		for {
 			select {
 			case <-ticker.C:
-				if err := me.srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); err != nil {
-					mlog.Error("ClusterDiscoveryService failed to write ping", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
+				if err := cds.srv.Store.ClusterDiscovery().SetLastPingAt(&cds.ClusterDiscovery); err != nil {
+					mlog.Error("ClusterDiscoveryService failed to write ping", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 				}
-			case <-me.stop:
+			case <-cds.stop:
 				return
 			}
 		}
 	}()
 }
 
-func (me *ClusterDiscoveryService) Stop() {
-	me.stop <- true
+func (cds *ClusterDiscoveryService) Stop() {
+	cds.stop <- true
 }
 
 func (s *Server) IsLeader() bool {

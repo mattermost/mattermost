@@ -42,6 +42,7 @@ type Team struct {
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 	GroupConstrained   *bool   `json:"group_constrained"`
+	PolicyID           *string `json:"policy_id" db:"-"`
 }
 
 type TeamPatch struct {
@@ -152,7 +153,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
+	if o.Email != "" && !IsValidEmail(o.Email) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -168,7 +169,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.InviteId) == 0 {
+	if o.InviteId == "" {
 		return NewAppError("Team.IsValid", "model.team.is_valid.invite_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -208,7 +209,7 @@ func (o *Team) PreSave() {
 	o.Description = SanitizeUnicode(o.Description)
 	o.CompanyName = SanitizeUnicode(o.CompanyName)
 
-	if len(o.InviteId) == 0 {
+	if o.InviteId == "" {
 		o.InviteId = NewId()
 	}
 }

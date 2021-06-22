@@ -150,3 +150,21 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	hooks.recordTime(startTime, "FileWillBeUploaded", true)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenAdded(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenAdded", true)
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenRemoved(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
+}
+
+func (hooks *hooksTimerLayer) OnPluginClusterEvent(c *Context, ev model.PluginClusterEvent) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginClusterEvent(c, ev)
+	hooks.recordTime(startTime, "OnPluginClusterEvent", true)
+}

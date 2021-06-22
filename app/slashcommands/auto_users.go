@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -29,9 +30,9 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 		app:          a,
 		client:       client,
 		team:         team,
-		EmailLength:  USER_EMAIL_LEN,
+		EmailLength:  UserEmailLen,
 		EmailCharset: utils.LOWERCASE,
-		NameLength:   USER_NAME_LEN,
+		NameLength:   UserNameLen,
 		NameCharset:  utils.LOWERCASE,
 		Fuzzy:        false,
 	}
@@ -39,24 +40,24 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 
 // Basic test team and user so you always know one
 func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
-	found, _ := client.TeamExists(BTEST_TEAM_NAME, "")
+	found, _ := client.TeamExists(BTestTeamName, "")
 	if found {
 		return nil
 	}
 
-	newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
+	newteam := &model.Team{DisplayName: BTestTeamDisplayName, Name: BTestTeamName, Email: BTestTeamEmail, Type: BTestTeamType}
 	basicteam, resp := client.CreateTeam(newteam)
 	if resp.Error != nil {
 		return resp.Error
 	}
-	newuser := &model.User{Email: BTEST_USER_EMAIL, Nickname: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
+	newuser := &model.User{Email: BTestUserEmail, Nickname: BTestUserName, Password: BTestUserPassword}
 	ruser, resp := client.CreateUser(newuser)
 	if resp.Error != nil {
 		return resp.Error
 	}
 	_, err := a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
-		return err
+		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
@@ -77,7 +78,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
+func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, error) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
@@ -91,11 +92,11 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
 	user := &model.User{
 		Email:    userEmail,
 		Nickname: userName,
-		Password: USER_PASSWORD}
+		Password: UserPassword}
 
-	ruser, resp := cfg.client.CreateUserWithInviteId(user, cfg.team.InviteId)
-	if resp.Error != nil {
-		return nil, resp.Error
+	ruser, appErr := cfg.app.CreateUserWithInviteId(c, user, cfg.team.InviteId, "")
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
@@ -112,13 +113,13 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
 	return ruser, nil
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range) ([]*model.User, error) {
+func (cfg *AutoUserCreator) CreateTestUsers(c *request.Context, num utils.Range) ([]*model.User, error) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 
 	for i := 0; i < numUsers; i++ {
 		var err error
-		users[i], err = cfg.createRandomUser()
+		users[i], err = cfg.createRandomUser(c)
 		if err != nil {
 			return nil, err
 		}

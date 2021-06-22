@@ -4,9 +4,10 @@
 package commands
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/spf13/cobra"
 )
 
 var LdapCmd = &cobra.Command{
@@ -32,6 +33,7 @@ var LdapIdMigrate = &cobra.Command{
 }
 
 func init() {
+	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIdMigrate,
@@ -46,8 +48,10 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
+	includeRemovedMembers, _ := command.Flags().GetBool("include-removed-members")
+
 	if ldapI := a.Ldap(); ldapI != nil {
-		job, err := ldapI.StartSynchronizeJob(true)
+		job, err := ldapI.StartSynchronizeJob(true, includeRemovedMembers)
 		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
 		} else {

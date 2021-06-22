@@ -10,7 +10,10 @@ import (
 )
 
 type OauthProvider interface {
-	GetUserFromJson(data io.Reader) *model.User
+	GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error)
+	GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error)
+	GetUserFromIdToken(idToken string) (*model.User, error)
+	IsSameUser(dbUser, oAuthUser *model.User) bool
 }
 
 var oauthProviders = make(map[string]OauthProvider)

@@ -4,15 +4,14 @@
 package jobs
 
 import (
-	"sync"
+	"errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type Workers struct {
-	startOnce     sync.Once
 	ConfigService configservice.ConfigService
 	Watcher       *Watcher
 
@@ -25,15 +24,37 @@ type Workers struct {
 	Plugins                  model.Worker
 	BleveIndexing            model.Worker
 	ExpiryNotify             model.Worker
+	ProductNotices           model.Worker
+	ActiveUsers              model.Worker
+	ImportProcess            model.Worker
+	ImportDelete             model.Worker
+	ExportProcess            model.Worker
+	ExportDelete             model.Worker
+	Cloud                    model.Worker
+	ResendInvitationEmail    model.Worker
 
 	listenerId string
+	running    bool
 }
 
-func (srv *JobServer) InitWorkers() *Workers {
+var (
+	ErrWorkersNotRunning    = errors.New("job workers are not running")
+	ErrWorkersRunning       = errors.New("job workers are running")
+	ErrWorkersUninitialized = errors.New("job workers are not initialized")
+)
+
+func (srv *JobServer) InitWorkers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+
+	if srv.workers != nil && srv.workers.running {
+		return ErrWorkersRunning
+	}
+
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
 	}
-	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
+	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	if srv.DataRetentionJob != nil {
 		workers.DataRetention = srv.DataRetentionJob.MakeWorker()
@@ -70,55 +91,120 @@ func (srv *JobServer) InitWorkers() *Workers {
 	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
 		workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
 	}
-	return workers
+
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		workers.ActiveUsers = activeUsersInterface.MakeWorker()
+	}
+
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		workers.ProductNotices = productNoticesInterface.MakeWorker()
+	}
+
+	if importProcessInterface := srv.ImportProcess; importProcessInterface != nil {
+		workers.ImportProcess = importProcessInterface.MakeWorker()
+	}
+
+	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
+		workers.ImportDelete = importDeleteInterface.MakeWorker()
+	}
+
+	if exportProcessInterface := srv.ExportProcess; exportProcessInterface != nil {
+		workers.ExportProcess = exportProcessInterface.MakeWorker()
+	}
+
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		workers.ExportDelete = exportDeleteInterface.MakeWorker()
+	}
+
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		workers.Cloud = cloudInterface.MakeWorker()
+	}
+
+	if resendInvitationEmailInterface := srv.ResendInvitationEmails; resendInvitationEmailInterface != nil {
+		workers.ResendInvitationEmail = resendInvitationEmailInterface.MakeWorker()
+	}
+
+	srv.workers = workers
+
+	return nil
 }
 
-func (workers *Workers) Start() *Workers {
+// Start starts the workers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
+func (workers *Workers) Start() {
 	mlog.Info("Starting workers")
+	if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
+		go workers.DataRetention.Run()
+	}
 
-	workers.startOnce.Do(func() {
-		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
-			go workers.DataRetention.Run()
-		}
+	if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
+		go workers.MessageExport.Run()
+	}
 
-		if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
-			go workers.MessageExport.Run()
-		}
+	if workers.ElasticsearchIndexing != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
+		go workers.ElasticsearchIndexing.Run()
+	}
 
-		if workers.ElasticsearchIndexing != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
-			go workers.ElasticsearchIndexing.Run()
-		}
+	if workers.ElasticsearchAggregation != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
+		go workers.ElasticsearchAggregation.Run()
+	}
 
-		if workers.ElasticsearchAggregation != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
-			go workers.ElasticsearchAggregation.Run()
-		}
+	if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
+		go workers.LdapSync.Run()
+	}
 
-		if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
-			go workers.LdapSync.Run()
-		}
+	if workers.Migrations != nil {
+		go workers.Migrations.Run()
+	}
 
-		if workers.Migrations != nil {
-			go workers.Migrations.Run()
-		}
+	if workers.Plugins != nil {
+		go workers.Plugins.Run()
+	}
 
-		if workers.Plugins != nil {
-			go workers.Plugins.Run()
-		}
+	if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
+		go workers.BleveIndexing.Run()
+	}
 
-		if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
-			go workers.BleveIndexing.Run()
-		}
+	if workers.ExpiryNotify != nil {
+		go workers.ExpiryNotify.Run()
+	}
 
-		if workers.ExpiryNotify != nil {
-			go workers.ExpiryNotify.Run()
-		}
+	if workers.ActiveUsers != nil {
+		go workers.ActiveUsers.Run()
+	}
 
-		go workers.Watcher.Start()
-	})
+	if workers.ProductNotices != nil {
+		go workers.ProductNotices.Run()
+	}
+
+	if workers.ImportProcess != nil {
+		go workers.ImportProcess.Run()
+	}
+
+	if workers.ImportDelete != nil {
+		go workers.ImportDelete.Run()
+	}
+
+	if workers.ExportProcess != nil {
+		go workers.ExportProcess.Run()
+	}
+
+	if workers.ExportDelete != nil {
+		go workers.ExportDelete.Run()
+	}
+
+	if workers.Cloud != nil {
+		go workers.Cloud.Run()
+	}
+
+	if workers.ResendInvitationEmail != nil {
+		go workers.ResendInvitationEmail.Run()
+	}
+
+	go workers.Watcher.Start()
 
 	workers.listenerId = workers.ConfigService.AddConfigListener(workers.handleConfigChange)
-
-	return workers
+	workers.running = true
 }
 
 func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
@@ -173,7 +259,9 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	}
 }
 
-func (workers *Workers) Stop() *Workers {
+// Stop stops the workers. This call is not safe for concurrent use.
+// Synchronization should be implemented by the caller.
+func (workers *Workers) Stop() {
 	workers.ConfigService.RemoveConfigListener(workers.listenerId)
 
 	workers.Watcher.Stop()
@@ -214,7 +302,39 @@ func (workers *Workers) Stop() *Workers {
 		workers.ExpiryNotify.Stop()
 	}
 
-	mlog.Info("Stopped workers")
+	if workers.ActiveUsers != nil {
+		workers.ActiveUsers.Stop()
+	}
 
-	return workers
+	if workers.ProductNotices != nil {
+		workers.ProductNotices.Stop()
+	}
+
+	if workers.ImportProcess != nil {
+		workers.ImportProcess.Stop()
+	}
+
+	if workers.ImportDelete != nil {
+		workers.ImportDelete.Stop()
+	}
+
+	if workers.ExportProcess != nil {
+		workers.ExportProcess.Stop()
+	}
+
+	if workers.ExportDelete != nil {
+		workers.ExportDelete.Stop()
+	}
+
+	if workers.Cloud != nil {
+		workers.Cloud.Stop()
+	}
+
+	if workers.ResendInvitationEmail != nil {
+		workers.ResendInvitationEmail.Stop()
+	}
+
+	workers.running = false
+
+	mlog.Info("Stopped workers")
 }

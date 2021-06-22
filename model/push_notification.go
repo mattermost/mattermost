@@ -70,23 +70,23 @@ type PushNotification struct {
 	IsIdLoaded       bool   `json:"is_id_loaded"`
 }
 
-func (me *PushNotification) ToJson() string {
-	b, _ := json.Marshal(me)
+func (pn *PushNotification) ToJson() string {
+	b, _ := json.Marshal(pn)
 	return string(b)
 }
 
-func (me *PushNotification) DeepCopy() *PushNotification {
-	copy := *me
+func (pn *PushNotification) DeepCopy() *PushNotification {
+	copy := *pn
 	return &copy
 }
 
-func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
+func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 
 	index := strings.Index(deviceId, ":")
 
 	if index > -1 {
-		me.Platform = deviceId[:index]
-		me.DeviceId = deviceId[index+1:]
+		pn.Platform = deviceId[:index]
+		pn.DeviceId = deviceId[index+1:]
 	}
 }
 
@@ -94,11 +94,11 @@ func PushNotificationFromJson(data io.Reader) (*PushNotification, error) {
 	if data == nil {
 		return nil, errors.New("push notification data can't be nil")
 	}
-	var me *PushNotification
-	if err := json.NewDecoder(data).Decode(&me); err != nil {
+	var pn *PushNotification
+	if err := json.NewDecoder(data).Decode(&pn); err != nil {
 		return nil, err
 	}
-	return me, nil
+	return pn, nil
 }
 
 func PushNotificationAckFromJson(data io.Reader) (*PushNotificationAck, error) {

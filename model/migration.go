@@ -4,6 +4,7 @@
 package model
 
 const (
+	ADVANCED_PERMISSIONS_MIGRATION_KEY         = "AdvancedPermissionsMigrationComplete"
 	MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2 = "migration_advanced_permissions_phase_2"
 
 	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT                     = "emoji_permissions_split"
@@ -17,4 +18,21 @@ const (
 	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
 	MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS             = "channel_moderations_permissions"
 	MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION           = "add_use_group_mentions_permission"
+	MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS              = "add_system_console_permissions"
+	MIGRATION_KEY_SIDEBAR_CATEGORIES_PHASE_2                  = "migration_sidebar_categories_phase_2"
+	MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS             = "add_convert_channel_permissions"
+	MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS                = "add_system_roles_permissions"
+	MIGRATION_KEY_ADD_BILLING_PERMISSIONS                     = "add_billing_permissions"
+	MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS       = "manage_shared_channel_permissions"
+	MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS   = "manage_secure_connections_permissions"
+	MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS      = "download_compliance_export_results"
+	MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS       = "compliance_subsection_permissions"
+	MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS     = "experimental_subsection_permissions"
+	MIGRATION_KEY_ADD_AUTHENTICATION_SUBSECTION_PERMISSIONS   = "authentication_subsection_permissions"
+	MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS             = "site_subsection_permissions"
+	MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS      = "environment_subsection_permissions"
+	MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS        = "reporting_subsection_permissions"
+	MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION         = "test_email_ancillary_permission"
+	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
+	MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS     = "integrations_subsection_permissions"
 )

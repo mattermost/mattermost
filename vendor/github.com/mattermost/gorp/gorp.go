@@ -173,9 +173,13 @@ func exec(e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
-	defer cancel()
-	return executor.ExecContext(ctx, query, args...)
+	if doTimeout {
+		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+		defer cancel()
+		return executor.ExecContext(ctx, query, args...)
+	}
+
+	return executor.Exec(query, args...)
 }
 
 // maybeExpandNamedQuery checks the given arg to see if it's eligible to be used
@@ -257,14 +261,14 @@ func columnToFieldIndex(m *DbMap, t reflect.Type, name string, cols []string) ([
 			cArguments := strings.Split(field.Tag.Get("db"), ",")
 			fieldName = cArguments[0]
 
-			if tableMapped {
-				colMap := colMapOrNil(table, fieldName)
-				if colMap != nil {
-					fieldName = colMap.ColumnName
-				}
-			}
 			if fieldName == "" || fieldName == "-" {
 				fieldName = field.Name
+			}
+			if tableMapped {
+				colMap := colMapOrNil(table, fieldName)
+				if colMap != nil && colMap.ColumnName != "-" {
+					fieldName = colMap.ColumnName
+				}
 			}
 			return colName == strings.ToLower(fieldName)
 		})

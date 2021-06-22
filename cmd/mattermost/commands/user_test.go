@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"context"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
@@ -47,7 +49,7 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 	th.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
 	user, err := th.App.Srv().Store.User().GetByEmail(email)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Equal(t, email, user.Email)
 }
@@ -82,10 +84,10 @@ func TestChangeUserEmail(t *testing.T) {
 
 	th.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
 	_, err := th.App.Srv().Store.User().GetByEmail(th.BasicUser.Email)
-	require.NotNil(t, err, "should've updated to the new email")
+	require.Error(t, err, "should've updated to the new email")
 
 	user, err := th.App.Srv().Store.User().GetByEmail(newEmail)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
 
@@ -114,7 +116,7 @@ func TestDeleteUserBotUser(t *testing.T) {
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
-	_, err := th.App.Srv().Store.User().Get(th.BasicUser.Id)
+	_, err := th.App.Srv().Store.User().Get(context.Background(), th.BasicUser.Id)
 	require.Error(t, err)
 
 	// Make a bot
@@ -124,13 +126,13 @@ func TestDeleteUserBotUser(t *testing.T) {
 		OwnerId:     model.NewId(),
 	}
 	user, err := th.App.Srv().Store.User().Save(model.UserFromBot(bot))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	bot.UserId = user.Id
 	bot, nErr := th.App.Srv().Store.Bot().Save(bot)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
-	_, err = th.App.Srv().Store.User().Get(user.Id)
+	_, err = th.App.Srv().Store.User().Get(context.Background(), user.Id)
 	require.Error(t, err)
 	_, nErr = th.App.Srv().Store.Bot().Get(user.Id, true)
 	require.Error(t, nErr)
@@ -142,45 +144,45 @@ func TestConvertUser(t *testing.T) {
 
 	t.Run("Invalid command line input", func(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username)
-		require.NotNil(t, err)
+		require.Error(t, err)
 
 		err = th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user", "--bot")
-		require.NotNil(t, err)
+		require.Error(t, err)
 
 		err = th.RunCommand(t, "user", "convert", "--bot")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Convert to bot from username", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
 		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Unable to convert to user with missing password", func(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Unable to convert to user with invalid email", func(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
 			"--password", "password",
 			"--email", "invalidEmail")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Convert to user with minimum flags", func(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
 			"--password", "password")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Convert to bot from email", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser2.Email, "--bot")
 		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Convert to user with all flags", func(t *testing.T) {
@@ -193,13 +195,13 @@ func TestConvertUser(t *testing.T) {
 			"--lastname", "newLastName",
 			"--locale", "en_CA",
 			"--system_admin")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 
-		user, appErr := th.App.Srv().Store.User().Get(th.BasicUser2.Id)
-		require.Nil(t, appErr)
+		user, appErr := th.App.Srv().Store.User().Get(context.Background(), th.BasicUser2.Id)
+		require.NoError(t, appErr)
 		require.Equal(t, "newusername", user.Username)
 		require.Equal(t, "valid@email.com", user.Email)
 		require.Equal(t, "newNickname", user.Nickname)

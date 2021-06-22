@@ -13,20 +13,21 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 type supervisor struct {
 	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
-	implemented [TotalHooksId]bool
+	implemented [TotalHooksID]bool
 	pid         int
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -43,8 +44,9 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
-			log:     wrappedLogger,
-			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
+			log:        wrappedLogger,
+			driverImpl: driver,
+			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -114,15 +116,14 @@ func (sup *supervisor) Hooks() Hooks {
 func (sup *supervisor) PerformHealthCheck() error {
 	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {
-		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
+		for pingFails := 1; pingFails < HealthCheckPingFailLimit; pingFails++ {
 			pingErr = sup.Ping()
 			if pingErr == nil {
 				break
 			}
 		}
 		if pingErr != nil {
-			mlog.Debug("Error pinging plugin", mlog.Err(pingErr))
-			return fmt.Errorf("Plugin RPC connection is not responding")
+			return fmt.Errorf("plugin RPC connection is not responding")
 		}
 	}
 

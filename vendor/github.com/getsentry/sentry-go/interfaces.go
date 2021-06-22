@@ -13,9 +13,13 @@ import (
 // Protocol Docs (kinda)
 // https://github.com/getsentry/rust-sentry-types/blob/master/src/protocol/v7.rs
 
-// Level marks the severity of the event
+// transactionType is the type of a transaction event.
+const transactionType = "transaction"
+
+// Level marks the severity of the event.
 type Level string
 
+// Describes the severity of the event.
 const (
 	LevelDebug   Level = "debug"
 	LevelInfo    Level = "info"
@@ -24,7 +28,7 @@ const (
 	LevelFatal   Level = "fatal"
 )
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/sdk/
+// SdkInfo contains all metadata about about the SDK being used.
 type SdkInfo struct {
 	Name         string       `json:"name,omitempty"`
 	Version      string       `json:"version,omitempty"`
@@ -32,6 +36,7 @@ type SdkInfo struct {
 	Packages     []SdkPackage `json:"packages,omitempty"`
 }
 
+// SdkPackage describes a package that was installed.
 type SdkPackage struct {
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
@@ -39,42 +44,54 @@ type SdkPackage struct {
 
 // TODO: This type could be more useful, as map of interface{} is too generic
 // and requires a lot of type assertions in beforeBreadcrumb calls
-// plus it could just be `map[string]interface{}` then
+// plus it could just be map[string]interface{} then.
+
+// BreadcrumbHint contains information that can be associated with a Breadcrumb.
 type BreadcrumbHint map[string]interface{}
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/breadcrumbs/
+// Breadcrumb specifies an application event that occurred before a Sentry event.
+// An event may contain one or more breadcrumbs.
 type Breadcrumb struct {
+	Type      string                 `json:"type,omitempty"`
 	Category  string                 `json:"category,omitempty"`
+	Message   string                 `json:"message,omitempty"`
 	Data      map[string]interface{} `json:"data,omitempty"`
 	Level     Level                  `json:"level,omitempty"`
-	Message   string                 `json:"message,omitempty"`
 	Timestamp time.Time              `json:"timestamp"`
-	Type      string                 `json:"type,omitempty"`
 }
 
+// TODO: provide constants for known breadcrumb types.
+// See https://develop.sentry.dev/sdk/event-payloads/breadcrumbs/#breadcrumb-types.
+
+// MarshalJSON converts the Breadcrumb struct to JSON.
 func (b *Breadcrumb) MarshalJSON() ([]byte, error) {
-	type alias Breadcrumb
-	// encoding/json doesn't support the "omitempty" option for struct types.
-	// See https://golang.org/issues/11939.
-	// This implementation of MarshalJSON shadows the original Timestamp field
-	// forcing it to be omitted when the Timestamp is the zero value of
-	// time.Time.
+	// We want to omit time.Time zero values, otherwise the server will try to
+	// interpret dates too far in the past. However, encoding/json doesn't
+	// support the "omitempty" option for struct types. See
+	// https://golang.org/issues/11939.
+	//
+	// We overcome the limitation and achieve what we want by shadowing fields
+	// and a few type tricks.
+
+	// breadcrumb aliases Breadcrumb to allow calling json.Marshal without an
+	// infinite loop. It preserves all fields while none of the attached
+	// methods.
+	type breadcrumb Breadcrumb
+
 	if b.Timestamp.IsZero() {
-		return json.Marshal(&struct {
-			*alias
+		return json.Marshal(struct {
+			// Embed all of the fields of Breadcrumb.
+			*breadcrumb
+			// Timestamp shadows the original Timestamp field and is meant to
+			// remain nil, triggering the omitempty behavior.
 			Timestamp json.RawMessage `json:"timestamp,omitempty"`
-		}{
-			alias: (*alias)(b),
-		})
+		}{breadcrumb: (*breadcrumb)(b)})
 	}
-	return json.Marshal(&struct {
-		*alias
-	}{
-		alias: (*alias)(b),
-	})
+	return json.Marshal((*breadcrumb)(b))
 }
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/user/
+// User describes the user associated with an Event. If this is used, at least
+// an ID or an IP address should be provided.
 type User struct {
 	Email     string `json:"email,omitempty"`
 	ID        string `json:"id,omitempty"`
@@ -82,7 +99,7 @@ type User struct {
 	Username  string `json:"username,omitempty"`
 }
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/request/
+// Request contains information on a HTTP request related to the event.
 type Request struct {
 	URL         string            `json:"url,omitempty"`
 	Method      string            `json:"method,omitempty"`
@@ -131,19 +148,20 @@ func NewRequest(r *http.Request) *Request {
 	}
 }
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/exception/
+// Exception specifies an error that occurred.
 type Exception struct {
-	Type          string      `json:"type,omitempty"`
-	Value         string      `json:"value,omitempty"`
-	Module        string      `json:"module,omitempty"`
-	ThreadID      string      `json:"thread_id,omitempty"`
-	Stacktrace    *Stacktrace `json:"stacktrace,omitempty"`
-	RawStacktrace *Stacktrace `json:"raw_stacktrace,omitempty"`
+	Type       string      `json:"type,omitempty"`  // used as the main issue title
+	Value      string      `json:"value,omitempty"` // used as the main issue subtitle
+	Module     string      `json:"module,omitempty"`
+	ThreadID   string      `json:"thread_id,omitempty"`
+	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
 }
 
+// EventID is a hexadecimal string representing a unique uuid4 for an Event.
+// An EventID must be 32 characters long, lowercase and not have any dashes.
 type EventID string
 
-// https://docs.sentry.io/development/sdk-dev/event-payloads/
+// Event is the fundamental data structure that is sent to Sentry.
 type Event struct {
 	Breadcrumbs []*Breadcrumb          `json:"breadcrumbs,omitempty"`
 	Contexts    map[string]interface{} `json:"contexts,omitempty"`
@@ -167,30 +185,105 @@ type Event struct {
 	Modules     map[string]string      `json:"modules,omitempty"`
 	Request     *Request               `json:"request,omitempty"`
 	Exception   []Exception            `json:"exception,omitempty"`
+
+	// The fields below are only relevant for transactions.
+
+	Type      string    `json:"type,omitempty"`
+	StartTime time.Time `json:"start_timestamp"`
+	Spans     []*Span   `json:"spans,omitempty"`
 }
 
+// TODO: Event.Contexts map[string]interface{} => map[string]EventContext,
+// to prevent accidentally storing T when we mean *T.
+// For example, the TraceContext must be stored as *TraceContext to pick up the
+// MarshalJSON method (and avoid copying).
+// type EventContext interface{ EventContext() }
+
+// MarshalJSON converts the Event struct to JSON.
 func (e *Event) MarshalJSON() ([]byte, error) {
-	type alias Event
-	// encoding/json doesn't support the "omitempty" option for struct types.
-	// See https://golang.org/issues/11939.
-	// This implementation of MarshalJSON shadows the original Timestamp field
-	// forcing it to be omitted when the Timestamp is the zero value of
-	// time.Time.
-	if e.Timestamp.IsZero() {
-		return json.Marshal(&struct {
-			*alias
-			Timestamp json.RawMessage `json:"timestamp,omitempty"`
-		}{
-			alias: (*alias)(e),
-		})
+	// We want to omit time.Time zero values, otherwise the server will try to
+	// interpret dates too far in the past. However, encoding/json doesn't
+	// support the "omitempty" option for struct types. See
+	// https://golang.org/issues/11939.
+	//
+	// We overcome the limitation and achieve what we want by shadowing fields
+	// and a few type tricks.
+	if e.Type == transactionType {
+		return e.transactionMarshalJSON()
 	}
-	return json.Marshal(&struct {
-		*alias
-	}{
-		alias: (*alias)(e),
-	})
+	return e.defaultMarshalJSON()
 }
 
+func (e *Event) defaultMarshalJSON() ([]byte, error) {
+	// event aliases Event to allow calling json.Marshal without an infinite
+	// loop. It preserves all fields while none of the attached methods.
+	type event Event
+
+	// errorEvent is like Event with shadowed fields for customizing JSON
+	// marshaling.
+	type errorEvent struct {
+		*event
+
+		// Timestamp shadows the original Timestamp field. It allows us to
+		// include the timestamp when non-zero and omit it otherwise.
+		Timestamp json.RawMessage `json:"timestamp,omitempty"`
+
+		// The fields below are not part of error events and only make sense to
+		// be sent for transactions. They shadow the respective fields in Event
+		// and are meant to remain nil, triggering the omitempty behavior.
+
+		Type      json.RawMessage `json:"type,omitempty"`
+		StartTime json.RawMessage `json:"start_timestamp,omitempty"`
+		Spans     json.RawMessage `json:"spans,omitempty"`
+	}
+
+	x := errorEvent{event: (*event)(e)}
+	if !e.Timestamp.IsZero() {
+		b, err := e.Timestamp.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.Timestamp = b
+	}
+	return json.Marshal(x)
+}
+
+func (e *Event) transactionMarshalJSON() ([]byte, error) {
+	// event aliases Event to allow calling json.Marshal without an infinite
+	// loop. It preserves all fields while none of the attached methods.
+	type event Event
+
+	// transactionEvent is like Event with shadowed fields for customizing JSON
+	// marshaling.
+	type transactionEvent struct {
+		*event
+
+		// The fields below shadow the respective fields in Event. They allow us
+		// to include timestamps when non-zero and omit them otherwise.
+
+		StartTime json.RawMessage `json:"start_timestamp,omitempty"`
+		Timestamp json.RawMessage `json:"timestamp,omitempty"`
+	}
+
+	x := transactionEvent{event: (*event)(e)}
+	if !e.Timestamp.IsZero() {
+		b, err := e.Timestamp.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.Timestamp = b
+	}
+	if !e.StartTime.IsZero() {
+		b, err := e.StartTime.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		x.StartTime = b
+	}
+	return json.Marshal(x)
+}
+
+// NewEvent creates a new Event.
 func NewEvent() *Event {
 	event := Event{
 		Contexts: make(map[string]interface{}),
@@ -201,15 +294,16 @@ func NewEvent() *Event {
 	return &event
 }
 
+// Thread specifies threads that were running at the time of an event.
 type Thread struct {
-	ID            string      `json:"id,omitempty"`
-	Name          string      `json:"name,omitempty"`
-	Stacktrace    *Stacktrace `json:"stacktrace,omitempty"`
-	RawStacktrace *Stacktrace `json:"raw_stacktrace,omitempty"`
-	Crashed       bool        `json:"crashed,omitempty"`
-	Current       bool        `json:"current,omitempty"`
+	ID         string      `json:"id,omitempty"`
+	Name       string      `json:"name,omitempty"`
+	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
+	Crashed    bool        `json:"crashed,omitempty"`
+	Current    bool        `json:"current,omitempty"`
 }
 
+// EventHint contains information that can be associated with an Event.
 type EventHint struct {
 	Data               interface{}
 	EventID            string

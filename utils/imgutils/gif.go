@@ -214,7 +214,7 @@ func (b *blockReader) close() error {
 }
 
 // decode reads a GIF image from r and stores the result in d.
-func (d *decoder) decode(r io.Reader, configOnly, keepAllFrames bool) error {
+func (d *decoder) decode(r io.Reader, configOnly bool) error {
 	// Add buffering if r does not provide ReadByte.
 	if rr, ok := r.(reader); ok {
 		d.r = rr
@@ -244,7 +244,7 @@ func (d *decoder) decode(r io.Reader, configOnly, keepAllFrames bool) error {
 			}
 
 		case sImageDescriptor:
-			if err = d.readImageDescriptor(keepAllFrames); err != nil {
+			if err = d.readImageDescriptor(); err != nil {
 				return err
 			}
 
@@ -370,7 +370,7 @@ func (d *decoder) readGraphicControl() error {
 	return nil
 }
 
-func (d *decoder) readImageDescriptor(keepAllFrames bool) error {
+func (d *decoder) readImageDescriptor() error {
 	m, err := d.newImageFromDescriptor()
 	if err != nil {
 		return err
@@ -503,7 +503,7 @@ func (d *decoder) readBlock() (int, error) {
 
 func CountFrames(r io.Reader) (int, error) {
 	var d decoder
-	if err := d.decode(r, false, true); err != nil {
+	if err := d.decode(r, false); err != nil {
 		return -1, err
 	}
 	return d.imageCount, nil

@@ -87,8 +87,3 @@ func (s *Syslog) Write(rec *logr.LogRec) error {
 	}
 	return err
 }
-
-// String returns a string representation of this target.
-func (s *Syslog) String() string {
-	return "SyslogTarget"
-}

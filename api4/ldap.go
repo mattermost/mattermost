@@ -4,8 +4,8 @@
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -32,6 +32,13 @@ func (api *API) InitLdap() {
 
 	// DELETE /api/v4/ldap/groups/:remote_id/link
 	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
+
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(addLdapPublicCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(addLdapPrivateCertificate)).Methods("POST")
+
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.ApiSessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.ApiSessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
+
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -40,15 +47,21 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type LdapSyncOptions struct {
+		IncludeRemovedMembers bool `json:"include_removed_members"`
+	}
+	var opts LdapSyncOptions
+	json.NewDecoder(r.Body).Decode(&opts)
+
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_CREATE_LDAP_SYNC_JOB) {
+		c.SetPermissionError(model.PERMISSION_CREATE_LDAP_SYNC_JOB)
 		return
 	}
 
-	c.App.SyncLdap()
+	c.App.SyncLdap(opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -60,8 +73,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_TEST_LDAP) {
+		c.SetPermissionError(model.PERMISSION_TEST_LDAP)
 		return
 	}
 
@@ -74,8 +87,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -131,8 +144,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -158,7 +171,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
-	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
+	if err != nil && err.Id != "app.group.no_rows" {
 		c.Err = err
 		return
 	}
@@ -232,8 +245,8 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -264,7 +277,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 	toAttribute, ok := props["toAttribute"].(string)
-	if !ok || len(toAttribute) == 0 {
+	if !ok || toAttribute == "" {
 		c.SetInvalidParam("toAttribute")
 		return
 	}
@@ -272,7 +285,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -283,6 +296,110 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
+	err := r.ParseMultipartForm(maxFileSize)
+	if err != nil {
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	m := r.MultipartForm
+
+	fileArray, ok := m.File["certificate"]
+	if !ok {
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.no_file.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(fileArray) <= 0 {
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.array.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return fileArray[0], nil
+}
+
+func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_ADD_LDAP_PUBLIC_CERT) {
+		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PUBLIC_CERT)
+		return
+	}
+
+	fileData, err := parseLdapCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addLdapPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
+
+	if err := c.App.AddLdapPublicCertificate(fileData); err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_ADD_LDAP_PRIVATE_CERT) {
+		c.SetPermissionError(model.PERMISSION_ADD_LDAP_PRIVATE_CERT)
+		return
+	}
+
+	fileData, err := parseLdapCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addLdapPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
+
+	if err := c.App.AddLdapPrivateCertificate(fileData); err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT) {
+		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PUBLIC_CERT)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("removeLdapPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if err := c.App.RemoveLdapPublicCertificate(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT) {
+		c.SetPermissionError(model.PERMISSION_REMOVE_LDAP_PRIVATE_CERT)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("removeLdapPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if err := c.App.RemoveLdapPrivateCertificate(); err != nil {
 		c.Err = err
 		return
 	}

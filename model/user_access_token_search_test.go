@@ -4,9 +4,10 @@
 package model
 
 import (
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserAccessTokenSearchJson(t *testing.T) {

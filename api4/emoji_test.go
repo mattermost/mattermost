@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"image"
 	_ "image/gif"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestCreateEmoji(t *testing.T) {
@@ -33,6 +36,22 @@ func TestCreateEmoji(t *testing.T) {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
+	// constants to be used along with checkEmojiFile
+	emojiWidth := app.MaxEmojiWidth
+	emojiHeight := app.MaxEmojiHeight * 2
+	// check that emoji gets resized correctly, respecting proportions, and is of expected type
+	checkEmojiFile := func(id, expectedImageType string) {
+		path, _ := fileutils.FindDir("data")
+		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
+		require.NoError(t, fileErr)
+		defer file.Close()
+		config, imageType, err := image.DecodeConfig(file)
+		require.NoError(t, err)
+		require.Equal(t, expectedImageType, imageType)
+		require.Equal(t, emojiWidth/2, config.Width)
+		require.Equal(t, emojiHeight/2, config.Height)
+	}
+
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -42,11 +61,14 @@ func TestCreateEmoji(t *testing.T) {
 	_, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNotImplementedStatus(t, resp)
 
+	// enable emoji creation for next cases
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
 	// try to create a valid gif emoji when they're enabled
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, emojiWidth, emojiHeight), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "gif")
 
 	// try to create an emoji with a duplicate name
 	emoji2 := &model.Emoji{
@@ -63,9 +85,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 10, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, emojiWidth, emojiHeight, 10), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "gif")
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{
@@ -73,9 +96,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.jpeg")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from jpeg to png
 
 	// try to create a valid png emoji
 	emoji = &model.Emoji{
@@ -83,9 +107,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.png")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png")
 
 	// try to create an emoji that's too wide
 	emoji = &model.Emoji{
@@ -104,7 +129,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too wide")
+	require.NotNil(t, resp.Error, "should fail - emoji is too wide")
 
 	// try to create an emoji that's too tall
 	emoji = &model.Emoji{
@@ -113,7 +138,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too tall")
+	require.NotNil(t, resp.Error, "should fail - emoji is too tall")
 
 	// try to create an emoji that's too large
 	emoji = &model.Emoji{
@@ -122,7 +147,7 @@ func TestCreateEmoji(t *testing.T) {
 	}
 
 	_, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
-	require.Error(t, resp.Error, "should fail - emoji is too big")
+	require.NotNil(t, resp.Error, "should fail - emoji is too big")
 
 	// try to create an emoji with data that isn't an image
 	emoji = &model.Emoji{
@@ -265,7 +290,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	_, resp = Client.GetEmoji(newEmoji.Id)
 	require.NotNil(t, resp, "nil response")
-	require.Error(t, resp.Error, "expected error fetching deleted emoji")
+	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
 
 	//Admin can delete other users emoji
 	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
@@ -277,7 +302,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetEmoji(newEmoji.Id)
 	require.NotNil(t, resp, "nil response")
-	require.Error(t, resp.Error, "expected error fetching deleted emoji")
+	require.NotNil(t, resp.Error, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji
 	_, resp = Client.DeleteEmoji(newEmoji.Id)

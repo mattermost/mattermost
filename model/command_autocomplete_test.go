@@ -11,35 +11,35 @@ import (
 )
 
 func TestAutocompleteData(t *testing.T) {
-	ad := NewAutocompleteData("jira", "", "Avaliable commands:")
-	assert.Nil(t, ad.IsValid())
+	ad := NewAutocompleteData("jira", "", "Available commands:")
+	assert.NoError(t, ad.IsValid())
 	ad.RoleID = "some_id"
-	assert.NotNil(t, ad.IsValid())
+	assert.Error(t, ad.IsValid())
 	ad.RoleID = SYSTEM_ADMIN_ROLE_ID
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 	ad.AddDynamicListArgument("help", "/some/url", true)
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 	ad.AddNamedTextArgument("name", "help", "[text]", "", true)
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 
 	ad = getAutocompleteData()
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 	command := NewAutocompleteData("", "", "")
 	ad.AddCommand(command)
-	assert.NotNil(t, ad.IsValid())
+	assert.Error(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
 	command.AddTextArgument("help", "[text]", "")
 	command.AddNamedTextArgument("some", "help", "[text]", "", true)
 	ad.AddCommand(command)
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
 	command.AddDynamicListArgument("help", "valid_url", true)
 	ad.AddCommand(command)
-	assert.Nil(t, ad.IsValid())
+	assert.NoError(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
@@ -53,29 +53,29 @@ func TestAutocompleteData(t *testing.T) {
 	}
 	command.AddStaticListArgument("help", true, items)
 	ad.AddCommand(command)
-	assert.NotNil(t, ad.IsValid())
+	assert.Error(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	ad.AddCommand(nil)
-	assert.NotNil(t, ad.IsValid())
+	assert.Error(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("Disconnect", "", "")
 	ad.AddCommand(command)
-	assert.NotNil(t, ad.IsValid())
+	assert.Error(t, ad.IsValid())
 }
 
 func TestAutocompleteDataJSON(t *testing.T) {
 	ad := getAutocompleteData()
 	b, err := ad.ToJSON()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	ad2, err := AutocompleteDataFromJSON(b)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, ad2.Equals(ad))
 }
 
 func getAutocompleteData() *AutocompleteData {
-	ad := NewAutocompleteData("jira", "", "Avaliable commands:")
+	ad := NewAutocompleteData("jira", "", "Available commands:")
 	ad.RoleID = SYSTEM_USER_ROLE_ID
 	command := NewAutocompleteData("connect", "", "Connect to mattermost")
 	command.RoleID = SYSTEM_ADMIN_ROLE_ID
@@ -101,7 +101,7 @@ func TestUpdateRelativeURLsForPluginCommands(t *testing.T) {
 	ad := getAutocompleteData()
 	baseURL, _ := url.Parse("http://localhost:8065/plugins/com.mattermost.demo-plugin")
 	err := ad.UpdateRelativeURLsForPluginCommands(baseURL)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	arg, ok := ad.SubCommands[0].Arguments[2].Data.(*AutocompleteDynamicListArg)
 	assert.True(t, ok)
 	assert.Equal(t, "http://localhost:8065/plugins/com.mattermost.demo-plugin/other/url", arg.FetchURL)

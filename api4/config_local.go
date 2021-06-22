@@ -14,10 +14,19 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(getConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localGetConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localUpdateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiLocal(localPatchConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiLocal(migrateConfig)).Methods("POST")
+}
+
+func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	cfg := c.App.GetSanitizedConfig()
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(cfg.ToJson()))
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -48,19 +57,26 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(cfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	cfg = c.App.GetSanitizedConfig()
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
+
+	newCfg.Sanitize()
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	w.Write([]byte(newCfg.ToJson()))
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -77,9 +93,6 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	filterFn := func(structField reflect.StructField, base, patch reflect.Value) bool {
 		return true
 	}
-
-	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
 
 	if cfg.MessageExportSettings.EnableExport != nil {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
@@ -100,11 +113,18 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SaveConfig(updatedCfg, true)
+	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	diffs, diffErr := config.Diff(oldCfg, newCfg)
+	if diffErr != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	auditRec.AddMeta("diff", diffs)
 
 	auditRec.Success()
 

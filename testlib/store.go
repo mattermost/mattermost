@@ -24,6 +24,9 @@ func (s *TestStore) Close() {
 func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore := mocks.Store{}
 	systemStore := mocks.SystemStore{}
+	systemStore.On("GetByName", "ContentExtractionConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "ContentExtractionConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "UpgradedFromTE").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
+	systemStore.On("GetByName", "ContentExtractionConfigMigrationComplete").Return(&model.System{Name: "ContentExtractionConfigMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "AsymmetricSigningKey").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
 	systemStore.On("GetByName", "PostActionCookieSecret").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
 	systemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: strconv.FormatInt(model.GetMillis(), 10)}, nil)
@@ -31,6 +34,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "AdvancedPermissionsMigrationComplete").Return(&model.System{Name: "AdvancedPermissionsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "EmojisPermissionsMigrationComplete").Return(&model.System{Name: "EmojisPermissionsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "GuestRolesCreationMigrationComplete").Return(&model.System{Name: "GuestRolesCreationMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT).Return(&model.System{Name: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT).Return(&model.System{Name: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS).Return(&model.System{Name: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Value: "true"}, nil)
@@ -42,6 +46,22 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_AUTHENTICATION_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_AUTHENTICATION_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 
@@ -64,15 +84,24 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	teamStore := mocks.TeamStore{}
 
+	roleStore := mocks.RoleStore{}
+	roleStore.On("GetAll").Return([]*model.Role{}, nil)
+
+	sessionStore := mocks.SessionStore{}
+	oAuthStore := mocks.OAuthStore{}
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
 	mockStore.On("Status").Return(&statusStore)
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
+	mockStore.On("Role").Return(&roleStore)
 	mockStore.On("Scheme").Return(&schemeStore)
 	mockStore.On("Close").Return(nil)
 	mockStore.On("DropAllTables").Return(nil)
 	mockStore.On("MarkSystemRanUnitTests").Return(nil)
+	mockStore.On("Session").Return(&sessionStore)
+	mockStore.On("OAuth").Return(&oAuthStore)
 	return &mockStore
 }

@@ -23,7 +23,7 @@ func (i *GuestsInvite) IsValid() *AppError {
 	}
 
 	for _, email := range i.Emails {
-		if len(email) > USER_EMAIL_MAX_LENGTH || len(email) == 0 || !IsValidEmail(email) {
+		if len(email) > USER_EMAIL_MAX_LENGTH || email == "" || !IsValidEmail(email) {
 			return NewAppError("GuestsInvite.IsValid", "model.guest.is_valid.email.app_error", nil, "email="+email, http.StatusBadRequest)
 		}
 	}

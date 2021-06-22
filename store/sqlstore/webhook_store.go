@@ -6,23 +6,23 @@ package sqlstore
 import (
 	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlWebhookStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
 func (s SqlWebhookStore) ClearCaches() {
 }
 
-func newSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
+func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
 	s := &SqlWebhookStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -36,6 +36,8 @@ func newSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		table.ColMap("TeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("Description").SetMaxSize(500)
+		table.ColMap("Username").SetMaxSize(255)
+		table.ColMap("IconURL").SetMaxSize(1024)
 
 		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
@@ -75,7 +77,7 @@ func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 
-	if len(webhook.Id) > 0 {
+	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("IncomingWebhook", "id", webhook.Id)
 	}
 
@@ -152,7 +154,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 		From("IncomingWebhooks").
 		Where(sq.Eq{"DeleteAt": int(0)}).Limit(uint64(limit)).Offset(uint64(offset))
 
-	if len(userId) > 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
 	}
 
@@ -180,7 +182,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 			sq.Eq{"DeleteAt": int(0)},
 		}).Limit(uint64(limit)).Offset(uint64(offset))
 
-	if len(userId) > 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"UserId": userId})
 	}
 
@@ -211,7 +213,7 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomi
 }
 
 func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
-	if len(webhook.Id) > 0 {
+	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("OutgoingWebhook", "id", webhook.Id)
 	}
 
@@ -252,7 +254,7 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 			sq.Eq{"DeleteAt": int(0)},
 		}).Limit(uint64(limit)).Offset(uint64(offset))
 
-	if len(userId) > 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
 	}
 
@@ -284,7 +286,7 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 			sq.Eq{"DeleteAt": int(0)},
 		})
 
-	if len(userId) > 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
 	}
 	if limit >= 0 && offset >= 0 {
@@ -318,7 +320,7 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 			sq.Eq{"DeleteAt": int(0)},
 		})
 
-	if len(userId) > 0 {
+	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
 	}
 	if limit >= 0 && offset >= 0 {
@@ -389,7 +391,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
 		WHERE
 			DeleteAt = 0`
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query += " AND TeamId = :TeamId"
 	}
 
@@ -410,7 +412,7 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 		WHERE
 			DeleteAt = 0`
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query += " AND TeamId = :TeamId"
 	}
 

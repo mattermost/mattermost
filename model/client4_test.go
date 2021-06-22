@@ -12,6 +12,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// https://github.com/mattermost/mattermost-plugin-starter-template/issues/115
+func TestClient4TrimTrailingSlash(t *testing.T) {
+	slashes := []int{0, 1, 5}
+	baseUrl := "https://foo.com:1234"
+
+	for _, s := range slashes {
+		testUrl := baseUrl + strings.Repeat("/", s)
+		client := NewAPIv4Client(testUrl)
+		assert.Equal(t, baseUrl, client.Url)
+		assert.Equal(t, baseUrl+API_URL_SUFFIX, client.ApiUrl)
+	}
+}
+
 // https://github.com/mattermost/mattermost-server/v5/issues/8205
 func TestClient4CreatePost(t *testing.T) {
 	post := &Post{

@@ -5,6 +5,7 @@ package oauthgitlab
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -55,47 +56,60 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	return user
 }
 
-func gitLabUserFromJson(data io.Reader) *GitLabUser {
+func gitLabUserFromJson(data io.Reader) (*GitLabUser, error) {
 	decoder := json.NewDecoder(data)
 	var glu GitLabUser
 	err := decoder.Decode(&glu)
-	if err == nil {
-		return &glu
-	} else {
-		return nil
+	if err != nil {
+		return nil, err
 	}
+	return &glu, nil
 }
 
 func (glu *GitLabUser) ToJson() string {
 	b, err := json.Marshal(glu)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
-func (glu *GitLabUser) IsValid() bool {
+func (glu *GitLabUser) IsValid() error {
 	if glu.Id == 0 {
-		return false
+		return errors.New("user id can't be 0")
 	}
 
-	if len(glu.Email) == 0 {
-		return false
+	if glu.Email == "" {
+		return errors.New("user e-mail should not be empty")
 	}
 
-	return true
+	return nil
 }
 
 func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetUserFromJson(data io.Reader) *model.User {
-	glu := gitLabUserFromJson(data)
-	if glu.IsValid() {
-		return userFromGitLabUser(glu)
+func (m *GitLabProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
+	glu, err := gitLabUserFromJson(data)
+	if err != nil {
+		return nil, err
+	}
+	if err = glu.IsValid(); err != nil {
+		return nil, err
 	}
 
-	return &model.User{}
+	return userFromGitLabUser(glu), nil
+}
+
+func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
+	return nil, nil
+}
+
+func (m *GitLabProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+	return dbUser.AuthData == oauthUser.AuthData
 }

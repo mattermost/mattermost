@@ -8,10 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 var JobserverCmd = &cobra.Command{
@@ -32,17 +33,14 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
-	config := viper.GetString("config")
-
 	// Initialize
-	a, err := InitDBCommandContext(config)
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), false)
 	if err != nil {
 		return err
 	}
 	defer a.Srv().Shutdown()
 
 	a.Srv().LoadLicense()
-	a.InitServer()
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")

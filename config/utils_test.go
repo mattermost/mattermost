@@ -6,9 +6,11 @@ package config
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -16,18 +18,19 @@ func TestDesanitize(t *testing.T) {
 	actual.SetDefaults()
 
 	// These setting should be ignored
-	actual.LdapSettings.Enable = bToP(false)
-	actual.FileSettings.DriverName = sToP("s3")
+	actual.LdapSettings.Enable = model.NewBool(false)
+	actual.FileSettings.DriverName = model.NewString("s3")
 
 	// These settings should be desanitized into target.
-	actual.LdapSettings.BindPassword = sToP("bind_password")
-	actual.FileSettings.PublicLinkSalt = sToP("public_link_salt")
-	actual.FileSettings.AmazonS3SecretAccessKey = sToP("amazon_s3_secret_access_key")
-	actual.EmailSettings.SMTPPassword = sToP("smtp_password")
-	actual.GitLabSettings.Secret = sToP("secret")
-	actual.SqlSettings.DataSource = sToP("data_source")
-	actual.SqlSettings.AtRestEncryptKey = sToP("at_rest_encrypt_key")
-	actual.ElasticsearchSettings.Password = sToP("password")
+	actual.LdapSettings.BindPassword = model.NewString("bind_password")
+	actual.FileSettings.PublicLinkSalt = model.NewString("public_link_salt")
+	actual.FileSettings.AmazonS3SecretAccessKey = model.NewString("amazon_s3_secret_access_key")
+	actual.EmailSettings.SMTPPassword = model.NewString("smtp_password")
+	actual.GitLabSettings.Secret = model.NewString("secret")
+	actual.OpenIdSettings.Secret = model.NewString("secret")
+	actual.SqlSettings.DataSource = model.NewString("data_source")
+	actual.SqlSettings.AtRestEncryptKey = model.NewString("at_rest_encrypt_key")
+	actual.ElasticsearchSettings.Password = model.NewString("password")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica0")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica1")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica0")
@@ -37,20 +40,21 @@ func TestDesanitize(t *testing.T) {
 	target.SetDefaults()
 
 	// These setting should be ignored
-	target.LdapSettings.Enable = bToP(true)
-	target.FileSettings.DriverName = sToP("file")
+	target.LdapSettings.Enable = model.NewBool(true)
+	target.FileSettings.DriverName = model.NewString("file")
 
 	// These settings should be updated from actual
-	target.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
-	target.FileSettings.PublicLinkSalt = sToP(model.FAKE_SETTING)
-	target.FileSettings.AmazonS3SecretAccessKey = sToP(model.FAKE_SETTING)
-	target.EmailSettings.SMTPPassword = sToP(model.FAKE_SETTING)
-	target.GitLabSettings.Secret = sToP(model.FAKE_SETTING)
-	target.SqlSettings.DataSource = sToP(model.FAKE_SETTING)
-	target.SqlSettings.AtRestEncryptKey = sToP(model.FAKE_SETTING)
-	target.ElasticsearchSettings.Password = sToP(model.FAKE_SETTING)
-	target.SqlSettings.DataSourceReplicas = append(target.SqlSettings.DataSourceReplicas, "old_replica0")
-	target.SqlSettings.DataSourceSearchReplicas = append(target.SqlSettings.DataSourceReplicas, "old_search_replica0")
+	target.LdapSettings.BindPassword = model.NewString(model.FAKE_SETTING)
+	target.FileSettings.PublicLinkSalt = model.NewString(model.FAKE_SETTING)
+	target.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.FAKE_SETTING)
+	target.EmailSettings.SMTPPassword = model.NewString(model.FAKE_SETTING)
+	target.GitLabSettings.Secret = model.NewString(model.FAKE_SETTING)
+	target.OpenIdSettings.Secret = model.NewString(model.FAKE_SETTING)
+	target.SqlSettings.DataSource = model.NewString(model.FAKE_SETTING)
+	target.SqlSettings.AtRestEncryptKey = model.NewString(model.FAKE_SETTING)
+	target.ElasticsearchSettings.Password = model.NewString(model.FAKE_SETTING)
+	target.SqlSettings.DataSourceReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
+	target.SqlSettings.DataSourceSearchReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
 
 	actualClone := actual.Clone()
 	desanitize(actual, target)
@@ -66,11 +70,13 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.FileSettings.AmazonS3SecretAccessKey, *target.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, *actual.EmailSettings.SMTPPassword, *target.EmailSettings.SMTPPassword)
 	assert.Equal(t, *actual.GitLabSettings.Secret, *target.GitLabSettings.Secret)
+	assert.Equal(t, *actual.OpenIdSettings.Secret, *target.OpenIdSettings.Secret)
 	assert.Equal(t, *actual.SqlSettings.DataSource, *target.SqlSettings.DataSource)
 	assert.Equal(t, *actual.SqlSettings.AtRestEncryptKey, *target.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, *actual.ElasticsearchSettings.Password, *target.ElasticsearchSettings.Password)
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
+	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 }
 
 func TestFixInvalidLocales(t *testing.T) {
@@ -141,6 +147,51 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
 }
 
+func TestIsDatabaseDSN(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		DSN      string
+		Expected bool
+	}{
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Postgresql DSN",
+			DSN:      "postgres://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Empty DSN",
+			DSN:      "",
+			Expected: false,
+		},
+		{
+			Name:     "Default file DSN",
+			DSN:      "config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Relative path DSN",
+			DSN:      "configuration/config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Absolute path DSN",
+			DSN:      "/opt/mattermost/configuration/config.json",
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsDatabaseDSN(tc.DSN))
+		})
+	}
+}
+
 func TestStripPassword(t *testing.T) {
 	for name, test := range map[string]struct {
 		DSN         string
@@ -196,15 +247,7 @@ func TestStripPassword(t *testing.T) {
 	}
 }
 
-func sToP(s string) *string {
-	return &s
-}
-
-func bToP(b bool) *bool {
-	return &b
-}
-
-func TestIsJsonMap(t *testing.T) {
+func TestIsJSONMap(t *testing.T) {
 	tests := []struct {
 		name string
 		data string
@@ -228,9 +271,34 @@ func TestIsJsonMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsJsonMap(tt.data); got != tt.want {
-				t.Errorf("IsJsonMap() = %v, want %v", got, tt.want)
+			if got := isJSONMap(tt.data); got != tt.want {
+				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
 			}
 		})
 	}
+}
+
+func TestEqual(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		diff, err := equal(nil, nil)
+		require.NoError(t, err)
+		require.False(t, diff)
+	})
+
+	t.Run("no diff", func(t *testing.T) {
+		old := minimalConfig.Clone()
+		new := minimalConfig.Clone()
+		diff, err := equal(old, new)
+		require.NoError(t, err)
+		require.False(t, diff)
+	})
+
+	t.Run("diff", func(t *testing.T) {
+		old := minimalConfig.Clone()
+		new := minimalConfig.Clone()
+		new.SqlSettings = model.SqlSettings{}
+		diff, err := equal(old, new)
+		require.NoError(t, err)
+		require.True(t, diff)
+	})
 }

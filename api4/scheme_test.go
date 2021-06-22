@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -309,7 +310,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	}
 
 	team1, err := th.App.Srv().Store.Team().Save(team1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -317,7 +318,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 
 	team1.SchemeId = &scheme1.Id
 	team1, err = th.App.Srv().Store.Team().Update(team1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -331,7 +332,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		SchemeId:    &scheme1.Id,
 	}
 	team2, err = th.App.Srv().Store.Team().Save(team2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -402,7 +403,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	}
 
 	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
-	assert.Nil(t, errCh)
+	assert.NoError(t, errCh)
 
 	l2, r2 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -410,7 +411,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 
 	channel1.SchemeId = &scheme1.Id
 	channel1, err := th.App.Srv().Store.Channel().Update(channel1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -425,7 +426,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		SchemeId:    &scheme1.Id,
 	}
 	channel2, nErr := th.App.Srv().Store.Channel().Save(channel2, 1000000)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -627,7 +628,7 @@ func TestDeleteScheme(t *testing.T) {
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &s1.Id,
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
@@ -696,7 +697,7 @@ func TestDeleteScheme(t *testing.T) {
 			Type:        model.CHANNEL_OPEN,
 			SchemeId:    &s1.Id,
 		}, -1)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
@@ -758,5 +759,38 @@ func TestDeleteScheme(t *testing.T) {
 
 		_, r6 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNotImplementedStatus(t, r6)
+	})
+}
+
+func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Correctly invalidates team member cache", func(t *testing.T) {
+		th.App.SetPhase2PermissionsMigrationStatus(true)
+
+		team := th.CreateTeam()
+		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		teamScheme := th.SetupTeamScheme()
+
+		teamUserRole, err := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
+		require.Nil(t, err)
+		teamUserRole.Permissions = []string{}
+		_, err = th.App.UpdateRole(teamUserRole)
+		require.Nil(t, err)
+
+		th.LoginBasic()
+
+		_, resp := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id})
+		require.Nil(t, resp.Error)
+
+		team.SchemeId = &teamScheme.Id
+		team, err = th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, resp = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id})
+		require.NotNil(t, resp.Error)
 	})
 }

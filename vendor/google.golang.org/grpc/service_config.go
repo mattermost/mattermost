@@ -20,6 +20,7 @@ package grpc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -27,7 +28,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/internal"
 	internalserviceconfig "google.golang.org/grpc/internal/serviceconfig"
 	"google.golang.org/grpc/serviceconfig"
@@ -41,29 +41,7 @@ const maxInt = int(^uint(0) >> 1)
 // Deprecated: Users should not use this struct. Service config should be received
 // through name resolver, as specified here
 // https://github.com/grpc/grpc/blob/master/doc/service_config.md
-type MethodConfig struct {
-	// WaitForReady indicates whether RPCs sent to this method should wait until
-	// the connection is ready by default (!failfast). The value specified via the
-	// gRPC client API will override the value set here.
-	WaitForReady *bool
-	// Timeout is the default timeout for RPCs sent to this method. The actual
-	// deadline used will be the minimum of the value specified here and the value
-	// set by the application via the gRPC client API.  If either one is not set,
-	// then the other will be used.  If neither is set, then the RPC has no deadline.
-	Timeout *time.Duration
-	// MaxReqSize is the maximum allowed payload size for an individual request in a
-	// stream (client->server) in bytes. The size which is measured is the serialized
-	// payload after per-message compression (but before stream compression) in bytes.
-	// The actual value used is the minimum of the value specified here and the value set
-	// by the application via the gRPC client API. If either one is not set, then the other
-	// will be used.  If neither is set, then the built-in default is used.
-	MaxReqSize *int
-	// MaxRespSize is the maximum allowed payload size for an individual response in a
-	// stream (server->client) in bytes.
-	MaxRespSize *int
-	// RetryPolicy configures retry options for the method.
-	retryPolicy *retryPolicy
-}
+type MethodConfig = internalserviceconfig.MethodConfig
 
 type lbConfig struct {
 	name string
@@ -125,34 +103,6 @@ type ServiceConfig struct {
 type healthCheckConfig struct {
 	// serviceName is the service name to use in the health-checking request.
 	ServiceName string
-}
-
-// retryPolicy defines the go-native version of the retry policy defined by the
-// service config here:
-// https://github.com/grpc/proposal/blob/master/A6-client-retries.md#integration-with-service-config
-type retryPolicy struct {
-	// MaxAttempts is the maximum number of attempts, including the original RPC.
-	//
-	// This field is required and must be two or greater.
-	maxAttempts int
-
-	// Exponential backoff parameters. The initial retry attempt will occur at
-	// random(0, initialBackoff). In general, the nth attempt will occur at
-	// random(0,
-	//   min(initialBackoff*backoffMultiplier**(n-1), maxBackoff)).
-	//
-	// These fields are required and must be greater than zero.
-	initialBackoff    time.Duration
-	maxBackoff        time.Duration
-	backoffMultiplier float64
-
-	// The set of status codes which may be retried.
-	//
-	// Status codes are specified as strings, e.g., "UNAVAILABLE".
-	//
-	// This field is required and must be non-empty.
-	// Note: a set is used to store this for easy lookup.
-	retryableStatusCodes map[codes.Code]bool
 }
 
 type jsonRetryPolicy struct {
@@ -225,19 +175,27 @@ func parseDuration(s *string) (*time.Duration, error) {
 }
 
 type jsonName struct {
-	Service *string
-	Method  *string
+	Service string
+	Method  string
 }
 
-func (j jsonName) generatePath() (string, bool) {
-	if j.Service == nil {
-		return "", false
+var (
+	errDuplicatedName             = errors.New("duplicated name")
+	errEmptyServiceNonEmptyMethod = errors.New("cannot combine empty 'service' and non-empty 'method'")
+)
+
+func (j jsonName) generatePath() (string, error) {
+	if j.Service == "" {
+		if j.Method != "" {
+			return "", errEmptyServiceNonEmptyMethod
+		}
+		return "", nil
 	}
-	res := "/" + *j.Service + "/"
-	if j.Method != nil {
-		res += *j.Method
+	res := "/" + j.Service + "/"
+	if j.Method != "" {
+		res += j.Method
 	}
-	return res, true
+	return res, nil
 }
 
 // TODO(lyuxuan): delete this struct after cleaning up old service config implementation.
@@ -269,7 +227,7 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 	var rsc jsonSC
 	err := json.Unmarshal([]byte(js), &rsc)
 	if err != nil {
-		grpclog.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
+		logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
 		return &serviceconfig.ParseResult{Err: err}
 	}
 	sc := ServiceConfig{
@@ -289,13 +247,15 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 	if rsc.MethodConfig == nil {
 		return &serviceconfig.ParseResult{Config: &sc}
 	}
+
+	paths := map[string]struct{}{}
 	for _, m := range *rsc.MethodConfig {
 		if m.Name == nil {
 			continue
 		}
 		d, err := parseDuration(m.Timeout)
 		if err != nil {
-			grpclog.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
+			logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
 			return &serviceconfig.ParseResult{Err: err}
 		}
 
@@ -303,8 +263,8 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 			WaitForReady: m.WaitForReady,
 			Timeout:      d,
 		}
-		if mc.retryPolicy, err = convertRetryPolicy(m.RetryPolicy); err != nil {
-			grpclog.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
+		if mc.RetryPolicy, err = convertRetryPolicy(m.RetryPolicy); err != nil {
+			logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to %v", js, err)
 			return &serviceconfig.ParseResult{Err: err}
 		}
 		if m.MaxRequestMessageBytes != nil {
@@ -321,10 +281,20 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 				mc.MaxRespSize = newInt(int(*m.MaxResponseMessageBytes))
 			}
 		}
-		for _, n := range *m.Name {
-			if path, valid := n.generatePath(); valid {
-				sc.Methods[path] = mc
+		for i, n := range *m.Name {
+			path, err := n.generatePath()
+			if err != nil {
+				logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to methodConfig[%d]: %v", js, i, err)
+				return &serviceconfig.ParseResult{Err: err}
 			}
+
+			if _, ok := paths[path]; ok {
+				err = errDuplicatedName
+				logger.Warningf("grpc: parseServiceConfig error unmarshaling %s due to methodConfig[%d]: %v", js, i, err)
+				return &serviceconfig.ParseResult{Err: err}
+			}
+			paths[path] = struct{}{}
+			sc.Methods[path] = mc
 		}
 	}
 
@@ -339,7 +309,7 @@ func parseServiceConfig(js string) *serviceconfig.ParseResult {
 	return &serviceconfig.ParseResult{Config: &sc}
 }
 
-func convertRetryPolicy(jrp *jsonRetryPolicy) (p *retryPolicy, err error) {
+func convertRetryPolicy(jrp *jsonRetryPolicy) (p *internalserviceconfig.RetryPolicy, err error) {
 	if jrp == nil {
 		return nil, nil
 	}
@@ -357,23 +327,23 @@ func convertRetryPolicy(jrp *jsonRetryPolicy) (p *retryPolicy, err error) {
 		*mb <= 0 ||
 		jrp.BackoffMultiplier <= 0 ||
 		len(jrp.RetryableStatusCodes) == 0 {
-		grpclog.Warningf("grpc: ignoring retry policy %v due to illegal configuration", jrp)
+		logger.Warningf("grpc: ignoring retry policy %v due to illegal configuration", jrp)
 		return nil, nil
 	}
 
-	rp := &retryPolicy{
-		maxAttempts:          jrp.MaxAttempts,
-		initialBackoff:       *ib,
-		maxBackoff:           *mb,
-		backoffMultiplier:    jrp.BackoffMultiplier,
-		retryableStatusCodes: make(map[codes.Code]bool),
+	rp := &internalserviceconfig.RetryPolicy{
+		MaxAttempts:          jrp.MaxAttempts,
+		InitialBackoff:       *ib,
+		MaxBackoff:           *mb,
+		BackoffMultiplier:    jrp.BackoffMultiplier,
+		RetryableStatusCodes: make(map[codes.Code]bool),
 	}
-	if rp.maxAttempts > 5 {
+	if rp.MaxAttempts > 5 {
 		// TODO(retry): Make the max maxAttempts configurable.
-		rp.maxAttempts = 5
+		rp.MaxAttempts = 5
 	}
 	for _, code := range jrp.RetryableStatusCodes {
-		rp.retryableStatusCodes[code] = true
+		rp.RetryableStatusCodes[code] = true
 	}
 	return rp, nil
 }

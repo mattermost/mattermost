@@ -8,10 +8,11 @@ import (
 
 	"math"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
@@ -31,7 +32,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// and a test user
 	user := model.User{
@@ -40,12 +41,12 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user = *userPtr
 
 	// log a join event
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func testLogLeaveEvent(t *testing.T, ss store.Store) {
@@ -57,7 +58,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// and a test user
 	user := model.User{
@@ -66,15 +67,15 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user = *userPtr
 
 	// log a join event, followed by a leave event
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
@@ -86,7 +87,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel, err := ss.Channel().Save(ch, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// and a test user
 	user := model.User{
@@ -95,7 +96,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user = *userPtr
 
 	// the user was previously in the channel a long time ago, before the export period starts
@@ -104,24 +105,24 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	leaveTime := model.GetMillis() - 20000
 	joinTime := leaveTime - 10000
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// log a join event
 	leaveTime = model.GetMillis()
 	joinTime = leaveTime - 10000
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// case 1: user joins and leaves the channel before the export period begins
 	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, channelMembers)
 
 	// case 2: user joins the channel after the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -132,7 +133,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 
 	// case 3: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -143,11 +144,11 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 
 	// add a leave time for the user
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// case 4: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -158,7 +159,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 
 	// case 5: user joins the channel after the export period begins, and leaves the channel before the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -169,7 +170,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 
 	// case 6: user has joined and left the channel long before the export period begins
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, channelMembers)
 }
 
@@ -182,7 +183,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// and a test user
 	user := model.User{
@@ -191,7 +192,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user = *userPtr
 
 	// clear any existing ChannelMemberHistory data that might interfere with our test
@@ -199,7 +200,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	for !tableDataTruncated {
 		var count int64
 		count, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis(), 1000)
-		require.Nil(t, err, "Failed to truncate ChannelMemberHistory contents")
+		require.NoError(t, err, "Failed to truncate ChannelMemberHistory contents")
 		tableDataTruncated = count == int64(0)
 	}
 
@@ -212,14 +213,14 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// in every single case, the user will be included in the export, because ChannelMembers says they were in the channel at some point in
 	// the past, even though the time that they were actually in the channel doesn't necessarily overlap with the export period
 
 	// case 1: user joins and leaves the channel before the export period begins
 	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -230,7 +231,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// case 2: user joins the channel after the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -241,7 +242,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// case 3: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -252,7 +253,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// case 4: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -263,7 +264,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// case 5: user joins the channel after the export period begins, and leaves the channel before the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -274,7 +275,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// case 6: user has joined and left the channel long before the export period begins
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -293,7 +294,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// and two test users
 	user := model.User{
@@ -302,7 +303,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	userPtr, err := ss.User().Save(&user)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user = *userPtr
 
 	user2 := model.User{
@@ -311,34 +312,34 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	}
 	user2Ptr, err := ss.User().Save(&user2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	user2 = *user2Ptr
 
 	// user1 joins and leaves the channel
 	leaveTime := model.GetMillis()
 	joinTime := leaveTime - 10000
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// user2 joins the channel but never leaves
 	err = ss.ChannelMemberHistory().LogJoinEvent(user2.Id, channel.Id, joinTime)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// in between the join time and the leave time, both users were members of the channel
 	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 2)
 
 	// the permanent delete should delete at least one record
 	rowsDeleted, err := ss.ChannelMemberHistory().PermanentDeleteBatch(leaveTime, math.MaxInt64)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEqual(t, int64(0), rowsDeleted)
 
 	// after the delete, there should be one less member in the channel
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)
 }

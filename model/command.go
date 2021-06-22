@@ -105,7 +105,7 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.trigger.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.URL) == 0 || len(o.URL) > 1024 {
+	if o.URL == "" || len(o.URL) > 1024 {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 

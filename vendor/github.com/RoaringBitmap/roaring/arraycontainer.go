@@ -4,8 +4,6 @@ import (
 	"fmt"
 )
 
-//go:generate msgp -unexported
-
 type arrayContainer struct {
 	content []uint16
 }
@@ -359,28 +357,17 @@ func (ac *arrayContainer) iorArray(value2 *arrayContainer) container {
 	len1 := value1.getCardinality()
 	len2 := value2.getCardinality()
 	maxPossibleCardinality := len1 + len2
-	if maxPossibleCardinality > arrayDefaultMaxSize { // it could be a bitmap!
-		bc := newBitmapContainer()
-		for k := 0; k < len(value2.content); k++ {
-			v := value2.content[k]
-			i := uint(v) >> 6
-			mask := uint64(1) << (v % 64)
-			bc.bitmap[i] |= mask
-		}
-		for k := 0; k < len(ac.content); k++ {
-			v := ac.content[k]
-			i := uint(v) >> 6
-			mask := uint64(1) << (v % 64)
-			bc.bitmap[i] |= mask
-		}
-		bc.cardinality = int(popcntSlice(bc.bitmap))
-		if bc.cardinality <= arrayDefaultMaxSize {
-			return bc.toArrayContainer()
-		}
-		return bc
-	}
 	if maxPossibleCardinality > cap(value1.content) {
-		newcontent := make([]uint16, 0, maxPossibleCardinality)
+		// doubling the capacity reduces new slice allocations in the case of
+		// repeated calls to iorArray().
+		newSize := 2 * maxPossibleCardinality
+		// the second check is to handle overly large array containers
+		// and should not occur in normal usage,
+		// as all array containers should be at most arrayDefaultMaxSize
+		if newSize > 2*arrayDefaultMaxSize && maxPossibleCardinality <= 2*arrayDefaultMaxSize {
+			newSize = 2 * arrayDefaultMaxSize
+		}
+		newcontent := make([]uint16, 0, newSize)
 		copy(newcontent[len2:maxPossibleCardinality], ac.content[0:len1])
 		ac.content = newcontent
 	} else {
@@ -388,6 +375,13 @@ func (ac *arrayContainer) iorArray(value2 *arrayContainer) container {
 	}
 	nl := union2by2(value1.content[len2:maxPossibleCardinality], value2.content, ac.content)
 	ac.content = ac.content[:nl] // reslice to match actual used capacity
+
+	if nl > arrayDefaultMaxSize {
+		// Only converting to a bitmap when arrayDefaultMaxSize
+		// is actually exceeded minimizes conversions in the case of repeated
+		// calls to iorArray().
+		return ac.toBitmapContainer()
+	}
 	return ac
 }
 
@@ -489,7 +483,7 @@ func (ac *arrayContainer) orArrayCardinality(value2 *arrayContainer) int {
 func (ac *arrayContainer) lazyorArray(value2 *arrayContainer) container {
 	value1 := ac
 	maxPossibleCardinality := value1.getCardinality() + value2.getCardinality()
-	if maxPossibleCardinality > arrayLazyLowerBound { // it could be a bitmap!^M
+	if maxPossibleCardinality > arrayLazyLowerBound { // it could be a bitmap!
 		bc := newBitmapContainer()
 		for k := 0; k < len(value2.content); k++ {
 			v := value2.content[k]
@@ -876,6 +870,41 @@ func (ac *arrayContainer) loadData(bitmapContainer *bitmapContainer) {
 	ac.content = make([]uint16, bitmapContainer.cardinality, bitmapContainer.cardinality)
 	bitmapContainer.fillArray(ac.content)
 }
+
+func (ac *arrayContainer) resetTo(a container) {
+	switch x := a.(type) {
+	case *arrayContainer:
+		ac.realloc(len(x.content))
+		copy(ac.content, x.content)
+
+	case *bitmapContainer:
+		ac.realloc(x.cardinality)
+		x.fillArray(ac.content)
+
+	case *runContainer16:
+		card := int(x.cardinality())
+		ac.realloc(card)
+		cur := 0
+		for _, r := range x.iv {
+			for val := r.start; val <= r.last(); val++ {
+				ac.content[cur] = val
+				cur++
+			}
+		}
+
+	default:
+		panic("unsupported container type")
+	}
+}
+
+func (ac *arrayContainer) realloc(size int) {
+	if cap(ac.content) < size {
+		ac.content = make([]uint16, size)
+	} else {
+		ac.content = ac.content[:size]
+	}
+}
+
 func newArrayContainer() *arrayContainer {
 	p := new(arrayContainer)
 	return p

@@ -1,0 +1,53 @@
+.test:
+  stage: test
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_CONTENT_TRUST: 0
+    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+
+    MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+    MM_SQLSETTINGS_DRIVERNAME: postgres
+  script:
+    - mkdir -p client/plugins
+    - mkdir -p build/test-results
+    - mkdir -p build/logs
+    - cd build
+    - docker-compose --no-ansi run --rm start_dependencies
+    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
+    - sleep 5
+    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+    - ulimit -n 8096
+    # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
+    - >
+      time docker run -it  -d --name server --net build_mm-test \
+        --env-file=dotenv/test.env \
+        --env MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE \
+        --env MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME \
+        --env GOBIN=$PWD/bin \
+        -v $CI_PROJECT_DIR:/mattermost-server \
+        -w /mattermost-server \
+        $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
+        bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=;"
+    - docker logs -f server
+    - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
+    - docker ps -a --no-trunc > logs/docker_ps
+    - docker stats -a --no-stream > logs/docker_stats
+    - tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
+    - cp ../report.xml test-results
+    - DOCKER_EXIT_CODE=$(docker inspect server --format='{{.State.ExitCode}}')
+    - echo $DOCKER_EXIT_CODE
+    - exit $DOCKER_EXIT_CODE
+  artifacts:
+    paths:
+      - build/logs
+    reports:
+      junit: build/test-results/report.xml
+    expire_in: 7 days
