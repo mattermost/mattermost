@@ -455,14 +455,20 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 				return nil, nil, nil, appErr
 			}
 
-			referencedChannel, appErr := a.GetChannel(referencedPost.ChannelId)
-			if appErr != nil {
-				return nil, nil, nil, appErr
+			var referencedChannel *model.Channel
+			if referencedPost != nil {
+				referencedChannel, appErr = a.GetChannel(referencedPost.ChannelId)
+				if appErr != nil {
+					return nil, nil, nil, appErr
+				}
 			}
 
-			referencedTeam, appErr := a.GetTeam(referencedChannel.TeamId)
-			if appErr != nil {
-				return nil, nil, nil, appErr
+			var referencedTeam *model.Team
+			if referencedChannel != nil {
+				referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
+				if appErr != nil {
+					return nil, nil, nil, appErr
+				}
 			}
 
 			permalink.PreviewPost = model.PreviewPostFromPost(referencedPost, referencedTeam, referencedChannel)
