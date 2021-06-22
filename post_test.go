@@ -16,7 +16,7 @@ func TestCreatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		id := model.NewId()
 		in := &model.Post{
@@ -34,7 +34,7 @@ func TestCreatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		in := &model.Post{
 			Id: "postID",
@@ -52,7 +52,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		expectedPost := &model.Post{
@@ -68,7 +68,7 @@ func TestGetPost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		api.On("GetPost", postID).Return(nil, newAppError())
@@ -83,7 +83,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		now := model.GetMillis()
 		in := &model.Post{
@@ -101,7 +101,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		in := &model.Post{
 			Id: "postID",
@@ -119,7 +119,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 
@@ -132,7 +132,7 @@ func TestDeletePost(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		api.On("DeletePost", postID).Return(newAppError())
@@ -145,7 +145,7 @@ func TestDeletePost(t *testing.T) {
 func TestSendEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	userID := "userID"
 	expectedPost := &model.Post{
@@ -159,7 +159,7 @@ func TestSendEphemeralPost(t *testing.T) {
 func TestUpdateEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	now := model.GetMillis()
 	userID := "userID"
@@ -177,7 +177,7 @@ func TestUpdateEphemeralPost(t *testing.T) {
 func TestDeleteEphemeralPost(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)
-	client := pluginapi.NewClient(api)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 	userID := "userID"
 	postID := "postID"
@@ -190,7 +190,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		expectedPostList := model.NewPostList()
@@ -206,7 +206,7 @@ func TestGetPostThread(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		api.On("GetPostThread", postID).Return(nil, newAppError())
@@ -221,7 +221,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		time := int64(0)
@@ -238,7 +238,7 @@ func TestGetPostsSince(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		time := int64(0)
@@ -254,7 +254,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		postID := "postID"
@@ -271,7 +271,7 @@ func TestGetPostsAfter(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		postID := "postID"
@@ -287,7 +287,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		postID := "postID"
@@ -304,7 +304,7 @@ func TestGetPostsBefore(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		postID := "postID"
@@ -320,7 +320,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		expectedPostList := model.NewPostList()
@@ -336,7 +336,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		channelID := "channelID"
 		api.On("GetPostsForChannel", channelID, 0, 0).Return(nil, newAppError())
@@ -351,7 +351,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -366,7 +366,7 @@ func TestSearchPostsInTeam(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		teamID := "teamID"
 		searchParams := []*model.SearchParams{{InChannels: []string{"channelID"}}}
@@ -382,7 +382,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		in := &model.Reaction{
 			PostId: "postId",
@@ -396,7 +396,7 @@ func TestAddReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		in := &model.Reaction{
 			PostId: "postId",
@@ -412,7 +412,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		expectedReactions := []*model.Reaction{
@@ -429,7 +429,7 @@ func TestGetReactions(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		postID := "postID"
 		api.On("GetReactions", postID).Return(nil, newAppError())
@@ -444,7 +444,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		reaction := &model.Reaction{
 			PostId: "postId",
@@ -458,7 +458,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		reaction := &model.Reaction{
 			PostId: "postId",
@@ -474,7 +474,7 @@ func TestSearchTeamPosts(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("SearchPostsInTeam", "1", []*model.SearchParams{{Terms: "2"}, {Terms: "3"}}).
 			Return([]*model.Post{{Id: "3"}, {Id: "4"}}, nil)
@@ -487,7 +487,7 @@ func TestSearchTeamPosts(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 

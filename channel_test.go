@@ -15,7 +15,7 @@ func TestGetMembers(t *testing.T) {
 	t.Run("empty list", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetChannelMembers", "channelID", 1, 10).Return(nil, nil)
 
@@ -29,7 +29,7 @@ func TestGetTeamChannelByName(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetChannelByNameForTeamName", "1", "2", true).Return(&model.Channel{TeamId: "3"}, nil)
 
@@ -41,7 +41,7 @@ func TestGetTeamChannelByName(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetChannelByNameForTeamName", "1", "2", true).Return(nil, newAppError())
 
@@ -55,7 +55,7 @@ func TestGetTeamUserChannels(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetChannelsForTeamForUser", "1", "2", true).Return([]*model.Channel{{TeamId: "3"}, {TeamId: "4"}}, nil)
 
@@ -67,7 +67,7 @@ func TestGetTeamUserChannels(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -83,7 +83,7 @@ func TestGetPublicTeamChannels(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		api.On("GetPublicChannelsForTeam", "1", 2, 3).Return([]*model.Channel{{TeamId: "3"}, {TeamId: "4"}}, nil)
 
@@ -95,7 +95,7 @@ func TestGetPublicTeamChannels(t *testing.T) {
 	t.Run("failure", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := model.NewAppError("here", "id", nil, "an error occurred", http.StatusInternalServerError)
 
@@ -111,7 +111,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("create channel with no replicas", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
@@ -134,7 +134,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("create channel and wait once", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
@@ -158,7 +158,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("create channel and wait multiple times", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
@@ -185,7 +185,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("create channel, wait multiple times and return error", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
@@ -214,7 +214,7 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("create channel, give up waiting", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
