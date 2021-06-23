@@ -781,6 +781,7 @@ func (ts *TelemetryService) trackConfig() {
 		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":     *cfg.DataRetentionSettings.FileRetentionDays,
 		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":              *cfg.DataRetentionSettings.BatchSize,
 	})
 
 	ts.sendTelemetry(TrackConfigMessageExport, map[string]interface{}{
