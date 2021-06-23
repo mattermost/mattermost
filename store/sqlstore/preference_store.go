@@ -265,6 +265,28 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 	return nil
 }
 
+// DeleteOrphanedRows removes entries from Preferences (flagged post) when a
+// corresponding post no longer exists.
+func (s *SqlPreferenceStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Preferences WHERE Name IN (
+		SELECT * FROM (
+			SELECT Preferences.Name FROM Preferences
+			LEFT JOIN Posts ON Preferences.Name = Posts.Id
+			WHERE Posts.Id IS NULL AND Category = :Category
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
+}
+
 func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	if limit < 0 {
 		// uint64 does not throw an error, it overflows if it is negative.
