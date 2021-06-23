@@ -48,8 +48,8 @@ func TestSendInviteEmails(t *testing.T) {
 	emailTo := "test@example.com"
 	mail.DeleteMailBox(emailTo)
 
-	appErr := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
-	require.Nil(t, appErr)
+	err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
+	require.NoError(t, err)
 
 	var resultsMailbox mail.JSONMessageHeaderInbucket
 	err2 := mail.RetryInbucket(5, func() error {

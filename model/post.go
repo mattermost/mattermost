@@ -371,6 +371,9 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 }
 
 func (o *Post) SanitizeProps() {
+	if o == nil {
+		return
+	}
 	membersToSanitize := []string{
 		PROPS_ADD_CHANNEL_MEMBER,
 	}
@@ -727,4 +730,11 @@ func RewriteImageURLs(message string, f func(string) string) string {
 func (o *Post) IsFromOAuthBot() bool {
 	props := o.GetProps()
 	return props["from_webhook"] == "true" && props["override_username"] != ""
+}
+
+func (o *Post) ToNilIfInvalid() *Post {
+	if o.Id == "" {
+		return nil
+	}
+	return o
 }
