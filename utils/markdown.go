@@ -5,18 +5,23 @@ package utils
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	astExt "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/renderer"
-	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/util"
 )
 
 func StripMarkdown(markdown string) string {
 	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
 		goldmark.WithRenderer(
-			renderer.NewRenderer(renderer.WithNodeRenderers(util.Prioritized(new(), 500))),
+			renderer.NewRenderer(renderer.WithNodeRenderers(
+				util.Prioritized(newNotificationRenderer(), 500),
+			)),
 		),
 	)
 
@@ -25,93 +30,116 @@ func StripMarkdown(markdown string) string {
 		return ""
 	}
 
-	return buf.String()
+	return strings.TrimSpace(buf.String())
 }
 
-type myRenderer struct {
-	Writer html.Writer
+type notificationRenderer struct {
 }
 
-func new() *myRenderer {
-	return &myRenderer{
-		Writer: html.DefaultWriter,
-	}
+func newNotificationRenderer() *notificationRenderer {
+	return &notificationRenderer{}
 }
 
-func (r *myRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
-	reg.Register(ast.KindDocument, r.renderDocument)
+func (r *notificationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+	// block
+	reg.Register(ast.KindDocument, r.renderDefault)
 	reg.Register(ast.KindHeading, r.renderHeading)
-	reg.Register(ast.KindBlockquote, r.skip)
+	reg.Register(ast.KindBlockquote, r.renderDefault)
 	reg.Register(ast.KindCodeBlock, r.renderCodeBlock)
 	reg.Register(ast.KindFencedCodeBlock, r.renderFencedCodeBlock)
-	reg.Register(ast.KindHTMLBlock, r.skip)
-	reg.Register(ast.KindList, r.skip)
-	reg.Register(ast.KindListItem, r.skip)
+	reg.Register(ast.KindHTMLBlock, r.renderDefault)
+	reg.Register(ast.KindList, r.renderDefault)
+	reg.Register(ast.KindListItem, r.renderListItem)
 	reg.Register(ast.KindParagraph, r.renderParagraph)
 	reg.Register(ast.KindTextBlock, r.renderTextBlock)
-	reg.Register(ast.KindThematicBreak, r.skip)
+	reg.Register(ast.KindThematicBreak, r.renderDefault)
 
 	// inlines
-
-	reg.Register(ast.KindAutoLink, r.skip)
-	reg.Register(ast.KindCodeSpan, r.skip)
-	reg.Register(ast.KindEmphasis, r.skip)
-	reg.Register(ast.KindImage, r.skip)
-	reg.Register(ast.KindLink, r.skip)
-	reg.Register(ast.KindRawHTML, r.skip)
+	reg.Register(ast.KindAutoLink, r.renderDefault)
+	reg.Register(ast.KindCodeSpan, r.renderDefault)
+	reg.Register(ast.KindEmphasis, r.renderDefault)
+	reg.Register(ast.KindImage, r.renderDefault)
+	reg.Register(ast.KindLink, r.renderDefault)
+	reg.Register(ast.KindRawHTML, r.renderDefault)
 	reg.Register(ast.KindText, r.renderText)
 	reg.Register(ast.KindString, r.renderString)
+
+	// table
+	reg.Register(astExt.KindTable, r.renderTable)
+
+	// strikethrough
+	reg.Register(astExt.KindStrikethrough, r.renderDefault)
 }
 
-// skip renderer function to skip without changes
-func (r *myRenderer) skip(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+// renderDefault renderer function to renderDefault without changes
+func (r *notificationRenderer) renderDefault(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderDocument(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-	return ast.WalkContinue, nil
-}
-
-func (r *myRenderer) renderHeading(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderHeading(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
-		_, _ = w.WriteString(" ")
+		if node.NextSibling() != nil {
+			_, _ = w.WriteString(" ")
+		}
 	}
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderParagraph(w util.BufWriter, source []byte, n ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderListItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	if entering {
+		fc := node.FirstChild()
+		if fc != nil {
+			if _, ok := fc.(*ast.TextBlock); !ok {
+				_ = w.WriteByte(' ')
+			}
+		}
+	} else {
+		if node.NextSibling() != nil {
+			_, _ = w.WriteString(" ")
+		}
+	}
+	return ast.WalkContinue, nil
+}
+
+func (r *notificationRenderer) renderParagraph(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
-		_, _ = w.WriteString("")
+		if node.NextSibling() != nil {
+			_, _ = w.WriteString(" ")
+		}
 	}
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n := node.(*ast.CodeBlock)
+	source = bytes.ReplaceAll(source, []byte("\n"), []byte(" "))
 	if entering {
-		r.writeLines(w, source, node)
+		r.writeLines(w, source, n)
 	}
 
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderFencedCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderFencedCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n := node.(*ast.FencedCodeBlock)
+	source = bytes.ReplaceAll(source, []byte("\n"), []byte(" "))
 	if entering {
-		r.writeLines(w, source, node)
+		r.writeLines(w, source, n)
 	}
 
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderText(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
 	}
 	n := node.(*ast.Text)
 	segment := n.Segment
 	if n.IsRaw() {
-		r.Writer.RawWrite(w, segment.Value(source))
+		_, _ = w.Write(segment.Value(source))
 	} else {
-		r.Writer.Write(w, segment.Value(source))
+		_, _ = w.Write(segment.Value(source))
 		if n.HardLineBreak() || n.SoftLineBreak() {
 			_ = w.WriteByte(' ')
 		}
@@ -119,16 +147,16 @@ func (r *myRenderer) renderText(w util.BufWriter, source []byte, node ast.Node, 
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderTextBlock(w util.BufWriter, source []byte, n ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderTextBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
-		if _, ok := n.NextSibling().(ast.Node); ok && n.FirstChild() != nil {
+		if _, ok := node.NextSibling().(ast.Node); ok && node.FirstChild() != nil {
 			_ = w.WriteByte(' ')
 		}
 	}
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) renderString(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderString(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
 	}
@@ -137,10 +165,15 @@ func (r *myRenderer) renderString(w util.BufWriter, source []byte, node ast.Node
 	return ast.WalkContinue, nil
 }
 
-func (r *myRenderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
+func (r *notificationRenderer) renderTable(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	return ast.WalkSkipChildren, nil
+}
+
+func (r *notificationRenderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
 	l := n.Lines().Len()
 	for i := 0; i < l; i++ {
 		line := n.Lines().At(i)
-		r.Writer.RawWrite(w, line.Value(source))
+		value := line.Value(source)
+		_, _ = w.Write(value)
 	}
 }

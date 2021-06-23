@@ -53,8 +53,8 @@ func TestStripMarkdown(t *testing.T) {
 		},
 		{
 			name: "code block: multiline code block 2",
-			args: "Multiline\n```function(number) {\n  return number + 1;\n}```",
-			want: "Multiline function(number) { return number + 1; }",
+			args: "Multiline\n```\nfunction(number) {\n  return number + 1;\n}\n```",
+			want: "Multiline function(number) {   return number + 1; }",
 		},
 		{
 			name: "code block: language highlighting",
@@ -117,9 +117,19 @@ func TestStripMarkdown(t *testing.T) {
 			want: "H6 header list item 1 list item 2",
 		},
 		{
+			name: "heading: multiline with header and links",
+			args: "###### H6 header\n[link 1](https://mattermost.com) - [link 2](https://mattermost.com)",
+			want: "H6 header link 1 - link 2",
+		},
+		{
 			name: "list: 1. First ordered list item",
 			args: "1. First ordered list item",
 			want: "First ordered list item",
+		},
+		{
+			name: "list: 2. Another item",
+			args: "1. 2. Another item",
+			want: "Another item",
 		},
 		{
 			name: "list: * Unordered sub-list.",
@@ -184,7 +194,7 @@ func TestStripMarkdown(t *testing.T) {
 			want: "inline-style link",
 		},
 		{
-			name: "image with !",
+			name: "image: ![image link](http://localhost:8065/image)",
 			args: "![image link](http://localhost:8065/image)",
 			want: "image link",
 		},
@@ -207,6 +217,41 @@ func TestStripMarkdown(t *testing.T) {
 			name: "text: multiline with list items",
 			args: "This is multiline text.\n * List item ",
 			want: "This is multiline text. List item",
+		},
+		{
+			name: "text: &amp; entity",
+			args: "you & me",
+			want: "you & me",
+		},
+		{
+			name: "text: &lt; entity",
+			args: "1<2",
+			want: "1<2",
+		},
+		{
+			name: "text: &gt; entity",
+			args: "2>1",
+			want: "2>1",
+		},
+		{
+			name: "text: &#39; entity",
+			args: "he's out",
+			want: "he's out",
+		},
+		{
+			name: "text: &quot; entity",
+			args: `That is "unique"`,
+			want: `That is "unique"`,
+		},
+		{
+			name: "text: multiple entities",
+			args: "&<>'",
+			want: "&<>'",
+		},
+		{
+			name: "text: multiple entities",
+			args: "'><&",
+			want: "'><&",
 		},
 		{
 			name: "text: empty string",
