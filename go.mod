@@ -122,7 +122,7 @@ require (
 	github.com/wiggin77/srslog v1.0.1
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
-	github.com/yuin/goldmark v1.3.5
+	github.com/yuin/goldmark v1.3.8
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.17.0
