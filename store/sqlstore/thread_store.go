@@ -110,7 +110,7 @@ func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, err
 	err := ex.SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Thread", id)
+			return nil, nil
 		}
 
 		return nil, errors.Wrapf(err, "failed to get thread with id=%s", id)
