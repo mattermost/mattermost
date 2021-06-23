@@ -10,6 +10,9 @@ include:
     ref: master
     file: private.yml
 
+variables:
+  BUILD: "yes"
+
 empty:
   stage: create-vars
   script:
