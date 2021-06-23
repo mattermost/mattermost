@@ -638,9 +638,4 @@ workflows:
             - check-store-layers
             - check-mocks
             - check-migrations
-      - test-schema:
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-migrations
+      # test-schema for master run in .gitlab-ci.yml
