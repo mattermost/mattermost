@@ -129,6 +129,8 @@ func BotFromJson(data io.Reader) *Bot {
 }
 
 // Patch modifies an existing bot with optional fields from the given patch.
+// TODO 6.0: consider returning a boolean to indicate whether or not the patch
+// applied any changes.
 func (b *Bot) Patch(patch *BotPatch) {
 	if patch.Username != nil {
 		b.Username = *patch.Username
@@ -141,6 +143,23 @@ func (b *Bot) Patch(patch *BotPatch) {
 	if patch.Description != nil {
 		b.Description = *patch.Description
 	}
+}
+
+// WouldPatch returns whether or not the given patch would be applied or not.
+func (b *Bot) WouldPatch(patch *BotPatch) bool {
+	if patch == nil {
+		return false
+	}
+	if patch.Username != nil && *patch.Username != b.Username {
+		return true
+	}
+	if patch.DisplayName != nil && *patch.DisplayName != b.DisplayName {
+		return true
+	}
+	if patch.Description != nil && *patch.Description != b.Description {
+		return true
+	}
+	return false
 }
 
 // ToJson serializes the bot patch to json.

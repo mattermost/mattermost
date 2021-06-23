@@ -87,8 +87,14 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 		service: &UserService{
 			store:        s.User(),
 			sessionStore: s.Session(),
+			oAuthStore:   s.OAuth(),
 			sessionCache: cache,
 			config:       configStore.Get,
+			sessionPool: sync.Pool{
+				New: func() interface{} {
+					return &model.Session{}
+				},
+			},
 		},
 		Context:     &request.Context{},
 		configStore: configStore,
@@ -153,5 +159,17 @@ func (th *TestHelper) TearDown() {
 
 	if th.workspace != "" {
 		os.RemoveAll(th.workspace)
+	}
+}
+
+func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
+	if th.configStore.IsReadOnly() {
+		return
+	}
+	old := th.configStore.Get()
+	updated := old.Clone()
+	f(updated)
+	if _, _, err := th.configStore.Set(updated); err != nil {
+		panic(err)
 	}
 }
