@@ -1,14 +1,14 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@1.1.1
+  codecov: codecov/codecov@1.2.3
   tools: gotest/tools@0.0.13
 
 
 executors:
   default:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.16
 
 aliases:
 - &restore_cache
@@ -27,7 +27,7 @@ jobs:
     steps:
       - checkout
       - tools/install-golangci-lint:
-          version: "1.24.0"
+          version: "1.41.1"
       - *restore_cache
       - run:
           name: Checking code style
