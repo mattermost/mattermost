@@ -125,7 +125,7 @@ func removeUnicodeSkinTone(unicodeString string) string {
 	if len(skinToneLocations) == 0 {
 		return unicodeString
 	}
-	if _, count := model.GetEmojiNameFromUnicode(unicodeString); count == 1 {
+	if _, count := model.GetEmojiNameFromUnicode(unicodeString); count > 0 {
 		return unicodeString
 	}
 	unicodeWithRemovedSkinTone := unicodeString[:skinToneLocations[0]] + unicodeString[skinToneLocations[1]:]

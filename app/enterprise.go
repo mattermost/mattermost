@@ -181,6 +181,12 @@ func RegisterNotificationInterface(f func(*Server) einterfaces.NotificationInter
 	notificationInterface = f
 }
 
+var licenseInterface func(*Server) einterfaces.LicenseInterface
+
+func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
+	licenseInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s)
@@ -200,6 +206,11 @@ func (s *Server) initEnterprise() {
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
+
+	if licenseInterface != nil {
+		s.LicenseManager = licenseInterface(s)
+	}
+
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}
