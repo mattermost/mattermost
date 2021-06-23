@@ -452,25 +452,19 @@ type API interface {
 
 	// CreateChannelSidebarCategory creates a new sidebar category for a set of channels.
 	//
-	// @tag Channel
-	// @tag User
-	// @tag Team
+	// @tag ChannelSidebar
 	// Minimum server version: 5.37
 	CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 
 	// GetChannelSidebarCategories returns sidebar categories.
 	//
-	// @tag Channel
-	// @tag User
-	// @tag Team
+	// @tag ChannelSidebar
 	// Minimum server version: 5.37
 	GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 
 	// UpdateChannelSidebarCategories updates the channel sidebar categories.
 	//
-	// @tag Channel
-	// @tag User
-	// @tag Team
+	// @tag ChannelSidebar
 	// Minimum server version: 5.37
 	UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 
