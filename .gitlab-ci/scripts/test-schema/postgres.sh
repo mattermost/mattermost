@@ -22,7 +22,7 @@ docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
   --env MM_SQLSETTINGS_DRIVERNAME=postgres \
   -v $CI_PROJECT_DIR:/mattermost-server \
   -w /mattermost-server \
-  ${CI_REGISTRY}/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
+  $IMAGE_BUILD_SERVER \
   bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
 docker logs -f "${CONTAINER_SERVER}"
 
