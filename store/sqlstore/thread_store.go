@@ -626,7 +626,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 		if getErr != nil {
 			return nil, getErr
 		}
-		if !thread.Participants.Contains(userId) {
+		if thread != nil && !thread.Participants.Contains(userId) {
 			thread.Participants = append(thread.Participants, userId)
 			if _, err = s.update(trx, thread); err != nil {
 				return nil, err
