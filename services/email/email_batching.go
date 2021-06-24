@@ -22,7 +22,6 @@ const (
 	EmailBatchingTaskName = "Email Batching"
 )
 
-// TODO: move to model
 type postData struct {
 	SenderName  string
 	ChannelName string

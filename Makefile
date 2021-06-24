@@ -381,7 +381,7 @@ test-server-race: test-server-pre
   endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "145m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
   ifneq ($(IS_CI),true)
     ifneq ($(MM_NO_DOCKER),true)
       ifneq ($(TEMP_DOCKER_SERVICES),)
