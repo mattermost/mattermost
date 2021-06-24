@@ -341,6 +341,31 @@ func (_m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	return r0, r1
 }
 
+// CreateUserAccessToken provides a mock function with given fields: token
+func (_m *API) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	ret := _m.Called(token)
+
+	var r0 *model.UserAccessToken
+	if rf, ok := ret.Get(0).(func(*model.UserAccessToken) *model.UserAccessToken); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UserAccessToken)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserAccessToken) *model.AppError); ok {
+		r1 = rf(token)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DeleteBotIconImage provides a mock function with given fields: botUserId
 func (_m *API) DeleteBotIconImage(botUserId string) *model.AppError {
 	ret := _m.Called(botUserId)
@@ -2811,6 +2836,22 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, int, bool, bool) *model.AppError); ok {
 		r0 = rf(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RevokeUserAccessToken provides a mock function with given fields: tokenID
+func (_m *API) RevokeUserAccessToken(tokenID string) *model.AppError {
+	ret := _m.Called(tokenID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(tokenID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

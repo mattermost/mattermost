@@ -217,6 +217,20 @@ func (api *apiTimerLayer) DeletePreferencesForUser(userID string, preferences []
 	return _returnsA
 }
 
+func (api *apiTimerLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateUserAccessToken(token)
+	api.recordTime(startTime, "CreateUserAccessToken", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RevokeUserAccessToken(tokenID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RevokeUserAccessToken(tokenID)
+	api.recordTime(startTime, "RevokeUserAccessToken", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetTeamIcon(teamID)
