@@ -469,8 +469,9 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	nowMillis := thread.LastReplyAt + *channelPolicy.PostDuration*24*60*60*1000 + 1
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
-	_, err = ss.Thread().Get(post.Id)
-	require.Error(t, err, "thread should have been deleted by channel policy")
+	thread, err = ss.Thread().Get(post.Id)
+	assert.NoError(t, err)
+	assert.Nil(t, thread, "thread should have been deleted by channel policy")
 
 	// create a new thread
 	threadStoreCreateReply(t, ss, channel.Id, post.Id, 2000)
@@ -498,8 +499,9 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	require.NoError(t, err)
 	_, _, err = ss.Thread().PermanentDeleteBatchForRetentionPolicies(nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
-	_, err = ss.Thread().Get(post.Id)
-	require.Error(t, err, "thread should have been deleted by team policy")
+	thread, err = ss.Thread().Get(post.Id)
+	assert.NoError(t, err)
+	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
 func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store) {
