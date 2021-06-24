@@ -2249,7 +2249,7 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 	})
 
 	t.Run("Set unread mentions correctly", func(t *testing.T) {
-		t.Run("Root post with no replies or mentions", func(t *testing.T) {
+		t.Run("Never followed root post with no replies or mentions", func(t *testing.T) {
 			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 			require.Nil(t, appErr)
 			_, appErr = th.App.MarkChannelAsUnreadFromPost(rootPost.Id, th.BasicUser.Id, true, true)
@@ -2261,7 +2261,7 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 			assert.Zero(t, threadMembership.UnreadMentions)
 		})
 
-		t.Run("Previously unfollowed root post with replies and no mentions", func(t *testing.T) {
+		t.Run("Never followed root post with replies and no mentions", func(t *testing.T) {
 			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 			require.Nil(t, appErr)
 			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
@@ -2275,7 +2275,7 @@ func TestMarkUnreadWithThreads(t *testing.T) {
 			assert.Zero(t, threadMembership.UnreadMentions)
 		})
 
-		t.Run("Previously unfollowed root post with replies and mentions", func(t *testing.T) {
+		t.Run("Never followed root post with replies and mentions", func(t *testing.T) {
 			rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
 			require.Nil(t, appErr)
 			_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi @" + th.BasicUser.Username}, th.BasicChannel, false, false)
