@@ -110,7 +110,7 @@ func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, err
 	err := ex.SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Thread", id)
+			return nil, nil
 		}
 
 		return nil, errors.Wrapf(err, "failed to get thread with id=%s", id)
@@ -620,7 +620,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 		if getErr != nil {
 			return nil, getErr
 		}
-		if !thread.Participants.Contains(userId) {
+		if thread != nil && !thread.Participants.Contains(userId) {
 			thread.Participants = append(thread.Participants, userId)
 			if _, err = s.update(trx, thread); err != nil {
 				return nil, err

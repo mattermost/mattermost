@@ -2229,14 +2229,17 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	thread, err := a.Srv().Store.Thread().Get(threadID)
-
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	replyCount := int64(0)
+	if thread != nil {
+		replyCount = thread.ReplyCount
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
-	message.Add("reply_count", thread.ReplyCount)
+	message.Add("reply_count", replyCount)
 	a.Publish(message)
 	return nil
 }
