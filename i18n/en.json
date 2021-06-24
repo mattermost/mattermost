@@ -12,10 +12,6 @@
     "translation": "December"
   },
   {
-    "id": "Failed to send license up for renewal emails",
-    "translation": ""
-  },
-  {
     "id": "February",
     "translation": "February"
   },
@@ -3332,7 +3328,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, your subscription is set to expire in 60 days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",

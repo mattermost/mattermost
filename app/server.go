@@ -1781,7 +1781,14 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
-func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User) *model.AppError {
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+	key := model.LICENSE_UP_FOR_RENEWAL_EMAIL_SENT + license.Id
+	if _, err := s.Store.System().GetByName(key); err == nil {
+		return nil
+	}
+
+	daysToExpiration := license.DaysToExpiration()
+
 	renewalLink, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
 		return appErr
@@ -1795,7 +1802,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User) *mod
 		if name == "" {
 			name = user.Username
 		}
-		ok, err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink)
+		ok, err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration)
 		if !ok || err != nil {
 			mlog.Error(fmt.Sprintf("Error sending license up for renewal email to: %s", user.Email))
 			countNotOks++
@@ -1805,6 +1812,15 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User) *mod
 	// if not even one admin got an email, we consider that this operation errored
 	if countNotOks == len(users) {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "Failed to send license up for renewal emails", nil, "", http.StatusInternalServerError)
+	}
+
+	system := model.System{
+		Name:  key,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
 	}
 
 	return nil
@@ -1825,8 +1841,8 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsAroundSixtyDaysToExpiration() {
-		appErr := s.sendLicenseUpForRenewalEmail(users)
+	if license.IsWithinExpirationPeriod() {
+		appErr := s.sendLicenseUpForRenewalEmail(users, license)
 		if appErr != nil {
 			mlog.Debug(appErr.Error())
 		}
