@@ -3,6 +3,7 @@
 package jobs
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -101,6 +102,29 @@ func TestScheduler(t *testing.T) {
 		}
 	})
 
+	t.Run("ClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		jobServer.StopSchedulers()
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.Nil(t, element)
+		}
+	})
+
+	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.HandleClusterLeaderChange(false)
+		jobServer.HandleClusterLeaderChange(true)
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+		jobServer.StopSchedulers()
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			assert.NotNil(t, element)
+		}
+	})
+
 	t.Run("ConfigChanged", func(t *testing.T) {
 		jobServer.InitSchedulers()
 		jobServer.StartSchedulers()
@@ -112,5 +136,24 @@ func TestScheduler(t *testing.T) {
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
+	})
+
+	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
+		jobServer.InitSchedulers()
+		jobServer.StartSchedulers()
+		time.Sleep(time.Second)
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			jobServer.StopSchedulers()
+		}()
+		go func() {
+			defer wg.Done()
+			jobServer.schedulers.handleConfigChange(nil, nil)
+		}()
+
+		wg.Wait()
 	})
 }

@@ -4,10 +4,10 @@
 package config
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -15,38 +15,29 @@ const (
 	badJSON   = `{"file":{ Type="file"}}`
 )
 
-type fgetFunc func(string) ([]byte, error)
-
-func (f fgetFunc) GetFile(path string) ([]byte, error) {
-	return f(path)
-}
-
-func getValidFile(path string) ([]byte, error) {
-	return []byte(validJSON), nil
-}
-
-func getInvalidFile(path string) ([]byte, error) {
-	return nil, os.ErrNotExist
-}
-
 func TestNewLogConfigSrc(t *testing.T) {
+	store := NewTestMemoryStore()
+	require.NotNil(t, store)
+	err := store.SetFile("advancedlogging.conf", []byte(validJSON))
+	require.NoError(t, err)
+
 	tests := []struct {
-		name     string
-		dsn      string
-		fget     FileGetter
-		wantErr  bool
-		wantType LogConfigSrc
+		name        string
+		dsn         string
+		configStore *Store
+		wantErr     bool
+		wantType    LogConfigSrc
 	}{
-		{name: "empty dsn", dsn: "", fget: fgetFunc(getInvalidFile), wantErr: true, wantType: nil},
-		{name: "garbage dsn", dsn: "!@wfejwcevioj", fget: fgetFunc(getInvalidFile), wantErr: true, wantType: nil},
-		{name: "valid json dsn", dsn: validJSON, fget: fgetFunc(getInvalidFile), wantErr: false, wantType: &jsonSrc{}},
-		{name: "invalid json dsn", dsn: badJSON, fget: fgetFunc(getInvalidFile), wantErr: true, wantType: nil},
-		{name: "valid filespec dsn", dsn: "advancedlogging.conf", fget: fgetFunc(getValidFile), wantErr: false, wantType: &fileSrc{}},
-		{name: "invalid filespec dsn", dsn: "/nobody/here.conf", fget: fgetFunc(getInvalidFile), wantErr: true, wantType: nil},
+		{name: "empty dsn", dsn: "", configStore: store, wantErr: true, wantType: nil},
+		{name: "garbage dsn", dsn: "!@wfejwcevioj", configStore: store, wantErr: true, wantType: nil},
+		{name: "valid json dsn", dsn: validJSON, configStore: store, wantErr: false, wantType: &jsonSrc{}},
+		{name: "invalid json dsn", dsn: badJSON, configStore: store, wantErr: true, wantType: nil},
+		{name: "valid filespec dsn", dsn: "advancedlogging.conf", configStore: store, wantErr: false, wantType: &fileSrc{}},
+		{name: "invalid filespec dsn", dsn: "/nobody/here.conf", configStore: store, wantErr: true, wantType: nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewLogConfigSrc(tt.dsn, IsJsonMap(tt.dsn), tt.fget)
+			got, err := NewLogConfigSrc(tt.dsn, tt.configStore)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

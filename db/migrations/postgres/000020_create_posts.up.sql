@@ -31,3 +31,5 @@ CREATE INDEX IF NOT EXISTS idx_posts_channel_id_update_at ON posts(channelid, up
 CREATE INDEX IF NOT EXISTS idx_posts_channel_id_delete_at_create_at ON posts(channelid, deleteat, createat);
 CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON posts USING gin(to_tsvector('english', message));
 CREATE INDEX IF NOT EXISTS idx_posts_hashtags_txt ON posts USING gin(to_tsvector('english', hashtags));
+
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);

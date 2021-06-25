@@ -5,6 +5,7 @@ import (
 
 	"github.com/splitio/go-split-commons/v3/conf"
 	"github.com/splitio/go-split-commons/v3/dtos"
+	"github.com/splitio/go-split-commons/v3/service"
 	"github.com/splitio/go-toolkit/v4/logging"
 )
 
@@ -15,20 +16,7 @@ type httpRecorderBase struct {
 
 // RecordRaw records raw data
 func (h *httpRecorderBase) RecordRaw(url string, data []byte, metadata dtos.Metadata, extraHeaders map[string]string) error {
-	headers := make(map[string]string)
-	headers["SplitSDKVersion"] = metadata.SDKVersion
-	if metadata.MachineName != "NA" && metadata.MachineName != "unknown" {
-		headers["SplitSDKMachineName"] = metadata.MachineName
-	}
-	if metadata.MachineIP != "NA" && metadata.MachineIP != "unknown" {
-		headers["SplitSDKMachineIP"] = metadata.MachineIP
-	}
-	if extraHeaders != nil {
-		for header, value := range extraHeaders {
-			headers[header] = value
-		}
-	}
-	return h.client.Post(url, data, headers)
+	return h.client.Post(url, data, AddMetadataToHeaders(metadata, extraHeaders, nil))
 }
 
 // HTTPImpressionRecorder is a struct responsible for submitting impression bulks to the backend
@@ -74,84 +62,9 @@ func (i *HTTPImpressionRecorder) RecordImpressionsCount(pf dtos.ImpressionsCount
 }
 
 // NewHTTPImpressionRecorder instantiates an HTTPImpressionRecorder
-func NewHTTPImpressionRecorder(
-	apikey string,
-	cfg conf.AdvancedConfig,
-	logger logging.LoggerInterface,
-) *HTTPImpressionRecorder {
+func NewHTTPImpressionRecorder(apikey string, cfg conf.AdvancedConfig, logger logging.LoggerInterface) service.ImpressionsRecorder {
 	client := NewHTTPClient(apikey, cfg, cfg.EventsURL, logger, dtos.Metadata{})
 	return &HTTPImpressionRecorder{
-		httpRecorderBase: httpRecorderBase{
-			client: client,
-			logger: logger,
-		},
-	}
-}
-
-// HTTPMetricsRecorder is a struct responsible for submitting metrics (latency, gauge, counters) to the backend
-type HTTPMetricsRecorder struct {
-	httpRecorderBase
-}
-
-// RecordCounters method submits counter metrics to the backend
-func (m *HTTPMetricsRecorder) RecordCounters(counters []dtos.CounterDTO, metadata dtos.Metadata) error {
-	data, err := json.Marshal(counters)
-	if err != nil {
-		m.logger.Error("Error marshaling JSON", err.Error())
-		return err
-	}
-
-	err = m.RecordRaw("/metrics/counters", data, metadata, nil)
-	if err != nil {
-		m.logger.Error("Error posting counters", err.Error())
-		return err
-	}
-
-	return nil
-}
-
-// RecordLatencies method submits latency metrics to the backend
-func (m *HTTPMetricsRecorder) RecordLatencies(latencies []dtos.LatenciesDTO, metadata dtos.Metadata) error {
-	data, err := json.Marshal(latencies)
-	if err != nil {
-		m.logger.Error("Error marshaling JSON", err.Error())
-		return err
-	}
-
-	err = m.RecordRaw("/metrics/times", data, metadata, nil)
-	if err != nil {
-		m.logger.Error("Error posting latencies", err.Error())
-		return err
-	}
-
-	return nil
-}
-
-// RecordGauge method submits gauge metrics to the backend
-func (m *HTTPMetricsRecorder) RecordGauge(gauge dtos.GaugeDTO, metadata dtos.Metadata) error {
-	data, err := json.Marshal(gauge)
-	if err != nil {
-		m.logger.Error("Error marshaling JSON", err.Error())
-		return err
-	}
-
-	err = m.RecordRaw("/metrics/gauge", data, metadata, nil)
-	if err != nil {
-		m.logger.Error("Error posting gauges", err.Error())
-		return err
-	}
-
-	return nil
-}
-
-// NewHTTPMetricsRecorder instantiates an HTTPMetricsRecorder
-func NewHTTPMetricsRecorder(
-	apikey string,
-	cfg conf.AdvancedConfig,
-	logger logging.LoggerInterface,
-) *HTTPMetricsRecorder {
-	client := NewHTTPClient(apikey, cfg, cfg.EventsURL, logger, dtos.Metadata{})
-	return &HTTPMetricsRecorder{
 		httpRecorderBase: httpRecorderBase{
 			client: client,
 			logger: logger,
@@ -182,11 +95,7 @@ func (i *HTTPEventsRecorder) Record(events []dtos.EventDTO, metadata dtos.Metada
 }
 
 // NewHTTPEventsRecorder instantiates an HTTPEventsRecorder
-func NewHTTPEventsRecorder(
-	apikey string,
-	cfg conf.AdvancedConfig,
-	logger logging.LoggerInterface,
-) *HTTPEventsRecorder {
+func NewHTTPEventsRecorder(apikey string, cfg conf.AdvancedConfig, logger logging.LoggerInterface) service.EventsRecorder {
 	client := NewHTTPClient(apikey, cfg, cfg.EventsURL, logger, dtos.Metadata{})
 	return &HTTPEventsRecorder{
 		httpRecorderBase: httpRecorderBase{
@@ -194,4 +103,54 @@ func NewHTTPEventsRecorder(
 			logger: logger,
 		},
 	}
+}
+
+// HTTPTelemetryRecorder is a struct responsible for submitting telemetry to the backend
+type HTTPTelemetryRecorder struct {
+	httpRecorderBase
+}
+
+// NewHTTPTelemetryRecorder instantiates an HTTPTelemetryRecorder
+func NewHTTPTelemetryRecorder(apikey string, cfg conf.AdvancedConfig, logger logging.LoggerInterface) service.TelemetryRecorder {
+	client := NewHTTPClient(apikey, cfg, cfg.TelemetryServiceURL, logger, dtos.Metadata{})
+	return &HTTPTelemetryRecorder{
+		httpRecorderBase: httpRecorderBase{
+			client: client,
+			logger: logger,
+		},
+	}
+}
+
+// RecordConfig method submits config
+func (m *HTTPTelemetryRecorder) RecordConfig(config dtos.Config, metadata dtos.Metadata) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		m.logger.Error("Error marshaling JSON", err.Error())
+		return err
+	}
+
+	err = m.RecordRaw("/metrics/config", data, metadata, nil)
+	if err != nil {
+		m.logger.Error("Error posting config", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// RecordStats method submits stats
+func (m *HTTPTelemetryRecorder) RecordStats(stats dtos.Stats, metadata dtos.Metadata) error {
+	data, err := json.Marshal(stats)
+	if err != nil {
+		m.logger.Error("Error marshaling JSON", err.Error())
+		return err
+	}
+
+	err = m.RecordRaw("/metrics/usage", data, metadata, nil)
+	if err != nil {
+		m.logger.Error("Error posting usage", err.Error())
+		return err
+	}
+
+	return nil
 }

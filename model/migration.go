@@ -24,7 +24,7 @@ const (
 	MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS                = "add_system_roles_permissions"
 	MIGRATION_KEY_ADD_BILLING_PERMISSIONS                     = "add_billing_permissions"
 	MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS       = "manage_shared_channel_permissions"
-	MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS      = "manage_remote_clusters_permissions"
+	MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS   = "manage_secure_connections_permissions"
 	MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS      = "download_compliance_export_results"
 	MIGRATION_KEY_ADD_COMPLIANCE_SUBSECTION_PERMISSIONS       = "compliance_subsection_permissions"
 	MIGRATION_KEY_ADD_EXPERIMENTAL_SUBSECTION_PERMISSIONS     = "experimental_subsection_permissions"
@@ -32,6 +32,7 @@ const (
 	MIGRATION_KEY_ADD_SITE_SUBSECTION_PERMISSIONS             = "site_subsection_permissions"
 	MIGRATION_KEY_ADD_ENVIRONMENT_SUBSECTION_PERMISSIONS      = "environment_subsection_permissions"
 	MIGRATION_KEY_ADD_REPORTING_SUBSECTION_PERMISSIONS        = "reporting_subsection_permissions"
+	MIGRATION_KEY_ADD_TEST_EMAIL_ANCILLARY_PERMISSION         = "test_email_ancillary_permission"
 	MIGRATION_KEY_ADD_ABOUT_SUBSECTION_PERMISSIONS            = "about_subsection_permissions"
 	MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS     = "integrations_subsection_permissions"
 )

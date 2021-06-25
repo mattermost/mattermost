@@ -21,7 +21,7 @@ func TestCodeProviderDoCommand(t *testing.T) {
 		"foo\nbar":   "    foo\n    bar",
 		"foo\nbar\n": "    foo\n    bar\n    ",
 	} {
-		actual := cp.DoCommand(nil, args, msg).Text
+		actual := cp.DoCommand(nil, nil, args, msg).Text
 		if actual != expected {
 			t.Errorf("expected `%v`, got `%v`", expected, actual)
 		}

@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS TeamMembers (
     Roles varchar(64),
     DeleteAt bigint(20),
     PRIMARY KEY (TeamId, UserId),
-    KEY idx_teammembers_team_id (TeamId),
     KEY idx_teammembers_user_id (UserId),
     KEY idx_teammembers_delete_at (DeleteAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
