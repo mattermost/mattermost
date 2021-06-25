@@ -1090,6 +1090,18 @@ func (api *PluginAPI) DeleteCommand(commandID string) error {
 	return nil
 }
 
+func (api *PluginAPI) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	return api.app.CreateOAuthApp(app)
+}
+
+func (api *PluginAPI) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	return api.app.GetOAuthApp(appID)
+}
+
+func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
+	return api.app.DeleteOAuthApp(appID)
+}
+
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 // the calling plugin.
 func (api *PluginAPI) PublishPluginClusterEvent(ev model.PluginClusterEvent,

@@ -191,6 +191,31 @@ func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	return r0, r1
 }
 
+// CreateOAuthApp provides a mock function with given fields: app
+func (_m *API) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	ret := _m.Called(app)
+
+	var r0 *model.OAuthApp
+	if rf, ok := ret.Get(0).(func(*model.OAuthApp) *model.OAuthApp); ok {
+		r0 = rf(app)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OAuthApp)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.OAuthApp) *model.AppError); ok {
+		r1 = rf(app)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreatePost provides a mock function with given fields: post
 func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
@@ -431,6 +456,22 @@ func (_m *API) DeleteCommand(commandID string) error {
 // DeleteEphemeralPost provides a mock function with given fields: userID, postId
 func (_m *API) DeleteEphemeralPost(userID string, postId string) {
 	_m.Called(userID, postId)
+}
+
+// DeleteOAuthApp provides a mock function with given fields: appID
+func (_m *API) DeleteOAuthApp(appID string) *model.AppError {
+	ret := _m.Called(appID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(appID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // DeletePost provides a mock function with given fields: postId
@@ -1361,6 +1402,31 @@ func (_m *API) GetLicense() *model.License {
 	}
 
 	return r0
+}
+
+// GetOAuthApp provides a mock function with given fields: appID
+func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
+	ret := _m.Called(appID)
+
+	var r0 *model.OAuthApp
+	if rf, ok := ret.Get(0).(func(string) *model.OAuthApp); ok {
+		r0 = rf(appID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OAuthApp)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(appID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPluginConfig provides a mock function with given fields:

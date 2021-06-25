@@ -1067,6 +1067,24 @@ type API interface {
 	// Minimum server version: 5.28
 	DeleteCommand(commandID string) error
 
+	// CreateOAuthApp creates a new OAuth App,
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+
+	// GetOAuthApp gets an existing OAuth App.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError)
+
+	// DeleteOAuthApp deletes an OAuth App.
+	//
+	// @tag OAuth
+	// Minimum server version: 5.38
+	DeleteOAuthApp(appID string) *model.AppError
+
 	// PublishPluginClusterEvent broadcasts a plugin event to all other running instances of
 	// the calling plugin that are present in the cluster.
 	//
