@@ -1784,6 +1784,7 @@ func (s *Server) startMetricsServer() {
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
 	key := model.LICENSE_UP_FOR_RENEWAL_EMAIL_SENT + license.Id
 	if _, err := s.Store.System().GetByName(key); err == nil {
+		// return early because the key already exists and that means we already executed the code below to send email successfully
 		return nil
 	}
 
@@ -1791,7 +1792,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	renewalLink, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
-		return appErr
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "Failed to generate the license renewal link", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	// we want to at least have one email sent out to an admin
@@ -1804,7 +1805,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		}
 		ok, err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration)
 		if !ok || err != nil {
-			mlog.Error(fmt.Sprintf("Error sending license up for renewal email to: %s", user.Email))
+			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email))
 			countNotOks++
 		}
 	}
@@ -1820,7 +1821,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	}
 
 	if err := s.Store.System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
+		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
 	}
 
 	return nil
