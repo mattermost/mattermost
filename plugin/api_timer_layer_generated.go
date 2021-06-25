@@ -497,6 +497,27 @@ func (api *apiTimerLayer) SearchChannels(teamID string, term string) ([]*model.C
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateChannelSidebarCategory(userID, teamID, newCategory)
+	api.recordTime(startTime, "CreateChannelSidebarCategory", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetChannelSidebarCategories(userID, teamID)
+	api.recordTime(startTime, "GetChannelSidebarCategories", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateChannelSidebarCategories(userID, teamID, categories)
+	api.recordTime(startTime, "UpdateChannelSidebarCategories", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SearchUsers(search)
