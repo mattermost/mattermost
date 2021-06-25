@@ -1792,7 +1792,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	renewalLink, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "Failed to generate the license renewal link", nil, appErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	// we want to at least have one email sent out to an admin
@@ -1812,7 +1812,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	// if not even one admin got an email, we consider that this operation errored
 	if countNotOks == len(users) {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "Failed to send license up for renewal emails", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_sending_email", nil, "", http.StatusInternalServerError)
 	}
 
 	system := model.System{
