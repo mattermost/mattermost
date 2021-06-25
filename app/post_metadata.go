@@ -188,6 +188,10 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		return nil, err
 	}
 
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+		permalink = nil
+	}
+
 	if og != nil {
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_OPENGRAPH,
@@ -259,9 +263,6 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 				imageURLs = append(imageURLs, imageURL)
 			}
-
-		case model.POST_EMBED_PERMALINK:
-			// TODO: Get images from permalinked post, using some UX-defined logic from the design spec.
 		}
 	}
 
@@ -436,6 +437,10 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	// Check cache
 	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
+	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+		permalink = nil
+	}
+
 	if ok {
 		return og, image, permalink, nil
 	}
@@ -443,6 +448,10 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
 		og, image, permalink, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
+
+		if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
+			permalink = nil
+		}
 
 		if permalink != nil && permalink.PreviewPost == nil {
 			postID := postIDFromPermalink(requestURL)
@@ -483,7 +492,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	var err error
 
-	if looksLikeAPermalink(requestURL, a.GetSiteURL()) {
+	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := postIDFromPermalink(requestURL)
 
 		referencedPost, appErr := a.GetSinglePost(referencedPostID)
@@ -591,7 +600,7 @@ func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*
 
 	data := linkMetadata.Data
 
-	if linkMetadata.Type == model.LINK_METADATA_TYPE_PERMALINK {
+	if linkMetadata.Type == model.LINK_METADATA_TYPE_PERMALINK && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		return nil, nil, &model.Permalink{}, true
 	}
 
