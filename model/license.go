@@ -18,6 +18,12 @@ const (
 	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
 )
 
+const (
+	SIXTY_DAYS                        = 60
+	FIFTY_EIGHT                       = 58
+	LICENSE_UP_FOR_RENEWAL_EMAIL_SENT = "LicenseUpForRenewalEmailSent"
+)
+
 var (
 	trialDuration      = 30*(time.Hour*24) + (time.Hour * 8)                                            // 720 hours (30 days) + 8 hours is trial license duration
 	adminTrialDuration = 30*(time.Hour*24) + (time.Hour * 23) + (time.Minute * 59) + (time.Second * 59) // 720 hours (30 days) + 23 hours, 59 mins and 59 seconds
@@ -266,11 +272,16 @@ func (l *License) IsPastGracePeriod() bool {
 	return timeDiff > LICENSE_GRACE_PERIOD
 }
 
-func (l *License) IsAroundSixtyDaysToExpiration() bool {
+func (l *License) IsWithinExpirationPeriod() bool {
+	days := l.DaysToExpiration()
+	return days <= SIXTY_DAYS && days >= FIFTY_EIGHT
+}
+
+func (l *License) DaysToExpiration() int {
 	dif := l.ExpiresAt - GetMillis()
 	d, _ := time.ParseDuration(fmt.Sprint(dif) + "ms")
 	days := d.Hours() / 24
-	return days <= 60 && days >= 58
+	return int(days)
 }
 
 func (l *License) IsStarted() bool {

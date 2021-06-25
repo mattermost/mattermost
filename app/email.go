@@ -815,14 +815,14 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 	return true, nil
 }
 
-func (es *EmailService) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string) (bool, *model.AppError) {
+func (es *EmailService) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) (bool, *model.AppError) {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.license_up_for_renewal_subject")
 
 	data := es.newEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
-	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]interface{}{"UserName": name})
+	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]interface{}{"UserName": name, "Days": daysToExpiration})
 	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["Button"] = T("api.templates.license_up_for_renewal_renew_now")
