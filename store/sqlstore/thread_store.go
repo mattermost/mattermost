@@ -110,7 +110,7 @@ func (s *SqlThreadStore) get(ex gorp.SqlExecutor, id string) (*model.Thread, err
 	err := ex.SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Thread", id)
+			return nil, nil
 		}
 
 		return nil, errors.Wrapf(err, "failed to get thread with id=%s", id)
@@ -132,7 +132,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.CreateAt >= ThreadMemberships.LastViewed"
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}, sq.Eq{"Channels.TeamId": nil}},
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
@@ -626,7 +626,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 		if getErr != nil {
 			return nil, getErr
 		}
-		if !thread.Participants.Contains(userId) {
+		if thread != nil && !thread.Participants.Contains(userId) {
 			thread.Participants = append(thread.Participants, userId)
 			if _, err = s.update(trx, thread); err != nil {
 				return nil, err
