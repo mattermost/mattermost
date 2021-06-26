@@ -25,7 +25,7 @@ func StripMarkdown(markdown string) string {
 		),
 	)
 
-	var buf bytes.Buffer
+	var buf strings.Builder
 	if err := md.Convert([]byte(markdown), &buf); err != nil {
 		return ""
 	}
