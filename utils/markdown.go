@@ -171,8 +171,7 @@ func (r *notificationRenderer) renderTable(w util.BufWriter, source []byte, node
 }
 
 func (r *notificationRenderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
-	l := n.Lines().Len()
-	for i := 0; i < l; i++ {
+	for i := 0; i < n.Lines().Len(); i++ {
 		line := n.Lines().At(i)
 		value := line.Value(source)
 		_, _ = w.Write(value)
