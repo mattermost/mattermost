@@ -38,6 +38,26 @@ func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
+		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
+		if err != nil {
+			mlog.Error("Failed to read license set in environment.", mlog.Err(err))
+			return
+		}
+
+		// skip the restrictions if license is a sanctioned trial
+		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
+			canStartTrialLicense, err := s.LicenseManager.CanStartTrial()
+			if err != nil {
+				mlog.Info("Failed to validate trial eligibility.", mlog.Err(err))
+				return
+			}
+
+			if !canStartTrialLicense {
+				mlog.Info("Cannot start trial multiple times.")
+				return
+			}
+		}
+
 		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
 			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
 		}
@@ -75,7 +95,7 @@ func (s *Server) LoadLicense() {
 }
 
 func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := utils.ValidateLicense(licenseBytes)
+	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
@@ -174,7 +194,7 @@ func (s *Server) SetLicense(license *model.License) bool {
 }
 
 func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
-	if success, licenseStr := utils.ValidateLicense(b); success {
+	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		s.SetLicense(license)
 		return true
@@ -228,22 +248,7 @@ func (s *Server) RemoveLicenseListener(id string) {
 }
 
 func (s *Server) GetSanitizedClientLicense() map[string]string {
-	sanitizedLicense := make(map[string]string)
-
-	for k, v := range s.ClientLicense() {
-		sanitizedLicense[k] = v
-	}
-
-	delete(sanitizedLicense, "Id")
-	delete(sanitizedLicense, "Name")
-	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "IssuedAt")
-	delete(sanitizedLicense, "StartsAt")
-	delete(sanitizedLicense, "ExpiresAt")
-	delete(sanitizedLicense, "SkuName")
-	delete(sanitizedLicense, "SkuShortName")
-
-	return sanitizedLicense
+	return utils.GetSanitizedClientLicense(s.ClientLicense())
 }
 
 // RequestTrialLicense request a trial license from the mattermost official license server

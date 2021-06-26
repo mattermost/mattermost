@@ -1952,21 +1952,27 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: user.Id, ChannelId: channel.Id, Message: "Hola"}, channel, false, false)
 	require.Nil(t, err)
 
-	thread, err := th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
 	_, err = th.App.CreatePost(th.Context, &model.Post{RootId: p1.Id, UserId: sysadmin.Id, ChannelId: channel.Id, Message: "sysadmin reply"}, channel, false, false)
 	require.Nil(t, err)
 
-	thread, err = th.App.GetThreadForUser(user.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
 	// another user follows the thread
 	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
 
-	thread, err = th.App.GetThreadForUser(user2.Id, th.BasicTeam.Id, p1.Id, false)
+	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
+	require.Nil(t, err)
+	thread, err = th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
 	require.Nil(t, err)
 	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
 	for _, p := range thread.Participants {
@@ -2072,7 +2078,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id, true, true)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
@@ -2080,7 +2086,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.EqualValues(t, []string{user1.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id})
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
-		require.True(t, l.Posts[postRoot.Id].IsFollowing)
+		require.True(t, *l.Posts[postRoot.Id].IsFollowing)
 
 		// try extended fetch
 		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)

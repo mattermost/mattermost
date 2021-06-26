@@ -75,3 +75,21 @@ func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	}
 	return obj.(*model.LicenseRecord), nil
 }
+
+func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
+	query := ls.getQueryBuilder().
+		Select("*").
+		From("Licenses")
+
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "license_tosql")
+	}
+
+	var licenses []*model.LicenseRecord
+	if _, err := ls.GetReplica().Select(&licenses, queryString); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch licenses")
+	}
+
+	return licenses, nil
+}
