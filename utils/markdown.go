@@ -13,6 +13,8 @@ import (
 	astExt "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
+
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func StripMarkdown(markdown string) string {
@@ -27,7 +29,8 @@ func StripMarkdown(markdown string) string {
 
 	var buf strings.Builder
 	if err := md.Convert([]byte(markdown), &buf); err != nil {
-		return ""
+		mlog.Warn("failed parse to markdown")
+		return markdown
 	}
 
 	return strings.TrimSpace(buf.String())
