@@ -14,6 +14,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
+// StripMarkdown remove some markdown syntax
 func StripMarkdown(markdown string) (string, error) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.Strikethrough),
