@@ -27,7 +27,7 @@ func StripMarkdown(markdown string) (string, error) {
 
 	var buf strings.Builder
 	if err := md.Convert([]byte(markdown), &buf); err != nil {
-		return markdown, err
+		return "", err
 	}
 
 	return strings.TrimSpace(buf.String()), nil
