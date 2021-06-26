@@ -74,11 +74,11 @@ func (r *notificationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegist
 }
 
 // renderDefault renderer function to renderDefault without changes
-func (r *notificationRenderer) renderDefault(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderDefault(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
 	return ast.WalkContinue, nil
 }
 
-func (r *notificationRenderer) renderItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderItem(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		if node.NextSibling() != nil {
 			_ = w.WriteByte(' ')
@@ -120,7 +120,7 @@ func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node 
 	return ast.WalkContinue, nil
 }
 
-func (r *notificationRenderer) renderTextBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderTextBlock(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		if _, ok := node.NextSibling().(ast.Node); ok && node.FirstChild() != nil {
 			_ = w.WriteByte(' ')
@@ -129,7 +129,7 @@ func (r *notificationRenderer) renderTextBlock(w util.BufWriter, source []byte, 
 	return ast.WalkContinue, nil
 }
 
-func (r *notificationRenderer) renderString(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderString(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
 	}
@@ -138,7 +138,7 @@ func (r *notificationRenderer) renderString(w util.BufWriter, source []byte, nod
 	return ast.WalkContinue, nil
 }
 
-func (r *notificationRenderer) renderTable(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderTable(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
 	return ast.WalkSkipChildren, nil
 }
 
