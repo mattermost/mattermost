@@ -82,7 +82,7 @@ func (r *notificationRenderer) renderDefault(w util.BufWriter, source []byte, no
 func (r *notificationRenderer) renderHeading(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		if node.NextSibling() != nil {
-			_, _ = w.WriteString(" ")
+			_ = w.WriteByte(' ')
 		}
 	}
 	return ast.WalkContinue, nil
@@ -98,7 +98,7 @@ func (r *notificationRenderer) renderListItem(w util.BufWriter, source []byte, n
 		}
 	} else {
 		if node.NextSibling() != nil {
-			_, _ = w.WriteString(" ")
+			_ = w.WriteByte(' ')
 		}
 	}
 	return ast.WalkContinue, nil
@@ -107,7 +107,7 @@ func (r *notificationRenderer) renderListItem(w util.BufWriter, source []byte, n
 func (r *notificationRenderer) renderParagraph(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		if node.NextSibling() != nil {
-			_, _ = w.WriteString(" ")
+			_ = w.WriteByte(' ')
 		}
 	}
 	return ast.WalkContinue, nil
