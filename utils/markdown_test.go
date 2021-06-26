@@ -265,7 +265,10 @@ func TestStripMarkdown(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := StripMarkdown(tt.args)
+			got, err := StripMarkdown(tt.args)
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
 			assert.Equal(t, tt.want, got)
 		})
 	}

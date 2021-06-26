@@ -56,7 +56,11 @@ type PushNotification struct {
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
-	post.Message = utils.StripMarkdown(post.Message)
+	message, errMarkdown := utils.StripMarkdown(post.Message)
+	if errMarkdown != nil {
+		mlog.Warn("failed parse to markdown", mlog.Err(errMarkdown))
+	}
+	post.Message = message
 	msg, err := a.BuildPushNotificationMessage(
 		*cfg.EmailSettings.PushNotificationContents,
 		post,
