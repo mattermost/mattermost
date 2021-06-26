@@ -58,12 +58,12 @@ func TestStripMarkdown(t *testing.T) {
 		{
 			name: "code block: multiline code block 2",
 			args: "Multiline\n```\nfunction(number) {\n  return number + 1;\n}\n```",
-			want: "Multiline function(number) {   return number + 1; }",
+			want: "Multiline function(number) {\n  return number + 1;\n}",
 		},
 		{
 			name: "code block: language highlighting",
 			args: "```javascript\nvar s = \"JavaScript syntax highlighting\";\nalert(s);\n```",
-			want: "var s = \"JavaScript syntax highlighting\"; alert(s);",
+			want: "var s = \"JavaScript syntax highlighting\";\nalert(s);",
 		},
 		{
 			name: "blockquote:",
@@ -73,7 +73,7 @@ func TestStripMarkdown(t *testing.T) {
 		{
 			name: "blockquote: multiline",
 			args: "> Hey quote.\n> Hello quote.",
-			want: "Hey quote. Hello quote.",
+			want: "Hey quote.\nHello quote.",
 		},
 		{
 			name: "heading: # H1 header",
@@ -113,7 +113,7 @@ func TestStripMarkdown(t *testing.T) {
 		{
 			name: "heading: multiline with header and paragraph",
 			args: "###### H6 header\nThis is next line.\nAnother line.",
-			want: "H6 header This is next line. Another line.",
+			want: "H6 header This is next line.\nAnother line.",
 		},
 		{
 			name: "heading: multiline with header and list items",
@@ -210,7 +210,7 @@ func TestStripMarkdown(t *testing.T) {
 		{
 			name: "text: multiline",
 			args: "This is multiline text.\nHere is the next line.\n",
-			want: "This is multiline text. Here is the next line.",
+			want: "This is multiline text.\nHere is the next line.",
 		},
 		{
 			name: "text: multiline with blockquote",

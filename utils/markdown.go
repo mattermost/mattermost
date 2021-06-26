@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"bytes"
 	"strings"
 
 	"github.com/yuin/goldmark"
@@ -115,7 +114,6 @@ func (r *notificationRenderer) renderParagraph(w util.BufWriter, source []byte, 
 
 func (r *notificationRenderer) renderCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.CodeBlock)
-	source = bytes.ReplaceAll(source, []byte("\n"), []byte(" "))
 	if entering {
 		r.writeLines(w, source, n)
 	}
@@ -125,7 +123,6 @@ func (r *notificationRenderer) renderCodeBlock(w util.BufWriter, source []byte, 
 
 func (r *notificationRenderer) renderFencedCodeBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.FencedCodeBlock)
-	source = bytes.ReplaceAll(source, []byte("\n"), []byte(" "))
 	if entering {
 		r.writeLines(w, source, n)
 	}
@@ -142,7 +139,7 @@ func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node 
 	_, _ = w.Write(segment.Value(source))
 	if !n.IsRaw() {
 		if n.HardLineBreak() || n.SoftLineBreak() {
-			_ = w.WriteByte(' ')
+			_ = w.WriteByte('\n')
 		}
 	}
 	return ast.WalkContinue, nil
