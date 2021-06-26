@@ -139,10 +139,8 @@ func (r *notificationRenderer) renderText(w util.BufWriter, source []byte, node 
 	}
 	n := node.(*ast.Text)
 	segment := n.Segment
-	if n.IsRaw() {
-		_, _ = w.Write(segment.Value(source))
-	} else {
-		_, _ = w.Write(segment.Value(source))
+	_, _ = w.Write(segment.Value(source))
+	if !n.IsRaw() {
 		if n.HardLineBreak() || n.SoftLineBreak() {
 			_ = w.WriteByte(' ')
 		}
