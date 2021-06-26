@@ -45,14 +45,14 @@ func newNotificationRenderer() *notificationRenderer {
 func (r *notificationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	// block
 	reg.Register(ast.KindDocument, r.renderDefault)
-	reg.Register(ast.KindHeading, r.renderHeading)
+	reg.Register(ast.KindHeading, r.renderItem)
 	reg.Register(ast.KindBlockquote, r.renderDefault)
 	reg.Register(ast.KindCodeBlock, r.renderCodeBlock)
 	reg.Register(ast.KindFencedCodeBlock, r.renderFencedCodeBlock)
 	reg.Register(ast.KindHTMLBlock, r.renderDefault)
 	reg.Register(ast.KindList, r.renderDefault)
-	reg.Register(ast.KindListItem, r.renderListItem)
-	reg.Register(ast.KindParagraph, r.renderParagraph)
+	reg.Register(ast.KindListItem, r.renderItem)
+	reg.Register(ast.KindParagraph, r.renderItem)
 	reg.Register(ast.KindTextBlock, r.renderTextBlock)
 	reg.Register(ast.KindThematicBreak, r.renderDefault)
 
@@ -78,32 +78,7 @@ func (r *notificationRenderer) renderDefault(w util.BufWriter, source []byte, no
 	return ast.WalkContinue, nil
 }
 
-func (r *notificationRenderer) renderHeading(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-	if !entering {
-		if node.NextSibling() != nil {
-			_ = w.WriteByte(' ')
-		}
-	}
-	return ast.WalkContinue, nil
-}
-
-func (r *notificationRenderer) renderListItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-	if entering {
-		fc := node.FirstChild()
-		if fc != nil {
-			if _, ok := fc.(*ast.TextBlock); !ok {
-				_ = w.WriteByte(' ')
-			}
-		}
-	} else {
-		if node.NextSibling() != nil {
-			_ = w.WriteByte(' ')
-		}
-	}
-	return ast.WalkContinue, nil
-}
-
-func (r *notificationRenderer) renderParagraph(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *notificationRenderer) renderItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		if node.NextSibling() != nil {
 			_ = w.WriteByte(' ')
