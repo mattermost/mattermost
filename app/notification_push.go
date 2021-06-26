@@ -11,12 +11,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type notificationType string
@@ -56,6 +56,7 @@ type PushNotification struct {
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
+	post.Message = utils.StripMarkdown(post.Message)
 	msg, err := a.BuildPushNotificationMessage(
 		*cfg.EmailSettings.PushNotificationContents,
 		post,
@@ -137,7 +138,6 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	cfg := a.Config()
 	channel := notification.Channel
 	post := notification.Post
-	post.Message = utils.StripMarkdown(post.Message)
 
 	nameFormat := a.GetNotificationNameFormat(user)
 
