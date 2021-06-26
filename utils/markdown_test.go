@@ -161,7 +161,10 @@ func TestStripMarkdown(t *testing.T) {
 				"--- | --- | ---\n" +
 				"*Still* | `renders` | **nicely**\n" +
 				"1 | 2 | 3\n",
-			want: "",
+			want: "Markdown | Less | Pretty\n" +
+				"--- | --- | ---\n" +
+				"Still | renders | nicely\n" +
+				"1 | 2 | 3",
 		},
 		{
 			name: "table:",
@@ -170,7 +173,11 @@ func TestStripMarkdown(t *testing.T) {
 				"| col 3 is      | right-aligned | $1600 |\n" +
 				"| col 2 is      | centered      |   $12 |\n" +
 				"| zebra stripes | are neat      |    $1 |\n",
-			want: "",
+			want: "| Tables        | Are           | Cool  |\n" +
+				"| ------------- |:-------------:| -----:|\n" +
+				"| col 3 is      | right-aligned | $1600 |\n" +
+				"| col 2 is      | centered      |   $12 |\n" +
+				"| zebra stripes | are neat      |    $1 |",
 		},
 		{
 			name: "strong: Bold with **asterisks** or __underscores__.",

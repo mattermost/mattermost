@@ -16,7 +16,7 @@ import (
 
 func StripMarkdown(markdown string) (string, error) {
 	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithExtensions(extension.Strikethrough),
 		goldmark.WithRenderer(
 			renderer.NewRenderer(renderer.WithNodeRenderers(
 				util.Prioritized(newNotificationRenderer(), 500),
@@ -62,9 +62,6 @@ func (r *notificationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegist
 	reg.Register(ast.KindRawHTML, r.renderDefault)
 	reg.Register(ast.KindText, r.renderText)
 	reg.Register(ast.KindString, r.renderString)
-
-	// table
-	reg.Register(astExt.KindTable, r.renderTable)
 
 	// strikethrough
 	reg.Register(astExt.KindStrikethrough, r.renderDefault)
@@ -133,10 +130,6 @@ func (r *notificationRenderer) renderString(w util.BufWriter, _ []byte, node ast
 	n := node.(*ast.String)
 	_, _ = w.Write(n.Value)
 	return ast.WalkContinue, nil
-}
-
-func (r *notificationRenderer) renderTable(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
-	return ast.WalkSkipChildren, nil
 }
 
 func (r *notificationRenderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
