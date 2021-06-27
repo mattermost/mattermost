@@ -168,6 +168,31 @@ func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.App
 	return r0, r1
 }
 
+// CreateChannelSidebarCategory provides a mock function with given fields: userID, teamID, newCategory
+func (_m *API) CreateChannelSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	ret := _m.Called(userID, teamID, newCategory)
+
+	var r0 *model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID, newCategory)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels) *model.AppError); ok {
+		r1 = rf(userID, teamID, newCategory)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateCommand provides a mock function with given fields: cmd
 func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	ret := _m.Called(cmd)
@@ -805,6 +830,31 @@ func (_m *API) GetChannelMembersForUser(teamID string, userID string, page int, 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
 		r1 = rf(teamID, userID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetChannelSidebarCategories provides a mock function with given fields: userID, teamID
+func (_m *API) GetChannelSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	ret := _m.Called(userID, teamID)
+
+	var r0 *model.OrderedSidebarCategories
+	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, teamID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -3187,6 +3237,31 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userID string, newRole
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
 		r1 = rf(channelId, userID, newRoles)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateChannelSidebarCategories provides a mock function with given fields: userID, teamID, categories
+func (_m *API) UpdateChannelSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	ret := _m.Called(userID, teamID, categories)
+
+	var r0 []*model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID, categories)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) *model.AppError); ok {
+		r1 = rf(userID, teamID, categories)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
