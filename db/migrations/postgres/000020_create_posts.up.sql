@@ -23,7 +23,6 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS ispinned boolean default false;
 CREATE INDEX IF NOT EXISTS idx_posts_update_at ON posts(updateat);
 CREATE INDEX IF NOT EXISTS idx_posts_create_at ON posts(createat);
 CREATE INDEX IF NOT EXISTS idx_posts_delete_at ON posts(deleteat);
-CREATE INDEX IF NOT EXISTS idx_posts_channel_id ON posts(channelid);
 CREATE INDEX IF NOT EXISTS idx_posts_root_id ON posts(rootid);
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(userid);
 CREATE INDEX IF NOT EXISTS idx_posts_is_pinned ON posts(ispinned);

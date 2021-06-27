@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS oauthaccessdata (
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_refresh_token ON oauthaccessdata (refreshtoken);
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS clientid VARCHAR(26) DEFAULT '';
-CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_client_id ON oauthaccessdata (clientid);
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS userid VARCHAR(26) DEFAULT '';
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_user_id ON oauthaccessdata (userid);

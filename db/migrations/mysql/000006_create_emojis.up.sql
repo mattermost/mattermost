@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS Emoji (
     UNIQUE KEY (Name, DeleteAt),
     KEY idx_emoji_update_at (UpdateAt),
     KEY idx_emoji_create_at (CreateAt),
-    KEY idx_emoji_delete_at (DeleteAt),
-    KEY idx_emoji_name (Name)
+    KEY idx_emoji_delete_at (DeleteAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET @preparedStatement = (SELECT IF(
