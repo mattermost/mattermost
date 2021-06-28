@@ -9241,5 +9241,9 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Kon niet controleren of een proefperiode gestart kan worden"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Dataretentietaak mislukt."
   }
 ]
