@@ -250,7 +250,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 }
 
 func getEmojiNamesForString(s string) []string {
-	names := model.EMOJI_PATTERN.FindAllString(s, -1)
+	names := model.ALL_EMOJI_PATTERN.FindAllString(s, -1)
 
 	for i, name := range names {
 		names[i] = strings.Trim(name, ":")
