@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "이 기본 채널은 전용 채널로 변환할 수 없습니다."
+    "translation": "기본 채널은 비공개 채널로 변환할 수 없습니다."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "기본 채널은 삭제할 수 없습니다 {{.Channel}}"
+    "translation": "기본 채널인 {{.Channel}} 채널은 삭제할 수 없습니다."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -1689,7 +1689,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "본 채널은 %v에 의해 해당 팀으로 이동되었습니다. "
+    "translation": "본 채널은 %v 팀에서 이 팀으로 이동되었습니다."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",

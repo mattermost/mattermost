@@ -4401,7 +4401,7 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "[További információ a Mattermost Tanácsadóról] (https://about.mattermost.com/default-channel-handle-documentation)"
+    "translation": "[További információk a Mattermost Advisor-ról](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -8582,7 +8582,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [channel handle] (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna kezelőt](https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_mute.name",
@@ -9193,5 +9193,57 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Sikertelen képkorlát ellenőrzés. A felbontás túl nagy."
+  },
+  {
+    "id": "store.sql_channel.save_channel.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő csatornára."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő felhasználóra."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Felhasználói szál tagság nem létezik"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Nem sikerült lekérni a felhasználói szál tagságot"
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Nem hívható meg a mentés egy meglévő felhasználási feltételekhez."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Meg kell hívni a frissítést a meglévő csapatokra."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Rendszer"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Nem sikerült lekérni az idő körüli bejegyzést."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Az adminok listája üres."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Az adminok listája üres."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Ez a próba időszak kulcs a Mattermost Enterprise kiadáshoz lejárt és már nem érvényes. Ha szeretné meghosszabbítani a próbaidőszakot, kérjük [vegye fel a kapcsolatot értékesítési csapatunkkal](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Nem ellenőrizhető, hogy a próba időszak indítható-e"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Adat megőrzési feladat hibára futott."
   }
 ]

@@ -9225,5 +9225,25 @@
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Lijst van beheerders is leeg."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Lidmaatschap gebruiker van draadje bestaat niet"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Kan lidmaatschap van gebruiker voor draadje niet verkrijgen"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Deze proeflicentiesleutel voor Mattermost Enterprise Edition is verlopen en is niet langer geldig. Als je jouw proefperiode wil verlengen, neem dan [contact op met ons verkoopteam](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Kon niet controleren of een proefperiode gestart kan worden"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Dataretentietaak mislukt."
   }
 ]
