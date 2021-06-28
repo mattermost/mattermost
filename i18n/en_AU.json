@@ -9241,5 +9241,9 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "An error occurred while checking if a trial can be started"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   }
 ]
