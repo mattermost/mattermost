@@ -4,11 +4,13 @@
 package searchtest
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -81,6 +83,8 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
+	b, err := json.Marshal(res)
+	mlog.Debug("log testAutocompleteChannelByName", mlog.String("res", string(b)))
 	// should not work
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
