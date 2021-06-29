@@ -16,13 +16,7 @@ const (
 	EMOJI_SORT_BY_NAME    = "name"
 )
 
-var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
-
-// ALL_EMOJI_PATTERN is same as the EMOJI_PATTERN except for allowing a '+' character.
-// This is to allow the system emoji :+1: to be matched.
-// We kept a separate variable to avoid renaming help texts for custom emoji's.
-// TODO: Merge ALL_EMOJI_PATTERN with EMOJI_PATTERN after updating custom emoji help texts
-var ALL_EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
+var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
 var ReverseSystemEmojisMap = makeReverseEmojiMap()
 
