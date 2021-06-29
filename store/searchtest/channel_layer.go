@@ -129,7 +129,7 @@ func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper
 	defer th.deleteChannel(other)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, other.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id, other.Id}, res)
 }
 
 func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelper) {
@@ -159,11 +159,11 @@ func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *Search
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testSearchShouldSupportAutocompleteWithArchivedChannels(t *testing.T, th *SearchTestHelper) {
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", true)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelDeleted.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, th.ChannelDeleted.Id}, res)
 }
