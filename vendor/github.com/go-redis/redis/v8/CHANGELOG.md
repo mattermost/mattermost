@@ -3,6 +3,19 @@
 > :heart:
 > [**Uptrace.dev** - All-in-one tool to optimize performance and monitor errors & logs](https://uptrace.dev)
 
+## v8.10
+
+- Removed extra OpenTelemetry spans from go-redis core. Now go-redis instrumentation only adds a
+  single span with a Redis command (instead of 4 spans). There are multiple reasons behind this
+  decision:
+
+  - Traces become smaller and less noisy.
+  - It may be costly to process those 3 extra spans for each query.
+  - go-redis no longer depends on OpenTelemetry.
+
+  Eventually we hope to replace the information that we no longer collect with OpenTelemetry
+  Metrics.
+
 ## v8.9
 
 - Changed `PubSub.Channel` to only rely on `Ping` result. You can now use `WithChannelSize`,

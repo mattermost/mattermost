@@ -138,7 +138,7 @@ func (e *betterFastEncoder) Encode(blk *blockEnc, src []byte) {
 		blk.literals = append(blk.literals, src[nextEmit:until]...)
 		s.litLen = uint32(until - nextEmit)
 	}
-	if debug {
+	if debugEncoder {
 		println("recent offsets:", blk.recentOffsets)
 	}
 
@@ -204,7 +204,7 @@ encodeLoop:
 
 					nextEmit = s
 					if s >= sLimit {
-						if debug {
+						if debugEncoder {
 							println("repeat ended", s, lenght)
 
 						}
@@ -264,7 +264,7 @@ encodeLoop:
 					s += lenght + repOff2
 					nextEmit = s
 					if s >= sLimit {
-						if debug {
+						if debugEncoder {
 							println("repeat ended", s, lenght)
 
 						}
@@ -553,7 +553,7 @@ encodeLoop:
 	}
 	blk.recentOffsets[0] = uint32(offset1)
 	blk.recentOffsets[1] = uint32(offset2)
-	if debug {
+	if debugEncoder {
 		println("returning, recent offsets:", blk.recentOffsets, "extra literals:", blk.extraLits)
 	}
 }
@@ -656,7 +656,7 @@ func (e *betterFastEncoderDict) Encode(blk *blockEnc, src []byte) {
 		blk.literals = append(blk.literals, src[nextEmit:until]...)
 		s.litLen = uint32(until - nextEmit)
 	}
-	if debug {
+	if debugEncoder {
 		println("recent offsets:", blk.recentOffsets)
 	}
 
@@ -724,7 +724,7 @@ encodeLoop:
 
 					nextEmit = s
 					if s >= sLimit {
-						if debug {
+						if debugEncoder {
 							println("repeat ended", s, lenght)
 
 						}
@@ -787,7 +787,7 @@ encodeLoop:
 					s += lenght + repOff2
 					nextEmit = s
 					if s >= sLimit {
-						if debug {
+						if debugEncoder {
 							println("repeat ended", s, lenght)
 
 						}
@@ -1084,7 +1084,7 @@ encodeLoop:
 	}
 	blk.recentOffsets[0] = uint32(offset1)
 	blk.recentOffsets[1] = uint32(offset2)
-	if debug {
+	if debugEncoder {
 		println("returning, recent offsets:", blk.recentOffsets, "extra literals:", blk.extraLits)
 	}
 }
