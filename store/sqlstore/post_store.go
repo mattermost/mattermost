@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -42,8 +43,34 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
+func postSliceColumnsWithTypes() []struct {
+	Name string
+	Type reflect.Kind
+} {
+	return []struct {
+		Name string
+		Type reflect.Kind
+	}{
+		{"Id", reflect.String},
+		{"CreateAt", reflect.Int64},
+		{"UpdateAt", reflect.Int64},
+		{"EditAt", reflect.Int64},
+		{"DeleteAt", reflect.Int64},
+		{"IsPinned", reflect.Bool},
+		{"UserId", reflect.String},
+		{"ChannelId", reflect.String},
+		{"RootId", reflect.String},
+		{"ParentId", reflect.String},
+		{"OriginalId", reflect.String},
+		{"Message", reflect.String},
+		{"Type", reflect.String},
+		{"Props", reflect.Map},
+		{"Hashtags", reflect.String},
+		{"Filenames", reflect.Slice},
+		{"FileIds", reflect.Slice},
+		{"HasReactions", reflect.Bool},
+		{"RemoteId", reflect.String},
+	}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -68,6 +95,37 @@ func postToSlice(post *model.Post) []interface{} {
 		post.HasReactions,
 		post.RemoteId,
 	}
+}
+
+func postSliceColumns() []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceCoalesceQuery() string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		var defaultValue string
+		switch colInfo.Type {
+		case reflect.String:
+			defaultValue = "''"
+		case reflect.Int64:
+			defaultValue = "0"
+		case reflect.Bool:
+			defaultValue = "false"
+		case reflect.Map:
+			defaultValue = "'{}'"
+		case reflect.Slice:
+			defaultValue = "'[]'"
+		}
+		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
+	}
+	return strings.Join(cols, ",")
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
@@ -1925,6 +1983,46 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	return posts, nil
+}
+
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Posts.Id").
+		From("Posts")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Posts",
+		TimeColumn:          "CreateAt",
+		PrimaryKeys:         []string{"Id"},
+		ChannelIDTable:      "Posts",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
+func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Posts WHERE Id IN (
+		SELECT * FROM (
+			SELECT Posts.Id FROM Posts
+			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
