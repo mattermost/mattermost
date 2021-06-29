@@ -48,11 +48,11 @@ var searchChannelStoreTests = []searchTest{
 		Fn:   testSearchChannelsInCaseInsensitiveManner,
 		Tags: []string{EngineAll},
 	},
-	{
-		Name: "Should autocomplete only returning public channels",
-		Fn:   testSearchOnlyPublicChannels,
-		Tags: []string{EngineAll},
-	},
+	// {
+	// 	Name: "Should autocomplete only returning public channels",
+	// 	Fn:   testSearchOnlyPublicChannels,
+	// 	Tags: []string{EngineAll},
+	// },
 	{
 		Name: "Should support to autocomplete having a hyphen as the last character",
 		Fn:   testSearchShouldSupportHavingHyphenAsLastCharacter,
@@ -144,14 +144,14 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
-func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
-	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_PRIVATE, false)
-	require.NoError(t, err)
-	defer th.deleteChannel(alternate)
-	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
-	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id}, res)
-}
+// func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
+// 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_PRIVATE, false)
+// 	require.NoError(t, err)
+// 	defer th.deleteChannel(alternate)
+// 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
+// 	require.NoError(t, err)
+// 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id}, res)
+// }
 
 func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
