@@ -1,5 +1,7 @@
 # PDF Reader
 
+[![Built with WeBuild](https://raw.githubusercontent.com/webuild-community/badge/master/svg/WeBuild.svg)](https://webuild.community)
+
 A simple Go library which enables reading PDF files. Forked from https://github.com/rsc/pdf
 
 Features
