@@ -143,7 +143,8 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 	res, err = th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChAnNeL-a", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	// should not work
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 // func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
