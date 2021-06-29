@@ -81,7 +81,8 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	// should not work
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
@@ -99,7 +100,8 @@ func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchT
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	// should not work
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
