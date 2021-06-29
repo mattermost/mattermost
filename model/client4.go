@@ -2959,7 +2959,7 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	return PostFromJson(r.Body), BuildResponse(r)
 }
 
-// GetPost gets a single post.
+// GetPosts gets multiple posts by ID.
 func (c *Client4) GetPosts(postIDs []string) ([]*Post, *Response) {
 	jsonIDs, _ := json.Marshal(postIDs)
 	r, err := c.DoApiPost(c.GetPostsByIDsRoute(), string(jsonIDs))
