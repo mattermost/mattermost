@@ -4,13 +4,11 @@
 package searchtest
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -50,11 +48,6 @@ var searchChannelStoreTests = []searchTest{
 		Fn:   testSearchChannelsInCaseInsensitiveManner,
 		Tags: []string{EngineAll},
 	},
-	// {
-	// 	Name: "Should autocomplete only returning public channels",
-	// 	Fn:   testSearchOnlyPublicChannels,
-	// 	Tags: []string{EngineAll},
-	// },
 	{
 		Name: "Should support to autocomplete having a hyphen as the last character",
 		Fn:   testSearchShouldSupportHavingHyphenAsLastCharacter,
@@ -83,10 +76,7 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
-	b, err := json.Marshal(res)
-	mlog.Debug("log testAutocompleteChannelByName", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("alternate.Id", alternate.Id))
-	// should not work
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
@@ -104,10 +94,7 @@ func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchT
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
 	require.NoError(t, err)
-	// should not work
-	b, err := json.Marshal(res)
-	mlog.Debug("log testAutocompleteChannelByNameSplittedWithDashChar", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("alternate.Id", alternate.Id))
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
@@ -137,8 +124,6 @@ func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper
 	defer th.deleteChannel(other)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "", false)
 	require.NoError(t, err)
-	b, err := json.Marshal(res)
-	mlog.Debug("log testAutocompleteAllChannelsIfTermIsEmpty", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("th.ChannelPrivate.Id", th.ChannelPrivate.Id), mlog.String("alternate.Id", alternate.Id), mlog.String("other.Id", other.Id))
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id, other.Id}, res)
 }
 
@@ -151,20 +136,8 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 	res, err = th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "ChAnNeL-a", false)
 	require.NoError(t, err)
-	// should not work
-	b, err := json.Marshal(res)
-	mlog.Debug("log testSearchChannelsInCaseInsensitiveManner", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("alternate.Id", alternate.Id))
-	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
-
-// func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
-// 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_PRIVATE, false)
-// 	require.NoError(t, err)
-// 	defer th.deleteChannel(alternate)
-// 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-a", false)
-// 	require.NoError(t, err)
-// 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id}, res)
-// }
 
 func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "ChannelAlternate", "", model.CHANNEL_OPEN, false)
@@ -172,15 +145,11 @@ func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *Search
 	defer th.deleteChannel(alternate)
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", false)
 	require.NoError(t, err)
-	b, err := json.Marshal(res)
-	mlog.Debug("log testSearchShouldSupportHavingHyphenAsLastCharacter", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("th.ChannelPrivate.Id", th.ChannelPrivate.Id), mlog.String("alternate.Id", alternate.Id))
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, alternate.Id}, res)
 }
 
 func testSearchShouldSupportAutocompleteWithArchivedChannels(t *testing.T, th *SearchTestHelper) {
 	res, err := th.Store.Channel().AutocompleteInTeam(th.Team.Id, th.User.Id, "channel-", true)
 	require.NoError(t, err)
-	b, err := json.Marshal(res)
-	mlog.Debug("log testSearchShouldSupportAutocompleteWithArchivedChannels", mlog.String("res", string(b)), mlog.String("th.ChannelBasic.Id", th.ChannelBasic.Id), mlog.String("th.ChannelPrivate.Id", th.ChannelPrivate.Id), mlog.String("th.ChannelDeleted.Id", th.ChannelDeleted.Id))
 	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelPrivate.Id, th.ChannelDeleted.Id}, res)
 }
