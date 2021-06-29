@@ -9225,5 +9225,25 @@
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Списъкът на администраторите е празен."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Членството на потребител в разговор не съществува"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Неуспешно получаване членството на потребител в разговор"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Този лицензен ключ за пробен период на Mattermost Enterprise Edition е изтекъл и вече не е валиден. Ако желаете да удължите пробния си период, моля [свържете се с нашия екип по продажбите](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Не може да се провери възможността за започване на пробна версия"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Задачата по запазване на данни е неуспешна."
   }
 ]

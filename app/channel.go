@@ -2503,7 +2503,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		if threadMembership == nil {
 			opts := store.ThreadMembershipOpts{
 				Following:             followThread,
-				IncrementMentions:     true,
+				IncrementMentions:     false,
 				UpdateFollowing:       true,
 				UpdateViewedTimestamp: true,
 				UpdateParticipants:    false,
