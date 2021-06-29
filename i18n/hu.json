@@ -4401,7 +4401,7 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "[További információ a Mattermost Tanácsadóról](https://about.mattermost.com/default-channel-handle-documentation)"
+    "translation": "[További információk a Mattermost Advisor-ról](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -8582,7 +8582,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [channel handle](https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "Nem található a megadott csatorna. A csatornák azonosításához használja a [csatorna kezelőt](https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_mute.name",
@@ -9241,5 +9241,9 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Nem ellenőrizhető, hogy a próba időszak indítható-e"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Adat megőrzési feladat hibára futott."
   }
 ]

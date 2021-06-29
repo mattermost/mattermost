@@ -6991,6 +6991,10 @@
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },

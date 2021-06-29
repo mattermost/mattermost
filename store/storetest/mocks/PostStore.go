@@ -102,6 +102,27 @@ func (_m *PostStore) Delete(postID string, time int64, deleteByID string) error 
 	return r0
 }
 
+// DeleteOrphanedRows provides a mock function with given fields: limit
+func (_m *PostStore) DeleteOrphanedRows(limit int) (int64, error) {
+	ret := _m.Called(limit)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int) int64); ok {
+		r0 = rf(limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID
 func (_m *PostStore) Get(ctx context.Context, id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool, userID string) (*model.PostList, error) {
 	ret := _m.Called(ctx, id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended, userID)
@@ -712,6 +733,34 @@ func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, er
 	}
 
 	return r0, r1
+}
+
+// PermanentDeleteBatchForRetentionPolicies provides a mock function with given fields: now, globalPolicyEndTime, limit, cursor
+func (_m *PostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalPolicyEndTime int64, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	ret := _m.Called(now, globalPolicyEndTime, limit, cursor)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64, int64, int64, model.RetentionPolicyCursor) int64); ok {
+		r0 = rf(now, globalPolicyEndTime, limit, cursor)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 model.RetentionPolicyCursor
+	if rf, ok := ret.Get(1).(func(int64, int64, int64, model.RetentionPolicyCursor) model.RetentionPolicyCursor); ok {
+		r1 = rf(now, globalPolicyEndTime, limit, cursor)
+	} else {
+		r1 = ret.Get(1).(model.RetentionPolicyCursor)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(int64, int64, int64, model.RetentionPolicyCursor) error); ok {
+		r2 = rf(now, globalPolicyEndTime, limit, cursor)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // PermanentDeleteByChannel provides a mock function with given fields: channelID

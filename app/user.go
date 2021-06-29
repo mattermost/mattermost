@@ -2228,14 +2228,17 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	thread, err := a.Srv().Store.Thread().Get(threadID)
-
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	replyCount := int64(0)
+	if thread != nil {
+		replyCount = thread.ReplyCount
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
-	message.Add("reply_count", thread.ReplyCount)
+	message.Add("reply_count", replyCount)
 	a.Publish(message)
 	return nil
 }
@@ -2245,10 +2248,16 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	if err != nil {
 		return nil, err
 	}
-	membership, nErr := a.Srv().Store.Thread().GetMembershipForUser(userID, threadID)
-	if nErr != nil {
-		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+
+	opts := store.ThreadMembershipOpts{
+		Following:       true,
+		UpdateFollowing: false,
 	}
+	membership, storeErr := a.Srv().Store.Thread().MaintainMembership(userID, threadID, opts)
+	if storeErr != nil {
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	post, err := a.GetSinglePost(threadID)
 	if err != nil {
 		return nil, err
@@ -2258,9 +2267,9 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 		return nil, err
 	}
 	membership.Following = true
-	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
+	_, nErr := a.Srv().Store.Thread().UpdateMembership(membership)
 	if nErr != nil {
-		return nil, model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	membership.LastViewed = timestamp
