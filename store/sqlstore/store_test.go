@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"regexp"
@@ -21,7 +20,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/shared/driver"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchtest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
@@ -94,47 +92,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 			}
 			f(t, st.Store, st.SqlStore)
 		})
-	}
-}
-
-func TestDBConnector(t *testing.T) {
-	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
-	}
-
-	for _, dr := range testDrivers {
-		settings := makeSqlSettings(dr)
-
-		store := &SqlStore{
-			settings: settings,
-		}
-		connector, err := driver.NewConnector(*settings.DriverName, *settings.DataSource)
-		require.NoError(t, err)
-		db := sql.OpenDB(connector)
-
-		store.master = getDBMap(settings, db)
-		store.stores.post = newSqlPostStore(store, nil)
-		store.stores.channel = newSqlChannelStore(store, nil)
-		store.stores.team = newSqlTeamStore(store)
-		store.stores.thread = newSqlThreadStore(store)
-		store.stores.user = newSqlUserStore(store, nil)
-		store.stores.preference = newSqlPreferenceStore(store)
-		store.stores.bot = newSqlBotStore(store, nil)
-		store.stores.scheme = newSqlSchemeStore(store)
-		err = store.GetMaster().CreateTablesIfNotExists()
-		require.NoError(t, err)
-
-		store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
-		store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
-
-		t.Run(dr, func(t *testing.T) {
-			// Just testing post store for now.
-			// This will eventually go away when it is replaced with RPC.
-			storetest.TestPostStore(t, store, store)
-		})
-
-		store.Close()
 	}
 }
 

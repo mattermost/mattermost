@@ -70,9 +70,6 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	err := th.App.RevokeAccessToken(model.NewRandomString(16))
-	require.NotNil(t, err, "Should have failed bad token")
-
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
@@ -80,22 +77,12 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.Roles = model.SYSTEM_USER_ROLE_ID
 	th.App.SetSessionExpireInDays(session, 1)
 
-	session, _ = th.App.CreateSession(session)
+	var err *model.AppError
+	session, err = th.App.CreateSession(session)
+	require.Nil(t, err)
 	err = th.App.RevokeAccessToken(session.Token)
 	require.NotNil(t, err, "Should have failed does not have an access token")
-
-	accessData := &model.AccessData{}
-	accessData.Token = session.Token
-	accessData.UserId = session.UserId
-	accessData.RedirectUri = "http://example.com"
-	accessData.ClientId = model.NewId()
-	accessData.ExpiresAt = session.ExpiresAt
-
-	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
-	require.NoError(t, nErr)
-
-	err = th.App.RevokeAccessToken(accessData.Token)
-	require.Nil(t, err)
+	require.Equal(t, http.StatusBadRequest, err.StatusCode)
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
@@ -120,7 +107,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.Token = model.NewId()
 	session.Roles = model.SYSTEM_USER_ROLE_ID
 	session.IsOAuth = true
-	th.App.SetSessionExpireInDays(session, 1)
+	th.App.srv.userService.SetSessionExpireInDays(session, 1)
 
 	session, _ = th.App.CreateSession(session)
 

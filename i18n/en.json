@@ -1977,6 +1977,14 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Could not check if a trial can be started"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "This trial license key for Mattermost Enterprise Edition has expired and is no longer valid. If you would like to extend your trial period please [contact our sales team](https://mattermost.com/contact-us/)."
+  },
+  {
     "id": "api.license.request_renewal_link.app_error",
     "translation": "Error getting the license renewal link"
   },
@@ -6949,6 +6957,10 @@
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Data retention job failed."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",

@@ -1509,6 +1509,36 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_SetUserStatusTimedDNDArgs struct {
+	A string
+	B int64
+}
+
+type Z_SetUserStatusTimedDNDReturns struct {
+	A *model.Status
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	_args := &Z_SetUserStatusTimedDNDArgs{userId, endtime}
+	_returns := &Z_SetUserStatusTimedDNDReturns{}
+	if err := g.client.Call("Plugin.SetUserStatusTimedDND", _args, _returns); err != nil {
+		log.Printf("RPC call to SetUserStatusTimedDND API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SetUserStatusTimedDND(args *Z_SetUserStatusTimedDNDArgs, returns *Z_SetUserStatusTimedDNDReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SetUserStatusTimedDND(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetUserStatusTimedDND called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateUserActiveArgs struct {
 	A string
 	B bool
@@ -2457,6 +2487,98 @@ func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_Sea
 		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API SearchChannels called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateChannelSidebarCategoryArgs struct {
+	A string
+	B string
+	C *model.SidebarCategoryWithChannels
+}
+
+type Z_CreateChannelSidebarCategoryReturns struct {
+	A *model.SidebarCategoryWithChannels
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	_args := &Z_CreateChannelSidebarCategoryArgs{userID, teamID, newCategory}
+	_returns := &Z_CreateChannelSidebarCategoryReturns{}
+	if err := g.client.Call("Plugin.CreateChannelSidebarCategory", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateChannelSidebarCategory API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateChannelSidebarCategory(args *Z_CreateChannelSidebarCategoryArgs, returns *Z_CreateChannelSidebarCategoryReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateChannelSidebarCategory(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CreateChannelSidebarCategory called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelSidebarCategoriesArgs struct {
+	A string
+	B string
+}
+
+type Z_GetChannelSidebarCategoriesReturns struct {
+	A *model.OrderedSidebarCategories
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	_args := &Z_GetChannelSidebarCategoriesArgs{userID, teamID}
+	_returns := &Z_GetChannelSidebarCategoriesReturns{}
+	if err := g.client.Call("Plugin.GetChannelSidebarCategories", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelSidebarCategories API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelSidebarCategories(args *Z_GetChannelSidebarCategoriesArgs, returns *Z_GetChannelSidebarCategoriesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelSidebarCategories(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelSidebarCategories called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateChannelSidebarCategoriesArgs struct {
+	A string
+	B string
+	C []*model.SidebarCategoryWithChannels
+}
+
+type Z_UpdateChannelSidebarCategoriesReturns struct {
+	A []*model.SidebarCategoryWithChannels
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	_args := &Z_UpdateChannelSidebarCategoriesArgs{userID, teamID, categories}
+	_returns := &Z_UpdateChannelSidebarCategoriesReturns{}
+	if err := g.client.Call("Plugin.UpdateChannelSidebarCategories", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateChannelSidebarCategories API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateChannelSidebarCategories(args *Z_UpdateChannelSidebarCategoriesArgs, returns *Z_UpdateChannelSidebarCategoriesReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateChannelSidebarCategories(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateChannelSidebarCategories called but not implemented."))
 	}
 	return nil
 }

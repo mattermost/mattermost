@@ -266,6 +266,13 @@ func (api *apiTimerLayer) UpdateUserStatus(userID, status string) (*model.Status
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) SetUserStatusTimedDND(userId string, endtime int64) (*model.Status, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SetUserStatusTimedDND(userId, endtime)
+	api.recordTime(startTime, "SetUserStatusTimedDND", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) UpdateUserActive(userID string, active bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UpdateUserActive(userID, active)
@@ -487,6 +494,27 @@ func (api *apiTimerLayer) SearchChannels(teamID string, term string) ([]*model.C
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SearchChannels(teamID, term)
 	api.recordTime(startTime, "SearchChannels", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateChannelSidebarCategory(userID, teamID, newCategory)
+	api.recordTime(startTime, "CreateChannelSidebarCategory", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetChannelSidebarCategories(userID, teamID)
+	api.recordTime(startTime, "GetChannelSidebarCategories", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateChannelSidebarCategories(userID, teamID, categories)
+	api.recordTime(startTime, "UpdateChannelSidebarCategories", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

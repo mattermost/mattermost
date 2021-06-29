@@ -317,6 +317,14 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	return api.app.GetStatus(userID)
 }
 
+func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*model.Status, *model.AppError) {
+	// read-after-write bug which will fail if there are replicas.
+	// it works for now because we have a cache in between.
+	// FIXME: make SetStatusDoNotDisturbTimed return updated status
+	api.app.SetStatusDoNotDisturbTimed(userID, endTime)
+	return api.app.GetStatus(userID)
+}
+
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.CHANNEL_SORT_BY_USERNAME:
@@ -429,6 +437,18 @@ func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Chann
 		return nil, err
 	}
 	return *channels, err
+}
+
+func (api *PluginAPI) CreateChannelSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.CreateSidebarCategory(userID, teamID, newCategory)
+}
+
+func (api *PluginAPI) GetChannelSidebarCategories(userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return api.app.GetSidebarCategories(userID, teamID)
+}
+
+func (api *PluginAPI) UpdateChannelSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	return api.app.UpdateSidebarCategories(userID, teamID, categories)
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
