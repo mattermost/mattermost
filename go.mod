@@ -96,7 +96,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.29.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.3.0 // indirect
@@ -123,6 +122,7 @@ require (
 	github.com/wiggin77/srslog v1.0.1
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
+	github.com/yuin/goldmark v1.3.8
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.opentelemetry.io/otel/internal/metric v0.21.0 // indirect
 	go.uber.org/atomic v1.8.0 // indirect

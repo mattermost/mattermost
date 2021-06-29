@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP sunucusu zorunludur"
+    "translation": "SMTP sunucusunun yazılması zorunludur"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -97,11 +97,11 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-posta Ayarları Sınanıyor"
+    "translation": "Mattermost - E-posta ayarları sınanıyor"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Klasörü zorunludur"
+    "translation": "S3 klasörünün yazılması zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -9241,5 +9241,9 @@
   {
     "id": "api.license.request-trial.can-start-trial.error",
     "translation": "Deneme süresi başlatılmış mı öğrenilemedi"
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Veri saklama görevi yürütülemedi."
   }
 ]
