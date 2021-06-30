@@ -765,23 +765,27 @@ func (es *EmailService) InvalidateVerifyEmailTokensForUser(userID string) *model
 		return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	var appErr *model.AppError = nil
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string
 			Email  string
 		}{}
 		if err := json.Unmarshal([]byte(token.Extra), &tokenExtra); err != nil {
-			return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_parse.error", nil, err.Error(), http.StatusInternalServerError)
+			appErr = model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_parse.error", nil, err.Error(), http.StatusInternalServerError)
+			continue
 		}
 
-		if tokenExtra.UserId == userID {
-			if err := es.srv.Store.Token().Delete(token.Token); err != nil {
-				return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_delete.error", nil, err.Error(), http.StatusInternalServerError)
-			}
+		if tokenExtra.UserId != userID {
+			continue
+		}
+
+		if err := es.srv.Store.Token().Delete(token.Token); err != nil {
+			appErr = model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_delete.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	return nil
+	return appErr
 }
 
 func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {

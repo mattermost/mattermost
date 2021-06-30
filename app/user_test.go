@@ -500,10 +500,13 @@ func TestUpdateUserEmail(t *testing.T) {
 		_, appErr := th.App.UpdateUser(user, true)
 		require.Nil(t, appErr)
 
-		time.Sleep(100 * time.Millisecond) // token is created in a different goroutine
-		tokens, err := th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
-		require.Nil(t, err)
-		require.Len(t, tokens, 1)
+		tokens := []*model.Token{}
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100 * time.Millisecond, 10 * time.Millisecond)
+
 		firstToken := tokens[0]
 
 		// without using the first token, we update the email a second
@@ -513,13 +516,14 @@ func TestUpdateUserEmail(t *testing.T) {
 		_, appErr = th.App.UpdateUser(user, true)
 		require.Nil(t, appErr)
 
-		time.Sleep(100 * time.Millisecond) // token is created in a different goroutine
-		tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
-		require.Nil(t, err)
-		require.Len(t, tokens, 1)
+		require.Eventually(t, func() bool {
+			var err error
+			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			return err == nil && len(tokens) == 1
+		}, 100 * time.Millisecond, 10 * time.Millisecond)
 		secondToken := tokens[0]
 
-		_, err = th.App.Srv().Store.Token().GetByToken(firstToken.Token)
+		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
 		require.Error(t, err)
 
 		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
