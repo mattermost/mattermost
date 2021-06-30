@@ -419,7 +419,7 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 
 func looksLikeAPermalink(url, siteURL string) bool {
 	expression := fmt.Sprintf(`^(%s).*(/pl/)[a-z0-9]{26}$`, siteURL)
-	matched, err := regexp.MatchString(expression, url)
+	matched, err := regexp.MatchString(expression, strings.TrimSpace(url))
 	if err != nil {
 		mlog.Warn("error matching regex", mlog.Err(err))
 	}

@@ -2316,3 +2316,33 @@ func TestParseImages(t *testing.T) {
 		})
 	}
 }
+
+func TestLooksLikeAPermalink(t *testing.T) {
+	const siteURLWithSubpath = "http://localhost:8065/foo"
+	const siteURLWithTrailingSlash = "http://test.com/"
+	const siteURL = "http://test.com"
+	tests := map[string]struct {
+		input   string
+		siteURL string
+		expect  bool
+	}{
+		"happy path":                       {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
+		"looks nothing like a permalink":   {input: "foobar", siteURL: siteURLWithSubpath, expect: false},
+		"link has no subpath":              {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost:8065"), siteURL: siteURLWithSubpath, expect: false},
+		"without port":                     {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost/foo"), siteURL: siteURLWithSubpath, expect: false},
+		"wrong port":                       {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost:8066"), siteURL: siteURLWithSubpath, expect: false},
+		"invalid post ID length":           {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: false},
+		"invalid post ID character":        {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8$fbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: false},
+		"leading whitespace":               {input: fmt.Sprintf(" %s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
+		"trailing whitespace":              {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r ", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
+		"siteURL without a subpath":        {input: fmt.Sprintf("%sprivate-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithTrailingSlash), siteURL: siteURLWithTrailingSlash, expect: true},
+		"siteURL without a trailing slash": {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURL), siteURL: siteURL, expect: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			actual := looksLikeAPermalink(tc.input, tc.siteURL)
+			assert.Equal(t, tc.expect, actual)
+		})
+	}
+}
