@@ -546,6 +546,38 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Nil(t, clientPost.Metadata.Reactions, "should not have populated Reactions")
 		assert.Nil(t, clientPost.Metadata.Files, "should not have populated Files")
 	})
+
+	t.Run("permalink preview", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   link,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		clientPost := th.App.PreparePostForClient(previewPost, false, false, th.BasicUser.Id)
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		preview := firstEmbed.Data.(*model.PreviewPost)
+		require.Equal(t, referencedPost.Id, preview.Id)
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
