@@ -21,6 +21,14 @@ import (
 
 // CreateBot creates the given bot and corresponding user.
 func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
+
+	if vErr := bot.IsValid(); vErr != nil {
+		var botAppErr *model.AppError
+		if errors.As(vErr, &botAppErr); botAppErr.Id != "model.bot.is_valid.user_id.app_error"{
+				return nil, vErr
+		}
+	}
+
 	user, nErr := a.Srv().Store.User().Save(model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
