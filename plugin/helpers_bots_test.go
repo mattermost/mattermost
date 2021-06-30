@@ -560,4 +560,20 @@ func TestShouldProcessMessage(t *testing.T) {
 		assert.True(t, shouldProcessMessage)
 	})
 
+	t.Run("should process the message when we pass the botId as input", func(t *testing.T) {
+		userID := "user-id"
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("GetUser", userID).Return(&model.User{IsBot: false}, nil)
+
+		// we should skip the store Get
+		api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, UserId: userID}, plugin.BotID(expectedBotID))
+		assert.NoError(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
 }

@@ -42,7 +42,6 @@ func (es SqlEmojiStore) createIndexesIfNotExists() {
 	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
 	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
 	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")
-	es.CreateIndexIfNotExists("idx_emoji_name", "Emoji", "Name")
 }
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {

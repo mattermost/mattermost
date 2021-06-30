@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/shared/mail"
 )
 
 func TestCondenseSiteURL(t *testing.T) {
@@ -145,15 +145,15 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	emailTo := "test@example.com"
-	mailservice.DeleteMailBox(emailTo)
+	mail.DeleteMailBox(emailTo)
 
 	appErr := th.App.Srv().EmailService.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver")
 	require.Nil(t, appErr)
 
-	var resultsMailbox mailservice.JSONMessageHeaderInbucket
-	err2 := mailservice.RetryInbucket(5, func() error {
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err2 := mail.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = mailservice.GetMailBox(emailTo)
+		resultsMailbox, err = mail.GetMailBox(emailTo)
 		return err
 	})
 	if err2 != nil {
@@ -162,7 +162,7 @@ func TestSendInviteEmails(t *testing.T) {
 	} else if len(resultsMailbox) > 0 {
 		require.Len(t, resultsMailbox, 1)
 		require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-		resultsEmail, err := mailservice.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+		resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 		require.NoError(t, err, "Could not get message from mailbox")
 		require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
 		require.Contains(t, resultsEmail.Body.HTML, "test-user", "Wrong received message %s", resultsEmail.Body.Text)

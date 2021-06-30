@@ -23,6 +23,10 @@ const (
 )
 
 func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
+	return a.Srv().downloadFromURL(downloadURL)
+}
+
+func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 	if !model.IsValidHttpUrl(downloadURL) {
 		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
@@ -31,11 +35,11 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Errorf("failed to parse url %s", downloadURL)
 	}
-	if !*a.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
+	if !*s.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
-	client := a.HTTPService().MakeClient(true)
+	client := s.HTTPService.MakeClient(true)
 	client.Timeout = HTTPRequestTimeout
 
 	var resp *http.Response

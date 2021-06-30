@@ -195,6 +195,11 @@ func GetMillisForTime(thisTime time.Time) int64 {
 	return thisTime.UnixNano() / int64(time.Millisecond)
 }
 
+// GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
+func GetTimeForMillis(millis int64) time.Time {
+	return time.Unix(0, millis*int64(time.Millisecond))
+}
+
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
 func PadDateStringZeros(dateString string) string {
 	parts := strings.Split(dateString, "-")
@@ -325,6 +330,12 @@ func StringFromJson(data io.Reader) string {
 	return s
 }
 
+// ToJson serializes an arbitrary data type to JSON, discarding the error.
+func ToJson(v interface{}) []byte {
+	b, _ := json.Marshal(v)
+	return b
+}
+
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
@@ -425,6 +436,12 @@ func IsValidAlphaNumHyphenUnderscore(s string, withFormat bool) bool {
 
 	validSimpleAlphaNumHyphenUnderscore := regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`)
 	return validSimpleAlphaNumHyphenUnderscore.MatchString(s)
+}
+
+func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
+
+	validSimpleAlphaNumHyphenUnderscorePlus := regexp.MustCompile(`^[a-zA-Z0-9+_-]+$`)
+	return validSimpleAlphaNumHyphenUnderscorePlus.MatchString(s)
 }
 
 func Etag(parts ...interface{}) string {
@@ -691,4 +708,19 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
+}
+
+// UniqueStrings returns a unique subset of the string slice provided.
+func UniqueStrings(input []string) []string {
+	u := make([]string, 0, len(input))
+	m := make(map[string]bool)
+
+	for _, val := range input {
+		if _, ok := m[val]; !ok {
+			m[val] = true
+			u = append(u, val)
+		}
+	}
+
+	return u
 }

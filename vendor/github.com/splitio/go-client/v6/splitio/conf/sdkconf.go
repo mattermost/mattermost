@@ -67,6 +67,7 @@ type TaskPeriods struct {
 	CounterSync    int
 	LatencySync    int
 	EventsSync     int
+	TelemetrySync  int
 }
 
 // AdvancedConfig exposes more configurable parameters that can be used to further tailor the sdk to the user's needs
@@ -83,6 +84,7 @@ type AdvancedConfig struct {
 	SdkURL               string
 	EventsURL            string
 	StreamingServiceURL  string
+	TelemetryServiceURL  string
 	EventsBulkSize       int64
 	EventsQueueSize      int
 	ImpressionsQueueSize int
@@ -126,9 +128,10 @@ func Default() *SplitSdkConfig {
 			Prefix:   "",
 		},
 		TaskPeriods: TaskPeriods{
-			GaugeSync:      defaultTaskPeriod,
-			CounterSync:    defaultTaskPeriod,
-			LatencySync:    defaultTaskPeriod,
+			GaugeSync:      defaultTelemetrySync,
+			CounterSync:    defaultTelemetrySync,
+			LatencySync:    defaultTelemetrySync,
+			TelemetrySync:  defaultTelemetrySync,
 			ImpressionSync: defaultImpressionSyncOptimized,
 			SegmentSync:    defaultTaskPeriod,
 			SplitSync:      defaultTaskPeriod,
@@ -139,6 +142,7 @@ func Default() *SplitSdkConfig {
 			EventsURL:            "",
 			SdkURL:               "",
 			StreamingServiceURL:  "",
+			TelemetryServiceURL:  "",
 			HTTPTimeout:          0,
 			ImpressionListener:   nil,
 			SegmentQueueSize:     500,
@@ -203,14 +207,8 @@ func validConfigRates(cfg *SplitSdkConfig) error {
 	if cfg.TaskPeriods.EventsSync < minEventSync {
 		return fmt.Errorf("EventsSync must be >= %d. Actual is: %d", minEventSync, cfg.TaskPeriods.EventsSync)
 	}
-	if cfg.TaskPeriods.LatencySync < minTelemetrySync {
-		return fmt.Errorf("LatencySync must be >= %d. Actual is: %d", minTelemetrySync, cfg.TaskPeriods.LatencySync)
-	}
-	if cfg.TaskPeriods.GaugeSync < minTelemetrySync {
-		return fmt.Errorf("GaugeSync must be >= %d. Actual is: %d", minTelemetrySync, cfg.TaskPeriods.GaugeSync)
-	}
-	if cfg.TaskPeriods.CounterSync < minTelemetrySync {
-		return fmt.Errorf("CounterSync must be >= %d. Actual is: %d", minTelemetrySync, cfg.TaskPeriods.CounterSync)
+	if cfg.TaskPeriods.TelemetrySync < minTelemetrySync {
+		return fmt.Errorf("TelemetrySync must be >= %d. Actual is: %d", minTelemetrySync, cfg.TaskPeriods.TelemetrySync)
 	}
 	if cfg.Advanced.SegmentWorkers <= 0 {
 		return errors.New("Number of workers for fetching segments MUST be greater than zero")
@@ -248,6 +246,7 @@ func Normalize(apikey string, cfg *SplitSdkConfig) error {
 		cfg.Advanced.SdkURL = cfg.SplitSyncProxyURL
 		cfg.Advanced.EventsURL = cfg.SplitSyncProxyURL
 		cfg.Advanced.StreamingServiceURL = cfg.SplitSyncProxyURL
+		cfg.Advanced.TelemetryServiceURL = cfg.SplitSyncProxyURL
 	}
 
 	if !cfg.IPAddressesEnabled {

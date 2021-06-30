@@ -10,10 +10,11 @@ import (
 
 // SplitManager provides information of the currently stored splits
 type SplitManager struct {
-	splitStorage storage.SplitStorageConsumer
-	validator    inputValidation
-	logger       logging.LoggerInterface
-	factory      *SplitFactory
+	splitStorage  storage.SplitStorageConsumer
+	validator     inputValidation
+	logger        logging.LoggerInterface
+	factory       *SplitFactory
+	initTelemetry storage.TelemetryConfigProducer
 }
 
 // SplitView is a partial representation of a currently stored split
@@ -51,7 +52,8 @@ func (m *SplitManager) SplitNames() []string {
 	}
 
 	if !m.isReady() {
-		m.logger.Warning("splitNames: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.logger.Warning("SplitNames: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.initTelemetry.RecordNonReadyUsage()
 	}
 
 	return m.splitStorage.SplitNames()
@@ -65,7 +67,8 @@ func (m *SplitManager) Splits() []SplitView {
 	}
 
 	if !m.isReady() {
-		m.logger.Warning("splits: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.logger.Warning("Splits: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.initTelemetry.RecordNonReadyUsage()
 	}
 
 	splitViews := make([]SplitView, 0)
@@ -84,7 +87,8 @@ func (m *SplitManager) Split(feature string) *SplitView {
 	}
 
 	if !m.isReady() {
-		m.logger.Warning("split: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.logger.Warning("Split: the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
+		m.initTelemetry.RecordNonReadyUsage()
 	}
 
 	err := m.validator.ValidateManagerInputs(feature)

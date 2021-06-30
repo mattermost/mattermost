@@ -30,7 +30,6 @@ type Client interface {
 type HTTPClient struct {
 	url        string
 	httpClient *http.Client
-	headers    map[string]string
 	logger     logging.LoggerInterface
 	apikey     string
 	metadata   dtos.Metadata
@@ -44,8 +43,7 @@ func NewHTTPClient(
 	logger logging.LoggerInterface,
 	metadata dtos.Metadata,
 ) Client {
-	var timeout int
-	timeout = cfg.HTTPTimeout
+	timeout := cfg.HTTPTimeout
 	client := &http.Client{Timeout: time.Duration(timeout) * time.Second}
 	return &HTTPClient{
 		url:        endpoint,
@@ -66,11 +64,9 @@ func (c *HTTPClient) Get(service string, headers map[string]string) ([]byte, err
 	c.logger.Debug("Authorization [ApiKey]: ", logging.ObfuscateAPIKey(authorization))
 	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("SplitSDKVersion", c.metadata.SDKVersion)
-	req.Header.Add("SplitSDKMachineName", c.metadata.MachineName)
-	req.Header.Add("SplitSDKMachineIP", c.metadata.MachineIP)
+	parsedHeaders := AddMetadataToHeaders(c.metadata, headers, nil)
 
-	for headerName, headerValue := range headers {
+	for headerName, headerValue := range parsedHeaders {
 		req.Header.Add(headerName, headerValue)
 	}
 

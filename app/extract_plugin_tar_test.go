@@ -72,6 +72,24 @@ func TestExtractTarGz(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("huge tar", func(t *testing.T) {
+		files := make([]*tar.Header, 0, 10000)
+		for i := 0; i < 10000; i++ {
+			files = append(files, &tar.Header{
+				Name:     fmt.Sprintf("%d.txt", i),
+				Typeflag: tar.TypeReg,
+			})
+		}
+
+		dst, err := ioutil.TempDir("", "TestExtractTarGz")
+		require.NoError(t, err)
+		defer os.RemoveAll(dst)
+
+		archive := makeArchive(t, files)
+		err = extractTarGz(&archive, dst)
+		require.NoError(t, err)
+	})
+
 	testCases := []struct {
 		Files         []*tar.Header
 		ExpectedError bool
