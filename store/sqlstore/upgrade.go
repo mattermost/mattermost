@@ -1311,6 +1311,15 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
 	sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
+	disableThemeSync := `
+		INSERT INTO preferences (userid, category, name, value)
+		SELECT userid, '` + model.PreferenceCategoryDisableThemeSync + `', name, 'true'
+		FROM preferences
+		WHERE category = 'theme'
+		`
+	if _, err := sqlStore.GetMaster().ExecNoTimeout(disableThemeSync); err != nil {
+		mlog.Error("Error inserting "+model.PreferenceCategoryDisableThemeSync+" preferences", mlog.Err(err))
+	}
 	// saveSchemaVersion(sqlStore, Version600)
 	// }
 }

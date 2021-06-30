@@ -30,7 +30,9 @@ const (
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
 
-	PreferenceCategoryTheme = "theme"
+	PreferenceCategoryTheme            = "theme"
+	PreferenceCategoryThemeDark        = "theme_dark"
+	PreferenceCategoryDisableThemeSync = "disable_theme_sync"
 	// the name for theme props is the team id
 
 	PreferenceCategoryAuthorizedOAuthApp = "oauth_app"
@@ -93,7 +95,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 	}
 
-	if o.Category == PreferenceCategoryTheme {
+	if o.Category == PreferenceCategoryTheme || o.Category == PreferenceCategoryThemeDark {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
@@ -104,7 +106,7 @@ func (o *Preference) IsValid() *AppError {
 }
 
 func (o *Preference) PreUpdate() {
-	if o.Category == PreferenceCategoryTheme {
+	if o.Category == PreferenceCategoryTheme || o.Category == PreferenceCategoryThemeDark {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
@@ -116,7 +118,7 @@ func (o *Preference) PreUpdate() {
 
 		// blank out any invalid theme values
 		for name, value := range props {
-			if name == "image" || name == "type" || name == "codeTheme" {
+			if name == "image" || name == "type" || name == "codeTheme" || name == "colorScheme" {
 				continue
 			}
 
