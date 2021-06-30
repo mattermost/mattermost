@@ -505,7 +505,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			var err error
 			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
 			return err == nil && len(tokens) == 1
-		}, 100 * time.Millisecond, 10 * time.Millisecond)
+		}, 100*time.Millisecond, 10*time.Millisecond)
 
 		firstToken := tokens[0]
 
@@ -520,7 +520,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			var err error
 			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
 			return err == nil && len(tokens) == 1
-		}, 100 * time.Millisecond, 10 * time.Millisecond)
+		}, 100*time.Millisecond, 10*time.Millisecond)
 		secondToken := tokens[0]
 
 		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
