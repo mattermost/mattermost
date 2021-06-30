@@ -91,8 +91,6 @@ github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad h1:gyzOmx++wVk
 github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad/go.mod h1:f3HCSN1fBWjcpGtXyM119MJgeQl838v6so/PQOqvE1w=
 github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627 h1:Z5Cd4rshcYMKhKuGaVeSaJ4sAiLHzB5YXF10+TvJDU4=
 github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627/go.mod h1:4M/YtupetXsgPzt5YlR87whvFSHtYj1eBFUgcXiwrOY=
-github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745 h1:K5MCP8PQt50Tqkcdtgg7jhYwo6VBJWMKUmgqbXdu7WE=
-github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745/go.mod h1:eRIEzSVYGdp3PyjpBJPBPMo4LSeFUlpPjByDCzMRrtw=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
@@ -590,7 +588,6 @@ github.com/klauspost/compress v1.4.1/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0
 github.com/klauspost/compress v1.8.2/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.9.7/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.10.10/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
-github.com/klauspost/compress v1.10.11/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
 github.com/klauspost/compress v1.13.1 h1:wXr2uRxZTJXHLly6qhJabee5JqIhTRoLBhDOA74hDEQ=
 github.com/klauspost/compress v1.13.1/go.mod h1:8dP1Hq4DHOhN9w426knH3Rhby4rFm6D8eO+e+Dq5Gzg=
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
@@ -651,6 +648,8 @@ github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3 h1:VW5cRIZheMbcC
 github.com/mattermost/gorp v1.6.2-0.20210419141818-0904a6a388d3/go.mod h1:QCQ3U0M9T/BlAdjKFJo0I1oe/YAgbyjNdhU8bpOLafk=
 github.com/mattermost/gosaml2 v0.3.3 h1:ysWrjp08tpWmo6rV2MQ88Eag/Ttjuj91fZsvibF4/Tg=
 github.com/mattermost/gosaml2 v0.3.3/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
+github.com/mattermost/gziphandler v0.0.1 h1:uXHcXF5agnQ6bXabvpiwwwZOlCYoa7mKHH0lxns/o8w=
+github.com/mattermost/gziphandler v0.0.1/go.mod h1:CvvZR7sXqhj81V2swXuQY7T04Ccc89u7W7pHNPKev8g=
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ0KNm4yZxxFvC1nvRz/gY/Daa35aI=
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
 github.com/mattermost/logr v1.0.13 h1:6F/fM3csvH6Oy5sUpJuW7YyZSzZZAhJm5VcgKMxA2P8=
