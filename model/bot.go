@@ -67,10 +67,6 @@ func (b *Bot) Clone() *Bot {
 
 // IsValid validates the bot and returns an error if it isn't configured correctly.
 func (b *Bot) IsValid() *AppError {
-	if !IsValidId(b.UserId) {
-		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
-	}
-
 	if !IsValidUsername(b.Username) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -81,6 +77,10 @@ func (b *Bot) IsValid() *AppError {
 
 	if utf8.RuneCountInString(b.Description) > BOT_DESCRIPTION_MAX_RUNES {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(b.UserId) {
+		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
 	if b.OwnerId == "" || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
